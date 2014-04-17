@@ -24,8 +24,10 @@ project:
 
 Currently under development.
 The application is in early and experimental stage, unfit of being heavily used.
-
-In case you are interested in the project in any way or in contribution, you can notify me by mail.
+- its still in early development stages
+- lots of functionalities are incomplete, bugged, dysfunctional, undocumented or simply not intuitive.
+- lots of functionalities are plain experimental or for educational or testing purposes
+In case you are (still) interested in the project in any way or in contribution (always welcome), you can notify me by mail.
 
 
 

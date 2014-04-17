@@ -6,12 +6,10 @@ import AudioPlayer.tagging.Chapter;
 import AudioPlayer.tagging.CommentExtended;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
-import Configuration.ConfigManager;
 import Configuration.IsConfig;
 import GUI.GUI;
 import Layout.WidgetController;
 import PseudoObjects.ReadMode;
-import utilities.functional.functor.OnEnd;
 import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -36,6 +34,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import utilities.Util;
+import utilities.functional.functor.OnEnd;
 
 /**
  * FXML Controller class

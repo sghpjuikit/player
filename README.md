@@ -4,6 +4,8 @@ player
 info:
 
 JavaFX based audio player application.
+Application's main focus is on modularity of the graphical user interface (GUI) and its customizability. Indivindual
+functionalities are implemented as widgets that can be used anywhere within layout.
 
 
 
@@ -33,8 +35,10 @@ In case you are (still) interested in the project in any way or in contribution 
 
 building & use:
 
+Currently, there is no executable for download as it requires proper documentation of the features and guide for use. Coming soon.
+
 The provided files are all source files and the working directory containing application data. In order to properly
-build and run the application the working folder should be set up in the prject's settings in the IDE.
+build and run the application the working folder should be set up in the project's settings in the IDE. Librares needed to import to be able to build the project are included in lib folder.
 
 Proper manuals and HOWTOs will be provided later.
 

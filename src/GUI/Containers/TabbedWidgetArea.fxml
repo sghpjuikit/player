@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children><AnchorPane id="bgr" mouseTransparent="true" styleClass="lighter" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="31.0" />
+    <TabPane fx:id="tabPane" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0" rotateGraphic="true" side="TOP" styleClass="filler" tabClosingPolicy="ALL_TABS" tabMaxHeight="25.0" tabMinHeight="25.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <Region fx:id="activator" prefHeight="25.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <AnchorPane fx:id="controls" minHeight="200.0" pickOnBounds="false" prefHeight="-1.0" prefWidth="250.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <Region fx:id="deactivator" prefHeight="25.0" prefWidth="110.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><HBox spacing="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+<children>
+        <Button id="" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#refreshWidget" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="r" AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="84.0">
+          <tooltip>
+            <Tooltip text="refresh" />
+          </tooltip>
+        </Button>
+        <Button id="" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#toggleLocked" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="l" AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="58.0">
+          <tooltip>
+            <Tooltip text="lock container" />
+          </tooltip>
+        </Button>
+        <Button id="" fx:id="propB" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="?" AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="32.0">
+          <tooltip>
+            <Tooltip text="settings" />
+          </tooltip>
+        </Button>
+        <Button id="" fx:id="menuB" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="o" AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="6.0">
+          <tooltip>
+            <Tooltip text="change" />
+          </tooltip>
+        </Button>
+        <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#detach" onMouseClicked="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="^" AnchorPane.rightAnchor="6.0" AnchorPane.topAnchor="6.0">
+          <tooltip>
+            <Tooltip text="detach" />
+          </tooltip>
+        </Button><Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="x">
+<tooltip>
+<Tooltip text="close" />
+</tooltip>
+</Button>
+</children></HBox>
+        <BorderPane mouseTransparent="true" pickOnBounds="false" prefHeight="25.0" prefWidth="200.0" styleClass="header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <center>
+            <Label id="name" fx:id="nameL" text="Widget Name" BorderPane.alignment="CENTER" />
+          </center>
+        </BorderPane>
+      </children>
+    </AnchorPane>
+  </children>
+</fx:root>

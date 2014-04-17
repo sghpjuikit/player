@@ -1,0 +1,26 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Feb 4, 2014, 7:27:01 PM
+    Author     : uranium
+*/
+
+.rating > .container {
+    -fx-spacing: 1;
+}
+.rating > .container > .button {
+    -fx-background-color: transparent;
+    -fx-background-image: url("rating_selected-star_(min).png");
+    -fx-background-size: 12;
+    -fx-padding: 6 6; 
+    -fx-background-image-repeat: no-repeat;
+}
+.rating > .container > .button.strong {
+    -fx-background-image: url("rating_selected-star_(min).png");
+}
+.rating > .container > .button:hover {
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.3) , 4, 0.0 , 0 , 0 );
+}

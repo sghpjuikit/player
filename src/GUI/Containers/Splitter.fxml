@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="-1.0" prefWidth="-1.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <SplitPane fx:id="splitPane" dividerPositions="0.5" focusTraversable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" orientation="VERTICAL" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <items>
+        <AnchorPane fx:id="child1" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" />
+        <AnchorPane fx:id="child2" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" />
+      </items>
+<styleClass>
+<String fx:value="split-pane" />
+<String fx:value="corner" />
+</styleClass>
+    </SplitPane>
+    <AnchorPane id="controls" fx:id="controlsPane" layoutX="14.0" layoutY="14.0" prefHeight="-1.0" prefWidth="-1.0">
+      <children>
+        <BorderPane id="controls" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" visible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <center>
+            <VBox alignment="CENTER" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" spacing="7.0" BorderPane.alignment="CENTER">
+              <children>
+                <Button mnemonicParsing="false" onMouseClicked="#close" styleClass="header-button" text="x" />
+                <HBox alignment="CENTER" fillHeight="true" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" spacing="7.0" VBox.vgrow="ALWAYS">
+                  <children>
+                    <Button alignment="CENTER" mnemonicParsing="false" onMouseClicked="#toggleCollapsed1" styleClass="header-button" text="&lt;" HBox.hgrow="ALWAYS">
+                      <HBox.margin>
+                        <Insets />
+                      </HBox.margin>
+                    </Button>
+                    <Button mnemonicParsing="false" onMouseClicked="#toggleCollapsed2" styleClass="header-button" text="&gt;" />
+                  </children>
+                  <padding>
+                    <Insets />
+                  </padding>
+                </HBox>
+                <Button mnemonicParsing="false" onMouseClicked="#toggleOrientation" styleClass="header-button" text="V/H" />
+                <Button mnemonicParsing="false" onMouseClicked="#toggleLock" styleClass="header-button" text="lock" />
+                <Button mnemonicParsing="false" onMouseClicked="#switchChildren" styleClass="header-button" text="&lt;-&gt;" />
+              </children>
+            </VBox>
+          </center>
+        </BorderPane>
+      </children>
+    </AnchorPane>
+  </children>
+</fx:root>

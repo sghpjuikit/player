@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" padding="$x1" prefHeight="500.0" prefWidth="500.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <BorderPane prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="5.0">
+      <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="-1.0" prefWidth="-1.0" vbarPolicy="AS_NEEDED" BorderPane.alignment="CENTER">
+          <content>
+            <AnchorPane minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
+              <padding>
+                <Insets fx:id="x1" />
+              </padding>
+<children><Accordion fx:id="accordion" AnchorPane.bottomAnchor="15.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="15.0" />
+</children>
+            </AnchorPane>
+          </content>
+        </ScrollPane>
+      </center>
+    </BorderPane>
+    <BorderPane prefHeight="25.0" prefWidth="-1.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0">
+      <center>
+        <HBox alignment="CENTER" prefHeight="-1.0" prefWidth="-1.0" spacing="10.0" BorderPane.alignment="CENTER">
+          <children>
+            <Button id="redoB" minHeight="19.0" mnemonicParsing="false" onMouseClicked="#initialize" prefHeight="30.0" prefWidth="90.0" text="Reload">
+              <tooltip>
+                <Tooltip text="Refresh settings." />
+              </tooltip>
+            </Button>
+            <Button id="redoB" fx:id="defaultB" minHeight="19.0" mnemonicParsing="false" onMouseClicked="#defaults" prefHeight="30.0" prefWidth="90.0" text="Defaults">
+              <tooltip>
+                <Tooltip text="Back to default." />
+              </tooltip>
+            </Button>
+            <Button fx:id="redoB" disable="true" minHeight="30.0" mnemonicParsing="false" onMouseClicked="#redo" prefHeight="30.0" prefWidth="90.0" text="Redo">
+              <tooltip>
+                <Tooltip text="Back to original." />
+              </tooltip>
+            </Button>
+            <Button fx:id="okB" defaultButton="true" minHeight="30.0" mnemonicParsing="false" onMouseClicked="#ok" prefHeight="30.0" prefWidth="100.0" text="OK">
+              <tooltip>
+                <Tooltip text="Save new settings." />
+              </tooltip>
+            </Button>
+          </children>
+        </HBox>
+      </center>
+    </BorderPane>
+  </children>
+</fx:root>

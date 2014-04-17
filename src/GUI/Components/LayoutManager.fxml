@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.collections.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root type="javafx.scene.layout.AnchorPane" id="AnchorPane" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2">
+  <children>
+    <ComboBox fx:id="layoutsCB" prefHeight="21.0" prefWidth="200.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="380.0" AnchorPane.topAnchor="20.0" />
+    <Button id="loadB" mnemonicParsing="false" onMouseClicked="#saveSelectedLayout" prefHeight="20.0" text="Apply / Save" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+    <Button mnemonicParsing="false" onMouseClicked="#loadSelectedLayout" text="Load" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />
+    <BorderPane fx:id="borderpane" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="80.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="50.0">
+      <left>
+        <BorderPane prefHeight="200.0" prefWidth="200.0">
+          <center>
+            <TextArea fx:id="infoT" editable="false" prefHeight="244.0" prefWidth="233.0" wrapText="true" />
+          </center>
+          <top>
+            <GridPane alignment="CENTER" hgap="5.0" prefHeight="56.000099999997474" prefWidth="200.0" BorderPane.alignment="CENTER" BorderPane.margin="$x1">
+              <children>
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefWidth="48.0" text="Locked" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefWidth="48.0" text="Name" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" />
+                <TextField fx:id="nameF" prefWidth="114.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <CheckBox fx:id="lockedChB" alignment="CENTER" mnemonicParsing="false" text="" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+              </children>
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="95.0" minWidth="10.0" prefWidth="37.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="160.0" minWidth="10.0" prefWidth="158.0" />
+              </columnConstraints>
+              <padding>
+                <Insets fx:id="x1" />
+              </padding>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+            </GridPane>
+          </top>
+        </BorderPane>
+      </left>
+    </BorderPane>
+    <Button mnemonicParsing="false" onMouseClicked="#newLayout" prefWidth="62.0" text="new" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0" />
+    <Button layoutX="451.0" layoutY="20.0" mnemonicParsing="false" onMouseClicked="#removeLayout" prefWidth="62.0" text="remove" />
+    <Button layoutX="383.0" layoutY="20.0" mnemonicParsing="false" onMouseClicked="#openLayoutDirectory" prefWidth="62.0" text="^ dir" />
+  </children>
+</fx:root>

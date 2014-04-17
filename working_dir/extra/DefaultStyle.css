@@ -1,0 +1,468 @@
+/* 
+    Document   : DefaultStyle
+    Created on : Jun 30, 2013, 3:08:52 AM
+    Author     : uranium
+    Description:
+    Purpose    : skin
+*/
+
+/*******************************************************************************
+ *                                                                             *
+ * CSS Styles for core infrastructure bits.  The .root section provides the   *
+ * overall default font and colors used by the rest of the sections.           *
+ *                                                                             *
+ ******************************************************************************/
+.root {
+    
+}
+
+/*******************************************************************************
+*                                                                              *
+* Filler                                                                       *
+*                                                                              *
+*******************************************************************************/
+.filler {
+    -fx-opacity: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0 0 0 0;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * TextInput                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+/*
+.text-input {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-text-fill: rgb(255, 255, 255, 0.4);
+    -fx-effect: dropshadow( one-pass-box , rgb(0, 0, 0, 0.6), 0, 0.0 , 0 , 1 );
+}*/
+
+
+.label {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-text-fill: rgb(255, 255, 255, 0.4);
+    -fx-effect: dropshadow( one-pass-box , rgb(0, 0, 0, 0.6), 0, 0.0 , 0 , 1 );
+}
+
+.hyperlink {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-text-fill: rgb(255, 255, 255, 0.4);
+    -fx-effect: dropshadow( one-pass-box , rgb(0, 0, 0, 0.6), 0, 0.0 , 0 , 1 );
+    -fx-border-width: 0;
+}
+
+.hyperlink:focused {
+    -fx-text-fill: rgb(255, 255, 255, 0.6);
+}
+
+.check-box .box {
+    -fx-background-color:
+        rgb(255, 255, 255, 0.1),
+        rgb(0, 0, 0, 1),
+        -fx-outer-border,
+        -fx-inner-border,
+        -fx-body-color;
+    -fx-background-insets: 0 -1.6 -2 -1.6, -1.4, 0, 1, 2;
+}
+
+.check-box:focused .box {
+    -fx-background-color:
+        rgb(255, 255, 255, 0.15),
+        rgb(0, 0, 0, 0.8),
+        -fx-outer-border,
+        -fx-inner-border,
+        white;
+}
+
+.button .text {
+    -fx-effect: dropshadow( one-pass-box , rgb(0, 0, 0, 0.8), 0, 0.0 , 0 , -1 );
+}
+
+.button {
+    -fx-background-color:
+        rgb(255, 255, 255, 0.08),
+        rgb(0, 0, 0, 0.8),
+        #090a0c,
+        linear-gradient(#4a5661 0%, #1f2429 20%, #1f242a 100%),
+        linear-gradient(#242a2e, #23282e),
+        radial-gradient(center 50% 0%, radius 100%, rgba(135,142,148,0.9),
+        rgba(255,255,255,0));
+    -fx-background-radius: 7, 6, 5, 4, 3, 5;
+    -fx-background-insets: -3 -3 -4 -3, -3, 0, 1, 2, 0;
+    -fx-font-family: "Arial";
+    -fx-text-fill: white;
+    -fx-font-size: 11;
+    -fx-text-fill: linear-gradient(white, #d0d0d0);
+    -fx-padding: 2 2 2 2;
+}
+
+.button:focused, .button:hover {
+    -fx-background-color:
+        rgb(255, 255, 255, 0.08),
+        rgb(0, 0, 0, 0.8),
+        #090a0c,
+        linear-gradient(#4a5691 0%, #1f2429 20%, #1f242a 100%),
+        linear-gradient(#3f4950, #23282e),
+        radial-gradient(center 50% 0%, radius 100%, rgba(135,142,148,0.9),
+        rgba(255,255,255,0));
+}
+
+.button:focused:hover:pressed, .button:armed,
+.button:default:focused:hover:pressed, .button:default:armed {
+    -fx-background-color:
+        rgb(255, 255, 255, 0.1),
+        rgb(0, 0, 0, 0.8),
+        #090a0d,
+        linear-gradient(#4a5691 0%, #1f2429 20%, #1f242a 100%),
+        linear-gradient(#3f4950, #23282e),
+        radial-gradient(center 50% 10%, radius 100%, rgba(135,142,148,0.9),
+        rgba(255,255,255,0));
+}
+
+
+.text-field, .text-area {
+    -fx-font-size: 11;
+    -fx-background-color:
+        rgb(255, 255, 255, 0.3),
+        linear-gradient(rgb(0, 0, 0, 0.5), rgb(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 6, 5, 4;
+    -fx-padding: 6 10 4 10;
+    -fx-effect: innershadow( gaussian, rgb(0, 0, 0, 0.8), 5, 0, 0, 2 );
+    -fx-font-family: "Arial";
+}
+
+.text-area {
+    -fx-padding: 6 5 6 5;
+}
+
+.text-field:focused, .text-area:focused {
+    -fx-prompt-text-fill:
+        rgb(128,128,128);
+    -fx-background-color:
+        rgba(235, 235, 235, 0.5),
+        rgba(0, 0, 0, 0.4),
+        rgb(255, 255, 255);
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ComboBox                                                                    *
+ *                                                                             *
+ ******************************************************************************/
+
+
+
+/******************************* TABLE VIEW **********************************/
+
+.table-view{
+    -fx-background-color: rgba(255, 255, 255, 0);
+    -fx-background-insets: 0, 0 0 0 0;
+    border: none;
+}
+.table-view .corner {
+    -fx-background-color: rgba(255, 255, 255, 0);
+    border: none;
+}
+
+.table-row-cell{
+    -fx-background-color: rgba(255, 255, 255, 0);
+	/* the below code works, but in case you want to have variable row height
+	like text wrap etc you are screwed*/
+	-fx-padding: 0em;
+	-fx-cell-size: 14px;
+}
+.table-row-cell:odd {
+    /*-fx-background-color: rgb(255, 255, 255, 0.1);
+    -fx-background-insets: 0, 0 0 1 0;*/
+}
+.table-row-cell:empty {
+     /*visibility: hidden;
+    -fx-border-width: 0px;*/
+}
+.table-cell {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-text-fill: rgba(255, 255, 255, 0.4);
+    -fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.6), 0, 0.0 , 0 , 1 );
+    -fx-border-width: 0px;
+}
+/* When the table-row-cell is selected*/
+.table-row-cell:filled:selected {
+    -fx-background-color: rgba(0, 0, 0, 0.2);
+    -fx-background: -fx-accent;
+    -fx-font-size: 12;
+    -fx-text-fill: rgba(255, 255, 255, 0.8);
+}
+.column-header-background {
+    -fx-background-color: rgba(0,0,0,0.15);
+   /*hides column header - let this be done programatically*/
+    /*visibility: hidden;
+    -fx-padding: -1em;*/ 
+}
+
+/*******************************************************************************
+*                                                                              *
+* SplitPane                                                                    *
+*                                                                              *
+*******************************************************************************/
+.split-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+.split-pane:horizontal > .split-pane-divider {
+   -fx-opacity: 0.15;
+   -fx-border-color: transparent;
+   -fx-background-color: rgba(0, 0, 0, 1);
+   -fx-background-insets: 0, 0 1 0 1;
+}
+.split-pane:vertical > .split-pane-divider{
+   -fx-opacity: 0.15;
+   -fx-border-color: transparent;
+   -fx-background-color: rgba(0, 0, 0, 1);
+   -fx-background-insets: 0, 0 1 0 1;
+}
+.split-pane *.vertical-grabber {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    
+}
+.split-pane *.horizontal-grabber {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    
+}
+
+/****************************************************************
+ 
+  ScrollBar Skin 
+  
+  https://farrukhobaid.wordpress.com/2013/01/16/dark-scrollbar-skin-for-javafx/
+ 
+****************************************************************/
+.scroll-bar{
+ -fx-background-color: rgba(0,0,0,0.2);
+ -fx-background-radius: 1em;
+}
+.scroll-bar:hover {
+}
+.scroll-bar:horizontal .track,
+.scroll-bar:vertical .track {
+ -fx-background-color: transparent;
+ -fx-border-color:transparent;
+ -fx-background-radius: 1em;
+}
+.scroll-bar:vertical .track-background,
+.scroll-bar:horizontal .track-background {
+ -fx-background-color: transparent;
+ -fx-background-insets: 0;
+ -fx-background-radius: 1em;
+}
+.scroll-bar:horizontal .thumb {
+ -fx-background-color: rgba(231,231,231,0.6);
+ -fx-background-insets: 2 0 2 0;
+ -fx-background-radius: 1em;
+}
+.scroll-bar:vertical .thumb {
+ -fx-background-color: rgb(211,211,211);
+ -fx-background-insets: 0 2 0 2;
+ -fx-background-radius: 1em;
+}
+.scroll-bar:horizontal .thumb:hover,
+.scroll-bar:vertical .thumb:hover {
+ -fx-background-color: rgba(231,231,231, 0.8);
+}
+
+.scroll-bar:vertical .increment-button, .scroll-bar:vertical .decrement-button {
+ -fx-background-color:transparent;
+ -fx-background-radius: 1em;
+
+}
+.scroll-bar:horizontal .increment-button, .scroll-bar:horizontal .decrement-button {
+ -fx-background-color:transparent;
+ -fx-background-radius: 1em;
+
+}
+.scroll-bar:horizontal .increment-arrow {
+ -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+ -fx-background-color: rgb(211,211,211);
+ -fx-rotate: -90;
+}
+.scroll-bar:vertical .increment-arrow {
+ -fx-background-color: rgb(211,211,211);
+ -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+ -fx-rotate: 0;
+}
+.scroll-bar:horizontal .decrement-arrow {
+ -fx-background-color: rgb(211,211,211);
+ -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+ -fx-rotate: 90;
+}
+.scroll-bar:vertical .decrement-arrow {
+ -fx-background-color: rgb(211,211,211);
+ -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
+ -fx-rotate: -180;
+}
+
+/*******************************************************************************
+*                                                                              *
+* ScrollPane                                                                   *
+*                                                                              *
+*******************************************************************************/
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0,0,1;
+    -fx-padding: 0;   
+}
+.scroll-pane:focused { 
+ 
+}
+.scroll-pane .corner {
+	-fx-opacity: 0;
+    /*-fx-background-color: rgb(76,81,86), rgb(195,199,203);*/
+    /*-fx-background-insets: 0, 1 1 1 1;*/
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * TitledPane                                                                  *
+ *                                                                             *
+ ******************************************************************************/
+
+.titled-pane {
+    -fx-font-family: "Arial";
+    -fx-font-size: 11;
+    -fx-text-fill: rgb(255, 255, 255, 0.4);
+	-fx-effect: dropshadow( one-pass-box , rgb(0, 0, 0, 0.6), 0, 0.0 , 0 , 1 );
+	-fx-effect: dropshadow( one-pass-box , rgb(0, 0, 0, 0.6), 0, 0.0 , 0 , 1 );
+    -fx-border-width: 0px;
+}
+.titled-pane:focused {
+}
+
+.titled-pane > .title {
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 5 5 0 0, 4 4 0 0, 3 3 0 0;
+    -fx-padding: 0.166667em 0.833333em 0.25em 0.833333em; /* 2 10 3 10 */
+}
+.titled-pane:focused > .title {
+    -fx-color: -fx-focus-color;
+}
+
+.titled-pane > .title > .arrow-button {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0.0em 0.25em 0.0em 0.0em; /* 0 3 0 0 */
+}
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: white;
+    /* use thid to get nice not filled arrow */
+    /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+.titled-pane:collapsed > .title > .arrow-button .arrow {
+    -fx-rotate: -90;
+}
+.titled-pane:focused > .title > .arrow-button .arrow {
+}
+
+.titled-pane > *.content {
+    -fx-background-color: rgb(255, 255, 255, 0.0);
+    -fx-background-insets: 0, 0 1 1 1;
+    -fx-padding: 0.167em;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Accordion                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+.accordion {
+    -fx-background-color: rgb(255, 255, 255, 0.0);
+}
+.accordion .titled-pane .title {
+    -fx-background-color: rgb(255, 255, 255, 0.0);
+    -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
+    -fx-background-radius: 0, 0, 0;
+}
+.accordion .first-titled-pane .title {
+    -fx-background-insets: 0, 1, 2;
+}
+.accordion .titled-pane:focused > .title {
+    -fx-color: -fx-focus-color;
+}
+.accordion .titled-pane:focused {
+    -fx-text-fill: white;
+}
+.accordion .titled-pane:focused > .title > .arrow-button .arrow {
+    -fx-background-color: white;
+}
+.accordion .titled-pane:focused .titled-pane:collapsed > .title > .arrow-button .arrow {
+    -fx-background-color: white;
+}
+
+.accordion .titled-pane:collapsed:focused > .title {
+    -fx-color: -fx-focus-color;
+}
+.accordion .titled-pane:expanded:focused > .title {
+    -fx-color: -fx-focus-color;
+}
+.accordion .titled-pane:hover > .title {
+    -fx-color: -fx-hover-base;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Tooltip                                                                     *
+ *                                                                             *
+ ******************************************************************************/
+.tooltip {
+    -fx-opacity: 0.85;
+}
+
+
+
+
+/*******************************************************************************
+ *                                                                             *
+ * CUSTOM		                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+.header {
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-border-color: 
+        transparent transparent rgba(255, 255, 255, 0.08) transparent,
+        rgba(255, 255, 255, 0.15) transparent rgba(0, 0, 0, 0.5) transparent;
+    -fx-border-width: 1, 1.5;
+    -fx-border-insets: -2, -0.5;
+}
+
+.background {
+    -fx-background-image: url("CoarseGrid.png");
+    -fx-background-repeat: repeat;
+    -fx-background-color:
+        linear-gradient(#38424b 0%, #1f2429 20%, #191d22 100%),
+        linear-gradient(#20262b, #191d22),
+        radial-gradient(center 50% 0%, radius 100%, rgba(114,131,148,0.9), rgba(255,255,255,0));
+}
+
+.darker {
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+
+.header-button {
+    -fx-background-color: rgba(0,0,0,0.2);
+}

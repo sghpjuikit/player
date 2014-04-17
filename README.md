@@ -6,6 +6,7 @@ info:
 JavaFX based audio player application.
 
 
+
 repository: 
 
 At the moment, this repository is for tight circle of people interested in the project's development. It is not
@@ -17,6 +18,8 @@ The repository is aimed to work as private for now.
 You are free to make your own builds for satisfying curiosity and digging into the code and the workings of the
 project as well as use the built application.
 
+
+
 project:
 
 Currently under development.
@@ -24,12 +27,15 @@ The application is in early and experimental stage, unfit of being heavily used.
 
 In case you are interested in the project in any way or in contribution, you can notify me by mail.
 
+
+
 building & use:
 
 The provided files are all source files and the working directory containing application data. In order to properly
 build and run the application the working folder should be set up in the prject's settings in the IDE.
 
 Proper manuals and HOWTOs will be provided later.
+
 
 
 dependencies & external code & licences:

@@ -5,7 +5,7 @@ import Configuration.Configuration;
 import GUI.objects.Thumbnail;
 import Layout.Layout;
 import Layout.LayoutManager;
-import Layout.Widget;
+import Layout.Widgets.Widget;
 import java.io.File;
 import java.io.IOException;
 import java.util.stream.Collectors;

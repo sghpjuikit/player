@@ -264,14 +264,20 @@ public final class FileUtil {
     }
     
     /**
+     * Returns name of the file without suffix. If the file denotes a directory
+     * its name will be returned.
      * @param f
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null
      */
     public static String getName(File f) {
-        return f.getName().substring(0,f.getName().lastIndexOf('.'));
+        String whole_name = f.getName();
+        int i = whole_name.lastIndexOf('.');
+        return i==-1 ? whole_name : whole_name.substring(0,i);
     }
     /**
+     * Returns name of the file without suffix denoted by this URI. If the URI
+     * denotes a directory its name will be returned.
      * @param u
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null

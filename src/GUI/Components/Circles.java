@@ -2,8 +2,8 @@
 package GUI.Components;
 
 import Configuration.IsConfig;
-import Layout.Controller;
-import Layout.Widget;
+import Layout.Widgets.Controller;
+import Layout.Widgets.Widget;
 import static java.lang.Math.random;
 import java.util.ArrayList;
 import java.util.List;

@@ -6,8 +6,8 @@
 
 package GUI.Components;
 
-import Layout.Controller;
-import Layout.Widget;
+import Layout.Widgets.Controller;
+import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.HTMLEditor;
 

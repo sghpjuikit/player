@@ -2,6 +2,7 @@
 package Layout;
 
 import Configuration.PropertyMap;
+import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,18 +12,40 @@ import javafx.scene.layout.AnchorPane;
 
 /**
  * @author uranium
- * Defines behavior for Container - Component able to store Containers or Widgets.
- * The point is to create modular layouts.
- * 
- * Containers are objects storing its children and implementing methods for high level
- * functioning - layout level behavior such as loading the component, its children and
- * other tasks involving layout in general.
- * The key idea is that Containers are not GUI components, Containers wrap them. This creates
- * an abstraction layer that allows for defining layout maps. Container storing all its
- * children recursively is basically a layout map.
- * This is made use of in layout managing department. Storing root Container
- * equals storing the whole layout map.
- * Thats why Containers need to be lightweight objects able to be serialized.
+ * Component able to store other Components.
+ * <p>
+ * The key element for layouts and their modularity.
+ * <p>
+ * Containers are components storing their children and with layout-defining
+ * behavior such as loading itself and its content and supporting layout
+ * operations requiring the awarenes of the component within layout hierarchy.
+ * <p>
+ * Containers are not graphical components, Containers wrap them. This creates
+ * an abstraction layer that allows for defining layout hierarchy - layout maps
+ * separately from scene-graph - the graphical hierarchy.
+ * Layout map is complete hierarchical structure of Components spanning from
+ * single Container called root.
+ * <p>
+ * Containers need to be lightweight wrappers able to be serialized so its layout
+ * map can be later be reconstructed during/by deserialization.
+ * <p>
+ * The children of the container are indexed in order to identify their position
+ * within the container. How the indexes are interpreted is left up on the container's
+ * implementation logic. The children collection is implemented as Map<Integer,
+ * Component>.
+ * <p>
+ * Container is called pure, if it can contain only containers.
+ * Container is called leaf, if it can contain only non-containers.
+ * Note the difference between containing and able to contain! The pure and leaf
+ * containers can have their own class implementation.
+ * <p>
+ * Container implementation (extending class) must handle
+ * - adding the child to its child map (includes the index interpretation)
+ * - removing previously assigned children
+ * - reload itself so the layout change trasforms into graphical change.
+ * NOTE: invalid index (for example out of range) must be ignored for some
+ * behavior to work correctly.This is because indexOf() method returns invalid (but still number)
+ * index if component is not found. Therefore such index must be ignored.
  */
 public abstract class Container extends Component implements AltState {
     
@@ -66,39 +89,28 @@ public abstract class Container extends Component implements AltState {
     public abstract Map<Integer, ? extends Component> getChildren();
     
     /**
-     * Adds component to specified index as child of the container. The index serves
-     * for the purpose of identifying individual children in case of multiple
-     * children.
-     * The inner logic handling the indexes is left up on the individual
-     * container implementation.
-     * Container must handle
-     * - adding the child to its child map
-     * - removing previously assigned children
-     * - reload itself so the change takes place visually
-     * - handle wrong indexes and exceptions)
-     * @WARNING: invalid indexes must never be changed to any of the children, but
-     * ignored! This is because indexOf() method returns invalid (but still number)
-     * index if component is not found. Therefore such index must be ignored.
-     * @param index index of a child.
-     * @param w component to ad or null to remove it
+     * Adds component to specified index as child of the container.
+     * @param index index of a child. Determines its position within container.
+     * Null value allowed, but will be ignored.
+     * @param c component to add. Null allowed - sets empty content at specified
+     * position.
      */
-    public abstract void addChild(int index, Component w);
+    public abstract void addChild(Integer index, Component c);
     
     /**
      * Removes child of this container if it exists.
-     * @param w
+     * @param c component to remove
      */
-    public void removeChild(Component w) {
-        int i = indexOf(w);
-        if (i != -1) removeChild(i);
-        
+    public void removeChild(Component c) {
+        removeChild(indexOf(c)); 
     }
     
     /**
      * Removes child of this container at specified index.
-     * @param index 
+     * @param index of the child to remove. Null is ignored.
      */
-    public void removeChild(int index) {
+    public void removeChild(Integer index) {
+        if(index==null) return;
         addChild(index, null);
     }
     
@@ -108,8 +120,7 @@ public abstract class Container extends Component implements AltState {
      * @param c2 child to swap with
      * @param w2 container containing the child to swap with
      */
-    public void swapChildren(Component w1, Container c2, Component w2) {
-        System.out.println("swapping "+w1.getName() + " with " + w2.getName());
+    public void swapChildren(Component w1, Container c2, Component w2) {        // Log.deb("swapping "+w1.getName() + " with " + w2.getName());
         Container c1 = this;
         if (c1.equals(c2)) return;
         int i1 = c1.indexOf(w1);
@@ -121,21 +132,21 @@ public abstract class Container extends Component implements AltState {
     }
     
     /**
-     * Returns index of a child or -1 if no child
-     * @param c 
-     * @return index of a child or -1 if no child
+     * Returns index of a child or null if no child
+     * @param c component
+     * @return index of a child or null if no child
      */
-    public int indexOf(Component c) {
+    public Integer indexOf(Component c) {
         for (Map.Entry<Integer, ? extends Component> entry: getChildren().entrySet()) {
             if (entry.getValue().equals(c))
                 return entry.getKey();
         }
-        return -1;
+        return null;
     }
     
     /**
      * Returns all components in layout map of which this is the root. In other 
-     * words all  children recursively. The root is included in the list.
+     * words all children recursively. The root (this) is included in the list.
      * @return 
      */
     public List<Component> getAllChildren() {
@@ -166,7 +177,7 @@ public abstract class Container extends Component implements AltState {
     }
     /**
      * Returns all containers in layout map of which this is the root. In other words
-     * all container children recursively. The root is included in the list.
+     * all container children recursively. The root (this) is included in the list.
      * @return 
      */
     public List<Container> getAllContainers() {

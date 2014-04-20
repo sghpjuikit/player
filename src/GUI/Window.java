@@ -103,7 +103,9 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
                     setShowHeader(!showHeader);
             }
         });
-        header.setOnScroll( e -> {
+        
+        // fire voue change on scroll
+        root.setOnScroll( e -> {
             if(e.getDeltaY()>0) PLAYBACK.incVolume();
             else if(e.getDeltaY()<0) PLAYBACK.decVolume();
         });

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root id="entireArea" focusTraversable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children><AnchorPane id="bgr" mouseTransparent="true" styleClass="lighter" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <AnchorPane id="contentPane" fx:id="content" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Region fx:id="activator" prefHeight="25.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+    <AnchorPane id="AnchorPane" fx:id="controls" pickOnBounds="false" prefHeight="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <Region fx:id="deactivator" prefHeight="25.0" prefWidth="110.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <BorderPane fx:id="header" mouseTransparent="true" pickOnBounds="false" prefHeight="25.0" styleClass="header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <center>
+            <Label fx:id="title" text="Widget Name" BorderPane.alignment="CENTER" />
+          </center>
+        </BorderPane><HBox fillHeight="false" spacing="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+<children>
+        <Button id="" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#refreshWidget" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="r" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="84.0">
+          <tooltip>
+            <Tooltip text="refresh" />
+          </tooltip>
+        </Button>
+        <Button id="" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#toggleLocked" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="l" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="58.0">
+          <tooltip>
+            <Tooltip text="lock" />
+          </tooltip>
+        </Button>
+        <Button id="" fx:id="propB" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#settings" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="?" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="32.0">
+          <tooltip>
+            <Tooltip text="settings" />
+          </tooltip>
+        </Button>
+        <Button id="" fx:id="menuB" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#choose" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="o" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0">
+          <tooltip>
+            <Tooltip text="change" />
+          </tooltip>
+        </Button><Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#detach" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="^">
+<tooltip>
+<Tooltip text="detach" />
+</tooltip>
+</Button>
+        <Button maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="x" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+          <tooltip>
+            <Tooltip text="close" />
+          </tooltip>
+        </Button>
+</children></HBox>
+      </children>
+    </AnchorPane>
+  </children>
+</fx:root>

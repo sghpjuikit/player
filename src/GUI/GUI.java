@@ -40,7 +40,7 @@ public class GUI implements Configurable {
     @IsConfig(name = "Opacity", info = "Application opacity.", min=0, max=1)
     public static double windowOpacity = 1;
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static SkinEnum skin = new SkinEnum("Modena");
+    public static SkinEnum skin = new SkinEnum("Default");
     
     @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
     public static boolean gui_overlay = false;

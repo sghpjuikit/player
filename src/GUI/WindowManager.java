@@ -7,7 +7,7 @@
 package GUI;
 
 import Configuration.IsConfig;
-import Layout.WidgetManager;
+import Layout.Widgets.WidgetManager;
 import Serialization.Serializator;
 import main.App;
 
@@ -35,7 +35,7 @@ public class WindowManager {
             } else {
                 miniWindow = Window.create();
             }
-            miniWindow.setContent(WidgetManager.getWidgetOrCreate(w->w.name().equals("Tiny")).load());
+            miniWindow.setContent(WidgetManager.getFactory("Tiny").create().load());
             miniWindow.setVisible(val);
             miniWindow.setShowHeader(false);
             miniWindow.update();

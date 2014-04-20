@@ -2,7 +2,8 @@
 package Layout;
 
 import GUI.Components.Layouter;
-import GUI.Containers.WidgetArea;
+import Layout.Containers.WidgetArea;
+import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.Collections;
 import java.util.Map;
@@ -12,9 +13,12 @@ import javafx.scene.layout.AnchorPane;
 
 
 /**
- * @author uranium
  * 
- * Container with one child.
+ * Implementation of {@link Container Container} storing one child component. It
+ * is expected the child will be non-Container component as putting any container
+ * within this would turn this into unnecessary intermediary.
+ * <p>
+ * @author uranium
  */
 public class UniContainer extends Container {
     Component child;
@@ -22,11 +26,9 @@ public class UniContainer extends Container {
     private WidgetArea gui;
  
     public UniContainer() {
-        gui = new WidgetArea(this);
     }
     public UniContainer(AnchorPane _parent) {
         parent_pane = _parent;
-        gui = new WidgetArea(this);
     }
     
     @Override
@@ -39,7 +41,7 @@ public class UniContainer extends Container {
         
         Node out;
         if (child == null)
-            out = new Layouter(this).load();
+            out = new Layouter(this,1).load();
         else
         if (child instanceof Container)
             out = ((Container)child).load(parent_pane);
@@ -48,7 +50,7 @@ public class UniContainer extends Container {
             gui.loadWidget((Widget)child);
             out = gui.getPane();
         }
-        else out = new Layouter(this).load();
+        else out = new Layouter(this,1).load();
         
         parent_pane.getChildren().setAll(out);
         AnchorPane.setBottomAnchor(out, 0.0);
@@ -66,7 +68,7 @@ public class UniContainer extends Container {
     }
     
     /**
-     * Returns child. Convenience method. Equal to getChildreg.get(1). It is
+     * Convenience method. Equal to getChildreg.get(1). It is
      * recommended to use this method if standard Map format is not necessary.
      * @return child or null if none present.
      */
@@ -74,23 +76,22 @@ public class UniContainer extends Container {
         return child;
     }
     
-    /**
-     * Adds the widget as child.
-     * Since there is only one child, the index parameter is ignored.
-     * @param w widget or container. Null value will clear content.
-     * @param index must be of value 1. Other value will be ignored
+    /** 
+     * {@inheritDoc} 
+     * This implementation considers all index values valid, except for null,
+     * which will be ignored.
      */
     @Override
-    public void addChild(int index, Component w) {
-        if (index != 1) return;
-        if (w instanceof Container)
-            ((Container)w).parent = this;
-        child = w;
+    public void addChild(Integer index, Component c) {
+        if(index==null) return;
+        if (c instanceof Container)
+            ((Container)c).parent = this;
+        child = c;
         load();
     }
     
     /**
-     * Adds child to this container. Convenience method. Equal to addChild(1, w);
+     * Convenience method. Equal to addChild(1, w);
      * @param w 
      */
     public void setChild(Component w) {
@@ -98,9 +99,9 @@ public class UniContainer extends Container {
     }
     
     @Override
-    public int indexOf(Component c) {
+    public Integer indexOf(Component c) {
         if (Objects.equals(c, child)) return 1;
-        else return -1;
+        else return null;
     }
     
     @Override
@@ -113,4 +114,13 @@ public class UniContainer extends Container {
         super.hide();
         gui.hide();
     }
+
+    @Override
+    public void close() {
+        setChild(null);     // have to call this or the gui change wont
+                            // take effect, now i have to override the method...
+                            // it wouldnt hurt figuring this out
+        super.close(); //To change body of generated methods, choose Tools | Templates.
+    }
+    
 }

@@ -1,0 +1,15 @@
+<Layout.Layout>
+  <id>5b69af10-908b-4fca-b771-28264d9cac74</id>
+  <properties>
+    <map>
+      <entry>
+        <string>padding</string>
+        <double>0.0</double>
+      </entry>
+      <entry>
+        <string>locked</string>
+        <boolean>false</boolean>
+      </entry>
+    </map>
+  </properties>
+</Layout.Layout>

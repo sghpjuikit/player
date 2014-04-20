@@ -1,7 +1,11 @@
 <Layout.Layout>
-  <id>2d836545-f441-4498-b306-6d08fafafa61</id>
+  <id>8a6602d4-bdc3-4f65-8f9a-d835c2e4ba3c</id>
   <properties>
     <map>
+      <entry>
+        <string>padding</string>
+        <double>0.0</double>
+      </entry>
       <entry>
         <string>locked</string>
         <boolean>false</boolean>

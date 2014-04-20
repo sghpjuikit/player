@@ -32,21 +32,20 @@ public class MetadataReader {
     /**
      * Creates list of Metadata for provided items. Use to read multiple files at
      * once. The work runs on different thread to minimize I/O performance impact.
-     *
-     * To use this method, object implementing TaskRunner interface must be used.
-     * Using different threads builds up unnecessary code and TaskRunner makes it
-     * easier. Task Runner object implements two methods that will be automatically
-     * called when the reading metadata on the other thread is done - successfully
-     * respectively unsuccessfully. On success List<Metadata> will be returned.
-     *
+     * <p>
      * This method returns Task doing the work, thus allowing for binding to its
      * properties like progressProperty() and giving access to everything Task related.
-     *
+     * <p>
      * Calling this method will immediately start the reading process (on another
      * thread).
-     *
+     * <p>
      * @param items - List of PlaylistItem objects to read.
      * @param runner - takes care of executing code when reading finishes
+     * Using different threads builds up unnecessary code and runner makes it
+     * easier. The parameter implements two methods that will be automatically
+     * called when the reading metadata on the other thread is done - successfully
+     * respectively unsuccessfully. On success List<Metadata> will be returned
+     * on failure null respectively.
      * @return Task<List<Metadata>> - Task to provide access to the work.
      */
     public static Task readMetadata(List<? extends Item> items, OnEnd<List<Metadata>> runner) {

@@ -1,7 +1,7 @@
 
 package Layout;
 
-import GUI.Containers.Splitter;
+import Layout.Containers.Splitter;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,14 +9,19 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 
 /**
+ * Implementation of {@link Container Container} containing two children.
+ * <p>
  * @author uranium
  * 
- * Container with two children separated by divider.
+ * Warning: do not use this class.
+ * @TODO implement load() properly, currently works only for Containers. Hence
+ * the abstract identifier to avoid misuse. Do not use this class as non-pure
+ * Container. See addChild and the exception.
  */
-public class BiContainer extends Container {
+abstract public class BiContainer extends Container {
     private final Map<Integer, Component> children = new HashMap<>();
     @XStreamOmitField
-    private Splitter gui = new Splitter(this);
+    protected Splitter gui;
     
     public BiContainer(Orientation orientation) {
         properties.set("orient", orientation);
@@ -26,12 +31,13 @@ public class BiContainer extends Container {
     public Node load() {
         // lazy load (needed because of the serialization ommiting this field)
         if (gui == null) gui = new Splitter(this);
+        
         if (children.get(1) == null) {
-            Container c = new UniContainer(gui.getChild1());
+            Container c = new UniContainer(gui.getChild1Pane());
             children.put(1, c);
         }
         if (children.get(2) == null) {
-            Container c = new UniContainer(gui.getChild2());
+            Container c = new UniContainer(gui.getChild2Pane());
             children.put(2, c);
         }
         
@@ -50,16 +56,18 @@ public class BiContainer extends Container {
     }
     
     /**
-     * Adds the widget as child.
-     * Since there is only one child, the index parameter is ignored.
-     * @param w widget or container. Null value will clear all children.
-     * @param index is can only take 1 or 2 value. other values will do
+     * { @inheritDoc }
+     * Index can only take on value 1 or 2. Other values will do
      * nothing.
+     * @throws UnsupportedOperationException if component not Container type.
      */
     @Override
-    public void addChild(int index, Component w) {
-        if (!(w instanceof Container)) return;
+    public void addChild(Integer index, Component w) {
+        if(index == null) return;
         if (index<1 || index>2) return;
+        
+        if(!(w instanceof Container)) throw new UnsupportedOperationException("Non containers currently not supported");
+        
         ((Container)w).parent = this;
         children.put(index, w);
         load();

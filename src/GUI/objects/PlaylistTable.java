@@ -20,6 +20,7 @@ import java.util.TreeSet;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
@@ -33,7 +34,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
@@ -50,7 +50,7 @@ import utilities.TableUtil;
  */
 @TODO("dragging duplicite code for empty table case" +
       "applying played,currupt css pseudo classes in row factory instead of column factory") // table-row-cell css not working or sth
-public class PlaylistTable {
+public final class PlaylistTable {
     // css styles for rows
     private static final PseudoClass playingRowCSS = PseudoClass.getPseudoClass("played");
     private static final PseudoClass corruptRowCSS = PseudoClass.getPseudoClass("corrupt");
@@ -74,8 +74,8 @@ public class PlaylistTable {
     int clicked_row = -1;
     
     // playing item observation listeners
-    private final InvalidationListener l = (o) -> refresh();
-    private final WeakInvalidationListener wl = new WeakInvalidationListener(l);
+    private final InvalidationListener pIL = (o) -> refresh();
+    private final WeakInvalidationListener playingListener = new WeakInvalidationListener(pIL);
     
     // invisible controls helping with resizing columns
     private Label tmp = new Label();
@@ -98,7 +98,7 @@ public class PlaylistTable {
      * @param parent AnchorPane container wrapping this table. Anchors will be set to 0.
      */
     public PlaylistTable (AnchorPane parent) {
-        table = new TableView<>();
+        table = new TableView();
         parent.getChildren().add(table);
         AnchorPane.setBottomAnchor(table, 0.0);
         AnchorPane.setLeftAnchor(table, 0.0);
@@ -198,7 +198,7 @@ public class PlaylistTable {
             int i = MathUtil.DecMin1(PlaylistManager.getItems().size());    
             tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
-            double W1 = tmp.getWidth()+12;
+            double W1 = tmp.getWidth()+4;
             
             // column 3
             tmp2.setText("");
@@ -216,6 +216,13 @@ public class PlaylistTable {
             columnName.setPrefWidth(W-W1-W3-W4-G);
             columnTime.setPrefWidth(W3);
             return false;
+        });
+        // resize index column on items.size change, use weak listener
+        table.getItems().addListener( (ListChangeListener.Change<? extends PlaylistItem> change) -> {
+            while(change.next()) {
+                if(change.wasAdded() || change.wasRemoved())
+                    table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0.0));
+            }
         });
         
         // handle selection
@@ -262,24 +269,36 @@ public class PlaylistTable {
         });
         
         // set key-induced actions
-        table.setOnKeyReleased((KeyEvent event) -> {
-            if (event.getCode() == KeyCode.ENTER) {  // play first of the selected
+        table.setOnKeyReleased( e -> {
+            if (e.getCode() == KeyCode.ENTER) {  // play first of the selected
                 PlaylistManager.playItem(PlaylistManager.getSelectedItems().get(0));
             } else
-            if (event.getCode() == KeyCode.DELETE) { // delete selected
+            if (e.getCode() == KeyCode.DELETE) { // delete selected
                 PlaylistManager.removeSelectedItems();
             } else
-            if (event.getCode() == KeyCode.ESCAPE) { // deselect
+            if (e.getCode() == KeyCode.ESCAPE) { // deselect
                 selectNone();
             } else
-            if (event.getCode() == KeyCode.A && event.isControlDown()) {    // select all
+            if (e.getCode() == KeyCode.A && e.isControlDown()) {    // select all
                 updateSelected();
             } else
-            if (event.getCode() == KeyCode.UP) {
+            if (e.getCode() == KeyCode.UP) {
                 updateSelected();
             } else
-            if (event.getCode() == KeyCode.DOWN) {
+            if (e.getCode() == KeyCode.DOWN) {
                 updateSelected();
+            }
+        });
+        table.setOnKeyPressed( e -> {
+            if(e.isControlDown()) {
+                if(e.getCode()==KeyCode.UP) {
+//                    table.getFocusModel().focus(-1);
+                    moveSelectedItems(-1);
+                } else
+                if(e.getCode()==KeyCode.DOWN) {
+//                    table.getFocusModel().focus(-1);
+                    moveSelectedItems(1);
+                }
             }
         });
         
@@ -414,7 +433,7 @@ public class PlaylistTable {
             PlaylistManager.selectionModelProperty().bindBidirectional(table.selectionModelProperty());
         
         // observe and show playing item
-        PlaylistManager.playingItemProperty().addListener(wl);
+        PlaylistManager.playingItemProperty().addListener(playingListener);
     }
     
     public TableView<PlaylistItem> getTable() {
@@ -619,7 +638,7 @@ public class PlaylistTable {
     protected void finalize() throws Throwable {
         super.finalize();
         System.out.println("FINALIZING PLAYLIST TABLE");
-        PlaylistManager.playingItemProperty().removeListener(wl);
+        PlaylistManager.playingItemProperty().removeListener(playingListener);
     }
     
     

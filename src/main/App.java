@@ -11,7 +11,7 @@ import GUI.NotifierManager;
 import GUI.UIController;
 import GUI.WindowBase;
 import Layout.LayoutManager;
-import Layout.WidgetManager;
+import Layout.Widgets.WidgetManager;
 import Library.BookmarkManager;
 import com.melloware.jintellitype.JIntellitype;
 import java.io.File;

@@ -3,12 +3,12 @@ package GUI.Components;
 
 import Configuration.Config;
 import Layout.AltState;
-import Layout.BiContainer;
+import Layout.BiContainerPure;
 import Layout.Container;
-import Layout.Controller;
-import Layout.TabContainer;
-import Layout.Widget;
-import Layout.WidgetInfo;
+import Layout.Widgets.Controller;
+import Layout.PolyContainer;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -24,20 +24,24 @@ import javafx.util.Duration;
 /**
  * @author uranium
  * 
+ * @TODO make dynamic indexes work and this widget part of layout map. See
+ * TO Do file API section
  */
 @WidgetInfo
 public class Layouter extends Widget implements AltState, Controller {
     
     private static final FXMLLoader fxmlLoader = new FXMLLoader(Layouter.class.getResource("Layouter.fxml"));
+    private int index;              // hack (see to do API section, layouts)
     
     @FXML Pane controls;
     @FXML AnchorPane entireArea = new AnchorPane();
     private final Container container;
     private final FadeTransition anim;
     
-    public Layouter(Container con) {
+    public Layouter(Container con, int index) {
+        this.index = index;
+        this.container = con;
         
-        container = con;
         fxmlLoader.setRoot(entireArea);
         fxmlLoader.setController(this);
 
@@ -62,23 +66,24 @@ public class Layouter extends Widget implements AltState, Controller {
     
     @FXML
     private void showWidgetArea() {
-        int i = container.indexOf(this);
-        container.addChild(1, Widget.EMPTY());
+        Integer i = container.indexOf(this);            // cant use here because it returns null
+                                                        // because Layouter is not part of Layout map
+        container.addChild(index, Widget.EMPTY());
     }
     @FXML
     private void showSplitV() {
-        int i = container.indexOf(this);
-        container.addChild(1, new BiContainer(Orientation.VERTICAL));
+        Integer i = container.indexOf(this);
+        container.addChild(index, new BiContainerPure(Orientation.HORIZONTAL));
     }
     @FXML
     private void showSplitH() {
-        int i = container.indexOf(this);
-        container.addChild(1, new BiContainer(Orientation.HORIZONTAL));
+        Integer i = container.indexOf(this);
+        container.addChild(index, new BiContainerPure(Orientation.VERTICAL));
     }
     @FXML
     private void showTabs() {
-        int i = container.indexOf(this);
-        container.addChild(1, new TabContainer());
+        Integer i = container.indexOf(this);
+        container.addChild(index, new PolyContainer());
     }    
 
     @Override

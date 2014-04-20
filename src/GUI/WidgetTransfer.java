@@ -4,7 +4,7 @@ package GUI;
 import Layout.Component;
 import Layout.Container;
 import Layout.LayoutManager;
-import Layout.Widget;
+import Layout.Widgets.Widget;
 import java.io.Serializable;
 import java.util.UUID;
 

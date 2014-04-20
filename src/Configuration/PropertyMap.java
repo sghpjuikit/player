@@ -134,11 +134,11 @@ public final class PropertyMap {
     }  
     public String getS(String key) {
         return (String) map.get(key);
-    }    
+    }
     public ReadMode getRM(String key) {
         return (ReadMode) map.get(key);
     }
-    public Orientation getOr(String key) {
+    public Orientation getOriet(String key) {
         return (Orientation) map.get(key);
     }  
     

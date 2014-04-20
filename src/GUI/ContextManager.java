@@ -12,10 +12,10 @@ import GUI.objects.VerticalContextMenu;
 import Layout.Container;
 import Layout.Layout;
 import Layout.LayoutManager;
-import Layout.SupportsTagging;
-import Layout.TabContainer;
-import Layout.Widget;
-import Layout.WidgetManager;
+import Layout.Widgets.SupportsTagging;
+import Layout.PolyContainer;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetManager;
 import Library.BookmarkItem;
 import Library.BookmarkManager;
 import java.io.File;
@@ -131,7 +131,7 @@ public final class ContextManager {
     /**
      * @param widget to open. Null does nothing.
      */
-    public static void openFloatingSettingsWindow(Widget widget) {System.out.println(widget.getName());
+    public static void openFloatingSettingsWindow(Widget widget) {
         if (widget == null) return;
         
         SimpleConfigurator c = new SimpleConfigurator(widget, () -> widget.getController().refresh() );
@@ -271,7 +271,7 @@ public final class ContextManager {
         WidgetManager.getFactories().stream().sorted((w1,w2) -> w1.name.compareToIgnoreCase(w2.name)).forEach( w -> {
             cc.add(w.getName(), "Open " + w.getName() + " widget.", () -> {
                 Container a = (Container) cc.userData;
-                if (a instanceof TabContainer)
+                if (a instanceof PolyContainer)
                     a.addChild(a.getChildren().size()+1,w.create());
                 else
                     a.addChild(1,w.create());
@@ -282,7 +282,7 @@ public final class ContextManager {
                 Container a = (Container) cc.userData;
                 Layout ll = new Layout(l);
                        ll.deserialize();
-                if (a instanceof TabContainer)
+                if (a instanceof PolyContainer)
                     a.addChild(a.getChildren().size()+1,ll);
                 else
                     a.addChild(1,ll);

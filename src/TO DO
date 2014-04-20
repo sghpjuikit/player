@@ -3,12 +3,11 @@
 ------------------------------------------------------
 
 - window add screen position enums like popover, unify? how?
-- windows/layouts
+- windows
   - unite with UI
   - clean up serialization
 - mood picker finish up
 - current item / metadata
-- Container<? extends ContainerArea>
 
 - reading metadata of sel items degrades perf of table in sel/move operations
 
@@ -22,31 +21,21 @@
 - shortcuts global or local settnigs
 - shortcuts solve 500ms lag
 - writeException - suspend playback (phew)                                      (medium)
-- thumbnail border still fucking around (file info resizing)
+- thumbnail border still screwing around (file info resizing)
 
 - notification Text > Other unify add show(title, text, cover)
-- app stealing focus on play next pop
+- app stealing focus on play next pop                                           (still an issue ?)
 - splitter absolute size for both children
 - context menus unify with popups                                               (?)
 - popup wrong coord init (+notifications border gap diff for each side...)
-- popup open = events not propagating
+- popup open = events not propagating                                           (what exactly is this)
 - rater controls make resizable - part of a bigger problem, its more that the
   graphics dont resize, though the component itself does
 - splitter positions keep getting fucked up on consequent resizes
 - playback states - change, suspend, etc - perfect + cleanup
 - playlist table sorting programatically (by styles)
 - playlist table header button implement properly column hiding (nasty bug)
-- realTime
-
-------------------------------------------------------
----------------------DEFICIENCIES---------------------
-------------------------------------------------------
-
-- popover positioning autofix gets in the way - make it compatible, reimplement (set to false if positioning needs to work correctly)
-- popover animation in/out implement properly, allow interpolators
-- popover moving with app listeners badly implemented, reimplement
-- popover moving with app not working for all show() methods! make def behavior
-- popover show() methods way too much mess...
+- realTime serialize
 
 ------------------------------------------------------
 --------------------FUNCTIONALITY---------------------
@@ -68,11 +57,11 @@
 - playlist - skip files <Condition>
 - extended circle context menu to allow multiple contents
 - gestures & touch
-- resizable widget areas
+
 - tagger filename change                                                        (?)
 
 FURTHER DOWN THE LIST FUNCTIONALITIES
-- Layout loading into Container
+- even more flexibly resizable widget areas
 - cover downloading widget
 - general table object
     non editable
@@ -142,10 +131,29 @@ CLEANUP
 - skin trait clean up
   trait install/uninstall add static method for dynamic objects
 
+API
+Layouts---------
+- BiContainer nonpure version works only as pure. Its abstract to avoid misuse
+- add parametrization and decoupling of gui-type from contatiers. Generics will
+  not help here unfortunately. With type erasure its looking poorly.
+- Layouter not part of Layout map. The reason is simple - if it would be, it
+  would get wrapped in widgetarea. But other than that, its proving more trouble
+  than its worth. Particularly because the Container.indexOf(Layouter) doesnt
+  work as it returns null (since its not part of the layout map). Maybe widgets
+  could have inherent property of needing Area wrapper, Layout would not.
+  UniContainer needs to be reworked then.
+- separate and implement Pure vs Leaf Containers better
+
+POPUPS
+- popover positioning autofix gets in the way - make it compatible, reimplement (set to false if positioning needs to work correctly)
+- popover animation in/out implement properly, allow interpolators
+- popover moving with app listeners badly implemented, reimplement
+- popover moving with app not working for all show() methods! make def behavior
+- popover show() methods way too much mess...
+
 UNIFICATIONS, OVERHAULS, REDESIGN
 - unify chapters and infos into singular type of field allowing multiple values
 - playing item, metadata, ... in Playbackmanager, clear Player class
-  implement layout/window management, play aroudn with modality, etc...
 - Configuration unite Action and other types of Config
 
 IMPROVEMENTS
@@ -159,7 +167,7 @@ IMPROVEMENTS
 
 
 PERFORMANCE
-- closing widgets not releasing memory                                          (still issue?)
+- closing widgets not releasing memory                                          (still an issue ?)
 - onTimeAt events seem to be pretty power hungry(4x=10MB), implement clock to
   cut down number of cycles (200ms should be MORE than enough)
 - played files leak on song change                                              (?)
@@ -172,12 +180,4 @@ PERFORMANCE
 ------------------------------------------------------
 
 - writing tag - multiple values
-
-
-------------------------------------------------------
--------------------- DEPLOYMENT ----------------------
-------------------------------------------------------
-
-- make webstart wokr
-- make in broswer work
-- adopt official java8 release
+- Layout loading into Container

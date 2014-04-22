@@ -10,16 +10,14 @@ functionalities are represented by widgets that can be used anywhere within layo
 Below are screenshots of current looks with different (still incomplete) skins:
 
 ![ScreenShot](https://github.com/sghpjuikit/player/master/extra/screen1.jpg)
-![ScreenShot](/extra/screen2.jpg)
+![ScreenShot](https://github.com/sghpjuikit/player/master/extra/screen2.jpg)
+
 
 
 repository: 
 
 At the moment, this repository is for tight circle of people interested in the project's development. It is not
-for sharing so far incomplete code of the application or to promote it. Please bear this in mind and dont openly
-distirbute, provide or publicize this project without prior agreement.
-
-The repository is aimed to work as private for now.
+for sharing so far incomplete code of the application. Please bear this in mind and dont openly distirbute, provide or publicize this project without prior agreement until the project reaches viable state.
 
 You are free to make your own builds for satisfying curiosity and digging into the code and the workings of the
 project as well as use the built application.

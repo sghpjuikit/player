@@ -9,7 +9,7 @@ functionalities are represented by widgets that can be used anywhere within layo
 
 Below are screenshots of current looks with different (still incomplete) skins:
 
-![ScreenShot](/ extra / screen1.jpg)
+![ScreenShot](/blob/master/extra/screen1.jpg)
 ![ScreenShot](/ extra / screen2.jpg)
 
 

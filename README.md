@@ -5,8 +5,12 @@ info:
 
 JavaFX based audio player application.
 Application's main focus is on modularity of the graphical user interface (GUI) and its customizability. Indivindual
-functionalities are implemented as widgets that can be used anywhere within layout.
+functionalities are represented by widgets that can be used anywhere within layout.
 
+Below are screenshots of current looks with different (still incomplete) skins:
+
+![ScreenShot](/ extra / screen1.jpg)
+![ScreenShot](/ extra / screen2.jpg)
 
 
 repository: 

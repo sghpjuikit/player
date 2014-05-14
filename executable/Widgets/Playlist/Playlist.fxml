@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="root" minHeight="0.0" minWidth="0.0" onMouseClicked="#SelectNone" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <AnchorPane fx:id="searchPane" prefHeight="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <TextField fx:id="searchBox" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Button mnemonicParsing="false" onAction="#toggleUseFilterForPlayback" prefWidth="58.0" styleClass="header-button" text="use" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+<tooltip><Tooltip text="Use filter for playback" />
+</tooltip></Button>
+      </children>
+<padding>
+<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+</padding>
+    </AnchorPane>
+    <AnchorPane fx:id="optionPane" prefHeight="28.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+      <children>
+        <BorderPane prefHeight="28.0" prefWidth="616.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <center>
+            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" />
+          </center>
+        </BorderPane>
+        <HBox alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="95.0" spacing="7.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <children>
+            <MenuButton graphicTextGap="2.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0" styleClass="header-button">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#chooseFiles" text="Add Files" />
+                <MenuItem mnemonicParsing="false" onAction="#chooseFolder" text="Add Folder" />
+                <MenuItem mnemonicParsing="false" onAction="#chooseUrl" text="Add Url" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsByOne" text="Duplicate Selected (1)" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsAsGroup" text="Duplicate Selected (+)" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+              </items>
+              <tooltip>
+                <Tooltip text="Add." />
+              </tooltip>
+            </MenuButton>
+            <MenuButton graphicTextGap="2.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0" styleClass="header-button">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#removeSelectedItems" text="Remove Selected" />
+                <MenuItem mnemonicParsing="false" onAction="#removeUnselectedItems" text="Remove Unselected" />
+                <MenuItem mnemonicParsing="false" onAction="#removeUnplayableItems" text="Remove Unplayable" />
+                <MenuItem mnemonicParsing="false" onAction="#removeDuplicateItems" text="Remove Duplicates" />
+                <MenuItem mnemonicParsing="false" onAction="#removeAllItems" text="Clear Playlist" />
+              </items>
+              <tooltip>
+                <Tooltip text="Remove." />
+              </tooltip>
+            </MenuButton>
+            <MenuButton graphicTextGap="2.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0" styleClass="header-button">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#SelectAll" text="Select All" />
+                <MenuItem mnemonicParsing="false" onAction="#SelectInverse" text="Select Inverse" />
+                <MenuItem mnemonicParsing="false" onAction="#SelectNone" text="Select None" />
+              </items>
+              <tooltip>
+                <Tooltip text="Select." />
+              </tooltip>
+            </MenuButton>
+            <MenuButton graphicTextGap="2.0" minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0" styleClass="header-button">
+              <items>
+                <MenuItem mnemonicParsing="false" onAction="#sortByTitle" text="Sort By Title" />
+                <MenuItem mnemonicParsing="false" onAction="#sortByLength" text="Sort By Length" />
+                <MenuItem mnemonicParsing="false" onAction="#sortByFilename" text="Sort by Filename" />
+                <MenuItem mnemonicParsing="false" onAction="#reverseOrder" text="Reverse Order" />
+                <MenuItem mnemonicParsing="false" onAction="#randomOrder" text="Random Order" />
+                <SeparatorMenuItem mnemonicParsing="false" />
+                <MenuItem mnemonicParsing="false" onAction="#tagEditSelected" text="Tag Selected" />
+                <MenuItem mnemonicParsing="false" onAction="#saveSelectedAsPlaylist" text="Save Selected as Playlist" /><MenuItem mnemonicParsing="false" onAction="#savePlaylist" text="Save Playlist" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+              </items>
+              <tooltip>
+                <Tooltip text="Order." />
+              </tooltip>
+            </MenuButton>
+          </children>
+          <padding>
+            <Insets left="7.0" />
+          </padding>
+        </HBox>
+      </children>
+    </AnchorPane>
+    <AnchorPane fx:id="tablePane" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="28.0">
+<padding>
+<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+</padding></AnchorPane>
+  </children>
+</AnchorPane>

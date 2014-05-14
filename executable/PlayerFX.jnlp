@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="PlayerFX.jnlp">
+  <information>
+    <title>PlayerFX</title>
+    <vendor>uranium</vendor>
+    <description>JavaFX based AudioPlayer with modular graphic userinterface.</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <jfx:javafx-runtime version="8.0+" href="http://javadl.sun.com/webapps/download/GetFile/javafx-latest/windows-i586/javafx2.jnlp"/>
+  </resources>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="Player.jar" size="652827" download="eager" />
+    <jar href="lib/controlsfx-8.0.5.jar" size="754696" download="eager" />
+    <jar href="lib/jaudiotagger-2.0.4.jar" size="913491" download="eager" />
+    <jar href="lib/jintellitype-1.3.9.jar" size="16183" download="eager" />
+    <jar href="lib/livedirsfx-fat-1.0.0-SNAPSHOT.jar" size="167684" download="eager" />
+    <jar href="lib/xstream-1.4.6.jar" size="513765" download="eager" />
+  </resources>
+  <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="PlayerFX" >
+    <param name="requiredFXVersion" value="8.0+"/>
+  </applet-desc>
+  <jfx:javafx-desc  width="800" height="600" main-class="main.App"  name="PlayerFX" />
+  <update check="always"/>
+</jnlp>

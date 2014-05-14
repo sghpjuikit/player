@@ -13,6 +13,15 @@ Below are screenshots of current looks with different (still incomplete) skins:
 ![ScreenShot](/extra/screen2.jpg)
 
 
+use:
+
+To run the application download the zip and run the Player.jar file in the /executable directory. It will open the application with clear layout.
+To customize layout, mouse over the empty area and chose the container. Placing mouse in the top right corner of the container will display options for example menu button for widget selection ( the "o" button). Holding ALT key will turn on layout mode and show layout handling controls.
+Tip: Mouse over the controls to display tooltips. Buttons and controls generally have tooltips explaining their functionality.
+
+Proper manuals and HOWTOs will be provided later.
+
+
 
 repository: 
 
@@ -36,7 +45,7 @@ In case you are (still) interested in the project in any way or in contribution 
 
 
 
-building & use:
+building project:
 
 Currently, there is no executable for download as it requires proper documentation of the features and guide for use. Coming soon.
 

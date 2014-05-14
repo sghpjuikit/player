@@ -3,10 +3,10 @@ package AudioPlayer.playlist;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import Configuration.IsAction;
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import Configuration.Configurable;
+import Configuration.IsAction;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -17,59 +17,73 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.util.Duration;
 import utilities.Util;
 
 /**
  * Provides unified handling to everything playlist related in the application
  */
-public class PlaylistManager implements Configurable{
+public class PlaylistManager implements Configurable {
+    
     private static final ObservablePlaylist playlist = new ObservablePlaylist(Player.state.playlist.playlist);
     private static final ReadOnlyObjectWrapper<PlaylistItem> playingItem = new ReadOnlyObjectWrapper<>();
-    private static ObjectProperty<TableViewSelectionModel<PlaylistItem>> selectionModel = new SimpleObjectProperty<>();
-    private static final ObservableList<PlaylistItem> selectedItems = FXCollections.observableArrayList();
     
-    public static void initialize() {
-        // initialize selectionModel (with kind of weird workaround)
-        TableView<PlaylistItem> t = new TableView<>();
-        selectionModel = t.selectionModelProperty();
-    }
+    private static final SimpleObjectProperty<PlaylistItem> selectedItem = new SimpleObjectProperty();
+    private static final ObservableList<PlaylistItem> selectedItems = FXCollections.observableArrayList();
+    public static final PlayingItemSelector playingItemSelector = new PlayingItemSelector();
+    
     
     /**
      * Initialize state from last session
      */
     public static void changeState() {
         addItems(Player.state.playlist.playlist);
-        // fires metadata loading update (needed)  < ?
+        // fires metadata loading update (needed ?)
         playingItem.set(getItem(Player.state.playlist.playingItem.get()));
     }
     
 /******************************************************************************/
     
     /**
-     * Returns played item. Change to returned object is allowed but will not
-     * be reflected. Consider it read only.
-     * @return clone of played item or null if no item is being played.
+     * Returns currently played item.
+     * @return played item or null if no item is being played.
      */
     public static PlaylistItem getPlayingItem() {
-        return PlaylistItem.clone(playingItem.get());
+        return playingItem.get();
     }
     /**
      * Internal use only !
-     * @note: this needs to be forbidden access to from external sources.
+     * this needs to be removed
      * @param item 
      */
     public static void setPlayingItem(PlaylistItem item) {
         playingItem.set(item);
     }
     /**
-     * Returns true if some item on the playlist is playing.
+     * Returns true if any item on the playlist is playing.
      * @return true if any item is playing.
      */
     public static boolean isItemPlaying() {
         return playingItem.get() != null;
+    }
+    /**
+     * Returns true if specified item is playing item on the playlist. There can
+     * only be one item in the application for which this method returns true.
+     * Note the disctinction between same file of the items and two items being
+     * the very same item.
+     * @return true if item is played.
+     */
+    public static boolean isItemPlaying(Item item) {
+        return getPlayingItem()==item; // playlistItem equals
+    }
+    /**
+     * Returns true if file to specified item is being played item on the playlist.
+     * Note the disctinction between same file of the items and two items being
+     * the very same item.
+     * @return true if item is played.
+     */
+    public static boolean isSameItemPlaying(Item item) {
+        return getPlayingItem().same(item);
     }
     /**
      * Returns index of currently playing item.
@@ -85,12 +99,11 @@ public class PlaylistManager implements Configurable{
         return playingItem.getReadOnlyProperty();
     }
     /**
-     * Returns playlist length. Changes to returned object are allowed but will
-     * not  be reflected. Consider it read only.
-     * @return length - total duration of the playlist.
+     * Returns read-only playlist length.
+     * @return length total duration of the playlist.
      */
     public static Duration getLength() {
-        return playlist.getLength();
+        return lengthProperty().getValue();
     }   
     /**
      * Returns bindable read only property of total duration.
@@ -99,52 +112,42 @@ public class PlaylistManager implements Configurable{
     public static ReadOnlyProperty<Duration> lengthProperty() {
         return playlist.lengthProperty();
     }
+
     /**
      * Returns selected item. Null if no item selected. Changes to returned
      * objects are allowed but wont be reflected. Consider it read only.
      * @return clone of selected item.
      */
-    public static PlaylistItem getSelectedItem() {
-        return PlaylistItem.clone(selectionModel.get().getSelectedItem());
+    public static PlaylistItem getSelectedItem() {                                      // TODO
+        return selectedItem.get();
     }
     /**
      * Returns bindable read only property of last selected item.
      * @return bindable selected item property.
      */
-    public static ReadOnlyObjectProperty<PlaylistItem> selectedItemProperty() {
-        return selectionModel.get().selectedItemProperty();
+    public static ObjectProperty<PlaylistItem> selectedItemProperty() {                                    // TODO
+        return selectedItem;
     }       
     /**
      * @return bindable unmodifiable observable list of selected items.
      */
-    public static ObservableList<PlaylistItem> getSelectedItems() {
-//        return FXCollections.unmodifiableObservableList(selectedItems);
+    public static ObservableList<PlaylistItem> getSelectedItems() {                                    // TODO
         return selectedItems;
     }
     /**
      * Clears the ObservableList and add all elements from the collection.
-     * @param to_select 
-     * @throws java.lang.NullPointerException - if the specified collection
-     * contains one or more null elements
+     * @param to_select list of items to select
      */
     public static void setSelectedItems(List<PlaylistItem> to_select) {
         selectedItems.setAll(to_select);
     }
-    /**
-     * Bind to table to get selecting functionality for custom playlist tables.
-     * bind this bidirectionally to get your table work as playlist table easily   
-     * @return 
-     */
-    public static ObjectProperty<TableView.TableViewSelectionModel<PlaylistItem>> selectionModelProperty() {
-        return selectionModel;
-    }
-    
+       
 /******************************************************************************/
     
     /**
-     * Returns the first playlist item passing the equalSource()=true for specified item.
-     * Use this method to look for item with URI by wrapping it into SimpleItem
-     * object before passing it as argument.
+     * Returns the first playlist item passing the equalSource()=true for 
+     * specified item. Use this method to look for item by URI by wrapping the 
+     * URI into an instance of {@link Item} and passing it as an argument.
      * @param item
      * @return PlaylistItem with specified source. Null if no result, param item is
      * null or playlist is empty.
@@ -154,10 +157,10 @@ public class PlaylistManager implements Configurable{
     }
     /**
      * Returns the index of the first occurrence of the specified element in this list,
-     * or -1 if this list does not contain the element. More formally, returns the 
-     * lowest index i such that (o==null ? get(i)==null : o.equals(get(i))), or -1 if
-     * there is no such index.
-     * @param item element to search for
+     * or -1 if this list does not contain the element. Formally, returns the 
+     * lowest index i such that (o==null ? get(i)==null : o.equals(get(i))), or 
+     * -1 if there is no such index.
+     * @param item element to search for index for
      * @return item the index of the first occurrence of the specified element 
      * in this list, or -1 if this list does not contain the element
      */
@@ -166,7 +169,7 @@ public class PlaylistManager implements Configurable{
     }
     /**
      * Returns index of the first item in playlist with same source as parameter.
-     * Method utilizes item.equalsSource() equality test.
+     * Method utilizes item.same() equality test.
      * @param item
      * @return item index. -1 if not in playlist.
      */
@@ -174,10 +177,9 @@ public class PlaylistManager implements Configurable{
         return playlist.indexOf(item);
     }
     /**
-     * Returns item following the one specified. If the item is last item
-     * of the playlist, 1st item is returned, making playlist appear to have cyclic
+     * Returns item following the one specified. If the item is last item of the
+     * playlist, 1st item is returned, making playlist appear to have cyclic
      * nature.
-     * 
      * @param item
      * @return Next item. Null if specified item is null, does not exist in the
      * playlist or playlist is empty.
@@ -186,18 +188,9 @@ public class PlaylistManager implements Configurable{
     public static PlaylistItem getNextItem(PlaylistItem item) {
         return playlist.getNextItem(item);
     }
+
     /**
-     * Returns playlist item following the one specified. If the item is last item
-     * of the playlist, 1st item is returned.
-     * Returns null if specified item is null, does not exist in the playlist or
-     * playlist is empty.
-     * @return 
-     */
-    public static PlaylistItem getNextPlayingItem() {
-        return getNextItem(playingItem.get());
-    }
-    /**
-     * @return all items of playlist. 
+     * @return observable list of all items of playlist. 
      */
     public static ObservableList<PlaylistItem> getItems() {
         return playlist.list();
@@ -303,7 +296,7 @@ public class PlaylistManager implements Configurable{
      */
     public static void removeItem(PlaylistItem item) {
         playlist.removeItem(item);
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -311,7 +304,7 @@ public class PlaylistManager implements Configurable{
      */
     public static void removeItems(List<PlaylistItem> items) {
         playlist.removeItems(items);
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -320,42 +313,23 @@ public class PlaylistManager implements Configurable{
      */
     public static void removeAllItems() {
         playlist.clear();
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     /**
-     * Removes all selected items from playlist. Does nothing if playlist is empty.
+Re   * Retains only the elements in this list that are contained in the specified 
+*    * collection (optional operation). In other words, removes from this list all of
+*    * its elements that are not contained in the specified collection.
      */
-    public static void removeSelectedItems() {
-        if ( playlist.isEmpty()) { return; }
-        
-        // it is necessary to clone the selected indexes not just items = selected;
-        // dont change addAll for items=...getSelectedIndeces();
-        List<PlaylistItem> items = new ArrayList<>();
-        items.addAll(selectionModel.get().getSelectedItems());
-
-        playlist.removeItems(items);
-        selectionModel.get().clearSelection(); selectedItems.clear();
-    }
-    /**
-     * Removes all unselecteed items from playlist. Does nothing if playlist is empty.
-     */
-    public static void removeUnselectedItems() {
-        if ( playlist.isEmpty()) { return; }
-        
-        // it is necessary to clone the selected indexes not just items = selected;
-        // dont change addAll for items=...getSelectedIndeces();
-        List<PlaylistItem> items = new ArrayList<>();
-        items.addAll(selectionModel.get().getSelectedItems());
-        
+    public static void retainItems(List<PlaylistItem> items) {
         playlist.retainItems(items);
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     /**
      * Removes all corrupt items from this playlist.
      */
     public static void removeCorrupt() {
         playlist.removeCorrupt();
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     /**
      * Removes all duplicates of all items of this playlist. After this method
@@ -365,7 +339,7 @@ public class PlaylistManager implements Configurable{
      * returns true.
      */
     public static void removeDuplicates() {
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
         playlist.removeDuplicates();
     }
     /**
@@ -375,7 +349,7 @@ public class PlaylistManager implements Configurable{
      */
     public static void duplicateItem(PlaylistItem item) {
         playlist.duplicateItem(item);
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
 
     /**
@@ -385,7 +359,7 @@ public class PlaylistManager implements Configurable{
      */
     public static void duplicateItemsAsGroup(List<PlaylistItem> items) {
         playlist.duplicateItemsAsGroup(items);
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -396,7 +370,7 @@ public class PlaylistManager implements Configurable{
      */    
     public static void duplicateItemsByOne(List<PlaylistItem> items) {
         playlist.duplicateItemsByOne(items);
-        selectionModel.get().clearSelection(); selectedItems.clear();
+//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -454,15 +428,10 @@ public class PlaylistManager implements Configurable{
     /**
      * Moves/shifts all selected items by specified distance.
      * Selected items retain their relative positions. Items stop moving when
-     * any of them hits end/start of the playlist. Items wont rotate the list.
-     * @note If this method requires real time response (for example reacting on mouse
-     * drag in table), it is important to 'cache' the behavior and allow values
-     * >1 && <-1 so the moved items dont lag behind.
-     * @param indexes of items to move. Must be List<Integer>.
+     * any of them hits end/start of the playlist - items wont rotate in the playlist.
      * @param by distance to move items by. Negative moves back. Zero does nothing.
-     * @return updated indexes of moved items. 
      */
-    public static List<Integer> moveItemsBy(List<Object> indexes, int by) {
+    public static List<Integer> moveItemsBy(List<Integer> indexes, int by) {
          return playlist.moveItemsBy(indexes, by);
     }
     
@@ -500,10 +469,6 @@ public class PlaylistManager implements Configurable{
         }
     }
     
-    public static void playSelectedItem() {
-        playItem(selectionModel.get().getSelectedItem());
-    }
-    
     /** Plays first item on playlist.*/
     @IsAction(name = "Play first", info = "Plays first item on playlist.", shortcut = "ALT+W")
     public static void playFirstItem() {
@@ -516,50 +481,16 @@ public class PlaylistManager implements Configurable{
         playItem(playlist.getSize()-1);
     }
     
-    /** Plays next item on playlist.*/
+    /** Plays next item on playlist according to its selector logic.*/
     @IsAction(name = "Play next", info = "Plays next item on playlist.", shortcut = "ALT+Z")
     public static void playNextItem() {
-        int index = playlist.indexOf(playingItem.get());
-        switch (PLAYBACK.getLoopMode()) {
-            case OFF:
-                if (index == getSize()-1) { PLAYBACK.stop(); }
-                else { playItem(index+1); }
-                break;
-            case SONG:
-                playItem(index);
-                break;
-            case PLAYLIST:
-                if (index < getSize()-1) {
-                    playItem(index+1);
-                } else {
-                    playFirstItem();
-                }
-                break;
-            default:
-        }
+        playItem(playingItemSelector.getNextPlaying());
     }
     
-    /** Plays previous item on playlist.*/
+    /** Plays previous item on playlist according to its selector logic.*/
     @IsAction(name = "Play previous", info = "Plays previous item on playlist.", shortcut = "ALT+\\")
     public static void playPreviousItem() {
-        int index = playlist.indexOf(playingItem.get());
-        switch (PLAYBACK.getLoopMode()) {
-            case OFF:
-                if (index == 0) { PLAYBACK.stop(); }
-                else { playItem(index-1); }
-                break;
-            case SONG:
-                playItem(index);
-                break;
-            case PLAYLIST:
-                if (index > 0) {
-                    playItem(index-1);
-                } else {
-                    playLastItem();
-                }
-                break;
-            default:
-        }
+        playItem(playingItemSelector.getPreviousPlaying());
     }
     
     /**

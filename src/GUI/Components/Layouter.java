@@ -5,8 +5,8 @@ import Configuration.Config;
 import Layout.AltState;
 import Layout.BiContainerPure;
 import Layout.Container;
-import Layout.Widgets.Controller;
 import Layout.PolyContainer;
+import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import javafx.util.Duration;
  * TO Do file API section
  */
 @WidgetInfo
-public class Layouter extends Widget implements AltState, Controller {
+public class Layouter extends Widget implements AltState, Controller<Widget> {
     
     private static final FXMLLoader fxmlLoader = new FXMLLoader(Layouter.class.getResource("Layouter.fxml"));
     private int index;              // hack (see to do API section, layouts)
@@ -39,6 +39,7 @@ public class Layouter extends Widget implements AltState, Controller {
     private final FadeTransition anim;
     
     public Layouter(Container con, int index) {
+        super("Layouter");
         this.index = index;
         this.container = con;
         

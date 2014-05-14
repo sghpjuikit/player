@@ -6,14 +6,14 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import GUI.Components.SimpleConfigurator;
-import GUI.objects.CircleContextMenu;
 import GUI.objects.ContextMenu;
 import GUI.objects.VerticalContextMenu;
 import Layout.Container;
 import Layout.Layout;
 import Layout.LayoutManager;
-import Layout.Widgets.SupportsTagging;
 import Layout.PolyContainer;
+import Layout.UniContainer;
+import Layout.Widgets.SupportsTagging;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import Library.BookmarkItem;
@@ -218,27 +218,33 @@ public final class ContextManager {
         final ContextMenu cc = new VerticalContextMenu();
         // populate
         cc.add("play", "Play the item/s on playlist.",() -> {
-            PlaylistManager.playItem(PlaylistManager.getSelectedItems().get(0));   // NEEDS TWEAK
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            PlaylistManager.playItem(items.get(0));
         });
         cc.add("remove", "Remove item/s from playlist.", () -> {
-            PlaylistManager.removeSelectedItems();
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            PlaylistManager.removeItems(items);
         });
         cc.add("tag", "Edit the item/s in tag editor.",  () -> {
-             SupportsTagging t = WidgetManager.getTaggerOrCreate();
-             if (t != null) t.read(PlaylistManager.getSelectedItems());
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            SupportsTagging t = WidgetManager.getTaggerOrCreate();
+            if (t != null) t.read(items);
         });
         cc.add("crop", "Remove unselected items on playlist.",  () -> {
-            PlaylistManager.removeUnselectedItems();
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            PlaylistManager.retainItems(items);
         });
         cc.add("clone(1+)", "Duplicate selected items on playlist as group.",  () -> {
-            PlaylistManager.duplicateItemsAsGroup(PlaylistManager.getSelectedItems());
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            PlaylistManager.duplicateItemsAsGroup(items);
         });
         cc.add("clone(1)", "Duplicate each of selected items on playlist by one.",  () -> {
-            PlaylistManager.duplicateItemsByOne(PlaylistManager.getSelectedItems());
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            PlaylistManager.duplicateItemsByOne(items);
         });
         cc.add("folder", "Browse the items in their dictionary.", () -> {
-            List<File> files = new ArrayList<>();
-            PlaylistManager.getSelectedItems().stream().map(PlaylistItem::getFolder).forEach(files::add);
+            List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
+            List<File> files = items.stream().map(PlaylistItem::getLocation).collect(Collectors.toList());
             Enviroment.browse(files,true);
         });
         return cc;
@@ -261,13 +267,13 @@ public final class ContextManager {
         });
         cc.add("folder", "Browse the items in their dictionary.", () -> {
             List files = ((List<Item>) cc.userData).stream()
-                         .map(Item::getFolder).collect(Collectors.toList());
+                         .map(Item::getLocation).collect(Collectors.toList());
             Enviroment.browse(files,true);
         });
         return cc;
     }
     private static ContextMenu makeWidgetContextMenu() {
-        final ContextMenu cc = new CircleContextMenu();
+        final ContextMenu cc = new VerticalContextMenu();
         WidgetManager.getFactories().stream().sorted((w1,w2) -> w1.name.compareToIgnoreCase(w2.name)).forEach( w -> {
             cc.add(w.getName(), "Open " + w.getName() + " widget.", () -> {
                 Container a = (Container) cc.userData;
@@ -277,6 +283,14 @@ public final class ContextManager {
                     a.addChild(1,w.create());
             });
         });
+        Container c = new UniContainer();
+            cc.add(c.getName(), "Add sub-layout.", () -> {
+                Container a = (Container) cc.userData;
+                if (a instanceof PolyContainer)
+                    a.addChild(a.getChildren().size()+1,c);
+                else
+                    a.addChild(1,c);
+            });
         LayoutManager.layouts.stream().sorted((l1,l2) -> l1.compareToIgnoreCase(l2)).forEach( l -> {
             cc.add(l, "Open " + l + " layout.", () -> {
                 Container a = (Container) cc.userData;

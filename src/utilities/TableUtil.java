@@ -34,8 +34,8 @@ public final class TableUtil {
     }
 
     /**
-     * Removes all items with any index from index list. Does nothing if either
-     * list or list of indexes is either null or empty.
+     * Removes all items with any index from specified index list. Does nothing 
+     * if either list or list of indexes is either null or empty.
      * @param list
      * @param indexes
      */
@@ -49,12 +49,11 @@ public final class TableUtil {
     }
 
     /**
-     * Convenience method to make it easier code-wise to select given rows of the
+     * Convenience method to make it easier to select given rows of the
      * TableView via its SelectionModel.
      * This methods provides alternative to TableViewSelectionModel.selectIndices()
      * that requires array parameter. This method makes the appropriate conversions
-     * and selects the items with the fore-mentioned method.
-     *
+     * and selects the items using List parameter
      * @param selectedIndexes
      * @param selectionModel
      */
@@ -64,8 +63,9 @@ public final class TableUtil {
         for (int i = 0; i < selectedIndexes.size(); i++) {
             newSelected[i] = selectedIndexes.get(i);
         }
-        if (newSelected.length != 0)
+        if (newSelected.length != 0) {
             selectionModel.selectIndices(newSelected[0], newSelected);
+        }
     }
     
 }

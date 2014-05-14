@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.util.Duration;
@@ -290,7 +289,8 @@ abstract public class AbstractPlaylist {
      * @return true if this list contained the specified element
      */
     public boolean removeItems(List<PlaylistItem> items) {
-        boolean changed = list().removeAll(items);
+        boolean changed = true;
+        list().removeAll(items);        
         updateDuration();
         return changed;
     }
@@ -408,8 +408,9 @@ abstract public class AbstractPlaylist {
     public void randomize() {
         Collections.shuffle(list());
     }
+
     /**
-     * Moves/shifts all selected items by specified distance.
+     * Moves/shifts all specified items by specified distance.
      * Selected items retain their relative positions. Items stop moving when
      * any of them hits end/start of the playlist. Items wont rotate the list.
      * @note If this method requires real time response (for example reacting on mouse
@@ -419,19 +420,64 @@ abstract public class AbstractPlaylist {
      * @param by distance to move items by. Negative moves back. Zero does nothing.
      * @return updated indexes of moved items.
      */
-    public List<Integer> moveItemsBy(List<Object> indexes, int by){
+    public List<Integer> moveItemsBy(List<Integer> indexes, int by){ 
+        List<List<Integer>> blocks = slice(indexes);
+        List<Integer> newSelected = new ArrayList();
+        
+        try {
+            if(by>0) {
+                for(int i=blocks.size()-1; i>=0; i--) {
+                    newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
+                }
+            } else if ( by < 0) {
+                for(int i=0; i<blocks.size(); i++) {
+                    newSelected.addAll(moveItemsByBlock(blocks.get(i), by));
+                }
+            }
+        } catch(IndexOutOfBoundsException e) {
+            return indexes;
+        }
+        return newSelected;
+    }
+//    private List<Integer> moveItemsBy(List<Integer> indexes, int by) {
+//        List<Integer> newSelected = new ArrayList<>();
+//        try {
+//            if(by > 0) {
+//                for (int i = indexes.size()-1; i >= 0; i--) {
+//                    int ii = indexes.get(i);
+//                    Collections.swap(list(), ii, ii+by);
+//                    newSelected.add(ii+by);
+//                }
+//
+//            } else if ( by < 0) {
+//                for (int i = 0; i < indexes.size(); i++) {
+//                    int ii = indexes.get(i);
+//                    Collections.swap(list(), ii, ii+by);
+//                    newSelected.add(ii+by);
+//                }
+//            }
+//        } catch ( IndexOutOfBoundsException ex) {
+//            // thrown if moved block hits start or end of the playlist
+//            // this gets rid of enormously complicated if statement
+//            // return old indexes
+//            return indexes;
+//        }
+//        return newSelected;
+//    }
+    
+    private List<Integer> moveItemsByBlock(List<Integer> indexes, int by) throws IndexOutOfBoundsException {
         List<Integer> newSelected = new ArrayList<>();
         try {
             if(by > 0) {
                 for (int i = indexes.size()-1; i >= 0; i--) {
-                    int ii = (Integer)indexes.get(i);
+                    int ii = indexes.get(i);
                     Collections.swap(list(), ii, ii+by);
                     newSelected.add(ii+by);
                 }
-
+                
             } else if ( by < 0) {
                 for (int i = 0; i < indexes.size(); i++) {
-                    int ii = (Integer)indexes.get(i);
+                    int ii = indexes.get(i);
                     Collections.swap(list(), ii, ii+by);
                     newSelected.add(ii+by);
                 }
@@ -440,9 +486,36 @@ abstract public class AbstractPlaylist {
             // thrown if moved block hits start or end of the playlist
             // this gets rid of enormously complicated if statement
             // return old indexes
-            return indexes.stream().map(i->(Integer)i).collect(Collectors.toList());
+//            return indexes;
+            throw new IndexOutOfBoundsException();
         }
         return newSelected;
+    }
+    // slice to monolithic blocks
+    private List<List<Integer>> slice(List<Integer> indexes){
+        if(indexes.isEmpty()) return new ArrayList();
+        
+        List<List<Integer>> blocks = new ArrayList();
+                            blocks.add(new ArrayList());
+        int last = indexes.get(0);
+        int list = 0;
+        blocks.get(list).add(indexes.get(0));
+        for (int i=1; i<indexes.size(); i++) {
+            int index = indexes.get(i);
+            if(index==last+1) {
+                blocks.get(list).add(index);
+                last++;
+            }
+            else {
+                list++;
+                last = index;
+                List<Integer> newL = new ArrayList();
+                              newL.add(index);
+                blocks.add(newL);
+            }
+        }
+        
+        return blocks;
     }
     
 /***************************** PLAYLIST METHODS *******************************/

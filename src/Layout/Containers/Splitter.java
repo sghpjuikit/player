@@ -16,6 +16,8 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
+import static javafx.geometry.Orientation.HORIZONTAL;
+import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
@@ -30,8 +32,8 @@ public final class Splitter implements AltState {
     private static final FXMLLoader fxmlLoader = new FXMLLoader(Splitter.class.getResource("Splitter.fxml"));
     
     AnchorPane root = new AnchorPane();
-    @FXML AnchorPane child1;
-    @FXML AnchorPane child2;
+    @FXML AnchorPane root_child1;
+    @FXML AnchorPane root_child2;
     @FXML SplitPane splitPane;
     @FXML AnchorPane controlsPane;
     
@@ -39,14 +41,20 @@ public final class Splitter implements AltState {
     BiContainer container;
     
     //tmp variables
-    private final PropertyMap prop;
+    private final PropertyMap prop;         // for easy access to container's props
+    private static boolean mouse_mov_divider = false;
     private final FadeTransition fadeIn;
     private final FadeTransition fadeOut;
 
+    private void applyPos() {
+        splitPane.getDividers().get(0).setPosition(prop.getD("pos"));
+    }
+    
     public Splitter(BiContainer con) {
         container = con;
         prop = con.properties;
         
+        // load graphics
         fxmlLoader.setRoot(root);
         fxmlLoader.setController(this);
         try {
@@ -57,50 +65,39 @@ public final class Splitter implements AltState {
         
         // initialize properties
         prop.initProperty(Double.class, "pos", 0.5d);
-        prop.initProperty(Orientation.class, "orient", Orientation.VERTICAL);
+        prop.initProperty(Orientation.class, "orient", VERTICAL);
         prop.initProperty(Boolean.class, "lock", false); //true=not locked size
         prop.initProperty(Double.class, "collap", 0d);
        
-        // set properties  // some must be inside Platform.runLater() <= java bug
-        splitPane.setDividerPosition(0, prop.getD("pos"));
+        // set properties
         splitPane.setOrientation(prop.getOriet("orient"));
-        SplitPane.setResizableWithParent(child2, prop.getB("lock"));
-        Platform.runLater(() -> {
-            splitPane.setDividerPosition(0, prop.getD("pos"));
-            splitPane.setOrientation(prop.getOriet("orient"));
-            SplitPane.setResizableWithParent(child2, prop.getB("lock"));
-            if (getCollapsed()<0)
-                splitPane.setDividerPosition(0,0);
-            if (getCollapsed()>0)
-                splitPane.setDividerPosition(0,1);
-        });
+        SplitPane.setResizableWithParent(root_child2, prop.getB("lock"));
+        applyPos();
+        
+        if (getCollapsed()<0)
+            splitPane.setDividerPosition(0,0);
+        if (getCollapsed()>0)
+            splitPane.setDividerPosition(0,1);
         
         // controls behavior
         controls = new SimplePositionable(controlsPane, root);
-        splitPane.getDividers().get(0).positionProperty().addListener( o -> {
-            positionControls();
-            prop.set("pos", splitPane.getDividers().get(0).getPosition());
-        });
+
         root.heightProperty().addListener( o -> {
             positionControls();
         });
         positionControls();
         
         splitPane.heightProperty().addListener( o -> {
-            Platform.runLater(() -> {
                 if (getCollapsed()<0)
                     splitPane.setDividerPositions(0);
                 if (getCollapsed()>0)
                     splitPane.setDividerPositions(1);
-            });
         });
         splitPane.widthProperty().addListener( o -> {
-            Platform.runLater(() -> {
                 if (getCollapsed()<0)
                     splitPane.setDividerPositions(0);
                 if (getCollapsed()>0)
                     splitPane.setDividerPositions(1);
-            });
         });
         
         // build animations
@@ -115,7 +112,7 @@ public final class Splitter implements AltState {
         // activate animation if mouse close to divider
         final double limit = 5; // distance for activation of the animation
         splitPane.addEventFilter(MouseEvent.MOUSE_MOVED, t -> {
-            if (splitPane.getOrientation() == Orientation.HORIZONTAL) {
+            if (splitPane.getOrientation() == HORIZONTAL) {
                 double X = splitPane.getDividerPositions()[0] * root.widthProperty().get();
                 if (Math.abs(t.getX() - X) < limit)
                     showControls();
@@ -138,6 +135,24 @@ public final class Splitter implements AltState {
                 hideControls();
         });
         
+        
+        
+        splitPane.addEventFilter(MouseEvent.MOUSE_PRESSED,e-> mouse_mov_divider=true);
+        splitPane.addEventFilter(MouseEvent.MOUSE_RELEASED,e-> mouse_mov_divider=false);
+        splitPane.getDividers().get(0).positionProperty().addListener( (o,oldV,newV) -> {
+            positionControls();
+//            System.out.println(mouse_mov_divider +" real "+newV +" "+ container.getID());
+            if(mouse_mov_divider) {
+                prop.set("pos", newV);
+            } else {
+                if(isCollapsed()) return;
+                double p = prop.getD("pos");
+                if(newV.doubleValue()<p-0.08||newV.doubleValue()>p+0.08) 
+                    Platform.runLater(()->applyPos());
+            }
+
+        });
+        
         positionControls();
         hideControls();
     }
@@ -147,8 +162,7 @@ public final class Splitter implements AltState {
         // repopulate
         if (w instanceof Widget) {
             Node child = w.load();
-            child1.getChildren().clear();
-            child1.getChildren().add(child);
+            root_child1.getChildren().setAll(child);
             // bind child to the area
             AnchorPane.setBottomAnchor(child, 0.0);
             AnchorPane.setLeftAnchor(child, 0.0);
@@ -156,7 +170,7 @@ public final class Splitter implements AltState {
             AnchorPane.setRightAnchor(child, 0.0);
         }
         if (w instanceof Container) {
-            Node child = ((Container)w).load(child1);
+            Node child = ((Container)w).load(root_child1);
         }
     }
     public void setChild2(Component w) {
@@ -164,8 +178,7 @@ public final class Splitter implements AltState {
         if (w instanceof Widget) {
             // repopulate
             Node child = w.load();
-            child2.getChildren().clear();
-            child2.getChildren().add(child);
+            root_child2.getChildren().setAll(child);
             // bind child to the area
             AnchorPane.setBottomAnchor(child, 0.0);
             AnchorPane.setLeftAnchor(child, 0.0);
@@ -173,21 +186,21 @@ public final class Splitter implements AltState {
             AnchorPane.setRightAnchor(child, 0.0);
         }
         if (w instanceof Container) {
-            Node child = ((Container)w).load(child2);
+            Node child = ((Container)w).load(root_child2);
         }
     }
 
     public AnchorPane getChild1Pane() {
-        return child1;
+        return root_child1;
     }
     public AnchorPane getChild2Pane() {
-        return child2;
+        return root_child2;
     }
     public AnchorPane getPane() {
         return root;
     }
     private void positionControls() {
-        if (splitPane.getOrientation() == Orientation.VERTICAL) {
+        if (splitPane.getOrientation() == VERTICAL) {
             double X = splitPane.getWidth()/2;
             double Y = splitPane.getDividerPositions()[0] * root.heightProperty().get();
             controls.relocate(X-controls.getWidth()/2, Y-controls.getHeight()/2);
@@ -206,12 +219,12 @@ public final class Splitter implements AltState {
      */
     @FXML
     public void toggleOrientation() {
-        if (splitPane.getOrientation() == Orientation.HORIZONTAL) {
-            prop.set("orient", Orientation.VERTICAL);
-            splitPane.setOrientation(Orientation.VERTICAL);
+        if (splitPane.getOrientation() == HORIZONTAL) {
+            prop.set("orient", VERTICAL);
+            splitPane.setOrientation(VERTICAL);
         } else {
-            prop.set("orient", Orientation.HORIZONTAL);
-            splitPane.setOrientation(Orientation.HORIZONTAL);
+            prop.set("orient", HORIZONTAL);
+            splitPane.setOrientation(HORIZONTAL);
         }
     }
     /**
@@ -219,12 +232,12 @@ public final class Splitter implements AltState {
      */
     @FXML
     public void toggleLock() {
-        if (SplitPane.isResizableWithParent(child2)) {
+        if (SplitPane.isResizableWithParent(root_child2)) {
             prop.set("lock", false);
-            SplitPane.setResizableWithParent(child2, false);
+            SplitPane.setResizableWithParent(root_child2, false);
         } else {
             prop.set("lock", true);
-            SplitPane.setResizableWithParent(child2, true);
+            SplitPane.setResizableWithParent(root_child2, true);
         }  
     }
     /**

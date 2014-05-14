@@ -40,8 +40,8 @@ public abstract class Item {
     }
     
     /** @return parent directory of the item. */
-    public File getFolder() {
-        return getFile().getParentFile();
+    public File getLocation() {
+        return getFile().getAbsoluteFile().getParentFile();
     }
     
     /** @return the filename without suffix or empty string if none */
@@ -128,7 +128,7 @@ public abstract class Item {
     }
     
     /**
-     * Returns metadata of the item.
+     * Rears and returns metadata of the file of this item.
      * 
      * WARNING. This method uses application thread and as such is prone to
      * cause performance problems if misused. Its fine to use this method for

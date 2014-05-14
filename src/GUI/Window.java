@@ -198,6 +198,8 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     @Override
     public void close() {
         super.close();
+        if(layout !=null)
+           layout.close();
         ContextManager.windows.remove(this);
     }
     

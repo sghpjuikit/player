@@ -1,6 +1,7 @@
 
 package Layout.Widgets;
 
+import Configuration.ConfigManager;
 import Configuration.Configuration;
 import GUI.Components.Circles;
 import GUI.Components.ConfiguratorComponent;
@@ -21,19 +22,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import main.App;
 import utilities.FileUtil;
 import utilities.Log;
 
 /**
  * Handles operations with Widgets.
- * Note, that only pure Widgets are handled.
- * There are also Container objects subclassing Widget, but they are handled with
- * Layout Manager. This class handles only external and internal widgets with no
- * children (!= Container).
- * 
+ * <p>
  */
 public final class WidgetManager {
-    // non null unique elements
+    /** Collection of registered Widget Factories. Non null, unique.*/
     static final List<WidgetFactory> factories = new ArrayList<>();
     
     public static void initialize() {
@@ -76,15 +74,14 @@ public final class WidgetManager {
      * factories.
      */
     private static void registerExternalWidgetFactories() {
-        Log.deb("Searching for and registering external widgets.");
+        Log.deb("Searching for external widgets.");
         // get folder
-        File dir = new File(Configuration.WIDGET_FOLDER);
+        File dir = new File(App.WIDGET_FOLDER());
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("External widgets registration failed.");
             return;
         }
         // get .fxml files
-        System.out.println("REWGISTERIN");
         try {
             Files.find(dir.toPath(), 2, (t,u) -> t.toString().endsWith(".fxml")).forEach(p->{
                 // dont change t.toString().endsWith(".fxml") to: t.endsWith(".fxml") - wont work
@@ -100,7 +97,7 @@ public final class WidgetManager {
                 }
             });
         } catch(IOException e) {
-            System.out.println("Error during looking for widgets. Some widgets might not be available.");
+            Log.err("Error during looking for widgets. Some widgets might not be available.");
         }
     }
     
@@ -118,7 +115,7 @@ public final class WidgetManager {
      * @param cond widget predicate
      * @return widget testing true for predicate, null otherwise.
      */
-    public static Widget getWidget(Predicate<? super Widget> cond) {
+    public static Widget getWidget(Predicate<Widget> cond) {
         Widget out = null;
         // attempt to get preferred widget from loaded widgets
         if (out == null)
@@ -144,7 +141,7 @@ public final class WidgetManager {
      * @return widget fulfilling condition. Null if application has no access to
      * any widget fulfilling the condition.
      */
-    public static Widget getWidgetOrCreate(Predicate<? super WidgetInfo> cond) {
+    public static Widget getWidgetOrCreate(Predicate<WidgetInfo> cond) {
         Widget out;
         // attempt to get preferred widget from loaded widgets
         out = getWidget(w->cond.test(w.getInfo()));

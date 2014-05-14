@@ -4,6 +4,7 @@
  */
 package AudioPlayer.playback;
 
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public final class PlaybackState {
     private UUID id;
     private final VolumeProperty volume;
     private final BalanceProperty balance;
-    private final ObjectProperty<LoopMode> loopMode;
+    private final ObjectProperty<PlayingItemSelector.LoopMode> loopMode;
     private final ObjectProperty<MediaPlayer.Status> status;
     private final ObjectProperty<Duration> duration;
     private final ObjectProperty<Duration> currentTime;
@@ -39,7 +40,7 @@ public final class PlaybackState {
         id = _id;
         volume = new VolumeProperty();
         balance = new BalanceProperty();
-        loopMode = new SimpleObjectProperty<>(LoopMode.PLAYLIST);
+        loopMode = new SimpleObjectProperty<>(PlayingItemSelector.LoopMode.PLAYLIST);
         status = new SimpleObjectProperty<>(MediaPlayer.Status.UNKNOWN);
         duration = new SimpleObjectProperty<>(Duration.ZERO);
         currentTime = new SimpleObjectProperty<>(Duration.ZERO);
@@ -83,15 +84,15 @@ public final class PlaybackState {
         return balance.balanceProperty();
     }
     
-    public LoopMode getLoopMode() {
+    public PlayingItemSelector.LoopMode getLoopMode() {
         return loopMode.get();
     }
 
-    public void setLoopMode(LoopMode val) {
+    public void setLoopMode(PlayingItemSelector.LoopMode val) {
         loopMode.set(val);
     }
 
-    public ObjectProperty<LoopMode> loopModeProperty() {
+    public ObjectProperty<PlayingItemSelector.LoopMode> loopModeProperty() {
         return loopMode;
     }
 

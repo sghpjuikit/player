@@ -14,5 +14,10 @@ package utilities.functional.functor;
 public interface Procedure {
     
     /** Execute this procedure. */
-    public abstract void run();
+    public void run();
+    
+    /** @return procedure that does nothing. */
+    public static Procedure DO_NOTHING() {
+        return () -> {};
+    }
 }

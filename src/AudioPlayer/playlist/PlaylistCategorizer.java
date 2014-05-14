@@ -1,11 +1,13 @@
 
 package AudioPlayer.playlist;
 
+import Configuration.ConfigManager;
 import Configuration.Configuration;
 import PseudoObjects.Category;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import main.App;
 import utilities.FileUtil;
 import utilities.Log;
 
@@ -72,7 +74,7 @@ public class PlaylistCategorizer {
      */
     private static void findPlaylists() {
         Log.mess("Attempting to load playlists...");
-        File dir = new File(Configuration.PLAYLIST_FOLDER);
+        File dir = new File(App.PLAYLIST_FOLDER());
         if (FileUtil.isValidatedDirectory(dir)) {
             Log.err("Loading playlists failed.");
             return;

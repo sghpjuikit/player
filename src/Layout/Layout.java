@@ -1,7 +1,6 @@
 
 package Layout;
 
-import Configuration.Configuration;
 import Serialization.Serializator;
 import Serialization.Serializes;
 import Serialization.SerializesFile;
@@ -12,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
+import main.App;
 import utilities.FileUtil;
 
 /**
@@ -56,11 +56,11 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
         // save new
         Serializator.serialize(this);
         // delete old file
-        FileUtil.deleteFile(new File(Configuration.LAYOUT_FOLDER+File.separator+old+".l"));
+        FileUtil.deleteFile(new File(App.LAYOUT_FOLDER()+File.separator+old+".l"));
         // rename thumb
-        File thumb = new File(Configuration.LAYOUT_FOLDER + File.separator + old + ".png");
+        File thumb = new File(App.LAYOUT_FOLDER() + File.separator + old + ".png");
         if (thumb.exists())
-            thumb.renameTo(new File(Configuration.LAYOUT_FOLDER + File.separator + name + ".png"));
+            thumb.renameTo(new File(App.LAYOUT_FOLDER() + File.separator + name + ".png"));
     }
     
     /** @return true if and only if layout is displayed on the screen as main tab */
@@ -85,7 +85,7 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      * @return file of the image of the layout preview or null if none exists.
      */
     public File getThumbnail() {
-        File file = new File(Configuration.LAYOUT_FOLDER + File.separator + name + ".png");
+        File file = new File(App.LAYOUT_FOLDER() + File.separator + name + ".png");
         if (!file.exists() && isMain()) LayoutManager.makeSnapshot();
         return file;
     }
@@ -96,7 +96,7 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      */
     public void makeSnapshot() {
         WritableImage i = parent_pane.snapshot(new SnapshotParameters(), null);
-        File out = new File(Configuration.LAYOUT_FOLDER + File.separator + name + ".png");
+        File out = new File(App.LAYOUT_FOLDER() + File.separator + name + ".png");
         FileUtil.writeImage(i, out);
     } 
     
@@ -110,6 +110,15 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
     @Override
     public Node load(AnchorPane rootPane) {
         Objects.requireNonNull(rootPane);
+        
+        try {
+            getAllWidgets().forEach(w->w.getController().OnClosing());
+            System.out.println("widgets reloaded");;
+        }catch(NullPointerException e) {
+            // do nothing
+            System.out.println("not initialized ");
+        }
+        
         Node n = super.load(rootPane);
         initialize();
         return n;
@@ -134,7 +143,7 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      }
      
      public File getFile() {
-         return new File(Configuration.LAYOUT_FOLDER+File.separator+name+".l");
+         return new File(App.LAYOUT_FOLDER()+File.separator+name+".l");
      }
      
      /**

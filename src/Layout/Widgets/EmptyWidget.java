@@ -23,10 +23,10 @@ import javafx.scene.layout.AnchorPane;
  * @author uranium
  */
 @WidgetInfo
-class EmptyWidget extends Widget implements Controller {
+class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> {
 
-    @Override public String getName() {
-        return "";
+    public EmptyWidget() {
+        super("");
     }
     
     /** @return empty (default) widget information */
@@ -55,12 +55,13 @@ class EmptyWidget extends Widget implements Controller {
         // no-op
     }
 
-    /** This implementation is no-op */
-    @Override public void setWidget(Widget w) {
+    @Override
+    public void setWidget(EmptyWidget w) {
         // no-op
     }
 
-    @Override public Widget getWidget() {
+    @Override
+    public EmptyWidget getWidget() {
         return this;
     }
 }

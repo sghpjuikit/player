@@ -57,7 +57,7 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
         return instantiateController(url);
     }
     
-    private static Controller instantiateController(URL url) {
+    private static FXMLController instantiateController(URL url) {
             try {
                 URL dir = new File(url.toURI()).getParentFile().toURI().toURL();
                 URL[] urls = new URL[1];
@@ -75,7 +75,7 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
                 
                 // instantiate the controller
                 cn = controllerLoader.loadClass(controllerName);
-                return (Controller) cn.newInstance();
+                return (FXMLController) cn.newInstance();
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | MalformedURLException | URISyntaxException ex) {
                 Log.err("Controller instantiation failed. " + ex.getMessage());
                 return null;

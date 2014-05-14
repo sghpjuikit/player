@@ -7,7 +7,7 @@ package GUI.Components;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistCategorizer;
 import GUI.DragUtil;
-import GUI.objects.PlaylistTableSimple;
+import GUI.ItemHolders.PlaylistTableSimple;
 import PseudoObjects.Category;
 import java.io.IOException;
 import java.util.ArrayList;

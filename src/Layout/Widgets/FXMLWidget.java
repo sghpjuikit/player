@@ -5,6 +5,7 @@
 package Layout.Widgets;
 
 import Configuration.Config;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import javafx.fxml.FXMLLoader;
@@ -24,7 +25,7 @@ import utilities.Log;
  * <p>
  * @author uranium
  */
-public final class FXMLWidget extends Widget {
+public final class FXMLWidget extends Widget<FXMLController> {
     /** 
      * URL pointing towards .fxml file of this widget. Also plays role in
      * serialization as it is determines the type of widget.
@@ -32,17 +33,18 @@ public final class FXMLWidget extends Widget {
     private final URL url;
     
     /**
+     * @param name of the widget. Permanent.
      * @param aResource {@see #url}
      */
-    FXMLWidget(String aName, URL aResource) {
-        name = aName;
+    FXMLWidget(String name, URL aResource) {
+        super(name);
         url = aResource;
     }
 
     @Override
     public Node load() {
         try {
-            controller = getFactory().instantiateController();
+            controller = (FXMLController) getFactory().instantiateController();
             controller.setWidget(this);
             
             FXMLLoader loader = new FXMLLoader();
@@ -59,7 +61,7 @@ public final class FXMLWidget extends Widget {
             
             controller.refresh();
             return node;
-        } catch (IOException ex) {
+        } catch (IOException ex) {ex.printStackTrace();
             Log.mess("Widget " + name + " failed to load. " + ex.getMessage() );
             return null;
         }
@@ -68,6 +70,11 @@ public final class FXMLWidget extends Widget {
     @Override
     public FXMLWidgetFactory getFactory() {
         return (FXMLWidgetFactory) super.getFactory();
+    }
+    
+    /** Returns location of the widget's parent directory. Never null. */
+    public File getLocation() {
+        return new File(url.getFile()).getParentFile();
     }
 
 }

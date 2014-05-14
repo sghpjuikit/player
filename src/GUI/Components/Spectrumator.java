@@ -6,7 +6,7 @@
 
 package GUI.Components;
 
-import GUI.objects.Spectrum;
+import GUI.ItemHolders.Spectrum;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;
@@ -15,7 +15,7 @@ import javafx.scene.layout.AnchorPane;
  *
  * @author Plutonium_
  */
-public class Spectrumator extends AnchorPane implements Controller {
+public class Spectrumator extends AnchorPane implements Controller<Widget>  {
     private Spectrum spectr = new Spectrum();
     
     public Spectrumator() {

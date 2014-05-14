@@ -7,16 +7,17 @@
 
 <AnchorPane id="AnchorPane" fx:id="root" minHeight="0.0" minWidth="0.0" onMouseClicked="#SelectNone" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <AnchorPane prefHeight="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <AnchorPane fx:id="searchPane" prefHeight="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
-        <Label layoutX="14.0" layoutY="6.0" text="Search" />
-        <TextField fx:id="searchBox" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="0.0" />
+        <TextField fx:id="searchBox" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Button mnemonicParsing="false" onAction="#toggleUseFilterForPlayback" prefWidth="58.0" styleClass="header-button" text="use" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+<tooltip><Tooltip text="Use filter for playback" />
+</tooltip></Button>
       </children>
 <padding>
 <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
 </padding>
     </AnchorPane>
-    <AnchorPane prefHeight="28.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+    <AnchorPane fx:id="optionPane" prefHeight="28.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
       <children>
         <BorderPane prefHeight="28.0" prefWidth="616.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <center>

@@ -75,19 +75,21 @@ public abstract class Container extends Component implements AltState {
         return (parent == null);
     }
     
-    /** @return whether has parent */
+    /** 
+     * Equivalent to isRoot()
+     * @return whether has parent */
     public boolean hasParent() {
         return (parent == null);
     }
     
-    /** @return parent container this container is child of */
+    /** @return parent container of this container */
     public Container getParent() {
         return parent;
     }
     
     /** @return the children */
     public abstract Map<Integer, ? extends Component> getChildren();
-    
+    boolean b = false;
     /**
      * Adds component to specified index as child of the container.
      * @param index index of a child. Determines its position within container.
@@ -95,13 +97,31 @@ public abstract class Container extends Component implements AltState {
      * @param c component to add. Null allowed - sets empty content at specified
      * position.
      */
-    public abstract void addChild(Integer index, Component c);
+    public void addChild(Integer index, Component c) {
+        System.out.println("B" +b+" index "+index + " c "+c);
+        if(c==null) {
+            if(index!=null) {
+                if(b) return;
+                Component cm = getChildren().get(index);
+                if(cm!=null){
+                    if(cm instanceof Widget) {
+                        ((Widget)cm).getController().OnClosing();
+                    }
+                    else if(cm instanceof Container) {
+                        if(b) return;
+                        b = true;
+                        ((Container)cm).close();
+                    }
+                }
+            }
+        }
+    }
     
     /**
      * Removes child of this container if it exists.
      * @param c component to remove
      */
-    public void removeChild(Component c) {
+    public void removeChild(Component c) {System.out.println("index is "+ indexOf(c));
         removeChild(indexOf(c)); 
     }
     
@@ -109,7 +129,7 @@ public abstract class Container extends Component implements AltState {
      * Removes child of this container at specified index.
      * @param index of the child to remove. Null is ignored.
      */
-    public void removeChild(Integer index) {
+    public void removeChild(Integer index) {System.out.println("REMOVE INDEX "+index + " "+getChildren().size());
         if(index==null) return;
         addChild(index, null);
     }
@@ -123,8 +143,12 @@ public abstract class Container extends Component implements AltState {
     public void swapChildren(Component w1, Container c2, Component w2) {        // Log.deb("swapping "+w1.getName() + " with " + w2.getName());
         Container c1 = this;
         if (c1.equals(c2)) return;
-        int i1 = c1.indexOf(w1);
-        int i2 = c2.indexOf(w2);
+        
+        if(w1==null) w1 = Widget.EMPTY();
+        if(w2==null) w2 = Widget.EMPTY();
+        
+        Integer i1 = c1.indexOf(w1);
+        Integer i2 = c2.indexOf(w2);
         c1.addChild(i1, w2);
         c2.addChild(i2, w1);
         c1.load();
@@ -141,6 +165,7 @@ public abstract class Container extends Component implements AltState {
             if (entry.getValue().equals(c))
                 return entry.getKey();
         }
+        
         return null;
     }
     
@@ -223,6 +248,12 @@ public abstract class Container extends Component implements AltState {
      * If the container is root, this method is a no-op.
      */
     public void close() {
+        System.out.println("SIZE "+getAllWidgets().size());
+//        getAllWidgets().stream().map(w->w.getController()).forEach(c->{
+//            System.out.println(c.getClass().getName());
+//            System.out.println(indexOf(c.getWidget()) + " " + c.getWidget().getName());
+//            c.OnClosing();
+//        });
         if (!isRoot())
             parent.removeChild(this);
     }

@@ -5,7 +5,6 @@ import AudioPlayer.Player;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.ConfigManager;
 import Configuration.Configuration;
-import Configuration.SkinEnum;
 import GUI.GUI;
 import GUI.NotifierManager;
 import GUI.UIController;
@@ -16,21 +15,21 @@ import Library.BookmarkManager;
 import com.melloware.jintellitype.JIntellitype;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import utilities.FileUtil;
 import utilities.Log;
 
 
 /**
- * Main Application. This class handles navigation and user session.
+ * Application. Launches and terminates program.
  */
 public class App extends Application {
+
+
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
     private WindowBase window;
@@ -47,25 +46,15 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    /**
-     * Returns instance of this app singleton.
-     * @return 
-     */
+    
+    /** Returns instance of this app singleton. */
     public static App getInstance() {
         return instance;
     }
     
 /******************************************************************************/
     
-    /**
-     * The application initialization method. This method is called immediately
-     * after the Application class is loaded and constructed. Can perform 
-     * initialization prior to the actual starting of the application.
-     * 
-     * NOTE: This method is not called on the JavaFX Application Thread. An
-     * application must not construct a Scene or a Stage in this method. An
-     * application may construct other JavaFX objects in this method. 
-     */
+    /** {@inheritDoc } */
     @Override
     public void init() {
         
@@ -173,11 +162,7 @@ public class App extends Application {
      * Before this method is invoked for the first time, the gui will not be
      * ready to execute operations. To check whether it is, use isGuiInitialized()
      * method.
-     * Run this method to completely rebuild the GUI. It involves:
-     * - rebuilding of the application window
-     * - reregistering shortcuts
-     * - setting skin
-     * - setting fontsize
+     * Run this method to completely rebuild the GUI.
      */
     public void initializeGui() {
         replaceSceneContent("UI.fxml");
@@ -202,75 +187,6 @@ public class App extends Application {
                     getWindow().getStage().getScene().getRoot() == null));
     }
 
-    /**
-     * Changes application's skin and applies it.
-     * This is a convenience method that constructs a file from the skinname
-     * and calls the setSkin(File skin) method.
-     * The skin file will be constructed based on the fact that it must pass
-     * the isValidSkinFile() check. The path is constructed like this:
-     * Application.SkinsPath/skinname/skinname.css
-     * For any details regarding the mechanics behind the method see documentation
-     * of that method.
-     * @param skinname name of the skin to apply.
-     * @return return value of the setSkin(File) method ran with the constructed
-     * file of this method.
-//     * @throws NullPointerException if parameter null
-     */
-    public boolean setSkin(String skinname) {
-        if (skinname== null || skinname.isEmpty() || skinname.equalsIgnoreCase(App.STYLESHEET_MODENA))  //handle modena
-            return setSkinModena();
-        else if (skinname.equalsIgnoreCase(App.STYLESHEET_CASPIAN))  //handle caspian
-            return setSkinCaspian();
-                                                        // handle external skins
-        String path = Configuration.SKIN_FOLDER + File.separator + skinname +
-                      File.separator + skinname + ".css";
-        File skin = new File(path);
-        return setSkin(skin);
-    }
-    
-    /**
-     * Changes application's skin and applies it. 
-     * @param skin - css file of the skin to load. It is expected that the skin
-     * will have all its external resources ready and usable or it could fail
-     * to load properly.
-     * To avoid exceptions and errors, isValidSkinFile() check  is ran on this
-     * parameter before running this method.
-     * @return true if the skin has been applied.
-     * False return value signifies that gui has not been initialized,
-     * skin file could be loaded or was not valid skin file. 
-     * True return value doesnt imply successful skin loading, but guarantees
-     * that the new skin has been applied regardless of the success.
-     */
-    private boolean setSkin(File skin) {
-        if (isGuiInitialized() && FileUtil.isValidSkinFile(skin)) {
-            try {
-                setUserAgentStylesheet(skin.toURI().toURL().toExternalForm());
-                GUI.skin = new SkinEnum(FileUtil.getName(skin));
-                return true;
-            } catch (MalformedURLException ex) {
-                Log.err(ex.getMessage());
-                return false;
-            }
-        }
-        return false;
-    }
-    
-    public boolean setSkinModena() {
-        if (isGuiInitialized()) {
-            setUserAgentStylesheet(STYLESHEET_MODENA);
-            GUI.skin = new SkinEnum("Modena");
-            return true;
-        }
-        return false;
-    }
-    public boolean setSkinCaspian() {
-        if (isGuiInitialized()) {
-            setUserAgentStylesheet(STYLESHEET_CASPIAN);
-            GUI.skin = new SkinEnum("Caspian");
-            return true;
-        }
-        return false;
-    }
     
     /** Closes the application. */
     public void close() {
@@ -291,5 +207,49 @@ public class App extends Application {
         } catch (IOException ex) {
             Log.err("Error during GUI initialization");
         }
+    }
+    
+    
+    /**
+     * @return absolute file of location of the root directory of this
+     * application.
+     */
+    public static File getAppLocation() {
+        return new File("").getAbsoluteFile();
+    }
+
+    /** @return Name of the application. */
+    public static String getAppName() {
+        return "PlayerFX";
+    }
+
+    /** @return Player state file. */
+    public static String PLAYER_STATE_FILE() {
+        return "PlayerState.cfg";
+    }
+
+    /** @return Location of widgets. */
+    public static String WIDGET_FOLDER() {
+        return "Widgets";
+    }
+
+    /** @return Location of layouts. */
+    public static String LAYOUT_FOLDER() {
+        return "Layouts";
+    }
+
+    /** @return Location of skins. */
+    public static String SKIN_FOLDER() {
+        return "Skins";
+    }
+
+    /** @return Location of data. */
+    public static String DATA_FOLDER() {
+        return "UserData";
+    }
+
+    /** @return Location of saved playlists. */
+    public static String PLAYLIST_FOLDER() {
+        return DATA_FOLDER() + File.separator + "Playlists";
     }
 }

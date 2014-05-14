@@ -11,13 +11,12 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import java.util.List;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import utilities.Log;
-import utilities.functional.functor.OnEnd;
+import utilities.functional.functor.Procedure;
 
 /**
  *
@@ -50,7 +49,7 @@ final class Core {
                 }
                 
                 //new thread, wait 400ms, preload metadata for next item
-                final PlaylistItem next = PlaylistManager.getNextPlayingItem();
+                final PlaylistItem next = PlaylistManager.playingItemSelector.getNextPlaying();
                 Thread thr = new Thread(() -> {
                     try {
                         Thread.sleep(400);
@@ -81,18 +80,18 @@ final class Core {
     
     private void loadCurrentMetadataCache(boolean changeType) {
         PlaylistItem item = PlaylistManager.getPlayingItem();
-        MetadataReader.create(item, new OnEnd<Metadata>() {
-            @Override public void success(Metadata m) {
-                currentMetadataCache.set(m);
-                itemChange.fireEvent(changeType, m);
+        MetadataReader.create(item, 
+            result -> {
+                currentMetadataCache.set(result);
+                itemChange.fireEvent(changeType, result);
                 Log.deb("Current metadata cache loaded.");
-            }
-            @Override public void failure() {
-                currentMetadataCache.set(Metadata.EMPTY());
+            },
+            () -> {
+                currentMetadataCache.set(item.toMetadata());
                 itemChange.fireEvent(changeType, currentMetadataCache.get());
                 Log.deb("Current metadata cache load fail. Metadata will be empty.");
             }
-        });
+        );
     }
     
     void updateCurrent() {
@@ -105,18 +104,21 @@ final class Core {
 /********************************** next **************************************/
     
     private void preloadNextMetadataCache() {
-        PlaylistItem next = PlaylistManager.getNextPlayingItem();
-        MetadataReader.create(next, new OnEnd<Metadata>() {
-            @Override public void success(Metadata o) {
-                Platform.runLater(() -> {
-                    nextMetadataCache.set(o);
-                    Log.deb("Next item metadata cache preloaded.");
-                });                                            
-            }
-            @Override public void failure() { 
+        PlaylistItem next = PlaylistManager.playingItemSelector.getNextPlaying();
+        if(next==null) {
+            Log.deb("Next item metadata cache preloading prevented. No next playing item.");
+            return;
+        }
+        MetadataReader.create(next,
+            result -> {
+                nextMetadataCache.set(result);
+                Log.deb("Next item metadata cache preloaded.");       
+            },
+            () -> {
+                // dont set any value, not even empty
                 Log.deb("Preloading next item metadata into cache failed.");
             }
-        });
+        );
     }
     
 /******************************** selected ************************************/
@@ -142,10 +144,13 @@ final class Core {
     
     private void loadPlaylistSelectedMetadatas() {
         List<? extends Item> items = PlaylistManager.getSelectedItems();
-        MetadataReader.readMetadata(items, result -> {
-            selectedMetadatas.setAll(result);
-            Log.deb("In playlist selected metadatas loaded.");
-            loadPlaylistSelectedMetadata();
-        });
+        MetadataReader.readMetadata(items,
+            result -> {
+                selectedMetadatas.setAll(result);
+                Log.deb("In playlist selected metadatas loaded.");
+                loadPlaylistSelectedMetadata();
+            },
+            Procedure.DO_NOTHING()
+        );
     }
 }

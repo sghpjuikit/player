@@ -33,14 +33,14 @@ public final class PolyContainer extends Container {
         AnchorPane.setTopAnchor(gui.root, 0.0);
         
         gui.removeAllComponents();
-        getChildren().values().forEach(w->gui.addComponent(w));
-        gui.showComponentAt(properties.getI("selected"));
+        gui.addComponents(children.values());
         return gui.root;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void addChild(Integer index, Component c) {
+    public void addChild(Integer index, Component c) {System.out.println("adding in poly");
+        super.addChild(index, c);
         if(index==null) return;
         if(c==null) {
             children.remove(index);

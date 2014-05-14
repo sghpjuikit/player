@@ -15,7 +15,7 @@ import javafx.scene.web.HTMLEditor;
  *
  * @author Plutonium_
  */
-public class HtmlEditor extends AnchorPane implements Controller {
+public class HtmlEditor extends AnchorPane implements Controller<Widget>  {
     private HTMLEditor editor = new HTMLEditor();
     
     public HtmlEditor() {

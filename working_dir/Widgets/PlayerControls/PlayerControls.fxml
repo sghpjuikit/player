@@ -5,7 +5,6 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import GUI.objects.Balancer.*?>
 
 <AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="80.0" prefWidth="809.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
@@ -83,7 +82,7 @@
               </image>
             </ImageView>
 </children></HBox>
-            <Label id="" fx:id="realTime" onMouseClicked="#cycleElapsed" pickOnBounds="true" text="00:00" GridPane.columnIndex="1" />
+            <Label id="" fx:id="realTime" pickOnBounds="true" text="00:00" GridPane.columnIndex="1" />
           </children>
           <columnConstraints>
 <ColumnConstraints hgrow="SOMETIMES" maxWidth="99.0" minWidth="10.0" prefWidth="20.0" />

@@ -4,7 +4,6 @@
  */
 package utilities;
 
-import Configuration.Configuration;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -22,6 +21,7 @@ import java.util.Objects;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
+import main.App;
 
 /**
  * Provides file operations.
@@ -35,6 +35,7 @@ public final class FileUtil {
     
     /**
      * Returns true if for provided File all conditions are met:
+     * - is not null
      * - exists
      * - is directory
      * - is readable
@@ -43,9 +44,11 @@ public final class FileUtil {
      * Use this method to see if the diretory is not required to be valid.
      * @param dir
      * @return validity of directory for use
-     * @throws NullPointerException if param null
      */
     public static boolean isValidDirectory(File dir){
+        if (dir==null) {
+            return false;
+        }
         if (!dir.exists()) {
             Log.mess("Directory " + dir.getAbsolutePath() + " doesnt exist");
             return false;
@@ -140,7 +143,7 @@ public final class FileUtil {
      */
     public static boolean isValidSkinFile(File skin) {
         String name = FileUtil.getName(skin);
-        String path = Configuration.SKIN_FOLDER + File.separator + name +
+        String path = App.SKIN_FOLDER() + File.separator + name +
                       File.separator + name + ".css";
         File test = new File(path);
         return (skin != null && FileUtil.isValidFile(skin) &&   // is valid file
@@ -162,13 +165,16 @@ public final class FileUtil {
     
     /**
      * Constructs list of image files found in the folder and subfolders. Looks 
-     * through the folder tree recursively respecting the maxDepth parameter.
+     * through the folder tree recursively, respecting the maxDepth parameter.
+     * Provided directory will always be included in the search.
      * 
      * Filters out files with extension different than supported. To see what extensions are
      * supported check ImageFileFormat class.
      * 
      * @param dir - directory.
-     * @param maxDepth - depth for recursive search. depth=0 = currentFolder only
+     * @param maxDepth - depth for recursive search. Depth 0 represents current 
+     * directory only (which would be searched through). Negative value has the
+     * same effect as 0 - provided directory only.
      * @return
      * Empty list if parameter not a valid directory or no results. Never null.
      */
@@ -225,7 +231,9 @@ public final class FileUtil {
      * supported check AudioFileFormat class.
      * 
      * @param dir - directory.
-     * @param maxDepth - depth for recursive search. depth 0 = currentFolder only
+     * @param maxDepth - depth for recursive search. Depth 0 represents current 
+     * directory only (which would be searched through). Negative value has the
+     * same effect as 0 - provided directory only.
      * @return Empty list if parameter not a valid directory or no results. Never
      * null.
      */
@@ -245,8 +253,11 @@ public final class FileUtil {
     /**
      * Filters out all but supported audio files. Directories will be searched
      * recursively.
-     * @param files - list of fiels and directories to filter
-     * @param maxDepth - depth for recursive search. depth 0 = currentFolder only
+     * @param files list of files and directories to filter
+     * @param dir - directory.
+     * @param maxDepth - depth for recursive search. Depth 0 represents current 
+     * directory only (which would be searched through). Negative value has the
+     * same effect as 0 - provided directory only.
      * @return Empty list if parameter not a valid directory or no results. Never
      * null.
      */
@@ -256,7 +267,7 @@ public final class FileUtil {
             if(AudioFileFormat.isSupported(f))
                 out.add(f);
             if (f.isDirectory()) {
-                for(File ff: FileUtil.getAudioFiles(f,maxDepth))
+                for(File ff: getAudioFiles(f,maxDepth))
                     out.add(ff);
             }
         }

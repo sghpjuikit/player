@@ -36,7 +36,7 @@ import javafx.scene.shape.StrokeType;
  *
  * @author Plutonium_
  */
-public final class Graphs extends AnchorPane implements Controller {
+public final class Graphs extends AnchorPane implements Controller<Widget>  {
     
     ObservableList<Metadata> metadatas = FXCollections.observableArrayList();
     Task<List<Metadata>> reader;
@@ -98,9 +98,7 @@ public final class Graphs extends AnchorPane implements Controller {
         if (reader != null && reader.isRunning()) reader.cancel();
         
         // read new data
-        reader = MetadataReader.readMetadata(items, (List<Metadata> result) -> {
-            metadatas.setAll(result);
-        });
+        reader = MetadataReader.readMetadata(items, metadatas::setAll, ()->{});
     }
 
     // initialize data to draw, called on data change

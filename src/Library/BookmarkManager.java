@@ -6,6 +6,7 @@
 package Library;
 
 import AudioPlayer.playlist.Item;
+import Configuration.ConfigManager;
 import Configuration.Configuration;
 import Serialization.BookmarkItemConverter;
 import com.thoughtworks.xstream.XStream;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import main.App;
 import utilities.FileUtil;
 import utilities.Log;
 
@@ -75,8 +77,8 @@ public final class BookmarkManager {
     }
     
     public static void loadBookmarks() {
-        File dir = new File(Configuration.DATA_FOLDER);
-        File f = new File(Configuration.DATA_FOLDER + File.separator + "Bookmarks.xml");
+        File dir = new File(App.DATA_FOLDER());
+        File f = new File(App.DATA_FOLDER() + File.separator + "Bookmarks.xml");
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Loading Bookmars failed.");
             return;
@@ -92,12 +94,12 @@ public final class BookmarkManager {
     }
     
     public static void saveBookmarks() {
-        File dir = new File(Configuration.DATA_FOLDER);
+        File dir = new File(App.DATA_FOLDER());
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Saving Bookmars failed.");
             return;
         }
-        File f = new File(Configuration.DATA_FOLDER + File.separator + "Bookmarks.xml");
+        File f = new File(App.DATA_FOLDER() + File.separator + "Bookmarks.xml");
         ArrayList<BookmarkItem> b = new ArrayList<>(); b.addAll(bookmarks);
         try {
             XStream xstream = new XStream(new DomDriver());

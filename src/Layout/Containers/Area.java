@@ -74,6 +74,12 @@ public abstract class Area<T extends Container> implements AltState {
         container.close();
     }
     
+/******************************************************************************/
+    
+    /** Returns the content. */
+    abstract public AnchorPane getContent();
+    /** Returns the controls. */
+    abstract public AnchorPane getControls();
     
 /******************************************************************************/
     

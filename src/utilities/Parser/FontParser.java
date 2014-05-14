@@ -12,7 +12,7 @@ import utilities.Log;
  *
  * @author Plutonium_
  */
-public class FontParser implements SingleStringParser<Font> {
+public class FontParser implements StringParser<Font> {
     
     @Override
     public boolean supports(Class type) {

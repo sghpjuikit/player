@@ -3,17 +3,20 @@ package GUI;
 
 import AudioPlayer.Player;
 import Configuration.Configurable;
-import Configuration.Configuration;
 import Configuration.IsAction;
 import Configuration.IsConfig;
 import Configuration.SkinEnum;
-import GUI.objects.popups.MoodPicker;
+import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
 import Layout.LayoutManager;
 import java.io.File;
+import static java.io.File.separator;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Application;
+import static javafx.application.Application.STYLESHEET_CASPIAN;
+import static javafx.application.Application.STYLESHEET_MODENA;
 import javafx.beans.InvalidationListener;
 import javafx.geometry.Insets;
 import javafx.scene.effect.BlendMode;
@@ -119,7 +122,7 @@ public class GUI implements Configurable {
     @IsAction(name = "Reload GUI.", info = "Reload application GUI.", shortcut = "F5")
     public static void refresh() {
         if (App.getInstance().isGuiInitialized()) {
-            App.getInstance().setSkin(skin.get());                  // set skin
+            applySkin();
             applyFont();
             App.getInstance().getWindow().update();                 // reinitialize window
             applyOverlayUseAppColor();
@@ -132,9 +135,9 @@ public class GUI implements Configurable {
     /** Loads/refreshes active layout. */
     @IsAction(name = "Reload layout", info = "Reload layout.", shortcut = "F6")
     public static void loadLayout() {
-        LayoutManager.loadActive();
-        LayoutManager.active.values().stream()
-                .flatMap(l->l.getAllWidgets().stream()).forEach(w->w.getController().refresh());
+        LayoutManager.getLayouts().forEach(l-> {
+//            l.close();
+            l.load();});
     }
     
     /** Toggles layout controlling mode. */
@@ -168,7 +171,7 @@ public class GUI implements Configurable {
      */
     public static void findSkins() {
         // get + verify path
-        File dir = new File(Configuration.SKIN_FOLDER);
+        File dir = new File(App.SKIN_FOLDER());
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Search for skins failed.");
             return;
@@ -186,7 +189,7 @@ public class GUI implements Configurable {
         // populate skins
         skin.clear();
         if (files.isEmpty())
-            Log.mess("Skin folder '" + Configuration.SKIN_FOLDER + "' is empty. No valid skins found.");
+            Log.mess("Skin folder '" + App.SKIN_FOLDER() + "' is empty. No valid skins found.");
         else
             Log.mess(files.size() + " valid skins found.");
         
@@ -195,10 +198,9 @@ public class GUI implements Configurable {
             skin.add(name);
             Log.mess("Skin " + name + " registered.");
         }
-//        skin.add("Modena");
-//        skin.add("Caspian");
-        skin.add(Application.STYLESHEET_CASPIAN);
-        skin.add(Application.STYLESHEET_MODENA);
+        
+        skin.add(STYLESHEET_CASPIAN);
+        skin.add(STYLESHEET_MODENA);
     }
     
     public static List<String> getSkins() {
@@ -206,7 +208,104 @@ public class GUI implements Configurable {
     }
     
     
+
+    
+/*****************************  setter methods ********************************/
+    
+    /**
+     * Applies specified font on the application. The font can be overridden 
+     * locally.
+     * The method executes only if the GUI is fully initialized, otherwise does
+     * nothing.
+     * @param font
+     */
+    public static void setFont(Font _font) {
+        font = _font;
+        applyFont();
+    }
+    
+    public static void setColorEffect(Color color) {
+        gui_overlay_color = color;
+        applyColorOverlay();
+    }
+    
+    /**
+     * Changes application's skin and applies it.
+     * This is a convenience method that constructs a file from the skinname
+     * and calls the setSkin(File skin) method.
+     * The skin file will be constructed based on the fact that it must pass
+     * the isValidSkinFile() check. The path is constructed like this:
+     * Application.SkinsPath/skinname/skinname.css
+     * For any details regarding the mechanics behind the method see documentation
+     * of that method.
+     * @param skinname name of the skin to apply.
+     */
+    public static void setSkin(String skinname) {
+        if (skinname == null || skinname.isEmpty() || skinname.equalsIgnoreCase(STYLESHEET_MODENA)) {
+            setSkinModena();
+        } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
+            setSkinCaspian();
+        }
+        String path = App.SKIN_FOLDER() + separator + skinname + separator + skinname + ".css";
+        File skin_file = new File(path);
+        setSkinExternal(skin_file);
+    }
+    /**
+     * Changes application's skin and applies it.
+     * @param skin - css file of the skin to load. It is expected that the skin
+     * will have all its external resources ready and usable or it could fail
+     * to load properly.
+     * To avoid exceptions and errors, isValidSkinFile() check  is ran on this
+     * parameter before running this method.
+     * @return true if the skin has been applied.
+     * False return value signifies that gui has not been initialized,
+     * skin file could be loaded or was not valid skin file.
+     * True return value doesnt imply successful skin loading, but guarantees
+     * that the new skin has been applied regardless of the success.
+     */
+    private static boolean setSkinExternal(File skin) {
+        if (App.getInstance().isGuiInitialized() && FileUtil.isValidSkinFile(skin)) {
+            try {
+                String url = skin.toURI().toURL().toExternalForm();
+                // force refresh skin if already set
+                if (GUI.skin.get().equals(FileUtil.getName(skin))) {
+                    Application.setUserAgentStylesheet(null);
+                    Application.setUserAgentStylesheet(url);
+                // set skin
+                } else {
+                    Application.setUserAgentStylesheet(url);
+                    GUI.skin = new SkinEnum(FileUtil.getName(skin));
+                }
+                return true;
+            } catch (MalformedURLException ex) {
+                Log.err(ex.getMessage());
+                return false;
+            }
+        }
+        return false;
+    }
+    private static boolean setSkinModena() {
+        if (App.getInstance().isGuiInitialized()) {
+            Application.setUserAgentStylesheet(STYLESHEET_MODENA);
+            GUI.skin = new SkinEnum("Modena");
+            return true;
+        }
+        return false;
+    }
+    private static boolean setSkinCaspian() {
+        if (App.getInstance().isGuiInitialized()) {
+            Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
+            GUI.skin = new SkinEnum("Caspian");
+            return true;
+        }
+        return false;
+    }
+    
 /****************************  applying methods *******************************/
+    
+    private static void applySkin() {
+        setSkin(skin.get());
+    }
     
     private static void applyFont() {
         if (App.getInstance().isGuiInitialized()) {
@@ -248,10 +347,10 @@ public class GUI implements Configurable {
     }
     
     private static InvalidationListener setOverlay;
-    
     private static void applyOverlayUseAppColor() {
         if(gui_overlay_use_song) {
-            if(setOverlay==null) setOverlay = (o) -> applyColorOverlay();
+            if(setOverlay==null) 
+                setOverlay = (o) -> applyColorOverlay();
             Player.currentMetadataProperty().addListener(setOverlay);
         }
         else {
@@ -263,24 +362,5 @@ public class GUI implements Configurable {
     
     private static void applyAlignTabs() {
         if(align_tabs) ContextManager.gui.alignTabs();
-    }
-    
-/*****************************  setter methods ********************************/
-    
-    /**
-     * Applies specified font on the application. The font can be overridden 
-     * locally.
-     * The method executes only if the GUI is fully initialized, otherwise does
-     * nothing.
-     * @param font
-     */
-    public static void setFont(Font _font) {
-        font = _font;
-        applyFont();
-    }
-    
-    public static void setColorEffect(Color color) {
-        gui_overlay_color = color;
-        applyColorOverlay();
     }
 }

@@ -34,6 +34,7 @@ public class BiContainerPure extends BiContainer {
             if(index==1) wrapper = new UniContainer(gui.getChild1Pane());
             else if(index==2) wrapper = new UniContainer(gui.getChild2Pane());
             wrapper.child=c;
+            c = wrapper;
         }
         
         // continue normally

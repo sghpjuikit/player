@@ -10,14 +10,13 @@ package utilities.Parser;
  *
  * @author Plutonium_
  */
-interface ObjectStringParser extends StringParser {
+interface ObjectStringParser {
     
     /**
      * Parser supports type only if it can parse both String into the type and the
      * inverse operation.
      * @return true if the class type is supported by this parser. False otherwise.
      */
-    @Override
     boolean supports(Class type);
     
     /** Converts String into object.

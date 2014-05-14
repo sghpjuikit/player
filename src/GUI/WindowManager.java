@@ -35,7 +35,7 @@ public class WindowManager {
             } else {
                 miniWindow = Window.create();
             }
-            miniWindow.setContent(WidgetManager.getFactory("Tiny").create().load());
+            miniWindow.setContent(WidgetManager.getFactory("PlayerControlsTiny").create().load());
             miniWindow.setVisible(val);
             miniWindow.setShowHeader(false);
             miniWindow.update();

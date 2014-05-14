@@ -1,6 +1,7 @@
 package utilities.Parser;
 
 import Configuration.SkinEnum;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,7 +24,7 @@ public class Parser {
     private static final FromStringParser fromStrParser = new FromStringParser();
     
     private static final List<ObjectStringParser> parsersO = new ArrayList();
-    private static final List<SingleStringParser> parsersS = new ArrayList();
+    private static final List<StringParser> parsersS = new ArrayList();
     
     static {
         parsersS.add(font_parser);
@@ -34,6 +35,7 @@ public class Parser {
     
     public static boolean supports(Class type) {
         return  type.equals(SkinEnum.class) ||
+                type.equals(File.class) ||
                 prim_parser.supports(type) ||
                 font_parser.supports(type) ||
                 valOfParser.supports(type) ||
@@ -51,6 +53,7 @@ public class Parser {
     public static Object fromS(Class type, String value) {
         
         if (type.equals(SkinEnum.class)) return new SkinEnum(value);
+        if (type.equals(File.class))        return new FileParser().fromS(value);
         if(prim_parser.supports(type)) return prim_parser.fromS(type, value);
         if(font_parser.supports(type)) return font_parser.fromS(value);
         if(fromStrParser.supports(type)) return fromStrParser.fromS(type, value);
@@ -67,13 +70,15 @@ public class Parser {
      */
     public static String toS(Object o) {
         Objects.requireNonNull(o);
-        Class t = o.getClass();
+        Class type = o.getClass();
         
-        for(SingleStringParser p: parsersS)
-            if (p.supports(t))
+        if (type.equals(File.class))   return new FileParser().toS((File) o);
+        
+        for(StringParser p: parsersS)
+            if (p.supports(type))
                 return p.toS(o);
         for(ObjectStringParser p: parsersO)
-            if (p.supports(t))
+            if (p.supports(type))
                 return p.toS(o);
         
         throw new UnsupportedOperationException("Class type not supported");

@@ -6,6 +6,8 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.WidgetTransfer;
 import GUI.Window;
+import GUI.objects.Pickers.WidgetPicker;
+import static GUI.objects.PopOver.PopOver.NodeCentricPos.Center;
 import Layout.UniContainer;
 import Layout.Widgets.Widget;
 import java.io.IOException;
@@ -63,7 +65,7 @@ public final class WidgetArea extends UniArea {
         contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), controls);
         contAnim = new FadeTransition(Duration.millis(GUI.duration_LM), content);
         blurAnim = new TranslateTransition(Duration.millis(GUI.duration_LM), content);
-  
+        
         BoxBlur blur = new BoxBlur(0, 0, 1);
         blur.widthProperty().bind(content.translateZProperty());
         blur.heightProperty().bind(content.translateZProperty());
@@ -110,7 +112,6 @@ public final class WidgetArea extends UniArea {
             }
             e.consume();
         });
-        
 
         
         hide();
@@ -150,8 +151,13 @@ public final class WidgetArea extends UniArea {
         widget.getController().refresh();
     }
         
-    public AnchorPane getPane() {
-        return root;
+    @Override
+    public AnchorPane getContent() {
+        return content;
+    }
+    @Override
+    public AnchorPane getControls() {
+        return controls;
     }
     
     public void settings() {
@@ -159,7 +165,11 @@ public final class WidgetArea extends UniArea {
     }
     
     public void choose() {
-        ContextManager.showMenu(ContextManager.widgetsMenu, menuB, container);
+//        ContextManager.showMenu(ContextManager.widgetsMenu, menuB, container);
+        WidgetPicker p = new WidgetPicker();
+                     p.setConverter(wf->wf.name);
+                     p.setOnSelect(f->container.setChild(f.create()));
+                     p.show(propB,Center);
     }
     
     public void detach() {     

@@ -15,7 +15,7 @@ import javafx.scene.Node;
  * 
  * Warning: do not use this class.
  * @TODO implement load() properly, currently works only for Containers. Hence
- * the abstract identifier to avoid misuse. Do not use this class as non-pure
+ * the abstract class type to avoid misuse. Do not use this class as non-pure
  * Container. See addChild and the exception.
  */
 abstract public class BiContainer extends Container {
@@ -63,10 +63,12 @@ abstract public class BiContainer extends Container {
      */
     @Override
     public void addChild(Integer index, Component w) {
+        super.addChild(index, w);
         if(index == null) return;
         if (index<1 || index>2) return;
         
-        if(!(w instanceof Container)) throw new UnsupportedOperationException("Non containers currently not supported");
+        if(!(w instanceof Container)) 
+            throw new UnsupportedOperationException("Non containers currently not supported");
         
         ((Container)w).parent = this;
         children.put(index, w);

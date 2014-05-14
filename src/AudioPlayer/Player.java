@@ -23,7 +23,6 @@ public class Player {
     public static final PlayerState state = new PlayerState();
     
     public static void initialize() {
-        PlaylistManager.initialize();
         PLAYBACK.initialize();
         core.initialize();
     }

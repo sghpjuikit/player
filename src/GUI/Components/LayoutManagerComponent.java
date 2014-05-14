@@ -1,6 +1,7 @@
 
 package GUI.Components;
 
+import Configuration.ConfigManager;
 import Configuration.Configuration;
 import GUI.objects.Thumbnail;
 import Layout.Layout;
@@ -23,6 +24,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
+import main.App;
 import utilities.Enviroment;
 import utilities.Log;
 
@@ -129,7 +131,7 @@ public final class LayoutManagerComponent {
     }
     @FXML
     public void openLayoutDirectory() {
-        Enviroment.browse(new File(Configuration.LAYOUT_FOLDER));
+        Enviroment.browse(new File(App.LAYOUT_FOLDER()));
     }
     
     private boolean isSelected() {

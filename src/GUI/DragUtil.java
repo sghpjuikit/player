@@ -50,5 +50,4 @@ public final class DragUtil {
                 .stream()
                 .collect(Collectors.toList());
     }
-
 }

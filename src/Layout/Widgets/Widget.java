@@ -43,17 +43,24 @@ import utilities.Log;
  * 
  * @author uranium
  */
-public abstract class Widget extends Component implements Configurable {
-    String name;
+public abstract class Widget<C extends Controller> extends Component implements Configurable {
+    /** Name of the widget. Permanent */
+    public final String name;
     @XStreamOmitField
-    Controller controller;
+    C controller;
     
     @XStreamOmitField
     @IsConfig(name = "Is preferred", info = "Preffered widget for its widget type.")
     public boolean preferred = false;
     public final List<Config> configs = new ArrayList<>(); // tmp
     
-    public Widget() {}
+    /**
+     * 
+     * @param {@link Widget#name}
+     */
+    public Widget(String name) {
+        this.name = name;
+    }
     
     @Override
     public String getName() {
@@ -73,7 +80,7 @@ public abstract class Widget extends Component implements Configurable {
      * @return controller of the widget, never null
      * @throws NullPointerException if controller not yet instantiated
      */
-    public Controller getController() {
+    public C getController() {
         Objects.requireNonNull(controller, "Widget doesnt have a controller before it loads.");
         return controller;
     }
@@ -135,6 +142,12 @@ public abstract class Widget extends Component implements Configurable {
         if (!set)
             Log.mess("Configuration value couldnt be set for field: " + name + " .");
         return set;
+    }
+
+    /** @return name of the widget */
+    @Override
+    public String toString() {
+        return name;
     }
     
 /******************************************************************************/

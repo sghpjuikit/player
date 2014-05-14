@@ -132,5 +132,5 @@ public final class ConfigManager {
     public static void saveConfiguration() {
         Configuration.getCurrent().save();
     }
-
+    
 }

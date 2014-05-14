@@ -9,12 +9,15 @@ package AudioPlayer.tagging;
 import AudioPlayer.playlist.Item;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import org.jaudiotagger.audio.AudioFile;
 import utilities.Log;
-import utilities.functional.functor.OnEnd;
+import utilities.functional.functor.Procedure;
+import utilities.functional.functor.UnProcedure;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -31,24 +34,31 @@ public class MetadataReader {
 
     /**
      * Creates list of Metadata for provided items. Use to read multiple files at
-     * once. The work runs on different thread to minimize I/O performance impact.
+     * once. The work runs on background thread. The procedures executed on task
+     * completion will always be executed from FXApplication 
+     * thread.
      * <p>
-     * This method returns Task doing the work, thus allowing for binding to its
-     * properties like progressProperty() and giving access to everything Task related.
+     * This method returns {@link Task} doing the work, which allows binding to
+     * its properties (for example progress) and more.
      * <p>
      * Calling this method will immediately start the reading process (on another
      * thread).
      * <p>
-     * @param items - List of PlaylistItem objects to read.
-     * @param runner - takes care of executing code when reading finishes
-     * Using different threads builds up unnecessary code and runner makes it
-     * easier. The parameter implements two methods that will be automatically
-     * called when the reading metadata on the other thread is done - successfully
-     * respectively unsuccessfully. On success List<Metadata> will be returned
-     * on failure null respectively.
-     * @return Task<List<Metadata>> - Task to provide access to the work.
+     * @param items List of items to read.
+     * @param onSuccess procedure to execute when task finishes successfully. 
+     * Must not be null.
+     * @param onError procedure to execute when task finishes successfully. 
+     * Must not be null.
+     * @return task reading the files returning item's metadatas on successful
+     * completion or nothing when any error occurs.
+     * @throws NullPointerException if any parameter null
      */
-    public static Task readMetadata(List<? extends Item> items, OnEnd<List<Metadata>> runner) {
+    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, 
+            UnProcedure<List<Metadata>> onSuccess, Procedure onError) {
+        Objects.requireNonNull(items);
+        Objects.requireNonNull(onSuccess);
+        Objects.requireNonNull(onError);
+        
         items.removeIf(Item::isCorrupt);
         final Task<List<Metadata>> task = new Task<List<Metadata>>() {
             @Override
@@ -68,16 +78,20 @@ public class MetadataReader {
             }
         };
         task.setOnFailed((WorkerStateEvent e) -> {
-            runner.failure();
-            Log.err("Reading metadata failed for items.");
+            Platform.runLater( () -> {
+                onError.run();
+                Log.err("Reading metadata failed for items.");
+            });
         });
         task.setOnSucceeded((WorkerStateEvent e) -> {
-            try {
-                runner.success(task.get());
-            } catch (InterruptedException | ExecutionException ex) {            // ex.printStackTrace();
-                runner.failure();
-                Log.err("Reading metadata failed for items due to interrupted execution.");
-            }
+            Platform.runLater( () -> {
+                try {
+                    onSuccess.accept(task.get());
+                } catch (InterruptedException | ExecutionException ex) {
+                    onError.run();
+                    Log.err("Reading metadata failed for items due to interrupted execution.");
+                }
+            });
         });
         Thread thread = new Thread(task);
         thread.setDaemon(true);
@@ -86,47 +100,68 @@ public class MetadataReader {
     }
 
     /**
-     * Reads metadata for specified item. 
-     * Warning: runs on application thread!. Avoid using this method in loops in
+     * Reads {@link Metadata} for specified item.
+     * When error occurs during reading empty metadata will be returned.
+     * <p>
+     * Runs on main application thread!. Avoid using this method in loops or in
      * chains.
      * @param item
      * @return metadata for specified item
      */
     public static Metadata create(Item item) {
-        if (item.isCorrupt()) {
-            return null;
-        }
+        if (item.isCorrupt()) 
+            return Metadata.EMPTY();
+        
         AudioFile afile = MetaItem.readAudioFile(item.getFile());
         return (afile == null) ? null : new Metadata(afile);
     }
 
     /**
-     * Reads Metadata for specified item. Runs on bgr thread. Calling this method
-     * will immediately start the work.
-     * @param item
-     * @param runner - takes care of executing code when reading finishes
-     * @return task reading the metadata returning the metadata on success or
-     * null on error
+     * Reads {@link Metadata} for specified item. Runs on background thread. 
+     * Calling this method will immediately start the execution. The procedures
+     * executed on task completion will always be executed from FXApplication 
+     * thread.
+     * <p>
+     * This method returns {@link Task} doing the work, which allows binding to
+     * its properties (for example progress) and more.
+     * @param item item to read metadata for. Must not be null.
+     * @param onSuccess procedure to execute when task finishes successfully. 
+     * Must not be null.
+     * @param onError procedure to execute when task finishes successfully. 
+     * Must not be null.
+     * @return task reading the file returning its metadata on successful task
+     * completion or nothing when any error occurs.
+     * @throws NullPointerException if any parameter null
      */
-    public static Task create(Item item, OnEnd<Metadata> runner) {
+    public static Task<Metadata> create(Item item, UnProcedure<Metadata> onSuccess, Procedure onError) {
+        Objects.requireNonNull(item);
+        Objects.requireNonNull(onSuccess);
+        Objects.requireNonNull(onError);
+        
         Task<Metadata> task = new Task<Metadata>() {
-            @Override
-            protected Metadata call() throws Exception {
+            @Override protected Metadata call() throws Exception {
+                if(item.isCorrupt()) 
+                    throw new RuntimeException("Metadata failed. Item is corrupt.");
                 return create(item);
             }
         };
-        task.setOnFailed((WorkerStateEvent e) -> {
-            Log.err("Reading metadata failed for file " + item.getPath() + ".");
-            runner.failure();
-        });
         task.setOnSucceeded((WorkerStateEvent e) -> {
-            try {
-                runner.success(task.get());
-            } catch (InterruptedException | ExecutionException ex) {
-                Log.err("Reading metadata failed for file " + item.getPath() + ".");
-                runner.failure();
-            }
+            Platform.runLater(() -> {
+                try {
+                    onSuccess.accept(task.get());
+                } catch (InterruptedException | ExecutionException ex) {
+                    Log.err("Reading metadata failed for file " + item.getPath() + ".");
+                    onError.run();
+                }
+            });
         });
+        task.setOnFailed((WorkerStateEvent e) -> {
+            Platform.runLater(() -> {
+                Log.err("Reading metadata failed for file " + item.getPath() + ".");
+                onError.run();
+            });
+        });
+
         Thread thread = new Thread(task);
         thread.setDaemon(true);
         thread.start();

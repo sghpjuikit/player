@@ -3,7 +3,8 @@ package GUI.Components;
 import Configuration.ConfigManager;
 import Configuration.Configuration;
 import Configuration.IsConfig;
-import GUI.objects.ConfigField;
+import GUI.ItemHolders.ConfigField;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
@@ -29,7 +30,7 @@ import utilities.Log;
             version = "0.8",
             year = "2014",
             group = Widget.Group.OTHER)
-public final class ConfiguratorComponent extends AnchorPane implements Controller {
+public final class ConfiguratorComponent extends AnchorPane implements Controller<ClassWidget> {
     
     private static final FXMLLoader fxmlLoader = new FXMLLoader(ConfiguratorComponent.class.getResource("Configurator.fxml"));
     
@@ -122,7 +123,7 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
 
 /******************************************************************************/
     
-    private Widget w;
+    private ClassWidget w;
     
     @Override public void refresh() {
         initialize();
@@ -135,11 +136,11 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
 //                accordion.setExpandedPane(g.pane);
     }
 
-    @Override public void setWidget(Widget w) {
+    @Override public void setWidget(ClassWidget w) {
         this.w = w;
     }
 
-    @Override public Widget getWidget() {
+    @Override public ClassWidget getWidget() {
         return w;
     }
 

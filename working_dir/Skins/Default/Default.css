@@ -9,12 +9,11 @@
  * be used by the application this file is associated with as long as it adheres
  * to below Copyright notice.
  * 
- * I give permission to use this file by other JavaFX based applications and for
- * other purposes for as long as it remains within educational or personal use
- * and strictly in non-commercial way.
+ * Permission is given to use this file by other applications and for
+ * other purposes for as long as it remains within non-commercial way.
  *
- * I do not allow any commercial use or even non-commeriacl distribution of this
- * file alone or as part of other software without informing me.
+ * Commercial use or even non-commeriacl distribution of this file alone or as 
+ * part of other software without prior notification is not allowed.
  *
  * Modelled after the second generation theme for JavaFX - Modena.
  */
@@ -1004,69 +1003,7 @@ is being used to size a border should also be in pixels.
  * ScrollBar                                                                   *
  *                                                                             *
  ******************************************************************************/
-/*.scroll-bar{
- -fx-background-color: -fx-color-darker;
- -fx-background-radius: 1em;
-}
-.scroll-bar:hover {
-}
-.scroll-bar:horizontal .track,
-.scroll-bar:vertical .track {
- -fx-background-color: transparent;
- -fx-border-color:transparent;
- -fx-background-radius: 1em;
-}
-.scroll-bar:vertical .track-background,
-.scroll-bar:horizontal .track-background {
- -fx-background-color: transparent;
- -fx-background-insets: 0;
- -fx-background-radius: 1em;
-}
-.scroll-bar:horizontal .thumb {
- -fx-background-color: rgba(231,231,231,0.6);
- -fx-background-insets: 2 0 2 0;
- -fx-background-radius: 1em;
-}
-.scroll-bar:vertical .thumb {
- -fx-background-color: rgb(211,211,211);
- -fx-background-insets: 0 2 0 2;
- -fx-background-radius: 1em;
-}
-.scroll-bar:horizontal .thumb:hover,
-.scroll-bar:vertical .thumb:hover {
- -fx-background-color: rgba(231,231,231, 0.8);
-}
 
-.scroll-bar:vertical .increment-button, .scroll-bar:vertical .decrement-button {
- -fx-background-color:transparent;
- -fx-background-radius: 1em;
-
-}
-.scroll-bar:horizontal .increment-button, .scroll-bar:horizontal .decrement-button {
- -fx-background-color:transparent;
- -fx-background-radius: 1em;
-
-}
-.scroll-bar:horizontal .increment-arrow {
- -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
- -fx-background-color: rgb(211,211,211);
- -fx-rotate: -90;
-}
-.scroll-bar:vertical .increment-arrow {
- -fx-background-color: rgb(211,211,211);
- -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
- -fx-rotate: 0;
-}
-.scroll-bar:horizontal .decrement-arrow {
- -fx-background-color: rgb(211,211,211);
- -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
- -fx-rotate: 90;
-}
-.scroll-bar:vertical .decrement-arrow {
- -fx-background-color: rgb(211,211,211);
- -fx-shape: "M 0 0 L 4 8 L 8 0 Z";
- -fx-rotate: -180;
-}*/
 .scroll-bar:horizontal {
     -fx-background-color: -fx-color-darker;
     -fx-background-insets: 0, 1 0 1 0;
@@ -1349,7 +1286,6 @@ is being used to size a border should also be in pixels.
  *                                                                             *
  ******************************************************************************/
 
-
 .label {
     -fx-text-fill: -fx-def-font-color;
     /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0, 0.0 , 0 , 1 );*/
@@ -1472,18 +1408,16 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 .context-menu {
-    -fx-background-color:
-        linear-gradient(to bottom,
-            derive(-fx-color,-17%),
-            derive(-fx-color,-30%)
-        ),
-        -fx-control-inner-background;
     -fx-background-insets: 0, 1;
-    -fx-padding: 0.333333em 0.083333em 0.333333em 0.083333em; /* 4 1 8 1 */
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
+    -fx-padding: 0.25em 0.25em 0.25em 0.25em;  /* 3 3 3 3 */
+    -fx-background-color: rgba(20,20,30,0.7);
+    -fx-border-width: 2;
+    -fx-border-color: black;
+    -fx-border-insets: 0;
 }
 .context-menu .separator:horizontal .line {
-    -fx-border-color: -fx-box-border transparent transparent transparent;
+    -fx-border-width: 2;
+    -fx-border-color: black transparent transparent transparent;
     -fx-border-insets: 1 0 0 0;
 }
 .context-menu > .scroll-arrow {
@@ -1497,7 +1431,7 @@ is being used to size a border should also be in pixels.
 }
 .context-menu:show-mnemonics > .mnemonic-underline {
     -fx-stroke: -fx-text-fill;
-} 
+}
 
 /*******************************************************************************
  *                                                                             *
@@ -1591,8 +1525,12 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 .menu-item {
-    -fx-background-color: transparent;
-    -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;  /* 4 5 4 5 */
+/*    -fx-background-color: transparent;
+    -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;   4 5 4 5 */
+    -fx-background-color: rgba(10,10,10,0.85);
+    -fx-background-radius: 2;
+    -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;
+    -fx-background-insets: 0.2em 0.2em 0.2em 0.2em;
 }
 .menu-item > .left-container {
     -fx-padding: 0.458em 0.791em 0.458em 0.458em;
@@ -1602,12 +1540,10 @@ is being used to size a border should also be in pixels.
 }
 .menu-item >.label {
     -fx-padding: 0em 0.5em 0em 0em;
-    -fx-text-fill: -fx-text-base-color;
 }
 .menu-item:focused {
-     -fx-background: -fx-selection-bar;
-     -fx-background-color: -fx-background;
-     -fx-text-fill:  -fx-text-background-color;
+    -fx-background-color: rgba(20,20,30,0.85);
+    -fx-background-insets: 0 0 0 0;
 }
 .menu-item:focused > .label {
     -fx-text-fill: white;
@@ -2375,7 +2311,7 @@ is being used to size a border should also be in pixels.
     -fx-background-color: transparent;
     -fx-text-fill: -fx-def-font-color;
     -fx-border-width: 0px;
-    -fx-padding: 0 2 0 2;
+    -fx-padding: 0 1 0 1;
 }
 /* Selected rows focused control*/
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
@@ -2415,7 +2351,7 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 .list-cell {
-    -fx-padding: 0.25em 0.583em 0.25em 0.583em; /* 3 7 3 7 */
+    -fx-padding: 0.25em 0.583em 0.25em 0.583em;  //3 7 3 7 
 }
 .list-cell:odd {
     -fx-background-color: null;
@@ -2441,7 +2377,8 @@ is being used to size a border should also be in pixels.
 }
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
-    -fx-background-color: -fx-text-background-color;
+/*    -fx-background-color: -fx-text-background-color;*/
+    -fx-background-color: white;
     -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* 4 */
     -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
 }
@@ -2464,7 +2401,7 @@ is being used to size a border should also be in pixels.
 }
 /***** ROW CELLS **************************************************************/
 /* Each row in the table is a table-row-cell. Inside a table-row-cell is any
-   number of table-cell. */
+   number of table-cell.*/
 .table-row-cell {
     -fx-background-color: null;
 }
@@ -2499,7 +2436,8 @@ is being used to size a border should also be in pixels.
 /* The column-resize-line is shown when the user is attempting to resize a column. */
 .table-view .column-resize-line,
 .tree-table-view .column-resize-line {
-    -fx-background: -fx-accent;
+    -fx-background: -fx-def-font-color;
+    -fx-opacity: 0.6;
     -fx-background-color: -fx-background;
     -fx-padding: 0.0em 0.0416667em 0.0em 0.0416667em; /* 0 0.571429 0 0.571429 */
 }
@@ -2556,10 +2494,10 @@ is being used to size a border should also be in pixels.
     -fx-alignment: center;
 }
 
-/* Plus Symbol */
+/* Plus Symbol - like table menu button for controlling columns visibility*/
 .table-view .show-hide-column-image,
 .tree-table-view .show-hide-column-image {
-    -fx-background-color: -fx-mark-color;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.25em; /* 3px */
     -fx-shape: "M398.902,298.045c0.667,0,1.333,0,2,0c0,0.667,0,1.333,0,2c0.667,0,1.333,0,2,0c0,0.667,0,1.333,0,2c-0.667,0-1.333,0-2,0c0,0.666,0,1.332,0,1.999c-0.667,0-1.333,0-2,0c0-0.667,0-1.333,0-1.999c-0.666,0-1.333,0-1.999,0c0-0.667,0-1.334,0-2c0.666,0,1.333,0,1.999,0C398.902,299.378,398.902,298.711,398.902,298.045z"; 
 }
@@ -2570,20 +2508,20 @@ is being used to size a border should also be in pixels.
 .table-view .column-drag-header,
 .tree-table-view .column-drag-header {
     -fx-background: -fx-accent;
-    -fx-background-color: -fx-selection-bar;
+    -fx-background-color: black;
     -fx-border-color: transparent;
-    -fx-opacity: 0.6;
+    -fx-opacity: 0.5;
 }
 /* Semi-transparent overlay to indicate the column that is currently being moved */
 .table-view .column-overlay,
 .tree-table-view .column-overlay {
-    -fx-background-color: darkgray;
-    -fx-opacity: 0.3;
+    -fx-background-color: black;
+    -fx-opacity: 0.2;
 }
 /* Header Sort Arrows */
 .table-view /*> column-header-background > nested-column-header >*/ .arrow,
 .tree-table-view /*> column-header-background > nested-column-header >*/ .arrow {
-    -fx-background-color: -fx-mark-color;
+    -fx-background-color: white;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
@@ -3307,11 +3245,11 @@ is being used to size a border should also be in pixels.
 .header-button:focused {
     -fx-background-color: transparent;
 }
-.header-button:pressed {
-    -fx-background-color: rgba(0,0,0,0.2);
-}
 .header-button:hover {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: rgba(0,0,0,0.25);
+}
+.header-button:pressed {
+    -fx-background-color: rgba(0,0,0,0.4);
 }
 
 .lighter-button {
@@ -3331,17 +3269,89 @@ is being used to size a border should also be in pixels.
 
 // small button mostly within custom controls for opening dialogs. For example
 // Font picker from within text area.
-.dialog-button,
-.header-button:focused {
+.dialog-button {
     -fx-background-color: rgba(0,0,0,0.2);
 }
-.dialog-button:hover,
-.header-button:pressed {
+.dialog-button:hover {
     -fx-background-color: rgba(0,0,0,0.4);
 }
-.table-cell:played {
+
+//****************************************************************************//
+
+// additional tableview row pseudoclasses for playlist table
+.table-cell:played,
+.table-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
 }
-.table-cell:corrupt {
+
+.table-row-cell:played,
+.table-row-cell:played:selected{
+    // setting text fill here wont work, because text is in cells not rows
+    // in general set only non-content properties in row
+}
+.table-cell:corrupt,
+.table-cell:corrupt:selected {
     -fx-text-fill: rgba(250, 180, 180, 0.8);
+}
+.table-row-cell:corrupt,
+.table-row-cell:corrupt:selected{
+    // setting text fill here wont work, because text is in cells not rows
+    // in general set only non-content properties in row
+}
+
+//****************************************************************************//
+
+.item-picker {
+    -fx-background-color: rgba(20,20,30,0.7);
+    -fx-stroke: black;
+    -fx-stroke-width: 2;
+}
+.item-picker-button {
+    -fx-background-color: rgba(10,10,10,0.85);
+    -fx-background-radius: 2;
+    /*-fx-text-fill: -fx-def-font-color;*/
+    -fx-padding: 0.3em 0.7em 0.3em 0.7em;
+}
+.item-picker-button:hover {
+    -fx-background-color: rgba(20,20,30,0.85);
+    -fx-background-insets: -0.2em -0.2em -0.2em -0.2em;
+}
+
+    
+//****************************************************************************//
+
+.popover  {
+}
+.popover > .border {
+    -fx-fill: rgba(20,20,20,0.7);
+    -fx-text-fill: white;
+  /* original below */  
+/* 
+    -fx-stroke: linear-gradient(to bottom, rgba(0,0,0, .3), rgba(0, 0, 0, .7)) ;
+    -fx-stroke-width: 0.5;
+    -fx-fill: rgba(255.0,255.0,255.0, .95);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.2), 10.0, 0.5, 2.0, 2.0);*/
+}
+.popover > .content {
+    -fx-fill: white;
+    -fx-text-fill: white;
+}
+.popover > .detached {
+}
+.popover > .content > .title > .text  {
+    -fx-padding: 6.0 6.0 0.0 6.0;
+    /*-fx-text-fill: rgba(120, 120, 120, .8);   //original */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.popover > .content > .title > .icon {
+    -fx-padding: 6.0 0.0 0.0 10.0;
+}
+.popover > .content > .title > .icon > .graphics > .circle {
+    -fx-fill: gray ;
+    -fx-effect: innershadow(gaussian, rgba(0,0,0,.2), 3, 0.5, 1.0, 1.0);
+}
+.popover > .content > .title > .icon > .graphics > .line {
+    -fx-stroke: white ;
+    -fx-stroke-width: 2;
 }

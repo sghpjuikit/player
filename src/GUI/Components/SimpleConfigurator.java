@@ -3,7 +3,7 @@ package GUI.Components;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import GUI.objects.ConfigField;
+import GUI.ItemHolders.ConfigField;
 import utilities.functional.functor.Procedure;
 import java.io.IOException;
 import java.util.ArrayList;

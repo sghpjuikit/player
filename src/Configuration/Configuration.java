@@ -13,7 +13,6 @@ import Layout.LayoutManager;
 import PseudoObjects.Maximized;
 import Serialization.Serializator;
 import Serialization.Serializes;
-import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -74,23 +73,6 @@ import utilities.functional.functor.Procedure;
 @IsConfigurable(group = "General")
 public class Configuration implements Serializes {
     
-    @IsConfig(info = "name of the application", editable = false)
-    public static String application_Name = "PlayerFX";
-    
-    // file pathnames
-    @IsConfig(info = "location of playback state file", editable = false)
-    public static String PLAYER_STATE_CONFIG_FILE = "PlayerState.cfg";
-    @IsConfig(info = "location of widgets", editable = false)
-    public static String WIDGET_FOLDER = "Widgets";
-    @IsConfig(info = "location of layouts", editable = false)
-    public static String LAYOUT_FOLDER = "Layouts";
-    @IsConfig(info = "location of skins", editable = false)
-    public static String SKIN_FOLDER = "Skins";
-    @IsConfig(info = "name of user data folder", editable = false)
-    public static String DATA_FOLDER = "UserData";
-    @IsConfig(info = "location of saved playlists", editable = false)
-    public static String PLAYLIST_FOLDER = DATA_FOLDER + File.separator + "Playlists";
-        
     @IsConfig(info = "corner distance for resizing")
     public static double borderCorner = 18;                   //border limit for North, NW, W, SW, S, SE, E, NE mouse resize cursor
     @IsConfig(info = "last height of the main window", editable = false)
@@ -248,7 +230,7 @@ public class Configuration implements Serializes {
      * @throws NullPointerException if application doesnt have any config with
      * specified name
      */
-    public void applyField(String name, String value) {                         System.out.println("applying "+name+" "+value);
+    public void applyField(String name, String value) {                         // System.out.println("applying "+name+" "+value);
         Config def_f = default_fields.get(name);
         Class type = def_f.type;
         
@@ -366,8 +348,8 @@ public class Configuration implements Serializes {
     }
     
     
-    public static String getGroup(Class c) {
-        IsConfigurable a = (IsConfigurable) c.getAnnotation(IsConfigurable.class);
+    public static String getGroup(Class<?> c) {
+        IsConfigurable a = c.getAnnotation(IsConfigurable.class);
         return a==null ? c.getSimpleName() : a.group();
     }
     

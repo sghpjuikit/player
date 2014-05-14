@@ -5,10 +5,12 @@
  */
 package AudioPlayer.playlist;
 
+import AudioPlayer.tagging.Metadata;
 import PseudoObjects.FormattedDuration;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Comparator;
+import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -43,6 +45,7 @@ import utilities.Log;
  * to malperform (java7)(needs more testing).
  */
 public final class PlaylistItem extends Item implements Comparable<PlaylistItem> {
+    
     private final SimpleObjectProperty<URI> uri;
     private final SimpleObjectProperty<FormattedDuration> time;
     /** Consists of item's artist and title separated by separator string. */
@@ -204,13 +207,6 @@ public final class PlaylistItem extends Item implements Comparable<PlaylistItem>
     public boolean updated() {
         return updated;
     }
-
-    @Override
-    public String toString() {
-        return getName().toString() + "\n"
-             + getURI().toString() + "\n"
-             + getTime().toString() + "\n";
-    }
     
     /**
      * @return SimplePlaylistItem representation of this item.
@@ -219,15 +215,70 @@ public final class PlaylistItem extends Item implements Comparable<PlaylistItem>
         return new SimplePlaylistItem(this);
     }
     
+    /**
+     * Returns metadata with artist, length and title fields set as defined
+     * in this item, leaving everything else empty. Basically a conversion.
+     * @return 
+     */
+    public Metadata toMetadata() {
+        return new Metadata(this);
+    }
+    
+    /** @return complete information on this item - artist, title, length */
+    @Override
+    public String toString() {
+        return getName() + "\n"
+             + getURI().toString() + "\n"
+             + getTime().toString();
+    }
+
+    /**
+     * Two playlistItems are equal only if they are the same object. Equivalent
+     * to this == item.
+     * @param item
+     * @return 
+     */
+    @Override
+    public boolean equals(Object item) {
+        return this == item;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 11 * hash + Objects.hashCode(this.uri);
+        hash = 11 * hash + Objects.hashCode(this.time);
+        hash = 11 * hash + Objects.hashCode(this.name);
+        hash = 11 * hash + (this.updated ? 1 : 0);
+        return hash;
+    }
+    
+    
+    
     /** Compares by natural order - name; */
     @Override
     public int compareTo(PlaylistItem o) {
         return getName().compareToIgnoreCase(o.getName());
     }
+    /**  @return Natural Comparator. Compares by name. Equivalent to natural
+      * order sort mechanism. Calls PlaylistItem's compareTo. */    
+    public static Comparator<PlaylistItem> getComparatorName() {
+        return (p1,p2) -> p1.getName().compareTo(p2.getName());
+    }
     
     /**  @return Comparator. Compares by length - time.  */    
     public static Comparator<PlaylistItem> getComparatorTime() {
         return (p1,p2) -> p1.getTime().compareTo(p2.getTime());
+    }
+    
+    /**  @return Comparator. Compares by artist.  */    
+    public static Comparator<PlaylistItem> getComparatorArtist() {
+        return (p1,p2) -> p1.getArtist().compareTo(p2.getArtist());
+    }
+    
+    /**  @return Comparator. Compares by title.  */    
+    public static Comparator<PlaylistItem> getComparatorTitle() {
+        return (p1,p2) -> p1.getTitle().compareTo(p2.getTitle());
     }
     
     /**

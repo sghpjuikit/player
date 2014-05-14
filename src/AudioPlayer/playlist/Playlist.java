@@ -1,6 +1,7 @@
 
 package AudioPlayer.playlist;
 
+import Configuration.ConfigManager;
 import Configuration.Configuration;
 import Serialization.PlaylistItemConverter;
 import com.thoughtworks.xstream.XStream;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import javafx.util.Duration;
+import main.App;
 import utilities.Log;
 
 /**
@@ -229,7 +231,7 @@ public final class Playlist extends AbstractPlaylist {
      * Serializes the playlist into file using in house serialization mechanism.
      */
     public void serialize() {
-        File save = new File(Configuration.PLAYLIST_FOLDER + File.separator + getName() + ".pfx");
+        File save = new File(App.PLAYLIST_FOLDER() + File.separator + getName() + ".pfx");
         try {
             XStream xstream = new XStream(new DomDriver());
             xstream.registerConverter(new PlaylistItemConverter());

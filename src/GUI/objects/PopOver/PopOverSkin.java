@@ -35,7 +35,6 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -87,8 +86,6 @@ public class PopOverSkin implements Skin<PopOver> {
         this.popOver = popOver;
 
         stackPane = new StackPane();
-        stackPane.getStylesheets().add(
-                PopOver.class.getResource("popover.css").toExternalForm());
         stackPane.setPickOnBounds(false);
         stackPane.getStyleClass().add("popover");
 

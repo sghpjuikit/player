@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import main.App;
 import utilities.FileUtil;
 import utilities.Log;
 import utilities.functional.impl.NotNull;
@@ -34,8 +35,8 @@ public final class LayoutManager implements Configurable {
      */
     public static Stream<Layout> getLayouts() {
         Stream.Builder<Layout> lsb = Stream.builder();
-        active.values().stream().forEach(l->lsb.add(l));
-        ContextManager.windows.stream().map(w->w.getLayout()).forEach(l->lsb.add(l));
+        active.values().stream().forEach(lsb::add);
+        ContextManager.windows.stream().map(w->w.getLayout()).forEach(lsb::add);
         return lsb.build().filter(new NotNull());
     }
     
@@ -45,7 +46,7 @@ public final class LayoutManager implements Configurable {
      */
     public static void findLayouts() {
         // get + verify path
-        File dir = new File(Configuration.LAYOUT_FOLDER);
+        File dir = new File(App.LAYOUT_FOLDER());
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Search for Layouts failed.");
             return;
@@ -56,7 +57,7 @@ public final class LayoutManager implements Configurable {
         // load layouts
         layouts.clear();
         if (files.length == 0) {
-            Log.mess("Layout folder '" + Configuration.LAYOUT_FOLDER + "' is empty. An empty layout will be created.");
+            Log.mess("Layout folder '" + App.LAYOUT_FOLDER() + "' is empty. An empty layout will be created.");
             return;
         }
         for (File f : files) {
@@ -86,7 +87,7 @@ public final class LayoutManager implements Configurable {
     }
     
     private static void putLayout(int i, String s) {
-        Layout l = Serializator.deserializeLayout(new File(Configuration.LAYOUT_FOLDER+File.separator+s+".l"));
+        Layout l = Serializator.deserializeLayout(new File(App.LAYOUT_FOLDER()+File.separator+s+".l"));
         if (l!=null) active.put(i, l);
     }
     

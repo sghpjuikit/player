@@ -11,6 +11,8 @@ import Layout.Component;
 import Layout.PolyContainer;
 import Layout.Widgets.Widget;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
@@ -39,14 +41,12 @@ public final class TabArea extends PolyArea {
     @FXML Label nameL;
     @FXML Button menuB;
     @FXML Button propB;
+    @FXML AnchorPane content;
     @FXML AnchorPane controls;
     @FXML Region activator;
     @FXML Region deactivator;
     
-//    private DraggableTab addTab;
-//    private final List<DraggableTab> tabs = new ArrayList();
     private Component widget;  // active component, max one, null if none
-    private boolean forbid_index_update = false;
     
     // animations (initializing here will cause them malfunction)
     private FadeTransition contrAnim;
@@ -69,37 +69,20 @@ public final class TabArea extends PolyArea {
             Log.err("Problem loading tabbed container. Resources couldnt be read.");
         }
         
-//        addTab = new DraggableTab("+");
-//        addTab.setDetachable(false);
-//        addTab.setClosable(false);
-//        addTab.setOnSelectionChanged( e -> {
-////            container.a
-//            if(addTab.isSelected())
-//                ContextManager.showMenu(ContextManager.widgetsMenu, menuB, container);
-//        });
-//        tabPane.getTabs().add(addTab);
-        
-        tabPane.getSelectionModel().selectedIndexProperty().addListener((o,oldV,newV)->{
-            if(!forbid_index_update && container.properties.getI("selected")!=newV.intValue()) {
-                container.properties.set("selected", newV.intValue());
-                System.out.println("BGBGBG "+newV);
-            }
-        });
-        
         contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), controls);
-        contAnim = new FadeTransition(Duration.millis(GUI.duration_LM), tabPane);
-        blurAnim = new TranslateTransition(Duration.millis(GUI.duration_LM), tabPane);
+        contAnim = new FadeTransition(Duration.millis(GUI.duration_LM), content);
+        blurAnim = new TranslateTransition(Duration.millis(GUI.duration_LM), content);
         
         BoxBlur blur = new BoxBlur(0, 0, 1);
-        blur.widthProperty().bind(tabPane.translateZProperty());
-        blur.heightProperty().bind(tabPane.translateZProperty());
-        tabPane.translateZProperty().addListener( o -> {
-            tabPane.setEffect(blur);
+        blur.widthProperty().bind(content.translateZProperty());
+        blur.heightProperty().bind(content.translateZProperty());
+        content.translateZProperty().addListener( o -> {
+            content.setEffect(blur);
         });
 
         menuB.setOnMouseClicked( e -> {
             ContextManager.showMenu(ContextManager.widgetsMenu, menuB, container);
-        });  
+        });
         propB.setDisable(true);
         propB.setOnMouseClicked( e -> 
             ContextManager.openFloatingSettingsWindow((Widget)widget)
@@ -156,20 +139,38 @@ public final class TabArea extends PolyArea {
     
     @Override
     public void addComponent(Component c) {
-        DraggableTab t = new DraggableTab(c.getName());
+        addComponents(Collections.singleton(c));
+    }
+    public void addComponents(Collection<Component> cs) {
+        if(cs.isEmpty()) return;
+        int i = container.properties.getI("selected");
+        // process components -> turn into tab, set behavior, load lazily
+        cs.stream().forEach(c->{
+            DraggableTab t = new DraggableTab(c.getName());
 //            t.setDetachable(false);
             t.setTooltip(new Tooltip(c.getName()));
             t.setUserData(c);
             t.setOnClosed(e -> removeComponent((Component)t.getUserData()));
+            tabPane.getTabs().add(t);
             t.setOnSelectionChanged( e -> {
-                if(t.isSelected())
+                if(tabPane.getTabs().contains(t) && t.isSelected())
                     loadTab(t,(Component)t.getUserData());
             });
-//        tabs.add(t);
-//        tabPane.getTabs().add(tabPane.getTabs().size()-1,t);
-            forbid_index_update = true;
-        tabPane.getTabs().add(t);
-        forbid_index_update = false;
+            loadTab(t, c);
+        });
+        
+        
+        
+        // select 1st if none selected
+//        if(tabPane.getTabs().size()==cs.size()) {
+//            int i = container.properties.getI("selected");
+            if(i<0) i = 0;
+            if(i==0) {
+                Tab t = tabPane.getTabs().get(i);
+                loadTab(t,(Component)t.getUserData());
+            }
+            selectComponent(i);
+//        }
     }
     
     @Override
@@ -177,22 +178,34 @@ public final class TabArea extends PolyArea {
         container.removeChild(c);
         tabPane.getTabs().stream().filter(t->t.getUserData().equals(c)).findAny()
                .ifPresent(t->tabPane.getTabs().remove(t));
-//        tabs.stream().filter(t->t.getUserData().equals(c)).findAny()
-//            .ifPresent(t->tabPane.getTabs().remove(t));
     }
     
-    public void showComponentAt(int i) {System.out.println("SETTING SHOW "+i);
-        tabPane.getSelectionModel().select(i);
-// not needed - updates automatically on selectionModel.change (see constructor)        
-//        if(container.properties.getI("selected")!=i)
-//            container.properties.set("selected", i);
+    private void selectComponent(Integer i) {System.out.println("showigng tab "+i);
+        int tabs = tabPane.getTabs().size();
+        if(i==null) {
+            if(tabPane.getSelectionModel().isEmpty())
+                tabPane.getSelectionModel().select(0);
+            System.out.println("selecting 0");
+        }
+        if(i!=null){
+//            if(tabs>i) i = tabs;    // prevent out of bounds
+//            if(i<1) i = 1;          // prevent no selection
+//            if(tabs>0 && tabPane.getSelectionModel().getSelectedIndex() != i)
+                tabPane.getSelectionModel().select(i);
+        }
+//        
+//        // prevent no selection
+//        if(!tabPane.getTabs().isEmpty() && tabPane.getSelectionModel().isEmpty())
+//            tabPane.getSelectionModel().select(0);
+        
+        int ii = tabPane.getSelectionModel().getSelectedIndex();
+        container.properties.set("selected", ii);
     }
     
     /** Purges all tabs. */
     @Override
     public void removeAllComponents() {
         tabPane.getTabs().clear();
-//        tabPane.getTabs().removeAll(tabs);
     }
     
     private void loadTab(Tab t, Component c) {
@@ -206,8 +219,11 @@ public final class TabArea extends PolyArea {
         t.getContent().minWidth(0);
         nameL.setText(c.getName());
         propB.setDisable(false);
-        if(c instanceof Widget)
+        if(c instanceof Configurable)
             propB.setDisable(((Configurable)c).getFields().isEmpty());
+        
+        int ii = tabPane.getTabs().indexOf(t);
+        container.properties.set("selected", ii);
     }
     
     /** Refreshes the active widget */
@@ -222,6 +238,15 @@ public final class TabArea extends PolyArea {
     
     
     @Override
+    public AnchorPane getContent() {
+        return content;
+    }
+    @Override
+    public AnchorPane getControls() {
+        return controls;
+    }
+    
+    @Override
     protected void showControls() {
         contrAnim.stop();
         contAnim.stop();
@@ -232,10 +257,11 @@ public final class TabArea extends PolyArea {
         contrAnim.play();
         if(GUI.opacity_layoutMode)
             contAnim.play();
-        if(GUI.blur_layoutMode)
-            blurAnim.play();
+//        if(GUI.blur_layoutMode)
+//            blurAnim.play();
         activator.toBack();
-        tabPane.setMouseTransparent(true);
+        content.setMouseTransparent(true);
+        controls.setMouseTransparent(false);
         deactivator.setMouseTransparent(false);
     }
     @Override
@@ -249,10 +275,11 @@ public final class TabArea extends PolyArea {
         contrAnim.play();
         if(GUI.opacity_layoutMode)
             contAnim.play();
-        if(GUI.blur_layoutMode)
-            blurAnim.play();
+//        if(GUI.blur_layoutMode)
+//            blurAnim.play();
         activator.toFront();
-        tabPane.setMouseTransparent(false);
+        content.setMouseTransparent(false);
+        controls.setMouseTransparent(true);
         deactivator.setMouseTransparent(true);
     }
     

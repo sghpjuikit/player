@@ -2,8 +2,8 @@
 package GUI.Components;
 
 import Configuration.IsConfig;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
-import Layout.Widgets.Widget;
 import static java.lang.Math.random;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import javafx.util.Duration;
  *
  * @author Plutonium_
  */
-public class Circles extends AnchorPane implements Controller {
+public class Circles extends AnchorPane implements Controller<ClassWidget> {
 
     
     private static final double WIDTH = 500, HEIGHT = 500;
@@ -147,18 +147,18 @@ public class Circles extends AnchorPane implements Controller {
     
 /******************************************************************************/
     
-    private Widget widget;
+    private ClassWidget widget;
     
     @Override public void refresh() {
         animation.setRate(rate);
         all.setFill(bgr_color);
     }
 
-    @Override public void setWidget(Widget w) {
-        widget = w;
+    @Override public void setWidget(ClassWidget w) {
+        this.widget = w;
     }
 
-    @Override public Widget getWidget() {
+    @Override public ClassWidget getWidget() {
         return widget;
     }
     

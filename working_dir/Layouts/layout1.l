@@ -1,0 +1,21 @@
+<Layout.Layout>
+  <id>cebb1b94-ad87-4e9f-85bc-e78713206a1d</id>
+  <properties>
+    <map>
+      <entry>
+        <string>padding</string>
+        <double>0.0</double>
+      </entry>
+      <entry>
+        <string>locked</string>
+        <boolean>false</boolean>
+      </entry>
+    </map>
+  </properties>
+  <b>false</b>
+  <child class="Layout.Widgets.EmptyWidget">
+    <id>a697996a-2b26-4cdc-a5d4-68f1ad4aaec1</id>
+    <name></name>
+    <configs/>
+  </child>
+</Layout.Layout>

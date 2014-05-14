@@ -18,11 +18,11 @@ import utilities.Log;
  * 
  * @author uranium
  */
-public class ClassWidget extends Widget {
+public class ClassWidget extends Widget<Controller> {
     private final Class<? extends Node> class_type;
     
-    ClassWidget(String aName, Class<? extends Node> type) {
-        name = aName;
+    ClassWidget(String name, Class<? extends Node> type) {
+        super(name);
         class_type = type;
     }
 

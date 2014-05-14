@@ -1,13 +1,15 @@
 
 package AudioPlayer.playback;
 
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.Player;
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.MetadataWriter;
+import Configuration.Configurable;
 import Configuration.IsAction;
 import Configuration.IsConfig;
-import utilities.functional.functor.Procedure;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -19,8 +21,8 @@ import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
-import Configuration.Configurable;
 import utilities.Log;
+import utilities.functional.functor.Procedure;
 
 /**
  * Provides methods for playback.
@@ -230,17 +232,18 @@ public final class PLAYBACK implements Configurable {
         return state.balanceProperty();
     }
     
-    public static LoopMode getLoopMode() {
+    public static PlayingItemSelector.LoopMode getLoopMode() {
         return state.getLoopMode();
     }
     
     @IsAction(name = "Toggle looping", info = "Switch between playlist looping mode.", shortcut = "ALT+L")
     public static void toggleLoopMode() {
-        setLoopMode(getLoopMode().next());
+        setLoopMode(getLoopMode().next()); System.out.println("MODE CYCLED "+getLoopMode());
     }
     
     public static void setLoopMode(LoopMode mode) {
         state.setLoopMode(mode);
+        PlaylistManager.playingItemSelector.setSelector(mode.selector());
     }
     
     public static ObjectProperty<LoopMode> loopModeProperty() {

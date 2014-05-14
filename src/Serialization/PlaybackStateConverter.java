@@ -5,7 +5,7 @@
  */
 package Serialization;
 
-import AudioPlayer.playback.LoopMode;
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.playback.PlaybackState;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
@@ -73,7 +73,7 @@ public class PlaybackStateConverter implements Converter {
         s.setBalance(Double.parseDouble(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setLoopMode(LoopMode.valueOf(reader.getValue()));
+        s.setLoopMode(PlayingItemSelector.LoopMode.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
         s.setStatus(Status.valueOf(reader.getValue()));

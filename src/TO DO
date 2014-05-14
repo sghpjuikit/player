@@ -2,20 +2,27 @@
 --------------------- IMMEDIATE ----------------------
 ------------------------------------------------------
 
+- figure out LoopMode - class on its own or within NextItemSelector
+- figure out LoopMode - should include Random? implement properly
+- finish the whole nextPlayingItem() thing. support with GUI
+- figure out serialisation of loopMode and random
+
+- implement close() layout reload + test around
+- closing widget calls OnClosing twice 1st time
+
+- mini window controls move from widget to window - add mini view to it too
+- dirs icons for files
+- teeview arrow skin + tabview tab clse button skin 
+- all tabs loading bug
 - window add screen position enums like popover, unify? how?
 - windows
   - unite with UI
   - clean up serialization
-- mood picker finish up
-- current item / metadata
-
-- reading metadata of sel items degrades perf of table in sel/move operations
 
 - context menus circular labels' position off
 - widget transfer defaulting w settings
-- widg man  prefFactory per group configs -> getWidget reimplement
+- widg man prefFactory per group configs -> getWidget reimplement
 - Player update item not refreshing selected pl item
-
 - shortcuts '~', '\' and other weird ones                                       (major)
 - continuous shortcut (on key pressed rather than released)
 - shortcuts global or local settnigs
@@ -24,16 +31,14 @@
 - thumbnail border still screwing around (file info resizing)
 
 - notification Text > Other unify add show(title, text, cover)
-- app stealing focus on play next pop                                           (still an issue ?)
+- app taskbar flashing                                                          (still an issue ?)
 - splitter absolute size for both children
 - context menus unify with popups                                               (?)
-- popup wrong coord init (+notifications border gap diff for each side...)
-- popup open = events not propagating                                           (what exactly is this)
+- notifications border gap diff for each side...
+- popup open = events not propagating                                           (medium)
 - rater controls make resizable - part of a bigger problem, its more that the
   graphics dont resize, though the component itself does
-- splitter positions keep getting fucked up on consequent resizes
 - playback states - change, suspend, etc - perfect + cleanup
-- playlist table sorting programatically (by styles)
 - playlist table header button implement properly column hiding (nasty bug)
 - realTime serialize
 
@@ -41,6 +46,7 @@
 --------------------FUNCTIONALITY---------------------
 ------------------------------------------------------
 
+- use masks (clips) with gradient for fancy effects (notification)
 - CHAPTERS   TAG | XML OPTION
 - widget manager widget
 - configuration lookup all classes with annotated fields for config (avoid
@@ -49,28 +55,26 @@
 - cursor effect to popup, get rid of effectPane
 - tagger disable unsupported fields for type
 - tagger multithreaded writing to tag
-- getNext/Prev in PlaylistManager + random pick
 - playlist tabs
 - import/export some of the most used playlist file formats
 - save playlist selected items as playlist
-- shuffle play order
-- playlist - skip files <Condition>
 - extended circle context menu to allow multiple contents
 - gestures & touch
-
 - tagger filename change                                                        (?)
 
 FURTHER DOWN THE LIST FUNCTIONALITIES
 - even more flexibly resizable widget areas
 - cover downloading widget
-- general table object
-    non editable
+- general table object - remember 'state':
+    editable/non editable                                                       // check
     generate from POJO
     read database records
-    sorting, filtering, header, columns visibility, order
-    columns relative size
-    remember state
--- color support, color graph of all songs would kill
+    sorting, filtering                                                          // check
+    header                                                                      // check
+    columns visibility - make use of manual factories?
+    columns order                                                               // check        
+    columns relative size                                                       // check
+- color graph of all songs would kill
 - monitor folder content for changes (playlists, layouts, skins, widgets, ...)
 
 - metadata reading flac, ogg (most are already done)
@@ -102,28 +106,59 @@ GALAXY MAP
 - enum like every field...
 - map type representants: x, y, z, color, label, shape, ...
 
+DIRS
+- make nice icons - figure out how to use them effectively
+- dont show whole path (current solution disables icons)
+- figure out folder monitoring
+- add some fancy stuff
+
 ------------------------------------------------------
 ------------------------BUGS--------------------------
 ------------------------------------------------------
 
 GENERAL
+- playlsitTable sometimes bugs out during scrolling or forgets to update        (minor, investigate)
 - rating not initialized visually on reload                                     (medium)
-- table empty rows flickering (when run from netbeans it doesnt happen)         (minor)
 - deselecting single items with CTRL not working sometimes                      (medium)
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
 - little bug with position slider on repositioning                              (minor)
-- table playlist: moving items wont change tables' own selection                (medium but nasty)
+- Text Node doesnt get skinned by css. No idea why, but its very inconvenient.  (medium)
+  (+- workaround: set font color manually <- only css knows the color!)
+- table doesnt show playing item after manual gui refresh                       (minor)
+- playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
 
-// unsolvable
-- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if present
+SOLVED (with unwanted workaround)
+(it means the bug presents no misbehavior but the root problem still deserves
+ attention)
+- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if present       (minor)
   workaround: custom comment reading method filters out CUSTOM fields
+  problem: carries potential risk of causing additional tagging problems
+- split container divider position doesnt load properly (vertical only).        (medium)
+  This has something to do with some other (probably orientation) property
+  overriding divider position and consequently changing the "pos" value in the
+  very container ultimately losing the original position value
+  workaround: change container "pos" value only when divider position changes as
+  a result of mouse dragging.
+  problem: performance aspect. There is possibility of infinite recursive call
+  for setting divider position. Plus the setPosition is now called multiple
+  times depending on depth within layout map possibly with O(n) or worse. This
+  is because of the recursive nature of layout map loading where children are
+  loaded before parent, causing additional resize pass for every depth iteration
+  when the parent loads. This is possibly worse than O(3^x)!
+  solution: the layout map shouldnt load recursively. This has potential to
+  get rid of major resizing bugs on layout init (like thumbnails and custom
+  layouts).
+- Item if corrupted getLocation still works! set it to empty path               (minor, technicality...)
+  getLocation causing a weird problem if item.getFile() doesnt return abs file  (not a problem)
 
 ------------------------------------------------------
 ------------------------CODE--------------------------
 ------------------------------------------------------
 
 CLEANUP
-- get rid of ROW_HEIGHT and find out how to get row heigh dynamically           (solved with FixedCellSize ?)
+- get rid of ROW_HEIGHT and find out how to get row heigh dynamically, also
+  set proper padding for table rows and get away with fixedRowSize in playlist
+  table FRS doesnt solve this problem as it breaks skins
 - clean ExtendedInfo widget - its completely fubar
 - Serializator and serialization code clean up
 - metadata caching playlist-selected
@@ -134,13 +169,13 @@ CLEANUP
 API
 Layouts---------
 - BiContainer nonpure version works only as pure. Its abstract to avoid misuse
-- add parametrization and decoupling of gui-type from contatiers. Generics will
+- add parametrization and decoupling of gui-type from containers. Generics will
   not help here unfortunately. With type erasure its looking poorly.
 - Layouter not part of Layout map. The reason is simple - if it would be, it
   would get wrapped in widgetarea. But other than that, its proving more trouble
   than its worth. Particularly because the Container.indexOf(Layouter) doesnt
   work as it returns null (since its not part of the layout map). Maybe widgets
-  could have inherent property of needing Area wrapper, Layout would not.
+  could have inherent property of needing Area wrapper, val for Layouter false.
   UniContainer needs to be reworked then.
 - separate and implement Pure vs Leaf Containers better
 
@@ -159,12 +194,9 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 IMPROVEMENTS
 - file format discovery. Unite Image and Audio types add category               (minor, although much needed for robustness)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
-- playlist selected items make unmodifiable
 - decouple Playlist and Serializable playlist
 - moving items in playlist - redo the algorithm for by>|1|                      (minor)
 - playlist table drag code duplication
-- playlist table highlight playing apply css item columFactory > rowFactory
-
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)
@@ -174,6 +206,23 @@ PERFORMANCE
 - improve pictures (even more)
 - images loading on separate thread (possibly imageLoader class?)               (?)
 - invisible widgets - suspend
+- picker static always in memory mem leak                                       (minor)
+  problem: how to lazy load it if not as static field?
+- layout reload mem leak - investigate, weakListeners+OnClosing should help
+
+------------------------------------------------------
+--------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT -------
+------------------------------------------------------
+
+- when operating with playlist, the items must not be cloned or copied in a way
+  then creates new item instance. Playlist's behavior is applicable on the
+  very instances of the items it contains. Methods such as removeItems(items) or
+  isPlaying() will not work for items not contained in the playlist correctly.
+  Even two different playlist tables withing GUI, in case they are linked to one
+  playlist) share the same instances.
+- playlist table row height is fixed for now
+- scrollbar width should be 15px. Or table resize might break.
+
 
 ------------------------------------------------------
 ---------------------- TESTING -----------------------
@@ -181,3 +230,10 @@ PERFORMANCE
 
 - writing tag - multiple values
 - Layout loading into Container
+
+------------------------------------------------------
+------------------ HOW TO USE TIPS -------------------
+------------------------------------------------------
+
+- clicking on table columns sorts ASC/DESC/ORIG, holding SHIFT to sort by
+  multiple columns

@@ -1,42 +1,41 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.Widget;
 import Configuration.Configurable;
 
 /**
  * Controller defines object defining behavior of some graphical object and acts
  * as a bridge between that object and the rest of application. Controllers are
  * used to control and define behavior for example of fxml graphics and turn
- * unchanging object into controllable.
- * 
- * Encapsulation is still recommended and can be achieved by not providing internal
- * behavior as public. Only public methods and fields are visible from outside.
- * 
- * Full controller implementation can be considered behavior defining object and
- * also API of the object to allow controlled control of from outside.
- * Controller can make object fully standalone or give certain degree of control
- * somewhere else outside.
- * 
- * Controller is also communication channel between the object and its enviroment
- * capable of providing necessary information handled somewhere else. An example
- * could be properties serialization which can be handled somewhere else (like
- * Widget) and linked to the object by Controller.
- * 
- * This class implements Configurable interface which is useful for user
- * customization of internal properties.
- * 
+ * self-sustained object into controllable one.
+ * <p>
+ * Encapsulation is still valid approach and it is recommended to make methods
+ * and fields public only when trying to export functionality.
+ * <p>
+ * Controller can be considered behavior defining object and also API of the
+ * object to allow external control. Controller can make object fully autonomous
+ * an inaccessible or provide certain degree of access from outside.
+ * <p>
+ * Controller is also communication channel between the object's behavior and its
+ * enviroment capable of providing only necessary information handled somewhere
+ * else. An example could be serialization where controller could represent a
+ * disposable entity turning widget into light-weight object by Controller. This
+ * separates logic of the object depending on where the control for given aspect
+ * lies.
+ * <p>
+ * Implements Configurable interface which is useful for user customization of 
+ * internal properties.
+ * <p>
  * This is also marker interface. It helps flag objects that act as controllers,
  * even if they dont provide any public control. This way it is more clear whether
  * Object is its own controller, which is also possible. Such cases could be
- * required by other wrapper classes (like Widget) that require their graphics
- * to have Controllers.
- * 
- * To see some more check the implementations.
- * 
+ * required by some wrappers that require their graphics to have Controllers.
+ * <p>
+ * To read some more on this, see the implementations.
+ * <p>
  * @author uranium
  */
-public interface Controller extends Configurable{
+public interface Controller<W extends Widget> extends Configurable, AbstractController<W> {
     
     /**
      * Basic implementation of this method does nothing.
@@ -49,10 +48,20 @@ public interface Controller extends Configurable{
      * This method must be called before the gui loads.
      * @param w 
      */
-    public void setWidget(Widget w);
+//    @Override
+    public void setWidget(W w);
+    
     /**
      * Returns widget in relationship with this Controller object.
      * @return associated widget or null if none.
      */
-    public Widget getWidget();
+//    @Override
+    public W getWidget();
+    
+    /**
+     * Guaranteed to execute immediately before widget is closed. Widget is not
+     * expected to be used after this method is invoked. Use to free resources.
+     * Default implementation does nothing.
+     */
+    default void OnClosing(){}
 }

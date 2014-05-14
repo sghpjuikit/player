@@ -48,7 +48,7 @@ public class UniContainer extends Container {
         else
         if (child instanceof Widget) {
             gui.loadWidget((Widget)child);
-            out = gui.getPane();
+            out = gui.root;
         }
         else out = new Layouter(this,1).load();
         
@@ -83,6 +83,7 @@ public class UniContainer extends Container {
      */
     @Override
     public void addChild(Integer index, Component c) {
+        super.addChild(index, c);
         if(index==null) return;
         if (c instanceof Container)
             ((Container)c).parent = this;
@@ -117,10 +118,11 @@ public class UniContainer extends Container {
 
     @Override
     public void close() {
+        super.close();
+        
         setChild(null);     // have to call this or the gui change wont
                             // take effect, now i have to override the method...
                             // it wouldnt hurt figuring this out
-        super.close(); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

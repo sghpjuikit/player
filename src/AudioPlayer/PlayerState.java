@@ -6,6 +6,7 @@ package AudioPlayer;
 
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.PlaylistState;
+import Configuration.ConfigManager;
 import Configuration.Configuration;
 import Serialization.PlaybackStateConverter;
 import Serialization.PlaylistItemConverter;
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import main.App;
 import utilities.Log;
 
 /**
@@ -72,9 +74,9 @@ public final class PlayerState {
             x.autodetectAnnotations(true);
             x.registerConverter(new PlaybackStateConverter());
             x.registerConverter(new PlaylistItemConverter());
-            x.toXML(this, new BufferedWriter(new FileWriter(Configuration.PLAYER_STATE_CONFIG_FILE)));
+            x.toXML(this, new BufferedWriter(new FileWriter(App.PLAYER_STATE_FILE())));
         } catch (IOException ex) {
-            Log.err("Unable to save player state into the file: "+ Configuration.PLAYER_STATE_CONFIG_FILE);
+            Log.err("Unable to save player state into the file: "+ App.PLAYER_STATE_FILE());
         }
     }
     
@@ -84,7 +86,7 @@ public final class PlayerState {
             x.autodetectAnnotations(true);
             x.registerConverter(new PlaybackStateConverter());
             x.registerConverter(new PlaylistItemConverter());
-            PlayerState ps = (PlayerState) x.fromXML(new File(Configuration.PLAYER_STATE_CONFIG_FILE));
+            PlayerState ps = (PlayerState) x.fromXML(new File(App.PLAYER_STATE_FILE()));
             
             playbacks.clear();
             playbacks.addAll(ps.playbacks);
@@ -94,7 +96,7 @@ public final class PlayerState {
             playlist.change(getPl(ps.playlist_id));
             playlist.activate();
         } catch (ClassCastException | StreamException ex) {
-            Log.err("Unable to load player state from the file: "+ Configuration.PLAYER_STATE_CONFIG_FILE + 
+            Log.err("Unable to load player state from the file: "+ App.PLAYER_STATE_FILE() + 
                     ". The file not found or content corrupted. Loading default state. ");
         }
     }

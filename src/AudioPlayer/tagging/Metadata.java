@@ -1,6 +1,7 @@
 
 package AudioPlayer.tagging;
 
+import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Configuration;
 import PseudoObjects.FormattedDuration;
@@ -137,6 +138,17 @@ public final class Metadata extends MetaItem {
      */
     public static Metadata EMPTY() {
         return new Metadata();
+    }
+    /**
+     * Creates metadata from specified item and sets artist, length and title
+     * fields, leaving everything else empty.
+     */
+    public Metadata(PlaylistItem item) {
+        file = item.getFile();
+        
+        artist = item.getArtist();
+        length = item.getTime().toMillis();
+        title = item.getTitle();
     }
     
     private Metadata() {
@@ -294,7 +306,7 @@ public final class Metadata extends MetaItem {
     
     @Override public URI getURI() {
         return file.toURI();
-    }
+    }    
     
     /**
      * For example: mp3.
@@ -608,7 +620,7 @@ public final class Metadata extends MetaItem {
      * @return 
      */
     public File getCoverFromDirAsFile() {
-        File dir = getFolder();
+        File dir = getLocation();
         if (!FileUtil.isValidDirectory(dir)) return null;
         
         File[] files;

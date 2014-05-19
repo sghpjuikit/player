@@ -47,7 +47,6 @@ In case you are (still) interested in the project in any way or in contribution 
 
 building project:
 
-Currently, there is no executable for download as it requires proper documentation of the features and guide for use. Coming soon.
 
 The provided files are
 - source files

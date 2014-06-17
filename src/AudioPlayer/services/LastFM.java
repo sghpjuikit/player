@@ -56,9 +56,9 @@ public class LastFM {
             "LastFM percent event handler.");
 
     private final TimeEventHandler timeEvent = new TimeEventHandler(
-            Duration.minutes(1),
+            Duration.minutes(4),
             () -> {
-                Log.deb("time event for scrobbling fired");
+                Log.deb("Time event for scrobbling fired");
                 setTimeSatisfied(true);
             },
             "LastFM time event handler");
@@ -76,7 +76,7 @@ public class LastFM {
     public void initialize() {
 
         acquireUserName();
-        session = Authenticator.getMobileSession(username, "avs2004", apiKey, secret);
+        session = Authenticator.getMobileSession(username, "yourpassword", apiKey, secret);
 
         Player.addOnItemChange((oldValue, newValue) -> {
             if ((timeSatisfied || percentSatisfied)
@@ -108,7 +108,7 @@ public class LastFM {
 
     private void acquireUserName() {
 //        username = preferences.get("lastfm_username", null);
-        username = "myungpetrucci";
+        username = "yourusername";
     }
 
     private void saveUserName(String username) {
@@ -123,13 +123,14 @@ public class LastFM {
                 session
         );
 
-        System.out.println("ok: " + (result.isSuccessful() && !result.isIgnored()));
+//        System.out.println("ok: " + (result.isSuccessful() && !result.isIgnored()));
     }
 
     public final void scrobble(Metadata track) {
         Log.mess("Scrobbling: " + track);
         int now = (int) (System.currentTimeMillis() / 1000);
         ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
+
     }
 
     private static void reset() {
@@ -142,12 +143,6 @@ public class LastFM {
 
     private static void setPercentSatisfied(boolean b) {
         percentSatisfied = b;
-    }
-
-    public void changeUser(String username, String password) {
-        saveUserName(username);
-
-        session = Authenticator.getMobileSession(this.username, "symphonyx", apiKey, secret);
     }
 
     public void destroy() {

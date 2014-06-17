@@ -642,7 +642,10 @@ public final class Metadata extends MetaItem {
      */
     public File getCoverFromDirAsFile() {
         File dir = getFile().getParentFile();
-        if (!FileUtil.isValidDirectory(dir)) return null;
+        if (!FileUtil.isValidDirectory(dir)) {
+            return null;
+        } else {
+        }
         
         File[] files;
         files = dir.listFiles((File f) -> {
@@ -652,7 +655,8 @@ public final class Metadata extends MetaItem {
                 f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase("cover") ||
                 f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase("folder") ||
                 f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getFilenameFull()) ||
-                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getFilename())
+                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getFilename()) ||
+                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getAlbum())
                 ));
             return accept;
         });

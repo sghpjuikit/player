@@ -22,91 +22,86 @@ import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
 import javafx.util.Duration;
 import utilities.Log;
-import utilities.functional.functor.Procedure;
 
 /**
  *
  * @author Michal
  */
 public class LastFM {
+
     private static String apiKey;
     private final String secret;
 
     /**
-     * Last.fm Username required for write  last.fm operations
-     * - scrobbling
+     * Last.fm Username required for write last.fm operations - scrobbling
      * username not required for reading
      */
-    
-    
     private static String username;
-    
+
     private static String password;
-    
-    
-    
+
     private Session session;
     private final Preferences preferences;
 
-    
     private static boolean percentSatisfied;
     private static boolean timeSatisfied;
     private boolean durationSatisfied;
-   
-    
+
     private final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
-                0.5,
-                () -> {
-                    Log.deb("percent event for scrobbling fired");
-                    setPercentSatisfied(true);
-                });
-    
+            0.5,
+            () -> {
+                Log.deb("percent event for scrobbling fired");
+                setPercentSatisfied(true);
+            },
+            "LastFM percent event handler.");
+
     private final TimeEventHandler timeEvent = new TimeEventHandler(
-                Duration.minutes(4),
-                () -> {
-                    Log.deb("time event for scrobbling fired");
-                    setTimeSatisfied(true);
-                });
-    
+            Duration.minutes(1),
+            () -> {
+                Log.deb("time event for scrobbling fired");
+                setTimeSatisfied(true);
+            },
+            "LastFM time event handler");
+
     /**
      *
      */
     public LastFM() {
-        apiKey = acquireApiKey();        
+        apiKey = acquireApiKey();
         secret = acquireSecret();
-        
+
         preferences = Preferences.userNodeForPackage(LastFM.class);
     }
-    
-    public void initialize() {      
-        
+
+    public void initialize() {
+
         acquireUserName();
         session = Authenticator.getMobileSession(username, "avs2004", apiKey, secret);
-        
-        Player.addOnItemChange( (oldValue, newValue) -> {
-            if( (timeSatisfied || percentSatisfied   )
-                   && oldValue.getLength().greaterThan(Duration.seconds(30)) ){            
+
+        Player.addOnItemChange((oldValue, newValue) -> {
+            if ((timeSatisfied || percentSatisfied)
+                    && oldValue.getLength().greaterThan(Duration.seconds(30))) {
                 scrobble(oldValue);
 //                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
-            }  
+            }
             System.out.println("hello from scrobbler");
-            updateNowPlaying();        
+            updateNowPlaying();
             reset();
-        } );
-        
-        
+        });
+
         PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
 
         PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     private String acquireApiKey() {
         return "f429ccceafc6b81a6ffad442cec758c3";
-    }   
+    }
+
     private String acquireSecret() {
         return "8097fcb4a54a9805599060e47ab69561";
     }
@@ -115,22 +110,23 @@ public class LastFM {
 //        username = preferences.get("lastfm_username", null);
         username = "myungpetrucci";
     }
-    private  void saveUserName(String username) {
+
+    private void saveUserName(String username) {
         preferences.put("lastfm_username", username);
     }
-    
-    public final void updateNowPlaying(){
+
+    public final void updateNowPlaying() {
         Metadata currentMetadata = AudioPlayer.Player.getCurrentMetadata();
-        ScrobbleResult result = Track.updateNowPlaying(                
-                currentMetadata.getArtist(), 
-                currentMetadata.getTitle(),                         
+        ScrobbleResult result = Track.updateNowPlaying(
+                currentMetadata.getArtist(),
+                currentMetadata.getTitle(),
                 session
         );
-    
+
         System.out.println("ok: " + (result.isSuccessful() && !result.isIgnored()));
     }
-    
-    public final void scrobble(Metadata track){
+
+    public final void scrobble(Metadata track) {
         Log.mess("Scrobbling: " + track);
         int now = (int) (System.currentTimeMillis() / 1000);
         ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
@@ -143,22 +139,20 @@ public class LastFM {
     private static void setTimeSatisfied(boolean b) {
         timeSatisfied = b;
     }
+
     private static void setPercentSatisfied(boolean b) {
         percentSatisfied = b;
     }
-    
-    
-    
-    public void changeUser(String username, String password){
+
+    public void changeUser(String username, String password) {
         saveUserName(username);
-        
+
         session = Authenticator.getMobileSession(this.username, "symphonyx", apiKey, secret);
     }
-    
-    public void destroy(){
+
+    public void destroy() {
         PLAYBACK.realTimeProperty().removeOnTimeAt(percentEvent);
         PLAYBACK.realTimeProperty().removeOnTimeAt(timeEvent);
     }
-    
-    
+
 }

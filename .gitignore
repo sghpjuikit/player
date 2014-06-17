@@ -1,3 +1,20 @@
+#####################
+# NetBeans specific #
+#####################
+nbproject/
+#nbproject/private/
+build/
+nbbuild/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+build.xml
+nbbuild.xml
+build.xml
+build/
+manifest.mf
+nbproject/
+
 #################
 ## Eclipse
 #################

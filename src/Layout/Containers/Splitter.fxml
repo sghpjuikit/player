@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<fx:root prefHeight="-1.0" prefWidth="-1.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <SplitPane fx:id="splitPane" dividerPositions="0.5" focusTraversable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" orientation="VERTICAL" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" snapToPixel="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <items>
+        <AnchorPane fx:id="root_child1" minHeight="0.0" minWidth="0.0" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" />
+        <AnchorPane fx:id="root_child2" minHeight="0.0" minWidth="0.0" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" />
+      </items>
+<styleClass>
+<String fx:value="split-pane" />
+<String fx:value="corner" />
+</styleClass>
+    </SplitPane>
+    <AnchorPane id="controls" fx:id="controlsRoot" layoutX="14.0" layoutY="14.0" prefHeight="-1.0" prefWidth="-1.0">
+      <children>
+        <BorderPane id="controls" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" visible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<center><TilePane fx:id="controlsBox" alignment="CENTER" hgap="5.0" prefColumns="6" prefRows="6" vgap="5.0" BorderPane.alignment="CENTER">
+<children>
+                <Button mnemonicParsing="false" onMouseClicked="#close" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="✕">
+<tooltip><Tooltip text="close" />
+</tooltip></Button><Button mnemonicParsing="false" onMouseClicked="#toggleLocked" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="l">
+<tooltip><Tooltip text="Lock container" />
+</tooltip></Button><TilePane fx:id="collapseBox" orientation="VERTICAL" prefColumns="2" prefRows="2">
+<children>
+                    <Button alignment="CENTER" mnemonicParsing="false" onMouseClicked="#toggleCollapsed1" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="←" HBox.hgrow="ALWAYS">
+                      <HBox.margin>
+                        <Insets />
+                      </HBox.margin>
+                    </Button>
+                    <Button mnemonicParsing="false" onMouseClicked="#toggleCollapsed2" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="→" />
+</children></TilePane>
+                <Button mnemonicParsing="false" onMouseClicked="#toggleOrientation" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="v/h">
+<tooltip><Tooltip text="Change orientation" />
+</tooltip></Button>
+                <Button fx:id="controls" mnemonicParsing="false" onMouseClicked="#toggleAbsoluteSize" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="abs">
+<tooltip><Tooltip text="Set absolute size" />
+</tooltip></Button>
+                <Button mnemonicParsing="false" onMouseClicked="#switchChildren" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="↑↓">
+<tooltip><Tooltip text="Swap content" />
+</tooltip></Button>
+</children></TilePane>
+</center>
+        </BorderPane>
+      </children>
+    </AnchorPane>
+  </children>
+</fx:root>

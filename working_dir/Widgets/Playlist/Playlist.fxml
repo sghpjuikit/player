@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" fx:id="root" minHeight="0.0" minWidth="0.0" onMouseClicked="#selectNone" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <AnchorPane fx:id="searchPane" prefHeight="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <TextField fx:id="searchBox" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Button mnemonicParsing="false" onAction="#toggleUseFilterForPlayback" prefWidth="58.0" styleClass="header-button" text="use" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+<tooltip><Tooltip text="Use filter for playback" />
+</tooltip></Button>
+      </children>
+<padding>
+<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+</padding>
+    </AnchorPane>
+    <AnchorPane fx:id="optionPane" prefHeight="28.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+      <children>
+        <BorderPane prefHeight="28.0" prefWidth="616.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <center>
+            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" />
+          </center>
+        </BorderPane>
+        <HBox alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="95.0" spacing="7.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+          <padding>
+            <Insets left="7.0" />
+          </padding>
+<children><MenuButton minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0">
+  <items>
+    <MenuItem mnemonicParsing="false" onAction="#chooseFiles" text="Add files" />
+    <MenuItem mnemonicParsing="false" onAction="#chooseFolder" text="Add folder" /><MenuItem mnemonicParsing="false" onAction="#chooseUrl" text="Add url" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsByOne" text="Duplicate selected (1)" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsAsGroup" text="Duplicate selected (+)" />
+  </items>
+</MenuButton><MenuButton minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0">
+  <items>
+    <MenuItem mnemonicParsing="false" onAction="#removeSelectedItems" text="Remove selected" />
+    <MenuItem mnemonicParsing="false" onAction="#removeUnselectedItems" text="Remove unselected" /><MenuItem mnemonicParsing="false" onAction="#removeUnplayableItems" text="Remove unplayable" /><MenuItem mnemonicParsing="false" onAction="#removeDuplicateItems" text="Remove duplicates" /><MenuItem mnemonicParsing="false" onAction="#removeAllItems" text="Remove all" />
+  </items>
+</MenuButton><MenuButton minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0">
+  <items>
+    <MenuItem mnemonicParsing="false" onAction="#selectInverse" text="Select inverse" />
+    <MenuItem mnemonicParsing="false" onAction="#selectAll" text="Select all" /><MenuItem mnemonicParsing="false" onAction="#selectNone" text="Select none" />
+  </items>
+</MenuButton><MenuButton minHeight="20.0" minWidth="20.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0">
+  <items>
+    <MenuItem mnemonicParsing="false" onAction="#sortByTitle" text="Sort by title" />
+    <MenuItem mnemonicParsing="false" onAction="#sortByArtist" text="Sort by artist" /><MenuItem mnemonicParsing="false" onAction="#sortByName" text="Sort by name" /><MenuItem mnemonicParsing="false" onAction="#sortByLength" text="Sort by length" /><MenuItem mnemonicParsing="false" onAction="#sortByFilename" text="Sort by filename" /><MenuItem mnemonicParsing="false" onAction="#reverseOrder" text="Reverse order" /><MenuItem mnemonicParsing="false" onAction="#randomOrder" text="Random order" /><MenuItem mnemonicParsing="false" onAction="#tagEditSelected" text="Edit selected" /><MenuItem mnemonicParsing="false" onAction="#saveSelectedAsPlaylist" text="Save selected as..." /><MenuItem mnemonicParsing="false" onAction="#savePlaylist" text="Save playlist as..." />
+  </items>
+</MenuButton>
+</children>
+        </HBox>
+      </children>
+    </AnchorPane>
+    <AnchorPane fx:id="tablePane" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="28.0">
+<padding>
+<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+</padding></AnchorPane>
+  </children>
+</AnchorPane>

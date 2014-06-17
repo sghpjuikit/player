@@ -1,0 +1,276 @@
+--------------------------------------------------------------------------------
+------------------------------------ LEGEND ------------------------------------
+--------------------------------------------------------------------------------
+
+- NaP - not a problem
+
+--------------------------------------------------------------------------------
+--------------------- IMMEDIATE  - what is being worked on ---------------------
+--------------------------------------------------------------------------------
+
+- add deminimize if minimized else bring to top ability for window + shortcut   (sweet)
+- popover positioning autofix gets in the way - make it compatible, reimplement (?)
+- popover moving with app listeners - clean up on hide popup
+- popover show() methods way too much mess... - clean up, unify, 
+
+- spring
+    - wrap xstream and clean up all serialisation
+
+            @Override public T fromString(String string) {
+                return (T) string;
+            }
+
+- windows hard to drag, especially in headerless mode
+- tagger color field
+- uidrag consume event
+- rater skin change requires whole widget refresh - wtf
+- playlist selected item none->first when clicking on different widget          (wth)
+- settable img bgr
+- playlist fix menu graphics
+- figure out LoopMode - class on its own or within NextItemSelector
+- figure out LoopMode - should include Random? implement properly
+- finish the whole nextPlayingItem() thing. support with GUI
+- figure out serialisation of loopMode and random
+- mini window controls move from widget to window - add mini view to it too
+- tabview tab close button skin
+- all tabs loading bug
+- window clean up overlay Pane, contextPane etc.. move from UI to Window ->[0,0]
+- window clean up serialization
+- context menus circular labels' position off
+- widg man prefFactory per group configs -> getWidget reimplement
+- Player update item not refreshing selected pl item
+- writeException - suspend playback (phew)                                      (medium)
+- notification Text > Other unify add show(title, text, cover)
+- splitter absolute size for both children
+- context menus unify with popups                                               (?)
+- rater controls not resizing graphics
+- playback states - change, suspend, etc - perfect + cleanup
+- playlist table header button implement properly column hiding (nasty bug)
+- realTime serialize
+
+--------------------------------------------------------------------------------
+-------------------- FUNCTIONALITY - what is plannedahead, ideas ---------------
+--------------------------------------------------------------------------------
+
+- seeker break dependency on app - add metadata item content property
+  add orientation property and support with layout (chapter positions too)
+- TextFlow for smart text tables
+- gradient masks
+- CHAPTERS   TAG | XML OPTION
+- widget manager widget                                                         (?)
+- cursor effects API
+- cursor effect to popup, get rid of effectPane
+- tagger disable unsupported fields for type
+- tagger multithreaded writing to tag                                           (not needed)
+- playlist tabs
+- import/export some of the most used playlist file formats
+- extended circle context menu to allow multiple contents
+- gestures & touch
+- tagger filename change                                                        (?)
+- app taskbar flashing                                                          (still an issue ?)
+
+FURTHER DOWN THE LIST FUNCTIONALITIES
+- even more flexibly resizable widget areas
+- cover downloading widget
+- general table object - remember 'state':
+    editable/non editable                                                       // done
+    generate from POJO
+    read database records
+    sorting, filtering                                                          // done
+    header                                                                      // done
+    columns visibility - make use of manual factories?
+    columns order                                                               // done        
+    columns relative size                                                       // done
+    columns wider than table - scroll                                           // done
+- color graph of all songs
+- monitor folder content for changes (playlists, layouts, skins, widgets, ...)  (?)
+- finish metadata reading/writing flac, ogg (most are already done)
+- playback ogg, flac
+
+APP
+- tray                                                                          (use awt & swing ?)
+- OS taskbar, ... support
+- associate with supported files
+
+IMAGE VIEWER
+- show subfolder names and categorize images                                    (?)
+- add multiple sources (tag, cds, folder, 'associated') and separate
+
+GALAXY MAP
+- just about everything
+- enum like every field...
+- map type representants: x, y, z, color, label, shape, ...
+
+DIRS
+- figure out folder monitoring
+- add some fancy stuff
+- implement removing dirs
+
+--------------------------------------------------------------------------------
+------------------------ BUGS - what i dot want to hear about ------------------
+--------------------------------------------------------------------------------
+
+GENERAL
+- notification border gap inconsistent (sometimes)
+  + border gap different for each side...
+- rating not initialized visually on reload                                     (medium)
+- deselecting single items with CTRL not working sometimes                      (medium, still an issue?)
+- Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
+- little bug with position slider on repositioning                              (minor)
+- playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
+- backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
+  status: currently unsolvable, so far one of its kind
+  problem: jintellitype '\' works only for right '\' not left one (yes there are
+  two '\' keys on the keyboard).
+- shift scrolling not working anymore for tables (supposed to scroll horizontly)
+- global shortcuts sometimes still fail to register to proper keys and register (medium, investigate cases)
+  for ALT instead
+- starting playback at given previous position seeks to beginning for a while   (medium)
+- local shortcuts for complex characters (BACK_SLASH, etc) not working
+  solution: solved for some characters by manually rewriting them upon
+  shortcut registering, but thats only partial and incomplete workaround
+- css parsing errors for settings widget - cant resolve value                   (minor, NaP, doesnt break funonality)
+  cause: lazy loading of css file, possible javaFX bug
+- weird (noninvasive) exception when closing app window when notification       (minor, NaP)
+  open : "window already closed"
+
+SOLVED (with unwanted workaround)
+  (bug presents no problems but the underlying cause still deserves attention)
+- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if present       (minor)
+  workaround: custom comment reading method filters out CUSTOM fields
+  problem: carries potential risk of causing additional tagging problems
+- split container divider position doesnt load properly (vertical only).        (medium)
+  This has something to do with some other (probably orientation) property
+  overriding divider position and consequently changing the "pos" value in the
+  very container ultimately losing the original position value
+  workaround: change container "pos" value only when divider position changes as
+  a result of mouse dragging.
+  problem: performance aspect. There is possibility of infinite recursive call
+  for setting divider position. Plus the setPosition is now called multiple
+  times depending on depth within layout map possibly with O(n) or worse. This
+  is because of the recursive nature of layout map loading where children are
+  loaded before parent, causing additional resize pass for every depth iteration
+  when the parent loads. This is possibly worse than O(3^x)!
+  solution: the layout map shouldnt load recursively. This has potential to
+  get rid of major resizing bugs on layout init (like thumbnails and custom
+  layouts).
+- Item if corrupted getLocation still works! set it to empty path               (minor, technicality...)
+- getLocation causing a weird problem if item.getFile() doesnt return abs file  (NaP)
+  solution: make it return abs file...
+- widget loading defaulting widget settings                                     (minor)
+  Part of a larger (patched) problem of serializing widget properties. They must
+  be manually set on initial load. Producing this bug. Now setting fields on
+  every load-bug free so far.
+  problem: recurrent bug and code pollution. Current solution shouldnt cause 
+  recession. The code pollution is now kept to minimum and workaround is easy to
+  understand
+  better solution: look for different serialisation of the properties ?
+- popups not propagating events to owner windows instead they simply close. Or 
+  rather - the losing itself consumes the click event. Its kind of bad - window
+  dragging doesnt function properly.
+  solution: hidden 'master' window. PopOver sets it as an owner.
+  problems: there can be countless problems in the future because of this. Plus,
+  normal popup menus are still affected.
+- javafx.scene.text.Text doesnt have css style class and as such doesn allow
+  default values and skinning
+  solution: Text class extending javafx.scene.text.Text and adding custom 
+  styleclass. Use instead of the original if default behavior (skin) is expected
+
+PROBLEMS
+- widget controllers initialization && widget refresh
+  init method should be invoked only once! ?
+- fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but invasive misbehavior)
+  factory available - also instantiatingController should never return null in
+  fxmlFactory
+
+--------------------------------------------------------------------------------
+------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
+--------------------------------------------------------------------------------
+
+CLEANUP
+- get rid of ROW_HEIGHT and find out how to get row heigh dynamically, also
+  set proper padding for table rows and get away with fixedRowSize in playlist
+  table FRS doesnt solve this problem as it breaks skins
+- Thumbnail get border width param from css
+- clean ExtendedInfo widget - its completely fubar
+- Serializator and serialization code clean up
+- metadata caching playlist-selected
+- widget info
+
+API
+Layouts---------
+- BiContainer nonpure version works only as pure. Its abstract to avoid misuse
+- add parametrization and decoupling of gui-type from containers. Generics will
+  not help here unfortunately. With type erasure its looking poorly.
+- Layouter not part of Layout map. The reason is simple - if it would be, it
+  would get wrapped in widgetarea. But other than that, its proving more trouble
+  than its worth. Particularly because the Container.indexOf(Layouter) doesnt
+  work as it returns null (since its not part of the layout map). Maybe widgets
+  could have inherent property of needing Area wrapper, val for Layouter false.
+  UniContainer needs to be reworked then.
+- separate and implement Pure vs Leaf Containers better
+
+UNIFICATIONS, OVERHAULS, REDESIGN
+- unify chapters and infos into singular type of field allowing multiple values
+- playing item, metadata, ... in Playbackmanager, finish clearing Player class
+- Config - figure out apply() mechanism. and clean up Configuration class
+
+IMPROVEMENTS
+- notification type enum is useless. remove and rewrite affected areas          (technicality)
+- file format discovery. Unite Image and Audio types add category               (minor, although much needed for robustness)
+- gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
+- playlist table drag code duplication                                          (technicality, minor code pollution)
+- playlist table refresh currupted/playing row pseudoclass css code duplication (technicality, minor code pollution)
+
+PERFORMANCE
+- closing widgets not releasing memory                                          (still an issue ?)
+- onTimeAt events seem to be pretty mem hungry(4x=10MB), implement clock to     (medium)
+  cut down number of cycles (200ms should be MORE than enough)
+  edit: clock done, reimplement more effectively and clean up
+- played files leak on song change                                              (still an issue ?)
+- improve picture loading
+- images load on separate thread (possibly imageLoader class?)                  (?)
+- invisible widgets - suspend                                                   (?)
+- picker static always in memory - mem leak                                     (not an issue?)
+  problem: how to lazy load it if not as static field?
+- layout reload mem leak - investigate, weakListeners+OnClosing should help     (major)
+  analyze OnClosing resources removal for layout refresh, currently looks like
+  it is not helping as desired
+  - the culprits are: applySkin and layoutReload()
+
+--------------------------------------------------------------------------------
+--------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
+--------------------------------------------------------------------------------
+
+- when operating with playlist, the items must not be cloned or copied in a way
+  that creates new item instance. Playlist's behavior is applicable on the
+  very instances of the items it contains. Methods such as removeItems(items) or
+  isPlaying() will not work for items not contained in the playlist correctly, 
+  nor for copies or clones of items in the playlist.
+  Even two different playlist tables withing GUI, (in case they are linked to one
+  playlist) share the same playlist item object instances. Keep that in mind.
+- playlist table row height is fixed for now
+- scrollbar width should be 15px. Or table resize (and more) might break.
+- thumbnail border is expected to be 2px wide, dont change css until the
+  hardcoded part in Thumbnail class is resolved
+- instead of javafx.scene.text.Text use Text class provided by the project. It
+  is exactly the same but provides css styleclass and support for skinning.
+
+--------------------------------------------------------------------------------
+---------------------- TESTING - what nobody wants to do -----------------------
+--------------------------------------------------------------------------------
+
+- writing tag - multiple values
+- Layout loading into Container
+
+--------------------------------------------------------------------------------
+------------------ HOW TO USE TIPS - what everyone wants from me ---------------
+--------------------------------------------------------------------------------
+
+- clicking on table columns sorts ASC/DESC/ORIG, holding SHIFT to sort by
+  multiple columns
+- holding shift while scrolling will scroll horizontally (where implemented)
+- playlist table allows moving of the selected items by dragging
+- doubleclicking on window border - LEFT_B-toggle maximize, RIGHT-on/off header
+- press ALT to show window hidden header
+- press C to collapse layout containers easily

@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<AnchorPane fx:id="entireArea" prefHeight="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+  <children>
+    <ScrollPane id="ScrollPane" fitToHeight="false" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
+      <content>
+        <AnchorPane id="AnchorPane" prefWidth="-1.0">
+          <children>
+            <GridPane fx:id="grid" prefWidth="-1.0" snapToPixel="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="210.0" AnchorPane.topAnchor="0.0">
+              <children>
+                <Label text="Title" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Album" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="1">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Artist" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="2">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Album Artist" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="3">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Composer" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Publisher" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="5">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Track" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="6">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Disc" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="7">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Genre" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="8">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Category" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="9">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Year" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="10">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Rating" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="11">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Playcount" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="12">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Comment" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="13">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <Label text="Mood" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="14">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label><Label text="Custom 1" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label><Label text="Custom 2" GridPane.halignment="RIGHT" GridPane.rowIndex="17">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label><Label text="Custom 3" GridPane.halignment="RIGHT" GridPane.rowIndex="18">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label><Label text="Custom 4" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label><Label text="Custom 5" GridPane.halignment="RIGHT" GridPane.rowIndex="20">
+<GridPane.margin>
+<Insets right="10.0" />
+</GridPane.margin></Label>
+                <TextField fx:id="TitleF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="0" />
+                <TextField id="AlbumField" fx:id="AlbumF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+                <TextField fx:id="ArtistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="2" />
+                <TextField fx:id="AlbumArtistF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="3" />
+                <TextField fx:id="ComposerF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="4" />
+                <TextField fx:id="PublisherF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="5" /><GridPane GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="6" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<children>
+                <TextField fx:id="TrackF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.halignment="LEFT" />
+<Label text="/" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                <TextField fx:id="TracksTotalF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.halignment="LEFT" />
+</children>
+<columnConstraints>
+<ColumnConstraints hgrow="SOMETIMES" />
+<ColumnConstraints hgrow="SOMETIMES" maxWidth="10.0" minWidth="10.0" prefWidth="10.0" />
+<ColumnConstraints hgrow="SOMETIMES" />
+</columnConstraints>
+<rowConstraints>
+<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+</rowConstraints>
+</GridPane><GridPane GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="7" xmlns:fx="http://javafx.com/fxml">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" />
+<ColumnConstraints hgrow="SOMETIMES" maxWidth="10.0" minWidth="10.0" prefWidth="10.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+    <ColumnConstraints hgrow="SOMETIMES" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+  </rowConstraints>
+<children>
+                <TextField fx:id="DiscF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.halignment="LEFT" /><Label text="/" GridPane.columnIndex="1" GridPane.halignment="CENTER" />
+                <TextField fx:id="DiscsTotalF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="2" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" />
+</children>
+</GridPane>
+                <TextField fx:id="GenreF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="8" />
+                <TextField fx:id="CategoryF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="9" />
+                <TextField fx:id="YearF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="10" />
+                <TextField fx:id="RatingF" alignment="CENTER_RIGHT" maxWidth="1.7976931348623157E308" minWidth="0.0" prefColumnCount="0" prefWidth="50.0" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="11" /><TextField fx:id="RatingPF" alignment="CENTER_RIGHT" BorderPane.alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="11" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+                <TextField fx:id="PlaycountF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12" />
+                <TextField fx:id="CommentF" alignment="CENTER_RIGHT" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" /><AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
+<children><ColorPicker fx:id="ColorF" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
+</children></AnchorPane><TextField fx:id="Custom1F" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" /><TextField fx:id="Custom2F" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" /><TextField fx:id="Custom3F" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" /><TextField fx:id="Custom4F" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" /><TextField fx:id="Custom5F" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
+              </children>
+              <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" maxWidth="80.0" minWidth="80.0" prefWidth="80.0" />
+                <ColumnConstraints hgrow="NEVER" maxWidth="-1.0" percentWidth="30.0" />
+<ColumnConstraints hgrow="NEVER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
+              </columnConstraints>
+              <padding>
+                <Insets />
+              </padding>
+              <rowConstraints>
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+              </rowConstraints>
+            </GridPane>
+            <AnchorPane id="AnchorPane" prefHeight="137.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="230.0">
+              <children>
+                <BorderPane prefHeight="137.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <center>
+                    <TextArea fx:id="LyricsA" maxHeight="-1.0" prefHeight="-1.0" prefWidth="200.0" wrapText="true" />
+                  </center>
+                  <top>
+                    <Label text="Lyrics" BorderPane.alignment="CENTER">
+                      <BorderPane.margin>
+                        <Insets bottom="3.0" />
+                      </BorderPane.margin>
+                    </Label>
+                  </top>
+                </BorderPane>
+              </children>
+            </AnchorPane>
+            <BorderPane prefHeight="205.50006103515625" prefWidth="199.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <bottom>
+                <Label fx:id="CoverL" text="Cover value" BorderPane.alignment="CENTER">
+                  <BorderPane.margin>
+                    <Insets top="3.0" />
+                  </BorderPane.margin>
+                </Label>
+              </bottom>
+              <center>
+                <StackPane BorderPane.alignment="CENTER">
+                  <children>
+                    <Label text="No Cover" StackPane.alignment="CENTER" /><BorderPane fx:id="coverContainer" StackPane.alignment="CENTER" /><AnchorPane fx:id="img_borderContainer" mouseTransparent="true" pickOnBounds="false" StackPane.alignment="CENTER">
+<children><Rectangle fx:id="img_border" fill="#3b5a7800" height="200.0" mouseTransparent="true" stroke="BLACK" strokeType="INSIDE" strokeWidth="3.0" width="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+</children>
+<opaqueInsets>
+<Insets />
+</opaqueInsets></AnchorPane>
+                  </children>
+                </StackPane>
+              </center>
+            </BorderPane>
+          </children>
+          <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+          </padding>
+        </AnchorPane>
+      </content>
+    </ScrollPane>
+    <Button id="saveB" fx:id="SaveB" defaultButton="true" minHeight="20.0" mnemonicParsing="false" onMouseClicked="#write" prefHeight="32.0" prefWidth="545.0" text="Save" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
+    <Label fx:id="infoL" text="Summary" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="0.0" />
+    <StackPane fx:id="progressPane" blendMode="SRC_OVER" prefHeight="150.0" prefWidth="200.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <children>
+        <Circle fill="#66a3ff" opacity="0.26" radius="100.0" smooth="true" stroke="BLACK" strokeLineJoin="MITER" strokeType="INSIDE" strokeWidth="0.0" visible="true">
+          <effect>
+            <GaussianBlur radius="63.0" />
+          </effect>
+        </Circle>
+        <ProgressIndicator fx:id="progressI" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="50.0" prefWidth="50.0" progress="0.0" />
+      </children>
+    </StackPane>
+  </children>
+  <padding>
+    <Insets bottom="7.0" left="7.0" right="7.0" top="7.0" />
+  </padding>
+</AnchorPane>

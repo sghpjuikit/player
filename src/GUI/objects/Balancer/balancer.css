@@ -1,0 +1,14 @@
+/*
+    Author     : uranium
+*/
+
+.balancer > .container {
+    
+}
+
+.bgr {
+    -fx-image: url("bgr1.png");
+}
+.foregr {
+    -fx-image: url("skin1.png");
+}

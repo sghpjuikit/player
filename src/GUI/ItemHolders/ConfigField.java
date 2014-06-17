@@ -5,11 +5,14 @@ import Configuration.Action;
 import Configuration.Config;
 import Configuration.StringEnum;
 import GUI.GUI;
-import GUI.objects.ItemTextFields.DirTextField;
-import GUI.objects.ItemTextFields.FontTextField;
+import GUI.ItemHolders.ItemTextFields.DirTextField;
+import GUI.ItemHolders.ItemTextFields.FontTextField;
 import java.io.File;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
@@ -19,8 +22,11 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
+import static javafx.scene.input.KeyCode.BACK_SPACE;
+import static javafx.scene.input.KeyCode.DELETE;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -65,7 +71,7 @@ abstract public class ConfigField<T extends Object> {
     }
     
     /**@return setter control for this field*/
-    abstract public Control getControl();
+    abstract public Node getControl();
     
 /******************************************************************************/
     
@@ -78,7 +84,7 @@ abstract public class ConfigField<T extends Object> {
         if (!f.visible) return null;
         
         String name = f.name;
-        Class<?> type = f.getType();
+        Class<?> type = f.type;
         Object value = f.value;
         
         ConfigField cf;
@@ -92,7 +98,7 @@ abstract public class ConfigField<T extends Object> {
             cf = new EnumField(name, value);}
         else
         if (type.equals(Action.class))
-            cf = new ShortcutField(name, (String)value);
+            cf = new ShortcutField(name, (Action)value);
         else
         if (type.equals(Color.class))
             cf = new ColorField(name, (Color)value);
@@ -114,9 +120,8 @@ abstract public class ConfigField<T extends Object> {
         
         cf.setName(f.gui_name);
         cf.getLabel().setTooltip(new Tooltip(f.info));
-        cf.getControl().setTooltip(new Tooltip(f.info));
+        Tooltip.install(cf.getControl(), new Tooltip(f.info));
         cf.getControl().setDisable(!f.editable);
-
         
         return cf;
     }
@@ -276,47 +281,58 @@ abstract public class ConfigField<T extends Object> {
         }
     }
     
-    private static class ShortcutField extends ConfigField<String> {
+    private static class ShortcutField extends ConfigField<Action> {
         TextField control;
+        CheckBox global;
+        HBox group;
         Class<?> type;
         String t="";
         
-        private ShortcutField(String name, String value) {
+        private ShortcutField(String name, Action value) {
             super(name,value);
             
             control = new TextField();
-            control.setPromptText(super.old);
-            control.setOnKeyReleased((KeyEvent e) -> {
-                if (e.getCode().equals(KeyCode.BACK_SPACE) || e.getCode().equals(KeyCode.DELETE)) {
+            control.setPromptText(super.old.getKeys());
+            control.setOnKeyReleased( e -> {
+                KeyCode c = e.getCode();
+                // handle substraction
+                if (c==BACK_SPACE || c==DELETE) {
                     control.setPromptText("");
-                    if (!control.getText().isEmpty()) control.setPromptText(super.old);
+                    if (!control.getText().isEmpty()) control.setPromptText(super.old.getKeys());
                     
-                    if (t.isEmpty()) {
-                        return;
+                    
+                    if (t.isEmpty()) {  // set back to empty
+                        control.setPromptText(super.old.getKeys());
+                    } else {            // substract one key
+                        if (t.indexOf('+') == -1) t="";
+                        else t=t.substring(0,t.lastIndexOf('+'));
+                        control.setText(t);
                     }
-                    if (t.indexOf('+') == -1) t="";
-                    else t=t.substring(0,t.lastIndexOf('+'));
+                // handle addition
+                } else {
+                    t += t.isEmpty() ? c.getName() : "+" + c.getName();
                     control.setText(t);
-                    return;
                 }
-                if(t.isEmpty()) t += e.getCode().getName();
-                else t += "+"+e.getText();
-                control.setText(t);
             });
             control.setEditable(false);
+            control.setTooltip(new Tooltip(value.info));
+            
+            global = new CheckBox();
+            global.setSelected(value.isGlobal());
+            global.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
+            group = new HBox(global,control);
+            group.setAlignment(CENTER_LEFT);
+            group.setPadding(Insets.EMPTY);
         }
         @Override public String getValue() {
-            return t;
+            if(control.getText().isEmpty()) return global.isSelected()+","+control.getPromptText();
+            return global.isSelected() + "," + control.getText();
         }
-        @Override public Control getControl() {
-            return control;
+        @Override public Node getControl() {
+            return group;
         }
         @Override public boolean hasValue() {
-            if (control.getPromptText().isEmpty())
-                return !control.getText().equals(super.old);
-            else
-                return !control.getText().isEmpty() && 
-                       !control.getText().equals(super.old);
+            return !getValue().equals(super.old.toString());
         }
     }
     

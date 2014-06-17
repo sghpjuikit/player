@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>cebb1b94-ad87-4e9f-85bc-e78713206a1d</id>
+  <id>b223206a-e59d-4470-bf1c-33114d48e047</id>
   <properties>
     <map>
       <entry>
@@ -14,8 +14,8 @@
   </properties>
   <b>false</b>
   <child class="Layout.Widgets.EmptyWidget">
-    <id>a697996a-2b26-4cdc-a5d4-68f1ad4aaec1</id>
+    <id>0fe300fb-08ac-4a6c-b988-7277a936c92f</id>
     <name></name>
-    <configs/>
+    <configs class="empty-list"/>
   </child>
 </Layout.Layout>

@@ -13,6 +13,7 @@ import PseudoObjects.TODO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -36,6 +37,8 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
@@ -161,7 +164,7 @@ public final class PlaylistTable {
         });
         rowFactory = p_table -> {
             TableRow<PlaylistItem> row = new TableRow<PlaylistItem>() {
-                @Override
+                @Override 
                 protected void updateItem(PlaylistItem item, boolean empty) {
                     super.updateItem(item, empty);
                     if (!empty) {
@@ -184,31 +187,54 @@ public final class PlaylistTable {
                                     c->c.pseudoClassStateChanged(corruptRowCSS, false));
                     }
                 }
+                // this method is workaround for initialisation bug where the
+                // pseudoclasses dont initialize properly
+                // it should be handled better but this is good enough for now
+                @Override protected void layoutChildren() {
+                    super.layoutChildren();
+                    if(getItem()!=null){
+                        if (PlaylistManager.isItemPlaying(getItem()))
+                            getChildrenUnmodifiable().forEach(
+                                    c->c.pseudoClassStateChanged(playingRowCSS, true));
+                        else 
+                            getChildrenUnmodifiable().forEach(
+                                    c->c.pseudoClassStateChanged(playingRowCSS, false));
+
+                        if (getItem().markedAsCorrupted())
+                             getChildrenUnmodifiable().forEach(
+                                     c->c.pseudoClassStateChanged(corruptRowCSS, true));
+                        else 
+                            getChildrenUnmodifiable().forEach(
+                                    c->c.pseudoClassStateChanged(corruptRowCSS, false));
+                    }
+                }
             };
+            
             
             // remember index of row that was clicked on
             row.setOnMousePressed( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return;
+//            if (e.getButton()!=PRIMARY) return;
                 // remember position for moving selected rows on mouse drag
                 last = e.getScreenY();
             
                 if (row.getItem() == null)
-                    selectNone();
+//                    selectNone();
+                    clicked_row = -1;
                 else
                     clicked_row = row.getIndex();
             });
             // clear table selection on mouse released if no item
             row.setOnMouseReleased( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return;
+//            if (e.getButton()!=PRIMARY) return;
                 if (row.getItem() == null)
                     selectNone();
             });
             
             // handle drag from
             row.setOnDragDetected( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return;
+            if (e.getButton()!=PRIMARY) return;
                 if(row.isEmpty()) return;
-                if (e.isControlDown() && e.getButton() == MouseButton.PRIMARY) {
+                if (e.isControlDown() && e.getButton() == PRIMARY) {
                     Dragboard db = table.startDragAndDrop(TransferMode.ANY);
                     DragUtil.setContent(db, new Playlist(getSelectedItems()));
                     e.consume();
@@ -247,13 +273,13 @@ public final class PlaylistTable {
             // handle click
             row.setOnMouseClicked( e -> {
                 if(row.isEmpty()) return;
-                if (e.getButton() ==  MouseButton.PRIMARY) {    // play item on doubleclick
+                if (e.getButton() ==  PRIMARY) {    // play item on doubleclick
                     if (e.getClickCount() == 2) {
                         PlaylistManager.playItem(row.getItem());
                     }
                     e.consume();            
                 } else
-                if (e.getButton() == MouseButton.SECONDARY) {  // show contextmenu
+                if (e.getButton() == SECONDARY) {  // show contextmenu
                     if (!PlaylistManager.isEmpty())
                         ContextManager.showMenu(ContextManager.playlistMenu, getSelectedItems());
                 }
@@ -433,6 +459,15 @@ public final class PlaylistTable {
         PlaylistManager.playingItemProperty().addListener(playingListener); // set listener
         playingListener.invalidated(PlaylistManager.playingItemProperty()); // init value
         
+//        table.setSortPolicy( t -> {
+//            SortedList itemsList = (SortedList) t.getItems();
+//            FXCollections.sort(itemsList, itemsS.getComparator());
+//            return true;
+//        });
+//        columnIndex.s
+        
+        refresh();
+        
     }
     
     public TableView<PlaylistItem> getTable() {
@@ -569,6 +604,7 @@ public final class PlaylistTable {
         }
         table.setItems(itemsS);
         itemsS.comparatorProperty().bind(table.comparatorProperty());
+        refresh();
     }
     
     /** @return list of items of this table. Supports filtering. */
@@ -595,26 +631,61 @@ public final class PlaylistTable {
     }
     
     public void sortByName() {
-        itemsS.setComparator(PlaylistItem.getComparatorName());
+//        itemsS.comparatorProperty().unbind();
+//        table.setItems(FXCollections.emptyObservableList());
+//        
+//        itemsS.setComparator(PlaylistItem.getComparatorName());
+////        FXCollections.sort(itemsS, PlaylistItem.getComparatorName());
+//        itemsS.sort(PlaylistItem.getComparatorName());
+//        
+//        table.setItems(itemsS);
+//        itemsS.comparatorProperty().bind(table.comparatorProperty());
+        columnName.setComparator(new Comparator<String>() {
+
+            @Override
+            public int compare(String o1, String o2) {
+                return PlaylistItem.getComparatorArtist().compare(new PlaylistItem(null, o1, last), new PlaylistItem(null, o2, last));
+            }
+        });
+        columnName.setSortType(TableColumn.SortType.ASCENDING);
+        table.sort();
+        
+//        FXCollections.sort(itemsF, PlaylistItem.getComparatorName());
     }
-    public void sortByLength() {
-        itemsS.setComparator(PlaylistItem.getComparatorTime());
+    public void sortByLength() {        
+//        itemsS.comparatorProperty().unbind();
+//        itemsS.setComparator(PlaylistItem.getComparatorTime());
+//        itemsS.comparatorProperty().bind(table.comparatorProperty());
+        
+//        FXCollections.sort(itemsS, PlaylistItem.getComparatorTime());
     }
     public void sortByLocation() {
+//        itemsS.comparatorProperty().unbind();
         itemsS.setComparator(PlaylistItem.getComparatorURI());
+//        itemsS.comparatorProperty().bind(table.comparatorProperty());
+        
+//        FXCollections.sort(itemsS, PlaylistItem.getComparatorURI());
     }
     public void sortByArtist() {
+//        itemsS.comparatorProperty().unbind();
         itemsS.setComparator(PlaylistItem.getComparatorArtist());
+//        itemsS.comparatorProperty().bind(table.comparatorProperty());
+        
+//        FXCollections.sort(itemsS, PlaylistItem.getComparatorArtist());
     }
     public void sortByTitle() {
+//        itemsS.comparatorProperty().unbind();
         itemsS.setComparator(PlaylistItem.getComparatorTitle());
+//        itemsS.comparatorProperty().bind(table.comparatorProperty());
+//        
+//        FXCollections.sort(((SortableList<PlaylistItem>)table.getItems()), PlaylistItem.getComparatorTitle());
     }
     
 /********************************** SELECTION *********************************/
     
     private boolean movingitems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,oldV,newV)->{
-        if(movingitems) return;
+        if(movingitems) return; 
         PlaylistManager.selectedItemProperty().set(newV);
     };
     ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {

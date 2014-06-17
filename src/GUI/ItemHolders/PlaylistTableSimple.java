@@ -4,6 +4,7 @@
  */
 package GUI.ItemHolders;
 
+import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
@@ -25,7 +26,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import utilities.TableUtil;
 
 /**
  * @author uranium
@@ -35,7 +35,7 @@ import utilities.TableUtil;
  * the Playlist object. 
  */
 public class PlaylistTableSimple extends AnchorPane {
-    Playlist playlist;
+    NamedPlaylist playlist;
     TableView<PlaylistItem> table;
     
     public PlaylistTableSimple() {
@@ -153,7 +153,7 @@ public class PlaylistTableSimple extends AnchorPane {
                 List<Integer> items = table.getSelectionModel().getSelectedIndices();
                 playlist.removeItem(items);
                 table.getItems().clear();
-                table.getItems().addAll(playlist.list());
+                table.getItems().addAll(playlist.getItems());
                 table.getSelectionModel().clearSelection();
             }
         });
@@ -171,9 +171,9 @@ public class PlaylistTableSimple extends AnchorPane {
      * Binds the Playlist object as the underlaying data structure for this table.
      * @param _playlist 
      */
-    public void setPlaylist(Playlist _playlist) {
+    public void setPlaylist(NamedPlaylist _playlist) {
         playlist = _playlist;
-        table.getItems().setAll(_playlist.list());
+        table.getItems().setAll(_playlist.getItems());
     }
     
     private void refreshTable() {

@@ -6,7 +6,6 @@ import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javafx.scene.Node;
@@ -44,18 +43,23 @@ import utilities.Log;
  * @author uranium
  */
 public abstract class Widget<C extends Controller> extends Component implements Configurable {
+    
     /** Name of the widget. Permanent */
     public final String name;
+    
     @XStreamOmitField
     C controller;
     
     @XStreamOmitField
     @IsConfig(name = "Is preferred", info = "Preffered widget for its widget type.")
     public boolean preferred = false;
-    public final List<Config> configs = new ArrayList<>(); // tmp
+    
+    // list of properties of the widget to provide serialisation support since
+    // controller doesnt serialise - this is unwanted and should be handled better
+    public List<Config> configs;
+    
     
     /**
-     * 
      * @param {@link Widget#name}
      */
     public Widget(String name) {
@@ -71,17 +75,16 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public abstract Node load();
     
     /**
-     * Returns controller of the widget. After the controller has been correctly
-     * cast into its type, it provides all public methods of the widget, to allow
-     * external control of widget's behavior.
+     * Returns controller of the widget. It provides access to public behavior
+     * of the widget.
      * The controller is instantiated when widget loads. The controller should
-     * not be called before that happens and exception will be thrown if in such
+     * not be called before that happens and exception will be thrown in such
      * case.
      * @return controller of the widget, never null
      * @throws NullPointerException if controller not yet instantiated
      */
     public C getController() {
-        Objects.requireNonNull(controller, "Widget doesnt have a controller before it loads.");
+        Objects.requireNonNull(controller, "Illegal call. Widget doesnt have a controller before it loads.");
         return controller;
     }
     
@@ -140,8 +143,21 @@ public abstract class Widget<C extends Controller> extends Component implements 
         boolean set = Configurable.super.setField(name, value) ||
                       getController().setField(name, value);
         if (!set)
-            Log.mess("Configuration value couldnt be set for field: " + name + " .");
+            Log.mess("Configuration value couldnt be set for field: " + name + " .!");
         return set;
+    }
+    
+    // the following two methods help with serialising the widget settings
+    protected void rememberConfigs() {
+        if(controller != null) configs = getFields();
+    }
+    protected void restoreConfigs() {
+        if(configs != null) {
+            configs.forEach((Config c) -> { // dont shorten this it causes some errors
+                setField(c.name, c.value);
+            });
+            configs = null;
+        }
     }
 
     /** @return name of the widget */

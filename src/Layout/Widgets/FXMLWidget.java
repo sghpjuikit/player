@@ -4,10 +4,8 @@
  */
 package Layout.Widgets;
 
-import Configuration.Config;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import utilities.Log;
@@ -16,54 +14,46 @@ import utilities.Log;
  * Generic widget based on .fxml file. 
  * <p>
  * This class wraps any desired .fxml file denoted by its location into widget
- * so it can be recognized by application as a component for layout.
+ * so it can be recognized by the application as a component for layout.
  * <p>
  * Widget is loaded dynamically from its location. It adopts the standard fxml +
- * controller pattern. The controller object must however implement {@link Controller}
- * interface.
+ * controller pattern. The controller object must however in addition implement 
+ * {@link FXMLController} interface.
  * More on the creation process of this widget: {@link FXMLWidgetFactory}
  * <p>
  * @author uranium
  */
 public final class FXMLWidget extends Widget<FXMLController> {
-    /** 
-     * URL pointing towards .fxml file of this widget. Also plays role in
-     * serialization as it is determines the type of widget.
-     */
-    private final URL url;
     
-    /**
-     * @param name of the widget. Permanent.
-     * @param aResource {@see #url}
-     */
-    FXMLWidget(String name, URL aResource) {
+    FXMLWidget(String name) {
         super(name);
-        url = aResource;
     }
 
     @Override
     public Node load() {
         try {
-            controller = (FXMLController) getFactory().instantiateController();
-            controller.setWidget(this);
+            // get controller instance
+            // avoid recreating if exists           ! causes serious problem when init() is called 2nd time
+            if(controller==null) { 
+                controller = getFactory().instantiateController();
+                controller.setWidget(this);
+            }
+//             else
+//                rememberConfigs(); // unneeded as the instance of the controller persists session
             
             FXMLLoader loader = new FXMLLoader();
-                       loader.setLocation(url);
+                       loader.setLocation(getFactory().url);
                        loader.setController(controller);
-            
+                       
             Node node = (Node) loader.load();
-
-            // apply settings
-            configs.forEach((Config c) -> { // dont shorten this it causes some errors
-                setField(c.name, c.value);
-            });
-            configs.clear();
+            controller.init();
+            restoreConfigs();
             
             controller.refresh();
             return node;
         } catch (IOException ex) {ex.printStackTrace();
             Log.mess("Widget " + name + " failed to load. " + ex.getMessage() );
-            return null;
+            return Widget.EMPTY().load();
         }
     }
 
@@ -74,7 +64,7 @@ public final class FXMLWidget extends Widget<FXMLController> {
     
     /** Returns location of the widget's parent directory. Never null. */
     public File getLocation() {
-        return new File(url.getFile()).getParentFile();
+        return new File(getFactory().url.getFile()).getParentFile();
     }
 
 }

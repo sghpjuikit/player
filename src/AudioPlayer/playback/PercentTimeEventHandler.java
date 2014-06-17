@@ -5,9 +5,9 @@
  */
 package AudioPlayer.playback;
 
-import utilities.functional.functor.Procedure;
 import javafx.util.Duration;
 import utilities.Log;
+import utilities.functional.functor.Procedure;
 
 /**
  * 
@@ -28,7 +28,7 @@ public class PercentTimeEventHandler {
         private Duration timeMin;
         private Duration timeMax;        
         
-        PercentTimeEventHandler(double p, Procedure b) {
+        public PercentTimeEventHandler(double p, Procedure b) {
             parent = PLAYBACK.realTimeProperty();
             percent = p;
             percMin = 0;

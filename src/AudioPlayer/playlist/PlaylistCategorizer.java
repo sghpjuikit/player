@@ -1,8 +1,6 @@
 
 package AudioPlayer.playlist;
 
-import Configuration.ConfigManager;
-import Configuration.Configuration;
 import PseudoObjects.Category;
 import java.io.File;
 import java.util.ArrayList;
@@ -16,12 +14,12 @@ import utilities.Log;
  * @author uranium
  */
 public class PlaylistCategorizer {
-    private static final List<Playlist> playlists = new ArrayList<>();
+    private static final List<NamedPlaylist> playlists = new ArrayList<>();
     private static List<Category> categories;
     private static List<Category> paths;
     
     public static Playlist getPlaylist(String name) {
-        for (Playlist p : playlists) {
+        for (NamedPlaylist p : playlists) {
             if (p.getName().equals(name)) {
                 return p;
             }
@@ -36,7 +34,7 @@ public class PlaylistCategorizer {
      * right after the findPlaylists() method call.
      * @return 
      */
-    public static List<Playlist> getPlaylists() {
+    public static List<NamedPlaylist> getPlaylists() {
         return playlists;
     }
 
@@ -47,14 +45,14 @@ public class PlaylistCategorizer {
      * @param category
      * @return 
      */
-    public static List<Playlist> getPlaylists(Category category) {
-        List<Playlist> out = new ArrayList<>();
+    public static List<NamedPlaylist> getPlaylists(Category category) {
+        List<NamedPlaylist> out = new ArrayList<>();
         if (playlists == null || playlists.isEmpty()) {
             return out;
         }
 
         if (category == null) {
-            for (Playlist p : playlists) {
+            for (NamedPlaylist p : playlists) {
                 if (p.getCategories().isEmpty()) {
                     out.add(p);
                 }
@@ -74,7 +72,7 @@ public class PlaylistCategorizer {
      */
     private static void findPlaylists() {
         Log.mess("Attempting to load playlists...");
-        File dir = new File(App.PLAYLIST_FOLDER());
+        File dir = App.PLAYLIST_FOLDER();
         if (FileUtil.isValidatedDirectory(dir)) {
             Log.err("Loading playlists failed.");
             return;
@@ -88,7 +86,7 @@ public class PlaylistCategorizer {
         }
         playlists.clear();
         for (File f : files) {
-            Playlist p = Playlist.deserialize(f);
+            NamedPlaylist p = NamedPlaylist.deserialize(f);
             if (p != null) {
                 playlists.add(p);
                 Log.mess("Playlist " + p.getName() + " loaded.");
@@ -130,7 +128,7 @@ public class PlaylistCategorizer {
         Log.mess("Loading playlist categories.");
 
         categories.clear();
-        for (Playlist p : playlists) {
+        for (NamedPlaylist p : playlists) {
             for (String categoryName : p.getCategories()) {
                 if (!categoryExist(categoryName)) {
                     categories.add(new Category(categoryName));

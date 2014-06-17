@@ -2,16 +2,18 @@
 package GUI.objects.Pickers;
 
 import AudioPlayer.tagging.Metadata;
-import Configuration.ConfigManager;
-import Configuration.Configuration;
-import GUI.WindowBase;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import GUI.Window;
+import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
+import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
+import static GUI.objects.Pickers.Notification.NotificationType.SONG;
+import static GUI.objects.Pickers.Notification.NotificationType.TEXT;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.ScreenCentricPos;
 import GUI.objects.Thumbnail;
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
-import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -21,20 +23,44 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
 import main.App;
+import utilities.FxTimer;
 import utilities.Log;
 
 /**
  *
  * @author uranium
  */
+@IsConfigurable(group = "Notification")
 public class Notification {
-    private final PopOver THIS = new PopOver();
-    // content
-    private final AnchorPane songNotif = new AnchorPane();
-    private final AnchorPane textNotif = new AnchorPane();
-    private Timer closer;
-    Thumbnail t;
     
+    @IsConfig(info = "show notifications")
+    public static boolean showNotification = true;
+    @IsConfig(info = "show notifications about playback status")
+    public static boolean showStatusNotification = true;
+    @IsConfig(info = "show notifications about playing item")
+    public static boolean showSongNotification = true;
+    @IsConfig(info = "time for notification to autohide")
+    public static double notificationDuration = 2500;
+    @IsConfig(info = "Fade in/out notifications")
+    public static boolean notificationAnimated = true;
+    @IsConfig(info = "Fade in/out time for notification")
+    public static double notifFadeTime = 500;
+    @IsConfig(info = "Closes notification when clicked anywhere.")
+    public static boolean notifCloseOnClickAny = true;
+    @IsConfig(info = "Closes notification when clicked on it.")
+    public static boolean notifCloseOnClick = true;
+    @IsConfig(info = "Deminimize application on notification click when minimized.")
+    public static boolean notifclickOpenApp = true;
+    @IsConfig(info = "Position of notification.")
+    public static ScreenCentricPos notifPos = ScreenCentricPos.ScreenBottomRight;
+    
+    private final PopOver root = new PopOver();             // popup
+    private final AnchorPane songNotif = new AnchorPane();  // song content
+    private final AnchorPane textNotif = new AnchorPane();  // txet content
+    private final FxTimer closer = FxTimer.create(          // close delay timer
+                            Duration.millis(notificationDuration), this::hide);
+    // content 
+    Thumbnail t;
     @FXML private Label indexL;
     @FXML private Label songL;
     @FXML private Label artistL;
@@ -45,15 +71,26 @@ public class Notification {
     @FXML private BorderPane textContainer;
     @FXML private Label titleText;
     
+    private final EventHandler onClickHandler = e-> {
+        Window w = App.getWindow();
+        // if app minimized deminimize
+        if (notifclickOpenApp) {
+             if(w.isMinimized()) w.setMinimized(false);
+             else w.focus();
+        }
+        // close notification if set
+        if (notifCloseOnClick) hide();
+    };
+    
     public Notification() {
-        THIS.setDetachedTitle("");
-        THIS.setDetached(false);
-        THIS.setDetachable(false);
-        THIS.setHideOnEscape(false);
-        THIS.setArrowSize(0);
-        THIS.setArrowIndent(0);
-        THIS.setCornerRadius(0);
-        THIS.setAutoFix(false);
+        root.setDetachedTitle("");
+        root.setDetached(false);
+        root.setDetachable(false);
+        root.setHideOnEscape(false);
+        root.setArrowSize(0);
+        root.setArrowIndent(0);
+        root.setCornerRadius(0);
+        root.setAutoFix(false);
         
         buildContent();
     }
@@ -67,14 +104,8 @@ public class Notification {
             fxmlLoader.load();
             
             // close on click
-            songNotif.setOnMouseClicked( e -> {
-                WindowBase w = App.getInstance().getWindow();
-                if (Configuration.notifclickOpenApp && w.isMinimized())
-                        w.setMinimized(false);
-                else
-                    if (Configuration.notifCloseOnClick)
-                        hide();
-            });
+            songNotif.setOnMouseClicked(onClickHandler);
+            
         } catch (IOException ex) {
             Log.err("Notifier source data coudlnt be read.");
         }
@@ -87,14 +118,7 @@ public class Notification {
             fxmlLoader.load();
             
             // close on click
-            textNotif.setOnMouseClicked( e-> {
-                WindowBase w = App.getInstance().getWindow();
-                if (Configuration.notifclickOpenApp && w.isMinimized())
-                        w.setMinimized(false);
-                else
-                    if (Configuration.notifCloseOnClick)
-                        hide();
-            });
+            textNotif.setOnMouseClicked(onClickHandler);
         } catch (IOException ex) {
             Log.err("Notifier source data coudlnt be read.");
         }
@@ -104,25 +128,24 @@ public class Notification {
     }
     
     public void show(ScreenCentricPos pos) {
-        THIS.setAutoHide(Configuration.notifCloseOnClickAny);
-        THIS.setAnimated(Configuration.notificationAnimated);
-        THIS.setAnimDuration(Duration.millis(Configuration.notifFadeTime));
-        
-        THIS.show(pos);
-        
-        if (closer != null) closer.cancel();
-        closer = new Timer(true);
-        closer.schedule( new TimerTask() {
-            @Override public void run() {
-                Platform.runLater(() -> hide() );
-            }
-        }, (long) Configuration.notificationDuration);
+        // set properties
+        root.setAutoHide(notifCloseOnClickAny);
+        root.setAnimated(notificationAnimated);
+        root.setAnimDuration(Duration.millis(notifFadeTime));
+        // show
+        root.show(pos);
+        // start delayed hide
+        if (closer != null) closer.stop();
+        closer.restart(Duration.millis(notificationDuration));
     }
 
     public void hide() {
-        closer.cancel();
-        THIS.setAnimDuration(Duration.millis(Configuration.notificationDuration));
-        THIS.hide();
+        // set properties
+        root.setAutoHide(notifCloseOnClickAny);
+        root.setAnimated(notificationAnimated);
+        root.setAnimDuration(Duration.millis(notifFadeTime));
+        // hide
+        root.hide();
     }
     
     /**
@@ -141,7 +164,7 @@ public class Notification {
     public void setContent(Object content, String title, NotificationType type) {
         typeL.setText(title);
         
-        if (type == NotificationType.Song || type == NotificationType.Playback) {
+        if (type == SONG || type == PLAYBACK_STATUS) {
             
             Metadata m = (Metadata)content;
             if (m == null) { // prevent displaying previous info
@@ -157,12 +180,12 @@ public class Notification {
                 artistL.setText(m.getArtistOrAlbumArist());
                 albumL.setText(m.getAlbum());
             }
-            THIS.setContentNode(songNotif);
+            root.setContentNode(songNotif);
         } else
-        if (type == NotificationType.Other) {
-            THIS.setContentNode((Node)content);
+        if (type == OTHER) {
+            root.setContentNode((Node)content);
         } else
-        if (type == NotificationType.Text) {
+        if (type == TEXT) {
 //            BorderPane c = new BorderPane();
 //                       c.setPadding(new Insets(10));
 //                       c.setCenter(new Text((String)content));
@@ -172,16 +195,16 @@ public class Notification {
                   txt.setWrapText(true);
 //            textContainer.setCenter(new Text((String)content));
             textContainer.setCenter(txt);
-            THIS.setContentNode(textNotif);
+            root.setContentNode(textNotif);
         }
     }
     
 
     
     public enum NotificationType {
-        Playback,
-        Song,
-        Text,
-        Other;
+        PLAYBACK_STATUS,
+        SONG,
+        TEXT,
+        OTHER;
     }
 }

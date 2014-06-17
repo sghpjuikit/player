@@ -1,6 +1,7 @@
 
 package AudioPlayer.tagging;
 
+import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Configuration;
@@ -39,9 +40,14 @@ import utilities.Util;
  * Everything that is possible to know about the audio file is virtually grouped
  * in this class. Virtually, because not everything accessible through this
  * object is in the tag.
- * 
+ * <p>
  * The class is immutable.
- * 
+ * <p>
+ * Metadata can be empty. All string fields will be empty and object fields
+ * null. The {@link #getFile()}, {@link #getURI()} and {@link #getPath()} of the
+ * item will not point to any existing file.
+ * Empty metadata should always be used instead of null value. See {@link #EMPTY()}
+ * and {@link #isEmpty()}.
  * ------------- NON TAG INFO ---------------
  * Non-tag information possible to gain from metadata object includes:
  * -- Cover --
@@ -93,6 +99,7 @@ import utilities.Util;
 @Immutable
 public final class Metadata extends MetaItem {
     private final File file;
+    private final boolean empty;
     
     // header fields
     private String format = "";
@@ -134,25 +141,31 @@ public final class Metadata extends MetaItem {
     /** 
      * Creates empty metadata. All string fields will be empty and object fields
      * null. The File, URI and path of the item will not point to any existing file.
-     * Use in situation where null is not applicable. 
+     * Empty metadata should always be used instead of null value.
      */
     public static Metadata EMPTY() {
         return new Metadata();
     }
+    
     /**
-     * Creates metadata from specified item and sets artist, length and title
-     * fields, leaving everything else empty.
+     * Creates metadata from specified item. Attempts to fill as many metadata 
+     * information fields from the item as possible, leaving everything else empty.
+     * For example, if the item is playlist item, sets artist, length and title fields.
      */
-    public Metadata(PlaylistItem item) {
-        file = item.getFile();
-        
-        artist = item.getArtist();
-        length = item.getTime().toMillis();
-        title = item.getTitle();
+    public Metadata(Item item) {
+        file = item.isFileBased() ? item.getFile() : new File("");
+        empty = false;
+        if(item instanceof PlaylistItem) {
+            PlaylistItem pitem = (PlaylistItem)item;
+            artist = pitem.getArtist();
+            length = pitem.getTime().toMillis();
+            title = pitem.getTitle();
+        }
     }
     
     private Metadata() {
         file = new File("");
+        empty = true;
     }
     
     /**
@@ -162,7 +175,8 @@ public final class Metadata extends MetaItem {
      * 
      */
     Metadata(AudioFile audiofile) {
-        file = audiofile.getFile();
+        file = audiofile.getFile().getAbsoluteFile();
+        empty = false;
         AudioFile audioFile = audiofile;
         
         loadGeneralFields(audioFile);
@@ -240,7 +254,7 @@ public final class Metadata extends MetaItem {
         // get index of comment within all comment-type tags
         for(TagField t: fields) // custom
             if (!t.toString().contains("Description"))
-                i = fields.indexOf(t);System.out.println(i);
+                i = fields.indexOf(t);
         if(i>-1) return tag.getValue(FieldKey.COMMENT, i);
         else return "";
     }
@@ -301,12 +315,19 @@ public final class Metadata extends MetaItem {
 /******************************************************************************/  
     
     @Override public File getFile() {
-        return file;
+        return file.getAbsoluteFile(); // the abs file call should be unnecessary but just in case
     }
     
     @Override public URI getURI() {
         return file.toURI();
-    }    
+    }
+    
+    /** 
+     * Empty metadata should always be used instead of null value.
+     * @return true if this metadata is empty.*/
+    public boolean isEmpty() {
+        return empty;
+    }
     
     /**
      * For example: mp3.
@@ -620,7 +641,7 @@ public final class Metadata extends MetaItem {
      * @return 
      */
     public File getCoverFromDirAsFile() {
-        File dir = getLocation();
+        File dir = getFile().getParentFile();
         if (!FileUtil.isValidDirectory(dir)) return null;
         
         File[] files;
@@ -851,8 +872,5 @@ public final class Metadata extends MetaItem {
         
         return output;
     }
-    
-    
-    
 
 }

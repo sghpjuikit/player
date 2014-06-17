@@ -17,32 +17,35 @@
 <String fx:value="corner" />
 </styleClass>
     </SplitPane>
-    <AnchorPane id="controls" fx:id="controlsPane" layoutX="14.0" layoutY="14.0" prefHeight="-1.0" prefWidth="-1.0">
+    <AnchorPane id="controls" fx:id="controlsRoot" layoutX="14.0" layoutY="14.0" prefHeight="-1.0" prefWidth="-1.0">
       <children>
         <BorderPane id="controls" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" visible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-          <center>
-            <VBox alignment="CENTER" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" spacing="7.0" BorderPane.alignment="CENTER">
-              <children>
-                <Button mnemonicParsing="false" onMouseClicked="#close" styleClass="header-button" text="x" />
-                <HBox alignment="CENTER" fillHeight="true" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" spacing="7.0" VBox.vgrow="ALWAYS">
-                  <children>
-                    <Button alignment="CENTER" mnemonicParsing="false" onMouseClicked="#toggleCollapsed1" styleClass="header-button" text="&lt;" HBox.hgrow="ALWAYS">
+<center><TilePane fx:id="controlsBox" alignment="CENTER" hgap="5.0" prefColumns="6" prefRows="6" vgap="5.0" BorderPane.alignment="CENTER">
+<children>
+                <Button mnemonicParsing="false" onMouseClicked="#close" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="✕">
+<tooltip><Tooltip text="close" />
+</tooltip></Button><Button mnemonicParsing="false" onMouseClicked="#toggleLocked" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="l">
+<tooltip><Tooltip text="Lock container" />
+</tooltip></Button><TilePane fx:id="collapseBox" orientation="VERTICAL" prefColumns="2" prefRows="2">
+<children>
+                    <Button alignment="CENTER" mnemonicParsing="false" onMouseClicked="#toggleCollapsed1" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="←" HBox.hgrow="ALWAYS">
                       <HBox.margin>
                         <Insets />
                       </HBox.margin>
                     </Button>
-                    <Button mnemonicParsing="false" onMouseClicked="#toggleCollapsed2" styleClass="header-button" text="&gt;" />
-                  </children>
-                  <padding>
-                    <Insets />
-                  </padding>
-                </HBox>
-                <Button mnemonicParsing="false" onMouseClicked="#toggleOrientation" styleClass="header-button" text="V/H" />
-                <Button mnemonicParsing="false" onMouseClicked="#toggleLock" styleClass="header-button" text="lock" />
-                <Button mnemonicParsing="false" onMouseClicked="#switchChildren" styleClass="header-button" text="&lt;-&gt;" />
-              </children>
-            </VBox>
-          </center>
+                    <Button mnemonicParsing="false" onMouseClicked="#toggleCollapsed2" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="→" />
+</children></TilePane>
+                <Button mnemonicParsing="false" onMouseClicked="#toggleOrientation" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="v/h">
+<tooltip><Tooltip text="Change orientation" />
+</tooltip></Button>
+                <Button fx:id="controls" mnemonicParsing="false" onMouseClicked="#toggleAbsoluteSize" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="abs">
+<tooltip><Tooltip text="Set absolute size" />
+</tooltip></Button>
+                <Button mnemonicParsing="false" onMouseClicked="#switchChildren" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="↑↓">
+<tooltip><Tooltip text="Swap content" />
+</tooltip></Button>
+</children></TilePane>
+</center>
         </BorderPane>
       </children>
     </AnchorPane>

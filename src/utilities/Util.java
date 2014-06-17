@@ -17,6 +17,18 @@ import org.jaudiotagger.tag.images.Artwork;
 public interface Util {
     
     /**
+     * Method equivalent to object's equal method, but if both objects are null
+     * they are considered equal as well.
+     * @param o1
+     * @param o2
+     * @return 
+     */
+    public static boolean nullEqual(Object o1, Object o2) {
+        return (o1==null && o2==null) ||
+               (o1!=null && o1.equals(o2));
+    }
+    
+    /**
      * Prints out the value of Duration - string representation of the duration
      * in the format h:m:s - 00:00:00. If any of the h,m,s values is single digit,
      * decade digit '0' is still written to retain the correct format.

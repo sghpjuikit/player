@@ -4,7 +4,6 @@
  */
 package Layout.Widgets;
 
-import Configuration.Config;
 import javafx.scene.Node;
 import utilities.Log;
 
@@ -31,21 +30,16 @@ public class ClassWidget extends Widget<Controller> {
         try {
             Node node = (Node) Class.forName(class_type.getName()).newInstance();
             if (node instanceof Controller) {
+                rememberConfigs();
                 controller = (Controller) node;
                 controller.setWidget(this);
-            
-                // apply settings
-                configs.forEach((Config c) -> { // dont shorthen this it causes some errors
-                    setField(c.name, c.value);
-                });
-                configs.clear();
-            
+                restoreConfigs();
                 controller.refresh();
             }            
             return node;
         } catch (ClassCastException | InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             Log.mess("Widget " + name + " failed to load. "+ex.getMessage());
-            return null;
+            return Widget.EMPTY().load();
         }
     }
 }

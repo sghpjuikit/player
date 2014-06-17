@@ -6,8 +6,6 @@
 package Library;
 
 import AudioPlayer.playlist.Item;
-import Configuration.ConfigManager;
-import Configuration.Configuration;
 import Serialization.BookmarkItemConverter;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
@@ -60,12 +58,12 @@ public final class BookmarkManager {
         bookmarks.remove(item);
     }
     /**
-     * Removes all bookmarks that point to physical item denoted by any of the
+     * Removes all bookmarks that point to resource denoted by any of the
      * items.
      * in the parameter list.
      * @param items 
      */
-    public static void removeBookmarksFor(List<? extends Item> items) {
+    public static void removeBookmarksFor(List<Item> items) {
         items.forEach(BookmarkManager::removeBookmark);
     }
     /**
@@ -77,8 +75,8 @@ public final class BookmarkManager {
     }
     
     public static void loadBookmarks() {
-        File dir = new File(App.DATA_FOLDER());
-        File f = new File(App.DATA_FOLDER() + File.separator + "Bookmarks.xml");
+        File dir = App.DATA_FOLDER();
+        File f = new File(App.DATA_FOLDER(), "Bookmarks.xml");
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Loading Bookmars failed.");
             return;
@@ -94,13 +92,13 @@ public final class BookmarkManager {
     }
     
     public static void saveBookmarks() {
-        File dir = new File(App.DATA_FOLDER());
+        File dir = App.DATA_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Saving Bookmars failed.");
             return;
         }
-        File f = new File(App.DATA_FOLDER() + File.separator + "Bookmarks.xml");
-        ArrayList<BookmarkItem> b = new ArrayList<>(); b.addAll(bookmarks);
+        File f = new File(dir, "Bookmarks.xml");
+        ArrayList<BookmarkItem> b = new ArrayList<>(bookmarks);
         try {
             XStream xstream = new XStream(new DomDriver());
             xstream.registerConverter(new BookmarkItemConverter());

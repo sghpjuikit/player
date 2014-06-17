@@ -8,14 +8,15 @@ package AudioPlayer.playlist;
 import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
- * Simple Item implementation. 
+ * Simple {@link Item} implementation. 
  * Wraps URI, providing simplest Item implementation. Serializable.
- * 
- * @immutable
+ * <p>
  * @author uranium
  */
+@Immutable
 public class SimpleItem extends Item implements Serializable {
     private static final long serialVersionUID = 1L;
     private final URI uri;

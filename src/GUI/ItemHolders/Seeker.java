@@ -6,22 +6,18 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.tagging.Chapter;
 import GUI.GUI;
 import GUI.objects.PopOver.PopOver;
+import static GUI.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
+import GUI.objects.Text;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.ScaleTransition;
-import javafx.beans.Observable;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Cursor;
 import javafx.scene.control.Slider;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
+import javafx.scene.layout.Region;
 import javafx.util.Duration;
 import utilities.Log;
 import utilities.Util;
@@ -30,64 +26,79 @@ import utilities.Util;
  * 
  * @author uranium
  */
-public final class Seeker extends AnchorPane{
+public final class Seeker extends AnchorPane {
     
+    public static final String STYLECLASS = "seeker";
     boolean showChapters = true;
     boolean popupChapters = true;
             
-    private class Chap extends Rectangle {
-        double position;
-        Duration time;
+    private class Chap extends Region {
+        public static final String STYLECLASS = "seeker-marker";
+        // inherent properties of the chapter
+        private final double position;
+        private Duration time;
+        private String text;
+        // lazy initialized, we dont want to spam unused popups
+        private PopOver p; 
+        
         Chap(Chapter c) {
             // resources
             double total = Player.getCurrentMetadata().getLength().toMillis();
             double pos = c.getTime().toMillis();
             double relPos = pos/total;
+            // set properties
+            position = relPos;
+            time = c.getTime();
+            text = c.getInfo();
+            // set up skin
+            this.getStyleClass().add(STYLECLASS);
+            // set up layout
+            double height = (Seeker.this.getBoundsInParent().getHeight()-getPadding().getTop())/4;
+            AnchorPane.setTopAnchor(this, height);
+            // build animations
             final ScaleTransition start = new ScaleTransition(Duration.millis(150), this);
-                                  start.setToX(10);
+                                  start.setToX(8);
                                   start.setToY(1.5);
             final ScaleTransition end = new ScaleTransition(Duration.millis(150), this);
                                   end.setToX(1);
                                   end.setToY(1);
-            // set up
-            position = relPos;
-            time = c.getTime();
-            this.setWidth(2);
-            this.setHeight(5);
-            this.setFill(Paint.valueOf("black"));
-            this.setOpacity(0.4);
-            AnchorPane.setTopAnchor(this, 5.0);
-            Text text = new Text(c.getInfo());
-                 text.setFill(Color.ANTIQUEWHITE);
-            PopOver p = new PopOver(text);
-                    p.setAutoHide(true);
+            // show popup when starting animation ends
+            start.setOnFinished( e-> {
+                if(p==null || !p.isShowing()) {
+                    // build popup
+                    p = new PopOver(new Text(text));
+                    p.setAutoHide(false);
+                    p.setHideOnEscape(true);
+                    p.setHideOnClick(true);
                     p.setAutoFix(true);
                     p.setDetachedTitle(Util.formatDuration(time));
-                    p.setArrowLocation(PopOver.ArrowLocation.TOP_CENTER);
-            this.setOnMouseEntered((MouseEvent t) -> {
-                if (popupChapters) {
-                    start.play();
+                    p.setArrowLocation(TOP_CENTER);
+                    p.setOnHidden( event -> end.play());
+                    // show popup
                     p.show(this);
                 }
             });
-            this.setOnMouseExited((MouseEvent t) -> {
-                end.play();
+            // set off starting animation
+            this.setOnMouseEntered( e -> {
+                if (popupChapters)start.play();
             });
-            this.setOnMouseClicked((MouseEvent t) -> {
-                PLAYBACK.seek(time);
+            // set off ending animation if popup open
+            this.setOnMouseExited( e -> {
+                start.stop();
+                if(p==null || !p.isShowing()) end.play();
             });
+            // seek to chapter on click
+            this.setOnMouseClicked( e -> PLAYBACK.seek(time) );
             this.setCursor(Cursor.HAND);
         }
     }
     
     // GUI
-    @FXML
-    Slider position;
-    final List<Chap> chapters = new ArrayList<>();
+    @FXML Slider position;
+    final List<Chap> chapters = new ArrayList();
     
     // tmp variables
     public boolean canUpdate = true;
-    private final Seeker THIS = this;
     
     public Seeker() {
         // load graphics
@@ -110,15 +121,16 @@ public final class Seeker extends AnchorPane{
         position.setMin(0);
         position.setMax(1);
         position.setCursor(Cursor.HAND);
+        position.getStyleClass().add(STYLECLASS);
         
-        position.valueChangingProperty().addListener((ObservableValue<? extends Boolean> o, Boolean oldV, Boolean newV) -> {
+        position.valueChangingProperty().addListener((o,oldV,newV) -> {
             if (oldV && !newV) {
                 double pos = position.getValue();
                 Duration seekTo = PLAYBACK.getTotalTime().multiply(pos);
                 PLAYBACK.seek(seekTo);                
             }
         });
-        position.setOnMouseDragged((MouseEvent t) -> {
+        position.setOnMouseDragged( t -> {
             double distance = t.getX();
             double width = getWidth();
             // snap to chapter if nearby
@@ -130,25 +142,21 @@ public final class Seeker extends AnchorPane{
             }
             position.setValue(distance / width);
         });
-        position.setOnMouseReleased((MouseEvent t) -> {
+        position.setOnMouseReleased( e -> {
             double pos = position.getValue();
             Duration seekTo = PLAYBACK.getTotalTime().multiply(pos);
             PLAYBACK.seek(seekTo);
             canUpdate = true;
         });
-        position.setOnMousePressed((MouseEvent t) -> {
-            canUpdate = false;
-        });
-        this.widthProperty().addListener((Observable o) -> {
-            updateChapters();
-        });
+        position.setOnMousePressed( e -> canUpdate = false );
+        this.widthProperty().addListener( o -> updateChapters() );
     }
     
     /**
      * Updates seeker's position to the most up to date.
      */
     public void updatePosition() {
-        if (position.isValueChanging()){ return; }
+        if (position.isValueChanging()) return;
         
         final Duration total = PLAYBACK.getTotalTime();
         final Duration currentTime = PLAYBACK.getCurrentTime();
@@ -159,15 +167,14 @@ public final class Seeker extends AnchorPane{
         }
     }
     /**
-     * Updates positions of chapters. No reloading takes place. Use on resize etc.
+     * Updates positions of chapters. No reloading takes place. Use on resize.
      */
     public void updateChapters() {
-        chapters.forEach((c) -> {
-            c.setLayoutX(c.position*this.getWidth());
-        });
+        chapters.forEach( c -> c.setLayoutX(c.position*this.getWidth()));
     }
     /**
-     * Reloads chapters from currently played item's metadata.
+     * Reloads chapters from currently played item's metadata. Use when chapter
+     * data changes for example on chapter add/remove.
      */
     public void reloadChapters() {
         // clear 

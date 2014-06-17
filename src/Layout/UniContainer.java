@@ -1,8 +1,8 @@
 
 package Layout;
 
-import GUI.Components.Layouter;
-import Layout.Containers.WidgetArea;
+import Layout.WidgetImpl.Layouter;
+import Layout.Areas.WidgetArea;
 import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.Collections;

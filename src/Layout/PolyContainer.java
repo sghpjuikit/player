@@ -1,7 +1,7 @@
 
 package Layout;
 
-import Layout.Containers.TabArea;
+import Layout.Areas.TabArea;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +48,7 @@ public final class PolyContainer extends Container {
         } else {
             if ((c instanceof Container)) ((Container)c).parent = this;
             children.put(index, c);
-            gui.addComponent(c);
+            gui.add(c);
         }
     }
     

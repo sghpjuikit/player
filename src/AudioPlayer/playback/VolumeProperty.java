@@ -9,11 +9,13 @@ import javafx.beans.property.SimpleDoubleProperty;
 
 /**
  * Volume Property class.
- * Encapsulates volume property. Value ranges from 0 to 1. Any value outside of the range will be converted to 0, respectively 1.
+ * Encapsulates volume property. Value ranges from 0 to 1. Any value outside of 
+ * the range will be converted to 0, respectively 1.
  */
 public final class VolumeProperty {
     private final DoubleProperty volume = new SimpleDoubleProperty(this,"volume", 0.5);
-
+    private final DoubleProperty interpolated = new SimpleDoubleProperty(this,"interpolated", 0.5);
+    
     /**
      * Initializes default value - 0.5.
      */

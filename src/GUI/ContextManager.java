@@ -5,7 +5,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
-import GUI.Components.SimpleConfigurator;
+import Configuration.IsConfigurable;
 import GUI.objects.ContextMenu;
 import GUI.objects.VerticalContextMenu;
 import Layout.Container;
@@ -13,6 +13,7 @@ import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.PolyContainer;
 import Layout.UniContainer;
+import Layout.WidgetImpl.SimpleConfigurator;
 import Layout.Widgets.SupportsTagging;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
@@ -31,6 +32,8 @@ import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -44,6 +47,7 @@ import utilities.Log;
  *
  * @author uranium
  */
+@IsConfigurable
 public final class ContextManager {
     
     @IsConfig(name="Layout mode on for menus", info="Transition into layout mode when context menus open.")
@@ -97,6 +101,7 @@ public final class ContextManager {
 /******************************************************************************/
     
     public static final List<Window> windows = new ArrayList();
+    public static Window activeWindow;
     
     /** 
      * @param widget widget to open, does nothing when null.
@@ -106,13 +111,12 @@ public final class ContextManager {
         Objects.requireNonNull(widget);
         
         Window w = Window.create();
-        w.s.initOwner(App.getInstance().getStage());
+        w.s.initOwner(App.getWindowOwner().getStage());
         w.setTitle(widget.getName());
         w.setContent(widget);
         w.show();
         w.setLocationCenter();
         
-        windows.add(w);
         return w;
     }
     public static void openFloatingWindow(Node content, String title) {
@@ -120,13 +124,11 @@ public final class ContextManager {
         
         Window w = Window.create();
                w.setIsPopup(true);
-               w.s.initOwner(App.getInstance().getStage());
+               w.s.initOwner(App.getWindowOwner().getStage());
                w.setTitle(title);
                w.setContent(content);
                w.show();
                w.setLocationCenter();
-        
-        windows.add(w);
     }
     /**
      * @param widget to open. Null does nothing.
@@ -137,14 +139,12 @@ public final class ContextManager {
         SimpleConfigurator c = new SimpleConfigurator(widget, () -> widget.getController().refresh() );
         
         Window w = Window.create();
-               w.s.initOwner(App.getInstance().getStage());
+               w.s.initOwner(App.getWindowOwner().getStage());
                w.setIsPopup(true);
                w.setTitle(widget.getName() + " Settings");
                w.setContent(c.getPane());
                w.show();
                w.setLocationCenter();
-        
-        windows.add(w);
     }
     
     /**
@@ -170,7 +170,6 @@ public final class ContextManager {
     
     /** Shows specified menu at specified coordinates. */
     public static void showMenu(ContextMenu menu, double x, double y, Object o) {
-        if(gui.disable_menus) return;
         if(!allowMultipleMenus) closeMenus();
         menu.show(x,y,o);
         menu_open = true;
@@ -244,7 +243,9 @@ public final class ContextManager {
         });
         cc.add("folder", "Browse the items in their dictionary.", () -> {
             List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
-            List<File> files = items.stream().map(PlaylistItem::getLocation).collect(Collectors.toList());
+            List<File> files = items.stream()
+                    .filter(PlaylistItem::isFileBased)
+                    .map(PlaylistItem::getLocation).collect(Collectors.toList());
             Enviroment.browse(files,true);
         });
         return cc;
@@ -267,6 +268,7 @@ public final class ContextManager {
         });
         cc.add("folder", "Browse the items in their dictionary.", () -> {
             List files = ((List<Item>) cc.userData).stream()
+                         .filter(Item::isFileBased)
                          .map(Item::getLocation).collect(Collectors.toList());
             Enviroment.browse(files,true);
         });
@@ -317,9 +319,18 @@ public final class ContextManager {
                 fc.setTitle("Save image as...");
                 fc.setInitialFileName("new_image");
                 fc.setInitialDirectory(new File("").getAbsoluteFile());
-            File f = fc.showSaveDialog(App.getInstance().getStage());
+            File f = fc.showSaveDialog(App.getWindowOwner().getStage());
             FileUtil.writeImage(i, f);
         });
+        cc.add("copy", "Copy the image to clipboard", () -> {
+            Image i = (Image) cc.userData;
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+                             content.putImage(i);
+            clipboard.setContent(content);
+        });
+        
+        
         return cc;
     }
     private static ContextMenu makeImageFileContextMenu() {
@@ -344,11 +355,11 @@ public final class ContextManager {
         cc.add("export", "Save the image as ...", () -> {
             File f = (File) cc.userData;
             FileChooser fc = new FileChooser();
-                fc.getExtensionFilters().addAll(ImageFileFormat.extensions().stream().map(ext->new ExtensionFilter( ext,ext)).collect(Collectors.toList()));
+                fc.getExtensionFilters().addAll(ImageFileFormat.extensions().stream().map(ext->new ExtensionFilter(ext,ext)).collect(Collectors.toList()));
                 fc.setTitle("Save image as...");
                 fc.setInitialFileName("new_image");
-                fc.setInitialDirectory(new File("").getAbsoluteFile());
-            File newff = fc.showSaveDialog(App.getInstance().getStage());
+                fc.setInitialDirectory(new File("").getAbsoluteFile()); // ?
+            File newff = fc.showSaveDialog(App.getWindowOwner().getStage());
             try {
                 Files.copy(f.toPath(), newff.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {

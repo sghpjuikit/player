@@ -2,92 +2,72 @@
 package GUI;
 
 import Configuration.Configuration;
-import GUI.Components.LayoutManagerComponent;
-import GUI.objects.ClickEffect;
 import Layout.Layout;
 import Layout.LayoutManager;
-import PseudoObjects.Maximized;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.stage.Screen;
 import javafx.util.Duration;
-import main.App;
 import utilities.Animation.Interpolators.CircularInterpolator;
-import utilities.Animation.Interpolators.EasingMode;
+import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
 
 /**
  * FXML Controller class
  */
 public class UIController {
-    @FXML AnchorPane border;
-    @FXML public AnchorPane entireArea;
+    
+    @FXML public AnchorPane root;
     @FXML public AnchorPane layout;
     @FXML public AnchorPane ui;
     @FXML public AnchorPane overlayPane;
     @FXML public AnchorPane contextPane;
     @FXML public Pane colorEffectPane;
-    
-    //app drag
-
-    private Resize resizing = Resize.NONE;
-    private final WindowBase window = App.getInstance().getWindow();
 
     /** Initializes the controller class. */
-    public void initialize() {
-        // initialize Contextmanager
-        new ContextManager(this);
-
-        entireArea.addEventFilter(MouseEvent.MOUSE_MOVED, e -> {
-            // update coordinates for context manager
-            ContextManager.setX(e.getX());
-            ContextManager.setY(e.getY());
-            if (ClickEffect.trail_effect) ClickEffect.run(e.getX(), e.getY());
-        });
-        entireArea.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-            if (!ClickEffect.trail_effect) ClickEffect.run(e.getX(), e.getY());
-            ContextManager.closeMenus();
-            ContextManager.closeFloatingWindows(null);
-            startAppDrag(e);
-        });
-        entireArea.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> {
-            if (e.getButton()==MouseButton.PRIMARY)
-                dragApp(e);
-        });
+    public void initialize() {        
         
-        layout.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-            disable_menus=false;
-            if(e.getButton()==MouseButton.SECONDARY)
-                startUiDrag(e);
-//            else
-//                startAppDrag(e);
+        // currently ui drag causes some problems so filters are registered on
+        // contextPane trather than uipane. On uiPane the events somehow still
+        // propagated to widgets and caused unwanted behavior, hence thi temp fix
+        layout.addEventFilter(MOUSE_PRESSED, e -> {
+            // doesnt work because the isStillSincePress is too insensitive
+//            if(!e.isStillSincePress()) {
+//                if(e.getButton()==SECONDARY) {
+//                        startUiDrag(e);
+//                        ui.setMouseTransparent(true);
+//                }
+//            }
         });
-        layout.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
-            if(e.getButton()==MouseButton.SECONDARY)
+        layout.addEventFilter(MOUSE_DRAGGED, e -> {
+            if(e.getButton()==SECONDARY) {
+                    startUiDrag(e);
+                    ui.setMouseTransparent(true);
+            }
+            if(e.getButton()==SECONDARY)
                 dragUi(e);
-//            else
-//                dragApp(e)
         });
-        
-        layout.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
-            if(!e.isStillSincePress()) disable_menus=true;
-            if(e.getButton()==MouseButton.SECONDARY)
+        layout.addEventFilter(MOUSE_CLICKED, e-> {
+            if(e.getButton()==SECONDARY) {
                 endUIDrag(e);
+                ui.setMouseTransparent(false);
+            }
         });
         
         uiDrag = new TranslateTransition(Duration.millis(400),ui);
-        uiDrag.setInterpolator(new CircularInterpolator(EasingMode.EASE_OUT));
+        uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
         
-        entireArea.widthProperty().addListener(l->
-            tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth()+5)))
-        );
+        root.widthProperty().addListener(l-> {
+//            double uiwidth = uiWidth() + 5; // 5 is the tab padding
+            tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
+        });
     };
 
 /********************************    TABS   ***********************************/
@@ -123,27 +103,26 @@ public class UIController {
     
 /****************************  TAB  ANIMATIONS   ******************************/
     
-    /** menus cant open if this is true. prevention from opening menus in 
-     *  undesired situations, like dragging
-     */
-    boolean disable_menus = false;
     private TranslateTransition uiDrag;
     private double uiCurrX;
     private double uiStartX;
     boolean uiDragActive = false;
     
     private void startUiDrag(MouseEvent e) {
+        if(uiDragActive) return;System.out.println("start");
         uiDrag.stop();
         uiStartX = e.getSceneX();
         uiCurrX = ui.getTranslateX();
         uiDragActive = true;
+//        ui.setMouseTransparent(true);
         e.consume();
     }
     private void endUIDrag(MouseEvent e) {
-        if(!uiDragActive) return;
+        if(!uiDragActive) return;System.out.println("end");
         uiDragActive = false;
+//        ui.setMouseTransparent(false);
         
-        if(GUI.align_tabs)      // switch tabs if allowed
+        if(GUI.align_tabs)     // switch tabs if allowed
             alignTabs(e);
         else {                  
             int currT = currTab();
@@ -162,6 +141,7 @@ public class UIController {
                 uiDrag.play();
             }
         }
+        // prevent from propagating the event - disable app behavior while ui drag
         e.consume();
     }
     private void dragUi(MouseEvent e) {
@@ -176,6 +156,7 @@ public class UIController {
                 ui.setTranslateX(getTabX(currTab()));
             }
         }
+        // prevent from propagating the event - disable app behavior while ui drag
         e.consume();
     }
     private void alignTabs(MouseEvent e) {
@@ -193,7 +174,6 @@ public class UIController {
         uiDrag.setOnFinished( a -> addTab(toT));
         uiDrag.setToX(-getTabX(toT));
         uiDrag.play();
-        e.consume();
     }
     
     /** Scrolls current tab on the layout screen to center. */
@@ -211,11 +191,9 @@ public class UIController {
         return (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
     }
     
-    private double uiWidth() { // must never return null (divisio by zero)
-        if (ui.getWidth()==0)           // gui might not be initialized, use window size
-            return Configuration.windowWidth-10;
-        else                            // ui.getWidth(); <- less precise for some reason, cuses problems dont use
-            return entireArea.getWidth()-10; 
+    private double uiWidth() { // must never return 0 (divisio by zero)
+        // gui might not be initialized, use window size
+        return (ui.getWidth()==0) ? Configuration.windowWidth-10 : ui.getWidth(); 
     }
     private double getTabX(int i) {
         if (i==0) 
@@ -225,141 +203,6 @@ public class UIController {
             return tabs.get(i).getLayoutX();
         else
             return (uiWidth()+5)*i;
-    }
-    
-/*****************************    APP DRAGGING   ******************************/
-    
-    private double appX;
-    private double appY;
-    
-    private void startAppDrag(MouseEvent e) {
-        appX = e.getSceneX();
-        appY = e.getSceneY();
-    }
-    private void dragApp(MouseEvent e) {
-        if (window.isMaximised() == Maximized.NONE) {
-            window.setLocation(e.getScreenX() - appX, e.getScreenY() - appY);
-
-            double SW = Screen.getPrimary().getVisualBounds().getWidth(); //screen_width
-            // (imitate Aero Snap)
-            if (e.getScreenY() <= 0)
-                    window.setMaximized(Maximized.ALL);
-            else if (e.getScreenX() <= 0)
-                    window.setMaximized(Maximized.LEFT);
-            else if (e.getScreenX() >= SW - 1)  //for some reason it wont work without -1
-                    window.setMaximized(Maximized.RIGHT);
-        }
-        else {
-            double SW = Screen.getPrimary().getVisualBounds().getWidth(); //screen_width
-            if (e.getScreenY()>0 && e.getScreenX()>0 && e.getScreenX()<SW-1)
-            window.setMaximized(Maximized.NONE);
-        }
-    }
-    
-/***************************    APP OPERATIONS   ******************************/
-    
-    @FXML public void closeApp() {
-        App.getInstance().close();
-    }
-
-    @FXML public void toggleMaximize() {
-        window.toggleMaximize();
-    }
-
-    @FXML public void minimizeApp() {
-        window.minimize();
-    }
-
-    @FXML public void toggleFulscreen() {
-        window.toggleFullscreen();
-    }
-    
-    @FXML public void toggleMini() {
-        WindowManager.toggleMini();
-    }
-    
-    @FXML public void manageLayouts() {
-        ContextManager.openFloatingWindow((new LayoutManagerComponent()).getPane(), "Layout Manager");
-    }
-
-    
-/*******************************    RESIZING    *******************************/
-    
-    @FXML
-    private void border_onDragStart(MouseEvent event) {
-        double X = event.getSceneX();
-        double Y = event.getSceneY();
-        double W = window.getWidth();
-        double H = window.getHeight();
-        double L = Configuration.borderCorner;
-
-        if ((X > W - L) && (Y > H - L)) {
-            resizing = Resize.SE;
-        } else if ((X < L) && (Y > H - L)) {
-            resizing = Resize.SW;
-        } else if ((X < L) && (Y < L)) {
-            resizing = Resize.NW;
-        } else if ((X > W - L) && (Y < L)) {
-            resizing = Resize.NE;
-        } else if ((X > W - L)) {
-            resizing = Resize.E;
-        } else if ((Y > H - L)) {
-            resizing = Resize.S;
-        } else if ((X < L)) {
-            resizing = Resize.W;
-        } else if ((Y < L)) {
-            resizing = Resize.N;
-        }
-    }
-
-    @FXML
-    private void border_onDragEnd(MouseEvent event) {
-        resizing = Resize.NONE;
-    }
-
-    @FXML
-    private void border_onDragged(MouseEvent event) {
-        if (resizing == Resize.SE) {
-            window.setSize(event.getScreenX() - window.getX(), event.getScreenY() - window.getY());
-        } else if (resizing == Resize.S) {
-            window.setSize(window.getWidth(), event.getScreenY() - window.getY());
-        } else if (resizing == Resize.E) {
-            window.setSize(event.getScreenX() - window.getX(), window.getHeight());
-        } else if (resizing == Resize.SW) {
-            window.setSize(window.getX()+window.getWidth()-event.getScreenX(), event.getScreenY() - window.getY());
-            window.setLocation(event.getScreenX(), window.getY());
-        } else if (resizing == Resize.W) {
-            window.setSize(window.getX()+window.getWidth()-event.getScreenX(), window.getHeight());
-            window.setLocation(event.getScreenX(), window.getY());
-        } else if (resizing == Resize.NW) {
-            window.setSize(window.getX()+window.getWidth()-event.getScreenX(), window.getY()+window.getHeight()-event.getScreenY());
-            window.setLocation(event.getScreenX(), event.getScreenY());
-        } else if (resizing == Resize.N) {
-            window.setSize(window.getWidth(), window.getY()+window.getHeight()-event.getScreenY());
-            window.setLocation(window.getX(), event.getScreenY());
-        } else if (resizing == Resize.NE) {
-            window.setSize(event.getScreenX() - window.getX(), window.getY()+window.getHeight()-event.getScreenY());
-            window.setLocation(window.getX(), event.getScreenY());
-        }
-    }
-    
-/******************************************************************************/
-    
-    @FXML
-    private void consumeMouseEvent(MouseEvent event) {
-        event.consume();
-    }
-
-    @FXML
-    private void entireArea_OnKeyPressed(KeyEvent event) {
-        if (event.getCode().equals(KeyCode.getKeyCode(Configuration.Shortcut_ALTERNATE)))
-            GUI.setLayoutMode(true);
-    }
-
-    @FXML
-    private void entireArea_OnKeyReleased(KeyEvent event) {
-        if (event.getCode().equals(KeyCode.getKeyCode(Configuration.Shortcut_ALTERNATE)))
-            GUI.setLayoutMode(false);
     }
 
 }

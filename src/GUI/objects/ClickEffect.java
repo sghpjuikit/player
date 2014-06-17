@@ -2,6 +2,7 @@
 package GUI.objects;
 
 import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import GUI.ContextManager;
 import java.io.IOException;
 import java.net.URL;
@@ -24,6 +25,7 @@ import utilities.Log;
  * @author uranium
  */
 @Immutable
+@IsConfigurable
 public class ClickEffect {
     
     // configuration

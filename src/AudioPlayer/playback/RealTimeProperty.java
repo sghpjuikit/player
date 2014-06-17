@@ -5,11 +5,9 @@
  */
 package AudioPlayer.playback;
 
-import utilities.functional.functor.Procedure;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
@@ -36,14 +34,17 @@ public final class RealTimeProperty {
     }
     void initialize() {
         // bind realTime to playback
-        currentTime.addListener((Observable o) -> {
+        currentTime.addListener( o -> {
             Duration d = real_seek.add(currentTime.get().subtract(curr_sek));
             realTime.set(d);
         });
         // update count
         setOnTimeAt(new PercentTimeEventHandler(1, () -> {
             count++;
-        }));        
+        }));
+        
+        //
+//        locker.scheduleAtFixedRate(unlock,0,250);
     }
     
     void synchroRealTime_onPlayed() {
@@ -129,13 +130,28 @@ public final class RealTimeProperty {
     
     private final List<PercentTimeEventHandler> percentHandlers = new ArrayList<>();
     private final List<TimeEventHandler> timeHandlers = new ArrayList<>();
-    
-    private final InvalidationListener percentEventDistributor = (Observable o) -> {
-        percentHandlers.stream().forEach(PercentTimeEventHandler::handle);
+    private boolean changed = false;
+    private boolean lock = false;
+//    private final Timer locker = new Timer();
+//    private final TimerTask unlock = new TimerTask(){
+//        @Override public void run() {
+//            lock = false;
+//        }
+//    };
+    private final InvalidationListener percentEventDistributor = o -> {
+        changed = true;
+        if (!lock && changed) {
+            percentHandlers.stream().forEach(PercentTimeEventHandler::handle);
+            lock = true;
+        }
     };
     
-    private final InvalidationListener timeEventDistributor = (Observable o) -> {
-        timeHandlers.forEach(TimeEventHandler::handle);
+    private final InvalidationListener timeEventDistributor = o -> {
+        changed = true;
+        if (!lock && changed) {
+            timeHandlers.forEach(TimeEventHandler::handle);
+            lock = true;
+        }
     };
 
     

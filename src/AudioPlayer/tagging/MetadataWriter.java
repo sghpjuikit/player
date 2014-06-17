@@ -29,8 +29,8 @@ import utilities.Parser.Parser;
  * 
  * Manages writing Metadata objects back into files. Handles all tag related data
  * for items.
- * 
- * The Writer must be instantiated for use. It is reusable.
+ * <p>
+ * The writer must be instantiated for use. It is reusable for an item.
  *  
  * @author uranium
  */
@@ -41,14 +41,20 @@ public class MetadataWriter extends MetaItem {
     private final AudioFile audioFile;
     int fields_changed = 0;
 
+    // dont provide access here
     private MetadataWriter(File file, AudioFile audioFile) {
         this.file = file;
         this.audioFile = audioFile;
     }
-    /** Constructs metadata writer for given item.
+    
+    /** 
+     * Constructs metadata writer for given item.
      * @return writer or null if error occurs.
+     * @throws UnsupportedOperationException if item not file based
      */
     public static MetadataWriter create(Item item) {
+        if (!item.isFileBased()) throw new UnsupportedOperationException("Item must be file based");
+                
         AudioFile f = readAudioFile(item.getFile());
         if(f==null) return null;
         else return new MetadataWriter(item.getFile(), f);
@@ -528,10 +534,11 @@ public class MetadataWriter extends MetaItem {
      * and 1 maximum possible rating for current item. Value outside range will
      * be ignored.
      */
-    public static void rate(Metadata item, double rating) {System.out.println(rating);
+    public static void rate(Metadata item, double rating) {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setRatingPercent(rating);
-                       writer.commit();
+        if (writer.commit())
+            NotifierManager.showTextNotification("Song rating changed to: "+rating, "Update");
     }
 
 }

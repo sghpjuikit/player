@@ -1,21 +1,11 @@
 
 package Configuration;
 
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Playcount;
-import GUI.ContextManager;
-import GUI.GUI;
-import GUI.objects.ClickEffect;
-import GUI.objects.PopOver.PopOver.ScreenCentricPos;
-import GUI.objects.Thumbnail;
-import Layout.LayoutManager;
 import PseudoObjects.Maximized;
 import Serialization.Serializator;
 import Serialization.Serializes;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,9 +17,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javafx.util.Duration;
+import org.atteo.classindex.ClassIndex;
 import utilities.Log;
 import utilities.Parser.Parser;
-import utilities.functional.functor.Procedure;
 
 /**
  * Provides internal application settings.
@@ -88,6 +78,8 @@ public class Configuration implements Serializes {
     @IsConfig(info = "last fulscreen state of the main window", editable = false)
     public static boolean windowFullscreen = false;
     @IsConfig(info = "whether main window is resizable")
+    public static boolean windowAlwaysOnTop = false;
+    @IsConfig(info = "whether main window is resizable")
     public static boolean windowResizable = true;
     @IsConfig(info = "last minimized state of the main window", editable = false)
     public static boolean windowMinimized = false;
@@ -130,50 +122,16 @@ public class Configuration implements Serializes {
     public static double increment_playcount_min_percent = 0.0;
     public static double increment_playcount_min_time = Duration.seconds(0).toMillis();
     
-    @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if application is not focused. Not all platforms supported.")
-    public static boolean global_shortcuts = true;
+    public final Map<String,Config> fields = new HashMap();
     
-    // notification
-    @IsConfig(info = "show notifications")
-    public static boolean showNotification = true;
-    @IsConfig(info = "show notifications about playback status")
-    public static boolean showStatusNotification = true;
-    @IsConfig(info = "show notifications about playing item")
-    public static boolean showSongNotification = true;
-    @IsConfig(info = "time for notification to autohide")
-    public static double notificationDuration = 2500;
-    @IsConfig(info = "Fade in/out notifications")
-    public static boolean notificationAnimated = true;
-    @IsConfig(info = "Fade in/out time for notification")
-    public static double notifFadeTime = 500;
-    @IsConfig(info = "Closes notification when clicked anywhere.")
-    public static boolean notifCloseOnClickAny = true;
-    @IsConfig(info = "Closes notification when clicked on it.")
-    public static boolean notifCloseOnClick = true;
-    @IsConfig(info = "Deminimize application on notification click when minimized.")
-    public static boolean notifclickOpenApp = true;
-    @IsConfig(info = "Position of notification.")
-    public static ScreenCentricPos notifPos = ScreenCentricPos.ScreenBottomRight;
     
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode")
-    public static String Shortcut_ALTERNATE = "Alt";
-    
-    private final Map<String,Config> fields = new HashMap();
-    
-    private static final Map<String,Action> actions = gatherActions();
     private static final List<Class> classes = new ArrayList<>();
     private static final Map<String,Config> default_fields = new HashMap();     // def Config
     
 /******************************************************************************/
     
-    static {
-        classes.add(Configuration.class);
-        classes.add(ClickEffect.class);
-        classes.add(Thumbnail.class);
-        classes.add(PLAYBACK.class);
-        classes.add(GUI.class);
-        classes.add(ContextManager.class);
-        
+    static {        
+        ClassIndex.getAnnotated(IsConfigurable.class).forEach(classes::add);
         default_fields.putAll(gatherFields());
     }
     private Configuration() {
@@ -205,10 +163,7 @@ public class Configuration implements Serializes {
 /******************************************************************************/
     
     
-    /** @return all shortcut fields. */
-    public List<Action> getShortcuts(){
-        return new ArrayList(actions.values());
-    }
+
     public Collection<Config> getFields(){
         return fields.values();
     }
@@ -219,23 +174,25 @@ public class Configuration implements Serializes {
      * @throws NullPointerException if application doesnt have any config with
      * specified name
      */
-    public void setField(String name, String value) {                           Log.deb("Setting field: " + name + " " + value);
+    public void setField(String name, String value) {                           // Log.deb("Setting field: " + name + " " + value);
         Config def_f = default_fields.get(name);
         Class type = def_f.type;
-        Object v = type.equals(Action.class) ? value : Parser.fromS(type, value);
+        Object v = type.equals(Action.class) ? Action.from((Action)def_f.value, value) : Parser.fromS(type, value);
+        
         fields.put(name, new Config(def_f, v));
     }
 
-    /**
-     * @throws NullPointerException if application doesnt have any config with
-     * specified name
-     */
-    public void applyField(String name, String value) {                         // System.out.println("applying "+name+" "+value);
+    public void applyField(Config c) {
+        applyField(c.name, Parser.toS(c.value));
+    }
+    private void applyField(String name, String value) {                         // Log.deb("Applying field "+name+" "+value);
         Config def_f = default_fields.get(name);
         Class type = def_f.type;
         
         if(type.equals(Action.class)) { // set as shortcut
-            actions.get(name).changeKeys(value);
+            Action temp_a = Action.fromString(value);
+            Action.getShortcuts().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
+            return;
         } else {                        // set as class field
             if (classes.stream().flatMap(c->Stream.of(c.getFields()))
                     .filter(f->(f.getModifiers() & Modifier.STATIC) != 0)
@@ -329,15 +286,34 @@ public class Configuration implements Serializes {
      * @return 
      */
     @Override
-    public boolean equals(Object o) {//return false;
-        if (o == null || !(o instanceof Configuration)) 
-            return false;
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof Configuration)) return false;
         
          Map<String,Config> f1 = fields;
          Map<String,Config> f2 = ((Configuration)o).fields;
          
+//         System.out.println("AAA "+f1.get("Minimize").value);
+//         System.out.println("AAA "+f2.get("Minimize").value);
+         
 //         if (f1.size() != f2.size()) return false;
-         return !f1.entrySet().stream().anyMatch( entry -> f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey())));
+//         return !f1.entrySet().stream().anyMatch( entry -> f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey())));
+         return !f1.entrySet().stream().anyMatch( entry -> {
+             if(entry.getValue().type.equals(Action.class) && entry.getKey()!=null) {
+//                 if(entry.getKey().equalsIgnoreCase("Minimize")){
+//                    System.out.println("");
+//                    System.out.println(
+//                            ((Action)entry.getValue().value).name + 
+//                            " " + entry.getValue().equals(f2.get(entry.getKey())) +
+//                            " - " + entry.getValue().value + " + " + f2.get(entry.getKey()).value
+//
+//
+//                    );
+//                    System.out.println(f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey())));
+//                 }
+             }
+//             System.out.println("," + entry.getKey() + " " + (f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey()))));
+             return f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey()));
+                     });
     }
 
     @Override
@@ -350,17 +326,18 @@ public class Configuration implements Serializes {
     
     public static String getGroup(Class<?> c) {
         IsConfigurable a = c.getAnnotation(IsConfigurable.class);
-        return a==null ? c.getSimpleName() : a.group();
+        return a==null || a.group().isEmpty() ? c.getSimpleName() : a.group();
     }
     
     public static List<Config> getFieldsOf(Class c) {
         List<Config> fields = new ArrayList<>();
-        String group = getGroup(c);
+        String _group = getGroup(c);
         for (Field f : c.getFields()) {
             if ((f.getModifiers() & Modifier.STATIC) != 0) {
                 IsConfig a = f.getAnnotation(IsConfig.class);
                 if (a != null) {
                     try {
+                        String group = (a.group().isEmpty()) ? _group : a.group();
                         String name = f.getName();
                         Object val = f.get(null);
                         fields.add(new Config(name, a, val, group));
@@ -382,42 +359,9 @@ public class Configuration implements Serializes {
             getFieldsOf(c).forEach(f->list.put(f.name, f));
         
         // add action fields
-        actions.values().stream().map(Config::new).forEach(f->list.put(f.name, f));
+        Action.getShortcuts().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
         
         return list;
     }
     
-    /** @return all actions of this application*/
-    private static Map<String,Action> gatherActions() {
-        List<Class<? extends Configurable>> cs = new ArrayList();
-        cs.add(PLAYBACK.class);
-        cs.add(PlaylistManager.class);
-        cs.add(LayoutManager.class);
-        cs.add(GUI.class);
-        
-        Map<String,Action> acts = new HashMap();
-        
-        for (Class<? extends Configurable> man : cs) {
-            for (Method m : man.getDeclaredMethods()) {
-                if ((m.getModifiers() & Modifier.STATIC) != 0) {
-                    IsAction a = m.getAnnotation(IsAction.class);
-                    if (a != null) {
-                        if (m.getParameters().length > 0)
-                            throw new RuntimeException("Action Method must have 0 parameters!");
-                        String name = a.name();
-                        Procedure b = () -> {
-                            try {
-                                m.invoke(null, new Object[0]);
-                            } catch (IllegalAccessException | InvocationTargetException ex) {
-                                Log.err("Can not run specified method. " + ex.getMessage());
-                            }
-                        };
-                        acts.put(name,new Action(name,b,a.info(),a.shortcut()));
-                    }
-                }
-            }
-        }
-        
-        return acts;
-    }
 }

@@ -3,6 +3,7 @@ package GUI;
 
 import Configuration.Configuration;
 import PseudoObjects.Maximized;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -12,6 +13,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import main.App;
 
 /**
  * Customized Stage, window of the application.
@@ -39,29 +41,23 @@ public class WindowBase {
         
         if(main) {    
             WProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowWidth = (double)newV
-            );
+                    Configuration.windowWidth = (double)newV);
             HProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowHeight = (double)newV
-            );
+                    Configuration.windowHeight = (double)newV);
             XProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowPosX = (double)newV
-            );
+                    Configuration.windowPosX = (double)newV);
             YProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowPosY = (double)newV
-            );
+                    Configuration.windowPosY = (double)newV);
             s.iconifiedProperty().addListener((observable,oldV,newV) -> 
-                    Configuration.windowMinimized = newV
-            );
+                    Configuration.windowMinimized = newV );
             MaxProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowMaximized = newV
-            );
+                    Configuration.windowMaximized = newV);
             FullProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowFullscreen = newV
-            );
+                    Configuration.windowFullscreen = newV);
             ResProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowResizable = newV
-            );
+                    Configuration.windowResizable = newV);
+            s.alwaysOnTopProperty().addListener((observable,oldV,newV) -> 
+                    Configuration.windowAlwaysOnTop = newV);   
         }
     }
     
@@ -84,9 +80,10 @@ public class WindowBase {
             ResProp.set(Configuration.windowResizable);
             MaxProp.set(Configuration.windowMaximized);
             FullProp.set(Configuration.windowFullscreen);
+            
         }
         
-        // the order is important
+        // the order is importantif (main) setMinimized(Configuration.windowAlwaysOnTop);
         s.setWidth(WProp.get());
         s.setHeight(HProp.get());
         s.setX(XProp.get());
@@ -95,11 +92,12 @@ public class WindowBase {
         if (main) setMinimized(Configuration.windowMinimized);
         setMaximized(MaxProp.get());
         setFullscreen(FullProp.get());
+        if (main) setAlwaysOnTop(Configuration.windowAlwaysOnTop);
     }
     /**
      * WARNING: Dont use the stage for positioning, maximizing and other
-     * functionalities already defined in Window class!!
-     * @return 
+     * functionalities already defined in this class!!
+     * @return stage or null if window's gui was not initialized yet.  
      */
     public Stage getStage() {
         return s;
@@ -146,32 +144,60 @@ public class WindowBase {
         ResProp.set(val);
         s.setResizable(val);
     }
-    
+    /**
+     * The value of the property resizable
+     * see {@link #setAlwaysOnTop(boolean)}
+     * @return the value of the property resizable.
+     */
+    public boolean isAlwaysOnTop() {
+        return s.isAlwaysOnTop();
+    }
+    /**
+     * Sets the value of the property is AlwaysOnTop.
+     * Property description:
+     * Defines behavior where this window always stays on top of other windows.
+     * @param val 
+     */
+    public void setAlwaysOnTop(boolean val) {
+        s.setAlwaysOnTop(val);
+    }
+    public void toggleAlwaysOnTOp() {
+        s.setAlwaysOnTop(!s.isAlwaysOnTop());
+    }
+    /** Brings the window to front if it was behind some window on the desktop.*/
+    public void focus() {
+        // but preserve onTopProperty
+        boolean aOt = s.isAlwaysOnTop();
+        s.setAlwaysOnTop(true);
+        Platform.runLater(()->s.setAlwaysOnTop(aOt));
+    }
     /**
      * @return the value of the property minimized.
      */
     public boolean isMinimized() {
-        return s.isIconified();
+        return App.getWindowOwner().s.isIconified();   // act as main window
+//        return s.isIconified();
     }
-    /**
-     * Minimizes main application window.
-     */
+    /** Minimizes window. */
     public void minimize() {
         setMinimized(true);
     }
-    /** Sets the value of the property minimized */
+    /** Sets the value of the property minimized. */
     public void setMinimized(boolean val) {
-        s.setIconified(val);
+        // this would minimize window normally but we dont want that since it
+        // is not supported when windows have the same owner
+//        s.setIconified(val);
+        Configuration.windowMinimized = val;
+        App.getWindowOwner().s.setIconified(val);    // minimize app
+        // focus when deminimizing
+        if(!val) focus();
     }
     /** 
      * Minimize/deminimize main application window. Switches between ALL and
      * NONE maximize states. 
      */
     public void toggleMinimize() {
-        if (isMinimized())
-            setMinimized(false);
-        else
-            setMinimized(true);
+        setMinimized(!isMinimized());
     }
     /** @return the value of the property maximized. */
     public Maximized isMaximised() {
@@ -184,50 +210,78 @@ public class WindowBase {
      */
     public void setMaximized(Maximized state) {        
         if(isFullscreen()) return;
+        MaxProp.set(state);
         switch (state) {
-            case ALL:       maximizeAll();      break;
-            case LEFT:      maximizeLeft();     break;
-            case RIGHT:     maximizeRight();    break;
-            case NONE:      demaximize();       break;
+            case ALL:
+            case LEFT:
+            case RIGHT:
+            case LEFT_TOP:
+            case RIGHT_TOP:
+            case LEFT_BOTTOM:
+            case RIGHT_BOTTOM:
+                            WProp.set(s.getWidth());
+                            HProp.set(s.getHeight());
+                            XProp.set(s.getX());
+                            YProp.set(s.getY());
+                            break;
+            case NONE:      break;
+            default:
+        }
+        switch (state) {
+            case ALL:           maximizeAll();          break;
+            case LEFT:          maximizeLeft();         break;
+            case RIGHT:         maximizeRight();        break;
+            case LEFT_TOP:      maximizeLeftTop();      break;
+            case RIGHT_TOP:     maximizeRightTop();     break;
+            case LEFT_BOTTOM:   maximizeLeftBottom();   break;
+            case RIGHT_BOTTOM:  maximizeRightBottom();  break;
+            case NONE:          demaximize();           break;
             default:
         }
     }
     private void maximizeAll() {
-        MaxProp.set(Maximized.ALL);
-        WProp.set(s.getWidth());
-        HProp.set(s.getHeight());
-        XProp.set(s.getX());
-        YProp.set(s.getY());
-        
         s.setX(Screen.getPrimary().getVisualBounds().getMinX());
         s.setY(Screen.getPrimary().getVisualBounds().getMinY());
         s.setWidth(Screen.getPrimary().getVisualBounds().getWidth());
         s.setHeight(Screen.getPrimary().getVisualBounds().getHeight());
     }
     private void maximizeRight() {
-        MaxProp.set(Maximized.RIGHT);
-        WProp.set(s.getWidth());
-        HProp.set(s.getHeight());
-        XProp.set(s.getX());
-        YProp.set(s.getY());
-        
         s.setX(Screen.getPrimary().getVisualBounds().getMinX() + Screen.getPrimary().getVisualBounds().getWidth()/2);
         s.setY(Screen.getPrimary().getVisualBounds().getMinY());
         s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
         s.setHeight(Screen.getPrimary().getVisualBounds().getHeight());
     }
     private void maximizeLeft() {
-        MaxProp.set(Maximized.LEFT);
-        WProp.set(s.getWidth());
-        HProp.set(s.getHeight());
-        XProp.set(s.getX());
-        YProp.set(s.getY());
-        
         s.setX(Screen.getPrimary().getVisualBounds().getMinX());
         s.setY(Screen.getPrimary().getVisualBounds().getMinY());
         s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
         s.setHeight(Screen.getPrimary().getVisualBounds().getHeight());
     }
+    private void maximizeLeftTop() {
+        s.setX(Screen.getPrimary().getVisualBounds().getMinX());
+        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+    }
+    private void maximizeRightTop() {
+        s.setX(Screen.getPrimary().getVisualBounds().getMinX() + Screen.getPrimary().getVisualBounds().getWidth()/2);
+        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+    }
+    private void maximizeLeftBottom() {
+        s.setX(Screen.getPrimary().getVisualBounds().getMinX());
+        s.setY(Screen.getPrimary().getVisualBounds().getMinY() + Screen.getPrimary().getVisualBounds().getHeight()/2);
+        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+    }
+    private void maximizeRightBottom() {
+        s.setX(Screen.getPrimary().getVisualBounds().getMinX() + Screen.getPrimary().getVisualBounds().getWidth()/2);
+        s.setY(Screen.getPrimary().getVisualBounds().getMinY() + Screen.getPrimary().getVisualBounds().getHeight()/2);
+        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+    }
+    
     private void demaximize() {
         MaxProp.set(Maximized.NONE);
         setSize(WProp.get(),HProp.get());
@@ -361,7 +415,30 @@ public class WindowBase {
         s.show();
     }
     public void close() {
-        s.close();
+        if(main) App.getWindowOwner().close();  // act as main window
+        else s.close();
     }
 
+    
+    /**
+     * Checks whether the GUI has completed its initialization.
+     * If true is returned, the GUI - the Stage and Scene will never be
+     * null. Otherwise, some
+     * operations might be unupported and Stage or Scene will be null. Window and Stage
+     * will never be null, but their state might not be optimal for carrying out
+     * operations - this method guarantees that optimality.
+     * It is recommended to run this check before executing operations operating
+     * on Window, Stage and Scene objects of he application and handle the case,
+     * when the initialization has not been completed differently.
+     * This method helps avoid exceptions resulting from uninitialized GUI state.
+     * @return 
+     */
+    public boolean isInitialized() {
+        return (!(getStage() == null ||
+                  getStage().getScene() == null ||
+                  getStage().getScene().getRoot() == null));
+    }
+    
+    
+    
 }

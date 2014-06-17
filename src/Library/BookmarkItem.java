@@ -6,32 +6,30 @@
 package Library;
 
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.PlaylistItem;
 import java.io.File;
 import java.net.URI;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import utilities.FileUtil;
 
 /**
- *
+ * Bookmarked playable item. Denoted by resource and name of the bookmark.
  * @author uranium
  */
 public class BookmarkItem extends Item {
     private final SimpleObjectProperty<URI> uri;
     private final SimpleStringProperty name;
-    
-    public BookmarkItem(URI _uri) {
-        uri = new SimpleObjectProperty<>(_uri);
-        name = new SimpleStringProperty(FileUtil.getName(_uri));
-    }    
+      
     public BookmarkItem(Item item) {
         this(item.getURI());
     }
     public BookmarkItem(File f) {
         this(f.toURI());
     }
+    public BookmarkItem(URI _uri) {
+        uri = new SimpleObjectProperty<>(_uri);
+        name = new SimpleStringProperty(getInitialName()); 
+    }  
     public BookmarkItem(String _name, URI _uri) {
         uri = new SimpleObjectProperty<>(_uri);
         name = new SimpleStringProperty(_name);
@@ -60,20 +58,22 @@ public class BookmarkItem extends Item {
     @Override
     public String toString() {
         String output = "";
-        output = output + getName().toString() + "\n";
+        output = output + getName() + "\n";
         output = output + getURI().toString() + "\n";
         return output;
     }
     
     /**
-     * Compares by natural order - name;
+     * Compares by natural order - name. If the specified item is not instance
+     * of this class the comparison method falls back to super class' implementation.
      * @param o
      * @return 
      */
-    public int compareTo(PlaylistItem o) {
-        String n1 = getName().toLowerCase();
-        String n2 = o.getName().toLowerCase();
-        return (int) Math.signum(n1.compareTo(n2));
+    @Override
+    public int compareTo(Item o) {
+        if(o instanceof BookmarkItem)
+             return getName().compareToIgnoreCase(((BookmarkItem)o).getName());
+        else return super.compareTo(o);
     }
 
 }

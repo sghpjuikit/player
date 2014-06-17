@@ -34,12 +34,12 @@ public class Config {
         max = c.max();
     }
     public Config(Action c) {
-        gui_name = c.getName() + " Shortcut";
-        name = c.getName();
-        value = c.getKeysAsString();
-        type = Action.class;
-        group = "Shortcut";
-        info = c.getInfo();
+        gui_name = c.name + " Shortcut";
+        name = c.name;
+        value = c;
+        type = c.getClass();
+        group = "Shortcuts";
+        info = c.info;
         editable = true;
         visible = true;
         min = Double.NaN;
@@ -64,11 +64,7 @@ public class Config {
                  Double.compare(max, Double.NaN)==0);
     }
     
-    public Class<?> getType() {
-        return type;
-    }
-    
-    /** Equals if and only if non null, Config type and all fields equal */
+    /** Equals if and only if non null, is Config type and all fields equal */
     @Override
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof Config))

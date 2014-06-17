@@ -1,8 +1,6 @@
 
 package AudioPlayer.tagging;
 
-import Configuration.ConfigManager;
-import Configuration.Configuration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,8 +22,8 @@ import utilities.Util;
  */
 public class MoodManager {
     
-    private static final File MOODS_FILE = new File(App.DATA_FOLDER() + File.separator+"MoodList.cfg").getAbsoluteFile();
-    private static final File MOODS_DEF_FILE = new File(App.DATA_FOLDER() +File.separator+"MoodList_DEFAULT.cfg").getAbsoluteFile();
+    private static final File MOODS_FILE = new File(App.DATA_FOLDER(), "MoodList.cfg");
+    private static final File MOODS_DEF_FILE = new File(App.DATA_FOLDER(), "MoodList_DEFAULT.cfg");
     
     /** List of moods for tagging. Editable. Unsorted.*/
     public static final ObservableSet<String> moods = FXCollections.observableSet();
@@ -61,7 +59,7 @@ public class MoodManager {
     
     private static void save() {
         String content = moods.stream().collect(Collectors.joining("\n"));
-        File f = new File(App.DATA_FOLDER()+File.separator+"MoodList.cfg").getAbsoluteFile();
+        File f = new File(App.DATA_FOLDER(), "MoodList.cfg");
         FileUtil.writeFile(f.getPath(), content);
     }
 }

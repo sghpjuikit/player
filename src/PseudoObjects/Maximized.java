@@ -12,5 +12,9 @@ public enum Maximized {
     ALL,
     LEFT,
     RIGHT,
+    LEFT_TOP,
+    RIGHT_TOP,
+    LEFT_BOTTOM,
+    RIGHT_BOTTOM,
     NONE;
 }

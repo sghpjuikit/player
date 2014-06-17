@@ -54,6 +54,9 @@ public final class TableUtil {
      * This methods provides alternative to TableViewSelectionModel.selectIndices()
      * that requires array parameter. This method makes the appropriate conversions
      * and selects the items using List parameter
+     * <p>
+     * After the method is invoked only the provided rows will be selected - it
+     * clears any previously selected rows.
      * @param selectedIndexes
      * @param selectionModel
      */

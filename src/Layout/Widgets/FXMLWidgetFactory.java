@@ -17,13 +17,20 @@ import utilities.Log;
  * {@link WidgetFactory} producing {@link FXMLWidget}.
  * <p>
  * This factory is able to create the widgets dynamically from external fxml
- * files and compiled classes of their respective controller objects. This
- * requires a standard where controller object's class name must be the same as
+ * files and compiled classes of their respective controller objects.
+ * <p>
+ * This requires a standard where controller object's class name must be the same as
  * its class file and the name must be derived from the .fxml file name (without
- * extnsion of course) exactly by concatenating the word 'Controller' to it.
+ * extension of course) exactly by concatenating the word 'Controller' to it.
  * <p>
  * For example Tagger.fxml would require TaggerController.class file of the
  * compiled controller.
+ * <p>
+ * Note that the resource (the fxml file) is not directly passed onto the widget.
+ * Instead the widget requests it from its (this) factory. This avoids problems
+ * with the resource being a strong dependency that could prevent widget loading
+ * after the application has been moved or the widget resource is no longer
+ * available.
  * <p>
  * @author uranium
  */
@@ -43,7 +50,7 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
     
     @Override
     public FXMLWidget create() {
-        FXMLWidget w = new FXMLWidget(getName(), url);
+        FXMLWidget w = new FXMLWidget(getName());
         return w;
     }
     
@@ -53,7 +60,7 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
      * reason the Controller class name and the .fxml file must adhere to proper
      * standard.
      */
-    Controller instantiateController() {
+    FXMLController instantiateController() {
         return instantiateController(url);
     }
     

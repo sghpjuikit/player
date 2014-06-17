@@ -2,7 +2,6 @@
 package Serialization;
 
 import Configuration.Config;
-import Configuration.ConfigManager;
 import Configuration.Configuration;
 import GUI.Window;
 import Layout.Layout;
@@ -104,19 +103,20 @@ public final class Serializator {
     }
     
     private void serialize(Layout o) {
-        File f = new File(App.LAYOUT_FOLDER() + File.separator + o.getName() + ".l").getAbsoluteFile();
+        File f = new File(App.LAYOUT_FOLDER(), o.getName() + ".l");
         try {
             XStream xstream = new XStream(new DomDriver());
             xstream.autodetectAnnotations(true);
             
-            o.getAllWidgets().stream().filter(w->w!=null).forEach(w -> w.configs.addAll(w.getFields()));
+            // serialize widget properties as well
+            o.getAllWidgets().stream().filter(w->w!=null).forEach(w -> w.configs = w.getFields());
             xstream.toXML(o, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + o.getName() + "' into the file: " + f.toPath());
         }
     }
     private Object deserialize(Layout o) {
-        File f = new File(App.LAYOUT_FOLDER() + File.separator + o.getName() + ".l").getAbsoluteFile();
+        File f = new File(App.LAYOUT_FOLDER(), o.getName() + ".l").getAbsoluteFile();
         try {
             XStream xstream = new XStream(new DomDriver());
                     xstream.autodetectAnnotations(true);
@@ -145,7 +145,7 @@ public final class Serializator {
     
     private void serialize(Window o) {
         String name = "window";
-        File f = new File(App.LAYOUT_FOLDER() + File.separator + name + ".w").getAbsoluteFile();
+        File f = new File(App.LAYOUT_FOLDER(), name + ".w").getAbsoluteFile();
         try {
             XStream xstream = new XStream(new DomDriver());
             xstream.autodetectAnnotations(true);
@@ -157,7 +157,7 @@ public final class Serializator {
     }
     private Object deserialize(Window o) {
         String name = "window";
-        File f = new File(App.LAYOUT_FOLDER() + File.separator + name + ".w").getAbsoluteFile();
+        File f = new File(App.LAYOUT_FOLDER(), name + ".w").getAbsoluteFile();
         try {
             XStream xstream = new XStream(new DomDriver());
                     xstream.autodetectAnnotations(true);
@@ -184,7 +184,7 @@ public final class Serializator {
 
     public static void serializeWindow(Window o) {
         String name = "window";
-        File f = new File(App.LAYOUT_FOLDER() + File.separator + name + ".w").getAbsoluteFile();
+        File f = new File(App.LAYOUT_FOLDER(), name + ".w").getAbsoluteFile();
         try {
             XStream xstream = new XStream(new DomDriver());
             xstream.autodetectAnnotations(true);
@@ -196,7 +196,7 @@ public final class Serializator {
     }
     public static Window deserializeWindow() {
         String name = "window";
-        File f = new File(App.LAYOUT_FOLDER() + File.separator + name + ".w").getAbsoluteFile();
+        File f = new File(App.LAYOUT_FOLDER(), name + ".w").getAbsoluteFile();
         try {
             XStream xstream = new XStream(new DomDriver());
                     xstream.autodetectAnnotations(true);

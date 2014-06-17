@@ -8,14 +8,15 @@ package GUI.objects.Balancer;
 
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.shape.Rectangle;
 
 /**
  *
  * @author uranium
  */
-public class BalancerSkin  extends BehaviorSkinBase<Balancer, BalancerBehavior> {
+public class BalancerSkin extends BehaviorSkinBase<Balancer, BalancerBehavior> {
     
     // the container for the traditional rating control. If updateOnHover and
     // partialClipping are disabled, this will show a combination of strong
@@ -69,6 +70,8 @@ public class BalancerSkin  extends BehaviorSkinBase<Balancer, BalancerBehavior> 
         foregroundContainer.setPreserveRatio(false);
         foregroundContainer.fitHeightProperty().bind(getSkinnable().prefHeightProperty());
         foregroundContainer.fitWidthProperty().bind(getSkinnable().prefWidthProperty());
+        
+        
         foregroundContainer.getStyleClass().add("foregr");
         foregroundContainer.setMouseTransparent(true);
         getChildren().add(foregroundContainer);
@@ -76,18 +79,25 @@ public class BalancerSkin  extends BehaviorSkinBase<Balancer, BalancerBehavior> 
         forgroundClipRect = new Rectangle();
         foregroundContainer.setClip(forgroundClipRect);
         
-        getSkinnable().addEventHandler(MouseEvent.MOUSE_DRAGGED, (MouseEvent e) -> {
-            if (getSkinnable().contains(e.getX(), e.getY())) {
-                double bal = (e.getX()/getSkinnable().getWidth()-0.5)*2;
+        // install behavior
+        // note: use container instead of stylable component. When putting the
+        // stylable within a gridPane (for example) its PrefWidth is not what
+        // one would expect. As such the balancig with mouse didnt work properly.
+        getSkinnable().addEventHandler(MOUSE_DRAGGED, e -> {
+            double x = e.getX() - foregroundContainer.getLayoutX();
+            if (getSkinnable().contains(x, e.getY())) {
+                double bal = (x/foregroundContainer.getFitWidth()-0.5)*2;
                 getSkinnable().setBalance(bal);
             }
         });
-        getSkinnable().addEventHandler(MouseEvent.MOUSE_PRESSED, (MouseEvent e) -> {
-            if (getSkinnable().contains(e.getX(), e.getY())) {
-                double bal = (e.getX()/getSkinnable().getWidth()-0.5)*2;
+        getSkinnable().addEventHandler(MOUSE_PRESSED, e -> {
+            double x = e.getX() - foregroundContainer.getLayoutX();
+            if (getSkinnable().contains(x, e.getY())) {
+                double bal = (x/foregroundContainer.getFitWidth()-0.5)*2;
                 getSkinnable().setBalance(bal);
             }
         });
+        
         
         // init
         updateBalance(getSkinnable().getBalance());
@@ -137,4 +147,6 @@ public class BalancerSkin  extends BehaviorSkinBase<Balancer, BalancerBehavior> 
         forgroundClipRect.setWidth(end-start);
         forgroundClipRect.setHeight(h);
     }
+    
+    
 }

@@ -4,7 +4,6 @@ package GUI.Traits;
 import Configuration.Configuration;
 import javafx.animation.ScaleTransition;
 import javafx.beans.property.ObjectProperty;
-import javafx.event.Event;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
@@ -47,12 +46,12 @@ public interface ScaleOnHoverTrait extends HoverableTrait {
         ScaleTransition y = new ScaleTransition(getDurationOnHover(), getNode());
                         y.setToX(1);
                         y.setToY(1);
-        getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, (Event t1) -> {
+        getNode().addEventFilter(MouseEvent.MOUSE_ENTERED, e -> {
             if (Configuration.allowAnimation)
                 if(isHoverable())
                     t.play();
         });
-        getNode().addEventHandler(MouseEvent.MOUSE_EXITED, (Event t1) -> {
+        getNode().addEventFilter(MouseEvent.MOUSE_EXITED, e -> {
             if (Configuration.allowAnimation)
                 if(isHoverable())
                     y.play();

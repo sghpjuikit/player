@@ -1,16 +1,14 @@
 
 package Layout.Widgets;
 
-import Configuration.ConfigManager;
-import Configuration.Configuration;
-import GUI.Components.Circles;
-import GUI.Components.ConfiguratorComponent;
-import GUI.Components.Graphs;
-import GUI.Components.HtmlEditor;
-import GUI.Components.PlaylistManagerComponent;
-import GUI.Components.Spectrumator;
 import GUI.ContextManager;
 import Layout.LayoutManager;
+import Layout.WidgetImpl.Circles;
+import Layout.WidgetImpl.ConfiguratorComponent;
+import Layout.WidgetImpl.Graphs;
+import Layout.WidgetImpl.HtmlEditor;
+import Layout.WidgetImpl.PlaylistManagerComponent;
+import Layout.WidgetImpl.Spectrumator;
 import Layout.Widgets.Widget.Group;
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +74,7 @@ public final class WidgetManager {
     private static void registerExternalWidgetFactories() {
         Log.deb("Searching for external widgets.");
         // get folder
-        File dir = new File(App.WIDGET_FOLDER());
+        File dir = App.WIDGET_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("External widgets registration failed.");
             return;
@@ -105,7 +103,8 @@ public final class WidgetManager {
     
     /** @return stream of currently loaded widgets. */
     public static Stream<Widget> getWidgets() {
-        return LayoutManager.getLayouts().flatMap(l->l.getAllWidgets().stream());
+        return LayoutManager.getLayouts()
+                .flatMap(l->l.getAllWidgets().stream());
     }
 
     /**
@@ -120,7 +119,7 @@ public final class WidgetManager {
         // attempt to get preferred widget from loaded widgets
         if (out == null)
             out = getWidgets()
-                    .filter(w->cond.test(w))
+                    .filter(w-> cond.test(w))
                     .filter(w-> w.isPreffered())
                     .findFirst().orElse(null);
         // attempt to get any widget from loaded widgets

@@ -4,7 +4,9 @@ package GUI;
 import AudioPlayer.Player;
 import Configuration.Configurable;
 import Configuration.IsAction;
+import Configuration.IsActionable;
 import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import Configuration.SkinEnum;
 import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
@@ -26,7 +28,11 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
+import static javafx.scene.text.FontPosture.ITALIC;
+import static javafx.scene.text.FontPosture.REGULAR;
 import javafx.scene.text.FontWeight;
+import static javafx.scene.text.FontWeight.BOLD;
+import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -35,6 +41,8 @@ import utilities.Log;
  *
  * @author uranium
  */
+@IsActionable
+@IsConfigurable
 public class GUI implements Configurable {
     
     // properties
@@ -57,13 +65,13 @@ public class GUI implements Configurable {
     public static double gui_overlay_norm_factor = 0.5;
     
     @IsConfig(name = "Layout mode blur", info = "Layout mode use blur effect.")
-    public static boolean blur_layoutMode = true;
+    public static boolean blur_layoutMode = false;
     @IsConfig(name = "Layout mode fade", info = "Layout mode use fade effect.")
     public static boolean opacity_layoutMode = false;
     @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.", min=0.0, max=1.0)
     public static double opacity_LM = 0.2;
-    @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur efect intensity.", min=0.0, max=10.0)
-    public static double blur_LM = 5;
+    @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur efect intensity.", min=0.0, max=20.0)
+    public static double blur_LM = 8;
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static double duration_LM = 250;
     
@@ -119,12 +127,12 @@ public class GUI implements Configurable {
         return alt_state;
     }
     /** Loads/refreshes whole gui. */
-    @IsAction(name = "Reload GUI.", info = "Reload application GUI.", shortcut = "F5")
+    @IsAction(name = "Reload GUI.", description = "Reload application GUI.", shortcut = "F5")
     public static void refresh() {
-        if (App.getInstance().isGuiInitialized()) {
+        if (App.getWindow().isInitialized()) {
             applySkin();
             applyFont();
-            App.getInstance().getWindow().update();                 // reinitialize window
+            App.getWindow().update();                 // reinitialize window
             applyOverlayUseAppColor();
             applyColorOverlay();
             loadLayout();
@@ -133,7 +141,7 @@ public class GUI implements Configurable {
     }
     
     /** Loads/refreshes active layout. */
-    @IsAction(name = "Reload layout", info = "Reload layout.", shortcut = "F6")
+    @IsAction(name = "Reload layout", description = "Reload layout.", shortcut = "F6")
     public static void loadLayout() {
         LayoutManager.getLayouts().forEach(l-> {
 //            l.close();
@@ -141,27 +149,27 @@ public class GUI implements Configurable {
     }
     
     /** Toggles layout controlling mode. */
-    @IsAction(name = "Manage Layout", info = "Enables layout managment mode.", shortcut = "F7")
+    @IsAction(name = "Manage Layout", description = "Enables layout managment mode.", shortcut = "F7")
     public static void toggleLayoutMode() {
-        if (alt_state)
-            setLayoutMode(false);
-        else
-            setLayoutMode(true);
+        setLayoutMode(!alt_state);
     }
     
-    @IsAction(name = "Minimize", info = "Switch minimized mode.", shortcut = "F9")
+    @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F9")
     public static void toggleMinimize() {
-        App.getInstance().getWindow().toggleMinimize();
+        if (ContextManager.activeWindow != null)
+            ContextManager.activeWindow.toggleMinimize();
     }
     
-    @IsAction(name = "Maximize", info = "Switch maximized mode.", shortcut = "F10")
+    @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F10")
     public static void toggleMaximize() {
-        App.getInstance().getWindow().toggleMaximize();
+        if (ContextManager.activeWindow != null)
+            ContextManager.activeWindow.toggleMaximize();
     }
     
-    @IsAction(name = "Fullscreen", info = "Switch fullscreen mode.", shortcut = "F11")
+    @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F11")
     public static void toggleFullscreen() {
-        App.getInstance().getWindow().toggleFullscreen();
+        if (ContextManager.activeWindow != null)
+            ContextManager.activeWindow.toggleFullscreen();
     }
 
     
@@ -171,7 +179,7 @@ public class GUI implements Configurable {
      */
     public static void findSkins() {
         // get + verify path
-        File dir = new File(App.SKIN_FOLDER());
+        File dir = App.SKIN_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Search for skins failed.");
             return;
@@ -189,7 +197,7 @@ public class GUI implements Configurable {
         // populate skins
         skin.clear();
         if (files.isEmpty())
-            Log.mess("Skin folder '" + App.SKIN_FOLDER() + "' is empty. No valid skins found.");
+            Log.mess("Skin folder '" + dir.getPath() + "' is empty. No valid skins found.");
         else
             Log.mess(files.size() + " valid skins found.");
         
@@ -246,7 +254,7 @@ public class GUI implements Configurable {
         } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
             setSkinCaspian();
         }
-        String path = App.SKIN_FOLDER() + separator + skinname + separator + skinname + ".css";
+        String path = App.SKIN_FOLDER().getPath() + separator + skinname + separator + skinname + ".css";
         File skin_file = new File(path);
         setSkinExternal(skin_file);
     }
@@ -264,7 +272,7 @@ public class GUI implements Configurable {
      * that the new skin has been applied regardless of the success.
      */
     private static boolean setSkinExternal(File skin) {
-        if (App.getInstance().isGuiInitialized() && FileUtil.isValidSkinFile(skin)) {
+        if (App.getWindowOwner().isInitialized() && FileUtil.isValidSkinFile(skin)) {
             try {
                 String url = skin.toURI().toURL().toExternalForm();
                 // force refresh skin if already set
@@ -285,7 +293,7 @@ public class GUI implements Configurable {
         return false;
     }
     private static boolean setSkinModena() {
-        if (App.getInstance().isGuiInitialized()) {
+        if (App.getWindowOwner().isInitialized()) {
             Application.setUserAgentStylesheet(STYLESHEET_MODENA);
             GUI.skin = new SkinEnum("Modena");
             return true;
@@ -293,7 +301,7 @@ public class GUI implements Configurable {
         return false;
     }
     private static boolean setSkinCaspian() {
-        if (App.getInstance().isGuiInitialized()) {
+        if (App.getWindowOwner().isInitialized()) {
             Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
             GUI.skin = new SkinEnum("Caspian");
             return true;
@@ -308,18 +316,23 @@ public class GUI implements Configurable {
     }
     
     private static void applyFont() {
-        if (App.getInstance().isGuiInitialized()) {
-            String tmp = font.getStyle().toLowerCase();
-            FontPosture style = tmp.contains("italic") ? FontPosture.ITALIC : FontPosture.REGULAR;
-            FontWeight weight = tmp.contains("bold") ? FontWeight.BOLD : FontWeight.NORMAL;
-            // for some reason java and css values are quite different...
-            String styleS = style==FontPosture.ITALIC ? "italic" : "normal";
-            String weightS = weight==FontWeight.BOLD ? "bold" : "normal";
-            App.getInstance().getWindow().getStage().getScene().getRoot().setStyle(
-                    "-fx-font-family: \"" + font.getFamily() + "\";" +
-                    "-fx-font-style: " + styleS + ";" +
-                    "-fx-font-weight: " + weightS + ";" +
-                    "-fx-font-size: " + font.getSize() + ";");
+        // apply only if application initialized correctly
+        if (App.getWindowOwner().isInitialized()) {
+            // we need to apply to each window separately
+            ContextManager.windows.forEach( w ->{
+                String tmp = font.getStyle().toLowerCase();
+                FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
+                FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;
+                // for some reason javaFX and css values are quite different...
+                String styleS = style==ITALIC ? "italic" : "normal";
+                String weightS = weight==BOLD ? "bold" : "normal";
+                w.getStage().getScene().getRoot().setStyle(
+                    "-fx-font-family: \"" + font.getFamily() + "\";" + 
+                    "-fx-font-style: " + styleS + ";" + 
+                    "-fx-font-weight: " + weightS + ";" + 
+                    "-fx-font-size: " + font.getSize() + ";"
+                );
+            });
         }
     }
     

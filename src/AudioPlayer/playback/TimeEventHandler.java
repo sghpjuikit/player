@@ -5,9 +5,9 @@
  */
 package AudioPlayer.playback;
 
-import utilities.functional.functor.Procedure;
 import javafx.util.Duration;
 import utilities.Log;
+import utilities.functional.functor.Procedure;
 
 /**
  *
@@ -27,7 +27,7 @@ public class TimeEventHandler {
         private Duration timeMin;
         private Duration timeMax;        
         
-        TimeEventHandler(Duration at, Procedure b) {
+        public TimeEventHandler(Duration at, Procedure b) {
             atTime = at;
             percMin = 0;
             percMax = 0;

@@ -4,7 +4,7 @@
  */
 package PseudoObjects;
 
-import AudioPlayer.playlist.Playlist;
+import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistCategorizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,12 +112,12 @@ public class Category {
      * @param allPlaylists
      * @return 
      */
-    public List<Playlist> getPlaylists() {
-        List<Playlist> allPlaylists = PlaylistCategorizer.getPlaylists();
-        List<Playlist> out = new ArrayList<>();
+    public List<NamedPlaylist> getPlaylists() {
+        List<NamedPlaylist> allPlaylists = PlaylistCategorizer.getPlaylists();
+        List<NamedPlaylist> out = new ArrayList<>();
         if (allPlaylists == null || allPlaylists.isEmpty()) { return out; }
         
-        for (Playlist p: allPlaylists) {
+        for (NamedPlaylist p: allPlaylists) {
             if (p.getCategories().contains(getName())) { out.add(p); }
         }
         return out;

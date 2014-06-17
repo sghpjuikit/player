@@ -23,8 +23,8 @@ import utilities.functional.functor.Procedure;
  * @author uranium
  */
 final class Core {
-    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty<>();
-    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty<>();
+    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty<>(Metadata.EMPTY());
+    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty<>(Metadata.EMPTY());
     
     final SimpleObjectProperty<Metadata> selectedMetadata = new SimpleObjectProperty<>();
     final ObservableList<Metadata> selectedMetadatas = FXCollections.observableArrayList();
@@ -40,8 +40,9 @@ final class Core {
         PlaylistManager.playingItemProperty().addListener((observable, oldV, newV) -> {
                 // change current Metadata
                 if (nextMetadataCache.get() != null && newV.same(nextMetadataCache.get())) {
+                    Metadata oldM = currentMetadataCache.get();
                     currentMetadataCache.set(nextMetadataCache.get());
-                    itemChange.fireEvent(true, nextMetadataCache.get());
+                    itemChange.fireEvent(true,oldM,nextMetadataCache.get());
                     Log.deb("Metadata cache copied from next item metadata cache.");
                 } else {
                     Log.deb("Metadata cache copy failed. Next item metadata cache content doesnt correspond to current item.");
@@ -82,13 +83,15 @@ final class Core {
         PlaylistItem item = PlaylistManager.getPlayingItem();
         MetadataReader.create(item, 
             result -> {
+                Metadata oldM = currentMetadataCache.get();
                 currentMetadataCache.set(result);
-                itemChange.fireEvent(changeType, result);
+                itemChange.fireEvent(changeType,oldM,result);
                 Log.deb("Current metadata cache loaded.");
             },
             () -> {
+                Metadata oldM = currentMetadataCache.get();
                 currentMetadataCache.set(item.toMetadata());
-                itemChange.fireEvent(changeType, currentMetadataCache.get());
+                itemChange.fireEvent(changeType, oldM, currentMetadataCache.get());
                 Log.deb("Current metadata cache load fail. Metadata will be empty.");
             }
         );
@@ -127,10 +130,7 @@ final class Core {
         // this algorithm makes use of the fact that selected items are already
         // loaded and Last selected must always be among them. No need to add
         // more listeners and whatnot, just look it up
-        
-        
-        selectedMetadata.set(null); // if empty leave null (null=empty)
-        
+                
         PlaylistItem lastSelected = PlaylistManager.getSelectedItem();
         for (Metadata m: selectedMetadatas) {
             if (m.same(lastSelected)) {
@@ -139,7 +139,11 @@ final class Core {
                 return; // return if found
             }
         }
+        // handle error
         Log.deb("In playlist last selected metadata loaded. Empty.");
+        // this must never be called if the loading is success or it can cause
+        // incorrect selected item value and break application behavior
+        selectedMetadata.set(null); // if empty leave null (null=empty)
     }
     
     private void loadPlaylistSelectedMetadatas() {

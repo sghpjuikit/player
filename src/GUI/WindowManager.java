@@ -27,7 +27,7 @@ public class WindowManager {
     }
     public static void setMini(boolean val) {
         mini = val;
-            App.getInstance().getWindow().setVisible(false);
+            App.getWindow().setVisible(false);
         if(val) {
             Window tmp = Serializator.deserializeWindow();
             if(tmp!=null) {
@@ -41,7 +41,7 @@ public class WindowManager {
             miniWindow.update();
         } else {
             Serializator.serializeWindow(miniWindow);
-            App.getInstance().getWindow().setVisible(true);
+            App.getWindow().setVisible(true);
             miniWindow.close();
             miniWindow=null;
         }

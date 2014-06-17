@@ -1,17 +1,20 @@
 
 package GUI;
 
+import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
-import Configuration.Configuration;
 import GUI.objects.Pickers.Notification;
 import GUI.objects.Pickers.Notification.NotificationType;
-import javafx.beans.value.ObservableValue;
+import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
+import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
+import static GUI.objects.Pickers.Notification.NotificationType.SONG;
+import static GUI.objects.Pickers.Notification.NotificationType.TEXT;
 import javafx.scene.Node;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
+import static javafx.scene.media.MediaPlayer.Status.PAUSED;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 
 /**
  * @author uranium
@@ -19,53 +22,54 @@ import javafx.scene.media.MediaPlayer.Status;
 public final class NotifierManager {
     private final static Notification n = new Notification();
 
+    /**
+     * Sets up application notification behavior.
+     * Dont invoke. Invoked Automatically. */
     public static void initialize() {
-        
-        PlaylistManager.playingItemProperty().addListener((ObservableValue<? extends PlaylistItem> ov, PlaylistItem t, PlaylistItem t1) -> {
-            if (PlaylistManager.isItemPlaying())
-                songChange();
+        // show notification on playback status change
+        PLAYBACK.statusProperty().addListener((observable, oldV, newV) -> {
+            if (newV == PAUSED || newV ==PLAYING || newV == STOPPED)
+                playbackStatusChange(oldV,newV);
         });
-        PLAYBACK.statusProperty().addListener((ObservableValue<? extends Status> ov, Status t, Status t1) -> {
-            MediaPlayer.Status stat = PLAYBACK.getStatus();
-            if (stat == Status.PAUSED || stat ==Status.PLAYING || stat == Status.STOPPED)
-                playbackStatusChange();
-        });
+        // show notification on song change
+        Player.addOnItemChange(NotifierManager::songChange);
     }
     
-    private static void songChange() {
-        if (Configuration.showSongNotification) {
-            PlaylistItem newlyPlayed = PlaylistManager.getPlayingItem();
-            Metadata m = newlyPlayed.getMetadata();
-            NotifierManager.showNotification(m , "New Song", NotificationType.Song);
-        }
-    }
-    
-    private static void playbackStatusChange() {
-        if (!Configuration.showStatusNotification)
-            return;
-        if (PLAYBACK.getStatus() == null)
-            return;
-        
-        PlaylistItem playing = PlaylistManager.getPlayingItem();
-        Metadata m = playing == null ? null : playing.getMetadata();
-        NotifierManager.showNotification(m, "Playback change : " + PLAYBACK.getStatus().toString(),NotificationType.Playback);
-    }
-    
+    /** Show notification for custom content. */
     public static void showNotification(Node content, String title) {
-        NotifierManager.showNotification(content, title, NotificationType.Other);
+        NotifierManager.showNotification(content, title, OTHER);
     }
+    /** Show notification for text. */
     public static void showTextNotification(String text, String title) {
-        NotifierManager.showNotification(text, title, NotificationType.Text);
+        NotifierManager.showNotification(text, title, TEXT);
+    }
+    
+/******************************************************************************/
+    
+    private static void songChange(Metadata oldI, Metadata newI) {
+        if (Notification.showSongNotification)
+            NotifierManager.showNotification(newI , "New Song", SONG);
+    }
+    
+    private static void playbackStatusChange(Status oldS, Status newS) {
+        if (!Notification.showStatusNotification || newS == null) return;
+        
+        Metadata m = Player.getCurrentMetadata();
+        String text = "Playback change : " + PLAYBACK.getStatus().toString();
+        NotifierManager.showNotification(m, text, PLAYBACK_STATUS);
     }
     
     /**
      * @param content
      * @param title Description of the event. Example: "New Playing".
      */
-    private static void showNotification(Object content, String title, Notification.NotificationType type) {
-        if (Configuration.showNotification) {
+    private static void showNotification(Object content, String title, NotificationType type) {
+        if (Notification.showNotification) {
             n.setContent(content, title, type);
-            n.show(Configuration.notifPos);
+            n.show(Notification.notifPos);
         }
+    }
+    public static void hide() {
+        n.hide();
     }
 }

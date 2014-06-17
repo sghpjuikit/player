@@ -22,9 +22,8 @@ public abstract class WidgetFactory<W extends Widget> {
         this.name = name;
         
         // init info
-        info = info_carrier_type.getAnnotation(WidgetInfo.class);
-        if (info == null) 
-            Widget.EMPTY().getController().getClass().getAnnotation(WidgetInfo.class);
+        WidgetInfo i = info_carrier_type.getAnnotation(WidgetInfo.class);
+        info = i!=null ? i : Widget.EMPTY().getController().getClass().getAnnotation(WidgetInfo.class);
     }
     
     /**
@@ -56,7 +55,7 @@ public abstract class WidgetFactory<W extends Widget> {
     
     
      /**
-     * Registers widget factory if it isnt yet. Only registered factories can
+     * Registers widget factory. Only registered factories can
      * create widgets.
      * Registering can only be done once and can not be undone.
      * Does nothing if specified factory already is registered. Factory can not

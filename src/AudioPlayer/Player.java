@@ -1,6 +1,7 @@
 
 package AudioPlayer;
 
+import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
@@ -12,7 +13,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.util.Duration;
-import utilities.functional.functor.UnProcedure;
 
 /**
  *
@@ -32,7 +32,8 @@ public class Player {
         PlaylistManager.changeState();
         PLAYBACK.loadLastState();
     }
-        
+    
+    /** @return Metadata representing currently played item. Never null. */
     public static Metadata getCurrentMetadata() {
         return core.currentMetadataCache.get();
     }
@@ -98,17 +99,26 @@ public class Player {
 /******************************************************************************/
     
     /** Add behavior to playing item updated event. The event is fired every time
-     * currently playing item changes or some of its metadata is changed.*/
-    public static void addOnItemUpdate(UnProcedure<Metadata> handler) {
+     * playing item changes or some of its metadata is changed such as
+     * rating update.
+     * <p>
+     * Use in cases requiring constantly updated information about the playing 
+     * item. This event guarantees consistency with currently played item 
+     * metadata at all time.
+     */
+    public static void addOnItemUpdate(ItemChangeHandler<Metadata> handler) {
         core.itemChange.addOnUpdateHandler(handler);
     }
     /** Add behavior to playing item changed event. The event is fired every time
-     * currently playing item changes.*/
-    public static void addOnItemChange(UnProcedure<Metadata> handler) {
+     * playing item changes. Playing the same item again will fire the event too.
+     * <p>
+     * Use when only momentary information about the playing item are required.
+     */
+    public static void addOnItemChange(ItemChangeHandler<Metadata> handler) {
         core.itemChange.addOnChangeHandler(handler);
     }
     /** Remove behavior from playing item event.*/
-    public static void remOnItemUpdate(UnProcedure<Metadata>handler) {
+    public static void remOnItemUpdate(ItemChangeHandler<Metadata>handler) {
         core.itemChange.remHandler(handler);
     }
     

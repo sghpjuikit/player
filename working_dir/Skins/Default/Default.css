@@ -976,6 +976,7 @@ is being used to size a border should also be in pixels.
     -fx-background-radius:0;
 }
 .slider:focused .thumb {
+    // lets stay rectangular
     /*-fx-background-radius: 1.0em;  makes sure this remains circular*/ 
 }
 .slider .track {
@@ -1288,6 +1289,7 @@ is being used to size a border should also be in pixels.
 
 .label {
     -fx-text-fill: -fx-def-font-color;
+    /*-fx-background-color: rgb(255,255,255);*/ // this would set rectangular text bgr
     /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0, 0.0 , 0 , 1 );*/
 }
 /*******************************************************************************
@@ -3225,6 +3227,7 @@ is being used to size a border should also be in pixels.
 .brg-image {
     -fx-opacity:0.2;
     -fx-background-image: url("bgr.jpg");
+    -fx-background-size: stretch;
     -fx-blend-mode: multiply;
 }
 .darker {
@@ -3253,10 +3256,7 @@ is being used to size a border should also be in pixels.
 }
 
 .lighter-button {
-    /*-fx-opacity: 0.5;*/
-    -fx-background-color: rgba(180,200,255,0.2);
-    /*-fx-blend-mode: overlay;*/
-    
+    -fx-background-color: rgba(180,200,255,0.1);
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
@@ -3264,16 +3264,25 @@ is being used to size a border should also be in pixels.
     -fx-border-insets: -2, -0.5;
 }
 .lighter-button:hover {
-    -fx-background-color: rgba(0,0,0,0.2);
+    /*-fx-background-color: rgba(0,0,0,0.2);*/
+    -fx-background-color: null;
+    -fx-border-color: 
+        transparent transparent rgba(255, 255, 255, 0.08) transparent,
+        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
+    -fx-border-width: 1, 1.5;
+    -fx-border-insets: -2, -0.5;
 }
 
 // small button mostly within custom controls for opening dialogs. For example
 // Font picker from within text area.
 .dialog-button {
-    -fx-background-color: rgba(0,0,0,0.2);
-}
-.dialog-button:hover {
-    -fx-background-color: rgba(0,0,0,0.4);
+    // the below is the arrow css used for other components like combo-box
+    -fx-background-color: -fx-def-font-color;
+    /* use thid to get nice not filled arrow */
+    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
 
 //****************************************************************************//
@@ -3354,4 +3363,52 @@ is being used to size a border should also be in pixels.
 .popover > .content > .title > .icon > .graphics > .line {
     -fx-stroke: white ;
     -fx-stroke-width: 2;
+}
+
+
+//****************************** THUMBNAIL ***********************************//
+
+// background for thumbnail
+.thumbnail-bgr {
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+// border of thumbnail
+.thumbnail-border {
+    -fx-border-color: black;
+    -fx-border-width: 2; // this should be set to 2 for now as it depends on java code
+    -fx-border-insets: 0;
+}
+
+//****************************** SEEKER ***********************************//
+
+// seeker actually wraps slider and as a result it has exactly the same classes
+// as slider
+
+// leaving out any skinning for seeker whatsoever will cause it to have the same
+// skin as ordinary slider
+.seeker .track {
+    -fx-background-color: rgba(255,255,255,0.3);
+    -fx-background-insets: -3; // this actually puts width back to original 100%
+    -fx-background-radius: 0;
+    -fx-padding: 3; // basically trck width (as usually the length is autosized)
+}
+
+// this is a custom element and doesnt belong under slider
+// styles markers on the seekbar. markers mark specific time point on the seeker
+// note: marker is a Rectangle which is a Shape
+.seeker-marker {
+    -fx-background-color: rgb(0,0,0);
+    -fx-opacity: 0.4;
+    -fx-padding: 4 2 4 2; // height=4, width=2
+}
+
+//*********************************** TEXT ***********************************//
+
+// javafx.scene.text.Text doesnt actually have a style class so this is a custom
+// implementation of that
+// it does however have to be applied manually in the code upon Text object
+// creation. A sublass of Text could however be created that uses this style
+// class by default
+.text {
+    -fx-fill: -fx-def-font-color;
 }

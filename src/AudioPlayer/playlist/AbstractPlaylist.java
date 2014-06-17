@@ -1,15 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package AudioPlayer.playlist;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +25,7 @@ abstract public class AbstractPlaylist {
     /**
      * @return List backing the Playlist implementation of this class.
      */
-    abstract List<PlaylistItem> list();
+    protected abstract List<PlaylistItem> list();
    /**
      * @return Items of playlist. Depending on implementation, this can be
      * unmodifiable.
@@ -87,7 +82,13 @@ abstract public class AbstractPlaylist {
      * @throws NullPointerException when param null.
      */
     public void addUrl(String url) {
-        addUrls(Collections.singletonList(url));
+        try{
+            URI u = new URI(url);
+            URL r = new URL(url);
+            addUrls(Collections.singletonList(url));
+        } catch(URISyntaxException | MalformedURLException e) {
+            throw new RuntimeException("Invalid URL.");
+        }
     }
     /**
      * Adds new items to end of this playlist, based on the urls (String). Use this method
@@ -633,13 +634,17 @@ abstract public class AbstractPlaylist {
      * @return up to date length of the playlist.
      */
     protected Duration calculateLength() {
-        double total = list().stream().mapToDouble(PlaylistItem::getTimeMillis).sum();
+        double total = list().stream()
+                .map(PlaylistItem::getTime)
+                .filter(d->!d.isIndefinite()&&!d.isUnknown())
+                .mapToDouble(d->d.toMillis())
+                .sum();
         return Duration.millis(total);
     }
     /**
      * For internal use only.
      * Sets duration to updated value.
      */
-    abstract protected void updateDuration();
+    protected void updateDuration(){};
     
 }

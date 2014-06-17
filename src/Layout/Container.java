@@ -72,14 +72,14 @@ public abstract class Container extends Component implements AltState {
      * @return true if container is root - has no parent
      */
     public boolean isRoot() {
-        return (parent == null);
+        return parent == null;
     }
     
     /** 
-     * Equivalent to isRoot()
+     * Equivalent to !isRoot()
      * @return whether has parent */
     public boolean hasParent() {
-        return (parent == null);
+        return parent != null;
     }
     
     /** @return parent container of this container */
@@ -248,12 +248,12 @@ public abstract class Container extends Component implements AltState {
      * If the container is root, this method is a no-op.
      */
     public void close() {
-        System.out.println("SIZE "+getAllWidgets().size());
-//        getAllWidgets().stream().map(w->w.getController()).forEach(c->{
+//        System.out.println("SIZE "+getAllWidgets().size());
+        getAllWidgets().stream().map(w->w.getController()).forEach(c->{
 //            System.out.println(c.getClass().getName());
 //            System.out.println(indexOf(c.getWidget()) + " " + c.getWidget().getName());
-//            c.OnClosing();
-//        });
+            c.OnClosing();
+        });
         if (!isRoot())
             parent.removeChild(this);
     }
@@ -277,6 +277,38 @@ public abstract class Container extends Component implements AltState {
                 ((Container)c).initialize();
             }
         }
+    }
+    
+/******************************************************************************/
+    
+    /** Locks container. */
+    public void setLocked(boolean val) {
+        properties.set("locked", val);
+    }
+    /** Changes the lock on/off. */
+    public void toggleLock() {
+        setLocked(!isLocked());
+    }
+    /**
+     * Whether the container is locked. The effect of lock is not implicit and
+     * might vary. Generally, the container becomes immune against certain
+     * changes.
+     * <p>
+     * Note that the method {@link #isUnderLock()} may be better fit for use.
+     * This method has use mostly internally.
+     * @return true if this container is locked. Note that container can still
+     * be under lock from its parent 
+     */
+    public boolean isLocked() {
+        return (Boolean) properties.get("locked", false);
+    }
+    /**
+     * @return true if this container is under locked either its own or one of 
+     * its parents.
+     */
+    public boolean isUnderLock() {
+        boolean locked = isLocked();
+        return locked || (hasParent() && parent.isUnderLock());
     }
     
 /******************************************************************************/

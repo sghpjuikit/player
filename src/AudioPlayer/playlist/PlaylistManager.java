@@ -6,8 +6,13 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import Configuration.Configurable;
 import Configuration.IsAction;
+import Configuration.IsActionable;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import GUI.Dialogs.ContentDialog;
+import java.io.File;
 import java.net.URI;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javafx.beans.property.ObjectProperty;
@@ -17,12 +22,19 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.TextField;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
-import utilities.Util;
+import main.App;
+import utilities.AudioFileFormat;
+import utilities.FileUtil;
 
 /**
  * Provides unified handling to everything playlist related in the application
  */
+@IsConfigurable(group = "Playlist")
+@IsActionable
 public class PlaylistManager implements Configurable {
     
     private static final ObservablePlaylist playlist = new ObservablePlaylist(Player.state.playlist.playlist);
@@ -296,7 +308,6 @@ public class PlaylistManager implements Configurable {
      */
     public static void removeItem(PlaylistItem item) {
         playlist.removeItem(item);
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -304,7 +315,6 @@ public class PlaylistManager implements Configurable {
      */
     public static void removeItems(List<PlaylistItem> items) {
         playlist.removeItems(items);
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -313,23 +323,20 @@ public class PlaylistManager implements Configurable {
      */
     public static void removeAllItems() {
         playlist.clear();
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     /**
-Re   * Retains only the elements in this list that are contained in the specified 
-*    * collection (optional operation). In other words, removes from this list all of
-*    * its elements that are not contained in the specified collection.
+     * Retains only the elements in this list that are contained in the specified 
+     * collection (optional operation). In other words, removes from this list all of
+     * its elements that are not contained in the specified collection.
      */
     public static void retainItems(List<PlaylistItem> items) {
         playlist.retainItems(items);
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     /**
      * Removes all corrupt items from this playlist.
      */
     public static void removeCorrupt() {
         playlist.removeCorrupt();
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     /**
      * Removes all duplicates of all items of this playlist. After this method
@@ -339,7 +346,6 @@ Re   * Retains only the elements in this list that are contained in the specifie
      * returns true.
      */
     public static void removeDuplicates() {
-//        selectionModel.get().clearSelection(); selectedItems.clear();
         playlist.removeDuplicates();
     }
     /**
@@ -349,7 +355,6 @@ Re   * Retains only the elements in this list that are contained in the specifie
      */
     public static void duplicateItem(PlaylistItem item) {
         playlist.duplicateItem(item);
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
 
     /**
@@ -359,7 +364,6 @@ Re   * Retains only the elements in this list that are contained in the specifie
      */
     public static void duplicateItemsAsGroup(List<PlaylistItem> items) {
         playlist.duplicateItemsAsGroup(items);
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -370,7 +374,6 @@ Re   * Retains only the elements in this list that are contained in the specifie
      */    
     public static void duplicateItemsByOne(List<PlaylistItem> items) {
         playlist.duplicateItemsByOne(items);
-//        selectionModel.get().clearSelection(); selectedItems.clear();
     }
     
     /**
@@ -470,25 +473,25 @@ Re   * Retains only the elements in this list that are contained in the specifie
     }
     
     /** Plays first item on playlist.*/
-    @IsAction(name = "Play first", info = "Plays first item on playlist.", shortcut = "ALT+W")
+    @IsAction(name = "Play first", description = "Plays first item on playlist.", shortcut = "ALT+W", global = true)
     public static void playFirstItem() {
         playItem(0);
     }
     
     /** Plays last item on playlist.*/
-    @IsAction(name = "Play last", info = "Plays last item on playlist.")
+    @IsAction(name = "Play last", description = "Plays last item on playlist.", global = true)
     public static void playLastItem() {
         playItem(playlist.getSize()-1);
     }
     
     /** Plays next item on playlist according to its selector logic.*/
-    @IsAction(name = "Play next", info = "Plays next item on playlist.", shortcut = "ALT+Z")
+    @IsAction(name = "Play next", description = "Plays next item on playlist.", shortcut = "ALT+Z", global = true)
     public static void playNextItem() {
         playItem(playingItemSelector.getNextPlaying());
     }
     
     /** Plays previous item on playlist according to its selector logic.*/
-    @IsAction(name = "Play previous", info = "Plays previous item on playlist.", shortcut = "ALT+\\")
+    @IsAction(name = "Play previous", description = "Plays previous item on playlist.", shortcut = "ALT+BACK_SLASH", global = true)
     public static void playPreviousItem() {
         playItem(playingItemSelector.getPreviousPlaying());
     }
@@ -529,15 +532,128 @@ Re   * Retains only the elements in this list that are contained in the specifie
         return new PlaylistState(getItems(), playingItem.get());
     }
     
-    /**
-     * Serializes active playlist into new native playlist file with name consisting of
-     * "Listening To" and current datetime.
+    /** Plays previous item on playlist according to its selector logic.*/
+    @IsAction(name = "Play previous", description = "Plays previous item on playlist.", shortcut = "ALT+\\", global = true)
+    public static void openFile() {
+        playItem(playingItemSelector.getPreviousPlaying());
+    }
+    
+/******************************************************************************/
+    
+    @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
+    public static File browse = App.getAppLocation();
+    @IsConfig(name = "File search depth", info = "Depth for recursive search within directories. 0 denotes specified directory.")
+    public static int folder_depth = 1;
+    
+    /** Open chooser and add new to end of playlist. */
+    @IsAction(name = "Choose and Add Files", description = "Open file chooser to add files to playlist.")
+    public static void chooseFilestoAdd() {
+        addOrEnqueueFiles(true);
+    }
+    /** Open chooser and add new to end of playlist. */
+    @IsAction(name = "Choose and Add Directory", description = "Open file chooser to add files from directory to playlist.")
+    public static void chooseFoldertoAdd() {
+        addOrEnqueueFolder(true);
+    }
+    /** Open chooser and add new to end of playlist. */
+    @IsAction(name = "Choose and Add Url", description = "Open file chooser to add url to playlist.")
+    public static void chooseUrltoAdd() {
+        addOrEnqueueUrl(true);
+    }
+    /** Open chooser and play new items. Clears previous playlist */
+    @IsAction(name = "Choose and Play Files", description = "Open file chooser to play files to playlist.")
+    public static void chooseFilesToPlay() {
+        addOrEnqueueFiles(true);
+    }
+    /** Open chooser and play new items. Clears previous playlist */
+    @IsAction(name = "Choose and Play Directory", description = "Open file chooser to play files from directory to playlist.")
+    public static void chooseFolderToPlay() {
+        addOrEnqueueFolder(true);
+    }
+    /** Open chooser and play new items. Clears previous playlist */
+    @IsAction(name = "Choose and Play Url", description = "Open file chooser to add url play playlist.")
+    public static void chooseUrlToPlay() {
+        addOrEnqueueUrl(true);
+    }
+    
+    /** 
+     * Open chooser and add or play new items.
+     * @param add true to add items, false to clear playlist and play items
      */
-    public static void saveActivePlaylist() {
-        String filename = Util.filenamizeString("ListeningTo " + new Date(System.currentTimeMillis()));
-        Playlist p = new Playlist(filename, getItems());
-                 p.addCategory("Listening to...");
-        p.serialize();
+    public static void addOrEnqueueFiles(boolean add) {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Choose Audio Files");
+        if (FileUtil.isValidDirectory(browse))
+            fc.setInitialDirectory(browse);
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                "supported audio", AudioFileFormat.extensions()));
+        List<File> files = fc.showOpenMultipleDialog(App.getWindowOwner().getStage());
+        if (files != null) {
+            browse = files.get(0).getParentFile();
+            List<URI> queue = new ArrayList<>();
+            files.forEach(f -> queue.add(f.toURI()));
+            
+            if(add) addUris(queue);
+            else {
+                PLAYBACK.stop();
+                removeAllItems();
+                addUris(queue);
+                playFirstItem();
+            }
+        }
+    }
+    /** 
+     * Open chooser and add or play new items.
+     * @param add true to add items, false to clear playlist and play items
+     */
+    public static void addOrEnqueueFolder(boolean add) {
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle("Choose Audio Files From Directory Tree");
+        if (FileUtil.isValidDirectory(browse)) 
+            dc.setInitialDirectory(browse);
+        File dir = dc.showDialog(App.getWindowOwner().getStage());
+        if (dir != null) {
+            browse = dir;
+            List<URI> queue = new ArrayList<>();
+            List<File> files = FileUtil.getAudioFiles(dir, folder_depth);
+            files.forEach(f -> queue.add(f.toURI()));
+            
+            if(add) addUris(queue);
+            else {
+                PLAYBACK.stop();
+                removeAllItems();
+                addUris(queue);
+                playFirstItem();
+            }
+        }
+    }
+    /** 
+     * Open chooser and add or play new items.
+     * @param add true to add items, false to clear playlist and play items
+     */
+    private static void addOrEnqueueUrl(boolean add) {
+        // build dialog content
+        TextField f = new TextField();
+                  f.setPromptText("URL");
+        // build dialog
+        ContentDialog<TextField> dialog = new ContentDialog();
+        dialog.setContent(f);
+        dialog.setTitle("Choose URL");
+        dialog.setOnOk( c -> {
+            addUrl(c.getText());
+            
+                if(add) addUrl(c.getText());
+                else {
+                    PLAYBACK.stop();
+                    removeAllItems();
+                    addUrl(c.getText());
+                    playFirstItem();
+                }
+            
+            return true;
+        });
+        f.textProperty().addListener(text -> dialog.setMessagee(""));
+        dialog.show();
     }
 
 }

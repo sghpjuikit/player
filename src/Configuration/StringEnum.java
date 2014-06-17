@@ -88,7 +88,6 @@ public abstract class StringEnum {
     public boolean equals(Object o){
         if (o==this) return true;
         if (! (o instanceof StringEnum)) return false;
-        System.out.println(o);
         if (s== null) s = "";
         return s.equals(((StringEnum)o).s);
     }

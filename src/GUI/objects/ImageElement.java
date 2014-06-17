@@ -17,8 +17,8 @@ import javafx.scene.layout.Region;
  */
 public abstract class ImageElement {
     /**
-     * Images will not load full res, but only the size they need. Size of
-     * the GUI container is determined and multiplied by load_coeficient.
+     * Images will not load full res, but only the size they need. Preffered
+     * size of the GUI container is determined and multiplied by load_coeficient.
      */
     public final static double LOAD_COEFICIENT = 1.7;
     
@@ -44,17 +44,22 @@ public abstract class ImageElement {
      */
     public abstract void setFile(File img);
     /**
-     * Calculates size of the image to load in. In order to limit memory consumption
-     * the size of the component as parameter will be assumed to be an upper bound
+     * Calculates size of the image to load.
+     * The image normally loads 1:1 with the resolution size, but it is not 
+     * necessarily true here. This class will attempt to load the image 
+     * smaller than its resolution, taking the estimated future size into
+     * consideration.
+     * In order to limit memory consumption
+     * the size of the specified component will be assumed to be an upper bound
      * of image's future size. The image is assumed to be square and the returned
-     * size will be the greater value of the two: width, height of the parameter
-     * (preffered values), after applying the LOAD_COEFICIENT.     * 
-     * @param from
+     * size value will be {@link #LOAD_COEFICIENT} * max(width, height).
+     * <p>
+     * The sampled size values from the component are preffered size values.
+     * @param from component to use to calculate the size based on
      * @return size the image will load in.
      */
     public double calculateImageLoadSize(Region from) {
-        double size = (from.getPrefHeight() > from.getPrefWidth()) ? from.getPrefHeight() : from.getPrefWidth();
-        return LOAD_COEFICIENT*size;
+        return LOAD_COEFICIENT*Math.max(from.getPrefHeight(),from.getPrefWidth());
     }
     public abstract AnchorPane getPane();
     /**

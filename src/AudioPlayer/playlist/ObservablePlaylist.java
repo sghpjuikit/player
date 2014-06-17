@@ -50,7 +50,7 @@ public final class ObservablePlaylist extends AbstractPlaylist {
      * @return observable list backing this playlist.
      */
     @Override
-    ObservableList<PlaylistItem> list() {
+    protected ObservableList<PlaylistItem> list() {
         return playlist;
     }
     

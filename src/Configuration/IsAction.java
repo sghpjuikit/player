@@ -1,20 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package Configuration;
 
@@ -24,17 +7,54 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks static method that can be turned into action.
- * Only annotate static method with no parameters.
+ * Denotes method that can be turned into an {@link Action}.
+ * <p>
+ * Such method must be public, static, and have zero parameters.
+ * <p>
+ * In order for the method to be discovered the class the method resides within
+ * must itself be annotated by {@link IsActionable} which autodiscovers the
+ * class in order to scan it for action candidate methods.
+ * <p>
  * @author uranium
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface IsAction {
+    
+    /**
+     * Name of the action. An identifier. Should be unique within the application.
+     * @return action name
+     */
     String name() default "";
-    String info() default "";
-    /** @return shortcut */
+    
+    /**
+     * Description of the action. Can be used to provide information about what
+     * does the action do. useful for filling in graphical user interface like
+     * toolips.
+     * @return description of the action
+     */
+    String description() default "";
+    
+    /** 
+     * Key combination for shortcut of the action. Default is "".
+     * For example: CTRL+SHIFT+A, A, F7, 9, ALT+T
+     * @return shortcut */
     String shortcut() default "";
-    /** @return whether this action requires manual activation */
-    boolean sleeping() default false;
+    
+    /**
+     * Global action has broader activation limit. For example global shortcut
+     * doesn't require application to be focused. This value denotes the global
+     * attribute for the resulting action
+     * Default false;
+     * @return whether the action is global
+     */
+    boolean global() default false;
+    
+    /** 
+     * Denotes attribute of action for its activation process.
+     * @return whether this action is called once or constantly on stimulus such
+     * as key press.
+     * Default false;
+     */
+    boolean continuous() default false;
 }

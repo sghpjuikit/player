@@ -11,9 +11,10 @@ package utilities.functional.functor;
  * @author uranium
  */
 @FunctionalInterface
-public interface Procedure {
+public interface Procedure extends Runnable {
     
     /** Execute this procedure. */
+    @Override
     public void run();
     
     /** @return procedure that does nothing. */

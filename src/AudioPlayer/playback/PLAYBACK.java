@@ -1,15 +1,18 @@
 
 package AudioPlayer.playback;
 
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.Player;
+import AudioPlayer.playlist.Item;
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configurable;
 import Configuration.IsAction;
+import Configuration.IsActionable;
 import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -21,12 +24,15 @@ import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import utilities.Enviroment;
 import utilities.Log;
 import utilities.functional.functor.Procedure;
 
 /**
  * Provides methods for playback.
  */
+@IsActionable
+@IsConfigurable
 public final class PLAYBACK implements Configurable {
     @IsConfig(name="Remember playback state", info = "Continue last remembered playback when application starts.")
     public static boolean continuePlaybackOnStart = true;
@@ -114,21 +120,21 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Resumes playback, if file is being played. Otherwise does nothing. */
-    @IsAction(name = "Resume", info = "Resumes playback, if file is being played.", shortcut = "ALT+R")
+    @IsAction(name = "Resume", description = "Resumes playback, if file is being played.", shortcut = "", global = true)
     public static void resume() {
         if (playback.getMedia() == null) return;
         playback.play();
     }
     
     /** Pauses playback, if already paused, does nothing. */
-    @IsAction(name = "Pause", info = "Pauses playback, if file is being played.", shortcut = "ALT+E")
+    @IsAction(name = "Pause", description = "Pauses playback, if file is being played.", shortcut = "", global = true)
     public static void pause() {
         if (playback.getMedia() == null) return;
         playback.pause();
     }
     
     /** Pauses/resumes playback, if file is being played. Otherwise does nothing. */
-    @IsAction(name = "Pause/resume", info = "Pauses/resumes playback, if file is being played.", shortcut = "ALT+S")
+    @IsAction(name = "Pause/resume", description = "Pauses/resumes playback, if file is being played.", shortcut = "ALT+S", global = true)
     public static void pause_resume() {
         if (playback == null || playback.getMedia() == null) return;
 
@@ -139,7 +145,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Stops playback. */
-    @IsAction(name = "Stop", info = "Stops playback.", shortcut = "ALT+F")
+    @IsAction(name = "Stop", description = "Stops playback.", shortcut = "ALT+F", global = true)
     public static void stop() {
         if (playback == null) return;
         playback.stop();
@@ -163,16 +169,21 @@ public final class PLAYBACK implements Configurable {
             core.seekTo = duration;
         }
     }
+    /** Seek forward by specified duration */
+    @IsAction(name = "Seek to beginning", description = "Seek playback to beginning.", shortcut = "ALT+R", global = true)
+    public static void seekZero() {
+        seek(Duration.ZERO);
+    }
     
     /** Seek forward by specified duration */
-    @IsAction(name = "Seek forward", info = "Seek forward playback.", shortcut = "ALT+D")
+    @IsAction(name = "Seek forward", description = "Seek forward playback.", shortcut = "ALT+D", continuous = true, global = true)
     public static void seekForward() {
         Duration currTime = getCurrentTime();
         seek(currTime.add(Duration.seconds(1)));
     }
     
     /** Seek backward by specified duration */
-    @IsAction(name = "Seek backward", info = "Seek backward playback.", shortcut = "ALT+A")
+    @IsAction(name = "Seek backward", description = "Seek backward playback.", shortcut = "ALT+A", continuous = true, global = true)
     public static void seekBackward() {
         Duration  currTime = getCurrentTime();
         seek(currTime.subtract(Duration.seconds(1)));
@@ -197,13 +208,13 @@ public final class PLAYBACK implements Configurable {
     }
 
     /** Increment volume by elementary unit. */
-    @IsAction(name = "Volume up", info = "Increment volume by elementary unit.", shortcut = "CTRL+SHIFT+2")
+    @IsAction(name = "Volume up", description = "Increment volume by elementary unit.", shortcut = "CTRL+SHIFT+2", continuous = true, global = true)
     public static void incVolume() {
         setVolume(getVolume()+0.05);
     }
 
     /** Decrement volume by elementary unit. */
-    @IsAction(name = "Volume down", info = "Decrement volume by elementary unit.", shortcut = "CTRL+SHIFT+1")
+    @IsAction(name = "Volume down", description = "Decrement volume by elementary unit.", shortcut = "CTRL+SHIFT+1", continuous = true, global = true)
     public static void decVolume() {
         setVolume(getVolume()-0.05);
     }
@@ -236,7 +247,7 @@ public final class PLAYBACK implements Configurable {
         return state.getLoopMode();
     }
     
-    @IsAction(name = "Toggle looping", info = "Switch between playlist looping mode.", shortcut = "ALT+L")
+    @IsAction(name = "Toggle looping", description = "Switch between playlist looping mode.", shortcut = "ALT+L")
     public static void toggleLoopMode() {
         setLoopMode(getLoopMode().next()); System.out.println("MODE CYCLED "+getLoopMode());
     }
@@ -319,7 +330,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Switches between on/off state for mute property. */
-    @IsAction(name = "Toggle mute", info = "Switch mute on/off.", shortcut = "ALT+M")
+    @IsAction(name = "Toggle mute", description = "Switch mute on/off.", shortcut = "ALT+M")
     public static void toggleMute() {
         if (isMute()) setMute(false);
         else setMute(true);
@@ -340,34 +351,40 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Rate playing item 0/5. */
-    @IsAction(name = "Rate playing 0/5", info = "Rate currently playing item 0/5.", shortcut = "ALT+`")
+    @IsAction(name = "Rate playing 0/5", description = "Rate currently playing item 0/5.", shortcut = "ALT+BACK_QUOTE", global = true)
     public static void rate0() {
         rate(0);
     }
     /** Rate playing item 1/5. */
-    @IsAction(name = "Rate playing 1/5", info = "Rate currently playing item 1/5.", shortcut = "ALT+1")
+    @IsAction(name = "Rate playing 1/5", description = "Rate currently playing item 1/5.", shortcut = "ALT+1", global = true)
     public static void rate1() {
         rate(0.2);
     }
     /** Rate playing item 2/5. */
-    @IsAction(name = "Rate playing 2/5", info = "Rate currently playing item 2/5.", shortcut = "ALT+2")
+    @IsAction(name = "Rate playing 2/5", description = "Rate currently playing item 2/5.", shortcut = "ALT+2", global = true)
     public static void rate2() {
         rate(0.4);
     }
     /** Rate playing item 3/5. */
-    @IsAction(name = "Rate playing 3/5", info = "Rate currently playing item 3/5.", shortcut = "ALT+3")
+    @IsAction(name = "Rate playing 3/5", description = "Rate currently playing item 3/5.", shortcut = "ALT+3", global = true)
     public static void rate3() {
         rate(0.6);
     }
     /** Rate playing item 4/5. */
-    @IsAction(name = "Rate playing 4/5", info = "Rate currently playing item 4/5.", shortcut = "ALT+4")
+    @IsAction(name = "Rate playing 4/5", description = "Rate currently playing item 4/5.", shortcut = "ALT+4", global = true)
     public static void rate4() {
         rate(0.8);
     }
     /** Rate playing item 5/5. */
-    @IsAction(name = "Rate playing 5/5", info = "Rate currently playing item 5/5.", shortcut = "ALT+5")
+    @IsAction(name = "Rate playing 5/5", description = "Rate currently playing item 5/5.", shortcut = "ALT+5", global = true)
     public static void rate5() {
         rate(1);
+    }
+    /** Explore current item directory - opens file browser for its location. */
+    @IsAction(name = "Explore current item directory", description = "Explore current item directory.", shortcut = "ALT+V", global = true)
+    public static void openPlayedLocation() {
+        Item i = PlaylistManager.getPlayingItem();
+        Enviroment.browse(i==null ? null : i.getLocation());
     }
     
 /******************************************************************************/

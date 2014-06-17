@@ -3,6 +3,7 @@ package Layout;
 
 import Configuration.Configurable;
 import Configuration.Configuration;
+import Configuration.IsActionable;
 import GUI.ContextManager;
 import Serialization.Serializator;
 import java.io.File;
@@ -20,6 +21,7 @@ import utilities.functional.impl.NotNull;
  * @author uranium
  *
  */
+@IsActionable
 public final class LayoutManager implements Configurable {
 
     public static final List<String> layouts = new ArrayList<>();
@@ -46,7 +48,7 @@ public final class LayoutManager implements Configurable {
      */
     public static void findLayouts() {
         // get + verify path
-        File dir = new File(App.LAYOUT_FOLDER());
+        File dir = App.LAYOUT_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Search for Layouts failed.");
             return;
@@ -57,7 +59,7 @@ public final class LayoutManager implements Configurable {
         // load layouts
         layouts.clear();
         if (files.length == 0) {
-            Log.mess("Layout folder '" + App.LAYOUT_FOLDER() + "' is empty. An empty layout will be created.");
+            Log.mess("Layout folder '" + dir.getPath() + "' is empty. An empty layout will be created.");
             return;
         }
         for (File f : files) {
@@ -87,7 +89,7 @@ public final class LayoutManager implements Configurable {
     }
     
     private static void putLayout(int i, String s) {
-        Layout l = Serializator.deserializeLayout(new File(App.LAYOUT_FOLDER()+File.separator+s+".l"));
+        Layout l = Serializator.deserializeLayout(new File(App.LAYOUT_FOLDER(),s+".l"));
         if (l!=null) active.put(i, l);
     }
     

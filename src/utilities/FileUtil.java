@@ -26,8 +26,8 @@ import main.App;
 /**
  * Provides file operations.
  * 
- * This class provides bunch of fancy methods that are arguably redundant, but in
- * fact make your life hell of a lot easier. They clean the code from low level
+ * This class provides bunch of fancy methods that are arguably redundant, but
+ * can make your life hell of a lot easier. They clean the code from low level
  * machinations.
  * 
  */
@@ -143,7 +143,7 @@ public final class FileUtil {
      */
     public static boolean isValidSkinFile(File skin) {
         String name = FileUtil.getName(skin);
-        String path = App.SKIN_FOLDER() + File.separator + name +
+        String path = App.SKIN_FOLDER().getPath() + File.separator + name +
                       File.separator + name + ".css";
         File test = new File(path);
         return (skin != null && FileUtil.isValidFile(skin) &&   // is valid file
@@ -287,14 +287,34 @@ public final class FileUtil {
         return i==-1 ? whole_name : whole_name.substring(0,i);
     }
     /**
-     * Returns name of the file without suffix denoted by this URI. If the URI
-     * denotes a directory its name will be returned.
+     * Returns name of the file without suffix denoted by this URI. This is just
+     * the last name in the pathname's name sequence.
+     * <p>
+     * If the URI denotes a directory its name will be returned. If the uri doesnt denote
+     * a file its path will still be parsed and last name in the pathname's
+     * sequence will be attempted to be returned. Therefore if the URI denotes 
+     * file accessed by http protocol the returned string will be the name of
+     * the file without suffix - consistent result with file system based URIs.
+     * However that doesnt have to be true for all schemes and URIs.
+     * <p>
+     * For file based URIs, this method is equivalent to 
+     * {@link #getName(java.io.File)}.
+     * <p>
+     * If the path part of the URI is empty or null empty string will be returned.
      * @param u
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null
+     * @throws IllegalArgumentException if uri param scheme not file - if uri
+     * doesnt represent a file
      */
     public static String getName(URI u) {
-        return getName(new File(u));
+        String p = u.getPath();
+        if(p==null || p.isEmpty()) return "";   // shouldnt happen ever, but just in case some badly damaged http URL gets through here
+        int i = p.lastIndexOf('/');
+        if(i==-1 || p.length()<2) return p;     // another exceptional state check
+        p = p.substring(i+1);       // remove leading '/' character
+        i = p.lastIndexOf('.');     // remove extension
+        return (i==-1) ? p : p.substring(0, i);
     }
     
      /**
@@ -326,19 +346,17 @@ public final class FileUtil {
       */
      public static List<String> readFile(String filepath) {
         File file = new File(filepath);
-        List<String> lines; 
         try {
-            lines = Files.readAllLines(Paths.get(filepath), Charset.defaultCharset());
+            return Files.readAllLines(Paths.get(filepath), Charset.defaultCharset());
         } catch (IOException ex) {
             Log.err("Problems reading file " + file.getPath() + ". File wasnt read.");
             return new ArrayList<>();
         }
-        return lines;
      }
      
      /**
-      * Reads and parses specified file. This method translates the file into 
-      * object oriented paradigm.
+      * Reads and parses specified key-value type of text file file. This method
+      * translates the file into object oriented paradigm.
       * File format per line (input):
       *     "key : value"
       * Map of lines (output):

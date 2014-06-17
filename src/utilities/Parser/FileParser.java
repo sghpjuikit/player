@@ -26,7 +26,7 @@ public class FileParser implements StringParser<File> {
 
     @Override
     public String toS(File object) {
-        return object.getName();
+        return object.getPath();
     }
 
 }

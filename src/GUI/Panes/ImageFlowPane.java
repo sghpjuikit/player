@@ -4,7 +4,7 @@ package GUI.Panes;
 import GUI.objects.ImageElement;
 import java.io.File;
 import java.util.List;
-import javafx.beans.InvalidationListener;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -132,13 +132,18 @@ public final class ImageFlowPane {
         imagePane.setVisible(val);
         layout();
     }
-    
+    public void toggleShowImage() {
+        setShowImage(!isShowImage());
+    }
     public boolean isShowContent() {
         return showContent;
     }
     public void setShowContent(boolean val) {
         showContent = val;
         layout();
+    }
+    public void toggleShowContent() {
+        setShowContent(!isShowContent());
     }
     
     public double getPadding() {
@@ -262,63 +267,36 @@ public final class ImageFlowPane {
         return content;
     }
 
-    
 /******************************************************************************/
-    
 
     /** Lays out children. Do not use other rebind methods. */
     public void layout() {
         clearBinding();
         if (showImage && showContent) {
-            if (ratioHor.get())
-                bindHorizontal();
-            else
-                bindVertical();
+            if (ratioHor.get()) bindHorizontal();
+            else bindVertical();
         }
-        else if (showImage && !showContent)
-            bindImageOnly();
-        else if (!showImage && showContent)
-            bindContentOnly();            
+        else if (showImage && !showContent) bindImageOnly();
+        else if (!showImage && showContent) bindContentOnly();            
     }
     
-    //listeners (for rebind methods) - must be global to allow removal
-     InvalidationListener widthListener = ( o -> {
-        image.getPane().setPrefHeight(layout.getHeight());
-        double real = layout.getHeight()*imageRatio.get();
-        double max = layout.getWidth()-getMinContentWidth();
-        
-        if (real > max) // && showContent)
-            image.getPane().setPrefWidth(max);
-        else
-            image.getPane().setPrefWidth(real);
-    });
-    InvalidationListener heightListener = (o -> {
-        image.getPane().setPrefWidth(layout.getWidth());
-        double real = layout.getWidth()/imageRatio.get();
-        double max = layout.getHeight()-getMinContentHeight();
-        
-        if (real > max)// && showContent)
-            image.getPane().setPrefHeight(max);
-        else
-            image.getPane().setPrefHeight(real);
-    });
-    
-    // do not use binding methods
     private void bindHorizontal() {
         layout.setLeft(image.getPane());
         layout.setCenter(contentBorder);
         contentBorder.setPadding(new Insets(0,0,0,gap));
-        THIS.widthProperty().addListener(widthListener);            
-        THIS.heightProperty().addListener(widthListener);
-        widthListener.invalidated(null);
+        image.getPane().prefHeightProperty().bind(layout.heightProperty());
+        image.getPane().prefWidthProperty().bind(Bindings.min(
+                layout.heightProperty().multiply(imageRatio),
+                layout.widthProperty().subtract(minContentWidthProperty().get())));
     }
     private void bindVertical() {
         layout.setTop(image.getPane());
         layout.setCenter(contentBorder);
         contentBorder.setPadding(new Insets(gap,0,0,0));
-        THIS.widthProperty().addListener(heightListener);
-        THIS.heightProperty().addListener(heightListener);
-        heightListener.invalidated(null);
+        image.getPane().prefWidthProperty().bind(layout.widthProperty());
+        image.getPane().prefHeightProperty().bind(Bindings.min(
+                layout.widthProperty().divide(imageRatio),
+                layout.heightProperty().subtract(minContentHeightProperty().get())));
     }
     private void bindContentOnly() {
         contentBorder.setPadding(new Insets(0,0,0,0));
@@ -326,20 +304,21 @@ public final class ImageFlowPane {
     }
     private void bindImageOnly() {
         if (getImageRatio() < getPaneRatio()) {
-            THIS.widthProperty().addListener(widthListener);
-            THIS.heightProperty().addListener(widthListener);
-        }
-        else {
-            THIS.widthProperty().addListener(heightListener);            
-            THIS.heightProperty().addListener(heightListener);
+            image.getPane().prefHeightProperty().bind(layout.heightProperty());
+            image.getPane().prefWidthProperty().bind(Bindings.min(
+                    layout.heightProperty().multiply(imageRatio),
+                    layout.widthProperty().subtract(minContentWidthProperty().get())));
+        } else {
+            image.getPane().prefWidthProperty().bind(layout.widthProperty());
+            image.getPane().prefHeightProperty().bind(Bindings.min(
+                    layout.widthProperty().divide(imageRatio),
+                    layout.heightProperty().subtract(minContentHeightProperty().get())));
         }
         layout.setCenter(image.getPane());
     }
     private void clearBinding() {
         layout.getChildren().clear();
-        THIS.widthProperty().removeListener(widthListener);
-        THIS.heightProperty().removeListener(widthListener);
-        THIS.widthProperty().removeListener(heightListener);
-        THIS.heightProperty().removeListener(heightListener);
+        image.getPane().prefHeightProperty().unbind();
+        image.getPane().prefWidthProperty().unbind();
     }
 }

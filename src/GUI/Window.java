@@ -4,7 +4,8 @@ package GUI;
 import Action.Action;
 import AudioPlayer.playback.PLAYBACK;
 import Configuration.Configuration;
-import GUI.GUI;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import GUI.objects.ClickEffect;
 import GUI.objects.Window.Resize;
 import static GUI.objects.Window.Resize.E;
@@ -82,6 +83,7 @@ import utilities.Log;
  *            w.setLocationCenter();
  * </pre>
  */
+@IsConfigurable
 public class Window extends WindowBase implements SerializesFile, Serializes {
     
     /** @return new window or null if error occurs during initialization. */
@@ -334,12 +336,11 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         if(isPopup && autoclose) close(); 
     }
 
-    @Override
-    public void setFullscreen(boolean val) {
-        super.setFullscreen(val);
-        showHeader(!val);
-//        if (showHeader && val) showHeader(!val);
-//        else if (showHeader && !val) showHeader(val);
+   @Override  
+    public void setFullscreen(boolean val) {  
+        super.setFullscreen(val); 
+        if(val)showHeader(false);
+        else showHeader(showHeader);
     }
     
     @FXML public void toggleMini() {
@@ -468,24 +469,30 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         e.consume();
     }
 
-    @FXML
-    private void entireArea_OnKeyPressed(KeyEvent e) {
-        if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))
-            GUI.setLayoutMode(true);
-        if (e.getCode()==ALT)
-//            if(isFullscreen() || !showHeader)
-                showHeader(true);
-    }
-
-    @FXML
-    private void entireArea_OnKeyReleased(KeyEvent e) {System.out.println("WHAT THE FUCK");
-        if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))
-            GUI.setLayoutMode(false);
-        if (e.getCode()==ALT)
-//            if(isFullscreen() || !showHeader)
-                showHeader(false);
-    }
+    @FXML  
+    private void entireArea_OnKeyPressed(KeyEvent e) {  
+        if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))  
+            GUI.setLayoutMode(true);  
+        if (e.getCode()==ALT )  
+            showHeader(true);  
+    }  
     
+    @IsConfig(name="HeaderOnPreference", info=
+                                 "Remembers header state for both fullscreen" +
+                                 " and not. When selected 'auto off' is true ")
+    boolean headerOnPreference=false;
+    
+    @FXML  
+    private void entireArea_OnKeyReleased(KeyEvent e) {
+        if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))  
+            GUI.setLayoutMode(false);  
+        if (e.getCode()==ALT)  
+            if(headerOnPreference){
+                if(isFullscreen()) showHeader(false); 
+                else showHeader(showHeader);
+            }
+            else showHeader(isFullscreen()==showHeader);    
+    } 
     
     public static final class WindowConverter implements Converter {
         @Override

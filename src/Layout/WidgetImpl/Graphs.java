@@ -98,7 +98,10 @@ public final class Graphs extends AnchorPane implements Controller<Widget>  {
         if (reader != null && reader.isRunning()) reader.cancel();
         
         // read new data
-        reader = MetadataReader.readMetadata(items, metadatas::setAll, ()->{});
+        reader = MetadataReader.readMetadata(items, (success,result) ->{
+            if(success){metadatas.setAll(result);
+            }
+        });
     }
 
     // initialize data to draw, called on data change

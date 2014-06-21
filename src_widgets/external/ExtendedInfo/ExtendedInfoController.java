@@ -348,16 +348,16 @@ public class ExtendedInfoController extends FXMLController {
             return;
         }
         Task<Metadata> t = MetadataReader.create(item,
-            result -> {
-                new_meta = result;
-                populateGUI();
-            }, 
-            ()-> {
-                new_meta = null;
-                populateGUI();
+            (success,result) -> {
+                if(success){
+                    new_meta = result;
+                    populateGUI();
+                }else{
+                    new_meta = null;
+                    populateGUI();
+                }
             }
         );
-
     }
     
     private void populateGUI() {

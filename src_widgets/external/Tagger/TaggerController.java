@@ -443,16 +443,16 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         // read new data
         loader = MetadataReader.readMetadata(items,
-            result -> {
-                populate(result);
-                hideProgress();
-            },
-            () ->{
-                populate(null);
-                hideProgress();
-                Log.mess("Tagger: Metadata reading failed.");
-            }
-        );
+            (success,result) -> {
+                if(success){
+                    populate(result);
+                    hideProgress();
+                }else{
+                    populate(null);
+                    hideProgress();
+                    Log.mess("Tagger: Metadata reading failed.");
+                }
+            });
         showProgressReading();
     }
     

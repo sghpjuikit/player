@@ -111,11 +111,11 @@ public class LastFM {
         username = "yourusername";
     }
 
-    private void saveUserName(String username) {
+    public final void saveUserName(String username) {
         preferences.put("lastfm_username", username);
     }
 
-    private void updateNowPlaying() {
+    public final void updateNowPlaying() {
         Metadata currentMetadata = AudioPlayer.Player.getCurrentMetadata();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),

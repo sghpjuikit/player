@@ -1,7 +1,7 @@
 package main;
 
 import AudioPlayer.Player;
-import AudioPlayer.services.LastFM;
+import AudioPlayer.services.LastFM.LastFM;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.Action;
 import Configuration.ConfigManager;

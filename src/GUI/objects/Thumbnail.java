@@ -67,7 +67,7 @@ import utilities.Util;
  */
 @TODO("add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable
-public final class Thumbnail extends ImageElement implements ScaleOnHoverTrait {
+public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     // styleclasses
     private static final String bgr_styleclass = "thumbnail-bgr";

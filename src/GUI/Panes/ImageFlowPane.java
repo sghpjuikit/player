@@ -1,7 +1,7 @@
 
 package GUI.Panes;
 
-import GUI.objects.ImageElement;
+import GUI.objects.ImageNode;
 import java.io.File;
 import java.util.List;
 import javafx.beans.binding.Bindings;
@@ -48,9 +48,9 @@ public final class ImageFlowPane {
     private final BorderPane imagePane = new BorderPane();      // wrapps image (helps with aligning)
     private final AnchorPane contentBorder = new AnchorPane();  // solely to support gap, dont use
     private final AnchorPane content = new AnchorPane();        // here goes the content
-    private ImageElement image;                                 // this is the image
+    private ImageNode image;                                 // this is the image
     
-    public ImageFlowPane(AnchorPane parent, ImageElement imgContainer) {System.out.println("CREATING");
+    public ImageFlowPane(AnchorPane parent, ImageNode imgContainer) {System.out.println("CREATING");
         image = imgContainer;
 
         // layout this whole object onto parent

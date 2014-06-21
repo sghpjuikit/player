@@ -15,7 +15,7 @@ import javafx.scene.layout.Region;
  *
  * @author uranium
  */
-public abstract class ImageElement {
+public abstract class ImageNode {
     /**
      * Images will not load full res, but only the size they need. Preffered
      * size of the GUI container is determined and multiplied by load_coeficient.

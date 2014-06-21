@@ -97,7 +97,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>6ddbccdd-c118-4664-99fe-5c2a1b701e14</id>
+                  <id>87389173-c90a-4c2b-ba92-d56063ff5abc</id>
                   <properties>
                     <map>
                       <entry>
@@ -112,7 +112,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>1645e7b0-6fdc-42df-88a4-09863c5d3791</id>
+                    <id>f542323b-e149-4658-aa2e-ee740d90e7ec</id>
                     <name>PlayerControls</name>
                     <configs>
                       <Configuration.Config>
@@ -300,7 +300,7 @@
                               <Configuration.Config>
                                 <gui__name>expanded</gui__name>
                                 <name>expanded</name>
-                                <value class="string">Notification</value>
+                                <value class="string">Shortcuts</value>
                                 <type>java.lang.String</type>
                                 <group>ConfiguratorComponent</group>
                                 <info></info>
@@ -1029,7 +1029,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>c3b8d54e-cf9e-4138-a38e-c73ddb9ecb3e</id>
+                  <id>c803ec7f-1def-4650-8aac-092e96f12c69</id>
                   <properties>
                     <map>
                       <entry>
@@ -1043,107 +1043,26 @@
                     </map>
                   </properties>
                   <b>false</b>
-                  <child class="Layout.Widgets.FXMLWidget">
-                    <id>0f0a20c0-6553-413a-a321-a0aaad00473f</id>
-                    <name>Tagger</name>
-                    <configs>
-                      <Configuration.Config>
-                        <gui__name>Is preferred</gui__name>
-                        <name>preferred</name>
-                        <value class="boolean">false</value>
-                        <type>java.lang.Boolean</type>
-                        <group>FXMLWidget</group>
-                        <info>Preffered widget for its widget type.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>Read Mode</gui__name>
-                        <name>readMode</name>
-                        <value class="PseudoObjects.ReadMode">CUSTOM</value>
-                        <type>PseudoObjects.ReadMode</type>
-                        <group>TaggerController</group>
-                        <info>Source of data for the widget.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>Read mode change on drag</gui__name>
-                        <name>changeReadModeOnTransfer</name>
-                        <value class="boolean">false</value>
-                        <type>java.lang.Boolean</type>
-                        <group>TaggerController</group>
-                        <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>No value text</gui__name>
-                        <name>TAG_NO_VALUE</name>
-                        <value class="string">-- no assigned value --</value>
-                        <type>java.lang.String</type>
-                        <group>TaggerController</group>
-                        <info>Field text in case no tag value for field.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>Multiple value text</gui__name>
-                        <name>TAG_MULTIPLE_VALUE</name>
-                        <value class="string">-- multiple values --</value>
-                        <type>java.lang.String</type>
-                        <group>TaggerController</group>
-                        <info>Field text in case multiple tag values per field.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>Allow change of playcount</gui__name>
-                        <name>allow_playcount_change</name>
-                        <value class="boolean">false</value>
-                        <type>java.lang.Boolean</type>
-                        <group>TaggerController</group>
-                        <info>Change editability of playcount field. Generally to prevent change to non customary values.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>Field text alignement</gui__name>
-                        <name>field_text_alignment</name>
-                        <value class="javafx.geometry.Pos">CENTER_LEFT</value>
-                        <type>javafx.geometry.Pos</type>
-                        <group>TaggerController</group>
-                        <info>Alignment of the text in fields.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                      <Configuration.Config>
-                        <gui__name>Mood picker popup position</gui__name>
-                        <name>popupPos</name>
-                        <value class="GUI.objects.PopOver.PopOver$NodeCentricPos">DownCenter</value>
-                        <type>GUI.objects.PopOver.PopOver$NodeCentricPos</type>
-                        <group>TaggerController</group>
-                        <info>Position of the mood picker pop up relative to the mood text field.</info>
-                        <editable>true</editable>
-                        <visible>true</visible>
-                        <min>NaN</min>
-                        <max>NaN</max>
-                      </Configuration.Config>
-                    </configs>
+                  <child class="Layout.PolyContainer">
+                    <id>22427eb8-e92b-4447-96bf-f81f568adcb4</id>
+                    <properties>
+                      <map>
+                        <entry>
+                          <string>padding</string>
+                          <double>0.0</double>
+                        </entry>
+                        <entry>
+                          <string>locked</string>
+                          <boolean>false</boolean>
+                        </entry>
+                        <entry>
+                          <string>selected</string>
+                          <int>-1</int>
+                        </entry>
+                      </map>
+                    </properties>
+                    <b>false</b>
+                    <children/>
                   </child>
                 </Layout.UniContainer>
               </entry>

@@ -3,6 +3,7 @@
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane id="AnchorPane" fx:id="root" minHeight="0.0" minWidth="0.0" onMouseClicked="#selectNone" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
@@ -27,7 +28,10 @@
   <menus>
     <Menu mnemonicParsing="false" text="+">
 <items>
-    <MenuItem mnemonicParsing="false" onAction="#chooseFiles" text="Add files" />
+    <MenuItem mnemonicParsing="false" onAction="#chooseFiles" text="Add files">
+<accelerator>
+<KeyCodeCombination alt="ANY" code="L" control="UP" meta="UP" shift="UP" shortcut="UP" />
+</accelerator></MenuItem>
     <MenuItem mnemonicParsing="false" onAction="#chooseFolder" text="Add folder" /><MenuItem mnemonicParsing="false" onAction="#chooseUrl" text="Add url" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsByOne" text="Duplicate selected (1)" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsAsGroup" text="Duplicate selected (+)" />
 </items>
     </Menu>

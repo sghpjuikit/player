@@ -98,7 +98,7 @@ public class PlaylistController extends FXMLController {
                 return;
             }
             //    typing (only letters | numbers)
-            if( !e.isShortcutDown() &&
+            if( !e.isShortcutDown() && !e.isAltDown() &&
                     (e.getCode().isLetterKey() || e.getCode().isDigitKey())) {
                 showFilter();
                 searchBox.setText(e.getCharacter());
@@ -107,7 +107,7 @@ public class PlaylistController extends FXMLController {
                 e.consume();
             }
         });
-        root.addEventFilter(KeyEvent.KEY_PRESSED, e->{ // filter, because table consumes ESCAPE pressed handler
+        root.addEventHandler(KeyEvent.KEY_PRESSED, e->{ // filter, because table consumes ESCAPE pressed handler
             // cancel search on ESC | BACKSPACE
             if(e.getCode()==KeyCode.ESCAPE) {
                 cancelFilter();
@@ -131,7 +131,6 @@ public class PlaylistController extends FXMLController {
         
         // consume scroll event to prevent other scroll behavior // optional
         playlist.getTable().setOnScroll(Event::consume);
-        
     }
     
     @Override

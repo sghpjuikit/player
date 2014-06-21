@@ -9,9 +9,7 @@
  */
 package GUI.objects;
 
-import Configuration.ConfigManager;
 import GUI.ContextManager;
-import utilities.functional.functor.Procedure;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.ScaleTransition;
@@ -19,6 +17,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
+import utilities.functional.functor.Procedure;
 
 /**
  *

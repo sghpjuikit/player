@@ -1,7 +1,7 @@
 
 package Layout.Containers;
 
-import Configuration.Action;
+import Action.Action;
 import Configuration.PropertyMap;
 import GUI.GUI;
 import GUI.objects.SimplePositionable;

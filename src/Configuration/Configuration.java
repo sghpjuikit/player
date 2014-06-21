@@ -1,6 +1,7 @@
 
 package Configuration;
 
+import Action.Action;
 import AudioPlayer.tagging.Playcount;
 import PseudoObjects.Maximized;
 import Serialization.Serializator;
@@ -116,10 +117,16 @@ public class Configuration implements Serializes {
     @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
     public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
     public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
+    
+    @IsConfig(name="Playcount incrementing strategy", info = "Playcount strategy for incrementing playback.")
     public static Playcount.IncrStrategy increment_playcount = Playcount.IncrStrategy.ON_PERCENT;
+    @IsConfig(name="Playcount incrementing at percent", info = "Percent at which playcount is incremented.")
     public static double increment_playcount_at_percent = 0.5;
+    @IsConfig(name="Playcount incrementing at time", info = "Time at which playcount is incremented.")
     public static double increment_playcount_at_time = Duration.seconds(5).toMillis();
+    @IsConfig(name="Playcount incrementing min percent", info = "Minimum percent at which playcount is incremented.")
     public static double increment_playcount_min_percent = 0.0;
+    @IsConfig(name="Playcount incrementing min time", info = "Minimum time at which playcount is incremented.")
     public static double increment_playcount_min_time = Duration.seconds(0).toMillis();
     
     public final Map<String,Config> fields = new HashMap();
@@ -134,6 +141,7 @@ public class Configuration implements Serializes {
         ClassIndex.getAnnotated(IsConfigurable.class).forEach(classes::add);
         default_fields.putAll(gatherFields());
     }
+    
     private Configuration() {
     }
     private Configuration(boolean def) {
@@ -191,7 +199,7 @@ public class Configuration implements Serializes {
         
         if(type.equals(Action.class)) { // set as shortcut
             Action temp_a = Action.fromString(value);
-            Action.getShortcuts().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
+            Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
             return;
         } else {                        // set as class field
             if (classes.stream().flatMap(c->Stream.of(c.getFields()))
@@ -359,7 +367,7 @@ public class Configuration implements Serializes {
             getFieldsOf(c).forEach(f->list.put(f.name, f));
         
         // add action fields
-        Action.getShortcuts().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
+        Action.getActions().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
         
         return list;
     }

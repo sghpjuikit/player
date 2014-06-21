@@ -47,6 +47,7 @@ public final class SimplePlaylistItem extends Item implements Serializable {
     /**
      * @return PlaylistItem object based on values of this..
      */
+    @Override
     public PlaylistItem toPlaylistItem() {
         return new PlaylistItem(uri, name, time.toMillis());
     }

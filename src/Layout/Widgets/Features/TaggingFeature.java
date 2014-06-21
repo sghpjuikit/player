@@ -1,5 +1,5 @@
 
-package Layout.Widgets;
+package Layout.Widgets.Features;
 
 import AudioPlayer.playlist.Item;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
  * 
  * @author Plutonium_
  */
-public interface SupportsTagging {
+public interface TaggingFeature {
     
     /**
      * Convenience method for single item reading. For specifics read the

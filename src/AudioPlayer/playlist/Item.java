@@ -168,12 +168,14 @@ public abstract class Item implements Comparable<Item> {
     public boolean isCorrupt() {
         if(isFileBased()) {
             File f = getFile();
-            return !f.exists() ||
-                   !f.isFile() ||
-                   !AudioFileFormat.isSupported(this) ||
-                   !f.canRead();
-        } else
-            return false;
+            corrupted = !f.exists() ||
+                        !f.isFile() ||
+                        !AudioFileFormat.isSupported(this) ||
+                        !f.canRead();
+        } else {
+            corrupted =  false;
+        }
+        return corrupted;
     }
     /**
      * Returns true if this item was marked corrupt last time it was checked. This
@@ -217,16 +219,32 @@ public abstract class Item implements Comparable<Item> {
     
     /**
      * Converts this item to metadata. This method doesnt read metadata on this
-     * item, rather it converts this item into a Metadata object. Use when
+     * item, rather it converts this item into a Metadata object filling all
+     * fields that are available from given implementation of this class. Use when
      * Metadata is expected instead of Item and additional information is not
      * required.
      * <p>
-     * Returns empty metadata that tests true for {@link #same()}
-     * with this item.
-     * @return 
+     * Developer note: include proper javadoc to inform which fields will be
+     * initialized.
+     * Developer note: the responsibility for creating correctly filled
+     * Metadata object lies within Metadata's constructor. Use reflection to
+     * inspect the Item parameter. Subclassing this class should include
+     * adding the class' support in that constructor.
+     * @return metadata that tests true for {@link #same()} with this item.
      */
     public Metadata toMetadata() {
         return new Metadata(this);
+    }
+    
+    /**
+     * Converts this item to {@link PlaylistItem}. 
+     * <pre>
+     *      Equivalent to :  new PlaylistItem(this);
+     * </pre>
+     * @return playlistItem that tests true for {@link #same()} with this item.
+     */
+    public PlaylistItem toPlaylistItem() {
+         return new PlaylistItem(this);
     }
     
 /******************************************************************************/
@@ -242,7 +260,7 @@ public abstract class Item implements Comparable<Item> {
      * @return metadata for this item. Empty metadata, if this item is corrupt
      * or on error.
      */
-    public Metadata getMetadata() {
+    public final Metadata getMetadata() {
         if (this.same(Player.getCurrentMetadata()))
             return Player.getCurrentMetadata();
         return MetadataReader.create(this);

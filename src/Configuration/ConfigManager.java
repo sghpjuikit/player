@@ -57,7 +57,6 @@ public final class ConfigManager {
             GUI.refresh();
             PLAYBACK.playcountMan.configureIncrementation();        // reinitialize playcount incrementer
         }
-        
     }
     
     /** Loads settings and applies them. */

@@ -10,7 +10,7 @@
   <children><AnchorPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="95.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <children>
     <Label fx:id="typeL" alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefWidth="-1.0" text="Message" AnchorPane.leftAnchor="70.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-    <VBox minHeight="-1.0" prefHeight="-1.0" prefWidth="-1.0" spacing="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="10.0">
+    <VBox minHeight="-1.0" prefHeight="-1.0" prefWidth="-1.0" spacing="5.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="10.0">
       <children>
         <Label fx:id="indexL" prefWidth="-1.0" text="Index" />
         <Label fx:id="songL" prefWidth="-1.0" text="Song name or info">

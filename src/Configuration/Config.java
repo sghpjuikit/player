@@ -1,6 +1,7 @@
 
 package Configuration;
 
+import Action.Action;
 import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 

@@ -1,7 +1,9 @@
 
-package Configuration;
+package Action;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -11,12 +13,18 @@ import java.lang.annotation.Target;
  * <p>
  * Such method must be public, static, and have zero parameters.
  * <p>
+ * Uses {@link Repeatable} and can be used multiple times for the same method.
+ * Therefore multiple actions with different parameters of this annotation can
+ * be derived from the method.
+ * <p>
  * In order for the method to be discovered the class the method resides within
  * must itself be annotated by {@link IsActionable} which autodiscovers the
  * class in order to scan it for action candidate methods.
  * <p>
  * @author uranium
  */
+@Documented
+@Repeatable(IsActions.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface IsAction {

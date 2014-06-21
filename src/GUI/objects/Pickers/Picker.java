@@ -114,7 +114,7 @@ public class Picker<E> {
             Region cell = cellFactory.createCell(item, text);
                    cell.setOnMouseClicked( e -> {
                        onSelect.accept(item);
-                       popup.hide();
+                       popup.hideStrong();
                        e.consume();
                    });
             
@@ -127,7 +127,9 @@ public class Picker<E> {
         double height = Math.ceil(items.size()/(double)row_size)*(el_h+EGAP)+2*EGAP;
         double width = row_size*(el_w+EGAP);System.out.println("w "+width);
         // calculate size fixes
-        double h_fix = n.getScene().getWindow().equals(App.getWindowOwner().getStage()) ? 15 : 0;// no idea why this needs to be here, but it DOES
+            // the height fix is remnants of reccuring bug, handles baseline offset
+            // the width fix handles scrollbar 
+        double h_fix = n.getScene().getWindow().equals(App.getWindow().getStage()) ? 0 : 0;
         double w_fix = scroll.getMaxHeight() < height ? 15 : 0;// needs vertical scrollbar
         // set size
         scroll.setPrefSize(width+w_fix,height+h_fix);

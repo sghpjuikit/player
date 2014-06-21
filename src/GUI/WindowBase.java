@@ -2,7 +2,9 @@
 package GUI;
 
 import Configuration.Configuration;
+import GUI.objects.PopOver.PopOver;
 import PseudoObjects.Maximized;
+import java.util.ArrayList;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -169,7 +171,7 @@ public class WindowBase {
         // but preserve onTopProperty
         boolean aOt = s.isAlwaysOnTop();
         s.setAlwaysOnTop(true);
-        Platform.runLater(()->s.setAlwaysOnTop(aOt));
+        Platform.runLater(()->s.setAlwaysOnTop(aOt));       // is runLater a good idea here?
     }
     /**
      * @return the value of the property minimized.
@@ -297,6 +299,7 @@ public class WindowBase {
         else
             setMaximized(Maximized.ALL);
     }
+    
     /** @return value of property fulscreen of this window */
     public boolean isFullscreen() {
         return s.isFullScreen();
@@ -311,8 +314,7 @@ public class WindowBase {
     }
     /** Change between on/off setFullscreen state */
     public void toggleFullscreen() {
-        if (isFullscreen()) setFullscreen(false);
-        else setFullscreen(true);
+        setFullscreen(!isFullscreen());
     }
     /**
      * Specifies the text to show when a user enters full screen mode, usually
@@ -364,7 +366,7 @@ public class WindowBase {
         double SH = Screen.getPrimary().getVisualBounds().getHeight();
         double S = GUI.snapDistance;
         
-        //snap to edges
+//        // snap to screen edges (x and y separately)
         if (GUI.snapping) {  
             // x snapping
             if (Math.abs(s.getX())<S)
@@ -376,6 +378,28 @@ public class WindowBase {
                 snapUp();
             else if (Math.abs(s.getY()+s.getHeight() - SH) < S)
                 snapDown();
+        }
+        
+        // snap to other window edges
+        for(Window w: ContextManager.windows) {
+            double WXS = w.getX()+w.getWidth();
+            double WXE = w.getX();
+            double WYS = w.getY()+w.getHeight();
+            double WYE = w.getY();
+        
+            // snap to edges (x and y separately)
+            if (GUI.snapping) {  
+                // x snapping
+                if (Math.abs(WXS - s.getX())<S)
+                    s.setX(WXS);
+                else if (Math.abs(s.getX()+s.getWidth() - WXE) < S)
+                    s.setX(WXE - s.getWidth());
+                // y snapping
+                if (Math.abs(WYS - s.getY())<S)
+                    s.setY(WYS);
+                else if (Math.abs(s.getY()+s.getHeight() - WYE) < S)
+                    s.setY(WYE - s.getHeight());    
+            }
         }
     }
     
@@ -410,12 +434,23 @@ public class WindowBase {
         HProp.set(s.getHeight());
     }
     
-    /** Identical to setVisible(true) */
+    /** Sets the window visible and focuses it. */
     public void show() {
         s.show();
+        // we need to focus the window
+        // we need to defer the focusing for later or we risk setting setOnTop
+        // to true permanently
+        Platform.runLater(()->focus());     // cannot be done better? investigate
     }
+    
     public void close() {
-        if(main) App.getWindowOwner().close();  // act as main window
+        if(main) {
+            // close all pop overs first (or we risk an exception and not closing app
+            // properly - PopOver bug
+            new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
+            // act as main window and close whole app
+            App.getWindowOwner().close();
+        }  
         else s.close();
     }
 

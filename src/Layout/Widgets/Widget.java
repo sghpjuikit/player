@@ -116,7 +116,18 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return new EmptyWidget();
     }
     
-    public final boolean isEmpty() {
+    /**
+     * Returns whether this widget is intended to store an actual content or 
+     * serves different purpose. An example of such use can be substitution
+     * for null value. Widgets returning true are not likely to have their
+     * factories registered and be accessible to the user.
+     * <p>
+     * The value returned by this method should be hard coded by design per widget
+     * type (by default it returns false). Dont mistake this method for isEmpty() in 
+     * {@link Controller}. Empty widget might require different handling, while 
+     * different controller simply indicates that the widget has no content.
+     */
+    public boolean isEmpty() {
         return this instanceof EmptyWidget;
     }
     

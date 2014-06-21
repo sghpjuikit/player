@@ -1,6 +1,7 @@
 
 package AudioPlayer.playlist;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.util.Duration;
@@ -82,24 +84,26 @@ abstract public class AbstractPlaylist {
      * @throws NullPointerException when param null.
      */
     public void addUrl(String url) {
-        try{
-            URI u = new URI(url);
-            URL r = new URL(url);
-            addUrls(Collections.singletonList(url));
-        } catch(URISyntaxException | MalformedURLException e) {
-            throw new RuntimeException("Invalid URL.");
-        }
+        addUrls(Collections.singletonList(url));
     }
     /**
-     * Adds new items to end of this playlist, based on the urls (String). Use this method
-     * for  URL based Items.
+     * Adds new items to end of this playlist, based on the urls (String). Use 
+     * this method for URL based Items.
+     * Malformed url's will be ignored.
      * @param urls
      * @throws NullPointerException when param null.
      */
     public void addUrls(List<String> urls) {
         List<URI> add = new ArrayList<>();
-        for(String url: urls)
-            add.add(URI.create(url));
+        for(String url: urls) {
+            try{
+                URI u = new URI(url);
+                URL r = new URL(url);
+                add.add(URI.create(url));
+            } catch(URISyntaxException | MalformedURLException e) {
+                throw new RuntimeException("Invalid URL.");
+            }
+        }
         addUris(add, list().size());
     }
     /**
@@ -115,11 +119,27 @@ abstract public class AbstractPlaylist {
     }
     /**
      * Adds specified item to end of this playlist. 
-     * @param item
+     * @param file 
      * @throws NullPointerException when param null.
      */
-    public void addUri(URI item) {
-        addUris(Collections.singletonList(item));
+    public void addFile(File file) {
+        addUri(file.toURI());
+    }
+    /**
+     * Adds specified files to end of this playlist. 
+     * @param files 
+     * @throws NullPointerException when param null.
+     */
+    public void addFiles(List<File> files) {
+        addUris(files.stream().map(File::toURI).collect(Collectors.toList()));
+    }
+    /**
+     * Adds specified item to end of this playlist. 
+     * @param uri
+     * @throws NullPointerException when param null.
+     */
+    public void addUri(URI uri) {
+        addUris(Collections.singletonList(uri));
     }
     /**
      * Adds items at the end of this playlist and updates them if necessary.

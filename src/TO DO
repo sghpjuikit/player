@@ -8,18 +8,19 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- add deminimize if minimized else bring to top ability for window + shortcut   (sweet)
+- popover break show into  show() and position()
+- popover autoclose not implemented now that the notification receives
+  only mouseevents from its own window - what now? caused by different window
+  owner
+- fullscreen + headerless in fullscreen causes problems
+- app not closing propery on ALT+F4                                             (wth)
+- popup window fullcreen or maximizing(any) breaks popup position               
 - popover positioning autofix gets in the way - make it compatible, reimplement (?)
-- popover moving with app listeners - clean up on hide popup
-- popover show() methods way too much mess... - clean up, unify, 
+- popover show() methods clean up
 
-- spring
-    - wrap xstream and clean up all serialisation
-
-            @Override public T fromString(String string) {
-                return (T) string;
-            }
-
+- empty widget vs empty widget area & bgr
+- playcont incrementing fix misbehavior
+- ui not resizing when window size gets below certain threshold                 (wth)
 - windows hard to drag, especially in headerless mode
 - tagger color field
 - uidrag consume event
@@ -36,26 +37,24 @@
 - all tabs loading bug
 - window clean up overlay Pane, contextPane etc.. move from UI to Window ->[0,0]
 - window clean up serialization
-- context menus circular labels' position off
+
 - widg man prefFactory per group configs -> getWidget reimplement
 - Player update item not refreshing selected pl item
 - writeException - suspend playback (phew)                                      (medium)
-- notification Text > Other unify add show(title, text, cover)
+- notification clean up setContent
 - splitter absolute size for both children
-- context menus unify with popups                                               (?)
 - rater controls not resizing graphics
 - playback states - change, suspend, etc - perfect + cleanup
 - playlist table header button implement properly column hiding (nasty bug)
 - realTime serialize
 
 --------------------------------------------------------------------------------
--------------------- FUNCTIONALITY - what is plannedahead, ideas ---------------
+-------------------- FUNCTIONALITY - what is planned ahead, ideas ---------------
 --------------------------------------------------------------------------------
 
-- seeker break dependency on app - add metadata item content property
-  add orientation property and support with layout (chapter positions too)
+- seeker orientation property and support with layout (chapter positions too)
 - TextFlow for smart text tables
-- gradient masks
+- gradient masks - it IS possible, proved by image on drag&drop, but HOW?
 - CHAPTERS   TAG | XML OPTION
 - widget manager widget                                                         (?)
 - cursor effects API
@@ -68,6 +67,8 @@
 - gestures & touch
 - tagger filename change                                                        (?)
 - app taskbar flashing                                                          (still an issue ?)
+- context menus circular labels' position off - more like what to do with
+  custom context menus?
 
 FURTHER DOWN THE LIST FUNCTIONALITIES
 - even more flexibly resizable widget areas
@@ -111,12 +112,15 @@ DIRS
 --------------------------------------------------------------------------------
 
 GENERAL
-- notification border gap inconsistent (sometimes)
-  + border gap different for each side...
 - rating not initialized visually on reload                                     (medium)
 - deselecting single items with CTRL not working sometimes                      (medium, still an issue?)
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
 - little bug with position slider on repositioning                              (minor)
+  cause: it takes a while for seek() to actually seek. During this time the
+  seeker jumps back to current position. Its bad because the seeker already was
+  at the right position when mouse pressed took place - solution unknown
+  idea: use 2nd thumb for seeking or allow position change only within treshold
+  from the seeked position for limited amount of time
 - playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
 - backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind
@@ -126,6 +130,7 @@ GENERAL
 - global shortcuts sometimes still fail to register to proper keys and register (medium, investigate cases)
   for ALT instead
 - starting playback at given previous position seeks to beginning for a while   (medium)
+  cause: possibly the same as the seeker bug
 - local shortcuts for complex characters (BACK_SLASH, etc) not working
   solution: solved for some characters by manually rewriting them upon
   shortcut registering, but thats only partial and incomplete workaround
@@ -154,7 +159,10 @@ SOLVED (with unwanted workaround)
   solution: the layout map shouldnt load recursively. This has potential to
   get rid of major resizing bugs on layout init (like thumbnails and custom
   layouts).
-- Item if corrupted getLocation still works! set it to empty path               (minor, technicality...)
+- Item if corrupted getLocation still works! set it to empty path               (minor)
+  problem: only that EMPTY metadata getLocation() shows application location
+  instead of none (? how can that be made so) and it really shoouldnt point
+  anywhere
 - getLocation causing a weird problem if item.getFile() doesnt return abs file  (NaP)
   solution: make it return abs file...
 - widget loading defaulting widget settings                                     (minor)
@@ -175,6 +183,10 @@ SOLVED (with unwanted workaround)
   default values and skinning
   solution: Text class extending javafx.scene.text.Text and adding custom 
   styleclass. Use instead of the original if default behavior (skin) is expected
+- open PopOvers prevent app to close normally.
+  cause: java or controlsFX bug
+  solution: manually close then all when main window closes (introduces lots of
+  code pollution)
 
 PROBLEMS
 - widget controllers initialization && widget refresh
@@ -255,6 +267,14 @@ PERFORMANCE
   hardcoded part in Thumbnail class is resolved
 - instead of javafx.scene.text.Text use Text class provided by the project. It
   is exactly the same but provides css styleclass and support for skinning.
+- real main app window that is hidden is resized to screen size
+
+--------------------------------------------------------------------------------
+--------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------
+--------------------------------------------------------------------------------
+
+- need to run code after specific delay? use utilities.FxTimer. By far the most
+  simple asynchronous code execution you will have ever used
 
 --------------------------------------------------------------------------------
 ---------------------- TESTING - what nobody wants to do -----------------------

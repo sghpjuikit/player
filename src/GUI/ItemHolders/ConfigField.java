@@ -1,7 +1,7 @@
 
 package GUI.ItemHolders;
 
-import Configuration.Action;
+import Action.Action;
 import Configuration.Config;
 import Configuration.StringEnum;
 import GUI.GUI;

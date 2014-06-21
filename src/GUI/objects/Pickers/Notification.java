@@ -130,11 +130,11 @@ public class Notification {
     
     public void show(ScreenCentricPos pos) {
         // set properties
-        root.setAutoHide(notifCloseOnClickAny);
+        root.setAutoHide(true);
         root.setAnimated(notificationAnimated);
         root.setAnimDuration(Duration.millis(notifFadeTime));
         // show
-        root.show(pos);
+        root.show(ScreenCentricPos.AppBottomRight);
         // start delayed hide
         if (closer != null) closer.stop();
         closer.restart(Duration.millis(notificationDuration));
@@ -147,6 +147,9 @@ public class Notification {
         root.setAnimDuration(Duration.millis(notifFadeTime));
         // hide
         root.hide();
+    }
+    public void hideImmediatelly() {
+        root.hideImmediatelly();
     }
     
     /**
@@ -182,22 +185,31 @@ public class Notification {
                 albumL.setText(m.getAlbum());
             }
             root.setContentNode(songNotif);
+            // call relayout
+            songNotif.applyCss();
+            songNotif.layout();
+            songNotif.autosize();
         } else
         if (type == OTHER) {
             root.setContentNode((Node)content);
         } else
         if (type == TEXT) {
-//            BorderPane c = new BorderPane();
-//                       c.setPadding(new Insets(10));
-//                       c.setCenter(new Text((String)content));
-//            THIS.setContentNode(c);
+            String text = (String)content;
+            // set roughly dynamical wrapping width to keep the text nore
+            // roughly rectangular - with slight bias horizontal bias
+            // this has surprisingly great result
+            Text message = new Text(text);
+                 message.setWrappingWidthNaturally();
             titleText.setText(title);
-//            Label txt = new Label((String)content);
-//                  txt.setWrapText(true);
-//            textContainer.setCenter(new Text((String)content));
-            textContainer.setCenter(new Text((String)content));
+            textContainer.setCenter(message);
+//            textContainer.setPadding(Insets.EMPTY);
             root.setContentNode(textNotif);
+            // call relayout (dont remove)
+            textNotif.applyCss();
+            textNotif.layout();
+            textNotif.autosize();
         }
+        
     }
     
 

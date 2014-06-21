@@ -3,8 +3,8 @@ package GUI;
 
 import AudioPlayer.Player;
 import Configuration.Configurable;
-import Configuration.IsAction;
-import Configuration.IsActionable;
+import Action.IsAction;
+import Action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Configuration.SkinEnum;
@@ -154,6 +154,7 @@ public class GUI implements Configurable {
         setLayoutMode(!alt_state);
     }
     
+    @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
     @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F9")
     public static void toggleMinimize() {
         if (ContextManager.activeWindow != null)

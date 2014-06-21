@@ -33,6 +33,8 @@ import javafx.scene.layout.Region;
  */
 public abstract class Area<T extends Container> implements AltState {
     
+    public static final String bgr_STYLECLASS = "area-bgr";
+    
     /**
      * Container this are is associated with. The relationship can not be changed.
      * Never null.

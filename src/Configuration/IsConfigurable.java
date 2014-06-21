@@ -10,6 +10,7 @@
 
 package Configuration;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -35,6 +36,7 @@ import org.atteo.classindex.IndexAnnotated;
  * <p>
  * @author Plutonium_
  */
+@Documented
 @IndexAnnotated
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

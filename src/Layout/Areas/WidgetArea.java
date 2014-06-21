@@ -102,6 +102,10 @@ public final class WidgetArea extends UniArea {
         Objects.requireNonNull(w,"widget must not be null");
         widget = w;
         
+//        if(widget.isEmpty()) content.getStyleClass().setAll("darker");
+//        else 
+        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
+        
         // load widget
         AnchorPane widgetPane;
         widgetPane = (AnchorPane) w.load();

@@ -67,6 +67,7 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
         controls.setOpacity(0);
         entireArea.setOnMouseEntered( e -> showControls(true));
         entireArea.setOnMouseExited( e -> showControls(false));
+        entireArea.getStyleClass().setAll("darker");
     }
     
     private void showControls(boolean val) {
@@ -121,7 +122,7 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
         showControls(false);
     }
 
-/******************************************************************************/
+/****************************  as controller  *********************************/
     
     private Widget widget;
 
@@ -139,6 +140,8 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
         return widget;
     }
 
+/******************************   as widget  **********************************/
+    
     @Override public Node load() {
         return entireArea;
     }
@@ -153,7 +156,14 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
 
     @Override public List<Config> getFields() {
         return Collections.EMPTY_LIST;
-    }    
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return true;
+    }
+    
+    
 }
 
 

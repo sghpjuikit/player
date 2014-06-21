@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>91bc2141-dc3e-448b-876e-57874dc5be4f</id>
+  <id>c6cb606a-9b71-455c-b21c-82ede378b675</id>
   <properties>
     <map>
       <entry>
@@ -14,7 +14,7 @@
   </properties>
   <b>false</b>
   <child class="Layout.BiContainerPure">
-    <id>ede495d5-f44b-4ea5-8e5b-9383278d675c</id>
+    <id>caee8bc1-8ecc-47ed-9f05-cfb0cb78614b</id>
     <properties>
       <map>
         <entry>
@@ -27,7 +27,7 @@
         </entry>
         <entry>
           <string>pos</string>
-          <double>0.4379263301500682</double>
+          <double>0.5</double>
         </entry>
         <entry>
           <string>collap</string>
@@ -35,7 +35,7 @@
         </entry>
         <entry>
           <string>abs_size</string>
-          <boolean>true</boolean>
+          <boolean>false</boolean>
         </entry>
         <entry>
           <string>locked</string>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>2436b8bd-fc58-4083-b47e-a167dd8befd8</id>
+          <id>589066a4-38f3-4c6a-9432-753482555ae7</id>
           <properties>
             <map>
               <entry>
@@ -63,7 +63,7 @@
           </properties>
           <b>false</b>
           <child class="Layout.BiContainerPure">
-            <id>b33263dc-8cab-4680-9b17-dbf561c28035</id>
+            <id>81d0ded1-e662-4562-abf3-30806f182c24</id>
             <properties>
               <map>
                 <entry>
@@ -76,7 +76,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.26898047722342733</double>
+                  <double>0.2622478386167147</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -97,12 +97,12 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>d6335941-8779-4307-b9b6-4a0bea89682f</id>
+                  <id>6ddbccdd-c118-4664-99fe-5c2a1b701e14</id>
                   <properties>
                     <map>
                       <entry>
                         <string>padding</string>
-                        <double>1.0</double>
+                        <double>0.0</double>
                       </entry>
                       <entry>
                         <string>locked</string>
@@ -112,7 +112,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>823cff32-7418-4981-9da0-5f30cd3f0fc3</id>
+                    <id>1645e7b0-6fdc-42df-88a4-09863c5d3791</id>
                     <name>PlayerControls</name>
                     <configs>
                       <Configuration.Config>
@@ -163,6 +163,18 @@
                         <min>NaN</min>
                         <max>NaN</max>
                       </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Play files on drop</gui__name>
+                        <name>playDropped</name>
+                        <value class="boolean">false</value>
+                        <type>java.lang.Boolean</type>
+                        <group>PlayerControlsController</group>
+                        <info>Plays the drag and dropped files instead of enqueuing them in playlist.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
                     </configs>
                   </child>
                 </Layout.UniContainer>
@@ -170,7 +182,7 @@
               <entry>
                 <int>2</int>
                 <Layout.UniContainer>
-                  <id>2f2fe8d7-cc0a-4fbb-8eed-03f6c47c97c9</id>
+                  <id>953d1dfd-0096-4a31-a8e1-e54d86e3e422</id>
                   <properties>
                     <map>
                       <entry>
@@ -185,7 +197,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.BiContainerPure">
-                    <id>59e0116b-e521-46c7-b482-638f285056a9</id>
+                    <id>068eee47-940d-4d55-85a6-9bef3ab6b1ca</id>
                     <properties>
                       <map>
                         <entry>
@@ -198,7 +210,7 @@
                         </entry>
                         <entry>
                           <string>pos</string>
-                          <double>0.6379477250726041</double>
+                          <double>0.5</double>
                         </entry>
                         <entry>
                           <string>collap</string>
@@ -219,7 +231,93 @@
                       <entry>
                         <int>1</int>
                         <Layout.UniContainer>
-                          <id>fe24739d-277a-4e93-99cb-96f2079cf754</id>
+                          <id>0e0df3be-0cfa-4d61-ac8d-cfbd8ce5f47e</id>
+                          <properties>
+                            <map>
+                              <entry>
+                                <string>padding</string>
+                                <double>0.0</double>
+                              </entry>
+                              <entry>
+                                <string>locked</string>
+                                <boolean>false</boolean>
+                              </entry>
+                            </map>
+                          </properties>
+                          <b>false</b>
+                          <child class="Layout.Widgets.ClassWidget">
+                            <id>aab58e80-4b44-4808-b30d-5c01daa8808a</id>
+                            <name>Settings</name>
+                            <configs>
+                              <Configuration.Config>
+                                <gui__name>Is preferred</gui__name>
+                                <name>preferred</name>
+                                <value class="boolean">false</value>
+                                <type>java.lang.Boolean</type>
+                                <group>ClassWidget</group>
+                                <info>Preffered widget for its widget type.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                              </Configuration.Config>
+                              <Configuration.Config>
+                                <gui__name>Show non editable fields</gui__name>
+                                <name>show_noneditable</name>
+                                <value class="boolean">false</value>
+                                <type>java.lang.Boolean</type>
+                                <group>ConfiguratorComponent</group>
+                                <info>Include non read-only fields.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                              </Configuration.Config>
+                              <Configuration.Config>
+                                <gui__name>Field names alignment</gui__name>
+                                <name>alignemnt</name>
+                                <value class="javafx.geometry.HPos">RIGHT</value>
+                                <type>javafx.geometry.HPos</type>
+                                <group>ConfiguratorComponent</group>
+                                <info>Alignment of field names.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                              </Configuration.Config>
+                              <Configuration.Config>
+                                <gui__name>Group titles alignment</gui__name>
+                                <name>title_align</name>
+                                <value class="javafx.geometry.Pos">CENTER</value>
+                                <type>javafx.geometry.Pos</type>
+                                <group>ConfiguratorComponent</group>
+                                <info>Alignment of group names.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                              </Configuration.Config>
+                              <Configuration.Config>
+                                <gui__name>expanded</gui__name>
+                                <name>expanded</name>
+                                <value class="string">Notification</value>
+                                <type>java.lang.String</type>
+                                <group>ConfiguratorComponent</group>
+                                <info></info>
+                                <editable>true</editable>
+                                <visible>false</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                              </Configuration.Config>
+                            </configs>
+                            <class__type>Layout.WidgetImpl.ConfiguratorComponent</class__type>
+                          </child>
+                        </Layout.UniContainer>
+                      </entry>
+                      <entry>
+                        <int>2</int>
+                        <Layout.UniContainer>
+                          <id>fba29436-13dd-4747-829b-210d4f74a085</id>
                           <properties>
                             <map>
                               <entry>
@@ -234,7 +332,7 @@
                           </properties>
                           <b>false</b>
                           <child class="Layout.BiContainerPure">
-                            <id>e20c28a9-cc5b-4fda-aede-3711690d2545</id>
+                            <id>000ac15b-5e87-4825-a930-9b729cdeb12d</id>
                             <properties>
                               <map>
                                 <entry>
@@ -247,7 +345,7 @@
                                 </entry>
                                 <entry>
                                   <string>pos</string>
-                                  <double>0.7427701674277016</double>
+                                  <double>0.3761467889908257</double>
                                 </entry>
                                 <entry>
                                   <string>collap</string>
@@ -268,7 +366,7 @@
                               <entry>
                                 <int>1</int>
                                 <Layout.UniContainer>
-                                  <id>d0f19166-6e35-4041-b841-08d0510010b0</id>
+                                  <id>769433c7-096b-4512-be01-0a75174aa893</id>
                                   <properties>
                                     <map>
                                       <entry>
@@ -282,16 +380,16 @@
                                     </map>
                                   </properties>
                                   <b>false</b>
-                                  <child class="Layout.Widgets.ClassWidget">
-                                    <id>190b5c10-02a3-4ba5-bc1e-4b6fc913a967</id>
-                                    <name>Settings</name>
+                                  <child class="Layout.Widgets.FXMLWidget">
+                                    <id>b13e23c3-4e2b-4e68-b06d-7d0fe33f0b55</id>
+                                    <name>ImageViewer</name>
                                     <configs>
                                       <Configuration.Config>
                                         <gui__name>Is preferred</gui__name>
                                         <name>preferred</name>
                                         <value class="boolean">false</value>
                                         <type>java.lang.Boolean</type>
-                                        <group>ClassWidget</group>
+                                        <group>FXMLWidget</group>
                                         <info>Preffered widget for its widget type.</info>
                                         <editable>true</editable>
                                         <visible>true</visible>
@@ -299,62 +397,121 @@
                                         <max>NaN</max>
                                       </Configuration.Config>
                                       <Configuration.Config>
-                                        <gui__name>Show non editable fields</gui__name>
-                                        <name>show_noneditable</name>
+                                        <gui__name>Read Mode</gui__name>
+                                        <name>readMode</name>
+                                        <value class="PseudoObjects.ReadMode">PLAYING</value>
+                                        <type>PseudoObjects.ReadMode</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Source of data for the widget.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Read mode change on drag</gui__name>
+                                        <name>changeReadModeOnTransfer</name>
                                         <value class="boolean">false</value>
                                         <type>java.lang.Boolean</type>
-                                        <group>ConfiguratorComponent</group>
-                                        <info>Include non read-only fields.</info>
+                                        <group>ImageViewerController</group>
+                                        <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
                                         <editable>true</editable>
                                         <visible>true</visible>
                                         <min>NaN</min>
                                         <max>NaN</max>
                                       </Configuration.Config>
                                       <Configuration.Config>
-                                        <gui__name>Field names alignment</gui__name>
-                                        <name>alignemnt</name>
-                                        <value class="javafx.geometry.HPos">RIGHT</value>
-                                        <type>javafx.geometry.HPos</type>
-                                        <group>ConfiguratorComponent</group>
-                                        <info>Alignment of field names.</info>
+                                        <gui__name>Show content when empty</gui__name>
+                                        <name>keepContentOnEmpty</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Keep showing previous content when the widget should be empty.</info>
                                         <editable>true</editable>
                                         <visible>true</visible>
                                         <min>NaN</min>
                                         <max>NaN</max>
                                       </Configuration.Config>
                                       <Configuration.Config>
-                                        <gui__name>Group titles alignment</gui__name>
-                                        <name>title_align</name>
-                                        <value class="javafx.geometry.Pos">CENTER</value>
-                                        <type>javafx.geometry.Pos</type>
-                                        <group>ConfiguratorComponent</group>
-                                        <info>Alignment of group names.</info>
+                                        <gui__name>Thumbnail size</gui__name>
+                                        <name>thumbSize</name>
+                                        <value class="double">70.0</value>
+                                        <type>java.lang.Double</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Size of the thumbnails.</info>
                                         <editable>true</editable>
                                         <visible>true</visible>
                                         <min>NaN</min>
                                         <max>NaN</max>
                                       </Configuration.Config>
                                       <Configuration.Config>
-                                        <gui__name>expanded</gui__name>
-                                        <name>expanded</name>
-                                        <value class="string">GUI</value>
-                                        <type>java.lang.String</type>
-                                        <group>ConfiguratorComponent</group>
-                                        <info></info>
+                                        <gui__name>Thumbnail gap</gui__name>
+                                        <name>thumbGap</name>
+                                        <value class="double">2.0</value>
+                                        <type>java.lang.Double</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Spacing between thumbnails</info>
                                         <editable>true</editable>
-                                        <visible>false</visible>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Thumbnail load time</gui__name>
+                                        <name>thumbnailReloadTime</name>
+                                        <value class="long">100</value>
+                                        <type>java.lang.Long</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly after each other</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>File search depth</gui__name>
+                                        <name>folderTreeDepth</name>
+                                        <value class="int">1</value>
+                                        <type>java.lang.Integer</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Depth to search to for files in folders.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Slideshow reload time</gui__name>
+                                        <name>slideshow_dur</name>
+                                        <value class="double">15000.0</value>
+                                        <type>java.lang.Double</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Time between picture change.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Slideshow</gui__name>
+                                        <name>slideshow_on</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>ImageViewerController</group>
+                                        <info>Turn sldideshow on/off.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
                                         <min>NaN</min>
                                         <max>NaN</max>
                                       </Configuration.Config>
                                     </configs>
-                                    <class__type>Layout.WidgetImpl.ConfiguratorComponent</class__type>
                                   </child>
                                 </Layout.UniContainer>
                               </entry>
                               <entry>
                                 <int>2</int>
                                 <Layout.UniContainer>
-                                  <id>d35d19fd-8471-47f2-816d-43e197b27d29</id>
+                                  <id>025073a5-1b34-4af6-9c50-bdfc4150240a</id>
                                   <properties>
                                     <map>
                                       <entry>
@@ -367,472 +524,448 @@
                                       </entry>
                                     </map>
                                   </properties>
-                                  <b>true</b>
-                                  <child class="Layout.Widgets.EmptyWidget">
-                                    <id>1a766b3c-8d95-47b2-bf6a-055ca51d61ee</id>
-                                    <name></name>
-                                    <configs class="empty-list"/>
+                                  <b>false</b>
+                                  <child class="Layout.Widgets.FXMLWidget">
+                                    <id>caaf1912-195e-4cd1-8f09-5cc8007f1762</id>
+                                    <name>FileInfo</name>
+                                    <configs>
+                                      <Configuration.Config>
+                                        <gui__name>Is preferred</gui__name>
+                                        <name>preferred</name>
+                                        <value class="boolean">false</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FXMLWidget</group>
+                                        <info>Preffered widget for its widget type.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Read mode</gui__name>
+                                        <name>readMode</name>
+                                        <value class="PseudoObjects.ReadMode">PLAYING</value>
+                                        <type>PseudoObjects.ReadMode</type>
+                                        <group>FileInfoController</group>
+                                        <info>Source of data for the widget.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Column min width</gui__name>
+                                        <name>minColumnWidth</name>
+                                        <value class="double">150.0</value>
+                                        <type>java.lang.Double</type>
+                                        <group>FileInfoController</group>
+                                        <info>Minimal width for field columns. Use -1 for automatic width</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Cover source</gui__name>
+                                        <name>cover_source</name>
+                                        <value class="AudioPlayer.tagging.Metadata$CoverSource">ANY</value>
+                                        <type>AudioPlayer.tagging.Metadata$CoverSource</type>
+                                        <group>FileInfoController</group>
+                                        <info>Source for cover image.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Read mode change on drag</gui__name>
+                                        <name>changeReadModeOnTransfer</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Rating editable</gui__name>
+                                        <name>editableRating</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Allow change of rating.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Rating stars</gui__name>
+                                        <name>maxRating</name>
+                                        <value class="int">5</value>
+                                        <type>java.lang.Integer</type>
+                                        <group>FileInfoController</group>
+                                        <info>Number of stars for rating. Rating value is recalculated accordingly.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Rating allow partial</gui__name>
+                                        <name>partialRating</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Allow partial values for rating.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Rating react on hover</gui__name>
+                                        <name>hoverRating</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Move rating according to mouse when hovering.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Rating zoom on hover</gui__name>
+                                        <name>rating_zoom</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Rating zoom on hover.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Rating skin</gui__name>
+                                        <name>rating_skin</name>
+                                        <value class="string">file:/C:/Users/Plutonium_/Documents/NetBeansProjects/Player/external/controls/Rating/min.css</value>
+                                        <type>java.lang.String</type>
+                                        <group>FileInfoController</group>
+                                        <info>Rating skin.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Overrun style</gui__name>
+                                        <name>overrun_style</name>
+                                        <value class="javafx.scene.control.OverrunStyle">ELLIPSIS</value>
+                                        <type>javafx.scene.control.OverrunStyle</type>
+                                        <group>FileInfoController</group>
+                                        <info>Style of clipping fields&apos; text when outside of the area.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Display cover</gui__name>
+                                        <name>showCover</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show cover.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Display fields</gui__name>
+                                        <name>showFields</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show fields.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Display empty fields</gui__name>
+                                        <name>showEmptyFields</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show empty fields.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Group fields</gui__name>
+                                        <name>groupFields</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Separate fields by gap and group them..</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show title</gui__name>
+                                        <name>showTitle</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show track</gui__name>
+                                        <name>showtrack</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show disc</gui__name>
+                                        <name>showdisc</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show artist</gui__name>
+                                        <name>showartist</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show album artist</gui__name>
+                                        <name>showalbum_artist</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show album</gui__name>
+                                        <name>showalbum</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show year</gui__name>
+                                        <name>showyear</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show genre</gui__name>
+                                        <name>showgenre</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show composer</gui__name>
+                                        <name>showcomposer</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show publisher</gui__name>
+                                        <name>showpublisher</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show rating</gui__name>
+                                        <name>showrating</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show playcount</gui__name>
+                                        <name>showplaycount</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show comment</gui__name>
+                                        <name>showcomment</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show category</gui__name>
+                                        <name>showcategory</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show filesize</gui__name>
+                                        <name>showfilesize</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show filename</gui__name>
+                                        <name>showfilename</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show format</gui__name>
+                                        <name>showformat</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show bitrate</gui__name>
+                                        <name>showbitrate</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show encoding</gui__name>
+                                        <name>showencoding</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                      <Configuration.Config>
+                                        <gui__name>Show location</gui__name>
+                                        <name>showlocation</name>
+                                        <value class="boolean">true</value>
+                                        <type>java.lang.Boolean</type>
+                                        <group>FileInfoController</group>
+                                        <info>Show this field.</info>
+                                        <editable>true</editable>
+                                        <visible>true</visible>
+                                        <min>NaN</min>
+                                        <max>NaN</max>
+                                      </Configuration.Config>
+                                    </configs>
                                   </child>
                                 </Layout.UniContainer>
                               </entry>
                             </children>
-                          </child>
-                        </Layout.UniContainer>
-                      </entry>
-                      <entry>
-                        <int>2</int>
-                        <Layout.UniContainer>
-                          <id>418add09-d627-4b4f-bd82-3caa93fe508b</id>
-                          <properties>
-                            <map>
-                              <entry>
-                                <string>padding</string>
-                                <double>0.0</double>
-                              </entry>
-                              <entry>
-                                <string>locked</string>
-                                <boolean>false</boolean>
-                              </entry>
-                            </map>
-                          </properties>
-                          <b>false</b>
-                          <child class="Layout.Widgets.FXMLWidget">
-                            <id>9acab229-e1e4-40a2-ba08-54481a66cb18</id>
-                            <name>FileInfo</name>
-                            <configs>
-                              <Configuration.Config>
-                                <gui__name>Is preferred</gui__name>
-                                <name>preferred</name>
-                                <value class="boolean">false</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FXMLWidget</group>
-                                <info>Preffered widget for its widget type.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Read mode</gui__name>
-                                <name>readMode</name>
-                                <value class="PseudoObjects.ReadMode">PLAYING</value>
-                                <type>PseudoObjects.ReadMode</type>
-                                <group>FileInfoController</group>
-                                <info>Source of data for the widget.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Column min width</gui__name>
-                                <name>minColumnWidth</name>
-                                <value class="double">150.0</value>
-                                <type>java.lang.Double</type>
-                                <group>FileInfoController</group>
-                                <info>Minimal width for field columns. Use -1 for automatic width</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Cover source</gui__name>
-                                <name>cover_source</name>
-                                <value class="AudioPlayer.tagging.Metadata$CoverSource">ANY</value>
-                                <type>AudioPlayer.tagging.Metadata$CoverSource</type>
-                                <group>FileInfoController</group>
-                                <info>Source for cover image.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Read mode change on drag</gui__name>
-                                <name>changeReadModeOnTransfer</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Rating editable</gui__name>
-                                <name>editableRating</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Allow change of rating.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Rating stars</gui__name>
-                                <name>maxRating</name>
-                                <value class="int">5</value>
-                                <type>java.lang.Integer</type>
-                                <group>FileInfoController</group>
-                                <info>Number of stars for rating. Rating value is recalculated accordingly.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Rating allow partial</gui__name>
-                                <name>partialRating</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Allow partial values for rating.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Rating react on hover</gui__name>
-                                <name>hoverRating</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Move rating according to mouse when hovering.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Rating zoom on hover</gui__name>
-                                <name>rating_zoom</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Rating zoom on hover.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Rating skin</gui__name>
-                                <name>rating_skin</name>
-                                <value class="string">file:/C:/Users/Plutonium_/Documents/NetBeansProjects/Player/external/controls/Rating/min.css</value>
-                                <type>java.lang.String</type>
-                                <group>FileInfoController</group>
-                                <info>Rating skin.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Overrun style</gui__name>
-                                <name>overrun_style</name>
-                                <value class="javafx.scene.control.OverrunStyle">ELLIPSIS</value>
-                                <type>javafx.scene.control.OverrunStyle</type>
-                                <group>FileInfoController</group>
-                                <info>Style of clipping fields&apos; text when outside of the area.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Display cover</gui__name>
-                                <name>showCover</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show cover.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Display fields</gui__name>
-                                <name>showFields</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show fields.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Display empty fields</gui__name>
-                                <name>showEmptyFields</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show empty fields.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Group fields</gui__name>
-                                <name>groupFields</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Separate fields by gap and group them..</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show title</gui__name>
-                                <name>showTitle</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show track</gui__name>
-                                <name>showtrack</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show disc</gui__name>
-                                <name>showdisc</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show artist</gui__name>
-                                <name>showartist</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show album artist</gui__name>
-                                <name>showalbum_artist</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show album</gui__name>
-                                <name>showalbum</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show year</gui__name>
-                                <name>showyear</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show genre</gui__name>
-                                <name>showgenre</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show composer</gui__name>
-                                <name>showcomposer</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show publisher</gui__name>
-                                <name>showpublisher</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show rating</gui__name>
-                                <name>showrating</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show playcount</gui__name>
-                                <name>showplaycount</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show comment</gui__name>
-                                <name>showcomment</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show category</gui__name>
-                                <name>showcategory</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show filesize</gui__name>
-                                <name>showfilesize</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show filename</gui__name>
-                                <name>showfilename</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show format</gui__name>
-                                <name>showformat</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show bitrate</gui__name>
-                                <name>showbitrate</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show encoding</gui__name>
-                                <name>showencoding</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                              <Configuration.Config>
-                                <gui__name>Show location</gui__name>
-                                <name>showlocation</name>
-                                <value class="boolean">true</value>
-                                <type>java.lang.Boolean</type>
-                                <group>FileInfoController</group>
-                                <info>Show this field.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                              </Configuration.Config>
-                            </configs>
                           </child>
                         </Layout.UniContainer>
                       </entry>
@@ -847,7 +980,7 @@
       <entry>
         <int>2</int>
         <Layout.UniContainer>
-          <id>8aa6a0b2-99d5-4779-b69a-c6a8c3bb8f94</id>
+          <id>275b52e7-c8aa-4a88-900c-439b56fb1106</id>
           <properties>
             <map>
               <entry>
@@ -862,7 +995,7 @@
           </properties>
           <b>false</b>
           <child class="Layout.BiContainerPure">
-            <id>4f525388-73e9-4924-9fef-e478157bf985</id>
+            <id>05f50ada-55d9-4898-bda4-f08f3b05b60d</id>
             <properties>
               <map>
                 <entry>
@@ -875,7 +1008,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.5530253741054001</double>
+                  <double>0.5</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -896,26 +1029,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>4af0e50b-c292-4c59-a909-71cea47538a7</id>
-                  <properties>
-                    <map>
-                      <entry>
-                        <string>padding</string>
-                        <double>0.0</double>
-                      </entry>
-                      <entry>
-                        <string>locked</string>
-                        <boolean>false</boolean>
-                      </entry>
-                    </map>
-                  </properties>
-                  <b>false</b>
-                </Layout.UniContainer>
-              </entry>
-              <entry>
-                <int>2</int>
-                <Layout.UniContainer>
-                  <id>9d70bdb6-2919-41e7-a372-e42f6c8ff629</id>
+                  <id>c3b8d54e-cf9e-4138-a38e-c73ddb9ecb3e</id>
                   <properties>
                     <map>
                       <entry>
@@ -930,7 +1044,128 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>c7461996-717e-460e-b32d-622d9290316f</id>
+                    <id>0f0a20c0-6553-413a-a321-a0aaad00473f</id>
+                    <name>Tagger</name>
+                    <configs>
+                      <Configuration.Config>
+                        <gui__name>Is preferred</gui__name>
+                        <name>preferred</name>
+                        <value class="boolean">false</value>
+                        <type>java.lang.Boolean</type>
+                        <group>FXMLWidget</group>
+                        <info>Preffered widget for its widget type.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Read Mode</gui__name>
+                        <name>readMode</name>
+                        <value class="PseudoObjects.ReadMode">CUSTOM</value>
+                        <type>PseudoObjects.ReadMode</type>
+                        <group>TaggerController</group>
+                        <info>Source of data for the widget.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Read mode change on drag</gui__name>
+                        <name>changeReadModeOnTransfer</name>
+                        <value class="boolean">false</value>
+                        <type>java.lang.Boolean</type>
+                        <group>TaggerController</group>
+                        <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>No value text</gui__name>
+                        <name>TAG_NO_VALUE</name>
+                        <value class="string">-- no assigned value --</value>
+                        <type>java.lang.String</type>
+                        <group>TaggerController</group>
+                        <info>Field text in case no tag value for field.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Multiple value text</gui__name>
+                        <name>TAG_MULTIPLE_VALUE</name>
+                        <value class="string">-- multiple values --</value>
+                        <type>java.lang.String</type>
+                        <group>TaggerController</group>
+                        <info>Field text in case multiple tag values per field.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Allow change of playcount</gui__name>
+                        <name>allow_playcount_change</name>
+                        <value class="boolean">false</value>
+                        <type>java.lang.Boolean</type>
+                        <group>TaggerController</group>
+                        <info>Change editability of playcount field. Generally to prevent change to non customary values.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Field text alignement</gui__name>
+                        <name>field_text_alignment</name>
+                        <value class="javafx.geometry.Pos">CENTER_LEFT</value>
+                        <type>javafx.geometry.Pos</type>
+                        <group>TaggerController</group>
+                        <info>Alignment of the text in fields.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                      <Configuration.Config>
+                        <gui__name>Mood picker popup position</gui__name>
+                        <name>popupPos</name>
+                        <value class="GUI.objects.PopOver.PopOver$NodeCentricPos">DownCenter</value>
+                        <type>GUI.objects.PopOver.PopOver$NodeCentricPos</type>
+                        <group>TaggerController</group>
+                        <info>Position of the mood picker pop up relative to the mood text field.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                      </Configuration.Config>
+                    </configs>
+                  </child>
+                </Layout.UniContainer>
+              </entry>
+              <entry>
+                <int>2</int>
+                <Layout.UniContainer>
+                  <id>7c4f8f01-4243-4abc-b675-ed8074377d61</id>
+                  <properties>
+                    <map>
+                      <entry>
+                        <string>padding</string>
+                        <double>0.0</double>
+                      </entry>
+                      <entry>
+                        <string>locked</string>
+                        <boolean>false</boolean>
+                      </entry>
+                    </map>
+                  </properties>
+                  <b>false</b>
+                  <child class="Layout.Widgets.FXMLWidget">
+                    <id>3d56c250-3ffc-40ba-a936-41d517ed47c6</id>
                     <name>Playlist</name>
                     <configs>
                       <Configuration.Config>

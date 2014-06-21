@@ -30,7 +30,7 @@ public enum AudioFileFormat {
      * @return true if supported, false otherwise
      */
     public boolean isSupported() {
-        return this != UNKNOWN && this != flac && this != ogg;
+        return this == mp3 || this == wav;
     }
     public static boolean isSupported(AudioFileFormat f) {
         return f.isSupported();

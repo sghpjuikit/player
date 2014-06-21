@@ -3,7 +3,6 @@ package Tagger;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.Metadata;
@@ -12,19 +11,19 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.NotifierManager;
 import GUI.ItemHolders.ItemTextFields.MoodTextField;
+import GUI.NotifierManager;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
-import Layout.Widgets.SupportsTagging;
+import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
-import PseudoObjects.TODO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -75,16 +74,15 @@ import utilities.Util;
  * Can read and write metadata from/into files.
  * Currently supports files only. File types are limited to those supported
  * by the application.
- * <p>
+ * 
  * @author Plutonium_
  */
-@TODO("cover support + support url and other types if it should be supported")
 @WidgetInfo(author = "Martin Polakovic",
             description = "song tag editor",
             version = "0.7",
             year = "2014",
             group = Widget.Group.TAGGER)
-public class TaggerController extends FXMLController implements SupportsTagging {
+public class TaggerController extends FXMLController implements TaggingFeature {
     
     AnchorPane ROOT = new AnchorPane();
     @FXML AnchorPane entireArea;
@@ -234,39 +232,25 @@ public class TaggerController extends FXMLController implements SupportsTagging 
             t.consume();
         });
         entireArea.setOnDragDropped( t -> {
+            // get data
             Dragboard db = t.getDragboard();
-            ArrayList<Item> items = new ArrayList<>();
+            ArrayList<Item> items = new ArrayList();
             if (db.hasFiles()) {
-                FileUtil.getAudioFiles(db.getFiles(), 1).stream().map(SimpleItem::new).forEach(items::add);
-            } else if (db.hasUrl()) {
-                //support later
-            } else if (db.hasContent(DragUtil.playlist)) {
-                Playlist pl = DragUtil.getPlaylist(db);
-                items.addAll(pl.getItems());
-            } else if (db.hasContent(DragUtil.items)) {
-                List<Item> pl = DragUtil.getItems(db);
-                items.addAll(pl);
+                FileUtil.getAudioFiles(db.getFiles(),0).stream()
+                        .map(SimpleItem::new).forEach(items::add);
             }
+            if (db.hasUrl())
+                items.add(new SimpleItem(URI.create(db.getUrl())));
+            if (db.hasContent(DragUtil.playlist))
+                items.addAll(DragUtil.getPlaylist(db).getItems());
+            if (db.hasContent(DragUtil.items))
+                items.addAll(DragUtil.getItems(db));
             // read data
             if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
-            if (!items.isEmpty())
-                readData(items);
-            
+            if (!items.isEmpty()) readData(items);
             //end drag transfer
+            t.setDropCompleted(true);
             t.consume();
-        });
-        
-        // add image on drag & drop
-        CoverV.getPane().setOnDragOver( t -> {
-            if (t.getDragboard().hasFiles())
-                t.acceptTransferModes(TransferMode.ANY);
-        });
-        CoverV.getPane().setOnDragDropped( t -> {
-            Dragboard d = t.getDragboard();
-            if (d.hasFiles())
-                d.getFiles().stream()
-                            .filter(ImageFileFormat::isSupported)
-                            .limit(1).forEach(this::addImg);
         });
         
         // add cover on click
@@ -280,6 +264,19 @@ public class TaggerController extends FXMLController implements SupportsTagging 
                           .collect(Collectors.toList()));
             File f = fc.showOpenDialog(entireArea.getScene().getWindow());
             if (f!= null) addImg(f);
+        });
+        
+        // add cover on drag & drop file
+        CoverV.getPane().setOnDragOver( t -> {
+            if (t.getDragboard().hasFiles())
+                t.acceptTransferModes(TransferMode.ANY);
+        });
+        CoverV.getPane().setOnDragDropped( t -> {
+            Dragboard d = t.getDragboard();
+            if (d.hasFiles())
+                d.getFiles().stream()
+                            .filter(ImageFileFormat::isSupported)
+                            .limit(1).forEach(this::addImg);
         });
         
         // remove cover on drag exit
@@ -475,7 +472,7 @@ public class TaggerController extends FXMLController implements SupportsTagging 
         progressI.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
         
         // writing
-        metadatas.stream().map(MetadataWriter::create).forEach(writer -> {
+        metadatas.stream().map(MetadataWriter::create).forEach( writer -> {
             // write to tag if field commitable
             if ((boolean)TitleF.getUserData())        writer.setTitle(TitleF.getText());
             if ((boolean)AlbumF.getUserData())        writer.setAlbum(AlbumF.getText());

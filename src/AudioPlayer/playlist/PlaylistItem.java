@@ -249,7 +249,17 @@ public final class PlaylistItem extends Item {
      */
     @Override
     public Metadata toMetadata() {
-        return new Metadata(this);
+        return super.toMetadata();
+    }
+    
+    /** 
+     * {@inheritDoc}
+     * <p>
+     * This implementation returns this object.
+     */
+    @Override
+    public PlaylistItem toPlaylistItem() {
+        return this;
     }
     
     /** @return complete information on this item - artist, title, length */

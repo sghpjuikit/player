@@ -3241,6 +3241,14 @@ is being used to size a border should also be in pixels.
     -fx-border-width: 1, 1.5;
     -fx-border-insets: -2, -0.5;
 }
+.area-bgr {
+    -fx-background-color: -fx-color-lighter;
+    -fx-border-color: 
+        transparent transparent rgba(255, 255, 255, 0.08) transparent,
+        rgba(255, 255, 255, 0.05) rgba(0, 0, 0, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
+    -fx-border-width: 1, 1.5;
+    -fx-border-insets: -2, -0.5;
+}
 
 .header-button {
     -fx-background-color: transparent;
@@ -3291,6 +3299,7 @@ is being used to size a border should also be in pixels.
 .table-cell:played,
 .table-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
+    -fx-underline: true
 }
 
 .table-row-cell:played,
@@ -3298,10 +3307,12 @@ is being used to size a border should also be in pixels.
     // setting text fill here wont work, because text is in cells not rows
     // in general set only non-content properties in row
 }
+
 .table-cell:corrupt,
 .table-cell:corrupt:selected {
     -fx-text-fill: rgba(250, 180, 180, 0.8);
 }
+
 .table-row-cell:corrupt,
 .table-row-cell:corrupt:selected{
     // setting text fill here wont work, because text is in cells not rows
@@ -3409,6 +3420,6 @@ is being used to size a border should also be in pixels.
 // it does however have to be applied manually in the code upon Text object
 // creation. A sublass of Text could however be created that uses this style
 // class by default
-.text {
+.text-shape {
     -fx-fill: -fx-def-font-color;
 }

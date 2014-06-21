@@ -1,9 +1,9 @@
 
 package Layout;
 
+import Action.IsActionable;
 import Configuration.Configurable;
 import Configuration.Configuration;
-import Configuration.IsActionable;
 import GUI.ContextManager;
 import Serialization.Serializator;
 import java.io.File;
@@ -25,7 +25,7 @@ import utilities.functional.impl.NotNull;
 public final class LayoutManager implements Configurable {
 
     public static final List<String> layouts = new ArrayList<>();
-    public static Map<Integer,Layout> active = new HashMap<>();
+    public static final Map<Integer,Layout> active = new HashMap<>();
     
     
     public static Layout getActive() {

@@ -1,19 +1,21 @@
 
 package GUI;
 
+import Action.Action;
 import AudioPlayer.playback.PLAYBACK;
-import Configuration.Action;
 import Configuration.Configuration;
-import static GUI.Resize.E;
-import static GUI.Resize.N;
-import static GUI.Resize.NE;
-import static GUI.Resize.NONE;
-import static GUI.Resize.NW;
-import static GUI.Resize.S;
-import static GUI.Resize.SE;
-import static GUI.Resize.SW;
-import static GUI.Resize.W;
+import GUI.GUI;
 import GUI.objects.ClickEffect;
+import GUI.objects.Window.Resize;
+import static GUI.objects.Window.Resize.E;
+import static GUI.objects.Window.Resize.N;
+import static GUI.objects.Window.Resize.NE;
+import static GUI.objects.Window.Resize.NONE;
+import static GUI.objects.Window.Resize.NW;
+import static GUI.objects.Window.Resize.S;
+import static GUI.objects.Window.Resize.SE;
+import static GUI.objects.Window.Resize.SW;
+import static GUI.objects.Window.Resize.W;
 import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
@@ -110,7 +112,9 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
                 w.setIcon(App.getIcon());
                 w.setTitle(App.getAppName());
                 w.setTitlePosition(Pos.CENTER_LEFT);
-                new ContextManager((UIController)loader.getController());
+                UIController uic = (UIController)loader.getController();
+                new ContextManager(uic);
+                ContextManager.gui = uic; System.out.println(ContextManager.gui + " ggg ");
             }
                    
             return w;
@@ -145,7 +149,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         // maintain active (focused) window
         getStage().focusedProperty().addListener((o,oldV,newV)-> ContextManager.activeWindow=this );
         // set shortcuts
-        Action.getShortcuts().values().stream().filter(a->!a.isGlobal()).forEach(Action::register);
+        Action.getActions().values().stream().filter(a->!a.isGlobal()).forEach(Action::register);
         
         root.addEventFilter(MOUSE_MOVED, e -> {
             // update coordinates for context manager
@@ -232,6 +236,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     @FXML private Region rBorder;
     @FXML ImageView iconI;
     @FXML Label titleL;
+    @FXML HBox leftHeaderBox;
     private boolean showHeader = true;
     
     /**
@@ -239,12 +244,12 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
      * of the window (close, etc).
      */
     public void setShowHeader(boolean val) {
-        showHeader= val;
+        showHeader = val;
         showHeader(val);
     }
     private void showHeader(boolean val) {
         controls.setVisible(val);
-        titleL.setVisible(val);
+        leftHeaderBox.setVisible(val);
         if(val) {
             header.setPrefHeight(25);
             AnchorPane.setTopAnchor(content, 25d);
@@ -323,12 +328,19 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     
     /**
      * Closes window if (isPopup && autoclose) evaluates to true. This method is
-     * designed specifically for autoclosing functionality.
+     * designed specifically for auto-closing functionality.
      */
     public void closeWeak() {
         if(isPopup && autoclose) close(); 
     }
-    
+
+    @Override
+    public void setFullscreen(boolean val) {
+        super.setFullscreen(val);
+        showHeader(!val);
+//        if (showHeader && val) showHeader(!val);
+//        else if (showHeader && !val) showHeader(val);
+    }
     
     @FXML public void toggleMini() {
         WindowManager.toggleMini();
@@ -351,34 +363,33 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     private void dragApp(MouseEvent e) {
         double SW = Screen.getPrimary().getVisualBounds().getWidth(); //screen_width
         double SH = Screen.getPrimary().getVisualBounds().getHeight(); //screen_height
-        double X = e.getScreenX();
-        double Y = e.getScreenY();
+        double SX = e.getScreenX();
+        double SY = e.getScreenY();
         double SH10 = SH/5;
         double SW10 = SW/5;
         
         if (isMaximised() == Maximized.NONE) {
-            setLocation(X - appX, Y - appY);
-            
+            setLocation(SX - appX, SY - appY);
             // (imitate Aero Snap)
-            if ((X <= SW10 && Y <= 0) || (X <= 0 && Y <= SH10))
+            // misbehaves without -1 in the conditions
+            if ((SX <= SW10 && SY <= 0) || (SX <= 0 && SY <= SH10))
                 setMaximized(LEFT_TOP);
-            else if ((X >= SW-SW10 && Y <= 0) || (X >= SW-1 && Y <= SH10))
+            else if ((SX >= SW-SW10 && SY <= 0) || (SX >= SW-1 && SY <= SH10))
                 setMaximized(RIGHT_TOP);
-            else if ((X <= SW10 && Y >= SH-1) || (X <= 0 && Y >= SH-SH10))
+            else if ((SX <= SW10 && SY >= SH-1) || (SX <= 0 && SY >= SH-SH10))
                 setMaximized(LEFT_BOTTOM);
-            else if ((X >= SW-SW10 && Y >= SH-1) || (X >= SW-1 && Y >= SH-SH10))
+            else if ((SX >= SW-SW10 && SY >= SH-1) || (SX >= SW-1 && SY >= SH-SH10))
                 setMaximized(RIGHT_BOTTOM);
             else if (e.getScreenY() <= 0)
                 setMaximized(Maximized.ALL);
             else if (e.getScreenX() <= 0)
                 setMaximized(Maximized.LEFT);
-            else if (e.getScreenX() >= SW-1)  //for some reason it wont work without -1
+            else if (e.getScreenX() >= SW-1)  
                 setMaximized(Maximized.RIGHT);
-        }
-        else {
+        } else {
             // demaximize if not touching LEFT,TOP,RIGHT borders and if
             // not touching BOTTOM border on the left or right
-            if ((Y>0 && X>0 && X<SW-1) && !(Y>SH-10 && (SW<=SW10 || SW>=SW-SW10)))
+            if ((SY>0 && SX>0 && SX<SW-1) && !(SY>SH-10 && (SW<=SW10 || SW>=SW-SW10)))
                 setMaximized(Maximized.NONE);
         }
         e.consume();
@@ -462,16 +473,16 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))
             GUI.setLayoutMode(true);
         if (e.getCode()==ALT)
-            if(!showHeader)
+//            if(isFullscreen() || !showHeader)
                 showHeader(true);
     }
 
     @FXML
-    private void entireArea_OnKeyReleased(KeyEvent e) {
+    private void entireArea_OnKeyReleased(KeyEvent e) {System.out.println("WHAT THE FUCK");
         if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))
             GUI.setLayoutMode(false);
         if (e.getCode()==ALT)
-            if(!showHeader)
+//            if(isFullscreen() || !showHeader)
                 showHeader(false);
     }
     
@@ -509,7 +520,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             writer.startNode("resizable");
             writer.setValue(w.ResProp.getValue().toString());
             writer.endNode();
-            writer.startNode("resizable");
+            writer.startNode("alwaysOnTop");
             writer.setValue(w.s.alwaysOnTopProperty().getValue().toString());
             writer.endNode();
         }

@@ -31,11 +31,9 @@ import static java.lang.Double.MAX_VALUE;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -116,10 +114,7 @@ public class PopOverSkin implements Skin<PopOver> {
         closeIcon.visibleProperty().bind(popOver.detachedProperty());
         closeIcon.getStyleClass().add("icon");
         closeIcon.setAlignment(CENTER_LEFT);
-        closeIcon.getGraphic().setOnMouseClicked((MouseEvent evt) -> {
-            popOver.setDetached(false);
-            popOver.hide();
-        });
+        closeIcon.getGraphic().setOnMouseClicked( e -> popOver.hideStrong());
 
         titlePane = new StackPane();
         titlePane.getChildren().add(title);
@@ -136,23 +131,19 @@ public class PopOverSkin implements Skin<PopOver> {
             content.getStyleClass().add(DETACHED_STYLE_CLASS);
         }
 
-        InvalidationListener updatePathListener = (Observable observable) -> {
-            updatePath();
-        };
+        InvalidationListener updatePathListener = o -> updatePath();
 
         getPopupWindow().xProperty().addListener(updatePathListener);
         getPopupWindow().yProperty().addListener(updatePathListener);
 
         popOver.arrowLocationProperty().addListener(updatePathListener);
 
-        popOver.contentNodeProperty().addListener((ObservableValue<? extends Node> value, Node oldContent, Node newContent) -> {
-            content.setCenter(newContent);
-        });
+        popOver.contentNodeProperty().addListener((o,oldV,newV) -> content.setCenter(newV));
 
-        popOver.detachedProperty().addListener((ObservableValue<? extends Boolean> value, Boolean oldDetached, Boolean newDetached) -> {
+        popOver.detachedProperty().addListener((o,oldV,newV) -> {
             updatePath();
             
-            if (newDetached) {
+            if (newV) {
                 popOver.getStyleClass().add(DETACHED_STYLE_CLASS);
                 content.getStyleClass().add(DETACHED_STYLE_CLASS);
                 content.setTop(titlePane);
@@ -170,36 +161,36 @@ public class PopOverSkin implements Skin<PopOver> {
         createPathElements();
         updatePath();
 
-        final EventHandler<MouseEvent> mousePressedHandler = (MouseEvent evt) -> {
+        final EventHandler<MouseEvent> mousePressedHandler = e -> {
             if (popOver.isDetachable()) {
                 tornOff = false;
                 
-                xOffset = evt.getScreenX();
-                yOffset = evt.getScreenY();
+                xOffset = e.getScreenX();
+                yOffset = e.getScreenY();
                 
                 dragStartLocation = new Point2D(xOffset, yOffset);
             }
         };
 
-        final EventHandler<MouseEvent> mouseReleasedHandler = (MouseEvent evt) -> {
+        final EventHandler<MouseEvent> mouseReleasedHandler = e -> {
             if (tornOff && !getSkinnable().isDetached()) {
                 tornOff = false;
                 getSkinnable().detach();
             }
         };
 
-        final EventHandler<MouseEvent> mouseDragHandler = (MouseEvent evt) -> {
+        final EventHandler<MouseEvent> mouseDragHandler = e -> {
             if (popOver.isDetachable()) {
-                double deltaX = evt.getScreenX() - xOffset;
-                double deltaY = evt.getScreenY() - yOffset;
+                double deltaX = e.getScreenX() - xOffset;
+                double deltaY = e.getScreenY() - yOffset;
                 
                 Window window = getSkinnable().getScene().getWindow();
                 
                 window.setX(window.getX() + deltaX);
                 window.setY(window.getY() + deltaY);
                 
-                xOffset = evt.getScreenX();
-                yOffset = evt.getScreenY();
+                xOffset = e.getScreenX();
+                yOffset = e.getScreenY();
                 
                 if (dragStartLocation.distance(xOffset, yOffset) > 20) {
                     tornOff = true;

@@ -4,14 +4,15 @@ import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
+import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import GUI.ItemHolders.Seeker;
+import GUI.DragUtil;
+import GUI.objects.Seeker;
 import GUI.objects.Balancer.Balancer;
 import Layout.Widgets.FXMLController;
 import java.io.File;
-import java.net.URI;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
@@ -19,7 +20,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -28,6 +28,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import utilities.FileUtil;
 import utilities.Util;
 
 /**
@@ -76,6 +77,8 @@ public class PlayerControlsController extends FXMLController {
     public boolean popupChapters = true;
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
+    @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
+    public boolean playDropped = false;
     
     @Override
     public void init() {
@@ -94,6 +97,7 @@ public class PlayerControlsController extends FXMLController {
         volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
         
         seeker = new Seeker();
+        seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
         entireArea.getChildren().add(seeker);
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
@@ -127,29 +131,39 @@ public class PlayerControlsController extends FXMLController {
         currTimeListener.invalidated(null);                             // init value
         
         // support drag transfer
-        entireArea.setOnDragOver((DragEvent event) -> {
-            Dragboard db = event.getDragboard();
-            if(db.hasFiles() || db.hasUrl())
-                event.acceptTransferModes(TransferMode.ANY);
-            event.consume();
+        entireArea.setOnDragOver( e -> {
+            Dragboard db = e.getDragboard();
+            if ((db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
+                    db.hasUrl() || 
+                        db.hasContent(DragUtil.playlist)) {
+                e.acceptTransferModes(TransferMode.ANY);
+                e.consume();
+            }
         });
-        entireArea.setOnDragDropped((DragEvent event) -> {
-            Dragboard db = event.getDragboard();
-            URI uri = null;
+        entireArea.setOnDragDropped( e -> {
+            // get items
+            Dragboard db = e.getDragboard();
+            Playlist p = new Playlist();
             if (db.hasFiles())
-                uri = db.getFiles().get(0).toURI();
-            else if (db.hasUrl())
-                uri = URI.create(db.getUrl());
+                p.addFiles(db.getFiles());
+            if (db.hasUrl())
+                p.addUrl(db.getUrl());
+            if (db.hasContent(DragUtil.playlist))
+                p.addItems(DragUtil.getPlaylist(db).getItems());
             
-            if (uri != null)
-                playFile(new File(uri));
+            // handle items
+            if(playDropped) PlaylistManager.playPlaylist(p);
+            else PlaylistManager.addPlaylist(p);
+            // end drag
+            e.setDropCompleted(true);
+            e.consume();
         });
 
     }
     
     @Override
     public void refresh() {
-        seeker.setChaptersPopUp(popupChapters);
+        seeker.setChaptersShowPopUp(popupChapters);
         seeker.setChaptersVisible(showChapters);
     }
 
@@ -166,6 +180,7 @@ public class PlayerControlsController extends FXMLController {
         // unbind
         balance.balanceProperty().unbind();
         volume.valueProperty().unbind();
+        seeker.unbindTime();
     }
     
 /******************************************************************************/
@@ -233,7 +248,7 @@ public class PlayerControlsController extends FXMLController {
             sampleRateL.setText(m.getSampleRate());
             channelsL.setText(m.getChannels());
         }
-        seeker.reloadChapters();
+        seeker.reloadChapters(m);
     }
     private void statusChanged(Status newStatus) {
         if (newStatus == null || newStatus == Status.UNKNOWN ) {
@@ -274,9 +289,6 @@ public class PlayerControlsController extends FXMLController {
         }
     }
     private void currentTimeChanged() {
-        // update seeker position
-        if (seeker.canUpdate)
-            seeker.updatePosition();
         // update label
         if (elapsedTime) {
             Duration elapsed = PLAYBACK.getCurrentTime();

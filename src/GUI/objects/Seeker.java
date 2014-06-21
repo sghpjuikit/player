@@ -1,23 +1,28 @@
 
-package GUI.ItemHolders;
+package GUI.objects;
 
-import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.tagging.Chapter;
+import AudioPlayer.tagging.Metadata;
 import GUI.GUI;
 import GUI.objects.PopOver.PopOver;
 import static GUI.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
-import GUI.objects.Text;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.ScaleTransition;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import utilities.Log;
 import utilities.Util;
@@ -41,9 +46,9 @@ public final class Seeker extends AnchorPane {
         // lazy initialized, we dont want to spam unused popups
         private PopOver p; 
         
-        Chap(Chapter c) {
+        Chap(Chapter c, Duration total_time) {
             // resources
-            double total = Player.getCurrentMetadata().getLength().toMillis();
+            double total = total_time.toMillis();
             double pos = c.getTime().toMillis();
             double relPos = pos/total;
             // set properties
@@ -53,12 +58,12 @@ public final class Seeker extends AnchorPane {
             // set up skin
             this.getStyleClass().add(STYLECLASS);
             // set up layout
-            double height = (Seeker.this.getBoundsInParent().getHeight()-getPadding().getTop())/4;
+            double height = (Seeker.this.getLayoutBounds().getHeight()-getLayoutBounds().getHeight())/4;
             AnchorPane.setTopAnchor(this, height);
             // build animations
             final ScaleTransition start = new ScaleTransition(Duration.millis(150), this);
                                   start.setToX(8);
-                                  start.setToY(1.5);
+                                  start.setToY(1);
             final ScaleTransition end = new ScaleTransition(Duration.millis(150), this);
                                   end.setToX(1);
                                   end.setToY(1);
@@ -66,15 +71,19 @@ public final class Seeker extends AnchorPane {
             start.setOnFinished( e-> {
                 if(p==null || !p.isShowing()) {
                     // build popup
-                    p = new PopOver(new Text(text));
-                    p.setAutoHide(false);
+                    Text message = new Text(text);
+                         message.setWrappingWidthNaturally();
+                         message.setTextAlignment(TextAlignment.CENTER);
+                    BorderPane pane = new BorderPane(message);
+                    BorderPane.setMargin(message, new Insets(8));
+                    p = new PopOver(pane);
+                    p.setAutoHide(true);
                     p.setHideOnEscape(true);
                     p.setHideOnClick(true);
                     p.setAutoFix(true);
                     p.setDetachedTitle(Util.formatDuration(time));
                     p.setArrowLocation(TOP_CENTER);
                     p.setOnHidden( event -> end.play());
-                    // show popup
                     p.show(this);
                 }
             });
@@ -93,12 +102,13 @@ public final class Seeker extends AnchorPane {
         }
     }
     
+    
     // GUI
     @FXML Slider position;
-    final List<Chap> chapters = new ArrayList();
+    private final List<Chap> chapters = new ArrayList();
     
     // tmp variables
-    public boolean canUpdate = true;
+    public boolean canUpdate = true;    
     
     public Seeker() {
         // load graphics
@@ -126,7 +136,7 @@ public final class Seeker extends AnchorPane {
         position.valueChangingProperty().addListener((o,oldV,newV) -> {
             if (oldV && !newV) {
                 double pos = position.getValue();
-                Duration seekTo = PLAYBACK.getTotalTime().multiply(pos);
+                Duration seekTo = totalTime.get().multiply(pos);
                 PLAYBACK.seek(seekTo);                
             }
         });
@@ -135,7 +145,7 @@ public final class Seeker extends AnchorPane {
             double width = getWidth();
             // snap to chapter if nearby
             for (Chap c: chapters) {
-                if (GUI.snapDistance>Math.abs(distance-c.position*width)) {
+                if (GUI.snapDistance > Math.abs(distance-c.position*width)) {
                     position.setValue(c.position);
                     return;
                 }
@@ -144,60 +154,76 @@ public final class Seeker extends AnchorPane {
         });
         position.setOnMouseReleased( e -> {
             double pos = position.getValue();
-            Duration seekTo = PLAYBACK.getTotalTime().multiply(pos);
+            Duration seekTo = totalTime.get().multiply(pos);
             PLAYBACK.seek(seekTo);
             canUpdate = true;
         });
         position.setOnMousePressed( e -> canUpdate = false );
-        this.widthProperty().addListener( o -> updateChapters() );
+        this.widthProperty().addListener( o -> positionChapters() );
     }
     
-    /**
-     * Updates seeker's position to the most up to date.
-     */
-    public void updatePosition() {
-        if (position.isValueChanging()) return;
-        
-        final Duration total = PLAYBACK.getTotalTime();
-        final Duration currentTime = PLAYBACK.getCurrentTime();
-        if (total == null || currentTime == null) {
-            position.setValue(0);
-        } else {
-            position.setValue(currentTime.toMillis() / total.toMillis());
-        }
-    }
-    /**
-     * Updates positions of chapters. No reloading takes place. Use on resize.
-     */
-    public void updateChapters() {
+    // Updates positions of chapters. No reloading takes place. Use on resize.
+    private void positionChapters() {
         chapters.forEach( c -> c.setLayoutX(c.position*this.getWidth()));
     }
+    
     /**
      * Reloads chapters from currently played item's metadata. Use when chapter
      * data changes for example on chapter add/remove.
      */
-    public void reloadChapters() {
+    public void reloadChapters(Metadata m) {
         // clear 
         getChildren().removeAll(chapters);
         chapters.clear();
         
         // return if disabled or not available
         if (!showChapters) return;
-        if(Player.getCurrentMetadata()==null) return;
+        if(m==null || m.isEmpty()) return;
         
         // populate
-        for (Chapter ch: Player.getCurrentMetadata().getExtended().getChapters()) {            
-            Chap c = new Chap(ch);
+        for (Chapter ch: m.getExtended().getChapters()) {            
+            Chap c = new Chap(ch, m.getLength());
             getChildren().add(c);
             chapters.add(c);
         }
-        updateChapters();
+        positionChapters();
     }
     
-    public void setChaptersPopUp(boolean val) {
+    public void setChaptersShowPopUp(boolean val) {
         popupChapters = val;
     }
     public void setChaptersVisible(boolean val) {
         showChapters = val;
-    } 
+    }
+    
+    // data
+    private final SimpleObjectProperty<Duration> totalTime = new SimpleObjectProperty(0);
+    private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty(0);
+    private final ChangeListener<Duration> positionUpdater = (o,oldV,newV)-> {
+        if (!canUpdate) return;
+        position.setValue(currentTime.get().toMillis()/totalTime.get().toMillis());
+    };
+    
+    /**
+     * Binds to total and current duration value.
+     * @param totalTime length of the song
+     * @param currentTime time position within the playback of the song.
+     */
+    public void bindTime(ObjectProperty<Duration> totalTime, ObjectProperty<Duration> currentTime) {
+        // atomical binding to avoid illegal position value
+        this.totalTime.removeListener(positionUpdater);
+        this.currentTime.removeListener(positionUpdater);
+        this.totalTime.bind(totalTime);
+        this.currentTime.bind(currentTime);
+        this.totalTime.addListener(positionUpdater);
+        this.currentTime.addListener(positionUpdater);
+        positionUpdater.changed(null,Duration.ZERO, Duration.ZERO);
+    }
+    public void unbindTime() {
+        totalTime.unbind();
+        currentTime.unbind();
+        totalTime.set(Duration.ZERO);
+        currentTime.set(Duration.ONE);
+        positionUpdater.changed(null,Duration.ZERO, Duration.ZERO);
+    }
 }

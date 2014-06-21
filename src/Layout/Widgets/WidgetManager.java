@@ -1,6 +1,7 @@
 
 package Layout.Widgets;
 
+import Layout.Widgets.Features.TaggingFeature;
 import GUI.ContextManager;
 import Layout.LayoutManager;
 import Layout.WidgetImpl.Circles;
@@ -169,7 +170,7 @@ public final class WidgetManager {
      * @return any open widget supporting tagging or loaded new if none is loaded.
      * Null if no tagging widget available in application.
      */
-    public static SupportsTagging getTaggerOrCreate() {
-        return (SupportsTagging)getWidgetOrCreate(w->w.group()==Group.TAGGER).getController();
+    public static TaggingFeature getTaggerOrCreate() {
+        return (TaggingFeature)getWidgetOrCreate(w->w.group()==Group.TAGGER).getController();
     }
 }

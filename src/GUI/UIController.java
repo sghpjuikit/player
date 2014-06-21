@@ -2,6 +2,7 @@
 package GUI;
 
 import Configuration.Configuration;
+import GUI.GUI;
 import Layout.Layout;
 import Layout.LayoutManager;
 import java.util.HashMap;
@@ -74,7 +75,7 @@ public class UIController {
     
     public final Map<Integer,AnchorPane> tabs = new HashMap<>();
     
-    public void addTab(final int i) {        
+    public void addTab(int i) {        
         if (tabs.containsKey(i)) return;
         
         double width = uiWidth();

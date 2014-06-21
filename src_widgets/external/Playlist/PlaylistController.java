@@ -6,9 +6,9 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import GUI.Dialogs.ContentDialog;
-import GUI.ItemHolders.PlaylistTable;
+import GUI.objects.PlaylistTable;
 import Layout.Widgets.FXMLController;
-import Layout.Widgets.SupportsTagging;
+import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import java.util.Date;
 import java.util.function.Predicate;
@@ -234,7 +234,7 @@ public class PlaylistController extends FXMLController {
     
     @FXML
     public void tagEditSelected() {
-        SupportsTagging t = WidgetManager.getTaggerOrCreate();
+        TaggingFeature t = WidgetManager.getTaggerOrCreate();
         if (t!=null) t.read(playlist.getSelectedItems());
     }
     @FXML

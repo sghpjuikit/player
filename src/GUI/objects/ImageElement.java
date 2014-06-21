@@ -43,6 +43,7 @@ public abstract class ImageElement {
      * @param img null to set no image;
      */
     public abstract void setFile(File img);
+    public abstract File getFile();
     /**
      * Calculates size of the image to load.
      * The image normally loads 1:1 with the resolution size, but it is not 

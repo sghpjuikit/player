@@ -6,11 +6,13 @@ package GUI.objects;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ContextManager;
 import GUI.Traits.ScaleOnHoverTrait;
+import GUI.ContextManager;
 import PseudoObjects.TODO;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -19,14 +21,21 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
+import javafx.scene.input.DataFormat;
+import static javafx.scene.input.DataFormat.FILES;
+import javafx.scene.input.Dragboard;
+import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -140,6 +149,7 @@ public final class Thumbnail extends ImageElement implements ScaleOnHoverTrait {
 //        image.setCacheHint(CacheHint.SPEED);
         borderToImage(false);
         setBackgroundVisible(true);
+        setDragImage(true);
         
         // animations
         border.setOpacity(0.3);
@@ -147,7 +157,7 @@ public final class Thumbnail extends ImageElement implements ScaleOnHoverTrait {
         
         // change border framing style on mouse middle button click //experimental
         root.addEventHandler(MOUSE_CLICKED, e -> {
-            if(e.getButton()==MouseButton.MIDDLE) {
+            if(e.getButton()==MIDDLE) {
                 setBorderToImage(!isBorderToImage());}
         });
         
@@ -224,6 +234,12 @@ public final class Thumbnail extends ImageElement implements ScaleOnHoverTrait {
     public void setFile(File img) {
         img_file = img;
     }
+
+    @Override
+    public File getFile() {
+        return img_file;
+    }
+    
     @Override
     public Image getImage() {
         return image.getImage();
@@ -284,8 +300,8 @@ public final class Thumbnail extends ImageElement implements ScaleOnHoverTrait {
     public void setBorderToImage(boolean val) {
         if(borderToImage==val) return;
         borderToImage(val);
-
     }
+    
     private void borderToImage(boolean val) {
         double b = borderWidth();
         borderToImage = val;
@@ -316,6 +332,38 @@ public final class Thumbnail extends ImageElement implements ScaleOnHoverTrait {
     
     private double borderWidth() {
         return 4;
+    }
+    
+    /**
+     * Set support for dragging file representing the displayed image. The file
+     * can be dragged and dropped anywhere within the application.
+     * Default true.
+     * @param val 
+     */
+    public void setDragImage(boolean val) {
+        if(val) {
+            dragHandler = buildDragHandler();
+            root.addEventHandler(DRAG_DETECTED, dragHandler);
+        } else {
+            root.removeEventHandler(DRAG_DETECTED, null);
+            dragHandler = null;
+        }
+    }
+    
+    private EventHandler<MouseEvent> dragHandler;
+    
+    private EventHandler<MouseEvent> buildDragHandler() {
+        return e -> {
+            if(img_file!=null) {
+                Dragboard db = root.startDragAndDrop(TransferMode.LINK);
+                // set image
+                if(getImage()!=null) db.setDragView(getImage());
+                // set content
+                HashMap<DataFormat,Object> c = new HashMap();
+                c.put(FILES, Collections.singletonList(img_file));
+                db.setContent(c);
+            }
+        };
     }
     
 /***************************  Implemented Traits  *****************************/

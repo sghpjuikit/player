@@ -9,7 +9,7 @@ package Layout.Areas;
 import GUI.ContextManager;
 import GUI.GUI;
 import GUI.objects.Pickers.WidgetPicker;
-import static GUI.objects.PopOver.PopOver.NodeCentricPos.Center;
+import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
@@ -108,7 +108,7 @@ public final class AreaControls {
         WidgetPicker p = new WidgetPicker();
                      p.setConverter(widget_factory->widget_factory.name);
                      p.setOnSelect(factory->area.add(factory.create()));
-                     p.show(propB,Center);
+                     p.show(propB,NodeCentricPos.Center);
     }
     @FXML
     void detach() {

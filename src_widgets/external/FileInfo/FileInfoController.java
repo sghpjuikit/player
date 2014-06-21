@@ -3,11 +3,9 @@ package FileInfo;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.CoverSource;
-import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configuration;
 import Configuration.IsConfig;
@@ -24,7 +22,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.image.Image;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -208,37 +205,38 @@ public class FileInfoController extends FXMLController  {
         layout.getContentPane().heightProperty().addListener( o -> reposition());
         
         // accept drag transfer
-        entireArea.setOnDragOver((DragEvent t) -> {
-            Dragboard db = t.getDragboard();
-            if (db.hasFiles() || db.hasContent(DragUtil.playlist)) {
-                t.acceptTransferModes(TransferMode.ANY);
+        entireArea.setOnDragOver( e -> {
+            Dragboard db = e.getDragboard();
+            if ((db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
+                    db.hasContent(DragUtil.playlist) || 
+                        db.hasContent(DragUtil.items)) {
+                e.acceptTransferModes(TransferMode.ANY);
+                e.consume();
             }
-            t.consume();
         });
         // handle drag transfers
-        entireArea.setOnDragDropped((DragEvent t) -> {
-            Dragboard db = t.getDragboard();
-            Item item = null;
+        entireArea.setOnDragDropped( e -> {
             // get first item
+            Dragboard db = e.getDragboard();
+            Item item = null;
             if (db.hasFiles()) {
-                item = FileUtil.getAudioFiles(db.getFiles(), 1)
-                        .stream().limit(1).map(SimpleItem::new).findAny().get();
-            } else if (db.hasContent(DragUtil.playlist)) {
-                Playlist pl = DragUtil.getPlaylist(db);
-                item = pl.getItem(0);
-            } else if (db.hasContent(DragUtil.items)) {
-                List<Item> pl = DragUtil.getItems(db);
-                item = pl.get(0);
+                item = FileUtil.getAudioFiles(db.getFiles(),0).stream()
+                        .findFirst().map(SimpleItem::new).orElse(null);
             }
+            else if (db.hasContent(DragUtil.playlist))
+                item = DragUtil.getPlaylist(db).getItem(0);
+            else if (db.hasContent(DragUtil.items))
+                item = DragUtil.getItems(db).get(0);
+            
             // getMetadata, refresh
             if (item != null) {
-                if (changeReadModeOnTransfer)
-                    readMode = ReadMode.CUSTOM;
+                if (changeReadModeOnTransfer) readMode = ReadMode.CUSTOM;
                 Player.bindObservedMetadata(meta, readMode);
-                meta.set(MetadataReader.create(item));
+                meta.set(item.getMetadata());
             }
             // end drag
-            t.consume();
+            e.setDropCompleted(true);
+            e.consume();
         });
     }
     

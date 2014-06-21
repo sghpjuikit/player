@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package Configuration;
+package Action;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -19,6 +20,7 @@ import org.atteo.classindex.IndexAnnotated;
  * For that purpose, this annotation itself is annotated by {@link IndexAnnotated}.
  * @author Plutonium_
  */
+@Documented
 @IndexAnnotated
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)

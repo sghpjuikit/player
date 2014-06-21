@@ -1,5 +1,5 @@
 
-package GUI.ItemHolders;
+package GUI.objects;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
@@ -150,7 +150,7 @@ public final class PlaylistTable {
             cell.setAlignment(cell_align);
             return cell;
         });
-        timeCellFactory = ( column-> {
+        timeCellFactory = ( column -> {
             TableCell cell = new TableCell<PlaylistItem, FormattedDuration>() {
                 @Override
                 protected void updateItem(FormattedDuration item, boolean empty) {
@@ -242,13 +242,16 @@ public final class PlaylistTable {
             });
             //support drag over transfer
             row.setOnDragOver( t -> {
-                if(row.isEmpty()) return;
-                if (t.getGestureSource() == table) return;
+                // avoid illegal operation
+                if(t.getGestureSource() == table) return;
+                
                 Dragboard db = t.getDragboard();
-                if (db.hasFiles() || db.hasUrl() || db.hasContent(DragUtil.items) ||
-                        db.hasContent(DragUtil.playlist))
+                if ( (db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
+                        db.hasUrl() || db.hasContent(DragUtil.items) ||
+                                db.hasContent(DragUtil.playlist)) {
                     t.acceptTransferModes(TransferMode.ANY);
-                t.consume();
+                    t.consume();
+                }
             });
             // handle drag transfer
             row.setOnDragDropped( t -> {
@@ -258,17 +261,22 @@ public final class PlaylistTable {
                     List<URI> uris = new ArrayList<>();
                     FileUtil.getAudioFiles(db.getFiles(), 1).stream().map(File::toURI).forEach(uris::add);
                     enqueueItems(uris, index);
+                    t.setDropCompleted(!uris.isEmpty());
                 } else if (db.hasUrl()) {
                     String url = db.getUrl();
                     enqueueItem(url, index);
+                    t.setDropCompleted(true);
                 } else if (db.hasContent(DragUtil.playlist)) {
                     Playlist pl = DragUtil.getPlaylist(db);
                     PlaylistManager.addItems(pl, index);
+                    t.setDropCompleted(true);
                 } else if (db.hasContent(DragUtil.items)) {
                     List<Item> pl = DragUtil.getItems(db);
                     PlaylistManager.addItems(pl, index);
+                    t.setDropCompleted(true);
                 }
-                t.consume();
+                // consume on success
+                if(t.isDropCompleted()) t.consume();
             });
             // handle click
             row.setOnMouseClicked( e -> {

@@ -20,17 +20,21 @@ import static javafx.scene.media.MediaPlayer.Status.STOPPED;
  * @author uranium
  */
 public final class NotifierManager {
-    private final static Notification n = new Notification();
+    private static Notification n;
 
     /**
      * Sets up application notification behavior.
      * Dont invoke. Invoked Automatically. */
     public static void initialize() {
+        // create notification
+        n = new Notification();
+        
         // show notification on playback status change
         PLAYBACK.statusProperty().addListener((observable, oldV, newV) -> {
             if (newV == PAUSED || newV ==PLAYING || newV == STOPPED)
                 playbackStatusChange(oldV,newV);
         });
+        
         // show notification on song change
         Player.addOnItemChange(NotifierManager::songChange);
     }
@@ -69,7 +73,10 @@ public final class NotifierManager {
             n.show(Notification.notifPos);
         }
     }
-    public static void hide() {
-        n.hide();
+    public static void free() {
+        if(n!=null) {
+            n.hideImmediatelly();
+            n = null;
+        }
     }
 }

@@ -6,7 +6,7 @@
 
 package Layout.WidgetImpl;
 
-import GUI.ItemHolders.Spectrum;
+import GUI.objects.Spectrum;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;

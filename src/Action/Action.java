@@ -1,8 +1,10 @@
 
-package Configuration;
+package Action;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistManager;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import GUI.ContextManager;
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
@@ -33,10 +35,12 @@ import utilities.functional.functor.Procedure;
  * framework make convenient externalization of application behavior possible.
  * With the help of {@link IsAction} annotation methods can be annotated and
  * invoked directly as actions anytime.
+ * Custom actions can also be constructed and used.
  * <p>
- * One example of use case for this is generating shortcut actions for the
+ * One example of use case for action is generating shortcut for the
  * application. When the application starts up, all annotated methods are turned
  * into actions and provide shortcuts for execution of the underlying behavior.
+ * 
  * <p>
  * Additionally, actions can be configured and their state serialized.
  * <p>
@@ -45,16 +49,31 @@ import utilities.functional.functor.Procedure;
 @IsConfigurable
 public final class Action {
     
+    /** Name of the action. Must be unique. */
     public final String name;
     private final Runnable action;
+    /** Description of the action's functionality. Useful for generating tooltips. */
     public final String info;
+    /** Whether the action should be run constantly while the hotkey is pressed */
     public final boolean continuous;
     private boolean global;
     private KeyCombination keys = KeyCombination.NO_MATCH;
     
-    public Action(IsAction a, Runnable action) {
+    
+    private Action(IsAction a, Runnable action) {
         this(a.name(),action,a.description(),a.shortcut(),a.global(),a.continuous());
     }
+    
+    /**
+     * Creates new action.
+     * @param name value for the final name property
+     * @param action Code that gets executed on {@link #run()}
+     * @param info value for the final info property
+     * @param keys Key combination for activating this action as a hotkey. See
+     * {@link #setKeys(java.lang.String)}
+     * @param global value for the global property
+     * @param continuous value for the final continuous property
+     */
     public Action(String name, Runnable action, String info, String keys, boolean global, boolean continuous) {
         this.name = name;
         this.action = action;
@@ -75,19 +94,48 @@ public final class Action {
         return global;
     }
     
-    /** @return the key combination for shortcut of this action */
+    /** 
+     * Returns the key combination for activating this action as a hotkey.
+     * The output of this method is always valid parsable string for method
+     * {@link #setKeys(java.lang.String)}. Use to assign keys of this action to
+     * another action or to get the keys as human readable String.
+     * @return the key combination for shortcut of this action or "" if no
+     * valid value.
+     */
     public String getKeys() {
         String s = keys.getName();
         s = s.replaceAll("'", "");      // we need to replace ''' characters
         s = s.replaceAll(" ", "_");     // we need to replace ' ' characters
         return s;
     }
+    /**
+     * Returns the key combination for activating this action as a hotkey.
+     * Alternative to {@link #getKeys()} with more friendly output. Use when
+     * the alternative is not satisfactory.
+     * @return the keys or KeyCombination.NO_MATCH if no valid value
+     */
+    public KeyCombination getKeyCombination() {
+        return keys;
+    }
+    
+    /**
+     * When the parameter is not valid parsable hotkey string, the hotkey will
+     * not be able to be registered and used.
+     * @return true if and only if the keys for this action's hotkey have valid
+     * value and can be registered.
+     */
+    public boolean hasKeysAssigned() {
+        return keys.equals(NO_MATCH);
+    }
+    
+    
     /** Set globality of this action. */
     public void setGlobal(boolean global) {
         unregister();
         this.global = global;
         register();
     }
+    
     /** 
      * Change and apply key combination. 
      * @param key_combination Case doesnt matter. <pre>
@@ -95,6 +143,9 @@ public final class Action {
      * </pre>
      * Incorrect keys will be substituted with "", which is equivalent to 
      * deactivating the shortcut.
+     * <p>
+     * To check the result of the assignment of the keys use {@link #getKeys()}
+     * or {@link #hasKeysAssigned()} method.
      */
     public void setKeys(String key_combination) {
         unregister();
@@ -125,14 +176,17 @@ public final class Action {
     /**
      * Activates shortcut. Only registered shortcuts can be invoked.
      * <p>
-     * If the shortcut's keys are empty, registration will not take place.
+     * If the {@link #hasKeysAssigned()} returns false, registration will not 
+     * take place.
      * <p>
-     * For local shortcut method will succeed only if GUI is already initialized.
-     * For global, platform support must is required. If it isnt, shortcut will
-     * be registered as local.
+     * For local action this method will succeed only after {@link Scene} is 
+     * already initialized.
+     * For global, platform support is required. If it isnt, shortcut will
+     * be registered locally, but the action will remain global.
      */
     public void register() {                                                    // Log.deb("Attempting to register shortcut " + name);
-        if(keys.equals(NO_MATCH)) return;  // avoid registering empty shortcut
+        if(hasKeysAssigned()) return;
+        
         if (global && global_shortcuts && isGlobalShortcutsSupported())
             registerGlobal();
         else
@@ -144,7 +198,7 @@ public final class Action {
         unregisterInApp();
     }
     
-/****************************** helper methods ********************************/
+/*********************** registering helper methods ***************************/
     
     private void changeKeys(String keys) { System.out.println("registering " + keys+" "+name);
         if(keys.isEmpty()) { System.out.println("EMPTY");       
@@ -275,13 +329,19 @@ public final class Action {
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Ctrl+C";
     
-    /** Activates listening process for global hotkeys */
+    /** 
+     * Activates listening process for global hotkeys. Not running this method
+     * will cause registered global hotkeys to not get invoked. Use once when 
+     * application initializes.
+     * Does nothing if not supported.
+     */
     public static void startGlobalListening() {
         if(isGlobalShortcutsSupported()) {
             JIntellitype.getInstance().addHotKeyListener(listener);
             JIntellitype.getInstance().addIntellitypeListener(Ilistener);
         }
     }
+    
     /** 
      * Deactivates listening process for global hotkeys. Frees resources. This
      * method should should always be ran at the end of application's life cycle
@@ -291,28 +351,41 @@ public final class Action {
     public static void stopGlobalListening() {
         JIntellitype.getInstance().cleanUp();
     }
+    
     /** 
      * Returns true if global shortcuts are supported at running platform.
-     * Otherwise false. In such case, global shortcuts will run as local.
+     * Otherwise false. In such case, global shortcuts will run as local and
+     * {@link #startGlobalListening()} and {@link #stopGlobalListening()} will
+     * have no effect.
      */
     public static boolean isGlobalShortcutsSupported() {
         return JIntellitype.isJIntellitypeSupported();
     }
     
-    /** @return all actions. */
-    public static Map<String,Action> getShortcuts(){
+    /** 
+     * Returns map of actions mapped by their name.
+     * @return map of all action_name - action pairs.
+     */
+    public static Map<String,Action> getActions(){
         return actions;
+    }
+    
+    /**
+     * Adds action to the maintained collection of actions.
+     * @param action 
+     */
+    public static void addAction(Action action) {
+        actions.put(action.name, action);
     }
     
 /************************ action helper methods *******************************/
     
-    
-    
     private static final Map<String,Action> actions = gatherActions();
-    
+
     private static Action[] shortcuts(){
         return actions.values().toArray(new Action[0]);
     }
+    
     /** @return all actions of this application */
     private static Map<String,Action> gatherActions() {
         List<Class<?>> cs = new ArrayList();
@@ -324,25 +397,25 @@ public final class Action {
         for (Class<?> man : cs) {
             for (Method m : man.getDeclaredMethods()) {
                 if ((m.getModifiers() & Modifier.STATIC) != 0) {
-                    IsAction a = m.getAnnotation(IsAction.class);
-                    if (a != null) {
-                        if (m.getParameters().length > 0)
-                            throw new RuntimeException("Action Method must have 0 parameters!");
-                        String name = a.name();
-                        Procedure b = () -> {
-                            try {
-                                m.invoke(null, new Object[0]);
-                            } catch (IllegalAccessException | InvocationTargetException e) {
-                                e.printStackTrace();
-                                Log.err("Can not run specified method. " + e.getMessage());
-                            }
-                        };
-                        acts.put(name,new Action(a,b));
+                    for(IsAction a : m.getAnnotationsByType(IsAction.class)) {
+                        if (a != null) {
+                            if (m.getParameters().length > 0)
+                                throw new RuntimeException("Action Method must have 0 parameters!");
+                            String name = a.name();
+                            Procedure b = () -> {
+                                try {
+                                    m.invoke(null, new Object[0]);
+                                } catch (IllegalAccessException | InvocationTargetException e) {
+                                    e.printStackTrace();
+                                    Log.err("Can not run specified method. " + e.getMessage());
+                                }
+                            };
+                            acts.put(name,new Action(a,b));
+                        }
                     }
                 }
             }
         }
-        
         return acts;
     }
     

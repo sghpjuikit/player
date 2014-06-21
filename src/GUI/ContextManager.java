@@ -6,6 +6,7 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import GUI.GUI;
 import GUI.objects.ContextMenu;
 import GUI.objects.VerticalContextMenu;
 import Layout.Container;
@@ -14,7 +15,7 @@ import Layout.LayoutManager;
 import Layout.PolyContainer;
 import Layout.UniContainer;
 import Layout.WidgetImpl.SimpleConfigurator;
-import Layout.Widgets.SupportsTagging;
+import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import Library.BookmarkItem;
@@ -226,7 +227,7 @@ public final class ContextManager {
         });
         cc.add("tag", "Edit the item/s in tag editor.",  () -> {
             List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
-            SupportsTagging t = WidgetManager.getTaggerOrCreate();
+            TaggingFeature t = WidgetManager.getTaggerOrCreate();
             if (t != null) t.read(items);
         });
         cc.add("crop", "Remove unselected items on playlist.",  () -> {
@@ -262,7 +263,7 @@ public final class ContextManager {
             BookmarkManager.removeBookmarks(i);
         });
         cc.add("tag", "Edit the item/s in tag editor.", () -> {
-             SupportsTagging t = WidgetManager.getTaggerOrCreate();
+             TaggingFeature t = WidgetManager.getTaggerOrCreate();
              List items = (List<Item>) cc.userData;
              if (t!=null) t.read(items);
         });

@@ -642,10 +642,7 @@ public final class Metadata extends MetaItem {
      */
     public File getCoverFromDirAsFile() {
         File dir = getFile().getParentFile();
-        if (!FileUtil.isValidDirectory(dir)) {
-            return null;
-        } else {
-        }
+        if (!FileUtil.isValidDirectory(dir)) return null;
         
         File[] files;
         files = dir.listFiles((File f) -> {
@@ -663,8 +660,7 @@ public final class Metadata extends MetaItem {
         
         if (files.length == 0) return null;
         else return files[0];
-    }
-    
+    }  
     /**
      * Convenience method to get cover image easily.
      * 

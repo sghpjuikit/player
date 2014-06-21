@@ -226,14 +226,14 @@ public final class FileUtil {
     /**
      * Constructs list of audio files found in the folder and subfolders. Looks 
      * through the folder tree recursively respecting the maxDepth parameter.
-     * 
+     * <p>
      * Filters out files with extension different than supported. To see what extensions are
      * supported check AudioFileFormat class.
      * 
      * @param dir - directory.
      * @param maxDepth - depth for recursive search. Depth 0 represents current 
-     * directory only (which would be searched through). Negative value has the
-     * same effect as 0 - provided directory only.
+     * directory only (which would be searched through). Negative value will
+     * result in an empty list.
      * @return Empty list if parameter not a valid directory or no results. Never
      * null.
      */
@@ -245,7 +245,7 @@ public final class FileUtil {
         for (File f: files) {
             if(AudioFileFormat.isSupported(f))
                 out.add(f);
-            if (maxDepth>=1 && f.isDirectory() && isValidDirectory(f))
+            if (maxDepth>0 && f.isDirectory() && isValidDirectory(f))
                 out.addAll(getAudioFiles(f, maxDepth-1));
         }
         return out;
@@ -254,10 +254,9 @@ public final class FileUtil {
      * Filters out all but supported audio files. Directories will be searched
      * recursively.
      * @param files list of files and directories to filter
-     * @param dir - directory.
-     * @param maxDepth - depth for recursive search. Depth 0 represents current 
+     * @param maxDepth - depth for recursive search. Depth 0 represents 
      * directory only (which would be searched through). Negative value has the
-     * same effect as 0 - provided directory only.
+     * will cause all directories to be ignored.
      * @return Empty list if parameter not a valid directory or no results. Never
      * null.
      */
@@ -266,12 +265,28 @@ public final class FileUtil {
         for(File f: files) {
             if(AudioFileFormat.isSupported(f))
                 out.add(f);
-            if (f.isDirectory()) {
+            if ( maxDepth>=0 && f.isDirectory()) {
                 for(File ff: getAudioFiles(f,maxDepth))
                     out.add(ff);
             }
         }
         return out;
+    }
+    /** 
+     * Filters out all but supported audio files. Directories will be ignored.
+     * @param files list of files and directories to filter
+     * Equivalent to : getAudioFiles(files,0);
+     */
+    public static List<File> getAudioFiles(List<File> files) {
+        return getAudioFiles(files, -1);
+    }
+    /**
+     * Checks if there is at least one supported audio file in the list.
+     * @param files
+     * @return true if the list contains at least one supported audio file.
+     */
+    public static boolean hasAudioFiles(List<File> files) {
+        return files.stream().anyMatch(AudioFileFormat::isSupported);
     }
     
     /**

@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package AudioPlayer.playback;
 
 import javafx.util.Duration;
@@ -14,26 +10,26 @@ import utilities.functional.functor.Procedure;
  * @author uranium
  */
 public class PercentTimeEventHandler {
-
+    
     private final String name;
-
     RealTimeProperty parent;
     private double percent;
     Procedure behavior;
+    
     // init to true -> failsafe
     // bad realTime initialization could (would) fire single 'initialization'
     // event (very bad thing) before the realTime is properly initialized
     // outside of the above, init value doesnt matter
     boolean fired = true;
-
+    
     private double percMin;
     private double percMax;
     private Duration timeMin;
     private Duration timeMax;
-
-//    public PercentTimeEventHandler(double p, Procedure b) {
-//        this(p, b, "");
-//    }
+    
+    public PercentTimeEventHandler(double p, Procedure b) {
+        this(p, b, "");
+    }
     public PercentTimeEventHandler(double p, Procedure b, String name) {
         parent = PLAYBACK.realTimeProperty();
         percent = p;
@@ -44,7 +40,7 @@ public class PercentTimeEventHandler {
         behavior = b;
         this.name = name;
     }
-
+    
     void handle() {
         // precalculate values
         double total = parent.totalTime.get().toMillis();
@@ -54,7 +50,6 @@ public class PercentTimeEventHandler {
         double pMax = (percMax == 0) ? 2 : percMax; // disable if zero
         real -= parent.count * total; // get sub-total part of realTime
         double p = real / total;
-
         // fire event - do action
         if (p >= percMin && p <= pMax && real >= min && real <= max && p >= percent) {
             if (!fired) {
@@ -76,20 +71,18 @@ public class PercentTimeEventHandler {
             }
         }
     }
-
+    
     /**
      * Will always return number from interval <0;1>
-     *
      * @return Percent at which event is fired.
      */
     public double getPercent() {
         return percent;
     }
-
+    
     /**
      * Percent at which event is fired. Should be from interval <0;1>. If not it
      * will be cut to nearest value from that interval.
-     *
      * @param percent the percent to set
      */
     public void setPercent(double percent) {
@@ -102,40 +95,36 @@ public class PercentTimeEventHandler {
         }
         this.percent = p;
     }
-
+    
     /**
      * Lower percent limit for event firing.
-     *
      * @return Lower percent limit for event firing.
      */
     public double getPercMin() {
         return percMin;
     }
-
+    
     /**
      * Set to 0 to disable lower limit. Set to 1 to prevent event from ever
      * firing.
-     *
      * @param percMin Lower percent limit for event firing.
      */
     public void setPercMin(double percMin) {
         this.percMin = percMin;
     }
-
+    
     /**
      * Will always return number from interval <0;1>
-     *
      * @return Upper percent limit for event firing.
      */
     public double getPercMax() {
         return percMax;
     }
-
+    
     /**
      * Upper percent limit for event firing. Set to 1 to disable max value. Set
      * to 0 to prevent event from ever firing. Should be from interval <0;1>. If
      * not it will be cut to nearest value from that interval.
-     *
      * @param percMax the percMax to set
      */
     public void setPercMax(double percMax) {
@@ -148,47 +137,40 @@ public class PercentTimeEventHandler {
         }
         this.percMax = p;
     }
-
-    /**
-     * @return Lower time limit for event firing.
-     */
+    
+    /** @return Lower time limit for event firing. */
     public Duration getTimeMin() {
         return timeMin;
     }
-
+    
     /**
      * Lower time limit for event firing. Set to Duration.ZERO to disable max
      * time. Min time should be lower than total time. If its set too high the
      * event might never fire for short audio items. Min time should be smaller
      * than max time. Otherwise the event never fires.
-     *
      * @param timeMin the timeMin to set
      */
     public void setTimeMin(Duration timeMin) {
         this.timeMin = timeMin;
     }
-
-    /**
-     * @return Upper time limit for event firing.
-     */
+    
+    /** @return Upper time limit for event firing. */
     public Duration getTimeMax() {
         return timeMax;
     }
-
+    
     /**
      * Upper time limit for event firing. Set to Duration.ZERO to disable max
      * time. Min time should be smaller than max time. Otherwise the event never
      * fires.
-     *
      * @param timeMax the timeMax to set
      */
     public void setTimeMax(Duration timeMax) {
         this.timeMax = timeMax;
     }
-
+    
     @Override
     public String toString() {
         return name;
     }
-
 }

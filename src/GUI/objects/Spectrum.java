@@ -1,5 +1,5 @@
 
-package GUI.ItemHolders;
+package GUI.objects;
 
 import AudioPlayer.playback.PLAYBACK;
 import javafx.scene.chart.BarChart;

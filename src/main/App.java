@@ -1,9 +1,9 @@
+
 package main;
 
+import Action.Action;
 import AudioPlayer.Player;
-import AudioPlayer.services.LastFM.LastFM;
 import AudioPlayer.tagging.MoodManager;
-import Configuration.Action;
 import Configuration.ConfigManager;
 import Configuration.Configuration;
 import GUI.GUI;
@@ -16,7 +16,9 @@ import java.io.File;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+
 
 /**
  * Application. Launches and terminates program.
@@ -25,40 +27,38 @@ public class App extends Application {
 
     /**
      * Starts program.
-     *
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         launch(args);
     }
-
-    /**
-     * ***************************************************************************
-     */
+    
+/******************************************************************************/
+    
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
     private Window window;
     private Window windowOwner;
     private boolean initialized = false;
-
+    
     private static App instance;
-
+    
     public App() {
         instance = this;
     }
-
+    
 //    /** Returns instance of this app singleton. */
 //    public static App getInstance() {
 //        return instance;
 //    }
+    
+/******************************************************************************/
+    
     /**
-     * ***************************************************************************
-     */
-    /**
-     * The application initialization method. This method is called immediately
+     * The application initialization method. This method is called immediately 
      * after the Application class is loaded and constructed. An application may
-     * override this method to perform initialization prior to the actual
-     * starting of the application.
+     * override this method to perform initialization prior to the actual starting
+     * of the application.
      */
     @Override
     public void init() {
@@ -67,11 +67,11 @@ public class App extends Application {
         // application may construct other JavaFX objects in this method.
         Action.startGlobalListening();
     }
-
+    
     /**
-     * The main entry point for applications. The start method is called after
-     * the init method has returned, and after the system is ready for the
-     * application to begin running.
+     * The main entry point for applications. The start method is
+     * called after the init method has returned, and after the system is ready
+     * for the application to begin running.
      */
     @Override
     public void start(Stage primaryStage) {
@@ -81,7 +81,7 @@ public class App extends Application {
         // the browser if the application was launched as an applet. Applications
         // may create other stages, if needed, but they will not be primary stages
         // and will not be embedded in the browser.
-
+        
         try {
             // initializing, the order is important
             Configuration c = ConfigManager.loadConfiguration();      // must initialize first   
@@ -90,34 +90,42 @@ public class App extends Application {
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
             LayoutManager.findLayouts();            // must initialize before below
-
+            
             windowOwner = Window.create();          // create hidden main window
-            windowOwner.getStage().setOpacity(0);
-
+            windowOwner.setVisible(false);
+            windowOwner.setSize(Screen.getPrimary().getBounds().getWidth(),
+                                Screen.getPrimary().getBounds().getHeight());
             windowOwner.show();
-
+            windowOwner.getStage().setOpacity(0);
+            
             window = Window.create(true);           // create main app window
-
             ConfigManager.apply(c);                 // apply gui settings
-            NotifierManager.initialize();
-            new LastFM().initialize();
-            // loading states, etc
+
+//            new LastFM().initialize();
+            
+            // loading graphics
             LayoutManager.loadLast();
             window.getStage().initOwner(windowOwner.getStage());
             window.show();                          // should load when GUI is ready
+            window.getStage().getScene().getRoot().applyCss();
+            window.getStage().getScene().getRoot().layout();
+            
+            NotifierManager.initialize();           // after window is shown (and css aplied)
             Player.loadLast();                      // should load in the end
-
+            
             // post init
             MoodManager.initialize();
-            Action.getShortcuts().values().forEach(Action::register);
+            Action.getActions().values().forEach(Action::register);
             initialized = true;
-        } catch (Exception e) {
+        } catch(Exception e) {
             initialized = false;
             e.printStackTrace();
             throw new RuntimeException("Application failed to start. Reason: " + e.getMessage());
         }
-
+        
+        
         // playing with parameters/ works, but how do i pass param when executing this from windows?
+        
 //        List<String> s = new ArrayList<>();
 //        System.out.println("raw");
 //        App.getInstance().getParameters().getRaw().forEach(s::add);
@@ -130,40 +138,39 @@ public class App extends Application {
 //        NotifierManager.showTextNotification(t , "");
 //        System.out.println("GGGGG " + t);
     }
-
+ 
     /**
      * This method is called when the application should stop, and provides a
      * convenient place to prepare for application exit and destroy resources.
-     * NOTE: This method is called on the JavaFX Application Thread.
+     * NOTE: This method is called on the JavaFX Application Thread. 
      */
     @Override
     public void stop() {
         Action.stopGlobalListening();
-        if (initialized) {
+        if(initialized) {
             Player.state.serialize();
             LayoutManager.serialize();
             ConfigManager.saveConfiguration();
             BookmarkManager.saveBookmarks();
+            NotifierManager.free();
         }
     }
 
     /**
-     * Returns applications' main window. Never null, but be aware that the
-     * window might not be completely initialized. To find out whether it is,
-     * run isGuiInitialized() beforehand.
-     *
-     * @return window.
+     * Returns applications' main window. Never null, but be aware that the window
+     * might not be completely initialized. To find out whether it is, run
+     * isGuiInitialized() beforehand.
+     * @return window
      */
     public static Window getWindow() {
         return instance.window;
     }
-
     public static Window getWindowOwner() {
         return instance.windowOwner;
     }
-
+    
     /**
-     * Closes the application. Normally application closes when main window
+     * Closes the application. Normally application closes when main window 
      * closes. Therefore this method should not need to be used.
      */
     public static void close() {
@@ -172,10 +179,9 @@ public class App extends Application {
         // close app
         Platform.exit();
     }
-
-    /**
-     * ***************************************************************************
-     */
+    
+/******************************************************************************/
+    
     /**
      * @return absolute file of location of the root directory of this
      * application.
@@ -184,59 +190,43 @@ public class App extends Application {
         return new File("").getAbsoluteFile();
     }
 
-    /**
-     * @return Name of the application.
-     */
+    /** @return Name of the application. */
     public static String getAppName() {
         return "PlayerFX";
     }
-
-    /**
-     * @return image of the icon of the application.
-     */
+    
+    /** @return image of the icon of the application. */
     public static Image getIcon() {
         return new Image(new File("icon.png").toURI().toString());
     }
 
-    /**
-     * @return Player state file.
-     */
+    /** @return Player state file. */
     public static String PLAYER_STATE_FILE() {
         return "PlayerState.cfg";
     }
 
-    /**
-     * @return absolute file of Location of widgets.
-     */
+    /** @return absolute file of Location of widgets. */
     public static File WIDGET_FOLDER() {
         return new File("Widgets").getAbsoluteFile();
     }
 
-    /**
-     * @return absolute file of Location of layouts.
-     */
+    /** @return absolute file of Location of layouts. */
     public static File LAYOUT_FOLDER() {
         return new File("Layouts").getAbsoluteFile();
     }
 
-    /**
-     * @return absolute file of Location of skins.
-     */
+    /** @return absolute file of Location of skins. */
     public static File SKIN_FOLDER() {
         return new File("Skins").getAbsoluteFile();
     }
 
-    /**
-     * @return absolute file of Location of data.
-     */
+    /** @return absolute file of Location of data. */
     public static File DATA_FOLDER() {
         return new File("UserData").getAbsoluteFile();
     }
 
-    /**
-     * @return absolute file of Location of saved playlists.
-     */
+    /** @return absolute file of Location of saved playlists. */
     public static File PLAYLIST_FOLDER() {
-        return new File(DATA_FOLDER(), "Playlists");
+        return new File(DATA_FOLDER(),"Playlists");
     }
 }

@@ -9,7 +9,7 @@ package GUI;
 import javafx.scene.input.TransferMode;
 
 /**
- *
+ * Complete enumeration for {@link TransferMode}.
  * @author Plutonium_
  */
 public enum DragType {

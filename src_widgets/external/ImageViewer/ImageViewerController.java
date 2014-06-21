@@ -32,7 +32,6 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
@@ -124,21 +123,21 @@ public class ImageViewerController extends FXMLController {
         });
         
         // accept drag transfer
-        entireArea.setOnDragOver((DragEvent t) -> {
-            Dragboard db = t.getDragboard();
+        entireArea.setOnDragOver( e -> {
+            Dragboard db = e.getDragboard();
             if (db.hasFiles() || db.hasContent(DragUtil.playlist)) {
-                t.acceptTransferModes(TransferMode.ANY);
+                e.acceptTransferModes(TransferMode.ANY);
             }
-            t.consume();
+            e.consume();
         });
         // handle drag transfers
-        entireArea.setOnDragDropped( t -> {
-            Dragboard db = t.getDragboard();
+        entireArea.setOnDragDropped( e -> {
+            Dragboard db = e.getDragboard();
             Item item = null;
             // get first item
             if (db.hasFiles()) {
-                item = FileUtil.getAudioFiles(db.getFiles(), 1)
-                        .stream().limit(1).map(SimpleItem::new).findAny().get();
+                item = FileUtil.getAudioFiles(db.getFiles(),0).stream()
+                        .findFirst().map(SimpleItem::new).orElse(null);
             } else if (db.hasContent(DragUtil.playlist)) {
                 Playlist pl = DragUtil.getPlaylist(db);
                 item = pl.getItem(0);
@@ -155,7 +154,8 @@ public class ImageViewerController extends FXMLController {
                 meta.set(item.toMetadata()); // refresh
             }
             // end drag
-            t.consume();
+            e.setDropCompleted(true);
+            e.consume();
         });
         
         // consume scroll event to prevent app scroll behavior // optional

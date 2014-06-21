@@ -85,6 +85,11 @@ import utilities.Log;
  */
 @IsConfigurable
 public class Window extends WindowBase implements SerializesFile, Serializes {
+        
+    @IsConfig(name="Window header visiblility preference", info=
+                                 "Remembers header state for both fullscreen" +
+                                 " and not. When selected 'auto off' is true ")
+    public static boolean headerOnPreference = false;
     
     /** @return new window or null if error occurs during initialization. */
     public static Window create() {
@@ -336,11 +341,15 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         if(isPopup && autoclose) close(); 
     }
 
+    
    @Override  
     public void setFullscreen(boolean val) {  
-        super.setFullscreen(val); 
-        if(val)showHeader(false);
-        else showHeader(showHeader);
+        super.setFullscreen(val);
+        if(headerOnPreference){
+            if(val)showHeader(false);
+            else showHeader(showHeader);
+        }
+        else setShowHeader(!showHeader);  
     }
     
     @FXML public void toggleMini() {
@@ -476,12 +485,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         if (e.getCode()==ALT )  
             showHeader(true);  
     }  
-    
-    @IsConfig(name="HeaderOnPreference", info=
-                                 "Remembers header state for both fullscreen" +
-                                 " and not. When selected 'auto off' is true ")
-    boolean headerOnPreference=false;
-    
+
     @FXML  
     private void entireArea_OnKeyReleased(KeyEvent e) {
         if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))  
@@ -491,7 +495,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
                 if(isFullscreen()) showHeader(false); 
                 else showHeader(showHeader);
             }
-            else showHeader(isFullscreen()==showHeader);    
+            else showHeader(showHeader);
     } 
     
     public static final class WindowConverter implements Converter {

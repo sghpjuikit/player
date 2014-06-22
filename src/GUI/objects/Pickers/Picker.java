@@ -54,7 +54,8 @@ public class Picker<E> {
     private UnProcedure<E> onSelect = item -> {};
     private ToStringMapper<E> converter = item -> item.toString();
     private ItemAccumulator<E> accumulator = () -> Stream.empty();
-    private CellFactory<E> cellFactory = (item, text) -> {
+    private CellFactory<E> cellFactory = item -> {
+        String text = converter.convert(item);
         Label l = new Label(text);
         BorderPane b = new BorderPane();
                b.setCenter(l);
@@ -110,8 +111,7 @@ public class Picker<E> {
         // populate
         for (int i=0; i<items.size(); i++) {
             E item = items.get(i);
-            String text = converter.convert(item);
-            Region cell = cellFactory.createCell(item, text);
+            Region cell = cellFactory.createCell(item);
                    cell.setOnMouseClicked( e -> {
                        onSelect.accept(item);
                        popup.hideStrong();

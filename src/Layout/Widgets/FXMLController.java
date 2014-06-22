@@ -5,10 +5,9 @@
  */
 package Layout.Widgets;
 
-import Layout.WidgetImpl.SimpleConfigurator;
 import GUI.ContextManager;
+import Layout.WidgetImpl.SimpleConfigurator;
 import java.io.File;
-import java.nio.file.Path;
 import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -74,8 +73,7 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
      * @param filename of the file with extension. For example: "bgr.jpg"
      */
     public File getResource(String filename) {
-        Path p = getWidget().getLocation().toPath();
-        return new File(p.toString() + File.separator + filename);
+        return new File(getWidget().getLocation(),filename);
     }
     
     /**

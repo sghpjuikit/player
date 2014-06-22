@@ -8,16 +8,12 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- popover break show into  show() and position()
-- popover autoclose not implemented now that the notification receives
-  only mouseevents from its own window - what now? caused by different window
-  owner
-- fullscreen + headerless in fullscreen causes problems
+- popover check 100% autoclosing, show, hide, etc
 - app not closing propery on ALT+F4                                             (wth)
 - popup window fullcreen or maximizing(any) breaks popup position               
-- popover positioning autofix gets in the way - make it compatible, reimplement (?)
 - popover show() methods clean up
-
+- tab container not remembering its children - why this again
+- menubar css
 - empty widget vs empty widget area & bgr
 - playcont incrementing fix misbehavior
 - ui not resizing when window size gets below certain threshold                 (wth)
@@ -27,7 +23,6 @@
 - rater skin change requires whole widget refresh - wtf
 - playlist selected item none->first when clicking on different widget          (wth)
 - settable img bgr
-- playlist fix menu graphics
 - figure out LoopMode - class on its own or within NextItemSelector
 - figure out LoopMode - should include Random? implement properly
 - finish the whole nextPlayingItem() thing. support with GUI

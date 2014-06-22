@@ -92,7 +92,7 @@ public class Notification {
         root.setArrowIndent(0);
         root.setCornerRadius(0);
         root.setAutoFix(false);
-        
+        root.setAutoHide(notifCloseOnClickAny);
         buildContent();
     }
 
@@ -134,7 +134,7 @@ public class Notification {
         root.setAnimated(notificationAnimated);
         root.setAnimDuration(Duration.millis(notifFadeTime));
         // show
-        root.show(ScreenCentricPos.AppBottomRight);
+        root.show(pos);
         // start delayed hide
         if (closer != null) closer.stop();
         closer.restart(Duration.millis(notificationDuration));

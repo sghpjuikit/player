@@ -13,5 +13,5 @@ import javafx.scene.layout.Region;
  * @author Plutonium_
  */
 public interface CellFactory<E> {
-    public Region createCell(E item, String item_as_string);
+    public Region createCell(E item);
 }

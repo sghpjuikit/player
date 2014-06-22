@@ -7,6 +7,7 @@ import Configuration.Configuration;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.ClickEffect;
+import GUI.objects.PopOver.PopOver;
 import GUI.objects.Window.Resize;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
@@ -82,6 +83,8 @@ import utilities.Log;
  *            w.show();
  *            w.setLocationCenter();
  * </pre>
+ * 
+ * @author plutonium_, simdimdim
  */
 @IsConfigurable
 public class Window extends WindowBase implements SerializesFile, Serializes {
@@ -89,7 +92,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     @IsConfig(name="Window header visiblility preference", info=
                                  "Remembers header state for both fullscreen" +
                                  " and not. When selected 'auto off' is true ")
-    public static boolean headerOnPreference = false;
+    public static boolean headerOnPreference = true;
     
     /** @return new window or null if error occurs during initialization. */
     public static Window create() {
@@ -168,6 +171,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             if (!ClickEffect.trail_effect) ClickEffect.run(e.getSceneX(), e.getSceneY());
             ContextManager.closeMenus();
             ContextManager.closeFloatingWindows(this);
+            PopOver.autoCloseFire();
             startAppDrag(e);
         });
         root.setOnMouseDragged( e -> {

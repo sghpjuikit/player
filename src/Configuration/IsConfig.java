@@ -20,6 +20,8 @@ import java.lang.annotation.Target;
  * {@link Config} by adding customary information to field such as name,
  * description, editability and more.
  * <p>
+ * Only public static fields can be successfully annotated with this annotation.
+ * <p>
  * For more information about the intention and use read {@link IsConfigurable}
  * and {@link Config}.
  * <p>

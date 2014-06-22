@@ -9,8 +9,8 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.objects.Seeker;
 import GUI.objects.Balancer.Balancer;
+import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import java.io.File;
 import javafx.beans.InvalidationListener;
@@ -158,7 +158,7 @@ public class PlayerControlsController extends FXMLController {
             e.setDropCompleted(true);
             e.consume();
         });
-
+        
     }
     
     @Override
@@ -294,7 +294,7 @@ public class PlayerControlsController extends FXMLController {
             Duration elapsed = PLAYBACK.getCurrentTime();
             currTime.setText(Util.formatDuration(elapsed));  
         } else {
-            if (PLAYBACK.getTotalTime() == null) {return;}
+            if (PLAYBACK.getTotalTime() == null) return;
             Duration remaining = PLAYBACK.getRemainingTime();
             currTime.setText("- " + Util.formatDuration(remaining)); 
         }

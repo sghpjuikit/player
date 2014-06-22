@@ -78,8 +78,13 @@ public class PopOver extends PopupControl {
     private static final String STYLE_CLASS = "popover";
     public static List<PopOver> active_popups = new ArrayList(); 
     
-    private double targetX;
-    private double targetY;
+    public static void autoCloseFire() {
+        active_popups.forEach(p->{
+            if (p.isAutoHide()) p.hide();
+        });
+    }
+
+/******************************************************************************/
 
     /**
      * Creates a pop over with a label as the content node.
@@ -88,17 +93,19 @@ public class PopOver extends PopupControl {
         super();
         getStyleClass().add(STYLE_CLASS);
         
-        ChangeListener<Object> repositionListener = (observable, oldV, newV) -> {
-            if (isShowing() && !isDetached()) {
-                System.out.println("fff");
-                show(getOwnerNode(), getX(), getY());
-                adjustWindowLocation();
-            }
-        };
-        arrowSize.addListener(repositionListener);
-        cornerRadius.addListener(repositionListener);
-        arrowLocation.addListener(repositionListener);
-        arrowIndent.addListener(repositionListener);
+        
+        // not working as advertized, disable for now...
+//        ChangeListener<Object> repositionListener = (o, oldV, newV) -> {
+//            if (isShowing() && !isDetached()) {
+//                System.out.println("reposition listener fired");
+//                show(ownerNode, getX(), getY());
+//                adjustWindowLocation();
+//            }
+//        };
+//        arrowSize.addListener(repositionListener);
+//        cornerRadius.addListener(repositionListener);
+//        arrowLocation.addListener(repositionListener);
+//        arrowIndent.addListener(repositionListener);
     }
 
     /**
@@ -245,6 +252,7 @@ public class PopOver extends PopupControl {
         double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
         double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
         position(owner,null,X,Y);
+        getContentNode().setOnMouseEntered(e->setArrowIndent(5));
     }
     
     /**
@@ -292,7 +300,7 @@ public class PopOver extends PopupControl {
     }
     
 /******************************************************************************/
-    
+
     private Node ownerNode;
     private Stage ownerWindow;
     
@@ -561,7 +569,6 @@ public class PopOver extends PopupControl {
     }
     
 /******************************************************************************/
-
 
     // arrow size support
     // TODO: make styleable

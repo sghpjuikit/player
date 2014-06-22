@@ -44,15 +44,15 @@ public class MetadataReader{
      * When any error occurs during the reading process, the reading will stop
      * and return all obtained metadata.
      * <p>
-     * The result of the task is list of metadatas. The list will not be null
-     * nor contain null.
+     * The result of the task is list of metadatas (The list will not be null 
+     * nor contain null values) if task finshes sccessfully or null otherwise.
      * <p>
      * Calling this method will immediately start the reading process (on
      * another thread).
      * <p>
      * @param items List of items to read.
-     * @param onFinish procedure to execute upon finishing a task and if to
-     * execute it or not.
+     * @param onFinish procedure to execute upon finishing this task providig
+     * the result and success flag.
      * Must not be null.
      * @return task reading the files returning item's metadatas on successful
      * completion or all successfully obtained metadata when any error occurs.
@@ -146,16 +146,18 @@ public class MetadataReader{
      * This method returns {@link Task} doing the work, which allows binding to
      * its properties (for example progress) and more.
      * <p>
+     * The result of the task is nonempty Metadata if task finshes successfully
+     * or null otherwise.
+     * 
      * @param item item to read metadata for. Must not be null.
-     * @param onFinish procedure to execute upon finishing a task and if to
-     * execute it or not.
+     * @param onFinish procedure to execute upon finishing this task providig
+     * the result and success flag.
      * Must not be null.
      * @return task reading the file returning its metadata on successful task
      * completion or nothing when any error occurs. Never null.
      * @throws NullPointerException if any parameter null
      */
-    public static Task<Metadata> create(Item item,
-            BiProcedure<Boolean, Metadata> onFinish){
+    public static Task<Metadata> create(Item item,BiProcedure<Boolean, Metadata> onFinish){
         Objects.requireNonNull(item);
         Objects.requireNonNull(onFinish);
 

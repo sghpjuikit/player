@@ -1,0 +1,11 @@
+<GUI.Window>
+  <W>1919.0</W>
+  <H>67.0</H>
+  <X>0.0</X>
+  <Y>0.0</Y>
+  <minimized>false</minimized>
+  <maximized>NONE</maximized>
+  <fullscreen>false</fullscreen>
+  <resizable>true</resizable>
+  <alwaysOnTop>false</alwaysOnTop>
+</GUI.Window>

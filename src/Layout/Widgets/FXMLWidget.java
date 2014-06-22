@@ -64,7 +64,9 @@ public final class FXMLWidget extends Widget<FXMLController> {
     
     /** Returns location of the widget's parent directory. Never null. */
     public File getLocation() {
-        return new File(getFactory().url.getFile()).getParentFile();
+        // we need to manually fix encoding so spaces in names dont cause errors
+        String s = getFactory().url.getPath().replace("%20"," ");
+        return new File(s).getParentFile();
     }
 
 }

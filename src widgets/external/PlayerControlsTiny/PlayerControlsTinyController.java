@@ -9,8 +9,8 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.objects.Seeker;
 import GUI.WindowManager;
+import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
@@ -26,6 +26,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.media.MediaPlayer.Status;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
 import main.App;
 import utilities.FileUtil;
@@ -96,9 +99,13 @@ public class PlayerControlsTinyController extends FXMLController {
         muteOFFImg = new Image(getResource("muteOFF.png").toURI().toString());
         muteONImg  = new Image(getResource("muteON.png").toURI().toString());
         
+        
         // set updating + initialize manually
         Player.addOnItemUpdate(playbackItemChanged);                    // add listener
         playbackItemChanged(Player.getCurrentMetadata());               // init value
+        
+        PLAYBACK.statusProperty().addListener(statusListener);          // add listener
+        statusChanged(PLAYBACK.getStatus());                            // init value
         
         PLAYBACK.muteProperty().addListener(muteListener);              // add listener
         muteChanged(PLAYBACK.getMute());                                // init value
@@ -143,6 +150,7 @@ public class PlayerControlsTinyController extends FXMLController {
     public void OnClosing() {
         // remove listeners
         Player.remOnItemUpdate(playbackItemChanged);
+        PLAYBACK.statusProperty().removeListener(statusListener);       
         PLAYBACK.muteProperty().removeListener(muteListener);
         PLAYBACK.currentTimeProperty().removeListener(currTimeListener);
         seeker.unbindTime();
@@ -199,9 +207,10 @@ public class PlayerControlsTinyController extends FXMLController {
 
 /******************************************************************************/
     
-    ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playbackItemChanged(newV);
-    ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV);
-    InvalidationListener currTimeListener = o -> currentTimeChanged();
+    private final ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playbackItemChanged(newV);
+    private final ChangeListener<Status> statusListener = (o,oldV,newV)-> statusChanged(newV);
+    private final ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV);
+    private final InvalidationListener currTimeListener = o -> currentTimeChanged();
     
     
     private void playbackItemChanged(Metadata m) {
@@ -210,6 +219,18 @@ public class PlayerControlsTinyController extends FXMLController {
             artistL.setText(m.getArtist());
         }
         seeker.reloadChapters(m);
+    }
+    private void statusChanged(Status status) {
+        if (status == null || status == UNKNOWN ) {
+            seeker.setDisable(true);
+            play.setImage(playImg);
+        } else if (status == PLAYING) {
+            seeker.setDisable(false);
+            play.setImage(pauseImg);
+        } else {
+            seeker.setDisable(false);
+            play.setImage(playImg);
+        }
     }
     private void muteChanged(boolean new_mode) {
         if (new_mode) {

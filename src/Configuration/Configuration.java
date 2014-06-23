@@ -2,11 +2,13 @@
 package Configuration;
 
 import Action.Action;
-import AudioPlayer.tagging.Playcount;
+import Action.IsAction;
 import PseudoObjects.Maximized;
 import Serialization.Serializator;
 import Serialization.Serializes;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +19,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javafx.util.Duration;
 import org.atteo.classindex.ClassIndex;
 import utilities.Log;
 import utilities.Parser.Parser;
@@ -118,28 +119,19 @@ public class Configuration implements Serializes {
     public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
     public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
     
-    @IsConfig(name="Playcount incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    public static Playcount.IncrStrategy increment_playcount = Playcount.IncrStrategy.ON_PERCENT;
-    @IsConfig(name="Playcount incrementing at percent", info = "Percent at which playcount is incremented.")
-    public static double increment_playcount_at_percent = 0.5;
-    @IsConfig(name="Playcount incrementing at time", info = "Time at which playcount is incremented.")
-    public static double increment_playcount_at_time = Duration.seconds(5).toMillis();
-    @IsConfig(name="Playcount incrementing min percent", info = "Minimum percent at which playcount is incremented.")
-    public static double increment_playcount_min_percent = 0.0;
-    @IsConfig(name="Playcount incrementing min time", info = "Minimum time at which playcount is incremented.")
-    public static double increment_playcount_min_time = Duration.seconds(0).toMillis();
-    
     public final Map<String,Config> fields = new HashMap();
     
     
     private static final List<Class> classes = new ArrayList<>();
     private static final Map<String,Config> default_fields = new HashMap();     // def Config
-    
+    private static final Map<String,Method> applierMethods = new HashMap();
+
 /******************************************************************************/
     
     static {        
         ClassIndex.getAnnotated(IsConfigurable.class).forEach(classes::add);
         default_fields.putAll(gatherFields());
+        applierMethods.putAll(gatherMethods());
     }
     
     private Configuration() {
@@ -179,23 +171,34 @@ public class Configuration implements Serializes {
 /******************************************************************************/
     
     /**
-     * @throws NullPointerException if application doesnt have any config with
-     * specified name
+     * If application doesnt have any config with specified name this method is
+     * a no-op
      */
-    public void setField(String name, String value) {                           // Log.deb("Setting field: " + name + " " + value);
-        Config def_f = default_fields.get(name);
-        Class type = def_f.type;
-        Object v = type.equals(Action.class) ? Action.from((Action)def_f.value, value) : Parser.fromS(type, value);
+    public void setField(String name, String value) {
+     // Log.deb("Setting field: " + name + " " + value);
         
+        Config def_f = default_fields.get(name);
+        if(def_f == null) return;
+        
+        Class type = def_f.value.getClass();
+        Object v = type.equals(Action.class) 
+                ? Action.from((Action)def_f.value, value) 
+                : Parser.fromS(type, value);
+
         fields.put(name, new Config(def_f, v));
     }
 
     public void applyField(Config c) {
         applyField(c.name, Parser.toS(c.value));
     }
-    private void applyField(String name, String value) {                         // Log.deb("Applying field "+name+" "+value);
+    
+    private void applyField(String name, String value) {
+        // Log.deb("Applying field "+name+" "+value);
+        
         Config def_f = default_fields.get(name);
-        Class type = def_f.type;
+        if(def_f == null) return;
+        
+        Class type = def_f.value.getClass();
         
         if(type.equals(Action.class)) { // set as shortcut
             Action temp_a = Action.fromString(value);
@@ -209,11 +212,34 @@ public class Configuration implements Serializes {
                 classes.stream().flatMap(c->Stream.of(c.getFields()))
                         .filter(f->(f.getModifiers() & Modifier.STATIC) != 0)
                         .filter(f->f.getName().equals(name))
-                        .forEach(f-> {                                              // System.out.println("setting "+f.getName() + " "+ parse(f.getType(), value));
+                        .forEach(f-> {
+                            Object new_value = Parser.fromS(f.getType(), value);
+                            Log.deb("Setting config : "+ name + " to: " + new_value);
+                            
+                            // set new config value
+                            boolean was_set = false;
                             try {
-                                f.set(null, Parser.fromS(f.getType(), value));      // getFields().stream().filter(k->k.name.equals(name)).forEachOrdered(k->System.out.println(k.name + k.value));
-                            } catch (IllegalAccessException ex) {
-                                Logger.getLogger(Configuration.class.getName()).log(Level.SEVERE, null, ex);
+                                f.set(null, new_value);      // getFields().stream().filter(k->k.name.equals(name)).forEachOrdered(k->System.out.println(k.name + k.value));
+                                was_set = true;
+                            } catch (IllegalAccessException e) {
+                                Log.err("Failed to set config: " + name + " . Reason: " + e.getMessage());
+                            }
+                            // apply new field value
+                            
+                            if(was_set) {
+                                Method m = applierMethods.get(name);
+                                if(m != null) {
+                                    Log.deb("Applying config: " + name);
+                                    try {
+                                        m.setAccessible(true);
+                                        m.invoke(null, new Object[0]);
+                                    } catch (IllegalAccessException | IllegalArgumentException | 
+                                            InvocationTargetException | SecurityException e) {
+                                        Log.err("Failed to apply config: " + name + ". Reason: " + e.getMessage());
+                                    } finally {
+                                        m.setAccessible(false);
+                                    }
+                                }
                             }
                         });
                 return;
@@ -306,7 +332,7 @@ public class Configuration implements Serializes {
 //         if (f1.size() != f2.size()) return false;
 //         return !f1.entrySet().stream().anyMatch( entry -> f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey())));
          return !f1.entrySet().stream().anyMatch( entry -> {
-             if(entry.getValue().type.equals(Action.class) && entry.getKey()!=null) {
+             if((entry.getValue().value instanceof Action) && entry.getKey()!=null) {
 //                 if(entry.getKey().equalsIgnoreCase("Minimize")){
 //                    System.out.println("");
 //                    System.out.println(
@@ -332,13 +358,23 @@ public class Configuration implements Serializes {
     }
     
     
-    public static String getGroup(Class<?> c) {
-        IsConfigurable a = c.getAnnotation(IsConfigurable.class);
-        return a==null || a.group().isEmpty() ? c.getSimpleName() : a.group();
+    
+    /** @return list of all configurable fields with latest values. */
+    private static Map<String,Config> gatherFields(){
+        Map<String,Config> list = new HashMap();
+        
+        // add class fields
+        for (Class c : classes)
+            getFieldsOf(c).forEach(f->list.put(f.name, f));
+        
+        // add action fields
+        Action.getActions().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
+        
+        return list;
     }
     
-    public static List<Config> getFieldsOf(Class c) {
-        List<Config> fields = new ArrayList<>();
+    private static List<Config> getFieldsOf(Class c) {
+        List<Config> fields = new ArrayList();
         String _group = getGroup(c);
         for (Field f : c.getFields()) {
             if ((f.getModifiers() & Modifier.STATIC) != 0) {
@@ -358,18 +394,46 @@ public class Configuration implements Serializes {
         return fields;
     }
     
-    /** @return list of all configurable fields with latest values. */
-    private static Map<String,Config> gatherFields(){
-        Map<String,Config> list = new HashMap();
+    private static String getGroup(Class<?> c) {
+        IsConfigurable a = c.getAnnotation(IsConfigurable.class);
+        return a==null || a.group().isEmpty() ? c.getSimpleName() : a.group();
+    }
+    
+    private static Map<String,Method> gatherMethods(){
+        Map<String,Method> list = new HashMap();
         
         // add class fields
-        for (Class c : classes)
-            getFieldsOf(c).forEach(f->list.put(f.name, f));
-        
-        // add action fields
-        Action.getActions().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
+        for (Class c : classes) {
+//            try{
+                for(Map.Entry<String,Method> m : getMethodsOf(c).entrySet()) {
+                    System.out.println("ADDING " +m.getKey() + " "+m.getValue().getName());
+                    list.putIfAbsent(m.getKey(), m.getValue());
+                }
+//            applierMethods.putAll();
+//            }catch(Exception e) { System.out.println(e.getClass());
+//                System.out.println("");
+//                System.out.println("AAAAAAAAAAAAAAAAAAAAAAA");
+//                System.out.println(e.getMessage());
+//                e.printStackTrace();
+//            }
+        }
         
         return list;
     }
     
+    private static Map<String,Method> getMethodsOf(Class c) {
+        Map<String,Method> methods = new HashMap<>();
+        for (Method m : c.getDeclaredMethods()) {
+            if ((m.getModifiers() & Modifier.STATIC) != 0) {
+                for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
+                    Log.deb("INSPECTING "+m.getName() + " " +a + " ");
+                    if (a != null) {
+                        String name = a.config();
+                        if(!name.isEmpty()) methods.put(name,m);
+                    }
+                }
+            }
+        }
+        return methods;
+    }
 }

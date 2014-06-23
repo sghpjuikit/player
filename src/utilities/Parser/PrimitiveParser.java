@@ -38,6 +38,10 @@ public class PrimitiveParser implements ObjectStringParser {
             if      (type.isEnum()) return Enum.valueOf(type, source);
             else if (type.equals(int.class)) return Integer.parseInt(source);
             else if (type.equals(Integer.class)) return Integer.valueOf(source);
+            else if (type.equals(byte.class)) return Byte.parseByte(source);
+            else if (type.equals(Byte.class)) return Byte.valueOf(source);
+            else if (type.equals(short.class)) return Short.parseShort(source);
+            else if (type.equals(Short.class)) return Short.valueOf(source);
             else if (type.equals(String.class)) return source;
             else if (type.equals(boolean.class)) return Boolean.parseBoolean(source);
             else if (type.equals(Boolean.class)) return Boolean.valueOf(source);

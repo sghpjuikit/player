@@ -40,7 +40,6 @@ import utilities.functional.functor.Procedure;
  * One example of use case for action is generating shortcut for the
  * application. When the application starts up, all annotated methods are turned
  * into actions and provide shortcuts for execution of the underlying behavior.
- * 
  * <p>
  * Additionally, actions can be configured and their state serialized.
  * <p>
@@ -200,7 +199,7 @@ public final class Action {
     
 /*********************** registering helper methods ***************************/
     
-    private void changeKeys(String keys) { System.out.println("registering " + keys+" "+name);
+    private void changeKeys(String keys) {
         if(keys.isEmpty()) { System.out.println("EMPTY");       
             this.keys = NO_MATCH;   // disable shortcut for empty keys
             return;

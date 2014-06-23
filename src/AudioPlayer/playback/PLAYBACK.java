@@ -1,6 +1,8 @@
 
 package AudioPlayer.playback;
 
+import Action.IsAction;
+import Action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
@@ -9,8 +11,6 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configurable;
-import Action.IsAction;
-import Action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import javafx.beans.property.BooleanProperty;
@@ -43,7 +43,6 @@ public final class PLAYBACK implements Configurable {
     static MediaPlayer playback;
     private static final PlaybackCore core = new PlaybackCore();
     
-    public static PlaycountIncrementer playcountMan;
     private static final RealTimeProperty realTime = 
             new RealTimeProperty(state.durationProperty(), state.currentTimeProperty());
     
@@ -51,8 +50,6 @@ public final class PLAYBACK implements Configurable {
     /** Initializes the Playback. */
     public static void initialize() {
         realTime.initialize();
-        playcountMan = new PlaycountIncrementer();
-        playcountMan.configureIncrementation();
         
         // add end of playback behavior
         core.addOnPlaybackEnd(() -> {

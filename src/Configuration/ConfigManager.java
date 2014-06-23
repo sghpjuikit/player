@@ -1,10 +1,7 @@
 
 package Configuration;
 
-import AudioPlayer.playback.PLAYBACK;
-import GUI.GUI;
 import PseudoObjects.TODO;
-import main.App;
 
 /**
  * @author uranium
@@ -53,10 +50,10 @@ public final class ConfigManager {
      */
     public static void apply(Configuration c) {
         c.getFields().stream().forEach(c::applyField);
-        if (App.getWindow()!= null && App.getWindow().isInitialized()) {
-            GUI.refresh();
-            PLAYBACK.playcountMan.configureIncrementation();        // reinitialize playcount incrementer
-        }
+//        if (App.getWindow()!= null && App.getWindow().isInitialized()) {
+//            GUI.refresh();
+//            PLAYBACK.playcountMan.configureIncrementation();        // reinitialize playcount incrementer
+//        }
     }
     
     /** Loads settings and applies them. */

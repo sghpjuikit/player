@@ -8,7 +8,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- popover check 100% autoclosing, show, hide, etc
+- use @AppliesConfig where necessary
+- clean up Notification class, possibly unite content, remove enum
 - app not closing propery on ALT+F4                                             (wth)
 - popup window fullcreen or maximizing(any) breaks popup position               
 - popover show() methods clean up
@@ -20,7 +21,6 @@
 - windows hard to drag, especially in headerless mode
 - tagger color field
 - uidrag consume event
-- rater skin change requires whole widget refresh - wtf
 - playlist selected item none->first when clicking on different widget          (wth)
 - settable img bgr
 - figure out LoopMode - class on its own or within NextItemSelector
@@ -36,7 +36,6 @@
 - widg man prefFactory per group configs -> getWidget reimplement
 - Player update item not refreshing selected pl item
 - writeException - suspend playback (phew)                                      (medium)
-- notification clean up setContent
 - splitter absolute size for both children
 - rater controls not resizing graphics
 - playback states - change, suspend, etc - perfect + cleanup
@@ -47,6 +46,11 @@
 -------------------- FUNCTIONALITY - what is planned ahead, ideas ---------------
 --------------------------------------------------------------------------------
 
+- figure out how to apply configs only when value changes
+- figure out how to force apply config 
+- figure out how to properly apply settings on initialize
+- figure out how to apply configs from settings and only those that need it
+- Spring StringConverters implement instead custom implementation now
 - seeker orientation property and support with layout (chapter positions too)
 - TextFlow for smart text tables
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?
@@ -123,7 +127,9 @@ GENERAL
   two '\' keys on the keyboard).
 - shift scrolling not working anymore for tables (supposed to scroll horizontly)
 - global shortcuts sometimes still fail to register to proper keys and register (medium, investigate cases)
-  for ALT instead
+  for ALT instead. It happened only once since last reimplementation and it was
+  probabyly a result of messing around with configs. But it can still produce
+  issues and return.
 - starting playback at given previous position seeks to beginning for a while   (medium)
   cause: possibly the same as the seeker bug
 - local shortcuts for complex characters (BACK_SLASH, etc) not working
@@ -169,19 +175,21 @@ SOLVED (with unwanted workaround)
   understand
   better solution: look for different serialisation of the properties ?
 - popups not propagating events to owner windows instead they simply close. Or 
-  rather - the losing itself consumes the click event. Its kind of bad - window
+  rather - the closing itself consumes the click event. Its kind of bad - window
   dragging doesnt function properly.
   solution: hidden 'master' window. PopOver sets it as an owner.
   problems: there can be countless problems in the future because of this. Plus,
   normal popup menus are still affected.
+  edit: the 'countless problems' have been pretty much all eliminated
 - javafx.scene.text.Text doesnt have css style class and as such doesn allow
   default values and skinning
   solution: Text class extending javafx.scene.text.Text and adding custom 
   styleclass. Use instead of the original if default behavior (skin) is expected
+  Also got a nice additional method.
 - open PopOvers prevent app to close normally.
   cause: java or controlsFX bug
-  solution: manually close then all when main window closes (introduces lots of
-  code pollution)
+  solution: manually close them all when main window closes (introduces lots of
+  code pollution). This is very controversial solution but works great.
 
 PROBLEMS
 - widget controllers initialization && widget refresh
@@ -219,11 +227,9 @@ Layouts---------
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - unify chapters and infos into singular type of field allowing multiple values
-- playing item, metadata, ... in Playbackmanager, finish clearing Player class
-- Config - figure out apply() mechanism. and clean up Configuration class
+- playing item, metadata, ... in Playbackmanager, clear Player class
 
 IMPROVEMENTS
-- notification type enum is useless. remove and rewrite affected areas          (technicality)
 - file format discovery. Unite Image and Audio types add category               (minor, although much needed for robustness)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - playlist table drag code duplication                                          (technicality, minor code pollution)
@@ -237,7 +243,6 @@ PERFORMANCE
 - played files leak on song change                                              (still an issue ?)
 - improve picture loading
 - images load on separate thread (possibly imageLoader class?)                  (?)
-- invisible widgets - suspend                                                   (?)
 - picker static always in memory - mem leak                                     (not an issue?)
   problem: how to lazy load it if not as static field?
 - layout reload mem leak - investigate, weakListeners+OnClosing should help     (major)

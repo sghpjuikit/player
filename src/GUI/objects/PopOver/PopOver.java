@@ -252,7 +252,6 @@ public class PopOver extends PopupControl {
         double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
         double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
         position(owner,null,X,Y);
-        getContentNode().setOnMouseEntered(e->setArrowIndent(5));
     }
     
     /**
@@ -762,13 +761,14 @@ public class PopOver extends PopupControl {
             fadeOutAnim.setOnFinished(null);
             fadeOutAnim.stop();
             opacityOldVal = getSkin().getNode().getOpacity();
-        } else opacityOldVal = 0;
+        }// else opacityOldVal = 0;
         // set & play
         fadeInAnim.setOnFinished(e -> opacityOldVal=1 );
         fadeInAnim.setNode(getSkin().getNode());
-//        fadeInAnim.setFromValue(opacityOldVal);
+        fadeInAnim.setFromValue(opacityOldVal);
         fadeInAnim.setDuration(getAnimDuration());
-        fadeInAnim.playFrom(getAnimDuration().multiply(opacityOldVal));
+//        fadeInAnim.playFrom(getAnimDuration().multiply(opacityOldVal));
+        fadeInAnim.play();
     }
     private void fadeOut() {
         // lazy initialize

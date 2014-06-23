@@ -11,7 +11,9 @@ import java.lang.annotation.Target;
 /**
  * Denotes method that can be turned into an {@link Action}.
  * <p>
- * Such method must be public, static, and have zero parameters.
+ * Such method must be static and have zero parameters. There is no restriction
+ * to the access modifier and private method will work the same as public or one
+ * with any other access modifier one.
  * <p>
  * Uses {@link Repeatable} and can be used multiple times for the same method.
  * Therefore multiple actions with different parameters of this annotation can

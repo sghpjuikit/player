@@ -84,32 +84,31 @@ abstract public class ConfigField<T extends Object> {
         if (!f.visible) return null;
         
         String name = f.name;
-        Class<?> type = f.type;
         Object value = f.value;
         
         ConfigField cf;
         if (name.equals("skin"))
             cf = new SkinField(name, value);
         else
-        if (type.equals(boolean.class) || type.equals(Boolean.class))
+        if (value instanceof Boolean)
             cf = new BooleanField(name, (boolean)value);
         else 
         if (value instanceof Enum) {
             cf = new EnumField(name, value);}
         else
-        if (type.equals(Action.class))
+        if (value instanceof Action)
             cf = new ShortcutField(name, (Action)value);
         else
-        if (type.equals(Color.class))
+        if (value instanceof Color)
             cf = new ColorField(name, (Color)value);
         else
-        if (type.equals(File.class))
+        if (value instanceof File)
             cf = new DirectoryField(name, (File)value);
         else
         if (value instanceof StringEnum)
             cf = new EnumListField(name, (StringEnum)value);
         else
-        if (type.equals(Font.class))
+        if (value instanceof Font)
             cf = new FontField(name, (Font)value);
         else
         if (f.isMinMax())

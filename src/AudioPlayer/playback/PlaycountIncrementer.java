@@ -4,7 +4,9 @@ package AudioPlayer.playback;
 import AudioPlayer.Player;
 import AudioPlayer.tagging.MetadataWriter;
 import AudioPlayer.tagging.Playcount;
-import Configuration.Configuration;
+import Configuration.AppliesConfig;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import javafx.util.Duration;
 import utilities.Log;
 import utilities.functional.functor.Procedure;
@@ -13,20 +15,32 @@ import utilities.functional.functor.Procedure;
  *
  * @author uranium
  */
+@IsConfigurable
 public class PlaycountIncrementer {
     
+    @IsConfig(name="Playcount incrementing strategy", info = "Playcount strategy for incrementing playback.")
+    public static Playcount.IncrStrategy increment_playcount = Playcount.IncrStrategy.ON_PERCENT;
+    @IsConfig(name="Playcount incrementing at percent", info = "Percent at which playcount is incremented.")
+    public static double increment_playcount_at_percent = 0.5;
+    @IsConfig(name="Playcount incrementing at time", info = "Time at which playcount is incremented.")
+    public static double increment_playcount_at_time = Duration.seconds(5).toMillis();
+    @IsConfig(name="Playcount incrementing min percent", info = "Minimum percent at which playcount is incremented.")
+    public static double increment_playcount_min_percent = 0.0;
+    @IsConfig(name="Playcount incrementing min time", info = "Minimum time at which playcount is incremented.")
+    public static double increment_playcount_min_time = Duration.seconds(0).toMillis();
+    
     // playcount incrementing settings
-    private double atP = Configuration.increment_playcount_at_percent;
-    private double pMin = Configuration.increment_playcount_min_percent;
-    private Duration atT = Duration.millis(Configuration.increment_playcount_at_time);
-    private Duration tMin = Duration.millis(Configuration.increment_playcount_min_time);
+//    private static double atP = Configuration.increment_playcount_at_percent;
+//    private static double pMin = Configuration.increment_playcount_min_percent;
+//    private static Duration atT = Duration.millis(Configuration.increment_playcount_at_time);
+//    private static Duration tMin = Duration.millis(Configuration.increment_playcount_min_time);
     
     // handlers
-    private final PercentTimeEventHandler percIncrementer;
-    private final TimeEventHandler timeIncrementer;
+    private static PercentTimeEventHandler percIncrementer;
+    private static TimeEventHandler timeIncrementer;
     
     // behavior
-    private final Procedure incrementPlayback = () -> {
+    private static final Procedure incrementPlayback = () -> {
         // prevent reading when not initialized
         if (Player.getCurrentMetadata() == null) {
             return;
@@ -36,57 +50,58 @@ public class PlaycountIncrementer {
         Log.mess("Incrementing playount of played item.");
     };
     
-    PlaycountIncrementer() {
+    public static void initialize() {
         // initialize percent incrementer
-        percIncrementer = new PercentTimeEventHandler(atP, incrementPlayback, "Playcount percent event handler");
-        percIncrementer.setPercMin(pMin);
-        percIncrementer.setTimeMin(tMin);
+        percIncrementer = new PercentTimeEventHandler(increment_playcount_at_percent, incrementPlayback, "Playcount percent event handler");
+        percIncrementer.setPercMin(increment_playcount_min_percent);
+        percIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
         // initialize time incrementer
-        timeIncrementer = new TimeEventHandler(atT, incrementPlayback, "Playcount time event handler");
-        timeIncrementer.setPercMin(pMin);
-        timeIncrementer.setTimeMin(tMin);
+        timeIncrementer = new TimeEventHandler(Duration.millis(increment_playcount_at_time), incrementPlayback, "Playcount time event handler");
+        timeIncrementer.setPercMin(increment_playcount_min_percent);
+        timeIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
     }
     
-    public void configureIncrementation() {
+    @AppliesConfig(config = "increment_playcount")
+    @AppliesConfig(config = "increment_playcount_at_percent")
+    @AppliesConfig(config = "increment_playcount_at_time")
+    @AppliesConfig(config = "increment_playcount_min_percent")
+    @AppliesConfig(config = "increment_playcount_min_time")
+    public static void configureIncrementation() {
         Log.mess("Resetting playcount incrementer settings.");
-        if (Configuration.increment_playcount == Playcount.IncrStrategy.ON_PERCENT) {
+        if (increment_playcount == Playcount.IncrStrategy.ON_PERCENT) {
             removeOld();
             rereadSettings();
             PLAYBACK.realTimeProperty().setOnTimeAt(percIncrementer);
-        } else if (Configuration.increment_playcount == Playcount.IncrStrategy.ON_TIME) {
+        } else if (increment_playcount == Playcount.IncrStrategy.ON_TIME) {
             removeOld();
             rereadSettings();
             PLAYBACK.realTimeProperty().setOnTimeAt(timeIncrementer);
-        } else if (Configuration.increment_playcount == Playcount.IncrStrategy.ON_START) {
+        } else if (increment_playcount == Playcount.IncrStrategy.ON_START) {
             removeOld();
             rereadSettings();
             PLAYBACK.addOnPlaybackStart(incrementPlayback);
-        } else if (Configuration.increment_playcount == Playcount.IncrStrategy.ON_END) {
+        } else if (increment_playcount == Playcount.IncrStrategy.ON_END) {
             removeOld();
             rereadSettings();
             PLAYBACK.addOnPlaybackEnd(incrementPlayback);
-        } else if (Configuration.increment_playcount == Playcount.IncrStrategy.NEVER) {
+        } else if (increment_playcount == Playcount.IncrStrategy.NEVER) {
             removeOld();
         }
     }
     
-    private void removeOld() {
+    private static void removeOld() {
         PLAYBACK.realTimeProperty().removeOnTimeAt(percIncrementer);
         PLAYBACK.realTimeProperty().removeOnTimeAt(timeIncrementer);
         PLAYBACK.removeOnPlaybackStart(incrementPlayback);
         PLAYBACK.removeOnPlaybackEnd(incrementPlayback);
     }
     
-    private void rereadSettings() {
-        atP = Configuration.increment_playcount_at_percent;
-        pMin = Configuration.increment_playcount_min_percent;
-        atT = Duration.millis(Configuration.increment_playcount_at_time);
-        tMin = Duration.millis(Configuration.increment_playcount_min_time);
-        percIncrementer.setPercent(atP);
-        percIncrementer.setPercMin(pMin);
-        percIncrementer.setTimeMin(tMin);
-        timeIncrementer.setTimeAt(atT);
-        timeIncrementer.setPercMin(pMin);
-        timeIncrementer.setTimeMin(tMin);
+    private static void rereadSettings() {
+        percIncrementer.setPercent(increment_playcount_at_percent);
+        percIncrementer.setPercMin(increment_playcount_min_percent);
+        percIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
+        timeIncrementer.setTimeAt(Duration.millis(increment_playcount_at_time));
+        timeIncrementer.setPercMin(increment_playcount_min_percent);
+        timeIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
     }
 }

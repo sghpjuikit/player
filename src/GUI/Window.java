@@ -122,9 +122,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
                 w.setIcon(App.getIcon());
                 w.setTitle(App.getAppName());
                 w.setTitlePosition(Pos.CENTER_LEFT);
-                UIController uic = (UIController)loader.getController();
-                new ContextManager(uic);
-                ContextManager.gui = uic; System.out.println(ContextManager.gui + " ggg ");
+                new ContextManager((UIController)loader.getController());
             }
                    
             return w;

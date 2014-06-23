@@ -3,6 +3,7 @@ package main;
 
 import Action.Action;
 import AudioPlayer.Player;
+import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.ConfigManager;
 import Configuration.Configuration;
@@ -81,10 +82,11 @@ public class App extends Application {
         // the browser if the application was launched as an applet. Applications
         // may create other stages, if needed, but they will not be primary stages
         // and will not be embedded in the browser.
+        Configuration c;
         
         try {
             // initializing, the order is important
-            Configuration c = ConfigManager.loadConfiguration();      // must initialize first   
+            c = ConfigManager.loadConfiguration();      // must initialize first   
 
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
@@ -99,30 +101,38 @@ public class App extends Application {
             windowOwner.getStage().setOpacity(0);
             
             window = Window.create(true);           // create main app window
-            ConfigManager.apply(c);                 // apply gui settings
-
-//            new LastFM().initialize();
+            window.setVisible(false);
+            
+            ConfigManager.apply(c); // fixes some problems < get rid of this
             
             // loading graphics
             LayoutManager.loadLast();
             window.getStage().initOwner(windowOwner.getStage());
             window.show();                          // should load when GUI is ready
-            window.getStage().getScene().getRoot().applyCss();
-            window.getStage().getScene().getRoot().layout();
+//            window.getStage().getScene().getRoot().applyCss();
+//            window.getStage().getScene().getRoot().layout();
             
-            NotifierManager.initialize();           // after window is shown (and css aplied)
-            Player.loadLast();                      // should load in the end
-            
-            // post init
-            MoodManager.initialize();
-            Action.getActions().values().forEach(Action::register);
             initialized = true;
         } catch(Exception e) {
-            initialized = false;
             e.printStackTrace();
             throw new RuntimeException("Application failed to start. Reason: " + e.getMessage());
         }
         
+
+        
+        // initialize non critical parts
+        Player.loadLast();                      // should load in the end
+
+
+        //            new LastFM().initialize();
+        PlaycountIncrementer.initialize();
+        NotifierManager.initialize();           // after window is shown (and css aplied)
+        MoodManager.initialize();
+        Action.getActions().values().forEach(Action::register);        
+
+        ConfigManager.apply(c);                 // apply all (and gui) settings
+        window.setVisible(true);                // show the application window
+        window.update();        
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         
@@ -154,6 +164,10 @@ public class App extends Application {
             BookmarkManager.saveBookmarks();
             NotifierManager.free();
         }
+    }
+    
+    public static boolean isInitialized() {
+        return App.instance.initialized;
     }
 
     /**

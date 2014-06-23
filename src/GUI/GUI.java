@@ -1,10 +1,11 @@
 
 package GUI;
 
-import AudioPlayer.Player;
-import Configuration.Configurable;
 import Action.IsAction;
 import Action.IsActionable;
+import AudioPlayer.Player;
+import Configuration.AppliesConfig;
+import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Configuration.SkinEnum;
@@ -129,10 +130,9 @@ public class GUI implements Configurable {
     /** Loads/refreshes whole gui. */
     @IsAction(name = "Reload GUI.", description = "Reload application GUI.", shortcut = "F5")
     public static void refresh() {
-        if (App.getWindow().isInitialized()) {
+        if (App.isInitialized()) {
             applySkin();
             applyFont();
-            App.getWindow().update();                 // reinitialize window
             applyOverlayUseAppColor();
             applyColorOverlay();
             loadLayout();
@@ -312,13 +312,15 @@ public class GUI implements Configurable {
     
 /****************************  applying methods *******************************/
     
-    private static void applySkin() {
+    @AppliesConfig(config = "skin")
+    private static void applySkin() {System.out.println("RUNNING SKIN "+skin);
         setSkin(skin.get());
     }
     
+    @AppliesConfig(config = "font")
     private static void applyFont() {
         // apply only if application initialized correctly
-        if (App.getWindowOwner().isInitialized()) {
+        if (App.isInitialized()) {
             // we need to apply to each window separately
             ContextManager.windows.forEach( w ->{
                 String tmp = font.getStyle().toLowerCase();
@@ -337,6 +339,7 @@ public class GUI implements Configurable {
         }
     }
     
+    @AppliesConfig(config = "gui_overlay")
     private static void applyColorOverlay() {
         if(gui_overlay) {            
             // get color
@@ -361,6 +364,8 @@ public class GUI implements Configurable {
     }
     
     private static InvalidationListener setOverlay;
+    
+    @AppliesConfig(config = "gui_overlay_use_song")
     private static void applyOverlayUseAppColor() {
         if(gui_overlay_use_song) {
             if(setOverlay==null) 
@@ -374,6 +379,7 @@ public class GUI implements Configurable {
         }
     }
     
+    @AppliesConfig(config = "align_tabs")
     private static void applyAlignTabs() {
         if(align_tabs) ContextManager.gui.alignTabs();
     }

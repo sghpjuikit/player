@@ -10,7 +10,7 @@
 <children><AnchorPane fx:id="ui" minHeight="0.0" minWidth="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 </children></AnchorPane>
     <AnchorPane fx:id="contextPane" mouseTransparent="false" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-    <AnchorPane fx:id="overlayPane" mouseTransparent="true" pickOnBounds="true" prefHeight="-1.0" prefWidth="-1.0" snapToPixel="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Pane fx:id="colorEffectPane" mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <AnchorPane fx:id="overlayPane" mouseTransparent="true" pickOnBounds="true" prefHeight="-1.0" prefWidth="-1.0" snapToPixel="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
   </children>
   <padding>
     <Insets />

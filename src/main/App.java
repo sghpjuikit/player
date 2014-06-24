@@ -7,6 +7,7 @@ import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.ConfigManager;
 import Configuration.Configuration;
+import GUI.ContextManager;
 import GUI.GUI;
 import GUI.NotifierManager;
 import GUI.Window;
@@ -99,6 +100,7 @@ public class App extends Application {
                                 Screen.getPrimary().getBounds().getHeight());
             windowOwner.show();
             windowOwner.getStage().setOpacity(0);
+            ContextManager.windows.remove(windowOwner);    
             
             window = Window.create(true);           // create main app window
             window.setVisible(false);
@@ -160,7 +162,7 @@ public class App extends Application {
         if(initialized) {
             Player.state.serialize();
             LayoutManager.serialize();
-            ConfigManager.saveConfiguration();
+            Configuration.save();
             BookmarkManager.saveBookmarks();
             NotifierManager.free();
         }

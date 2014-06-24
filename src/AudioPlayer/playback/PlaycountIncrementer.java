@@ -28,13 +28,7 @@ public class PlaycountIncrementer {
     public static double increment_playcount_min_percent = 0.0;
     @IsConfig(name="Playcount incrementing min time", info = "Minimum time at which playcount is incremented.")
     public static double increment_playcount_min_time = Duration.seconds(0).toMillis();
-    
-    // playcount incrementing settings
-//    private static double atP = Configuration.increment_playcount_at_percent;
-//    private static double pMin = Configuration.increment_playcount_min_percent;
-//    private static Duration atT = Duration.millis(Configuration.increment_playcount_at_time);
-//    private static Duration tMin = Duration.millis(Configuration.increment_playcount_min_time);
-    
+        
     // handlers
     private static PercentTimeEventHandler percIncrementer;
     private static TimeEventHandler timeIncrementer;

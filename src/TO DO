@@ -8,6 +8,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+properly handle vol scolling and app dragging event consuminf at widget level
+- window apply overlay on new window upon creation
+- windw header visible preference application is weird
 - use @AppliesConfig where necessary
 - clean up Notification class, possibly unite content, remove enum
 - app not closing propery on ALT+F4                                             (wth)
@@ -30,7 +33,7 @@
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
 - all tabs loading bug
-- window clean up overlay Pane, contextPane etc.. move from UI to Window ->[0,0]
+- window clean up contextPane - move from UI to Window ->[0,0]
 - window clean up serialization
 
 - widg man prefFactory per group configs -> getWidget reimplement
@@ -46,10 +49,8 @@
 -------------------- FUNCTIONALITY - what is planned ahead, ideas ---------------
 --------------------------------------------------------------------------------
 
-- figure out how to apply configs only when value changes
-- figure out how to force apply config 
 - figure out how to properly apply settings on initialize
-- figure out how to apply configs from settings and only those that need it
+- figure out how to apply configs from config fields
 - Spring StringConverters implement instead custom implementation now
 - seeker orientation property and support with layout (chapter positions too)
 - TextFlow for smart text tables

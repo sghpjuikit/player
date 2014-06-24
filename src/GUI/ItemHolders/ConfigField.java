@@ -244,6 +244,15 @@ abstract public class ConfigField<T extends Object> {
             control.valueProperty().addListener(o -> {
                 curr = String.valueOf(control.getValue());
             });
+            
+            // add scrolling support
+            control.setBlockIncrement((max-min)/20);
+            control.setOnScroll( e -> {
+                if (e.getDeltaY()>0) control.increment();
+                else control.decrement();
+                e.consume();
+            });
+
 //            control.setShowTickMarks(true);
 //            control.setShowTickLabels(true);
 //            control.setMajorTickUnit((max-min)/2);
@@ -267,7 +276,7 @@ abstract public class ConfigField<T extends Object> {
             ObservableList<Object> items = FXCollections.observableArrayList();
                                    items.setAll(GUI.getSkins());
             control.setItems(items);
-            control.getSelectionModel().select(value);
+            control.getSelectionModel().select((String)value);
         }
         @Override public String getValue() {
             return control.getSelectionModel().getSelectedItem().toString();

@@ -769,7 +769,10 @@ public final class Metadata extends MetaItem {
         return mood;
     }
     
-    /**  @return the mood "" if empty. */
+    /**  
+     * @return the color value associated with the song from tag or null if
+     * none.
+     */
     public Color getColor() {
          return custom1.isEmpty() ? null : (Color) Parser.fromS(Color.class, custom1);
     }

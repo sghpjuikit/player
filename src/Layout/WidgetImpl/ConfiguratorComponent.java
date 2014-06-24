@@ -1,6 +1,5 @@
 package Layout.WidgetImpl;
 
-import Configuration.ConfigManager;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.ItemHolders.ConfigField;
@@ -17,13 +16,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
-import javafx.scene.control.Button;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
+import utilities.Log;
 
 @WidgetInfo(author = "Martin Polakovic",
             description = "Settings",
@@ -32,7 +31,6 @@ import javafx.scene.layout.RowConstraints;
             group = Widget.Group.OTHER)
 public final class ConfiguratorComponent extends AnchorPane implements Controller<ClassWidget> {
         
-    @FXML Button redoB;
     @FXML Accordion accordion;
     List<ConfigGroup> groups = new ArrayList<>();
     List<ConfigField> configFields = new ArrayList<>();    
@@ -54,7 +52,7 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
         try {
             fxmlLoader.load();
         } catch (IOException ex) {
-            throw new RuntimeException("ConfiguratorComponent source data coudlnt be read.");
+            Log.err("ConfiguratorComponent source data coudlnt be read.");
         }
         
         // consume scroll event to prevent other scroll behavior // optional
@@ -64,7 +62,6 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
     @FXML
     public void initialize() {
         old_config = Configuration.getCurrent();
-        redoB.setDisable(true);
         
         // clear previous fields
         configFields.clear();
@@ -98,28 +95,20 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
     
     @FXML
     private void ok() {
-        Configuration new_config = Configuration.getCurrent();
-        for (ConfigField f: configFields)
-            if (f.hasValue()) 
-                new_config.setField(f.getName(), f.getValue());
+        boolean changed = false;
         
-        boolean changed = ConfigManager.change(new_config);     // change
-        if (changed) {
-            refresh();
-            redoB.setDisable(false);                            // enable 
-        }     
-    }
-    
-    @FXML
-    private void redo() {
-        ConfigManager.change(old_config);
-        refresh();
-        redoB.setDisable(true);
+        for (ConfigField f: configFields)
+            if (f.hasValue()) {
+                changed = true;
+                Configuration.setNapplyField(f.getName(), f.getValue());
+            }
+        
+        if (changed) refresh();
     }
     
     @FXML
     private void defaults() {
-        ConfigManager.setToDefault();
+        Configuration.toDefault();
         refresh();
     }
 

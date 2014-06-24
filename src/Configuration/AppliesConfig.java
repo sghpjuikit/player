@@ -23,7 +23,8 @@ import java.lang.annotation.Target;
  * a value of this annotation.
  * <p>
  * The annotated method must be static. The access does not play a role. Even 
- * private methods will be invoked.
+ * private methods will be invoked. Only one method can be associated with a
+ * field at once.
  * <p>
  * One unfortunate sideffect is the fragile dependency of the method to the
  * field. If he field name is changed the method will now be invoked. The value

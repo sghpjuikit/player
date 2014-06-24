@@ -1,12 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package Configuration;
 
 import java.lang.annotation.Documented;
@@ -18,16 +10,20 @@ import java.lang.annotation.Target;
 /**
  * Annotation marking field as configuration field and turning it into
  * {@link Config} by adding customary information to it such as name,
- * description, editability or visibility. The field can also be associated
- * with a method that will be automatically invoked upon a value change (only
- * within the framework). See {@link AppliesConfig}.
+ * description, editability or visibility.
  * <p>
  * Any field can be successfully annotated with this annotation. There are two
  * different use cases. Annotating a static field and annotating non-static one.
  * <p>
- * Warning: Dont suddenly change the name of the field that is annotated. It can
+ * Based on the application of the value to the field, there are two kinds of
+ * fields. Those that can be simply set to a value and those that require some
+ * code to be executed to have their value be reflected by the application.
+ * <p>
+ * Warning: Do not suddenly change the name of the field that is annotated. It can
  * be associated with a method through its name. Make sure the method association
- * does not break after the name change.
+ * does not break after the name change. Such field can be associated
+ * with a method that will be automatically invoked upon a value change (
+ * within the framework). See {@link AppliesConfig}.
  * <p>
  * For more information about the intention and use read {@link IsConfigurable}
  * and {@link Config}.
@@ -42,7 +38,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface IsConfig {
     /** 
-     * @return human readable name of the field. Default "".
+     * @return human readable name of the field. Default value is "". If not 
+     * provided, the name will match the name of the annotated field.
      */
     String name() default "";
     /** 
@@ -50,10 +47,10 @@ public @interface IsConfig {
       * tooltips within graphical user interface. Default is "". */
     String info() default "";
     /** 
-     * @return category of the field belongs to. Used semantical agregation of
-      * the configuration fields. Default "". The default value will cause the
-      * category to be set to name of the class containing the field, unless
-      * specified differently. See {@link IsConfigurable}. */
+     * @return category of the field belongs to. Use for aggregation of
+      * the configuration fields. Default value is "". The default value will be
+      * set from category or name of the class containing the field. See 
+      * {@link IsConfigurable}. */
     String group() default "";
     /** 
      * @return the intended editability of the configuration field by the user.

@@ -3,7 +3,6 @@ package GUI;
 
 import Action.IsAction;
 import Action.IsActionable;
-import AudioPlayer.Player;
 import Configuration.AppliesConfig;
 import Configuration.Configurable;
 import Configuration.IsConfig;
@@ -20,13 +19,6 @@ import java.util.List;
 import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
-import javafx.beans.InvalidationListener;
-import javafx.geometry.Insets;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import static javafx.scene.text.FontPosture.ITALIC;
@@ -49,21 +41,8 @@ public class GUI implements Configurable {
     // properties
     @IsConfig(name = "Font", info = "Application font.")
     public static Font font = Font.getDefault();
-    @IsConfig(name = "Opacity", info = "Application opacity.", min=0, max=1)
-    public static double windowOpacity = 1;
     @IsConfig(name = "Skin", info = "Application skin.")
     public static SkinEnum skin = new SkinEnum("Default");
-    
-    @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
-    public static boolean gui_overlay = false;
-    @IsConfig(name = "Overlay effect use song color", info = "Use song color if available as source color for gui overlay effect.")
-    public static boolean gui_overlay_use_song = false;
-    @IsConfig(name = "Overlay effect color", info = "Set color for color overlay effect.")
-    public static Color gui_overlay_color = Color.BLACK;
-    @IsConfig(name = "Overlay effect normalize", info = "Forbid contrast and brightness change. Applies only hue portion of the color for overlay effect.")
-    public static boolean gui_overlay_normalize = true;
-    @IsConfig(name = "Overlay effect intensity", info = "Intensity of the color overlay effect.", min=0, max=1)
-    public static double gui_overlay_norm_factor = 0.5;
     
     @IsConfig(name = "Layout mode blur", info = "Layout mode use blur effect.")
     public static boolean blur_layoutMode = false;
@@ -133,8 +112,6 @@ public class GUI implements Configurable {
         if (App.isInitialized()) {
             applySkin();
             applyFont();
-            applyOverlayUseAppColor();
-            applyColorOverlay();
             loadLayout();
             applyAlignTabs();
         }
@@ -231,11 +208,6 @@ public class GUI implements Configurable {
     public static void setFont(Font _font) {
         font = _font;
         applyFont();
-    }
-    
-    public static void setColorEffect(Color color) {
-        gui_overlay_color = color;
-        applyColorOverlay();
     }
     
     /**
@@ -336,46 +308,6 @@ public class GUI implements Configurable {
                     "-fx-font-size: " + font.getSize() + ";"
                 );
             });
-        }
-    }
-    
-    @AppliesConfig(config = "gui_overlay")
-    private static void applyColorOverlay() {
-        if(gui_overlay) {            
-            // get color
-            Color c = null;
-            if(gui_overlay_use_song && Player.getCurrentMetadata()!= null)
-                            c = Player.getCurrentMetadata().getColor();
-            if(c == null)   c = gui_overlay_color;
-            
-            // normalize color
-            if(gui_overlay_normalize)
-                c = Color.hsb(c.getHue(), 0.5, 0.5, gui_overlay_norm_factor);
-            
-            // apply effect
-            ContextManager.gui.colorEffectPane.setBlendMode(BlendMode.OVERLAY);
-            ContextManager.gui.colorEffectPane.setBackground(new Background(
-                    new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)));
-            ContextManager.gui.colorEffectPane.setVisible(true);
-        } else {
-            // disable effect
-            ContextManager.gui.colorEffectPane.setVisible(false);
-        }
-    }
-    
-    private static InvalidationListener setOverlay;
-    
-    @AppliesConfig(config = "gui_overlay_use_song")
-    private static void applyOverlayUseAppColor() {
-        if(gui_overlay_use_song) {
-            if(setOverlay==null) 
-                setOverlay = (o) -> applyColorOverlay();
-            Player.currentMetadataProperty().addListener(setOverlay);
-        }
-        else {
-            if(setOverlay!=null)
-                Player.currentMetadataProperty().removeListener(setOverlay);
-            setOverlay=null;
         }
     }
     

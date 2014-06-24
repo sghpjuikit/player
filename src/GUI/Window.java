@@ -2,7 +2,10 @@
 package GUI;
 
 import Action.Action;
+import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.tagging.Metadata;
+import Configuration.AppliesConfig;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -37,6 +40,7 @@ import java.io.IOException;
 import static java.lang.Boolean.TRUE;
 import java.net.URL;
 import javafx.animation.TranslateTransition;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -46,6 +50,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -56,8 +61,12 @@ import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -89,10 +98,100 @@ import utilities.Log;
 @IsConfigurable
 public class Window extends WindowBase implements SerializesFile, Serializes {
         
-    @IsConfig(name="Window header visiblility preference", info=
-                                 "Remembers header state for both fullscreen" +
-                                 " and not. When selected 'auto off' is true ")
-    public static boolean headerOnPreference = true;
+    @IsConfig(name="Window header visiblility preference", info="Remembers header"
+            + " state for both fullscreen and not. When selected 'auto off' is true ")
+    public static boolean headerVisiblePreference = true;
+    @IsConfig(name = "Opacity", info = "Window opacity.", min=0, max=1)
+    public static double windowOpacity = 1;
+    @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
+    public static boolean gui_overlay = false;
+    @IsConfig(name = "Overlay effect use song color", info = "Use song color if "
+            + "available as source color for gui overlay effect.")
+    public static boolean gui_overlay_use_song = false;
+    @IsConfig(name = "Overlay effect color", info = "Set color for color overlay effect.")
+    public static Color gui_overlay_color = Color.BLACK;
+    @IsConfig(name = "Overlay effect normalize", info = "Forbid contrast and "
+            + "brightness change. Applies only hue portion of the color for overlay effect.")
+    public static boolean gui_overlay_normalize = true;
+    @IsConfig(name = "Overlay effect intensity", info = "Intensity of the color overlay effect.", min=0, max=1)
+    public static double overlay_norm_factor = 0.5;
+    
+    @AppliesConfig(config = "headerVisiblePreference")
+    private static void applyHeaderVisiblePreference() {
+        // weird that this still doesnt apply it correctly, whats wrong?
+        ContextManager.windows.forEach(w->w.setShowHeader(w.showHeader));
+    }
+    
+    @AppliesConfig(config = "windowOpacity")
+    private static void applyWindowOpacity() {
+        ContextManager.windows.forEach(w->w.getStage().setOpacity(windowOpacity));
+    }
+    
+    public static void setColorEffect(Color color) {
+        gui_overlay_color = color;
+        applyColorOverlay();
+    }
+    
+    @AppliesConfig(config = "overlay_norm_factor")
+    @AppliesConfig(config = "gui_overlay_use_song")
+    @AppliesConfig(config = "gui_overlay_normalize")
+    @AppliesConfig(config = "gui_overlay_color")
+    @AppliesConfig(config = "gui_overlay")
+    public static void applyColorOverlay() {
+        if(gui_overlay_use_song) applyOverlayUseSongColor();
+        else applyColorEffect(gui_overlay_color);
+    }
+    private static void applyColorEffect(Color color) {
+        if(!App.isInitialized()) return;
+        if(gui_overlay) {            
+            // normalize color
+            if(gui_overlay_normalize)
+                color = Color.hsb(color.getHue(), 0.5, 0.5);
+            
+            final Color cl = color;
+            // apply effect
+            ContextManager.windows.forEach( w -> {
+                w.colorEffectPane.setBlendMode(BlendMode.OVERLAY);
+                w.colorEffectPane.setBackground(new Background(new BackgroundFill(cl, CornerRadii.EMPTY, Insets.EMPTY)));
+                w.colorEffectPane.setOpacity(overlay_norm_factor);
+                w.colorEffectPane.setVisible(true);
+            });
+
+        } else {
+            // disable effect
+            ContextManager.windows.forEach( w -> {
+                w.colorEffectPane.setVisible(false);
+            });
+        }
+    }
+    
+    private static ChangeListener<Metadata> colorListener;
+    
+    private static void applyOverlayUseSongColor() {
+        if(gui_overlay_use_song) {
+            // lazily create and add listener
+            if(colorListener==null) {
+                colorListener = (o,oldV,newV) -> {
+                    Color c = newV.getColor();
+                    applyColorEffect( c==null ? gui_overlay_color : c);
+                };
+                Player.currentMetadataProperty().addListener(colorListener);
+                // fire upon binding to create immediate response
+                colorListener.changed(null, null, Player.getCurrentMetadata());
+            } else {
+                colorListener.changed(null, null, Player.getCurrentMetadata());
+            }            
+        }
+        else {
+            // remove and destroy listener
+            if(colorListener!=null)
+                Player.currentMetadataProperty().removeListener(colorListener);
+            colorListener=null;
+            applyColorOverlay();
+        }
+    }
+    
+/******************************************************************************/
     
     /** @return new window or null if error occurs during initialization. */
     public static Window create() {
@@ -143,6 +242,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     @FXML Button layB;
     @FXML Button miniB;
     @FXML Button minimizeB;
+    @FXML Pane colorEffectPane;
     
     private Window(boolean is_main) {
         super(is_main);
@@ -151,6 +251,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     /** Initializes the controller class. */
     private void initialize() {
         getStage().setScene(new Scene(root));
+        getStage().setOpacity(windowOpacity);
         
         // add to list of active windows
         ContextManager.windows.add(this);
@@ -347,11 +448,12 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
    @Override  
     public void setFullscreen(boolean val) {  
         super.setFullscreen(val);
-        if(headerOnPreference){
+        if(headerVisiblePreference){
             if(val)showHeader(false);
             else showHeader(showHeader);
+        } else {
+            setShowHeader(!showHeader);
         }
-        else setShowHeader(!showHeader);  
     }
     
     @FXML public void toggleMini() {
@@ -493,11 +595,12 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))  
             GUI.setLayoutMode(false);  
         if (e.getCode()==ALT)  
-            if(headerOnPreference){
+            if(headerVisiblePreference){
                 if(isFullscreen()) showHeader(false); 
                 else showHeader(showHeader);
+            } else {
+                showHeader(showHeader);
             }
-            else showHeader(showHeader);
     } 
     
     public static final class WindowConverter implements Converter {

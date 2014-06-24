@@ -2,7 +2,6 @@
 package GUI;
 
 import Configuration.Configuration;
-import GUI.GUI;
 import Layout.Layout;
 import Layout.LayoutManager;
 import java.util.HashMap;
@@ -15,7 +14,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
@@ -30,7 +28,6 @@ public class UIController {
     @FXML public AnchorPane ui;
     @FXML public AnchorPane overlayPane;
     @FXML public AnchorPane contextPane;
-    @FXML public Pane colorEffectPane;
 
     /** Initializes the controller class. */
     public void initialize() {        

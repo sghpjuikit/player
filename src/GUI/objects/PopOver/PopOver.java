@@ -41,12 +41,15 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
+import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.stage.Screen;
@@ -79,8 +82,11 @@ public class PopOver extends PopupControl {
     public static List<PopOver> active_popups = new ArrayList(); 
     
     public static void autoCloseFire() {
-        active_popups.forEach(p->{
-            if (p.isAutoHide()) p.hide();
+        // copy list to avoid concurrent modification on hide removal from list
+        // active_popups.stream() wont help here either, why?
+        List<PopOver> popups = new ArrayList<>(active_popups);
+        popups.forEach(p->{
+            if(p.isAutoHide()) p.hide();
         });
     }
 
@@ -733,10 +739,16 @@ public class PopOver extends PopupControl {
     private FadeTransition fadeOutAnim;
     private double opacityOldVal = 0;   // for restoring from previous session
     
+    /**
+     * Return whether is animated. Uses fade in and out animations on show/hide.
+     */
     public boolean isAnimated() {
-        return true;
+        return animated;
     }
     
+    /**
+     * Sets whether is animated. Uses fade in and out animations on show/hide.
+     */
     public void setAnimated(boolean val) {
         animated = val;
     }
@@ -806,13 +818,32 @@ public class PopOver extends PopupControl {
      */
     public void setHideOnClick(boolean val) {
         if(val) {
-            getScene().setOnMouseClicked( e-> {
-                // close only if the popup was not dragged since mouse press
-                if(e.isStillSincePress()) hideStrong();
-            });
-        } else 
-            getScene().setOnMouseClicked(null);
+            // construct the handler lazily on demand
+            if(hideOnClick==null) {
+                hideOnClick = e -> {
+                    // close only if the popup was not dragged since mouse press
+                    if(e.isStillSincePress()) hideStrong();
+                };
+            }
+            // set the behavior
+            getScene().addEventHandler(MOUSE_CLICKED, hideOnClick);
+        } else {
+            // remove the behavior but watch out for lazy initialization
+            if(hideOnClick != null) {
+                getScene().removeEventHandler(MOUSE_CLICKED, hideOnClick);
+                hideOnClick = null;
+            }
+        }
     }
+    
+    /**
+     * Returns whether hiding on click behavior is set true.
+     */
+    public boolean isHideOnClick() {
+        return hideOnClick!=null;
+    }
+    
+    private EventHandler<MouseEvent> hideOnClick;
     
 /******************************** DETACHING ***********************************/
     

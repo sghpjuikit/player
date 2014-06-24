@@ -3,6 +3,7 @@ package Action;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistManager;
+import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.ContextManager;
@@ -316,7 +317,7 @@ public final class Action {
     
     
     
-/*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
+/****************************** CONFIGURATION *********************************/
     
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if application is not focused. Not all platforms supported."
     ,group = "Shortcuts")
@@ -326,7 +327,46 @@ public final class Action {
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts", editable = false)
     public static String Shortcut_ALTERNATE = "Alt";
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
+    
     public static String Shortcut_COLAPSE = "Ctrl+C";
+    
+    @AppliesConfig(config = "global_media_shortcuts")
+    private static void applyAllowMediaShortcuts() {
+        if(isGlobalShortcutsSupported()) {
+            if(global_media_shortcuts) {
+                // make sure we dont add the listener twice
+                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
+                JIntellitype.getInstance().addIntellitypeListener(media_listener);
+            } else {
+                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
+            }
+        }
+    }
+    
+    @AppliesConfig(config = "global_shortcuts")
+    private static void applyAllowGlobalShortcuts() {
+        if(isGlobalShortcutsSupported()) {
+            if(global_shortcuts){
+                // make sure we dont add the listener twice
+                JIntellitype.getInstance().removeHotKeyListener(global_listener);
+                JIntellitype.getInstance().addHotKeyListener(global_listener);
+                // reregister shortcuts to switch from local
+                getActions().values().forEach( a -> {
+                    a.unregister();
+                    a.register();
+                });
+            } else {
+                JIntellitype.getInstance().removeHotKeyListener(global_listener);
+                // reregister shortcuts to switch to local
+                getActions().values().forEach( a -> {
+                    a.unregister();
+                    a.register();
+                });
+            }
+        }
+    }
+    
+/*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
     
     /** 
      * Activates listening process for global hotkeys. Not running this method
@@ -336,8 +376,8 @@ public final class Action {
      */
     public static void startGlobalListening() {
         if(isGlobalShortcutsSupported()) {
-            JIntellitype.getInstance().addHotKeyListener(listener);
-            JIntellitype.getInstance().addIntellitypeListener(Ilistener);
+            JIntellitype.getInstance().addHotKeyListener(global_listener);
+            JIntellitype.getInstance().addIntellitypeListener(media_listener);
         }
     }
     
@@ -421,7 +461,7 @@ public final class Action {
 /************************ shortcut helper methods *****************************/
 
     //shortcut running
-    private static final HotkeyListener listener = (int i) -> {
+    private static final HotkeyListener global_listener = i -> {
         Log.deb("Global shortcut " + i + " captured.");
         try {
 //            System.out.println("running " + i);
@@ -430,7 +470,7 @@ public final class Action {
             
         }
     };
-    private static final IntellitypeListener Ilistener = (int i) -> {
+    private static final IntellitypeListener media_listener = i -> {
         if(!global_media_shortcuts) return;
         Platform.runLater(() -> {
             if     (i==JIntellitype.APPCOMMAND_MEDIA_PREVIOUSTRACK) PlaylistManager.playPreviousItem();

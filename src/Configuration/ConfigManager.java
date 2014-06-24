@@ -1,47 +1,13 @@
 
 package Configuration;
 
-import PseudoObjects.TODO;
-
 /**
- * @author uranium
- * 
  * Manages application's configurations.
+ *
+ * @author uranium
  */
-@TODO("find out what changed and apply new settings only for modules")
 public final class ConfigManager {
-    
-    /**
-     * Changes configuration to default and applies them and saves.
-     * Equivalent to change(Configuration.getDefault());
-     */
-    public static void setToDefault() {
-        change(Configuration.getDefault());
-    }
-    
-    /**
-     * Changes configuration to the specified one and applies them and saves.
-     * @param new_config
-     * @return true if configuration changed, otherwise false.
-     */
-    public static boolean change(Configuration new_config) {
-//        if (new_config.isCurrent()) {   // no change
-//            if (new_config.isDefault())
-//                Log.mess("Configuration is already default. No change.");
-//            else
-//                Log.mess("No change.");
-//            return false;
-//        } else {                        // change
-//            if (new_config.isDefault()) 
-//                Log.mess("Changing settings. All settings now have default values.");
-//            else
-//                Log.mess("Changing settings.");
-            new_config.save();          // save
-            apply(new_config);          // apply effects
-            return true;
-//        }
-    }
-    
+        
     /*
      * Attempts to apply new settings' effects, but it is not guaranteed this
      * will succeed. Certain settings might require application restart or all
@@ -49,7 +15,7 @@ public final class ConfigManager {
      * initialization (during start up) these modules might be unavailable.
      */
     public static void apply(Configuration c) {
-        c.getFields().stream().forEach(c::applyField);
+        c.getFields().stream().forEach(c::applyF);
 //        if (App.getWindow()!= null && App.getWindow().isInitialized()) {
 //            GUI.refresh();
 //            PLAYBACK.playcountMan.configureIncrementation();        // reinitialize playcount incrementer
@@ -63,11 +29,6 @@ public final class ConfigManager {
         apply(c);       // take effects (if gui is not initialized some values 
                         // wont take change, it must be run twice(see App class))
         return c;
-    }
-    
-    /** Saves current settings. */
-    public static void saveConfiguration() {
-        Configuration.getCurrent().save();
     }
     
 }

@@ -98,7 +98,7 @@ public final class Serializator {
             Log.mess("Configuration couldnt be set. No content. Using old settings.");
         
         Configuration c = Configuration.getDefault();
-        lin.forEach(c::setField);
+        lin.forEach(c::setF);
         return c;
     }
     

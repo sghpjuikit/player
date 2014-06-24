@@ -72,7 +72,7 @@ public class WindowBase {
      */
     public void update() {
         s.setFullScreenExitHint(Configuration.fullscreenExitHintText);
-        s.setOpacity(GUI.windowOpacity);
+        s.setOpacity(Window.windowOpacity);
         
         if(main) {
             WProp.set(Configuration.windowWidth);

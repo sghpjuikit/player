@@ -36,11 +36,6 @@
                 <Tooltip text="Back to default." />
               </tooltip>
             </Button>
-            <Button fx:id="redoB" disable="true" minHeight="30.0" mnemonicParsing="false" onMouseClicked="#redo" prefHeight="30.0" prefWidth="90.0" text="Redo">
-              <tooltip>
-                <Tooltip text="Back to original." />
-              </tooltip>
-            </Button>
             <Button fx:id="okB" defaultButton="true" minHeight="30.0" mnemonicParsing="false" onMouseClicked="#ok" prefHeight="30.0" prefWidth="100.0" text="OK">
               <tooltip>
                 <Tooltip text="Save new settings." />

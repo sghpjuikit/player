@@ -2,8 +2,6 @@
 package GUI.objects.Pickers;
 
 import AudioPlayer.tagging.Metadata;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
 import GUI.Window;
 import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
 import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
@@ -31,35 +29,16 @@ import utilities.Log;
  *
  * @author uranium
  */
-@IsConfigurable(group = "Notification")
-public class Notification {
-    
-    @IsConfig(info = "show notifications")
-    public static boolean showNotification = true;
-    @IsConfig(info = "show notifications about playback status")
-    public static boolean showStatusNotification = true;
-    @IsConfig(info = "show notifications about playing item")
-    public static boolean showSongNotification = true;
-    @IsConfig(info = "time for notification to autohide")
-    public static double notificationDuration = 2500;
-    @IsConfig(info = "Fade in/out notifications")
-    public static boolean notificationAnimated = true;
-    @IsConfig(info = "Fade in/out time for notification")
-    public static double notifFadeTime = 500;
-    @IsConfig(info = "Closes notification when clicked anywhere.")
-    public static boolean notifCloseOnClickAny = true;
-    @IsConfig(info = "Closes notification when clicked on it.")
-    public static boolean notifCloseOnClick = true;
-    @IsConfig(info = "Deminimize application on notification click when minimized.")
-    public static boolean notifclickOpenApp = true;
-    @IsConfig(info = "Position of notification.")
-    public static ScreenCentricPos notifPos = ScreenCentricPos.ScreenBottomRight;
-    
-    private final PopOver root = new PopOver();             // popup
+public class Notification extends PopOver{
+        
     private final AnchorPane songNotif = new AnchorPane();  // song content
-    private final AnchorPane textNotif = new AnchorPane();  // txet content
-    private final FxTimer closer = FxTimer.create(          // close delay timer
-                            Duration.millis(notificationDuration), this::hide);
+    private final AnchorPane textNotif = new AnchorPane();  // text content
+    private final FxTimer closer = FxTimer.create(Duration.seconds(1), this::hide);// close delay timer
+    
+    // properties   
+    private boolean openAppOnClick = true;
+    private Duration duration = Duration.seconds(5);
+    
     // content 
     Thumbnail t;
     @FXML private Label indexL;
@@ -75,24 +54,22 @@ public class Notification {
     private final EventHandler onClickHandler = e-> {
         Window w = App.getWindow();
         // if app minimized deminimize
-        if (notifclickOpenApp) {
+        if (isOpenAppOnClick()) {
              if(w.isMinimized()) w.setMinimized(false);
              else w.focus();
         }
-        // close notification if set
-        if (notifCloseOnClick) hide();
     };
     
     public Notification() {
-        root.setDetachedTitle("");
-        root.setDetached(false);
-        root.setDetachable(false);
-        root.setHideOnEscape(false);
-        root.setArrowSize(0);
-        root.setArrowIndent(0);
-        root.setCornerRadius(0);
-        root.setAutoFix(false);
-        root.setAutoHide(notifCloseOnClickAny);
+        setDetachedTitle("");
+        setDetached(false);
+        setDetachable(false);
+        setHideOnEscape(false);
+        setArrowSize(0);
+        setArrowIndent(0);
+        setCornerRadius(0);
+        setAutoFix(false);
+        setAutoHide(true);
         buildContent();
     }
 
@@ -128,28 +105,12 @@ public class Notification {
         coverContainer.getChildren().add(t.getPane());
     }
     
+    @Override
     public void show(ScreenCentricPos pos) {
-        // set properties
-        root.setAutoHide(true);
-        root.setAnimated(notificationAnimated);
-        root.setAnimDuration(Duration.millis(notifFadeTime));
-        // show
-        root.show(pos);
+        super.show(pos);
         // start delayed hide
         if (closer != null) closer.stop();
-        closer.restart(Duration.millis(notificationDuration));
-    }
-
-    public void hide() {
-        // set properties
-        root.setAutoHide(notifCloseOnClickAny);
-        root.setAnimated(notificationAnimated);
-        root.setAnimDuration(Duration.millis(notifFadeTime));
-        // hide
-        root.hide();
-    }
-    public void hideImmediatelly() {
-        root.hideImmediatelly();
+        closer.restart(duration);
     }
     
     /**
@@ -184,14 +145,14 @@ public class Notification {
                 artistL.setText(m.getArtistOrAlbumArist());
                 albumL.setText(m.getAlbum());
             }
-            root.setContentNode(songNotif);
+            setContentNode(songNotif);
             // call relayout
             songNotif.applyCss();
             songNotif.layout();
             songNotif.autosize();
         } else
         if (type == OTHER) {
-            root.setContentNode((Node)content);
+            setContentNode((Node)content);
         } else
         if (type == TEXT) {
             String text = (String)content;
@@ -203,7 +164,7 @@ public class Notification {
             titleText.setText(title);
             textContainer.setCenter(message);
 //            textContainer.setPadding(Insets.EMPTY);
-            root.setContentNode(textNotif);
+            setContentNode(textNotif);
             // call relayout (dont remove)
             textNotif.applyCss();
             textNotif.layout();
@@ -211,7 +172,35 @@ public class Notification {
         }
         
     }
-    
+
+    /**
+     * Returns time this notification will remain visible. Default 5 seconds.
+     */
+    public Duration getDuration() {
+        return duration;
+    }
+
+    /**
+     * Sets time this notification will remain visible.
+     */
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    /**
+     * Returns whether click on this notification opens application. Default is
+     * true.
+     */
+    public boolean isOpenAppOnClick() {
+        return openAppOnClick;
+    }
+
+    /**
+     * Sets whether click on this notification opens application
+     */
+    public void setOpenAppOnClick(boolean openAppOnClick) {
+        this.openAppOnClick = openAppOnClick;
+    }
 
     
     public enum NotificationType {

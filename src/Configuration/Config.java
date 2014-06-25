@@ -2,6 +2,8 @@
 package Configuration;
 
 import Action.Action;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 
@@ -41,7 +43,7 @@ public class Config {
      *     value instance of Enum
      * </pre>
      */
-    public final Object value;
+    public Object value;
     /** 
      * Category or group this config belongs to. Use arbitrarily to group
      * multiple configs together - mostly semantically or by intention.
@@ -64,22 +66,29 @@ public class Config {
     /** Maximum allowable value. Applicable only for numbers. In double. */
     public final double max;
     
+    Field sourceField;
+    Method applierMethod;
+    Object defaultValue;
     
-    public Config(String _name, IsConfig c, Object val, String category) {
+    
+    Config(String _name, IsConfig c, Object val, String category, Field field) {
         gui_name = c.name().isEmpty() ? _name : c.name();
         name = _name;
         value = objectify(val);
+        defaultValue = value;
         group = category;
         info = c.info();
         editable = c.editable();
         visible = c.visible();
         min = c.min();
         max = c.max();
+        sourceField = field;
     }
-    public Config(Action c) {
+    Config(Action c) {
         gui_name = c.name + " Shortcut";
         name = c.name;
         value = c;
+        defaultValue = c;
         group = "Shortcuts";
         info = c.info;
         editable = true;
@@ -88,16 +97,48 @@ public class Config {
         max = Double.NaN;
     }
     
-    public Config(Config old, Object new_value) {
+    Config(Config old, Object new_value) {
         gui_name = old.gui_name;
         name = old.name;
         value = objectify(new_value);
+        defaultValue = old.defaultValue;
         group = old.group;
         info = old.info;
         editable = old.editable;
         visible = old.visible;
         min = old.min;
         max = old.max;
+    }
+    
+    public Object getValue() {
+        try {
+            return sourceField.get(null);
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            throw new RuntimeException("Field " + name + " can not access value.");
+        }
+    }
+    
+    /**
+     * Returns class type of the value. The value and default value can only
+     * be safely cast into the this class.
+     * <p>
+     * Semantically equivalent to getValue().getClass() but will never fail to
+     * return proper class even if the value is null.
+     */
+    public Class<?> getType() {
+        return sourceField.getType();
+    }
+    
+    /**
+     * Returns source class this config originates from.
+     * @return 
+     */
+    Class<?> getSourceClass() {
+        return sourceField.getDeclaringClass();
+    }
+    
+    void updateValue() {
+        value = getValue();
     }
     
     /**
@@ -113,37 +154,23 @@ public class Config {
                     Double.compare(max, Double.NaN)==0);
     }
     
-    /** Equals if and only if non null, is Config type and all fields equal */
+    /** 
+     * Equals if and only if non null, is Config type and their name and source
+     * field are equal.
+     */
     @Override
     public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Config))
-            return false;
+        if (obj == null || !(obj instanceof Config)) return false;
         
         Config c = (Config)obj;
-        
-        boolean e = true;
-                e &= gui_name.equals(c.gui_name);
-                e &= name.equals(c.name);
-                e &= value.equals(c.value);
-                e &= info.equals(c.info);
-                e &= (editable == c.editable);
-                e &= (visible == c.visible);
-                e &= (Double.compare(min, c.min)==0);
-                e &= (Double.compare(max, c.max)==0); 
-        return  e;
+        return name.equals(c.name) & sourceField.equals(c.sourceField); 
     }
 
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 37 * hash + Objects.hashCode(this.gui_name);
-        hash = 37 * hash + Objects.hashCode(this.name);
-        hash = 37 * hash + Objects.hashCode(this.value);
-        hash = 37 * hash + Objects.hashCode(this.info);
-        hash = 37 * hash + (this.editable ? 1 : 0);
-        hash = 37 * hash + (this.visible ? 1 : 0);
-        hash = 37 * hash + (int) (Double.doubleToLongBits(this.min) ^ (Double.doubleToLongBits(this.min) >>> 32));
-        hash = 37 * hash + (int) (Double.doubleToLongBits(this.max) ^ (Double.doubleToLongBits(this.max) >>> 32));
+        hash = 59 * hash + Objects.hashCode(this.name);
+        hash = 59 * hash + Objects.hashCode(this.sourceField);
         return hash;
     }
     
@@ -158,5 +185,6 @@ public class Config {
         else if (short.class.equals(clazz)) return new Short((short)o);
         else return o;
     }
+    
     
 }

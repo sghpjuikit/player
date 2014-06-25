@@ -1,8 +1,9 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.Features.TaggingFeature;
 import GUI.ContextManager;
+import GUI.objects.PopOver.PopOver;
+import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.WidgetImpl.Circles;
 import Layout.WidgetImpl.ConfiguratorComponent;
@@ -10,6 +11,7 @@ import Layout.WidgetImpl.Graphs;
 import Layout.WidgetImpl.HtmlEditor;
 import Layout.WidgetImpl.PlaylistManagerComponent;
 import Layout.WidgetImpl.Spectrumator;
+import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget.Group;
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javafx.scene.layout.AnchorPane;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -102,10 +105,13 @@ public final class WidgetManager {
     
 /******************************************************************************/
     
+    // remembers standalone widgets not part of any layout, mostly in popups
+    private static final List<Widget> standaloneWidgets = new ArrayList();
+    
     /** @return stream of currently loaded widgets. */
     public static Stream<Widget> getWidgets() {
-        return LayoutManager.getLayouts()
-                .flatMap(l->l.getAllWidgets().stream());
+        return Stream.concat(standaloneWidgets.stream(),
+            LayoutManager.getLayouts().flatMap(l->l.getAllWidgets().stream()));
     }
 
     /**
@@ -142,10 +148,10 @@ public final class WidgetManager {
      * any widget fulfilling the condition.
      */
     public static Widget getWidgetOrCreate(Predicate<WidgetInfo> cond) {
-        Widget out;
-        // attempt to get preferred widget from loaded widgets
-        out = getWidget(w->cond.test(w.getInfo()));
-        // attempt to create new
+        // get preferred widget from loaded widgets
+        Widget out = getWidget(w->cond.test(w.getInfo()));
+        
+        // attempt to create new if no result yet
         if (out == null) {
             WidgetFactory f;
             // attempt to get preferred factory
@@ -159,10 +165,24 @@ public final class WidgetManager {
                     .filter(w->cond.test(w.info))
                     .findFirst().orElse(null);
             // open widget if found
-            out = f==null ? null : f.create();
-            if(out!=null)
-                ContextManager.openFloatingWindow(out);
+            final Widget w = f==null ? null : f.create();
+            if(w!=null) {
+//                ContextManager.openFloatingWindow(w);
+                standaloneWidgets.add(w);
+                AnchorPane a = new AnchorPane();
+                Layout l = new Layout();
+                       l.setParentPane(a);
+                       l.setChild(w);
+                        
+                PopOver p = new PopOver(l.load());
+                        p.setAutoFix(false);
+                        p.setArrowLocation(PopOver.ArrowLocation.RIGHT_CENTER);
+                        p.show(App.getWindowOwner().getStage(), ContextManager.getX(), ContextManager.getY());
+                        p.setOnHidden(e->standaloneWidgets.remove(w));
+                return w;
+            }
         }
+        
         return out;
     }
     

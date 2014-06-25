@@ -59,7 +59,7 @@ public class Parser {
         if(fromStrParser.supports(type)) return fromStrParser.fromS(type, value);
         if(valOfParser.supports(type)) return valOfParser.fromS(type, value);
         
-        throw new UnsupportedOperationException("Class type not supported");
+        throw new UnsupportedOperationException("Class type not supported" + type + ".");
     }
     
     /** 
@@ -81,7 +81,7 @@ public class Parser {
             if (p.supports(type))
                 return p.toS(o);
         
-        throw new UnsupportedOperationException("Class type not supported");
+        throw new UnsupportedOperationException("Class type not supported " + type + ".");
     }
     
 }

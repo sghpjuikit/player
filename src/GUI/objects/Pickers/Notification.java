@@ -61,7 +61,7 @@ public class Notification extends PopOver{
     };
     
     public Notification() {
-        setDetachedTitle("");
+        setTitle("");
         setDetached(false);
         setDetachable(false);
         setHideOnEscape(false);

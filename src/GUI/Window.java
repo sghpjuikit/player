@@ -55,7 +55,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ALT;
+import static javafx.scene.input.KeyCode.ESCAPE;
 import javafx.scene.input.KeyEvent;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
@@ -261,21 +263,30 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         Action.getActions().values().stream().filter(a->!a.isGlobal()).forEach(Action::register);
         
         root.addEventFilter(MOUSE_MOVED, e -> {
-            // update coordinates for context manager
-            ContextManager.setX(e.getSceneX());
-            ContextManager.setY(e.getSceneY());
+//            // update coordinates for context manager
+//            ContextManager.setX(e.getSceneX());
+//            ContextManager.setY(e.getSceneY());
             if (ClickEffect.trail_effect) ClickEffect.run(e.getSceneX(), e.getSceneY());
         });
         root.addEventFilter(MOUSE_PRESSED,  e -> {
+            // update coordinates for context manager
+            ContextManager.setX(e.getSceneX());
+            ContextManager.setY(e.getSceneY());
             if (!ClickEffect.trail_effect) ClickEffect.run(e.getSceneX(), e.getSceneY());
             ContextManager.closeMenus();
             ContextManager.closeFloatingWindows(this);
+            // popup autohide
             PopOver.autoCloseFire();
             startAppDrag(e);
         });
         root.setOnMouseDragged( e -> {
             if (e.getButton()==MouseButton.PRIMARY)
                 dragApp(e);
+        });
+        // popup hide on ESCAPE
+        root.addEventFilter(KEY_PRESSED, e -> {
+            if(e.getCode()==ESCAPE)
+                PopOver.escapeCloseFire();
         });
         
         // header double click maximize, show header on/off

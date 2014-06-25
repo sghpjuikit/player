@@ -1,8 +1,6 @@
 
 package Serialization;
 
-import Configuration.Config;
-import Configuration.Configuration;
 import GUI.Window;
 import Layout.Layout;
 import com.thoughtworks.xstream.XStream;
@@ -14,11 +12,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
-import utilities.Parser.Parser;
 
 /**
  * Serializes objects.
@@ -78,28 +74,6 @@ public final class Serializator {
             Log.err(ex.getMessage());
             return null;
         }
-    }
-    
-    private void serialize(Configuration o) {
-        Log.mess("Saving configuration");
-        String content="";
-               content += "# " + App.getAppName() + " configuration file.\n";
-               content += "# " + java.time.LocalTime.now() + "\n";
-        
-        for (Config f: o.getFields())
-            content += f.name + " : " + Parser.toS(f.value) + "\n";
-        
-        FileUtil.writeFile("Settings.cfg", content);
-    }
-    private Object deserialize(Configuration o) {
-        File file= new File("Settings.cfg").getAbsoluteFile();
-        Map<String,String> lin = FileUtil.parseFile(file);
-        if(lin.isEmpty())
-            Log.mess("Configuration couldnt be set. No content. Using old settings.");
-        
-        Configuration c = Configuration.getDefault();
-        lin.forEach(c::setF);
-        return c;
     }
     
     private void serialize(Layout o) {

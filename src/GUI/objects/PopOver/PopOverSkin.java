@@ -34,10 +34,9 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
@@ -60,7 +59,7 @@ import javafx.stage.Window;
 
 public class PopOverSkin implements Skin<PopOver> {
 
-    private static final String DETACHED_STYLE_CLASS = "detached";
+    private static final PseudoClass DETACHED_PSEUDOCLASS = PseudoClass.getPseudoClass("detached");
 
     private double xOffset;
     private double yOffset;
@@ -72,7 +71,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private Path path;
     private BorderPane content;
-    private StackPane titlePane;
+    private StackPane header;
     private StackPane stackPane;
 
     private Point2D dragStartLocation;
@@ -102,9 +101,9 @@ public class PopOverSkin implements Skin<PopOver> {
         stackPane.minHeightProperty().bind(stackPane.minWidthProperty());
 
         title = new Label();
-        title.textProperty().bind(popOver.detachedTitleProperty());
+        title.textProperty().bind(popOver.titleProperty());
         title.setMaxSize(MAX_VALUE, MAX_VALUE);
-        title.setAlignment(Pos.CENTER);
+//        title.setAlignment(Pos.CENTER);
         title.getStyleClass().add("text");
 
         closeIcon = new Label();
@@ -113,23 +112,22 @@ public class PopOverSkin implements Skin<PopOver> {
         closeIcon.setContentDisplay(GRAPHIC_ONLY);
         closeIcon.visibleProperty().bind(popOver.detachedProperty());
         closeIcon.getStyleClass().add("icon");
-        closeIcon.setAlignment(CENTER_LEFT);
+//        closeIcon.setAlignment(CENTER_LEFT);
         closeIcon.getGraphic().setOnMouseClicked( e -> popOver.hideStrong());
 
-        titlePane = new StackPane();
-        titlePane.getChildren().add(title);
-        titlePane.getChildren().add(closeIcon);
-        titlePane.getStyleClass().add("title");
+        header = new StackPane();
+        header.getChildren().add(title);
+        header.getChildren().add(closeIcon);
+        header.getStyleClass().add("title");
 
         content = new BorderPane();
         content.setCenter(popOver.getContentNode());
+        content.setTop( !title.getText().isEmpty() ? header : null);    // show header only if title text not empty
         content.getStyleClass().add("content");
 
-        if (popOver.isDetached()) {
-            content.setTop(titlePane);
-            popOver.getStyleClass().add(DETACHED_STYLE_CLASS);
-            content.getStyleClass().add(DETACHED_STYLE_CLASS);
-        }
+        // show header only if title text not empty
+        popOver.titleProperty().addListener((o,oldV,newV)->
+                content.setTop( !title.getText().isEmpty() ? header : null));
 
         InvalidationListener updatePathListener = o -> updatePath();
 
@@ -139,27 +137,36 @@ public class PopOverSkin implements Skin<PopOver> {
         popOver.arrowLocationProperty().addListener(updatePathListener);
 
         popOver.contentNodeProperty().addListener((o,oldV,newV) -> content.setCenter(newV));
-
+        
+        // detached state
         popOver.detachedProperty().addListener((o,oldV,newV) -> {
             updatePath();
-            
-            if (newV) {
-                popOver.getStyleClass().add(DETACHED_STYLE_CLASS);
-                content.getStyleClass().add(DETACHED_STYLE_CLASS);
-                content.setTop(titlePane);
-            } else {
-                popOver.getStyleClass().remove(DETACHED_STYLE_CLASS);
-                content.getStyleClass().remove(DETACHED_STYLE_CLASS);
-                content.setTop(null);
-            }
+            content.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, newV);
+            path.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, newV);
+            content.setTop(header); // always show header in detached mode
         });
+        
+        // title position
+        popOver.titlePosProperty().addListener((o,oldV,newV)->{
+//            if(newV!=null) 
+                title.setAlignment(newV);
+//            else title.applyCss();
+        });
+        if(popOver.getTitlePos()!=null) title.setAlignment(popOver.getTitlePos());
+        else title.applyCss();
 
         path = new Path();
-        path.getStyleClass().add("border");
+        path.getStyleClass().add("bgr");
         path.setManaged(false);
 
         createPathElements();
         updatePath();
+        
+        if (popOver.isDetached()) {
+            content.setTop(header);
+            content.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, true);
+            path.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, true);
+        }
 
         final EventHandler<MouseEvent> mousePressedHandler = e -> {
             if (popOver.isDetachable()) {

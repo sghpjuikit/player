@@ -8,11 +8,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-properly handle vol scolling and app dragging event consuminf at widget level
+- properly handle vol scolling and app dragging event consuminf at widget level
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird
-- use @AppliesConfig where necessary
-- clean up Notification class, possibly unite content, remove enum
 - app not closing propery on ALT+F4                                             (wth)
 - popup window fullcreen or maximizing(any) breaks popup position               
 - popover show() methods clean up
@@ -25,7 +23,7 @@ properly handle vol scolling and app dragging event consuminf at widget level
 - tagger color field
 - uidrag consume event
 - playlist selected item none->first when clicking on different widget          (wth)
-- settable img bgr
+
 - figure out LoopMode - class on its own or within NextItemSelector
 - figure out LoopMode - should include Random? implement properly
 - finish the whole nextPlayingItem() thing. support with GUI
@@ -36,7 +34,9 @@ properly handle vol scolling and app dragging event consuminf at widget level
 - window clean up contextPane - move from UI to Window ->[0,0]
 - window clean up serialization
 
-- widg man prefFactory per group configs -> getWidget reimplement
+- widg man prefFactory per group configs
+  getWidget reimplement + widget Feature interfaces
+
 - Player update item not refreshing selected pl item
 - writeException - suspend playback (phew)                                      (medium)
 - splitter absolute size for both children
@@ -46,13 +46,14 @@ properly handle vol scolling and app dragging event consuminf at widget level
 - realTime serialize
 
 --------------------------------------------------------------------------------
--------------------- FUNCTIONALITY - what is planned ahead, ideas ---------------
+-------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
-- figure out how to properly apply settings on initialize
+
 - figure out how to apply configs from config fields
 - Spring StringConverters implement instead custom implementation now
 - seeker orientation property and support with layout (chapter positions too)
+- settable img bgr
 - TextFlow for smart text tables
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?
 - CHAPTERS   TAG | XML OPTION
@@ -235,6 +236,9 @@ IMPROVEMENTS
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - playlist table drag code duplication                                          (technicality, minor code pollution)
 - playlist table refresh currupted/playing row pseudoclass css code duplication (technicality, minor code pollution)
+- Notification class unite content, remove enum                                 (lot of code duplicity)
+- notification & popOver title unify                                            (almost impossible, let this one go...)
+
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)

@@ -5,7 +5,6 @@ import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.tagging.MoodManager;
-import Configuration.ConfigManager;
 import Configuration.Configuration;
 import GUI.ContextManager;
 import GUI.GUI;
@@ -61,12 +60,13 @@ public class App extends Application {
      * after the Application class is loaded and constructed. An application may
      * override this method to perform initialization prior to the actual starting
      * of the application.
+     * <p>
+     * NOTE: This method is not called on the JavaFX Application Thread. An
+     * application must not construct a Scene or a Stage in this method. An 
+     * application may construct other JavaFX objects in this method.
      */
     @Override
     public void init() {
-        // NOTE: This method is not called on the JavaFX Application Thread. An
-        // application must not construct a Scene or a Stage in this method. An 
-        // application may construct other JavaFX objects in this method.
         Action.startGlobalListening();
     }
     
@@ -74,21 +74,21 @@ public class App extends Application {
      * The main entry point for applications. The start method is
      * called after the init method has returned, and after the system is ready
      * for the application to begin running.
+     * <p>
+     * NOTE: This method is called on the JavaFX Application Thread. 
+     * @param primaryStage the primary stage for this application, onto which
+     * the application scene can be set. The primary stage will be embedded in
+     * the browser if the application was launched as an applet. Applications
+     * may create other stages, if needed, but they will not be primary stages
+     * and will not be embedded in the browser.
      */
     @Override
     public void start(Stage primaryStage) {
-        // NOTE: This method is called on the JavaFX Application Thread. 
-        // @param primaryStage the primary stage for this application, onto which
-        // the application scene can be set. The primary stage will be embedded in
-        // the browser if the application was launched as an applet. Applications
-        // may create other stages, if needed, but they will not be primary stages
-        // and will not be embedded in the browser.
-        Configuration c;
+
+        Configuration.load();           // must initialize first
         
         try {
             // initializing, the order is important
-            c = ConfigManager.loadConfiguration();      // must initialize first   
-
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
@@ -105,7 +105,7 @@ public class App extends Application {
             window = Window.create(true);           // create main app window
             window.setVisible(false);
             
-            ConfigManager.apply(c); // fixes some problems < get rid of this
+            Configuration.applyField("skin");   // fixes some problem
             
             // loading graphics
             LayoutManager.loadLast();
@@ -132,7 +132,7 @@ public class App extends Application {
         MoodManager.initialize();
         Action.getActions().values().forEach(Action::register);        
 
-        ConfigManager.apply(c);                 // apply all (and gui) settings
+        Configuration.applyFieldsAll();         // apply all (and gui) settings
         window.setVisible(true);                // show the application window
         window.update();        
         

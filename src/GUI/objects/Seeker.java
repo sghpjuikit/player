@@ -81,7 +81,7 @@ public final class Seeker extends AnchorPane {
                     p.setHideOnEscape(true);
                     p.setHideOnClick(true);
                     p.setAutoFix(true);
-                    p.setDetachedTitle(Util.formatDuration(time));
+                    p.setTitle(Util.formatDuration(time));
                     p.setArrowLocation(TOP_CENTER);
                     p.setOnHidden( event -> end.play());
                     p.show(this);

@@ -32,9 +32,8 @@ import utilities.Log;
 public final class ConfiguratorComponent extends AnchorPane implements Controller<ClassWidget> {
         
     @FXML Accordion accordion;
-    List<ConfigGroup> groups = new ArrayList<>();
-    List<ConfigField> configFields = new ArrayList<>();    
-    private Configuration old_config;
+    List<ConfigGroup> groups = new ArrayList();
+    List<ConfigField> configFields = new ArrayList();
     
     @IsConfig(name = "Show non editable fields", info = "Include non read-only fields.")
     public boolean show_noneditable = false;
@@ -61,7 +60,6 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
     
     @FXML
     public void initialize() {
-        old_config = Configuration.getCurrent();
         
         // clear previous fields
         configFields.clear();
@@ -70,7 +68,7 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
         groups.forEach(g->g.grid.getRowConstraints().clear());
         
         // sort & populate fields
-        old_config.getFields().stream()
+        Configuration.getFields().stream()
         .sorted((o1,o2) -> o1.gui_name.compareToIgnoreCase(o2.gui_name)).forEach(f-> {
             ConfigGroup g = getGroup(f.group);                                  // find group
             ConfigField cf = ConfigField.create(f);                             // create

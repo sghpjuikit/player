@@ -4,22 +4,22 @@ package Configuration;
 import Action.Action;
 import Action.IsAction;
 import PseudoObjects.Maximized;
-import Serialization.Serializator;
 import Serialization.Serializes;
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
+import main.App;
 import org.atteo.classindex.ClassIndex;
+import utilities.FileUtil;
 import utilities.Log;
 import utilities.Parser.Parser;
 
@@ -119,334 +119,70 @@ public class Configuration implements Serializes {
     public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
     public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
     
-    public final Map<String,Config> configs = new HashMap();
+    private static final List<Class> classes = new ArrayList();
+    private static final Map<String,Config> configs = new HashMap();
     
-    
-    private static final List<Class> classes = new ArrayList<>();
-    private static final Map<String,Config> default_fields = new HashMap();     // def Config
-    private static final Map<String,Method> applierMethods = new HashMap();
-    private static final Map<String,Field> fields = new HashMap();
-    
-/******************************************************************************/
     
     static {        
         ClassIndex.getAnnotated(IsConfigurable.class).forEach(classes::add);
-        default_fields.putAll(gatherConfigs());
-        applierMethods.putAll(gatherMethods());
-        fields.putAll(gatherFields());
+        discover();
     }
     
-    private Configuration() {
-    }
-    private Configuration(boolean def) {
-        if (def)
-            configs.putAll(default_fields);
-        else
-            configs.putAll(gatherConfigs());
-    }
-    
-    /** @return default initialized configuration. */
-    public static Configuration getDefault() {
-        return new Configuration(true);
-    }
-    
-    /** @return current configuration. */
-    public static Configuration getCurrent() {
-        return new Configuration(false);
-    }
-    
-    /**
-     * Do not use.
-     * @return empty configuration. */
-    public static Configuration getEmpty() {
-        return new Configuration();
-    }
-    
-/******************************************************************************/
-    
-    
-
-    public Collection<Config> getFields(){
-        return configs.values();
-    }
-    
-/******************************************************************************/
-    
-    /**
-     * If application doesnt have any config with specified name this method is
-     * a no-op
-     */
-    public void setF(String name, String value) {
-     // Log.deb("Setting field: " + name + " " + value);
-        
-        Config def_f = default_fields.get(name);
-        if(def_f == null) return;
-        
-        Class type = def_f.value.getClass();
-        Object v = type.equals(Action.class) 
-                ? Action.from((Action)def_f.value, value) 
-                : Parser.fromS(type, value);
-
-        configs.put(name, new Config(def_f, v));
-    }
-
-    public void applyF(Config c) {
-        Configuration.this.applyF(c.name, Parser.toS(c.value));
-    }
-    
-    private void applyF(String name, String value) {
-        // Log.deb("Applying field "+name+" "+value);
-        
-        Config def_f = default_fields.get(name);
-        if(def_f == null) return;
-        
-        Class type = def_f.value.getClass();
-        
-        if(type.equals(Action.class)) { // set as shortcut
-            Action temp_a = Action.fromString(value);
-            Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
-            return;
-        } else {                        // set as class field
-            if (classes.stream().flatMap(c->Stream.of(c.getFields()))
-                    .filter(f->(f.getModifiers() & Modifier.STATIC) != 0)
-                    .anyMatch(f->f.getName().equals(name))) {
-
-                classes.stream().flatMap(c->Stream.of(c.getFields()))
-                        .filter(f->(f.getModifiers() & Modifier.STATIC) != 0)
-                        .filter(f->f.getName().equals(name))
-                        .forEach(f-> {
-                            Object new_value = Parser.fromS(f.getType(), value);
-                            Log.deb("Setting config : "+ name + " to: " + new_value);
-                            
-                            // set new config value
-                            boolean was_set = false;
-                            try {
-                                f.set(null, new_value);      // getFields().stream().filter(k->k.name.equals(name)).forEachOrdered(k->System.out.println(k.name + k.value));
-                                was_set = true;
-                            } catch (IllegalAccessException e) {
-                                Log.err("Failed to set config: " + name + " . Reason: " + e.getMessage());
-                            }
-                            // apply new field value
-                            
-                            if(was_set) {
-                                Method m = applierMethods.get(name);
-                                if(m != null) {
-                                    Log.deb("Applying config: " + name);
-                                    try {
-                                        m.setAccessible(true);
-                                        m.invoke(null, new Object[0]);
-                                    } catch (IllegalAccessException | IllegalArgumentException | 
-                                            InvocationTargetException | SecurityException e) {
-                                        Log.err("Failed to apply config: " + name + ". Reason: " + e.getMessage());
-                                    } finally {
-                                        m.setAccessible(false);
-                                    }
-                                }
-                            }
-                        });
-                return;
-            }
-        }
-        
-        Log.mess("Configuration value couldnt be set for field: " + name + " .");
-    }
-    
-    /**
-     * Sets all configurations fields to values from specified configuration.
-     * @param config
-     * @throws NullPointerException if param null
-     */
-    public void to(Configuration config) {
-        configs.clear();
-        configs.putAll(config.configs);
-    }
-    
-    /** Sets all configuration fields to latest default values. */
-    public void update() {
-        configs.clear();
-        configs.putAll(gatherConfigs());
-    }
-    
-    /** @return true if and only if configuration has all fields at default value */
-    public boolean isDefault() {
-        return equals(getDefault());
-    }
-    /** @return true if and only if configuration has all fields at default value */
-    public boolean isCurrent() {
-        return equals(getCurrent());
-    }
-    
-    /** @return new configuration initialized to the same values - a clone. */
-    public Configuration copy() {
-        Configuration new_config = getDefault();
-                      new_config.to(this);
-        return new_config;
-    }
-    
-
-
-    /**
-     * Loads previously saved configuration file and set its values for this.
-     * 
-     * Attempts to load all configuration fields from file. Fields might not be 
-     * read either through I/O error or parsing errors. Parsing errors are
-     * recoverable, meaning only corrupted fields will not be read regardless of
-     * their position in the file.
-     * Old values will be used for all unread fields.
-     */
-    public void load() {
-        Configuration c = (Configuration) Serializator.deserialize(this);
-        to(c);
-    }
-    
-    /**
-     * Compares this object to another one.
-     * According to this implementation object is equal to this only if the
-     * following all checks out:
-     *  - is not null
-     *  - is instance of Configuration class
-     *  - has all its field values exactly the same as this
-     * @param o
-     * @return 
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || !(o instanceof Configuration)) return false;
-        
-         Map<String,Config> f1 = configs;
-         Map<String,Config> f2 = ((Configuration)o).configs;
-         
-//         System.out.println("AAA "+f1.get("Minimize").value);
-//         System.out.println("AAA "+f2.get("Minimize").value);
-         
-//         if (f1.size() != f2.size()) return false;
-//         return !f1.entrySet().stream().anyMatch( entry -> f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey())));
-         return !f1.entrySet().stream().anyMatch( entry -> {
-             if((entry.getValue().value instanceof Action) && entry.getKey()!=null) {
-//                 if(entry.getKey().equalsIgnoreCase("Minimize")){
-//                    System.out.println("");
-//                    System.out.println(
-//                            ((Action)entry.getValue().value).name + 
-//                            " " + entry.getValue().equals(f2.get(entry.getKey())) +
-//                            " - " + entry.getValue().value + " + " + f2.get(entry.getKey()).value
-//
-//
-//                    );
-//                    System.out.println(f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey())));
-//                 }
-             }
-//             System.out.println("," + entry.getKey() + " " + (f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey()))));
-             return f2.get(entry.getKey())!=null && !entry.getValue().equals(f2.get(entry.getKey()));
-                     });
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 53 * hash + Objects.hashCode(this.configs);
-        return hash;
-    }
-    
-/****************************** gathering data ********************************/
-    
-    /** @return list of all configurable fields with latest values. */
-    private static Map<String,Config> gatherConfigs(){
+    private static Map<String,Config> discover(){
         Map<String,Config> list = new HashMap();
         
         // add class fields
         for (Class c : classes)
-            getConfigsOf(c).forEach(f->list.put(f.name, f));
+            discoverConfigFieldsOf(c);
         
         // add action fields
         Action.getActions().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
         
+        // add methods in the end to avoid incorrect initialization
+       for (Class c : classes)
+           discoverMethodsOf(c);
+       
         return list;
     }
     
-    private static List<Config> getConfigsOf(Class c) {
-        List<Config> fields = new ArrayList();
+    private static void discoverConfigFieldsOf(Class c) {
         String _group = getGroup(c);
         for (Field f : c.getFields()) {
             if ((f.getModifiers() & Modifier.STATIC) != 0) {
                 IsConfig a = f.getAnnotation(IsConfig.class);
                 if (a != null) {
                     try {
-                        String group = (a.group().isEmpty()) ? _group : a.group();
+                        String group = a.group().isEmpty() ? _group : a.group();
                         String name = f.getName();
                         Object val = f.get(null);
-                        fields.add(new Config(name, a, val, group));
+                        
+                        configs.put(name, new Config(name, a, val, group, f));
                     } catch (IllegalAccessException ex) {
                         Logger.getLogger(Action.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
         }
-        return fields;
+    }
+    private static void discoverMethodsOf(Class c) {
+        for (Method m : c.getDeclaredMethods()) {
+            if ((m.getModifiers() & Modifier.STATIC) != 0) {
+                for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
+                    if (a != null) {
+                        String name = a.config();
+                        if(!name.isEmpty() && configs.containsKey(name)) {
+                            configs.get(name).applierMethod = m;
+                            Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
+                        }
+                    }
+                }
+            }
+        }
     }
     
     private static String getGroup(Class<?> c) {
         IsConfigurable a = c.getAnnotation(IsConfigurable.class);
         return a==null || a.group().isEmpty() ? c.getSimpleName() : a.group();
-    }
-    
-    private static Map<String,Field> gatherFields(){
-        Map<String,Field> list = new HashMap();
-        
-        // add class fields
-        for (Class c : classes) {
-            // putAll caused some problems before might try again
-            for(Map.Entry<String,Field> f : getFieldsOf(c).entrySet()) {
-                Log.deb("Adding config field: " + f.getKey() + " " + f.getValue().getName());
-                list.putIfAbsent(f.getKey(), f.getValue());
-            }
-        }
-        return list;
-    }
-    
-    private static Map<String,Field> getFieldsOf(Class c) {
-        Map<String,Field> methods = new HashMap<>();
-        
-        for (Field f : c.getDeclaredFields()) {
-            if ((f.getModifiers() & Modifier.STATIC) != 0) {
-                IsConfig a = f.getAnnotation(IsConfig.class);
-                if ( a != null) {
-                    Log.deb("Found config field: " + f.getName() + " " + a + ".");
-                    fields.put(f.getName(),f);
-                }
-            }
-        }
-        return methods;
-    }
-    
-    private static Map<String,Method> gatherMethods(){
-        Map<String,Method> list = new HashMap();
-        
-        for (Class c : classes) {
-            // putAll caused some problems before might try again
-            for(Map.Entry<String,Method> m : getMethodsOf(c).entrySet()) {
-                Log.deb("Adding applier method: " +m.getKey() + " "+m.getValue().getName());
-                list.putIfAbsent(m.getKey(), m.getValue());
-            }
-        }
-        
-        return list;
-    }
-    
-    private static Map<String,Method> getMethodsOf(Class c) {
-        Map<String,Method> methods = new HashMap<>();
-        
-        for (Method m : c.getDeclaredMethods()) {
-            if ((m.getModifiers() & Modifier.STATIC) != 0) {
-                for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
-                    Log.deb("Inspecting method as applier method: "+m.getName() + " " +a + " ");
-                    if (a != null) {
-                        String name = a.config();
-                        if(!name.isEmpty()) methods.put(name,m);
-                    }
-                }
-            }
-        }
-        return methods;
     }
     
 /******************************** setting fields ******************************/
@@ -458,49 +194,46 @@ public class Configuration implements Serializes {
     public static void setNapplyField(String name, String value) {
         Log.deb("Attempting to set and apply config field " + name + " to " + value);
         
-        Config def_f = default_fields.get(name);
-        if(def_f == null) {
+        Config c = configs.get(name);
+        if(c == null) {
             Log.deb("Failed to set and apply config field: " + name + " . Reason: Does not exist.");
             return;
         }
         
-        Class type = def_f.value.getClass();
-        
-        if(type.equals(Action.class)) { // set as shortcut
+        if(c.getType().equals(Action.class)) {
             Action temp_a = Action.fromString(value);
             Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
-        } else {                        // set as class field
-            Field f = fields.get(name);
-            if (f!=null) {
-                Object new_value = Parser.fromS(f.getType(), value);
-                Log.deb("Setting config field: "+ name + " to: " + new_value);
+        } else {
+            Field f = c.sourceField;
+            Object new_value = Parser.fromS(f.getType(), value);
+            Log.deb("Setting config field: "+ name + " to: " + new_value);
 
-                // set new config value
-                boolean was_set = false;
-                try {
-                    f.set(null, new_value);      // getFields().stream().filter(k->k.name.equals(name)).forEachOrdered(k->System.out.println(k.name + k.value));
-                    was_set = true;
-                } catch (IllegalAccessException e) {
-                    Log.err("Failed to set config field: " + name + " . Reason: " + e.getMessage());
-                }
-                
-                // apply new field value
-                if(was_set) {
-                    Method m = applierMethods.get(name);
-                    if(m != null) {
-                        Log.deb("Applying config: " + name);
-                        try {
-                            m.setAccessible(true);
-                            m.invoke(null, new Object[0]);
-                        } catch (IllegalAccessException | IllegalArgumentException | 
-                                InvocationTargetException | SecurityException e) {
-                            Log.err("Failed to apply config field: " + name + ". Reason: " + e.getMessage());
-                        } finally {
-                            m.setAccessible(false);
-                        }
-                    } else {
-                        Log.deb("Failed to apply config field: " + name + ". Reason: No applier method.");
+            // set new config value
+            boolean was_set = false;
+            try {
+                f.set(null, new_value);
+                was_set = true;
+                Log.deb("Config field " + name + " set.");
+            } catch (IllegalAccessException e) {
+                Log.err("Failed to set config field: " + name + " . Reason: " + e.getMessage());
+            }
+
+            // apply new field value
+            if(was_set) {
+                Method m = c.applierMethod;
+                if(m != null) {
+                    Log.deb("Applying config: " + name);
+                    try {
+                        m.setAccessible(true);
+                        m.invoke(null, new Object[0]);
+                    } catch (IllegalAccessException | IllegalArgumentException | 
+                            InvocationTargetException | SecurityException e) {
+                        Log.err("Failed to apply config field: " + name + ". Reason: " + e.getMessage());
+                    } finally {
+                        m.setAccessible(false);
                     }
+                } else {
+                    Log.deb("Failed to apply config field: " + name + ". Reason: No applier method.");
                 }
             }
         }
@@ -509,16 +242,17 @@ public class Configuration implements Serializes {
     public static void setField(String name, String value) {
         // Log.deb("Setting field "+name+" "+value);
         
-        Config def_f = default_fields.get(name);
-        if(def_f == null) return;
+        Config c = configs.get(name);
+        if(c == null) {
+            Log.deb("Failed to set config field: " + name + " . Reason: Does not exist.");
+            return;
+        }
         
-        Class type = def_f.value.getClass();
-        
-        if(type.equals(Action.class)) { // set as shortcut
+        if(c.getType().equals(Action.class)) {
             Action temp_a = Action.fromString(value);
             Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
-        } else {                        // set as class field
-            Field f = fields.get(name);
+        } else {
+            Field f = c.sourceField;
             if (f!=null) {
                 Object new_value = Parser.fromS(f.getType(), value);
                 Log.deb("Setting config : "+ name + " to: " + new_value);
@@ -526,7 +260,7 @@ public class Configuration implements Serializes {
                 // set new config value
                 boolean was_set = false;
                 try {
-                    f.set(null, new_value);      // getFields().stream().filter(k->k.name.equals(name)).forEachOrdered(k->System.out.println(k.name + k.value));
+                    f.set(null, new_value);
                     was_set = true;
                 } catch (IllegalAccessException e) {
                     Log.err("Failed to set config: " + name + ". Reason: " + e.getMessage());
@@ -538,45 +272,65 @@ public class Configuration implements Serializes {
     public static void applyField(String name) {
         // Log.deb("Setting and applying field " + name + " " + value);
         
-        Config def_f = default_fields.get(name);
-        if(def_f == null) return;
+        Config c = configs.get(name);
+        if(c == null) {
+            Log.deb("Failed to apply config field: " + name + " . Reason: Does not exist.");
+            return;
+        }
         
-        Class type = def_f.value.getClass();
-        
-        if(type.equals(Action.class)) { // set as shortcut
-            
-        } else {                        // set as class field
-            Field f = fields.get(name);
-            if (f!=null) {
-                // apply new field value
-                Method m = applierMethods.get(name);
-                if(m != null) {
-                    Log.deb("Applying config: " + name);
-                    try {
-                        m.setAccessible(true);
-                        m.invoke(null, new Object[0]);
-                    } catch (IllegalAccessException | IllegalArgumentException | 
-                            InvocationTargetException | SecurityException e) {
-                        Log.err("Failed to apply config: " + name + ". Reason: " + e.getMessage());
-                    } finally {
-                        m.setAccessible(false);
-                    }
+        if(!c.getType().equals(Action.class)) {
+            Field f = c.sourceField;
+            Method m = c.applierMethod;
+            if(m != null) {
+                Log.deb("Applying config: " + name);
+                try {
+                    m.setAccessible(true);
+                    m.invoke(null, new Object[0]);
+                } catch (IllegalAccessException | IllegalArgumentException | 
+                        InvocationTargetException | SecurityException e) {
+                    Log.err("Failed to apply config: " + name + ". Reason: " + e.getMessage());
+                } finally {
+                    m.setAccessible(false);
                 }
             }
         }
     }
     
-    public static void applyFieldsfClass(Class<?> clazz) {
-        getFieldsOf(clazz).forEach((name,field) -> applyField(name));
+    public static void applyFieldsAll() {
+        configs.forEach((name,field)->applyField(name));
     }
-
+    
+    public static void applyFieldsOfClass(Class<?> clazz) {
+        configs.values().stream()
+                .filter(c->c.defaultValue.getClass().equals(clazz))
+                .forEach(c->applyField(c.name));
+    }
+    
+    public static void applyFieldsByName(List<String> fields_to_apply) {
+        fields_to_apply.forEach(Configuration::applyField);
+    }
+    
+    public static void applyFieldsByConfig(List<Config> fields_to_apply) {
+        fields_to_apply.forEach(c -> applyField(c.name));
+    }
+    
 /******************************* public api ***********************************/
+    
+    public static List<Config> getFields() {
+        return new ArrayList(configs.values());
+    }
+    
+    public static List<Config> getFields(Predicate<Config> condition) {
+        List<Config> cs = new ArrayList(getFields());
+                     cs.removeIf(condition.negate());
+        return cs;
+    }
     
     /**
      * Changes all config fields to their default value and applies them
      */
     public static void toDefault() {
-        default_fields.forEach((name,config) -> setNapplyField(name,Parser.toS(config.value)));
+        configs.forEach((name,config) -> setNapplyField(name,Parser.toS(config.defaultValue)));
     }
     
     /**
@@ -584,8 +338,39 @@ public class Configuration implements Serializes {
      * otherwise it is completely overwriten.
      * Loops through Configuration fields and stores them all into file.
      */
-    public static void save() {
-        Serializator.serialize(getCurrent());
+    public static void save() {     
+        Log.mess("Saving configuration");
+        
+        String content="";
+               content += "# " + App.getAppName() + " configuration file.\n";
+               content += "# " + java.time.LocalTime.now() + "\n";
+        
+        for (Config f: getFields())
+            content += f.name + " : " + Parser.toS(f.getValue()) + "\n";
+        
+        FileUtil.writeFile("Settings.cfg", content);
     }
+    
+    /**
+     * Loads previously saved configuration file and set its values for this.
+     * 
+     * Attempts to load all configuration fields from file. Fields might not be 
+     * read either through I/O error or parsing errors. Parsing errors are
+     * recoverable, meaning only corrupted fields will not be read regardless of
+     * their position in the file.
+     * Old values will be used for all unread fields.
+     */
+    public static void load() {
+        Log.mess("Loading configuration");
+        
+        File file= new File("Settings.cfg").getAbsoluteFile();
+        Map<String,String> lin = FileUtil.parseFile(file);
+        if(lin.isEmpty())
+            Log.mess("Configuration couldnt be set. No content. Using old settings.");
+        
+        lin.forEach(Configuration::setField);
+    }
+    
+    
     
 }

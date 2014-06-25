@@ -6,7 +6,6 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.GUI;
 import GUI.objects.ContextMenu;
 import GUI.objects.VerticalContextMenu;
 import Layout.Container;
@@ -90,15 +89,22 @@ public final class ContextManager {
         imageFileMenu = makeImageFileContextMenu();   
     }
 
-    /** Set last app run x coordinate. */
-    public static void setX(double _x) {
-        X = _x;
+    /** Set last mouse click x coordinate. */
+    static void setX(double x) {
+        X = x;
     }
-    /** Set last app run y coordinate. */
-    public static void setY(double _y) {
-        Y = _y;
+    /** Set last mouse click y coordinate. */
+    static void setY(double y) {
+        Y = y;
     }
-    
+    /** Get last mouse click x coordinate. */
+    public static double getX() {
+        return activeWindow==null ? X : activeWindow.getX()+X;
+    }
+    /** Get last mouse click y coordinate. */
+    public static double getY() {
+        return activeWindow==null ? Y : activeWindow.getY()+Y;
+    }
 /******************************************************************************/
     
     public static final List<Window> windows = new ArrayList();

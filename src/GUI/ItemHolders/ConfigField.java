@@ -84,37 +84,37 @@ abstract public class ConfigField<T extends Object> {
         if (!f.visible) return null;
         
         String name = f.name;
-        Object value = f.value;
+        Object val = f.getValue();
         
         ConfigField cf;
         if (name.equals("skin"))
-            cf = new SkinField(name, value);
+            cf = new SkinField(name, val);
         else
-        if (value instanceof Boolean)
-            cf = new BooleanField(name, (boolean)value);
+        if (val instanceof Boolean)
+            cf = new BooleanField(name, (boolean)val);
         else 
-        if (value instanceof Enum) {
-            cf = new EnumField(name, value);}
+        if (val instanceof Enum) {
+            cf = new EnumField(name, val);}
         else
-        if (value instanceof Action)
-            cf = new ShortcutField(name, (Action)value);
+        if (val instanceof Action)
+            cf = new ShortcutField(name, (Action)val);
         else
-        if (value instanceof Color)
-            cf = new ColorField(name, (Color)value);
+        if (val instanceof Color)
+            cf = new ColorField(name, (Color)val);
         else
-        if (value instanceof File)
-            cf = new DirectoryField(name, (File)value);
+        if (val instanceof File)
+            cf = new DirectoryField(name, (File)val);
         else
-        if (value instanceof StringEnum)
-            cf = new EnumListField(name, (StringEnum)value);
+        if (val instanceof StringEnum)
+            cf = new EnumListField(name, (StringEnum)val);
         else
-        if (value instanceof Font)
-            cf = new FontField(name, (Font)value);
+        if (val instanceof Font)
+            cf = new FontField(name, (Font)val);
         else
         if (f.isMinMax())
-            cf = new SliderField(name, (Number) value, f.min, f.max);
+            cf = new SliderField(name, (Number) val, f.min, f.max);
         else 
-            cf = new GeneralField(name, value);
+            cf = new GeneralField(name, val);
 
         
         cf.setName(f.gui_name);
@@ -276,7 +276,7 @@ abstract public class ConfigField<T extends Object> {
             ObservableList<Object> items = FXCollections.observableArrayList();
                                    items.setAll(GUI.getSkins());
             control.setItems(items);
-            control.getSelectionModel().select((String)value);
+            control.getSelectionModel().select(value);
         }
         @Override public String getValue() {
             return control.getSelectionModel().getSelectedItem().toString();

@@ -397,10 +397,13 @@ is being used to size a border should also be in pixels.
     -fx-background-color: -fx-background;
 }
 
-/* Make popups transparent */
-/*.root.popup {
+
+.popup {
+    // Make popups transparent
+    // do not change this. there are dependencies on this transparent value
+    // for example .popover depends on this. Changing it can break functionality
     -fx-background-color: transparent;
-}*/
+}
 
 /*******************************************************************************
  *                                                                             *
@@ -3338,13 +3341,25 @@ is being used to size a border should also be in pixels.
 }
 
     
-//****************************************************************************//
+//******************************** POPOVER ***********************************//
 
-.popover  {
+// the popup window itself, not stylable 
+.popover {
+    // similar as content a rectangular area without the arrow
+    // by default set to transparent. Setting to null will cause the popup to pass 
+    // mouse events similar to when pickOnBounds is set to false - only the content 
+    // would receive the events which would break functionalities of the popup
+    -fx-background-color: transparent;
 }
-.popover > .border {
-    -fx-fill: rgba(20,20,20,0.7);
-    -fx-text-fill: white;
+
+// .bgr is Path and Shape and has all its properties
+// available pseudoclasses : detached
+.popover > .bgr {
+    // the shape representing the whole popup area including the arrow
+    // use for basic appearance like border or bgr styling
+
+    -fx-fill: rgba(30,30,40,0.8);
+    -fx-text-fill: -fx-def-font-color;
   /* original below */  
 /* 
     -fx-stroke: linear-gradient(to bottom, rgba(0,0,0, .3), rgba(0, 0, 0, .7)) ;
@@ -3352,20 +3367,40 @@ is being used to size a border should also be in pixels.
     -fx-fill: rgba(255.0,255.0,255.0, .95);
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,.2), 10.0, 0.5, 2.0, 2.0);*/
 }
+.popover > .bgr:detached {
+    // if you wnat to change basic appearance in detached mode
+}
+
+// .popover > .content is Pane and has all its properties
+// available pseudoclasses : detached
 .popover > .content {
-    -fx-fill: white;
-    -fx-text-fill: white;
+    // the ranctangular area for the actual content of thr popup
+    // including title and close button but excluding the arrow
 }
-.popover > .detached {
+.popover > .content:detached {
 }
+
+// title label
 .popover > .content > .title > .text  {
     -fx-padding: 6.0 6.0 0.0 6.0;
+    -fx-alignment: center;
     /*-fx-text-fill: rgba(120, 120, 120, .8);   //original */
-    -fx-text-fill: white;
     -fx-font-weight: bold;
 }
+.popover > .content:detached > .title > .text  {
+    -fx-alignment: center;
+}
+
+// the close button icon
 .popover > .content > .title > .icon {
     -fx-padding: 6.0 0.0 0.0 10.0;
+    -fx-alignment: center-left;
+    // the below is responsible for close button visibility behavior
+    -fx-visible: false;
+}
+.popover > .content:detached > .title > .icon {
+    // the below is responsible for close button visibility behavior
+    -fx-visible: true;
 }
 .popover > .content > .title > .icon > .graphics > .circle {
     -fx-fill: gray ;
@@ -3375,7 +3410,6 @@ is being used to size a border should also be in pixels.
     -fx-stroke: white ;
     -fx-stroke-width: 2;
 }
-
 
 //****************************** THUMBNAIL ***********************************//
 

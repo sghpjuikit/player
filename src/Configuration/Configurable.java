@@ -40,7 +40,7 @@ public interface Configurable {
             try {
                 IsConfig c = f.getAnnotation(IsConfig.class);
                 if (c != null)
-                    fields.add(new Config(f.getName(),c, f.get(this), getClass().getSimpleName()));
+                    fields.add(new Config(f.getName(),c, f.get(this), getClass().getSimpleName(), f));
             } catch (IllegalAccessException ex) {
                 Log.err(ex.getMessage());
             }
@@ -83,13 +83,13 @@ public interface Configurable {
         }
     }
     
-    /**
-     * Set given field on this object - sets its value to equally named 
-     * configurable field.
-     * @param field to apply on this object.
-     * @return true if field has been set, false otherwise
-     */
-    default public boolean  setField(Config field) {
-        return setField(field.name, field.value);
-    }
+//    /**
+//     * Set given field on this object - sets its value to equally named 
+//     * configurable field.
+//     * @param field to apply on this object.
+//     * @return true if field has been set, false otherwise
+//     */
+//    default public boolean setField(Config field) {
+//        return setField(field.name, field.value);
+//    }
 }

@@ -6,8 +6,6 @@ package AudioPlayer;
 
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.PlaylistState;
-import Configuration.ConfigManager;
-import Configuration.Configuration;
 import Serialization.PlaybackStateConverter;
 import Serialization.PlaylistItemConverter;
 import com.thoughtworks.xstream.XStream;

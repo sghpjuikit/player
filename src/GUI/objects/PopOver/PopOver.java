@@ -44,6 +44,7 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.PopupControl;
@@ -89,6 +90,15 @@ public class PopOver extends PopupControl {
             if(p.isAutoHide()) p.hide();
         });
     }
+    public static void escapeCloseFire() {
+        PopOver pop=null;
+        for(PopOver p: active_popups)
+            if(p.isHideOnEscape()){
+                pop=p;
+                break;
+            }
+        if(pop!=null) pop.hideStrong();
+    }
 
 /******************************************************************************/
 
@@ -124,7 +134,7 @@ public class PopOver extends PopupControl {
     }
 
     @Override
-    protected Skin<?> createDefaultSkin() {
+    protected Skin<PopOver> createDefaultSkin() {
         return new PopOverSkin(this);
     }
 
@@ -857,7 +867,6 @@ public class PopOver extends PopupControl {
 
     private final BooleanProperty detachable = new SimpleBooleanProperty(this,"detachable", true);
     private final BooleanProperty detached = new SimpleBooleanProperty(this,"detached", false);
-    private final StringProperty detachedTitle = new SimpleStringProperty(this,"detachedTitle", "Info");
     
     /** Determines if the pop over is detachable at all. */
     public final BooleanProperty detachableProperty() {
@@ -911,31 +920,60 @@ public class PopOver extends PopupControl {
         return detachedProperty().get();
     }
 
+    private final StringProperty title = new SimpleStringProperty(this,"detachedTitle", "");
+    private final ObjectProperty<Pos> titlePos = new SimpleObjectProperty(this,"titlePos",null);
+        
     /**
-     * Stores the title to display when the pop over becomes detached.
+     * Stores the title text. Default "".
      * @return the detached title property
      */
-    public final StringProperty detachedTitleProperty() {
-        return detachedTitle;
+    public final StringProperty titleProperty() {
+        return title;
     }
 
     /**
-     * Returns the value of the detached title property.
-     * @return the detached title
-     * @see #detachedTitleProperty()
+     * @see #titleProperty()
+     * @return the title text
      */
-    public final String getDetachedTitle() {
-        return detachedTitleProperty().get();
+    public final String getTitle() {
+        return titleProperty().get();
     }
 
     /**
-     * Sets the value of the detached title property.
-     * @param title the title to use when detached
-     * @see #detachedTitleProperty()
-     * @throws NullPointerException if param null
+     * Sets the title text.
+     * @see #titleProperty()
      */
-    public final void setDetachedTitle(String title) {
-       Objects.requireNonNull(title);
-        detachedTitleProperty().set(title);
+    public final void setTitle(String title) {
+        titleProperty().set(title==null ? "" : title);
+    }
+    
+    /**
+     * Title position property. The title position value can be null as well. In
+     * that case it falls back to value set by the css. Default value is null.
+     * <p>
+     * Once the value is set to non null value, the css value will never be used
+     * again and setting this value to null again will have no effect.
+     * <p>
+     * Intended as set and forget type of value that is only set once.
+     * @return the detached title property
+     */
+    public final ObjectProperty<Pos> titlePosProperty() {
+        return titlePos;
+    }
+
+    /**
+     * Returns the title position property.
+     * @see #titlePosProperty()
+     */
+    public final Pos getTitlePos() {
+        return titlePos.get();
+    }
+
+    /**
+     * Sets the title position property.
+     * @see #titlePosProperty()
+     */
+    public final void setTitlePos(Pos titlePos) {
+        this.titlePos.set(titlePos);
     }
 }

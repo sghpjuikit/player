@@ -7,9 +7,9 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.*?>
 
-<AnchorPane fx:id="entireArea" prefHeight="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="entireArea" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <ScrollPane id="ScrollPane" fitToHeight="false" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
+    <ScrollPane id="ScrollPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="547.0" prefWidth="500.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
       <content>
         <AnchorPane id="AnchorPane" prefWidth="-1.0">
           <children>
@@ -210,14 +210,14 @@
     </ScrollPane>
     <Button id="saveB" fx:id="SaveB" defaultButton="true" minHeight="20.0" mnemonicParsing="false" onMouseClicked="#write" prefHeight="32.0" prefWidth="545.0" text="Save" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" />
     <Label fx:id="infoL" text="Summary" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="0.0" />
-    <StackPane fx:id="progressPane" blendMode="SRC_OVER" prefHeight="150.0" prefWidth="200.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <StackPane fx:id="progressPane" blendMode="SRC_OVER" visible="false" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
-        <Circle fill="#66a3ff" opacity="0.26" radius="100.0" smooth="true" stroke="BLACK" strokeLineJoin="MITER" strokeType="INSIDE" strokeWidth="0.0" visible="true">
+        <Circle fill="#66a3ff" opacity="0.16" radius="15.0" smooth="true" stroke="BLACK" strokeLineJoin="MITER" strokeType="INSIDE" strokeWidth="0.0" visible="false">
           <effect>
-            <GaussianBlur radius="63.0" />
+            <GaussianBlur radius="24.91" />
           </effect>
         </Circle>
-        <ProgressIndicator fx:id="progressI" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="50.0" prefWidth="50.0" progress="0.0" />
+        <ProgressIndicator fx:id="progressI" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="15.0" prefWidth="15.0" progress="0.0" />
       </children>
     </StackPane>
   </children>

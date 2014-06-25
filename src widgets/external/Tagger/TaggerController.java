@@ -1,6 +1,5 @@
 package Tagger;
 
-
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
@@ -63,6 +62,7 @@ import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.jaudiotagger.tag.images.Artwork;
+import unused.Animation;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
@@ -84,7 +84,6 @@ import utilities.Util;
             group = Widget.Group.TAGGER)
 public class TaggerController extends FXMLController implements TaggingFeature {
     
-    AnchorPane ROOT = new AnchorPane();
     @FXML AnchorPane entireArea;
     @FXML GridPane grid;
     @FXML TextField TitleF;
@@ -718,19 +717,31 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     }
     
     private void showProgressReading() {
-        progressI.progressProperty().bind(loader.progressProperty());
-        progressPane.setVisible(true);
-        entireArea.setEffect(new BoxBlur(5, 5, 1));
+//        progressI.progressProperty().bind(loader.progressProperty());
+//        progressPane.setVisible(true);
+//        entireArea.setEffect(new BoxBlur(3, 3, 1));
+//        entireArea.setMouseTransparent(true);
+        
+        
+        Animation a = new Animation(80, 20);a.play();
+        entireArea.getChildren().add(a);
+        AnchorPane.setTopAnchor(a, 5.0);
+        AnchorPane.setRightAnchor(a, 20.0);
+        a.setVisible(true);
+        a.toFront();
+        
     }
     private void showProgressWriting() {
         progressI.progressProperty().unbind();
         progressI.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
         progressPane.setVisible(true);
-        entireArea.setEffect(new BoxBlur(5, 5, 1));
+        entireArea.setEffect(new BoxBlur(3, 3, 1));
+        entireArea.setMouseTransparent(true);
     }
     private void hideProgress() {
         progressPane.setVisible(false);
         entireArea.setEffect(null);
+        entireArea.setMouseTransparent(false);
     }
         
     private void addImg(File f) {

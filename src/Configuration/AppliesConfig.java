@@ -57,7 +57,8 @@ public @interface AppliesConfig {
     
     /**
      * Associates annotated method as an applier of the field specified by this
-     * String as its name.
+     * String as its name. If the value is empty the annotation will be ignored.
+     * Default value is empty - "".
      * <p>
      * The value must match exactly with the name of the field annotated by 
      * {@link IsConfig}, not the name value of that annotation.

@@ -95,9 +95,11 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      * under same name.
      */
     public void makeSnapshot() {
-        WritableImage i = parent_pane.snapshot(new SnapshotParameters(), null);
-        File out = new File(App.LAYOUT_FOLDER() + File.separator + name + ".png");
-        FileUtil.writeImage(i, out);
+        if(parent_pane!=null) {
+            WritableImage i = parent_pane.snapshot(new SnapshotParameters(),null);
+            File out = new File(App.LAYOUT_FOLDER(),name + ".png");
+            FileUtil.writeImage(i, out);
+        }
     } 
     
     /**
@@ -143,7 +145,7 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      }
      
      public File getFile() {
-         return new File(App.LAYOUT_FOLDER()+File.separator+name+".l");
+         return new File(App.LAYOUT_FOLDER(),name+".l");
      }
      
      /**

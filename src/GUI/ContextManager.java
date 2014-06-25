@@ -7,13 +7,13 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.ContextMenu;
+import GUI.objects.PopOver.PopOver;
 import GUI.objects.VerticalContextMenu;
 import Layout.Container;
 import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.PolyContainer;
 import Layout.UniContainer;
-import Layout.WidgetImpl.SimpleConfigurator;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
@@ -114,11 +114,10 @@ public final class ContextManager {
      * @param widget widget to open, does nothing when null.
      * @throws NullPointerException if param null
      */
-    public static Window openFloatingWindow(Widget widget) {
+    public static Window showWindow(Widget widget) {
         Objects.requireNonNull(widget);
         
         Window w = Window.create();
-        w.s.initOwner(App.getWindowOwner().getStage());
         w.setTitle(widget.getName());
         w.setContent(widget);
         w.show();
@@ -126,32 +125,28 @@ public final class ContextManager {
         
         return w;
     }
-    public static void openFloatingWindow(Node content, String title) {
-        if (content == null) return;
+    
+    public static PopOver showFloating(Widget w) {
+        Objects.requireNonNull(w);
         
-        Window w = Window.create();
-               w.setIsPopup(true);
-               w.s.initOwner(App.getWindowOwner().getStage());
-               w.setTitle(title);
-               w.setContent(content);
-               w.show();
-               w.setLocationCenter();
+        PopOver p = new PopOver(w.load());
+                p.setTitle(w.name);
+                p.setAutoFix(false);
+                p.setArrowLocation(PopOver.ArrowLocation.BOTTOM_LEFT);
+                p.show(App.getWindowOwner().getStage(),getX(),getY());
+        return p;
     }
-    /**
-     * @param widget to open. Null does nothing.
-     */
-    public static void openFloatingSettingsWindow(Widget widget) {
-        if (widget == null) return;
+    
+    public static PopOver showFloating(Node content, String title) {
+        Objects.requireNonNull(content);
+        Objects.requireNonNull(title);  // we could use null, but disallow
         
-        SimpleConfigurator c = new SimpleConfigurator(widget, () -> widget.getController().refresh() );
-        
-        Window w = Window.create();
-               w.s.initOwner(App.getWindowOwner().getStage());
-               w.setIsPopup(true);
-               w.setTitle(widget.getName() + " Settings");
-               w.setContent(c.getPane());
-               w.show();
-               w.setLocationCenter();
+        PopOver p = new PopOver(content);
+                p.setTitle(title);
+                p.setAutoFix(false);
+                p.setArrowLocation(PopOver.ArrowLocation.BOTTOM_LEFT);
+                p.show(App.getWindowOwner().getStage(),getX(),getY());
+        return p;
     }
     
     /**

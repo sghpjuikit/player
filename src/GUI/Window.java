@@ -25,10 +25,6 @@ import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
 import PseudoObjects.Maximized;
-import static PseudoObjects.Maximized.LEFT_BOTTOM;
-import static PseudoObjects.Maximized.LEFT_TOP;
-import static PseudoObjects.Maximized.RIGHT_BOTTOM;
-import static PseudoObjects.Maximized.RIGHT_TOP;
 import Serialization.Serializes;
 import Serialization.SerializesFile;
 import com.thoughtworks.xstream.converters.Converter;
@@ -471,7 +467,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         WindowManager.toggleMini();
     }
     @FXML public void manageLayouts() {
-        ContextManager.openFloatingWindow((new LayoutManagerComponent()).getPane(), "Layout Manager");
+        ContextManager.showFloating((new LayoutManagerComponent()).getPane(), "Layout Manager");
     }
 
     
@@ -488,35 +484,41 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     private void dragApp(MouseEvent e) {
         double SW = Screen.getPrimary().getVisualBounds().getWidth(); //screen_width
         double SH = Screen.getPrimary().getVisualBounds().getHeight(); //screen_height
-        double SX = e.getScreenX();
-        double SY = e.getScreenY();
-        double SH10 = SH/5;
-        double SW10 = SW/5;
+        double X = e.getScreenX();
+        double Y = e.getScreenY();
+        double SH5 = SH/5;
+        double SW5 = SW/5;
         
-        if (isMaximised() == Maximized.NONE) {
-            setLocation(SX - appX, SY - appY);
-            // (imitate Aero Snap)
-            // misbehaves without -1 in the conditions
-            if ((SX <= SW10 && SY <= 0) || (SX <= 0 && SY <= SH10))
-                setMaximized(LEFT_TOP);
-            else if ((SX >= SW-SW10 && SY <= 0) || (SX >= SW-1 && SY <= SH10))
-                setMaximized(RIGHT_TOP);
-            else if ((SX <= SW10 && SY >= SH-1) || (SX <= 0 && SY >= SH-SH10))
-                setMaximized(LEFT_BOTTOM);
-            else if ((SX >= SW-SW10 && SY >= SH-1) || (SX >= SW-1 && SY >= SH-SH10))
-                setMaximized(RIGHT_BOTTOM);
-            else if (e.getScreenY() <= 0)
-                setMaximized(Maximized.ALL);
-            else if (e.getScreenX() <= 0)
-                setMaximized(Maximized.LEFT);
-            else if (e.getScreenX() >= SW-1)  
-                setMaximized(Maximized.RIGHT);
+        if (isMaximised() == Maximized.NONE)
+            setLocation(X - appX, Y - appY);
+        
+        // (imitate Aero Snap)
+        Maximized to;
+        
+        if (X <= 0 ) {
+            if (Y<SH5) to = Maximized.LEFT_TOP;
+            else if (Y>SH-SH5) to = Maximized.LEFT_BOTTOM;
+            else to = Maximized.LEFT;
+        } else if (X<SW5) {
+            if(Y<=0) to = Maximized.LEFT_TOP;
+            else if (Y<SH-1) to = Maximized.NONE;
+            else to = Maximized.LEFT_BOTTOM;
+        } else if (X<SW-SW5) {
+            if(Y<=0) to = Maximized.ALL;
+            else if (Y<SH-1) to = Maximized.NONE;
+            else to = Maximized.NONE;
+        } else if (X<SW-1) {
+            if(Y<=0) to = Maximized.RIGHT_TOP;
+            else if (Y<SH-1) to = Maximized.NONE;
+            else to = Maximized.RIGHT_BOTTOM;
         } else {
-            // demaximize if not touching LEFT,TOP,RIGHT borders and if
-            // not touching BOTTOM border on the left or right
-            if ((SY>0 && SX>0 && SX<SW-1) && !(SY>SH-10 && (SW<=SW10 || SW>=SW-SW10)))
-                setMaximized(Maximized.NONE);
+            if (Y<SH5) to = Maximized.RIGHT_TOP;
+            else if (Y<SH-SH5) to = Maximized.RIGHT;
+            else to = Maximized.RIGHT_BOTTOM;
         }
+                
+        if(isMaximised() != to) setMaximized(to);
+        
         e.consume();
     }
 

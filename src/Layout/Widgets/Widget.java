@@ -165,7 +165,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     protected void restoreConfigs() {
         if(configs != null) {
             configs.forEach((Config c) -> { // dont shorten this it causes some errors
-                setField(c.name, c.value);
+                setField(c.getName(), c.getValue());
             });
             configs = null;
         }

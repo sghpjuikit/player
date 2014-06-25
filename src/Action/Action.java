@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -106,6 +107,7 @@ public final class Action {
         String s = keys.getName();
         s = s.replaceAll("'", "");      // we need to replace ''' characters
         s = s.replaceAll(" ", "_");     // we need to replace ' ' characters
+        s = s.replaceAll(Matcher.quoteReplacement("\\"), "Back_Slash");
         return s;
     }
     /**

@@ -128,7 +128,7 @@ public abstract class Area<T extends Container> implements AltState {
         if (c==null) return;
         
         // detach into new window
-        Window w = ContextManager.openFloatingWindow(Widget.EMPTY());
+        Window w = ContextManager.showWindow(Widget.EMPTY());
                w.setSize(root.getWidth(), root.getHeight());
         container.swapChildren(c, w.getLayout(), w.getLayout().getChild());
     }

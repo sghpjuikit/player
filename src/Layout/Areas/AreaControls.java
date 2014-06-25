@@ -9,7 +9,9 @@ package Layout.Areas;
 import GUI.ContextManager;
 import GUI.GUI;
 import GUI.objects.Pickers.WidgetPicker;
+import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
+import Layout.WidgetImpl.SimpleConfigurator;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
@@ -100,7 +102,10 @@ public final class AreaControls {
     void settings() {
         if(area.getActiveComponents().isEmpty()) return;
         Widget w = (Widget) area.getActiveComponents().get(0);
-        ContextManager.openFloatingSettingsWindow(w);
+        
+        SimpleConfigurator c = new SimpleConfigurator(w,()->w.getController().refresh());
+        PopOver p = ContextManager.showFloating(c.getPane(),w.getName() + " Settings");
+                p.setAutoHide(true);
     }
 
     @FXML

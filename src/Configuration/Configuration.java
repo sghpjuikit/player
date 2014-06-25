@@ -128,7 +128,7 @@ public class Configuration implements Serializes {
         discover();
     }
     
-    private static Map<String,Config> discover(){
+    private static void discover(){
         Map<String,Config> list = new HashMap();
         
         // add class fields
@@ -136,13 +136,12 @@ public class Configuration implements Serializes {
             discoverConfigFieldsOf(c);
         
         // add action fields
-        Action.getActions().values().stream().map(Config::new).forEach(f->list.put(f.name, f));
+        Action.getActions().values().stream().map(ObjectConfig::new).forEach(f->configs.put(f.getName(), f));
         
         // add methods in the end to avoid incorrect initialization
        for (Class c : classes)
            discoverMethodsOf(c);
        
-        return list;
     }
     
     private static void discoverConfigFieldsOf(Class c) {
@@ -156,7 +155,7 @@ public class Configuration implements Serializes {
                         String name = f.getName();
                         Object val = f.get(null);
                         
-                        configs.put(name, new Config(name, a, val, group, f));
+                        configs.put(name, new ClassConfig(name, a, val, group, f));
                     } catch (IllegalAccessException ex) {
                         Logger.getLogger(Action.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -201,8 +200,8 @@ public class Configuration implements Serializes {
         }
         
         if(c.getType().equals(Action.class)) {
-            Action temp_a = Action.fromString(value);
-            Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
+            Action a = Action.fromString(value);
+            Action.getActions().get(name).set(a.isGlobal(), a.getKeys());
         } else {
             Field f = c.sourceField;
             Object new_value = Parser.fromS(f.getType(), value);
@@ -247,7 +246,8 @@ public class Configuration implements Serializes {
             Log.deb("Failed to set config field: " + name + " . Reason: Does not exist.");
             return;
         }
-        
+        System.out.println(name + " " + value + " " + c);
+        System.out.println(name + " " + value + " " + c + " " + c.getType());
         if(c.getType().equals(Action.class)) {
             Action temp_a = Action.fromString(value);
             Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
@@ -303,7 +303,7 @@ public class Configuration implements Serializes {
     public static void applyFieldsOfClass(Class<?> clazz) {
         configs.values().stream()
                 .filter(c->c.defaultValue.getClass().equals(clazz))
-                .forEach(c->applyField(c.name));
+                .forEach(c->applyField(c.getName()));
     }
     
     public static void applyFieldsByName(List<String> fields_to_apply) {
@@ -311,7 +311,7 @@ public class Configuration implements Serializes {
     }
     
     public static void applyFieldsByConfig(List<Config> fields_to_apply) {
-        fields_to_apply.forEach(c -> applyField(c.name));
+        fields_to_apply.forEach(c -> applyField(c.getName()));
     }
     
 /******************************* public api ***********************************/
@@ -346,7 +346,7 @@ public class Configuration implements Serializes {
                content += "# " + java.time.LocalTime.now() + "\n";
         
         for (Config f: getFields())
-            content += f.name + " : " + Parser.toS(f.getValue()) + "\n";
+            content += f.getName() + " : " + Parser.toS(f.getValue()) + "\n";
         
         FileUtil.writeFile("Settings.cfg", content);
     }

@@ -107,7 +107,7 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     public void installSettings(Node node, MouseButton button) {
         node.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
             if (event.getButton().equals(button))
-                ContextManager.openFloatingWindow(new SimpleConfigurator(widget, () -> refresh()).getPane(), "Settings");
+                ContextManager.showFloating(new SimpleConfigurator(widget, () -> refresh()).getPane(), "Settings");
         });
     }
     

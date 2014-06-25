@@ -1,26 +1,23 @@
 
 package Layout.WidgetImpl;
 
+import GUI.objects.Text;
 import GUI.objects.Thumbnail;
 import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.stream.Collectors;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.util.Callback;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import main.App;
 import utilities.Enviroment;
 import utilities.Log;
@@ -32,13 +29,14 @@ import utilities.Log;
 public final class LayoutManagerComponent {
     
     AnchorPane root = new AnchorPane();
-    @FXML TextArea infoT;
+    Text infoT = new Text();
     @FXML ComboBox<String> layoutsCB;
     @FXML CheckBox lockedChB;
     @FXML Button nfB;
     @FXML TextField nameF;
-    @FXML BorderPane borderpane;
-    private final Thumbnail thumb = new Thumbnail(250);
+    @FXML StackPane imgContainer;
+    @FXML VBox box;
+    private Thumbnail thumb = new Thumbnail(250);
     
     public LayoutManagerComponent() {
         
@@ -51,33 +49,31 @@ public final class LayoutManagerComponent {
             Log.err("LayoutManager source data coudlnt be read." + e.getMessage());
         }
         
+        infoT.setWrappingWidth(200);
+        box.getChildren().add(3, infoT);
         
-        layoutsCB.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+        layoutsCB.valueProperty().addListener((o,oldValue,newValue) -> {
             if (isSelected())
                 displayInfo(getSelectedLayout());
             else
                 infoT.setText("");
         });
-        layoutsCB.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
-            @Override
-            public ListCell<String> call(ListView<String> param) {
-                return new ListCell<String>() {
-                    @Override public void updateItem(String l, boolean empty) {
-                        super.updateItem(l, empty);
-                        if (empty)
-                            setText("");
+        layoutsCB.setCellFactory( list -> {
+            return new ListCell<String>() {
+                @Override public void updateItem(String l, boolean empty) {
+                    super.updateItem(l, empty);
+                    if (empty)
+                        setText("");
+                    else
+                        if (new Layout(l).isMain())
+                            setText(l + " (active)");
                         else
-                            if (new Layout(l).isMain())
-                                setText(l + " (active)");
-                            else
-                                setText(l);
-                    }
-                };
-            }
+                            setText(l);
+                }
+            };
         });
         
-        borderpane.setRight(thumb.getPane());
-        BorderPane.setAlignment(thumb.getPane(), Pos.CENTER_RIGHT);
+        imgContainer.getChildren().add(thumb.getPane());
         refresh();
     }
     
@@ -149,15 +145,15 @@ public final class LayoutManagerComponent {
         
         // show info
         String s;
-        s  = "Active: " + (l.isMain()) + "\n\n\n";
-        s += "Name: " + l.getName() + "\n\n\n";
+        s  = "Name: " + l.getName() + "\n";
+        s += "Active: " + (l.isMain()) + "\n";
         s += "Children: " + l.getAllChildren().size() + "\n";
         s += "Containers: " + l.getAllContainers().size() + "\n";
         s += "Widgets: " + l.getAllWidgets().size() + "\n";
-        s += "Widgets:";
-        s += l.getAllWidgets().stream().map(Widget::getName).collect(Collectors.joining(", "));
+        s += "Widgets: " + l.getAllWidgets().stream().map(Widget::getName)
+                                            .collect(Collectors.joining(", "));
         s += "\n";
-        infoT.setPromptText(s);
+        infoT.setText(s);
         
         // show thumbnail
         thumb.loadImage(l.getThumbnail());

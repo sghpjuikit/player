@@ -200,7 +200,7 @@ public final class TabArea extends PolyArea {
     }
     @Override
     public void detach() {
-        Window w = ContextManager.openFloatingWindow(Widget.EMPTY());
+        Window w = ContextManager.showWindow(Widget.EMPTY());
         container.getParent().swapChildren(container, w.getLayout(), w.getLayout().getChild());
     }
     

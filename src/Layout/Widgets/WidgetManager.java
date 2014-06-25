@@ -2,8 +2,6 @@
 package Layout.Widgets;
 
 import GUI.ContextManager;
-import GUI.objects.PopOver.PopOver;
-import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.WidgetImpl.Circles;
 import Layout.WidgetImpl.ConfiguratorComponent;
@@ -23,7 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import javafx.scene.layout.AnchorPane;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -106,7 +103,7 @@ public final class WidgetManager {
 /******************************************************************************/
     
     // remembers standalone widgets not part of any layout, mostly in popups
-    private static final List<Widget> standaloneWidgets = new ArrayList();
+    public static final List<Widget> standaloneWidgets = new ArrayList();
     
     /** @return stream of currently loaded widgets. */
     public static Stream<Widget> getWidgets() {
@@ -165,22 +162,8 @@ public final class WidgetManager {
                     .filter(w->cond.test(w.info))
                     .findFirst().orElse(null);
             // open widget if found
-            final Widget w = f==null ? null : f.create();
-            if(w!=null) {
-//                ContextManager.openFloatingWindow(w);
-                standaloneWidgets.add(w);
-                AnchorPane a = new AnchorPane();
-                Layout l = new Layout();
-                       l.setParentPane(a);
-                       l.setChild(w);
-                        
-                PopOver p = new PopOver(l.load());
-                        p.setAutoFix(false);
-                        p.setArrowLocation(PopOver.ArrowLocation.RIGHT_CENTER);
-                        p.show(App.getWindowOwner().getStage(), ContextManager.getX(), ContextManager.getY());
-                        p.setOnHidden(e->standaloneWidgets.remove(w));
-                return w;
-            }
+            out = f==null ? null : f.create();
+            if(out!=null) ContextManager.showFloating(out);
         }
         
         return out;

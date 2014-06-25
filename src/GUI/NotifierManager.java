@@ -54,7 +54,7 @@ public final class NotifierManager {
 
     /**
      * Sets up application notification behavior.
-     * Dont invoke. Invoked Automatically. */
+     */
     public static void initialize() {
         // create notification
         n = new Notification();

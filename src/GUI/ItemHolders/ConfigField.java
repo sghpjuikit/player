@@ -81,9 +81,9 @@ abstract public class ConfigField<T extends Object> {
      * @return null if errors out
      */
     public static ConfigField create(Config f) {
-        if (!f.visible) return null;
+        if (!f.isVisible()) return null;
         
-        String name = f.name;
+        String name  = f.getName();
         Object val = f.getValue();
         
         ConfigField cf;
@@ -112,15 +112,15 @@ abstract public class ConfigField<T extends Object> {
             cf = new FontField(name, (Font)val);
         else
         if (f.isMinMax())
-            cf = new SliderField(name, (Number) val, f.min, f.max);
+            cf = new SliderField(name, (Number)f.getValue(), f.getMin(), f.getMax());
         else 
             cf = new GeneralField(name, val);
 
         
-        cf.setName(f.gui_name);
-        cf.getLabel().setTooltip(new Tooltip(f.info));
-        Tooltip.install(cf.getControl(), new Tooltip(f.info));
-        cf.getControl().setDisable(!f.editable);
+        cf.setName(f.getGuiName());
+        cf.getLabel().setTooltip(new Tooltip(f.getInfo()));
+        Tooltip.install(cf.getControl(), new Tooltip(f.getInfo()));
+        cf.getControl().setDisable(!f.isEditable());
         
         return cf;
     }

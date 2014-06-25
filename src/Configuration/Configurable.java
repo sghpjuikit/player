@@ -9,38 +9,37 @@ import utilities.Parser.Parser;
 
 /**
  * Denotes object that can be configured.
- * Configurable object exports its configuration as public fields and is able to
- * have them managed.
+ * Configurable object exports its configuration (which are in fact simple
+ * annotated fields).
  * All configurable fields can be exported as a list of {@link Config}. This can
- * be very useful for serialisation. 
+ * be very useful for serialisation for example to save a configurable 'state'
+ * of the object. 
  * <p>
  * This interface already provides default implementations of all its methods.
  * Implementing classes therefore get all the behavior with no additional work.
+ * There is no additional work to do other than implementing this interface.
  * This is because default implementation uses reflection to introspect this
  * object's configurations.
  * <p>
  * The default implementation makes use of the {@link Configuration.IsConfig}
  * annotation. Annotating a field will make it compatible with default behavior
- * of this interface.
+ * of this interface and is necessary and only requirement.
  * <pre>
  * It is required for a field to not be final. Final field will be ignored and
  * can not have its value set (practically read-only configuration field).
- * It is also required for a field to be public.
- * <pre>
  * 
- * <p>
  * @author uranium
  */
 public interface Configurable {
     
     /** @return Config Fields of this object */
     default public List<Config> getFields() {
-        List<Config> fields = new ArrayList<>();
+        List<Config> fields = new ArrayList();
         for (Field f: getClass().getFields()) {
             try {
                 IsConfig c = f.getAnnotation(IsConfig.class);
                 if (c != null)
-                    fields.add(new Config(f.getName(),c, f.get(this), getClass().getSimpleName(), f));
+                    fields.add(new ObjectConfig(f.getName(),c, f.get(this), getClass().getSimpleName(), f));
             } catch (IllegalAccessException ex) {
                 Log.err(ex.getMessage());
             }
@@ -82,14 +81,4 @@ public interface Configurable {
             return false;
         }
     }
-    
-//    /**
-//     * Set given field on this object - sets its value to equally named 
-//     * configurable field.
-//     * @param field to apply on this object.
-//     * @return true if field has been set, false otherwise
-//     */
-//    default public boolean setField(Config field) {
-//        return setField(field.name, field.value);
-//    }
 }

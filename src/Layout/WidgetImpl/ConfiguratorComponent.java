@@ -69,10 +69,10 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
         
         // sort & populate fields
         Configuration.getFields().stream()
-        .sorted((o1,o2) -> o1.gui_name.compareToIgnoreCase(o2.gui_name)).forEach(f-> {
-            ConfigGroup g = getGroup(f.group);                                  // find group
+        .sorted((o1,o2) -> o1.getGuiName().compareToIgnoreCase(o2.getGuiName())).forEach(f-> {
+            ConfigGroup g = getGroup(f.getGroup());                             // find group
             ConfigField cf = ConfigField.create(f);                             // create
-            if (cf != null && !(!show_noneditable && !f.editable)) {            // ignore on fail || noneditabe
+            if (cf != null && !(!show_noneditable && !f.isEditable())) {        // ignore on fail || noneditabe
                 configFields.add(cf);
                 g.grid.getRowConstraints().add(new RowConstraints());
                 g.grid.add(cf.getLabel(), 1, g.grid.getRowConstraints().size());  

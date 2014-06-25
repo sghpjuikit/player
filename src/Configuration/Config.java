@@ -8,63 +8,24 @@ import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
- * A read only object representation of a field annotated with {@link IsConfig}
- * annotation. This object wraps a value of that field and contains information
- * derived from the field so it can be provided to various parts of application.
+ * Object representation of a field annotated with {@link IsConfig}
+ * annotation. This object wraps a value of that field or the field itself and 
+ * provides access to it and its meta information so it can be provided to various
+ * parts of application.
  * 
  * @author uranium
  */
 @Immutable
-public class Config {
+public abstract class Config {
     
-    /** 
-     * Alternative name of this config. Intended to be human readable and
-     * appropriately formated. 
-     * <p>
-     * Default value is set to be equivalent to name, but can be specified to
-     * differ. Always use for gui building instead of {@link #name}.
-     */
-    public final String gui_name;
-    /** Name of this config. */
-    public final String name;
-    /** 
-     * Value wrapped in this config. Always {@link Object}. Primitives are
-     * wrapped automatically. 
-     * <p>
-     * The inspection of the value's class might be used. In such case checking 
-     * for primitives is unnecessary. 
-     * <pre>
-     * To check for type use:
-     *     value instanceof SomeClass.class
-     * or 
-     *     value instanceof SomeClass
-     * 
-     * For enumerations use:
-     *     value instance of Enum
-     * </pre>
-     */
-    public Object value;
-    /** 
-     * Category or group this config belongs to. Use arbitrarily to group
-     * multiple configs together - mostly semantically or by intention.
-     */
-    public final String group;
-    /** Description of this config */
-    public final String info;
-    /** 
-     * Indicates editability. Use arbitrarily. Most often sets whether this
-     * config should be editable by user via graphical user interface.
-     */
-    public final boolean editable;
-    /** 
-     * Indicates visibility. Use arbitrarily. Most often sets whether this
-     * config should be displayed in the graphical user interface.
-     */
-    public final boolean visible;
-    /** Minimum allowable value. Applicable only for numbers. In double. */
-    public final double min;
-    /** Maximum allowable value. Applicable only for numbers. In double. */
-    public final double max;
+    final private String gui_name;
+    final private String name;
+    final private String group;
+    final private String info;
+    final private boolean editable;
+    final private boolean visible;
+    final private double min;
+    final private double max;
     
     Field sourceField;
     Method applierMethod;
@@ -74,8 +35,7 @@ public class Config {
     Config(String _name, IsConfig c, Object val, String category, Field field) {
         gui_name = c.name().isEmpty() ? _name : c.name();
         name = _name;
-        value = objectify(val);
-        defaultValue = value;
+        defaultValue = objectify(val);
         group = category;
         info = c.info();
         editable = c.editable();
@@ -87,7 +47,6 @@ public class Config {
     Config(Action c) {
         gui_name = c.name + " Shortcut";
         name = c.name;
-        value = c;
         defaultValue = c;
         group = "Shortcuts";
         info = c.info;
@@ -100,7 +59,6 @@ public class Config {
     Config(Config old, Object new_value) {
         gui_name = old.gui_name;
         name = old.name;
-        value = objectify(new_value);
         defaultValue = old.defaultValue;
         group = old.group;
         info = old.info;
@@ -110,13 +68,23 @@ public class Config {
         max = old.max;
     }
     
-    public Object getValue() {
-        try {
-            return sourceField.get(null);
-        } catch (IllegalArgumentException | IllegalAccessException ex) {
-            throw new RuntimeException("Field " + name + " can not access value.");
-        }
-    }
+    /**
+     * Value wrapped in this config. Always {@link Object}. Primitives are
+     * wrapped automatically.
+     * <p>
+     * The inspection of the value's class might be used. In such case checking
+     * for primitives is unnecessary.
+     * <pre>
+     * To check for type use:
+     *     value instanceof SomeClass.class
+     * or
+     *     value instanceof SomeClass
+     *
+     * For enumerations use:
+     *     value instance of Enum
+     * </pre>
+     */
+    public abstract Object getValue();
     
     /**
      * Returns class type of the value. The value and default value can only
@@ -125,9 +93,7 @@ public class Config {
      * Semantically equivalent to getValue().getClass() but will never fail to
      * return proper class even if the value is null.
      */
-    public Class<?> getType() {
-        return sourceField.getType();
-    }
+    public abstract Class<?> getType();
     
     /**
      * Returns source class this config originates from.
@@ -135,10 +101,6 @@ public class Config {
      */
     Class<?> getSourceClass() {
         return sourceField.getDeclaringClass();
-    }
-    
-    void updateValue() {
-        value = getValue();
     }
     
     /**
@@ -149,7 +111,7 @@ public class Config {
      * are specified. 
      */
     public boolean isMinMax() {
-        return value instanceof Number &&
+        return getValue() instanceof Number &&
                 !(Double.compare(min, Double.NaN)==0 ||
                     Double.compare(max, Double.NaN)==0);
     }
@@ -163,13 +125,13 @@ public class Config {
         if (obj == null || !(obj instanceof Config)) return false;
         
         Config c = (Config)obj;
-        return name.equals(c.name) & sourceField.equals(c.sourceField); 
+        return getName().equals(c.getName()) & sourceField.equals(c.sourceField); 
     }
 
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 59 * hash + Objects.hashCode(this.name);
+        hash = 59 * hash + Objects.hashCode(this.getName());
         hash = 59 * hash + Objects.hashCode(this.sourceField);
         return hash;
     }
@@ -184,6 +146,69 @@ public class Config {
         else if (byte.class.equals(clazz)) return new Byte((byte)o);
         else if (short.class.equals(clazz)) return new Short((short)o);
         else return o;
+    }
+
+    /**
+     * Alternative name of this config. Intended to be human readable and
+     * appropriately formated. 
+     * <p>
+     * Default value is set to be equivalent to name, but can be specified to
+     * differ. Always use for gui building instead of {@link #getName()}.
+     */
+    public String getGuiName() {
+        return gui_name;
+    }
+
+    /**
+     * Name of this config.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Category or group this config belongs to. Use arbitrarily to group
+     * multiple configs together - mostly semantically or by intention.
+     */
+    public String getGroup() {
+        return group;
+    }
+
+    /**
+     * Description of this config
+     */
+    public String getInfo() {
+        return info;
+    }
+
+    /**
+     * Indicates editability. Use arbitrarily. Most often sets whether this
+     * config should be editable by user via graphical user interface.
+     */
+    public boolean isEditable() {
+        return editable;
+    }
+
+    /**
+     * Indicates visibility. Use arbitrarily. Most often sets whether this
+     * config should be displayed in the graphical user interface.
+     */
+    public boolean isVisible() {
+        return visible;
+    }
+
+    /**
+     * Minimum allowable value. Applicable only for numbers. In double.
+     */
+    public double getMin() {
+        return min;
+    }
+
+    /**
+     * Maximum allowable value. Applicable only for numbers. In double.
+     */
+    public double getMax() {
+        return max;
     }
     
     

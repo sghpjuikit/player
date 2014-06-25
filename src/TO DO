@@ -12,7 +12,8 @@
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird
 - app not closing propery on ALT+F4                                             (wth)
-- popup window fullcreen or maximizing(any) breaks popup position               
+- popup window fullcreen or maximizing(any) breaks popup position  
+- popover set arrow location automatically based on available screen space
 - popover show() methods clean up
 - tab container not remembering its children - why this again
 - menubar css
@@ -48,7 +49,6 @@
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
-
 
 - figure out how to apply configs from config fields
 - Spring StringConverters implement instead custom implementation now

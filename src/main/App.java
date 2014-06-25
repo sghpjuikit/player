@@ -127,8 +127,8 @@ public class App extends Application {
 
 
         //            new LastFM().initialize();
-        PlaycountIncrementer.initialize();
         NotifierManager.initialize();           // after window is shown (and css aplied)
+        PlaycountIncrementer.initialize();
         MoodManager.initialize();
         Action.getActions().values().forEach(Action::register);        
 

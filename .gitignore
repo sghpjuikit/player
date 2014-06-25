@@ -10,12 +10,9 @@ nbactions.xml
 nb-configuration.xml
 build.xml
 nbbuild.xml
-build.xml
-build/
 manifest.mf
-nbproject/
 working dir/*.cfg
-working dir/Layouts/*.l
+working dir/Layouts/*.*
 
 #################
 ## Eclipse

@@ -23,9 +23,20 @@ public final class Chapter implements Comparable<Chapter> {
         time = _time;
         info = _info;
     }
+    public Chapter(String text) {System.out.println(text);
+        int i = text.indexOf('-');
+        if (i==-1) throw new IllegalArgumentException("Not parsable chapter string: " + text);
+        String s = text.substring(0,i);
+        try {
+            setTimeInMillis(Double.parseDouble(s));
+        } catch(NumberFormatException e) {
+            throw new IllegalArgumentException("Not parsable chapter string: " + text);
+        }
+        info = text.substring(i+1, text.length());
+    }
     
     /**
-     * @return the time
+     * @return the time with granularity of 1ms
      */
     public Duration getTime() {
         return time;
@@ -35,9 +46,16 @@ public final class Chapter implements Comparable<Chapter> {
      * @param time the time to set
      */
     public void setTime(Duration time) {
-        this.time = time;
+        setTimeInMillis(time.toMillis());
     }
-
+    
+    /**
+     * @param time the time to set
+     */
+    public void setTimeInMillis(double millis) {
+        this.time = new Duration(Math.rint(millis));
+    }
+    
     /**
      * @return the info
      */
@@ -53,14 +71,13 @@ public final class Chapter implements Comparable<Chapter> {
     }
     
     /**
-     * Compares chapters.
-     * @param o Comparing Object.
-     * @return True only if their time is the same.
+     * @return true f and only if their time is the same.
      */
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Chapter)) { return false; }
-        return getTime().toMillis() == ((Chapter) o).getTime().toMillis();
+        return (o == null || !(o instanceof Chapter)) 
+                ? false
+                : getTime().equals(((Chapter)o).getTime());
     }
 
     @Override
@@ -71,17 +88,17 @@ public final class Chapter implements Comparable<Chapter> {
     }
     
     /**
-     * Compares chapter by natural order - numerically by time.
+     * Compares chapter by natural order - by time.
      * @param o
      * @return 
      */
     @Override
     public int compareTo(Chapter o) {
-        return this.time.greaterThan(o.time) ? 1 : (time.lessThan(o.time) ? -1 : 0);
+        return time.greaterThan(o.time) ? 1 : (time.lessThan(o.time) ? -1 : 0);
     }
     
     @Override
     public String toString() {
-        return time.toString() + "\n" + info;
+        return time.toMillis() + "-" + info;
     }
 }

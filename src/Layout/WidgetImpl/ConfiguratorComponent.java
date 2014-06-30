@@ -93,15 +93,8 @@ public final class ConfiguratorComponent extends AnchorPane implements Controlle
     
     @FXML
     private void ok() {
-        boolean changed = false;
-        
-        for (ConfigField f: configFields)
-            if (f.hasValue()) {
-                changed = true;
-                Configuration.setNapplyField(f.getName(), f.getValue());
-            }
-        
-        if (changed) refresh();
+        configFields.forEach(ConfigField::applyNsetIfAvailable);
+        refresh();
     }
     
     @FXML

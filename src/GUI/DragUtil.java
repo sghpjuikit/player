@@ -23,7 +23,7 @@ public final class DragUtil {
     /** Data Format for List<Item>. */
     public static final DataFormat items = new DataFormat("items");
     /** Data Format for WidgetTransfer. */
-    public static final DataFormat widgetDataFormat = new DataFormat("widget");
+    public static final DataFormat widgetDF = new DataFormat("widget");
     
 
     

@@ -109,6 +109,9 @@ is being used to size a border should also be in pixels.
     -fx-prompt-font-color: rgb(165, 165, 165);
     -fx-color-darker: rgba(0,0,0,0.2);
     -fx-color-lighter: rgba(180,200,255,0.08);
+
+    /* Default bgr color for tooltips and popups. */
+    -fx-popup-def-bgr-color: rgba(28,28,35,0.85);
     
     /***************************************************************************
      *                                                                         *
@@ -431,7 +434,6 @@ is being used to size a border should also be in pixels.
 .radio-button > .radio,
 .check-box > .box,
 .menu-button,
-.choice-box,
 .color-picker.split-button > .color-picker-label{
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -459,7 +461,6 @@ is being used to size a border should also be in pixels.
 .split-menu-button > .label:hover,
 .split-menu-button > .arrow-button:hover,
 .slider .thumb:hover,
-.choice-box:hover,
 .color-picker.split-button > .arrow-button:hover,
 .color-picker.split-button > .color-picker-label:hover,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
@@ -481,7 +482,7 @@ is being used to size a border should also be in pixels.
 .split-menu-button > .arrow-button:pressed,
 .split-menu-button:showing > .arrow-button,
 .slider .thumb:pressed,
-.choice-box:showing,
+//.choice-box:showing,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -496,7 +497,7 @@ is being used to size a border should also be in pixels.
 .toggle-button:focused,
 .radio-button:focused > .radio,
 .menu-button:focused,
-.choice-box:focused,
+//.choice-box:focused,
 .color-picker.split-button:focused > .color-picker-label{
     -fx-background-color:
         rgba(255, 255, 255, 0.08),
@@ -553,7 +554,7 @@ is being used to size a border should also be in pixels.
 /* ====   MNEMONIC THINGS   ================================================= */
 
 .mnemonic-underline {
-    -fx-stroke: transparent;
+    //-fx-stroke: transparent;
 }
 
 .titled-pane:show-mnemonics > .mnemonic-underline,
@@ -569,7 +570,7 @@ is being used to size a border should also be in pixels.
 .hyperlink:show-mnemonics > .mnemonic-underline,
 .split-menu-button:show-mnemonics > .mnemonic-underline,
 .menu-button:show-mnemonics > .mnemonic-underline {
-    -fx-stroke: -fx-text-base-color;
+    //-fx-stroke: -fx-text-base-color;
 } 
 
 /* ====   MARKS   =========================================================== */
@@ -592,7 +593,7 @@ is being used to size a border should also be in pixels.
 .web-view .form-select-button .arrow,
 .tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button > .arrow  {
     -fx-background-color: -fx-def-font-color;
-    /* use thid to get nice not filled arrow */
+    /* use this to get nice not filled arrow */
     /*-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;*/
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
@@ -601,7 +602,6 @@ is being used to size a border should also be in pixels.
 
 /* ====   CHOICE BOX LIKE THINGS   ========================================== */
 
-.choice-box,
 .menu-button {
     -fx-text-fill: -fx-def-font-color;
     -fx-background-color:
@@ -611,18 +611,19 @@ is being used to size a border should also be in pixels.
     -fx-background-insets: 0 0 -1 0, 0, 1.5;
     -fx-background-radius: 3, 2, 2;
     -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+    // this creates inner shadow 'gradient effect' for menu item label text
+    //-fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
 }
 
 .choice-box > .label,
 .menu-button > .label,
 .color-picker > .label {
-    -fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
     -fx-text-fill: -fx-def-font-color;
 }
 .choice-box > .open-button,
 .menu-button > .arrow-button {
-    -fx-padding: 0.5em 0.667em 0.5em 0.0em; /* 6 8 6 0 */
+    //-fx-padding: 0.5em 0.667em 0.5em 0.0em; /* 6 8 6 0 */
 }
 
 /* ====   BOX LIKE THINGS   ================================================= */
@@ -1265,6 +1266,9 @@ is being used to size a border should also be in pixels.
  *                                                                             *
  ******************************************************************************/
 
+.choice-box,
+.choice-box:hover,
+.choice-box:showing,
 .text-input {
     -fx-background-color:
         rgba(255, 255, 255, 0.3),
@@ -1277,6 +1281,7 @@ is being used to size a border should also be in pixels.
     
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }
+.choice-box:focused,
 .text-input:focused {
     -fx-background-color: rgba(235, 235, 235, 0.7),
                           rgba(0, 0, 0, 0.6),
@@ -1483,11 +1488,11 @@ is being used to size a border should also be in pixels.
 .menu-bar {
     -fx-padding: 0.0em 0.666667em 0.0em 0.666667em; /* 0 8 0 8 */
     -fx-spacing: 0.166667em; /* 2 */
-    -fx-background-color:
+    /*-fx-background-color:
         linear-gradient(to bottom, derive(-fx-base,75%) 0%, -fx-outer-border 90%),
         linear-gradient(to bottom, derive(-fx-base,46.9%) 2%, derive(-fx-base,-2.1%) 95%);
     -fx-background-insets: 0 0 0 0, 1 0 1 0;
-    -fx-background-radius: 0, 0 ;
+    -fx-background-radius: 0, 0 ;*/
 }
 /* Show nothing for background of normal menu button in a menu bar */
 .menu-bar > .container > .menu-button {
@@ -1498,6 +1503,7 @@ is being used to size a border should also be in pixels.
 /* Change padding of menu buttons when in menu bar */
 .menu-bar > .container > .menu-button > .label {
     -fx-padding: 0;
+    -fx-text-fill: -fx-def-font-color;
 }
 /* Hide the down arrow for a menu placed in a menubar */
 .menu-bar > .container > .menu-button > .arrow-button > .arrow {
@@ -1511,13 +1517,14 @@ is being used to size a border should also be in pixels.
 .menu-bar > .container > .menu-button:hover,
 .menu-bar > .container > .menu-button:focused,
 .menu-bar > .container > .menu-button:showing {
-    -fx-background: -fx-selection-bar;
-    -fx-background-color: -fx-background;
+   // -fx-background: -fx-selection-bar;      // < default value
+   // -fx-background-color: -fx-background;   // < default value
+   -fx-background-color: -fx-color-lighter;
 }
 .menu-bar > .container > .menu-button:hover > .label,
 .menu-bar > .container > .menu-button:focused > .label,
 .menu-bar > .container > .menu-button:showing  > .label {
-    -fx-text-fill: -fx-text-background-color;
+    //-fx-text-fill: -fx-text-background-color;
 }
 .menu-bar:show-mnemonics > .mnemonic-underline {
     -fx-stroke: -fx-text-fill;
@@ -1717,12 +1724,12 @@ is being used to size a border should also be in pixels.
     -fx-background: transparent;
     -fx-background-color: transparent;
     -fx-text-fill: -fx-text-base-color;
-    -fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
 }
 .combo-box-base:editable > .arrow-button,
 .combo-box-base > .arrow-button {
     -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-    -fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
+    //-fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
     -fx-background-color: transparent;
 }
 .combo-box-base,
@@ -1829,7 +1836,7 @@ is being used to size a border should also be in pixels.
     -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
 }
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    -fx-padding: 4 0 4 5;
+    //-fx-padding: 4 0 4 5;
     /* No alternate highlighting */
     -fx-background: -fx-control-inner-background;
 }
@@ -1973,7 +1980,7 @@ is being used to size a border should also be in pixels.
 
 .color-picker > .arrow-button {
     -fx-background-color: null;
-    -fx-padding: 0.5em 0.667em 0.5em 0; /*  6 8 6 0 */
+   //-fx-padding: 0.5em 0.667em 0.5em 0; /*  6 8 6 0 */
 }
 .color-picker.split-button > .arrow-button  {
     -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
@@ -1993,7 +2000,7 @@ is being used to size a border should also be in pixels.
 }
 .color-picker.split-button > .arrow-button {
     /*-fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color !important;*/
-    -fx-padding: 0.5em 0.667em 0.5em 0.667em; /* 6 8 6 8 */
+    //-fx-padding: 0.5em 0.667em 0.5em 0.667em; /* 6 8 6 8 */
 }
 .color-picker > .color-picker-label > .picker-color > .picker-color-rect {
     -fx-stroke: -fx-box-border;
@@ -2269,12 +2276,12 @@ is being used to size a border should also be in pixels.
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-padding: 0.0em 0.5em 0.0em 0.0em; /* 0 6 0 0 */
+    //-fx-padding: 0.0em 0.5em 0.0em 0.0em; /* 0 6 0 0 */
     -fx-alignment: CENTER_LEFT;
     -fx-content-display: LEFT;
 }
 .cell > .choice-box > .label {
-    -fx-padding: 0em 0.333333em 0.0em 0.333333; /* 2 4 3 6 */
+    //-fx-padding: 0em 0.333333em 0.0em 0.333333; /* 2 4 3 6 */
 }
 .cell:focused:selected > .choice-box > .label {
     -fx-text-fill: white;
@@ -2600,9 +2607,11 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 .tooltip {
-    -fx-background-color: rgba(0,0,0,0.85);
+    -fx-background-color: -fx-popup-def-bgr-color;
     -fx-opacity: 0.85;
     -fx-background-radius: 1;
+    -fx-border-width:2;
+    -fx-border-color: black;
     -fx-text-fill: -fx-def-font-color;
     -fx-padding: 0.3em 0.7em 0.3em 0.7em;
 }
@@ -3228,7 +3237,7 @@ is being used to size a border should also be in pixels.
         radial-gradient(center 50% 0%, radius 100%, rgba(124,141,158,0.9), rgba(255,255,255,0));
 }
 .brg-image {
-    -fx-opacity:0.2;
+    -fx-opacity:0.15;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
     -fx-blend-mode: multiply;
@@ -3284,6 +3293,9 @@ is being used to size a border should also be in pixels.
     -fx-border-insets: -2, -0.5;
 }
 
+
+
+
 // small button mostly within custom controls for opening dialogs. For example
 // Font picker from within text area.
 .dialog-button {
@@ -3294,6 +3306,13 @@ is being used to size a border should also be in pixels.
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+
+.mini-button {
+    -fx-background-color: rgba(255,255,255,0.4);
+    -fx-background-radius:7;
+    -fx-stroke-width: 1;
+    -fx-stroke-color: black;
 }
 
 //****************************************************************************//
@@ -3340,7 +3359,6 @@ is being used to size a border should also be in pixels.
     -fx-background-insets: -0.2em -0.2em -0.2em -0.2em;
 }
 
-    
 //******************************** POPOVER ***********************************//
 
 // the popup window itself, not stylable 
@@ -3358,9 +3376,10 @@ is being used to size a border should also be in pixels.
     // the shape representing the whole popup area including the arrow
     // use for basic appearance like border or bgr styling
 
-    -fx-fill: rgba(30,30,40,0.8);
+    -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
-  /* original below */  
+
+  /* alternative below */  
 /* 
     -fx-stroke: linear-gradient(to bottom, rgba(0,0,0, .3), rgba(0, 0, 0, .7)) ;
     -fx-stroke-width: 0.5;

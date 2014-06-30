@@ -500,7 +500,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if ((boolean)LyricsA.getUserData())       writer.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        writer.setCover(new_cover_file);
             
-            writer.commit();
+            writer.write();
         });
         
         // post writing

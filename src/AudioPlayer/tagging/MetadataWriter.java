@@ -2,6 +2,7 @@
 package AudioPlayer.tagging;
 
 import AudioPlayer.Player;
+import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import GUI.NotifierManager;
 import PseudoObjects.TODO;
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.scene.paint.Color;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
@@ -405,8 +407,9 @@ public class MetadataWriter extends MetaItem {
         setField(FieldKey.CUSTOM1, Parser.toS(c));
     }
     
-    public void setChapters(String chapters) {
+    public void setChapters(List<Chapter> chapters) {
 //        this.chapters = chapters;
+        setCustom2(chapters.stream().map(Chapter::toString).collect(Collectors.joining("\\|")));
     }
     
     /** @param val the year to set  */
@@ -459,11 +462,12 @@ public class MetadataWriter extends MetaItem {
     
 /*******************************************************************************/
     
-    /** Writes all changes to tag.
+    /** 
+     * Writes all changes to tag.
      * @return true if data were written to tag, false if nothing to write or
      * if writing ends unsuccessfully.
      */
-    public boolean commit() {
+    public boolean write() {
         // do nothing if nothing to write
         if (!hasFields()) {
             Log.mess("No changes.");
@@ -475,8 +479,14 @@ public class MetadataWriter extends MetaItem {
         Log.mess(fields_changed + " " + f + " changed.");
         Log.mess("Writing data to tag for: " + file.toString() + ".");
         try {
-//            PLAYBACK.suspend();
+            
+            PLAYBACK.suspend();
+                        
             audioFile.commit();         // save tag
+            
+            PLAYBACK.loadLastState();
+            
+            
             Player.refreshItem(this);   // update this item for application
             Log.mess("Done.");
             return true;
@@ -486,6 +496,11 @@ public class MetadataWriter extends MetaItem {
         } finally {
             reset();
         }
+    }
+    
+    public void writeForce() {
+        fields_changed=1;
+        write();
     }
     
     /**
@@ -523,7 +538,7 @@ public class MetadataWriter extends MetaItem {
         int count = item.getPlaycount() + 1;
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setPlaycount(String.valueOf(count));
-        if (writer.commit())
+        if (writer.write())
             NotifierManager.showTextNotification("Song playcount incremented to: "+count, "Update");
     }
     
@@ -537,7 +552,7 @@ public class MetadataWriter extends MetaItem {
     public static void rate(Metadata item, double rating) {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setRatingPercent(rating);
-        if (writer.commit())
+        if (writer.write())
             NotifierManager.showTextNotification("Song rating changed to: "+rating, "Update");
     }
 

@@ -2,9 +2,7 @@
 package Configuration;
 
 import Action.Action;
-import Action.IsAction;
 import PseudoObjects.Maximized;
-import Serialization.Serializes;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -24,49 +22,13 @@ import utilities.Log;
 import utilities.Parser.Parser;
 
 /**
- * Provides internal application settings.
- * This class uses Reflection API and Annotations to persist properties into file.
- * 
- * There are three ways to create a field configurable by user
- * - defining public field in this class.
- * @see IsConfig
- * 
- * - annotating public static method of class implementing marker Manager 
- * interface by IsAction Annotation. This automatically turns the method into
- * configurable action with shortcut. The methods can still be called
- * programmatically, but can be invoked manually in runtime and configured.
- * @see IsAction
- * 
- * - annotating public static field of a class registered in this class.
- * Fields will become configurable in runtime while continuing to function as
- * static class fields. Final fields will naturally not work. Interfaces can
- * only provide final fields.
- * @see IsConfig
- * 
- * Unrelated to how the field was constructed it can be
- * - persisted across application sessions
- * - its value changed in runtime
- * - support property GUI generation based on type
- * 
- * Annotation is not mandatory, but is recommended as it provides additional
- * information about fields for application which helps user experience (tooltips
- * names, etc)
- * 
- * Recommended approach:
- * - properties used wide across the application should be defined here to allow
- * centralized access
- * - properties used mostly within their own class should be defined there and
- * annotated
- * - common application behavior (which could only be represented as a static
- * method because it can not support instances) should be annotated
+ * Provides methods to access configs of the application.
  * 
  * @author uranium
  */
 @IsConfigurable(group = "General")
-public class Configuration implements Serializes {
+public class Configuration {
     
-    @IsConfig(info = "corner distance for resizing")
-    public static double borderCorner = 18;                   //border limit for North, NW, W, SW, S, SE, E, NE mouse resize cursor
     @IsConfig(info = "last height of the main window", editable = false)
     public static double windowHeight = 800;
     @IsConfig(info = "last width of the main window", editable = false)
@@ -132,15 +94,13 @@ public class Configuration implements Serializes {
         Map<String,Config> list = new HashMap();
         
         // add class fields
-        for (Class c : classes)
-            discoverConfigFieldsOf(c);
+        for (Class c : classes) discoverConfigFieldsOf(c);
         
         // add action fields
         Action.getActions().values().stream().map(ObjectConfig::new).forEach(f->configs.put(f.getName(), f));
         
         // add methods in the end to avoid incorrect initialization
-       for (Class c : classes)
-           discoverMethodsOf(c);
+       for (Class c : classes) discoverMethodsOf(c);
        
     }
     
@@ -189,8 +149,12 @@ public class Configuration implements Serializes {
     /**
      * If application doesnt have any config with specified name this method is
      * a no-op
+     * @param value Object value. If not a proper type one of the two exceptions
+     * will be thrown.
+     * @throws ClassCastException when value parameter not of expected type.
+     * @throws IllegalArgumentException when value parameter not of expected type.
      */
-    public static void setNapplyField(String name, String value) {
+    public static void setNapplyField(String name, Object value) {
         Log.deb("Attempting to set and apply config field " + name + " to " + value);
         
         Config c = configs.get(name);
@@ -200,17 +164,16 @@ public class Configuration implements Serializes {
         }
         
         if(c.getType().equals(Action.class)) {
-            Action a = Action.fromString(value);
+            Action a = (Action)value;
             Action.getActions().get(name).set(a.isGlobal(), a.getKeys());
         } else {
             Field f = c.sourceField;
-            Object new_value = Parser.fromS(f.getType(), value);
-            Log.deb("Setting config field: "+ name + " to: " + new_value);
+            Log.deb("Setting config field: "+ name + " to: " + value);
 
             // set new config value
             boolean was_set = false;
             try {
-                f.set(null, new_value);
+                f.set(null, value);
                 was_set = true;
                 Log.deb("Config field " + name + " set.");
             } catch (IllegalAccessException e) {
@@ -238,7 +201,7 @@ public class Configuration implements Serializes {
         }
     }
     
-    public static void setField(String name, String value) {
+    public static void setField(String name, Object value) {
         // Log.deb("Setting field "+name+" "+value);
         
         Config c = configs.get(name);
@@ -246,21 +209,19 @@ public class Configuration implements Serializes {
             Log.deb("Failed to set config field: " + name + " . Reason: Does not exist.");
             return;
         }
-        System.out.println(name + " " + value + " " + c);
-        System.out.println(name + " " + value + " " + c + " " + c.getType());
+        
         if(c.getType().equals(Action.class)) {
-            Action temp_a = Action.fromString(value);
+            Action temp_a = (Action) value;
             Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
         } else {
             Field f = c.sourceField;
             if (f!=null) {
-                Object new_value = Parser.fromS(f.getType(), value);
-                Log.deb("Setting config : "+ name + " to: " + new_value);
+                Log.deb("Setting config : "+ name + " to: " + value);
 
                 // set new config value
                 boolean was_set = false;
                 try {
-                    f.set(null, new_value);
+                    f.set(null, value);
                     was_set = true;
                 } catch (IllegalAccessException e) {
                     Log.err("Failed to set config: " + name + ". Reason: " + e.getMessage());
@@ -330,7 +291,7 @@ public class Configuration implements Serializes {
      * Changes all config fields to their default value and applies them
      */
     public static void toDefault() {
-        configs.forEach((name,config) -> setNapplyField(name,Parser.toS(config.defaultValue)));
+        configs.forEach((name,config) -> setNapplyField(name,config.defaultValue));
     }
     
     /**
@@ -364,11 +325,18 @@ public class Configuration implements Serializes {
         Log.mess("Loading configuration");
         
         File file= new File("Settings.cfg").getAbsoluteFile();
-        Map<String,String> lin = FileUtil.parseFile(file);
-        if(lin.isEmpty())
-            Log.mess("Configuration couldnt be set. No content. Using old settings.");
+        Map<String,String> lines = FileUtil.parseFile(file);
+        if(lines.isEmpty())
+            Log.mess("Configuration couldnt be loaded. No content found. Using "
+                    + "default settings.");
         
-        lin.forEach(Configuration::setField);
+        lines.forEach((name,value) -> {
+            if(configs.containsKey(name)) {
+                Configuration.setField(name,Parser.fromS(configs.get(name).getType(),value));
+            } else Log.mess("Config field " + name + " not available. Possible"
+                    + " error in the configuration file.");
+            
+        });
     }
     
     

@@ -17,7 +17,7 @@ import utilities.functional.functor.UnProcedure;
  *
  * @author Plutonium_
  */
-public class MoodTextField extends ItemTextField<String,StringParser<String>> {
+public class MoodTextField extends ItemTextField<String> {
     
     private final UnProcedure<String> pickMood = this::setItem;
     private PopOver.NodeCentricPos pos = PopOver.NodeCentricPos.RightCenter;

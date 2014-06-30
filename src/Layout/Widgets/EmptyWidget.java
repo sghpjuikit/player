@@ -26,7 +26,7 @@ import javafx.scene.layout.AnchorPane;
 class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> {
 
     public EmptyWidget() {
-        super("");
+        super("Empty");
     }
     
     /** @return empty (default) widget information */

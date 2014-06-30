@@ -21,6 +21,15 @@ import java.lang.annotation.Target;
  * annnotated fields of the object (or its sub-objects) as a powerful way to
  * access those fields and see the object in terms of how it can be configured.
  * <p>
+ * Furthermore, the type of the field (its Class) should have implemented
+ * correct equals() and toString method. The first will be used to compare
+ * equality of new and old value in the field. Incorrectly implementer equals()
+ * can produce unnecessary method calls and operations potentially with heavy
+ * performance impact (for example if a big application module ends up refreshing
+ * because of an incorrectly captured value change). The toString() method is
+ * useful for debugging and messaging and should be overriden and return human
+ * readable information about the state of the object or its value.
+ * <p>
  * Based on the application of the value of the field, there are two kinds of
  * fields. Those that can be simply set to a value and those that require some
  * code to be executed to have their new value be reflected by the application.

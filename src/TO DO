@@ -8,15 +8,26 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- tagger use nice progress animation
+- tagger use trash big icon or sth when removing cover by drag and add icon
+  for the reverse operation
+- seeker popup adder button-like hoverable dynamically repositioned popup
+- CHAPTERS TAG | XML OPTION and clean up
+- popup clean show methods
+- default button skin to something neat
+- set button -||-
+- window starts minimized
+- skin setting
+- file info handle comment label->Text add scrollbar and reimplement
+
+- configurable  support sub configurable by default
 - properly handle vol scolling and app dragging event consuminf at widget level
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird
 - app not closing propery on ALT+F4                                             (wth)
-- popup window fullcreen or maximizing(any) breaks popup position  
-- popover set arrow location automatically based on available screen space
-- popover show() methods clean up
+ 
+- popover set arrow location automatically based on available screen space      (tough one...)
 - tab container not remembering its children - why this again
-- menubar css
 - empty widget vs empty widget area & bgr
 - playcont incrementing fix misbehavior
 - ui not resizing when window size gets below certain threshold                 (wth)
@@ -31,13 +42,12 @@
 - figure out serialisation of loopMode and random
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
-- all tabs loading bug
-- window clean up contextPane - move from UI to Window ->[0,0]
-- window clean up serialization
-
+- figure out tabs and layout serialisation
+- figure out window management and serialisation
+- figure out custom context menus
+- tabs make into a reusable object
 - widg man prefFactory per group configs
-  getWidget reimplement + widget Feature interfaces
-
+  getWidget reimplement + widget Feature interface
 - Player update item not refreshing selected pl item
 - writeException - suspend playback (phew)                                      (medium)
 - splitter absolute size for both children
@@ -50,13 +60,12 @@
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
-- figure out how to apply configs from config fields
-- Spring StringConverters implement instead custom implementation now
+- cursor trail effect - 'frozen" effect
+- cursor api clean up, fix appliers
 - seeker orientation property and support with layout (chapter positions too)
 - settable img bgr
 - TextFlow for smart text tables
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?
-- CHAPTERS   TAG | XML OPTION
 - widget manager widget                                                         (?)
 - cursor effects API
 - cursor effect to popup, get rid of effectPane
@@ -139,8 +148,8 @@ GENERAL
   shortcut registering, but thats only partial and incomplete workaround
 - css parsing errors for settings widget - cant resolve value                   (minor, NaP, doesnt break funonality)
   cause: lazy loading of css file, possible javaFX bug
-- weird (noninvasive) exception when closing app window when notification       (minor, NaP)
-  open : "window already closed"
+
+- popup window fullcreen or maximizing(any) breaks popup position 
 
 SOLVED (with unwanted workaround)
   (bug presents no problems but the underlying cause still deserves attention)

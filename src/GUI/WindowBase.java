@@ -207,29 +207,38 @@ public class WindowBase {
     }
     /**
      * Sets maximized state of this window to provided state. If the window is
-     * in full screen mode it will revert to non full screen.
-     * @param state 
+     * in full screen mode this method is a no-op.
+     * @param val 
      */
-    public void setMaximized(Maximized state) {        
-        if(isFullscreen()) return;
-        MaxProp.set(state);
-        switch (state) {
-            case ALL:
-            case LEFT:
-            case RIGHT:
-            case LEFT_TOP:
-            case RIGHT_TOP:
-            case LEFT_BOTTOM:
-            case RIGHT_BOTTOM:
-                            WProp.set(s.getWidth());
-                            HProp.set(s.getHeight());
-                            XProp.set(s.getX());
-                            YProp.set(s.getY());
-                            break;
-            case NONE:      break;
-            default:
+    public void setMaximized(Maximized val) {        
+        if(isFullscreen()) return; // no-op if fullscreen
+        
+        // prevent pointless change
+        Maximized old = isMaximised();
+        if(old==val) return;
+        
+        // remember window state if entering from non-mazimized state
+        if(old==Maximized.NONE) {
+            switch (val) {
+                case ALL:
+                case LEFT:
+                case RIGHT:
+                case LEFT_TOP:
+                case RIGHT_TOP:
+                case LEFT_BOTTOM:
+                case RIGHT_BOTTOM:
+                                WProp.set(s.getWidth());
+                                HProp.set(s.getHeight());
+                                XProp.set(s.getX());
+                                YProp.set(s.getY());
+                                break;
+                case NONE:      break;
+                default:
+            }
         }
-        switch (state) {
+        MaxProp.set(val);
+        
+        switch (val) {
             case ALL:           maximizeAll();          break;
             case LEFT:          maximizeLeft();         break;
             case RIGHT:         maximizeRight();        break;

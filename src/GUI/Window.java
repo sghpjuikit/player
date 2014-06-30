@@ -6,11 +6,9 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.tagging.Metadata;
 import Configuration.AppliesConfig;
-import Configuration.Configuration;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.ClickEffect;
-import GUI.objects.PopOver.PopOver;
 import GUI.objects.Window.Resize;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
@@ -33,7 +31,6 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import java.io.IOException;
-import static java.lang.Boolean.TRUE;
 import java.net.URL;
 import javafx.animation.TranslateTransition;
 import javafx.beans.value.ChangeListener;
@@ -42,7 +39,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -51,13 +47,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ALT;
-import static javafx.scene.input.KeyCode.ESCAPE;
 import javafx.scene.input.KeyEvent;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -210,16 +206,14 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             
             if(main) {
                 // activare main window functionality
-                w.layB.setVisible(TRUE);
-                w.miniB.setVisible(TRUE);
+                w.layB.setVisible(true);
+                w.miniB.setVisible(true);
                 // load main window content
-                FXMLLoader loader = new FXMLLoader(Window.class.getResource("UI.fxml"));
-                Parent ui = (Parent) loader.load();
-                w.setContent(ui);
+                w.setContent(w.sp);
                 w.setIcon(App.getIcon());
                 w.setTitle(App.getAppName());
                 w.setTitlePosition(Pos.CENTER_LEFT);
-                new ContextManager((UIController)loader.getController());
+                new ContextManager(w.overlayPane,w.contextPane,w.sp);
             }
                    
             return w;
@@ -232,6 +226,8 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
 /******************************************************************************/
     
     Layout layout;
+    public SwitchPane sp = new SwitchPane();
+    
     @FXML AnchorPane root = new AnchorPane();
     @FXML public AnchorPane content;
     @FXML private HBox controls;
@@ -241,6 +237,8 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     @FXML Button miniB;
     @FXML Button minimizeB;
     @FXML Pane colorEffectPane;
+    public @FXML AnchorPane contextPane;
+    public @FXML AnchorPane overlayPane;
     
     private Window(boolean is_main) {
         super(is_main);
@@ -256,33 +254,33 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         // maintain active (focused) window
         getStage().focusedProperty().addListener((o,oldV,newV)-> ContextManager.activeWindow=this );
         // set shortcuts
-        Action.getActions().values().stream().filter(a->!a.isGlobal()).forEach(Action::register);
+        Action.getActions().values().stream().filter(a->!a.isGlobal())
+                .forEach(Action::register);
         
         root.addEventFilter(MOUSE_MOVED, e -> {
-//            // update coordinates for context manager
-//            ContextManager.setX(e.getSceneX());
-//            ContextManager.setY(e.getSceneY());
-            if (ClickEffect.trail_effect) ClickEffect.run(e.getSceneX(), e.getSceneY());
+            if (ClickEffect.trail_effect) 
+                ClickEffect.run(e.getSceneX(), e.getSceneY());
         });
         root.addEventFilter(MOUSE_PRESSED,  e -> {
             // update coordinates for context manager
             ContextManager.setX(e.getSceneX());
             ContextManager.setY(e.getSceneY());
-            if (!ClickEffect.trail_effect) ClickEffect.run(e.getSceneX(), e.getSceneY());
+            if (!ClickEffect.trail_effect) 
+                ClickEffect.run(e.getSceneX(), e.getSceneY());
             ContextManager.closeMenus();
             ContextManager.closeFloatingWindows(this);
-            // popup autohide
-            PopOver.autoCloseFire();
-            startAppDrag(e);
+            appDragStart(e);
         });
-        root.setOnMouseDragged( e -> {
-            if (e.getButton()==MouseButton.PRIMARY)
-                dragApp(e);
-        });
-        // popup hide on ESCAPE
-        root.addEventFilter(KEY_PRESSED, e -> {
-            if(e.getCode()==ESCAPE)
-                PopOver.escapeCloseFire();
+        
+        root.addEventFilter(MOUSE_RELEASED, e -> app_drag = false );
+        
+        root.addEventHandler(MOUSE_DRAGGED,e -> {
+            if (e.getButton()==MouseButton.PRIMARY) {
+                if(app_drag)
+                    appDragDo(e);
+                else
+                    appDragStart(e);
+            }
         });
         
         // header double click maximize, show header on/off
@@ -342,6 +340,8 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         layout.load();
         layout.setChild(c);
     }
+    
+    /** Returns layout or null if none present. */
     public Layout getLayout() {
         return layout;
     }
@@ -475,13 +475,16 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     
     private double appX;
     private double appY;
+    private boolean app_drag = false;
     
-    private void startAppDrag(MouseEvent e) {
+    private void appDragStart(MouseEvent e) {
+        app_drag = true;
         appX = e.getSceneX();
         appY = e.getSceneY();
-//        e.consume();
     }
-    private void dragApp(MouseEvent e) {
+    private void appDragDo(MouseEvent e) {
+        if(!app_drag)return;
+        
         double SW = Screen.getPrimary().getVisualBounds().getWidth(); //screen_width
         double SH = Screen.getPrimary().getVisualBounds().getHeight(); //screen_height
         double X = e.getScreenX();
@@ -518,8 +521,9 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         }
                 
         if(isMaximised() != to) setMaximized(to);
-        
-        e.consume();
+    }
+    private void appDragEnd() {
+        app_drag = false;
     }
 
     
@@ -533,7 +537,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         double Y = e.getSceneY();
         double Wi = getWidth();
         double H = getHeight();
-        double L = Configuration.borderCorner;
+        double L = 18; // corner treshold
 
         if ((X > Wi - L) && (Y > H - L)) {
             resizing = SE;

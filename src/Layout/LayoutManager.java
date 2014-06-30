@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
-import utilities.functional.impl.NotNull;
 
 /**
  * @author uranium
@@ -36,10 +35,10 @@ public final class LayoutManager implements Configurable {
      * @return all active Layouts in the application.
      */
     public static Stream<Layout> getLayouts() {
-        Stream.Builder<Layout> lsb = Stream.builder();
-        active.values().stream().forEach(lsb::add);
-        ContextManager.windows.stream().map(w->w.getLayout()).forEach(lsb::add);
-        return lsb.build().filter(new NotNull());
+        // combine sources and filter nulls as windows dont have non null layouts
+        // enforced
+        return Stream.concat(active.values().stream(), 
+            ContextManager.windows.stream().map(w->w.getLayout()).filter(l->l!=null));
     }
     
     /**
@@ -85,7 +84,7 @@ public final class LayoutManager implements Configurable {
                 putLayout(-1, l);
         }
         active.putIfAbsent(0, new Layout("layout0"));
-        active.keySet().forEach( i -> ContextManager.gui.addTab(i));
+        active.keySet().forEach( i -> App.getWindow().sp.addTab(i));
     }
     
     private static void putLayout(int i, String s) {

@@ -29,7 +29,7 @@ public abstract class Config {
     
     Field sourceField;
     Method applierMethod;
-    Object defaultValue;
+    public Object defaultValue;
     
     
     Config(String _name, IsConfig c, Object val, String category, Field field) {

@@ -64,8 +64,8 @@ public final class ContextManager {
     private static double Y;
     /** Context menus. */
     public static AnchorPane contextPane;
-    
-    public static UIController gui;
+    public static AnchorPane overlayPane;
+    public static SwitchPane gui;
     
     //menus
     public static ContextMenu playlistMenu;
@@ -78,9 +78,10 @@ public final class ContextManager {
     private static boolean menu_open = false;
     
     
-    public ContextManager(UIController c) {
-        gui = c;
-        contextPane = c.contextPane;
+    public ContextManager(AnchorPane o, AnchorPane c, SwitchPane g) {
+        gui = g;
+        contextPane = c;
+        overlayPane = o;
         
         playlistMenu = makePlaylistContextMenu();
         bookmarkMenu = makeBookmarkCM();
@@ -99,11 +100,11 @@ public final class ContextManager {
     }
     /** Get last mouse click x coordinate. */
     public static double getX() {
-        return activeWindow==null ? X : activeWindow.getX()+X;
+        return activeWindow.getX()+X;
     }
     /** Get last mouse click y coordinate. */
     public static double getY() {
-        return activeWindow==null ? Y : activeWindow.getY()+Y;
+        return activeWindow.getY()+Y;
     }
 /******************************************************************************/
     

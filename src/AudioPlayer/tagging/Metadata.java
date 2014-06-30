@@ -137,7 +137,6 @@ public final class Metadata extends MetaItem {
     private String custom4 = "";
     private String custom5 = "";
     
-    
     /** 
      * Creates empty metadata. All string fields will be empty and object fields
      * null. The File, URI and path of the item will not point to any existing file.
@@ -828,6 +827,23 @@ public final class Metadata extends MetaItem {
             return i + "/" + PlaylistManager.getSize();
         }
         return "";
+    }
+    
+    
+    
+    
+    public List<Chapter> getChapters() {
+        List<Chapter> cs = new ArrayList();
+        for(String c: getCustom2().split("\\|", 0)) {
+            try {
+                cs.add(new Chapter(c));
+            } catch( IllegalArgumentException e) {
+                Log.err("String '" + c + "' not parsable chapter string. Will be"
+                        + "ignored.");
+                // ignore
+            }
+        }
+        return cs;
     }
     
 /******************************************************************************/

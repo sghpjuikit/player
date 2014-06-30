@@ -7,6 +7,7 @@ import Serialization.SerializesFile;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.File;
 import java.util.Objects;
+import java.util.UUID;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
@@ -22,26 +23,48 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
     @XStreamOmitField
     private String name;
     
+    /**
+     * Creates new layout with randomized unique name. Use to create completely
+     * new layouts.
+     * @see #setName(java.lang.String)
+     */
     public Layout() {
-        this(uniqueName("new_layout"));
+        this(uniqueName());
     }
+    
+    /**
+     * Creates new layout with specified name. Please note that the name must
+     * be unique. Use to create layout based on a name parameter, for example
+     * when deserializing a file.
+     * 
+     * @see #setName(java.lang.String)
+     * @param _name 
+     */
     public Layout(String _name) {
         name = _name;
         properties.initProperty(Boolean.class, "locked", false);
     }
     
+    /** 
+     * {@inheritDoc} 
+     * @see #setName(java.lang.String)
+     */
     @Override
     public String getName() {
         return name;
     }
+    
     /**
-     * @Note: Name of layout directly affects file it will serialize into. Avoid
+     * Sets name.
+     * <p>
+     * note: Name of layout directly affects file it will serialize into. Avoid
      * this method if you want to avoid leaving out old file
      * @param new_name - name to set.
      */
     public void setName(String new_name) {
         name = new_name;
     }
+    
     /**
      * Change name. This method immediately takes care of all file operations
      * needed to maintain consistency -saves layout to the new file, old
@@ -56,11 +79,11 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
         // save new
         Serializator.serialize(this);
         // delete old file
-        FileUtil.deleteFile(new File(App.LAYOUT_FOLDER()+File.separator+old+".l"));
+        FileUtil.deleteFile(new File(App.LAYOUT_FOLDER(), old + ".l"));
         // rename thumb
-        File thumb = new File(App.LAYOUT_FOLDER() + File.separator + old + ".png");
+        File thumb = new File(App.LAYOUT_FOLDER(), old + ".png");
         if (thumb.exists())
-            thumb.renameTo(new File(App.LAYOUT_FOLDER() + File.separator + name + ".png"));
+            thumb.renameTo(new File(App.LAYOUT_FOLDER(), name + ".png"));
     }
     
     /** @return true if and only if layout is displayed on the screen as main tab */
@@ -74,9 +97,11 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
     public void setActive() {
         LayoutManager.changeActiveLayout(this);
     }
+    @Override
     public boolean isLocked() {
         return properties.getB("locked");
     }
+    @Override
     public void setLocked(boolean val) {
         properties.set("locked", val);
     }
@@ -180,14 +205,9 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
         return name;
     }
     
-    // avoid name collisions (it would overwrite files)
-    private static String uniqueName(String unique_name) {
-        String out = unique_name;
-        int i = 0;
-        while (LayoutManager.layouts.contains(out)){
-            out = unique_name + String.valueOf(++i);
-        }
-        return out;
+    // create unique name
+    private static String uniqueName() {
+        return "Layout " + UUID.randomUUID().toString();
     }    
     
 }

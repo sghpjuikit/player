@@ -173,7 +173,7 @@ public class GUI implements Configurable {
             files.add(tmp[0]);
         }
         // populate skins
-        skin.clear();
+        skin.removeAll();
         if (files.isEmpty())
             Log.mess("Skin folder '" + dir.getPath() + "' is empty. No valid skins found.");
         else

@@ -112,7 +112,7 @@
 <cursor>
 <Cursor fx:constant="NE_RESIZE" />
 </cursor>
-</Region><Pane fx:id="colorEffectPane" mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+</Region><Pane fx:id="colorEffectPane" mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><AnchorPane fx:id="contextPane" pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><AnchorPane fx:id="overlayPane" mouseTransparent="true" pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
   </children>
   <padding>
     <Insets />

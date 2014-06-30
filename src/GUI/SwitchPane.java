@@ -7,7 +7,6 @@ import Layout.LayoutManager;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.animation.TranslateTransition;
-import javafx.fxml.FXML;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -19,23 +18,31 @@ import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
 
 /**
- * FXML Controller class
+ * Pane with switchable content.
+ * <p>
+ * Pane allowing unlimited amount of contents, displaying exactly one spanning
+ * its entire space and providing mechanism for content switching. It can be
+ * compared to virtual desktops.
+ * <p>
+ * The content switches by invoking drag event using the right (secondary) mouse
+ * button.
+ *
+ * @author plutonium_
  */
-public class UIController {
+public class SwitchPane extends AnchorPane {
     
-    @FXML public AnchorPane root;
-    @FXML public AnchorPane layout;
-    @FXML public AnchorPane ui;
-    @FXML public AnchorPane overlayPane;
-    @FXML public AnchorPane contextPane;
-
-    /** Initializes the controller class. */
-    public void initialize() {        
+    private final AnchorPane ui = new AnchorPane();
+    
+    public SwitchPane() {
+        // set ui
+        getChildren().add(ui);
+        AnchorPane.setBottomAnchor(ui, 0d);
+        AnchorPane.setTopAnchor(ui, 0d);
+        AnchorPane.setLeftAnchor(ui, 0d);
+        AnchorPane.setRightAnchor(ui, 0d);
         
-        // currently ui drag causes some problems so filters are registered on
-        // contextPane trather than uipane. On uiPane the events somehow still
-        // propagated to widgets and caused unwanted behavior, hence thi temp fix
-        layout.addEventFilter(MOUSE_PRESSED, e -> {
+        // initialize ui drag behavior
+        addEventFilter(MOUSE_PRESSED, e -> {
             // doesnt work because the isStillSincePress is too insensitive
 //            if(!e.isStillSincePress()) {
 //                if(e.getButton()==SECONDARY) {
@@ -44,15 +51,17 @@ public class UIController {
 //                }
 //            }
         });
-        layout.addEventFilter(MOUSE_DRAGGED, e -> {
+        
+        addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
-                    startUiDrag(e);
-                    ui.setMouseTransparent(true);
+                ui.setMouseTransparent(true);
+                startUiDrag(e);
             }
             if(e.getButton()==SECONDARY)
                 dragUi(e);
         });
-        layout.addEventFilter(MOUSE_CLICKED, e-> {
+        
+        addEventFilter(MOUSE_CLICKED, e-> {
             if(e.getButton()==SECONDARY) {
                 endUIDrag(e);
                 ui.setMouseTransparent(false);
@@ -62,15 +71,15 @@ public class UIController {
         uiDrag = new TranslateTransition(Duration.millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
         
-        root.widthProperty().addListener(l-> {
-//            double uiwidth = uiWidth() + 5; // 5 is the tab padding
+        // bind widths for automatic dynamic resizing (works perfectly)
+        widthProperty().addListener(l-> {
             tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
         });
     };
 
 /********************************    TABS   ***********************************/
     
-    public final Map<Integer,AnchorPane> tabs = new HashMap<>();
+    public final Map<Integer,AnchorPane> tabs = new HashMap();
     
     public void addTab(int i) {        
         if (tabs.containsKey(i)) return;
@@ -112,13 +121,11 @@ public class UIController {
         uiStartX = e.getSceneX();
         uiCurrX = ui.getTranslateX();
         uiDragActive = true;
-//        ui.setMouseTransparent(true);
         e.consume();
     }
     private void endUIDrag(MouseEvent e) {
         if(!uiDragActive) return;System.out.println("end");
         uiDragActive = false;
-//        ui.setMouseTransparent(false);
         
         if(GUI.align_tabs)     // switch tabs if allowed
             alignTabs(e);
@@ -150,8 +157,8 @@ public class UIController {
          
         if(GUI.snapping) {        // snap closest
             double distance = ui.getTranslateX()%(uiWidth()+5);
-            if(Math.abs(distance)<GUI.snapDistance) {
-                ui.setTranslateX(getTabX(currTab()));
+            if(Math.abs(distance) < GUI.snapDistance) {
+                ui.setTranslateX(-getTabX(currTab()));
             }
         }
         // prevent from propagating the event - disable app behavior while ui drag
@@ -162,7 +169,7 @@ public class UIController {
         int byT = 0;                            // tabs to travel by
 
         double dAbs = Math.abs(dist);
-        if (dAbs > layout.getWidth()*GUI.dragFraction || dAbs > GUI.dragDistance)
+        if (dAbs > ui.getWidth()*GUI.dragFraction || dAbs > GUI.dragDistance)
             byT = (int) - Math.signum(dist);
 
         int currentT = (int) Math.rint(-1*uiCurrX/(uiWidth()+5));
@@ -174,7 +181,11 @@ public class UIController {
         uiDrag.play();
     }
     
-    /** Scrolls current tab on the layout screen to center. */
+    /** 
+     * Scrolls to tab best suited to be shown. It is the tab that already occupies
+     * the biggest portion of this pane.
+     * It is pointless to use this method when autoalign is enabled.
+     */
     public void alignTabs() {
         int toT = currTab();
         uiDrag.stop();
@@ -183,21 +194,25 @@ public class UIController {
         uiDrag.play();
     }
     
-    /** @return index of currently viewed tab. It is the tab consuming the most
-     * of the view space on the layout screen.*/
+    /** 
+     * @return index of currently viewed tab. It is the tab consuming the most
+     * of the view space on the layout screen.
+     */
     public int currTab() {
         return (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
     }
     
+    // get current ui width
     private double uiWidth() { // must never return 0 (divisio by zero)
         // gui might not be initialized, use window size
         return (ui.getWidth()==0) ? Configuration.windowWidth-10 : ui.getWidth(); 
     }
+    
+    // get current X position of the tab with the specified index
     private double getTabX(int i) {
         if (i==0) 
             return 0;
-        else
-        if (tabs.containsKey(i))
+        else if (tabs.containsKey(i))
             return tabs.get(i).getLayoutX();
         else
             return (uiWidth()+5)*i;

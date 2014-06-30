@@ -1,12 +1,12 @@
 
 package AudioPlayer.playlist;
 
+import Action.IsAction;
+import Action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import Configuration.Configurable;
-import Action.IsAction;
-import Action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Dialogs.ContentDialog;
@@ -639,16 +639,15 @@ public class PlaylistManager implements Configurable {
         ContentDialog<TextField> dialog = new ContentDialog();
         dialog.setContent(f);
         dialog.setTitle("Choose URL");
-        dialog.setOnOk( c -> {
-            addUrl(c.getText());
-            
-                if(add) addUrl(c.getText());
-                else {
-                    PLAYBACK.stop();
-                    removeAllItems();
-                    addUrl(c.getText());
-                    playFirstItem();
-                }
+        dialog.setOnOk( c -> {            
+            if(add) 
+                addUrl(c.getText());
+            else {
+                PLAYBACK.stop();
+                removeAllItems();
+                addUrl(c.getText());
+                playFirstItem();
+            }
             
             return true;
         });

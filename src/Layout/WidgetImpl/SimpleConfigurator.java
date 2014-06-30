@@ -66,14 +66,12 @@ public class SimpleConfigurator {
     
     @FXML
     private void ok() {
-        if (configFields.stream().noneMatch(ConfigField::hasValue)) {
+        if (configFields.stream().noneMatch(ConfigField::hasUnappliedValue)) {
             Log.mess("No change");
             return;
         }
         
-        for (ConfigField f: configFields)
-            if (f.hasValue())
-                configurable.setField(f.getName(), f.getValue());
+        configFields.forEach(ConfigField::applyNsetIfAvailable);
         
         initialize();
         onOK.run();

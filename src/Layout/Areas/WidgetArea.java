@@ -14,7 +14,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 
@@ -48,10 +48,10 @@ public final class WidgetArea extends UniArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            if (!controlsOn) return;                        // disallow in normal mode
-            if (e.getButton()==MouseButton.PRIMARY) {       // primary button drag only
+            if (!controlsOn) return;            // disallow in normal mode
+            if (e.getButton()==PRIMARY) {       // primary button drag only
                 ClipboardContent c = new ClipboardContent();
-                c.put(DragUtil.widgetDataFormat, new WidgetTransfer(widget, container));
+                c.put(DragUtil.widgetDF, new WidgetTransfer(widget, container));
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                           db.setContent(c);
                 e.consume();
@@ -60,14 +60,14 @@ public final class WidgetArea extends UniArea {
         // support drag onto
         root.setOnDragOver( e -> {
             Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDataFormat))
+            if (db.hasContent(DragUtil.widgetDF))
                 e.acceptTransferModes(TransferMode.ANY);
             e.consume();
         });
         root.setOnDragDropped( e -> {
             Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDataFormat)) {
-                WidgetTransfer wt = (WidgetTransfer) db.getContent(DragUtil.widgetDataFormat);
+            if (db.hasContent(DragUtil.widgetDF)) {
+                WidgetTransfer wt = (WidgetTransfer) db.getContent(DragUtil.widgetDF);
                 container.swapChildren(widget, wt.getContainer(),wt.getWidget());
             }
             e.consume();

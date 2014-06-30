@@ -3,11 +3,13 @@ package GUI.ItemHolders;
 
 import Action.Action;
 import Configuration.Config;
+import Configuration.Configuration;
 import Configuration.StringEnum;
-import GUI.GUI;
-import GUI.ItemHolders.ItemTextFields.DirTextField;
+import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
+import GUI.ItemHolders.ItemTextFields.ItemTextField.DialogButton;
 import java.io.File;
+import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -24,54 +26,176 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.KeyCode.ENTER;
+import static javafx.scene.input.KeyEvent.KEY_RELEASED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Duration;
+import org.controlsfx.control.textfield.CustomTextField;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
+import utilities.Parser.FileParser;
+import utilities.Parser.FontParser;
+import utilities.Parser.Parser;
 
 /**
- * Its a convenient way to create wide and diverse property sheets, that take 
+ * Editable and setable graphic control for configuring {@Config}.
+ * <p>
+ * Convenient way to create wide and diverse property sheets, that take 
  * type of configuration into consideration. For example
  * for boolean CheckBox control will be used, for enum ComboBox etc...
  *
  * @author uranium
  */
-abstract public class ConfigField<T extends Object> {
+abstract public class ConfigField<T> implements ItemHolder<T>{
     private final Label label = new Label();
-    private final String field_name;
-    private final T old;
+    private final HBox box = new HBox();
+    final T value;
+    final Config config;
+    private boolean applyOnChange = true;
 
-    private ConfigField(String name, T item) {
-        field_name = name; 
-        old = item;
+    private ConfigField(Config c) {
+        value = (T) c.getValue();
+        config = c;
+        label.setText(c.getGuiName());
+        
+        GlyphFont gf = GlyphFontRegistry.font("FontAwesome");
+        Node n = gf.fontColor(Color.AQUA).fontSize(11).create(FontAwesome.Glyph.REPEAT.getChar());
+             n.getStyleClass().setAll("mini-button");
+             n.setOpacity(0);
+             n.setOnMouseClicked(e-> {
+                Configuration.setNapplyField(config.getName(),config.defaultValue);
+                refreshItem();
+             });
+//        Node defaultB = FontAwesome.Glyph.ANCHOR.create();
+             n.resize(15,15);
+             
+        box.getChildren().add(n);
+        box.setMinSize(0,0);
+        box.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
+        box.setSpacing(5);
+        box.setAlignment(CENTER_LEFT);
+        
+        FadeTransition fa = new FadeTransition(Duration.millis(500), n);
+        box.addEventFilter(MOUSE_ENTERED, e-> {
+            fa.stop();
+            fa.setDelay(Duration.millis(300));
+            fa.setToValue(1);
+            fa.play();
+        });
+        box.addEventFilter(MOUSE_EXITED, e-> {
+            fa.stop();
+            fa.setDelay(Duration.ZERO);
+            fa.setToValue(0);
+            fa.play();
+        });
     }
     
-    /**@return name of the field*/
-    public String getName() {
-        return field_name;
+    /**
+     * Simply compares the current value with the one obtained from Config.
+     * Equivalent to: !config.getValue().equals(getItem());
+     * @return true if has value that has not been applied
+     */
+    public boolean hasUnappliedValue() {
+        return !config.getValue().equals(getItem());
     }
     
-    /** sets name of the field displayed in gui*/
-    public void setName(String val) {
-        if (!val.isEmpty()) label.setText(val);
+    /**
+     * Sets editability by disabling the Nodes responsible for value change
+     * @param val 
+     */
+    public void setEditable(boolean val) {
+        getNode().setDisable(val);
     }
     
-    /**@return name of the field*/
-    abstract public String getValue();
-    
-    /**@return true if has value*/
-    public boolean hasValue() {
-        return !getValue().isEmpty();
-    }
-    
-    /**@return label describing this field*/
+    /**
+     * Use to get the label to attach it to a scene graph.
+     * @return label describing this field
+     */
     public Label getLabel() {
         return label;
     }
     
-    /**@return setter control for this field*/
-    abstract public Node getControl();
+    /**
+     * Use to get the control node for setting and displaying the value to 
+     * attach it to a scene graph.
+     * @return setter control for this field
+     */
+    public Node getControl() {
+        if(!box.getChildren().contains(getNode()))
+            box.getChildren().add(0, getNode());
+        box.setHgrow(getNode(), Priority.ALWAYS);
+        return box;
+    }
+    
+    /**
+     * Use to get the control node for setting and displaying the value to 
+     * attach it to a scene graph.
+     * @return setter control for this field
+     */
+    abstract Node getNode();
+
+    /**
+     * {@inheritDoc}
+     * Returns the currently displayed value. Use to get for custom implementations
+     * of setting and applying the value. Usually it is compared to the value obtain
+     * from the Config from the {@link #getConfig()} method and then decided whether
+     * it should be set or applied or ignored.
+     * <p>
+     * Current value is value displayed. Because it can be edited in real time
+     * by the user and it can be represented visually by a String or differently
+     * it doesnt have to be valid at all times - therefore, if the value is not
+     * valid (can not be obtained) the method returns currently set value.
+     * 
+     * @return 
+     */
+    @Override
+    public abstract T getItem();
+    
+    abstract void refreshItem();
+    
+    /**
+     * Returns the {@link Config}. Use for custom implementations of setting and
+     * applying new values.
+     * @return name of the field
+     */
+    public Config getConfig() {
+        return config;
+    }
+    
+    public boolean isApplyOnChange() {
+        return applyOnChange;
+    }
+    
+    public void setApplyOnChange(boolean val) {
+        applyOnChange = val;
+    }
+    
+    /**
+     * Convenience method and default implementation of set and apply mechanism.
+     * <p>
+     * Checks te current value and compares it with the value obtainable from
+     * the config (representing the currently set value) and sets and applies
+     * the current value of the values differ.
+     * <p>
+     * To understand the difference
+     * between changing and applying refer to {@link Config}.
+     * 
+     * @return whether any change occured. Occurs when change needs to be applied.
+     * Equivalent to calling {@link #hasUnappliedValue()} method.
+     */
+    public boolean applyNsetIfAvailable() {
+        if(hasUnappliedValue()) {
+            Configuration.setNapplyField(config.getName(), getItem());
+            return true;
+        } else return false;
+    }
     
 /******************************************************************************/
     
@@ -87,112 +211,153 @@ abstract public class ConfigField<T extends Object> {
         Object val = f.getValue();
         
         ConfigField cf;
-        if (name.equals("skin"))
-            cf = new SkinField(name, val);
-        else
+//        if (name.equals("skin"))
+//            cf = new SkinField(f);
+//        else
         if (val instanceof Boolean)
-            cf = new BooleanField(name, (boolean)val);
+            cf = new BooleanField(f);
         else 
-        if (val instanceof Enum) {
-            cf = new EnumField(name, val);}
+        if (val instanceof Enum)
+            cf = new EnumField(f);
         else
         if (val instanceof Action)
-            cf = new ShortcutField(name, (Action)val);
+            cf = new ShortcutField(f);
         else
         if (val instanceof Color)
-            cf = new ColorField(name, (Color)val);
+            cf = new ColorField(f);
         else
         if (val instanceof File)
-            cf = new DirectoryField(name, (File)val);
+            cf = new FileField(f);
         else
         if (val instanceof StringEnum)
-            cf = new EnumListField(name, (StringEnum)val);
+            cf = new EnumListField(f);
         else
         if (val instanceof Font)
-            cf = new FontField(name, (Font)val);
+            cf = new FontField(f);
         else
         if (f.isMinMax())
-            cf = new SliderField(name, (Number)f.getValue(), f.getMin(), f.getMax());
-        else 
-            cf = new GeneralField(name, val);
+            cf = new SliderField(f);
+        else
+            cf = new GeneralField(f);
 
         
-        cf.setName(f.getGuiName());
-        cf.getLabel().setTooltip(new Tooltip(f.getInfo()));
-        Tooltip.install(cf.getControl(), new Tooltip(f.getInfo()));
-        cf.getControl().setDisable(!f.isEditable());
+        cf.setEditable(!f.isEditable());
+        if(!f.getInfo().isEmpty()) {
+            Tooltip tooltip = new Tooltip(f.getInfo());
+                    tooltip.setWrapText(true);
+                    tooltip.setMaxWidth(300);
+            cf.getLabel().setTooltip(tooltip);
+            Tooltip.install(cf.getNode(),tooltip);
+        }
         
         return cf;
     }
     
 /******************************************************************************/
     
-    private static class GeneralField extends ConfigField<Object> {
-        TextField control;
+    private static final class GeneralField extends ConfigField<Object> {
+        CustomTextField txtF = new CustomTextField();
         final boolean allow_empty; // only for string
+        DialogButton applyB = new DialogButton(FontAwesome.Glyph.OK);
         
-        private GeneralField(String name, Object value) {
-            super(name,value);
-            allow_empty = value instanceof String;
-            control = new TextField();
-            control.setPromptText(value.toString());
-            control.setOnMouseClicked((MouseEvent t) -> {
-                if (control.getText().isEmpty())
-                    control.setText(control.getPromptText());
+        private GeneralField(Config c) {
+            super(c);
+            allow_empty = c.getType().equals(String.class);
+            
+            txtF.setContextMenu(null);
+            txtF.getStyleClass().setAll("text-field","text-input");
+            txtF.setPromptText(value.toString());
+            // start edit
+            txtF.setOnMouseClicked( e -> {
+                if (txtF.getText().isEmpty())
+                    txtF.setText(txtF.getPromptText());
             });
+            txtF.focusedProperty().addListener((o,oldV,newV)->{
+                if(newV) {
+                    if (txtF.getText().isEmpty())
+                        txtF.setText(txtF.getPromptText());
+                } else {
+                    txtF.setText("");
+                    txtF.setLeft(new Region());
+                    applyB.setVisible(false);
+                }
+            });
+            
             if (allow_empty)
-                control.setOnKeyReleased((KeyEvent e) -> {
-                    if (e.getCode().equals(KeyCode.BACK_SPACE) || e.getCode().equals(KeyCode.DELETE)) {
-                        if (control.getPromptText().isEmpty())
-                            control.setPromptText(super.old.toString());
+                txtF.addEventHandler(KEY_RELEASED, e -> {
+                    if (e.getCode()==BACK_SPACE || e.getCode()==DELETE) {
+                        if (txtF.getPromptText().isEmpty())
+                            txtF.setPromptText(Parser.toS(config.getValue()));
                         else
-                            control.setPromptText("");
+                            txtF.setPromptText("");
                     }
                 });
+            // applying value
+            txtF.textProperty().addListener((o,oldV,newV)-> {
+                txtF.setLeft(!newV.isEmpty() && !newV.equals(txtF.getPromptText())
+                                ? applyB : new Region());
+                applyB.setVisible(!newV.isEmpty() && !newV.equals(txtF.getPromptText()));
+            });
+            applyB.setOnMouseClicked( e -> apply());
+            txtF.setOnKeyPressed(e-> { if(e.getCode()==ENTER) apply(); });
         }
-        @Override public String getValue() {
-            return control.getText();
+        
+        @Override public Control getNode() {
+            return txtF;
         }
-        @Override public Control getControl() {
-            return control;
-        }     
-        @Override public boolean hasValue() {
-            if (control.getPromptText().isEmpty())
-                return !control.getText().equals(super.old);
-            else
-                return !control.getText().isEmpty() && 
-                       !control.getText().equals(super.old);
+        @Override public Object getItem() {
+            String text = txtF.getText();
+            if(allow_empty) {
+                return txtF.getPromptText().isEmpty() ? config.getValue() : "";
+            } else {
+                return text.isEmpty() ? config.getValue() : Parser.fromS(config.getType(), text);
+            }
+        }
+        void apply() {
+            if(isApplyOnChange()) {
+                applyNsetIfAvailable();
+                txtF.setPromptText(Parser.toS(getItem()));
+            } 
+            txtF.setLeft(new Region());
+            applyB.setVisible(false);
+            
+        }
+        @Override void refreshItem() {
+            txtF.setPromptText(Parser.toS(config.getValue()));
+            txtF.setText("");
         }
     }
     
     private static class BooleanField extends ConfigField<Boolean> {
-        CheckBox control;
+        CheckBox cBox;
         
-        private BooleanField(String name, Boolean value) {
-            super(name,value);
-            control = new CheckBox();
-            control.setSelected(value);
-        }
-        @Override public String getValue() {
-            return String.valueOf(control.isSelected());
-        }
-        @Override public Control getControl() {
-            return control;
-        }
-        @Override public boolean hasValue() {
-            return super.old != control.isSelected();
+        private BooleanField(Config c) {
+            super(c);
+            cBox = new CheckBox();
+            cBox.setSelected(value);
+            cBox.selectedProperty().addListener((o,oldV,newV)->{
+                if(isApplyOnChange()) applyNsetIfAvailable();
+            });
         }
         
+        @Override public Control getNode() {
+            return cBox;
+        }
+        @Override public Boolean getItem() {
+            return cBox.isSelected();
+        }
+        @Override void refreshItem() {
+            cBox.setSelected((Boolean)config.getValue());
+        }
     }
     
     private static class EnumField extends ConfigField<Object> {
-        ChoiceBox<Object> control;
+        ChoiceBox<Object> cBox;
         
-        private EnumField(String name, Object value) {
-            super(name,value);
-            control = new ChoiceBox<>();
+        private EnumField(Config c) {
+            super(c);
+            cBox = new ChoiceBox();
             ObservableList<Object> constants = FXCollections.observableArrayList();
-            
             // get enum constants
             if(value.getClass().getEnclosingClass()!=null && value.getClass().getEnclosingClass().isEnum())
                 // handle enums with class method bodies
@@ -201,55 +366,70 @@ abstract public class ConfigField<T extends Object> {
                 // handle normal enums
                 constants.setAll(value.getClass().getEnumConstants());
             
-            control.setItems(constants);
-            control.getSelectionModel().select(value);
+            cBox.setItems(constants);
+            cBox.getSelectionModel().select(value);
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
+                if(isApplyOnChange()) applyNsetIfAvailable();
+            });
         }
-        @Override public String getValue() {
-            return control.getSelectionModel().getSelectedItem().toString();
+        
+        @Override public Control getNode() {
+            return cBox;
         }
-        @Override public Control getControl() {
-            return control;
+        @Override public Object getItem() {
+            return cBox.getValue();
         }
-        @Override public boolean hasValue() {
-            return !super.old.toString().equals(getValue());
+        @Override void refreshItem() {
+            cBox.setValue(config.getValue());
         }
     }
     
-    private static class EnumListField extends ConfigField {
-        ChoiceBox<StringEnum> control;
+    private static class EnumListField extends ConfigField<StringEnum> {
+        ChoiceBox<StringEnum> cBox;
         
-        private EnumListField(String name, StringEnum value) {
-            super(name,value);
-            control = new ChoiceBox<>();
-            control.getItems().setAll(value.valuesOrig());
-            control.getSelectionModel().select(value);
+        private EnumListField(Config c) {
+            super(c);
+            cBox = new ChoiceBox();
+            cBox.getItems().setAll(value.valuesOrig());
+            cBox.getSelectionModel().select(value);
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
+                if(isApplyOnChange()) applyNsetIfAvailable();
+            });
         }
-        @Override public String getValue() {
-            return control.getSelectionModel().getSelectedItem().toString();
+        
+        @Override public Control getNode() {
+            return cBox;
         }
-        @Override public Control getControl() {
-            return control;
+        @Override public StringEnum getItem() {
+            return cBox.getValue();
         }
-        @Override public boolean hasValue() {
-            return !super.old.toString().equals(getValue());
+        @Override void refreshItem() {
+            cBox.getSelectionModel().select((StringEnum)config.getValue());
         }
     }
     
     private static class SliderField extends ConfigField<Number> {
-        Slider control;
-        String curr = "";
-        private SliderField(String name, Number value, double min, double max) {
-            super(name,value);
-            control = new Slider(min, max, value.doubleValue());
-            control.valueProperty().addListener(o -> {
-                curr = String.valueOf(control.getValue());
+        Slider slider;
+        private SliderField(Config c) {
+            super(c);
+            slider = new Slider(c.getMin(),c.getMax(),value.doubleValue());
+            // there is a slight bug where isValueChanging is false even it if 
+            // shouldnt. It appears when mouse clicks NOT on the thumb but on
+            // the slider track instead and keeps dragging. valueChanging doesn
+            // activate - fill out JIRA bug?
+            slider.valueProperty().addListener((o,oldV,newV)-> {
+                if(isApplyOnChange() && !slider.isValueChanging())
+                    applyNsetIfAvailable();
+            });
+            slider.setOnMouseReleased(e-> {
+                if(isApplyOnChange()) applyNsetIfAvailable();
             });
             
             // add scrolling support
-            control.setBlockIncrement((max-min)/20);
-            control.setOnScroll( e -> {
-                if (e.getDeltaY()>0) control.increment();
-                else control.decrement();
+            slider.setBlockIncrement((c.getMax()-c.getMin())/20);
+            slider.setOnScroll( e -> {
+                if (e.getDeltaY()>0) slider.increment();
+                else slider.decrement();
                 e.consume();
             });
 
@@ -258,36 +438,42 @@ abstract public class ConfigField<T extends Object> {
 //            control.setMajorTickUnit((max-min)/2);
 //            control.setSnapToTicks(true);
         }
-        @Override public String getValue() {
-            return curr;
+        
+        @Override public Control getNode() {
+            return slider;
         }
-        @Override public Control getControl() {
-            return control;
+        @Override public Number getItem() {
+            return slider.getValue();
+        }
+        @Override void refreshItem() {
+            slider.setValue(((Number)config.getValue()).doubleValue());
         }
     }
     
-    /** Specifically for listing out available skins. */
-    private static class SkinField extends ConfigField<Object> {
-        ChoiceBox<Object> control;
-        
-        private SkinField(String name, Object value) {
-            super(name,value);
-            control = new ChoiceBox<>();
-            ObservableList<Object> items = FXCollections.observableArrayList();
-                                   items.setAll(GUI.getSkins());
-            control.setItems(items);
-            control.getSelectionModel().select(value);
-        }
-        @Override public String getValue() {
-            return control.getSelectionModel().getSelectedItem().toString();
-        }
-        @Override public Control getControl() {
-            return control;
-        }
-        @Override public boolean hasValue() {
-            return !super.old.toString().equals(getValue());
-        }
-    }
+    
+//    /** Specifically for listing out available skins. */
+//    private static class SkinField extends ConfigField<Object> {
+//        ChoiceBox<Object> cBox;
+//        
+//        private SkinField(Config c) {
+//            super(c);
+//            cBox = new ChoiceBox();
+//            ObservableList<Object> items = FXCollections.observableArrayList();
+//                                   items.setAll(GUI.getSkins());
+//            cBox.setItems(items);
+//            cBox.getSelectionModel().select(super.value);
+//            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
+//                if(isApplyOnChange()) applyNsetIfAvailable();
+//            });
+//        }
+//        
+//        @Override public Control getControl() {
+//            return cBox;
+//        }
+//        @Override public Object getItem() {
+//            return cBox.getValue();
+//        }
+//    }
     
     private static class ShortcutField extends ConfigField<Action> {
         TextField control;
@@ -296,21 +482,22 @@ abstract public class ConfigField<T extends Object> {
         Class<?> type;
         String t="";
         
-        private ShortcutField(String name, Action value) {
-            super(name,value);
+        private ShortcutField(Config con) {
+            super(con);
+            Action value = super.value;
             
             control = new TextField();
-            control.setPromptText(super.old.getKeys());
+            control.setPromptText(super.value.getKeys());
             control.setOnKeyReleased( e -> {
                 KeyCode c = e.getCode();
                 // handle substraction
                 if (c==BACK_SPACE || c==DELETE) {
                     control.setPromptText("");
-                    if (!control.getText().isEmpty()) control.setPromptText(super.old.getKeys());
+                    if (!control.getText().isEmpty()) control.setPromptText(super.value.getKeys());
                     
                     
                     if (t.isEmpty()) {  // set back to empty
-                        control.setPromptText(super.old.getKeys());
+                        control.setPromptText(super.value.getKeys());
                     } else {            // substract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
@@ -332,85 +519,96 @@ abstract public class ConfigField<T extends Object> {
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
-        @Override public String getValue() {
-            if(control.getText().isEmpty()) return global.isSelected()+","+control.getPromptText();
-            return global.isSelected() + "," + control.getText();
-        }
-        @Override public Node getControl() {
+        
+        @Override public Node getNode() {
             return group;
         }
-        @Override public boolean hasValue() {
-            return !getValue().equals(super.old.toString());
+        @Override public boolean hasUnappliedValue() {
+            return false;
+        }
+        @Override public Action getItem() {
+            return value;
+        }
+        @Override void refreshItem() {
+            Action a = (Action)config.getValue();
+            control.setPromptText(a.getKeys());
+            control.setText("");
+            global.setSelected(a.isGlobal());
         }
     }
     
     private static final class ColorField extends ConfigField<Color> {
         ColorPicker picker = new ColorPicker();
         
-        private ColorField(String name, Color value) {
-            super(name,value);
+        private ColorField(Config c) {
+            super(c);
             picker.setValue(value);
+            picker.valueProperty().addListener((o,oldV,newV) -> {
+                if(isApplyOnChange()) applyNsetIfAvailable();
+            });
         }
-
-        @Override public String getValue() { 
-            return picker.getValue().toString();
-        }
-        @Override public boolean hasValue() {
-            return getValue() != null && !picker.getValue().equals(super.old);
-        }
-        @Override public Control getControl() {
+        
+        @Override public Control getNode() {
             return picker;
+        }
+        @Override public Color getItem() {
+            return picker.getValue();
+        }
+        @Override void refreshItem() {
+            picker.setValue((Color)config.getValue());
         }
     }
       
     private static final class FontField extends ConfigField<Font> {
-        FontTextField control = new FontTextField();
+        FontTextField txtF = new FontTextField();
         
-        private FontField(String name, Font value) {
-            super(name,value);
+        private FontField(Config c) {
+            super(c);
             
-            control.setOnItemChange(newFont -> {
-                if(newFont.equals(super.old)) {
-                    control.setText("");
+            txtF.setOnItemChange((oldFont,newFont) -> {
+                if(!newFont.equals(oldFont)) {  // we shouldnt rely on Font.equals here
+                    txtF.setPromptText(new FontParser().toS(newFont));
                 }
+                txtF.setText(""); // always stay in prompt text more
             });
-            control.setItem(value);
+            txtF.setItem(value);
         }
-
-        @Override public String getValue() { 
-            return control.getText();
+        
+        @Override public Control getNode() {
+            return txtF;
         }
-        @Override public boolean hasValue() {
-            return !getValue().isEmpty() && !control.getItem().equals(super.old);
+        @Override public Font getItem() {
+            return txtF.getItem();
         }
-        @Override public Control getControl() {
-            return control;
+        @Override void refreshItem() {
+            txtF.setItem((Font)config.getValue());
         }
     }
     
-    private static final class DirectoryField extends ConfigField<File> {
-        DirTextField control = new DirTextField();
+    private static final class FileField extends ConfigField<File> {
+        FileTextField txtF = new FileTextField();
         
-        public DirectoryField(String name, File value) {
-            super(name,value);
+        public FileField(Config c) {
+            super(c);
             
-            control.setOnItemChange(newFont -> {
-                if(newFont.equals(super.old)) {
-                    control.setText("");
+            txtF.setOnItemChange((oldFile,newFile) -> {
+                if(!newFile.equals(oldFile)) {
+                    applyNsetIfAvailable();
+                    txtF.setPromptText(new FileParser().toS(newFile));
                 }
+                txtF.setText(""); // always stay in prompt text more
             });
-            control.setItem(value);
+            txtF.setItem(super.value);
         }
         
-        @Override public String getValue() {
-            return control.getText();
+        @Override public Control getNode() {
+            return txtF;
         }
-        @Override public boolean hasValue() {
-            return !getValue().isEmpty() && !control.getItem().equals(super.old);
+        @Override public File getItem() {
+            return txtF.getItem();
         }
-        @Override public Control getControl() {
-            return control;
+        @Override void refreshItem() {
+            txtF.setItem((File)config.getValue());
         }
-        
     }
 }

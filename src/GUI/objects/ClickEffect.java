@@ -1,6 +1,7 @@
 
 package GUI.objects;
 
+import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.ContextManager;
@@ -8,10 +9,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.animation.FadeTransitionBuilder;
+import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
-import javafx.animation.ParallelTransitionBuilder;
-import javafx.animation.ScaleTransitionBuilder;
+import javafx.animation.ScaleTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.CacheHint;
 import javafx.scene.effect.BlendMode;
@@ -41,49 +41,34 @@ public class ClickEffect {
     public static double MAX_SCALE = 0.7;
     @IsConfig(name="Click effect delay", info = "Delay of the click effect in milliseconds.")
     public static double DELAY = 0;
-    @IsConfig(name="Click effect intensity", info = "Intensity of the cursor trail effect. Currently logarithmic.", min = 1, max = 100)
+    @IsConfig(name="Trail effect intensity", info = "Intensity of the cursor trail effect. Currently logarithmic.", min = 1, max = 100)
     public static double effect_intensity = 50;
-    @IsConfig(name="Blend Mode", info = "Blending mode forthe effect.")
+    @IsConfig(name="Blend Mode", info = "Blending mode for the effect.")
     public static BlendMode blend_mode = BlendMode.SRC_OVER;
     
+    @AppliesConfig(config = "blend_mode")
+    @AppliesConfig(config = "DURATION")
+    @AppliesConfig(config = "MIN_SCALE")
+    @AppliesConfig(config = "MAX_SCALE")
+    @AppliesConfig(config = "DELAY")
+    private static void applyEffectAttributes() {
+        pool.forEach(ClickEffect::apply);
+    }
+        
     // loading
     private static final URL fxml = ClickEffect.class.getResource("ClickEffect.fxml");
     private static final FXMLLoader fxmlLoader = new FXMLLoader(fxml);
     
     // pooling
-    private static final List<ClickEffect> passive = new ArrayList<>();
+    private static final List<ClickEffect> pool = new ArrayList();
     private static int counter = 0;
     
-    // fields
-    private final AnchorPane root = new AnchorPane();
-    private final ParallelTransition effect= ParallelTransitionBuilder.create()
-            .node(root)
-            .children(
-                FadeTransitionBuilder.create()
-                    .duration(Duration.millis(DURATION))
-                    .delay(Duration.millis(DELAY))
-                    .fromValue(0.6)
-                    .toValue(0)
-                    .build(),
-                ScaleTransitionBuilder.create()
-                    .duration(Duration.millis(DURATION))
-                    .delay(Duration.millis(DELAY))
-                    .fromX(MIN_SCALE)
-                    .fromY(MIN_SCALE)
-                    .toX(MAX_SCALE)
-                    .toY(MAX_SCALE)
-                    .build()
-            )
-            .build();
-
-
-    
     public static ClickEffect create() {
-        if (passive.isEmpty())
+        if (pool.isEmpty())
             return new ClickEffect();
         else {
-            ClickEffect c = passive.get(0);
-            passive.remove(0);
+            ClickEffect c = pool.get(0);
+            pool.remove(0);
             return c;
         }
     }
@@ -102,13 +87,20 @@ public class ClickEffect {
     
 /******************************************************************************/
     
+    // fields
+    private AnchorPane parent;
+    private final AnchorPane root = new AnchorPane();
+    private final FadeTransition fade = new FadeTransition();
+    private final ScaleTransition scale = new ScaleTransition();
+    private final ParallelTransition anim = new ParallelTransition(root,fade,scale);
+    
     private ClickEffect() {
         try {
             fxmlLoader.setRoot(root);
             fxmlLoader.setController(this);
             fxmlLoader.load();
             initialize();
-            ContextManager.gui.overlayPane.getChildren().add(root);
+//            ContextManager.overlayPane.getChildren().add(root);
         } catch (IOException ex) {
             Log.err("ClickEffect source data coudlnt be read.");
         }
@@ -118,19 +110,37 @@ public class ClickEffect {
         root.setVisible(false);
         root.setCache(true);
         root.setCacheHint(CacheHint.SPEED);
-        root.setBlendMode(blend_mode);
-        effect.setOnFinished( e -> {
-            passive.add(this);
+        anim.setOnFinished( e -> {
+            parent.getChildren().remove(root);
+            pool.add(this);
         });
+        apply();
     }
     
     private void play(double X, double Y) {        
+        parent = ContextManager.activeWindow.overlayPane;
+        parent.getChildren().add(root);
         // center position on run
         root.setLayoutX(X-(root.getWidth()/2));
         root.setLayoutY(Y-(root.getHeight()/2));
         
         // run effect
         root.setVisible(true);
-        effect.play();
+        anim.play();
+    }
+    
+    void apply() {
+        root.setBlendMode(blend_mode);
+        anim.setDelay(Duration.millis(DELAY));
+        
+        fade.setDuration(Duration.millis(DURATION));
+        fade.setFromValue(0.6);
+        fade.setToValue(0);
+        
+        scale.setDuration(Duration.millis(DURATION));
+        scale.setFromX(MIN_SCALE);
+        scale.setFromY(MIN_SCALE);
+        scale.setToX(MAX_SCALE);
+        scale.setToY(MAX_SCALE);
     }
 }

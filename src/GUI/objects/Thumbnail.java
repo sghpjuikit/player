@@ -6,8 +6,8 @@ package GUI.objects;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.Traits.ScaleOnHoverTrait;
 import GUI.ContextManager;
+import GUI.Traits.ScaleOnHoverTrait;
 import PseudoObjects.TODO;
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +31,7 @@ import javafx.scene.input.DataFormat;
 import static javafx.scene.input.DataFormat.FILES;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.MIDDLE;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
@@ -354,7 +355,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     private EventHandler<MouseEvent> buildDragHandler() {
         return e -> {
-            if(img_file!=null) {
+            if(e.getButton()==PRIMARY && img_file!=null) {
                 Dragboard db = root.startDragAndDrop(TransferMode.LINK);
                 // set image
                 if(getImage()!=null) db.setDragView(getImage());

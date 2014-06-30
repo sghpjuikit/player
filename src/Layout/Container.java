@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import utilities.Log;
 
 /**
  * @author uranium
@@ -62,6 +63,7 @@ public abstract class Container extends Component implements AltState {
     @XStreamOmitField
     Container parent;
     
+    /** {@inheritDoc} */
     @Override
     public String getName() {
         return this.getClass().getName();
@@ -121,7 +123,7 @@ public abstract class Container extends Component implements AltState {
      * Removes child of this container if it exists.
      * @param c component to remove
      */
-    public void removeChild(Component c) {System.out.println("index is "+ indexOf(c));
+    public void removeChild(Component c) {
         removeChild(indexOf(c)); 
     }
     
@@ -129,7 +131,8 @@ public abstract class Container extends Component implements AltState {
      * Removes child of this container at specified index.
      * @param index of the child to remove. Null is ignored.
      */
-    public void removeChild(Integer index) {System.out.println("REMOVE INDEX "+index + " "+getChildren().size());
+    public void removeChild(Integer index) {
+        Log.deb("Removing container child at "+ index + " from " + getChildren().size() + " size of children list");
         if(index==null) return;
         addChild(index, null);
     }
@@ -140,27 +143,35 @@ public abstract class Container extends Component implements AltState {
      * @param c2 child to swap with
      * @param w2 container containing the child to swap with
      */
-    public void swapChildren(Component w1, Container c2, Component w2) {        // Log.deb("swapping "+w1.getName() + " with " + w2.getName());
+    public void swapChildren(Component w1, Container c2, Component w2) {        
         Container c1 = this;
-        if (c1.equals(c2)) return;
-        
+        // avoid pointless operation but dont rely on equals
+        // subclass can overide it and cause problems
+        if (c1==c2) return;
+        // forbid nulls - it should never cause problems but just in case
         if(w1==null) w1 = Widget.EMPTY();
         if(w2==null) w2 = Widget.EMPTY();
         
+        Log.deb("Swapping widgets " + w1.getName() + " and " + w2.getName());
+        
         Integer i1 = c1.indexOf(w1);
         Integer i2 = c2.indexOf(w2);
+        c1.addChild(i1, null);
+        c2.addChild(i2, null);
         c1.addChild(i1, w2);
         c2.addChild(i2, w1);
         c1.load();
-        c2.load();
+        c2.load();        
     }
     
     /**
-     * Returns index of a child or null if no child
+     * Returns index of a child or null if no child or parameter null.
      * @param c component
      * @return index of a child or null if no child
      */
     public Integer indexOf(Component c) {
+        if (c==null) return null;
+        
         for (Map.Entry<Integer, ? extends Component> entry: getChildren().entrySet()) {
             if (entry.getValue().equals(c))
                 return entry.getKey();
@@ -310,6 +321,16 @@ public abstract class Container extends Component implements AltState {
         boolean locked = isLocked();
         return locked || (hasParent() && parent.isUnderLock());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return this==o;
+    }
+
+//    @Override
+//    public int hashCode() {
+//        return 7;
+//    }
     
 /******************************************************************************/
     

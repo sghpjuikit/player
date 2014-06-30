@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -6,7 +7,8 @@
 
 package GUI.Dialogs;
 
-import GUI.Window;
+import GUI.objects.PopOver.PopOver;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.AppCenter;
 import java.io.IOException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,9 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
 import javafx.util.Callback;
-import main.App;
 
 /**
  * FXML Controller class
@@ -26,13 +26,14 @@ import main.App;
  * @author Plutonium_
  */
 public class ContentDialog<C extends Node> {
-    @FXML private AnchorPane root = new AnchorPane();
+    
+    @FXML private final AnchorPane root = new AnchorPane();
     @FXML private BorderPane content;
     @FXML private BorderPane messagePane;
     @FXML private Label message;
     @FXML private VBox bottomPane;
     
-    Window w;
+    PopOver p;
     Callback<C, Boolean> onOk;
     
     public ContentDialog() {
@@ -48,24 +49,19 @@ public class ContentDialog<C extends Node> {
         }
         
         // create window
-        w = Window.create();
-        w.setIsPopup(true);
-        w.getStage().initOwner(App.getWindowOwner().getStage());
-        w.getStage().initModality(Modality.APPLICATION_MODAL);
-        w.setContent(root);
-        w.show();
-        w.setLocationCenter();
-        
+        p = new PopOver();
+        p.setArrowSize(0);
+        p.setAutoHide(true);
+        p.setContentNode(root);
     }
     
     public void show() {
-        w.show();
-        w.setLocationCenter();
+        p.show(AppCenter);
     }
 
     @FXML
     public void close() {
-        w.close();
+        p.hideStrong();
     }
     
     @FXML
@@ -114,7 +110,7 @@ public class ContentDialog<C extends Node> {
     }
     
     public void setTitle(String title) {
-        w.setTitle(title);
+        p.setTitle(title);
     }
     
     /**

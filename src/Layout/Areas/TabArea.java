@@ -63,7 +63,7 @@ public final class TabArea extends PolyArea {
             if (!controlsOn) return;                        // disallow in normal mode
             if (e.getButton() == MouseButton.PRIMARY) {     // primary button drag only
                 ClipboardContent cc = new ClipboardContent();
-                cc.put(DragUtil.widgetDataFormat, new WidgetTransfer(container, container.getParent()));
+                cc.put(DragUtil.widgetDF, new WidgetTransfer(container, container.getParent()));
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                           db.setContent(cc);
                 e.consume();
@@ -72,14 +72,15 @@ public final class TabArea extends PolyArea {
         // support drag onto
         root.setOnDragOver( e -> {
             Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDataFormat))
+            if (db.hasContent(DragUtil.widgetDF)) {
                 e.acceptTransferModes(TransferMode.ANY);
-            e.consume();
+                e.consume();
+            }
         });
         root.setOnDragDropped( e -> {
             Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDataFormat)) {
-                WidgetTransfer wt = (WidgetTransfer) db.getContent(DragUtil.widgetDataFormat);
+            if (db.hasContent(DragUtil.widgetDF)) {
+                WidgetTransfer wt = (WidgetTransfer) db.getContent(DragUtil.widgetDF);
                 container.swapChildren(container, wt.getContainer(),wt.getWidget());
             }
             e.consume();

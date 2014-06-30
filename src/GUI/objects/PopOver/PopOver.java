@@ -27,10 +27,16 @@
 package GUI.objects.PopOver;
 
 import GUI.WindowBase;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomLeft;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomRight;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenCenter;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopLeft;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopRight;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javafx.animation.FadeTransition;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -40,7 +46,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.WeakChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
@@ -49,6 +54,8 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
@@ -81,24 +88,6 @@ public class PopOver extends PopupControl {
 
     private static final String STYLE_CLASS = "popover";
     public static List<PopOver> active_popups = new ArrayList(); 
-    
-    public static void autoCloseFire() {
-        // copy list to avoid concurrent modification on hide removal from list
-        // active_popups.stream() wont help here either, why?
-        List<PopOver> popups = new ArrayList<>(active_popups);
-        popups.forEach(p->{
-            if(p.isAutoHide()) p.hide();
-        });
-    }
-    public static void escapeCloseFire() {
-        PopOver pop=null;
-        for(PopOver p: active_popups)
-            if(p.isHideOnEscape()){
-                pop=p;
-                break;
-            }
-        if(pop!=null) pop.hideStrong();
-    }
 
 /******************************************************************************/
 
@@ -108,6 +97,7 @@ public class PopOver extends PopupControl {
     public PopOver() {
         super();
         getStyleClass().add(STYLE_CLASS);
+        setConsumeAutoHidingEvents(false);        
         
         
         // not working as advertized, disable for now...
@@ -217,37 +207,52 @@ public class PopOver extends PopupControl {
         active_popups.remove(this);
         uninstallMoveWith();
         super.hide();
-    }
-    
-    
+    }    
     
 /******************************************************************************/
     
-    private void showThis(Node owner,Window ownerW) {
+    private void showThis(Node ownerNode, Window ownerWindow) {
+        Objects.requireNonNull(ownerWindow);
+        
+        // we must set the owners so moving with owner behavior knows which
+        // mode should be done
+        if(ownerNode!=null) {
+            this.ownerNode = ownerNode;
+            this.ownerWindow = (Stage)ownerNode.getScene().getWindow();
+        }
+        else this.ownerWindow = (Stage) ownerWindow;
         
         setDetached(false);
-        if(owner!=null) {
-           installMoveWithWindowPre(owner.getScene().getWindow());
-           installMoveWithNodePre(owner);
-        } else {
-            if(ownerW!=null) installMoveWithWindowPre(ownerW);
-        }
         
         // show the popup
-        super.show(App.getWindowOwner().getStage(),0,0);
+        super.show(App.getWindow().getStage(),0,0);
         active_popups.add(this);
-        if(isAnimated())getSkin().getNode().setOpacity(opacityOldVal);
+        getSkin().getNode().setOpacity(isAnimated() ? opacityOldVal : 1);
+        
+        // initialize moving with owner behavior to respect set value
+        initializeMovingBehavior(move_with_owner);
+        
+        // fixes 'broken' default hide on ESC functionality. Because hideOnESC
+        // calls hide() method by default, there is no effect in detached mode
+        // we fix this here, because we need default hide() implementation to
+        // not close detached popup
+        getScene().addEventHandler(KEY_PRESSED, e -> {
+            if(e.getCode()==ESCAPE && isHideOnEscape() && isDetached()) 
+                hideStrong();
+        });
     }
+    
     private void position(Node owner,Window ownerW, double x, double y) {
         setX(x);
         setY(y);
         adjustWindowLocation();
         
-        if (isAnimated()) fadeIn();
+        // solves a small bug where the followng variables dont get initialized
+        // and biunding is currently impossible
+        deltaThisX = getX();
+        deltaThisY = getY();
         
-        // now after the popup is visible and constructed
-        if(owner!=null) installMoveWithNodePos(owner);
-//        if(owner==null && ownerW!=null) installMoveWithWindowePos(ownerW);
+        if (isAnimated()) fadeIn();
     }
     
     /**
@@ -263,7 +268,7 @@ public class PopOver extends PopupControl {
      */
     @Override
     public final void show(Node owner, double x, double y) {
-        showThis(owner, null);
+        showThis(owner, owner.getScene().getWindow());
         Point2D a = owner.localToScreen(x,y);
         double X = a.getX() + owner.getBoundsInParent().getWidth()/2;
         double Y = a.getY() + owner.getBoundsInParent().getHeight()/2;
@@ -280,7 +285,7 @@ public class PopOver extends PopupControl {
     
     /** Display at specified designated position relative to node. */
     public void show(Node owner, NodeCentricPos pos) {
-        showThis(owner, null);
+        showThis(owner, owner.getScene().getWindow());
         double X = pos.calcX(owner, this)+owner.getBoundsInParent().getWidth()/2;
         double Y = pos.calcY(owner, this)+owner.getBoundsInParent().getHeight()/2;
         position(owner,null,X,Y);
@@ -298,26 +303,75 @@ public class PopOver extends PopupControl {
         showThis(null, App.getWindow().getStage());
         position(null,  App.getWindow().getStage(), pos.calcX(this), pos.calcY(this));
         
-//        super.show(App.getWindowOwner().getStage());
-//        active_popups.add(this);
-//        setX(pos.calcX(this));
-//        setY(pos.calcY(this));
-//        
-//        if (isAnimated()) fadeIn();
+        if(pos==ScreenBottomLeft || pos==ScreenBottomRight || pos==ScreenCenter 
+                || pos==ScreenTopLeft || pos==ScreenTopRight)
+            uninstallMoveWith();
+        
     }
 
     @Override
     public void show(Window window) {
-        super.show(window);
-        active_popups.add(this);
-        
-        if (isAnimated()) fadeIn();
+        showThis(null, window);
+        uninstallMoveWith();
     }
     
-/******************************************************************************/
+/**************************** MOVE WITH OWNER *********************************/
+    
+    private boolean move_with_owner = true;
+    
+    /**
+     * Sets moving with owner behavior on or off. Default on (true).
+     * <p>
+     * This functionality is characterized by the popup moving with the owning
+     * Window or Node - its positioning relative to its owner becomes absolute.
+     * <p>
+     * There are two 'modes' decided automatically depending on the way this
+     * popover was shown. The position can be absolute relative to the Node or
+     * relative to the Window (or none). The first will reposition this popup
+     * in order for it to stay with the Node (even when the Node only changes
+     * its position within the Window that remained static). Second simply 
+     * follows the Window and the third does nothing.
+     * <p>
+     * The 'mode' is decided based on the parameters of the show method that was
+     * called.
+     * Must never be called before the popover is shown.
+     * @param val 
+     */
+    public void setMoveWithOwner(boolean val) {
+        // avoid wasteful operation, continue only if values differ
+        if(val != move_with_owner) {
+            move_with_owner = val;
+            
+            // if is showing the behavior (one way or the other) was already initialized
+            // and we need to change it. Otherwise, it needs to be applied from
+            // show method as the initialisation can not precede show method
+            // The behavior is uninitialized on hide so it will not be started twice
+            if(isShowing()) {
+                initializeMovingBehavior(val);
+            }
+        }
+    }
+    
+    public boolean isMoveWithOwner() {
+        return move_with_owner;
+    }
+    
+    private void initializeMovingBehavior(boolean val) {
+        // throw exception if illegal state
+        Objects.requireNonNull(ownerWindow, "Error, popup window owner null"
+                + " while isShowing. Cant apply moving with owner behavior");
+        // install/uninstall correct 'mode'
+        if(val) {
+            if(ownerNode!=null) installMoveWithNode(ownerNode); // node mode
+            else installMoveWithWindow(ownerWindow);            // window mode
+        } else {
+            uninstallMoveWith();    // uninstalls both
+        }
+    }
 
-    private Node ownerNode;
-    private Stage ownerWindow;
+    // move with handling -------
+    private Node ownerNode = null;
+    private Stage ownerWindow = null;
     
     private double deltaX = 0;
     private double deltaY = 0;
@@ -325,65 +379,98 @@ public class PopOver extends PopupControl {
     private double deltaThisY = 0;
     private boolean deltaThisLock = false;
     
-    private final ChangeListener<Number> strongXListener = (o, oldX, newX) -> {
+    private final ChangeListener<Number> xListener = (o,oldX,newX) -> {
         if(ownerNode!=null)
             setX(deltaThisX+ownerNode.localToScreen(0, 0).getX()-deltaX);
     };
-    private final ChangeListener<Number> strongYListener = (o, oldY, newY) -> {
+    private final ChangeListener<Number> yListener = (o,oldY,newY) -> {
         if(ownerNode!=null)
             setY(deltaThisY+ownerNode.localToScreen(0, 0).getY()-deltaY);
     };
+    private final ChangeListener<Number> winXListener = (o,oldX,newX) -> {
+        if(ownerWindow!=null)
+            setX(deltaThisX+ownerWindow.getX()-deltaX);
+    };
+    private final ChangeListener<Number> winYListener = (o,oldY,newY) -> {
+        if(ownerWindow!=null)
+            setY(deltaThisY+ownerWindow.getY()-deltaY);
+    };
     
-    private final WeakChangeListener<Number> xListener = new WeakChangeListener(strongXListener);
-    private final WeakChangeListener<Number> yListener = new WeakChangeListener(strongYListener);
-    
-    private void installMoveWithWindowPre(Window owner) {
+    private void installMoveWithWindow(Window owner) {
         ownerWindow = (Stage)owner;
-        ownerWindow.xProperty().addListener(xListener);
-        ownerWindow.yProperty().addListener(yListener);
-        ownerWindow.widthProperty().addListener(xListener);
-        ownerWindow.heightProperty().addListener(yListener);
+        ownerWindow.xProperty().addListener(winXListener);
+        ownerWindow.yProperty().addListener(winYListener);
+        ownerWindow.widthProperty().addListener(winXListener);
+        ownerWindow.heightProperty().addListener(winYListener);
+        // remember owner's position to monitor its position change
+        deltaX = owner.getX();
+        deltaY = owner.getY();
+        installLock();
     }
-//    private void installMoveWithWindowePos(Window owner) {
-//        // monitor this' position for change if lock allows
-//        xProperty().addListener(o->{ if (deltaThisLock) deltaThisX=getX(); });
-//        yProperty().addListener(o->{ if (deltaThisLock) deltaThisY=getY(); });
-//        // remember owner's position to monitor change
-//        deltaX = owner.getX();
-//        deltaY = owner.getY();
-//    }
-    private void installMoveWithNodePre(Node owner) {
+    private void installMoveWithNode(Node owner) {
         ownerNode = owner;
-        owner.layoutXProperty().addListener(xListener);
-        owner.layoutYProperty().addListener(yListener);
-    }
-    private void installMoveWithNodePos(Node owner) {
-        // remember owner's position to monitor change
-        deltaX = owner.localToScreen(0,0).getX();
-        deltaY = owner.localToScreen(0,0).getY();
-        // maintain lock to prevent illegal position monitoring
-        getScene().addEventHandler(MOUSE_PRESSED, e-> deltaThisLock=true );
-        getScene().addEventHandler(MOUSE_RELEASED, e-> deltaThisLock=false );
-        // monitor this' position for change if lock allows
-        xProperty().addListener(o->{ if (deltaThisLock) deltaThisX=getX(); });
-        yProperty().addListener(o->{ if (deltaThisLock) deltaThisY=getY(); });
-        // remember this' position to monitor - listeners wont initialize it
-        deltaThisX = this.getX();
-        deltaThisY = this.getY();
+        ownerNode.getScene().getWindow().xProperty().addListener(xListener);
+        ownerNode.getScene().getWindow().yProperty().addListener(yListener);
+        ownerNode.getScene().getWindow().widthProperty().addListener(xListener);
+        ownerNode.getScene().getWindow().heightProperty().addListener(yListener);
+        ownerNode.layoutXProperty().addListener(xListener);
+        ownerNode.layoutYProperty().addListener(yListener);
+        // remember owner's position to monitor its position change
+        deltaX = ownerNode.localToScreen(0,0).getX();
+        deltaY = ownerNode.localToScreen(0,0).getY();
+        installLock();
     }
     private void uninstallMoveWith() {
         if(ownerWindow!=null) {
-            ownerWindow.xProperty().removeListener(xListener);
-            ownerWindow.yProperty().removeListener(yListener);
-            ownerWindow.widthProperty().removeListener(xListener);
-            ownerWindow.heightProperty().removeListener(yListener);
+            ownerWindow.xProperty().removeListener(winXListener);
+            ownerWindow.yProperty().removeListener(winYListener);
+            ownerWindow.widthProperty().removeListener(winXListener);
+            ownerWindow.heightProperty().removeListener(winYListener);
             ownerWindow = null;
         }
         if(ownerNode!=null) {
             ownerNode.layoutXProperty().removeListener(xListener);
             ownerNode.layoutYProperty().removeListener(yListener);
+            ownerNode.getScene().getWindow().xProperty().removeListener(xListener);
+            ownerNode.getScene().getWindow().yProperty().removeListener(yListener);
+            ownerNode.getScene().getWindow().widthProperty().removeListener(xListener);
+            ownerNode.getScene().getWindow().heightProperty().removeListener(yListener);
             ownerNode = null;
         }
+        uninstallLock();
+    }
+    
+    // monitoring ----------
+    EventHandler<MouseEvent> lockOnHandler = e -> deltaThisLock=true;
+    EventHandler<MouseEvent> lockOffHandler = e -> deltaThisLock=false;
+    InvalidationListener deltaXListener = o->{ if(deltaThisLock) deltaThisX=getX(); };
+    InvalidationListener deltaYListener = o->{ if(deltaThisLock) deltaThisY=getY(); };
+    
+    private void installLock() {
+        // this should have been handled like this:
+        //     deltaThisX.bind(Bindings.when(deltaThisLock).then(xProperty()).otherwise(deltaThisX));
+        // but the binding doesn seem to allow binding to itself or simply 'not
+        // do' anything in the 'otherwise' part - there we need to maintain the
+        // current value but it doesnt seem possible - it would really clean
+        // this up a bit (way too many listeners for my taste)
+        
+        // maintain lock to prevent illegal position monitoring
+        getScene().addEventHandler(MOUSE_PRESSED, lockOnHandler);
+        getScene().addEventHandler(MOUSE_RELEASED, lockOffHandler);
+        // monitor this' position for change if lock allows
+        xProperty().addListener(deltaXListener);
+        yProperty().addListener(deltaYListener);
+        // fire listeners to initialize the values (listeners dont get fired when added)
+        deltaXListener.invalidated(xProperty());
+        deltaYListener.invalidated(yProperty());
+        deltaThisX = getX();
+        deltaThisY = getY();
+    }
+    private void uninstallLock() {
+        getScene().removeEventHandler(MOUSE_PRESSED, lockOnHandler);
+        getScene().removeEventHandler(MOUSE_RELEASED, lockOffHandler);
+        xProperty().removeListener(deltaXListener);
+        yProperty().removeListener(deltaYListener);
     }
     
 /******************************************************************************/
@@ -394,30 +481,59 @@ public class PopOver extends PopupControl {
     */
     private void adjustWindowLocation() {
         Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
-
+        
+        double SW = Screen.getPrimary().getVisualBounds().getWidth();
+        double SH = Screen.getPrimary().getVisualBounds().getHeight();
+        double W = getWidth();
+        double H = getHeight();
+        double X = getX();
+        double Y = getY();
+        double right = SW-X;
+        double left = X;
+        double down = SH-Y;
+        double up = Y;
+        double vdiff = right-left;
+        double hdiff = down-up;
+        double h_content_screen_span = W/SW;
+        double v_content_screen_span = H/SH;
+        
+//        if(vdiff>0) {
+//            if(hdiff>0) {
+//                setArrowLocation(ArrowLocation.RIGHT_TOP);
+//            } else {
+//                setArrowLocation(ArrowLocation.LEFT_TOP);
+//            }
+//        } else {
+//            if(hdiff>0) {
+//                setArrowLocation(ArrowLocation.RIGHT_BOTTOM);
+//            } else {
+//                setArrowLocation(ArrowLocation.LEFT_BOTTOM);
+//            }
+//        }
+        
         switch (getArrowLocation()) {
         case TOP_CENTER:
         case TOP_LEFT:
         case TOP_RIGHT:
-            setX(getX() + bounds.getMinX() - computeXOffset());
+            setX(X + bounds.getMinX() - computeXOffset());
             setY(getY() + bounds.getMinY() + getArrowSize());
             break;
         case LEFT_TOP:
         case LEFT_CENTER:
         case LEFT_BOTTOM:
-            setX(getX() + bounds.getMinX() + getArrowSize());
+            setX(X + bounds.getMinX() + getArrowSize());
             setY(getY() + bounds.getMinY() - computeYOffset());
             break;
         case BOTTOM_CENTER:
         case BOTTOM_LEFT:
         case BOTTOM_RIGHT:
-            setX(getX() + bounds.getMinX() - computeXOffset());
+            setX(X + bounds.getMinX() - computeXOffset());
             setY(getY() - bounds.getMinY() - bounds.getMaxY() - 1);
             break;
         case RIGHT_TOP:
         case RIGHT_BOTTOM:
         case RIGHT_CENTER:
-            setX(getX() - bounds.getMinX() - bounds.getMaxX() - 1);
+            setX(X - bounds.getMinX() - bounds.getMaxX() - 1);
             setY(getY() + bounds.getMinY() - computeYOffset());
             break;
         }

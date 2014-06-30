@@ -15,8 +15,7 @@ import java.util.stream.Collectors;
 public abstract class StringEnum {
     private String s;
     
-    public StringEnum() {
-    }
+    public StringEnum() {}
     public StringEnum(String skin) {
         add(skin);
         s = skin;
@@ -31,37 +30,40 @@ public abstract class StringEnum {
     public String get() { 
         return s;
     }
+    public void set(String item) {
+        s = item;
+    }
 
-    public int index() {
+    public int ordinal() {
         return values().indexOf(s);
     }
+    
     public String next() {
         if (isEmpty()) return null;
-        if (index()==values().size()-1) return values().get(0);
-        else return values().get(index()+1);
+        if (ordinal()==values().size()-1) return values().get(0);
+        else return values().get(ordinal()+1);
     }
     
+    public String next(String skin) {
+        if (isEmpty() || !contains(skin)) return null;
+        if (values().indexOf(skin) == values().size()-1) return values().get(0);
+        else return values().get(values().indexOf(skin)+1);
+    }    
     
     public boolean isEmpty() {
         return values().isEmpty();
     }
-    public void add(String skin) {
-        if (skin == null) throw new IllegalArgumentException("Must not be null.");
-        if (!has(skin)) values().add(skin);
+    public final void add(String item) {
+        Objects.requireNonNull(item);
+        if (!contains(item)) values().add(item);
     }
-    public void del(String skin) {
+    public void remove(String skin) {
         values().remove(skin);
     }
-    public boolean has(String skin) {
-        return values().contains(skin);
-    }     
-    public String next(String skin) {
-        if (isEmpty() || !has(skin)) return null;
-        if (values().indexOf(skin) == values().size()-1) return values().get(0);
-        else return values().get(values().indexOf(skin)+1);
-    }
-    
-    public void clear() {
+    public boolean contains(String item) {
+        return values().contains(item);
+    }    
+    public void removeAll() {
         values().clear();
     }
     

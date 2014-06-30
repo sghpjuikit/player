@@ -16,7 +16,7 @@ import utilities.Parser.StringParser;
  *
  * @author Plutonium_
  */
-public class FontTextField extends ItemTextField<Font,StringParser<Font>> {
+public class FontTextField extends ItemTextField<Font> {
 
     public FontTextField() {
         this(FontParser.class);

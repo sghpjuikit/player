@@ -7,9 +7,15 @@
 package GUI.ItemHolders;
 
 /**
+ * Denotes an object wrapping a value or a different object as a held item.
  *
  * @author Plutonium_
  */
 public interface ItemHolder<I> {
+    
+    /**
+     * Returns the held object or value.
+     * @return the value.
+     */
     I getItem();
 }

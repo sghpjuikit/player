@@ -4,12 +4,10 @@
  */
 package AudioPlayer.tagging;
 
-import Configuration.Xml;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 import utilities.FileUtil;
 import utilities.Log;
@@ -19,7 +17,6 @@ import utilities.Log;
  */
 public final class MetadataExtended {
     private final Metadata metadata;
-    private Color color;
     private final ArrayList<CommentExtended> comments;
     private final ArrayList<Chapter> chapters;
     
@@ -32,16 +29,6 @@ public final class MetadataExtended {
         metadata = meta;
         comments = new ArrayList<>();
         chapters = new ArrayList<>();
-    }
-    
-    public Color getColor() {
-        return color;
-    }
-    public String getColorAsString() {
-        return color.toString();
-    }
-    public void setColor(Color c) {
-        color = c;
     }
     /**
      * @return the comments
@@ -59,34 +46,34 @@ public final class MetadataExtended {
     public void addChapter(Duration time, String info) {
         chapters.add(new Chapter(time, info));
         Collections.sort(chapters);
-        save();
+//        save();
     }   
     public void addComment( String key, String comment) {
         comments.add(new CommentExtended(key, comment));
         Collections.sort(comments);
-        save();
+//        save();
     }
     public void removeChapters(List<Chapter> to_remove) {
         chapters.removeAll(to_remove);
-        save();
+//        save();
     }
     public void removeComments(List<CommentExtended> to_remove) {
         comments.removeAll(to_remove);
-        save();
+//        save();
     }
     public void editChapter(Chapter chapter, Duration time, String text) {
         int index = getChapters().indexOf(chapter);
         Chapter ch = getChapters().get(index);
                 ch.setTime(time);
                 ch.setInfo(text);
-        save();
+//        save();
     }
     public void editComment(CommentExtended comment, String key, String text) {
         int index = getComments().indexOf(comment);
         CommentExtended ch = getComments().get(index);
                 ch.setKey(key);
                 ch.setValue(text);
-        save();
+//        save();
     }
     
     /**
@@ -109,8 +96,8 @@ public final class MetadataExtended {
         FileUtil.writeFile(metadata.getFile().toString()+".xml", content);
         
         MetadataWriter writer = MetadataWriter.create(metadata);
-        writer.setChapters("iii");
-        writer.commit();
+        writer.setChapters(getChapters());
+        writer.write();
     }
     
     /**

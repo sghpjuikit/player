@@ -10,13 +10,19 @@ import GUI.ItemHolders.ItemHolder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import utilities.Parser.StringParser;
-import utilities.functional.functor.UnProcedure;
+import utilities.functional.functor.BiProcedure;
 
 /**
  * Customized {@link TextField} that stores an item. Normally a non-editable text
@@ -48,11 +54,11 @@ import utilities.functional.functor.UnProcedure;
  * <p>
  * @author Plutonium_
  */
-public abstract class ItemTextField<T, P extends StringParser<T>> extends CustomTextField implements ItemHolder<T>{
+public abstract class ItemTextField<T> extends CustomTextField implements ItemHolder<T>{
     
     T item;
     private Class parser_class;
-    private UnProcedure<T> onItemChange;
+    private BiProcedure<T,T> onItemChange;
     private Callback<T, String> valueFactory;
     
     /**
@@ -76,7 +82,7 @@ public abstract class ItemTextField<T, P extends StringParser<T>> extends Custom
     /**
      * Constructor. Creates instance of the item text field utilizing parser
      * of the provided type. */
-    public ItemTextField(Class<? extends P> parser_type) {
+    public ItemTextField(Class<? extends StringParser<T>> parser_type) {
         this();
         parser_class = parser_type;
     }
@@ -84,26 +90,29 @@ public abstract class ItemTextField<T, P extends StringParser<T>> extends Custom
     
     /** 
      * Behavior to be executed on dialog button click. Executes specified
-     * method that gets ahold of new Item. */
+     * method that gets ahold of new Item.
+     */
     abstract void onDialogAction();
    
     /** 
      * Sets item for this text field. Sets text and prompt text according to
-     * provided implementation.*/
-    public void setItem(T _item) {
-         if(_item!=null) {
-             this.item = _item;
-             String text = valueFactory.call(_item);    // use factory to convert
+     * provided implementation. The item change event is fired.
+     */
+    public void setItem(T newItem) {
+         if(newItem!=null) {
+             T oldItem = item;
+             this.item = newItem;
+             String text = valueFactory.call(newItem);    // use factory to convert
              setText(text);
              setPromptText(text);
-             if(onItemChange!=null) onItemChange.accept(_item);
+             if(onItemChange!=null) onItemChange.accept(oldItem,newItem);
          }
     }
     
     /** 
      * Sets behavior to execute when item changes. The item change ignores
      * equality check and will fire even for same object to be set. */
-    public void setOnItemChange(UnProcedure<T> _onFontChange) {
+    public void setOnItemChange(BiProcedure<T,T> _onFontChange) {
         onItemChange=_onFontChange;
     }
 
@@ -191,18 +200,21 @@ public abstract class ItemTextField<T, P extends StringParser<T>> extends Custom
         private static final String STYLE_CLASS = "dialog-button";
 
         public DialogButton() {
-            this("");
-        }
-
-        public DialogButton(String text) {
             Region r = new Region();
                    r.getStyleClass().add(STYLE_CLASS);
                    r.setMinSize(0, 0);
                    r.setPrefSize(7, 6);
                    r.setMaxSize(7, 6);
-            
             setPrefSize(22,22);
             getChildren().add(r);
+        }
+        public DialogButton(FontAwesome.Glyph icon) {
+            GlyphFont gf = GlyphFontRegistry.font("FontAwesome");
+            Paint c = new Label().getTextFill();
+            Label l = gf.fontColor(Color.BLACK).create(icon.getChar());
+            
+            setPrefSize(22,22);
+            getChildren().add(l);
         }
     }
 }

@@ -12,8 +12,8 @@ import utilities.Parser.Parser;
  * Configurable object exports its configuration (which are in fact simple
  * annotated fields).
  * All configurable fields can be exported as a list of {@link Config}. This can
- * be very useful for serialisation for example to save a configurable 'state'
- * of the object. 
+ * be very useful for serialization for example to save a configurable 'state'
+ * of the object.
  * <p>
  * This interface already provides default implementations of all its methods.
  * Implementing classes therefore get all the behavior with no additional work.

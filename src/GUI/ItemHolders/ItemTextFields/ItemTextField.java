@@ -10,17 +10,11 @@ import GUI.ItemHolders.ItemHolder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import utilities.Parser.StringParser;
 import utilities.functional.functor.BiProcedure;
 
@@ -70,7 +64,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements ItemHo
         valueFactory = this::itemToString;   
         
         // set the button to the right & action
-        setRight(new DialogButton());
+        setRight(new ArrowDialogButton());
         getRight().setOnMouseClicked( e -> onDialogAction());
         
         setEditable(false);
@@ -195,11 +189,11 @@ public abstract class ItemTextField<T> extends CustomTextField implements ItemHo
      * <p>
      * @author Plutonium_
      */
-    public static class DialogButton extends StackPane {
+    public static class ArrowDialogButton extends StackPane {
 
         private static final String STYLE_CLASS = "dialog-button";
 
-        public DialogButton() {
+        public ArrowDialogButton() {
             Region r = new Region();
                    r.getStyleClass().add(STYLE_CLASS);
                    r.setMinSize(0, 0);
@@ -207,14 +201,6 @@ public abstract class ItemTextField<T> extends CustomTextField implements ItemHo
                    r.setMaxSize(7, 6);
             setPrefSize(22,22);
             getChildren().add(r);
-        }
-        public DialogButton(FontAwesome.Glyph icon) {
-            GlyphFont gf = GlyphFontRegistry.font("FontAwesome");
-            Paint c = new Label().getTextFill();
-            Label l = gf.fontColor(Color.BLACK).create(icon.getChar());
-            
-            setPrefSize(22,22);
-            getChildren().add(l);
         }
     }
 }

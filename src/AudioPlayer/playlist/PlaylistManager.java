@@ -9,7 +9,10 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.Dialogs.ContentDialog;
+import Configuration.ValueConfig;
+import Configuration.ValueConfigurable;
+import GUI.objects.PopOver.PopOver;
+import Layout.WidgetImpl.SimpleConfigurator;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -22,7 +25,6 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -632,27 +634,22 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     private static void addOrEnqueueUrl(boolean add) {
-        // build dialog content
-        TextField f = new TextField();
-                  f.setPromptText("URL");
-        // build dialog
-        ContentDialog<TextField> dialog = new ContentDialog();
-        dialog.setContent(f);
-        dialog.setTitle("Choose URL");
-        dialog.setOnOk( c -> {            
+        String title = add ? "Add url item." : "Play url item.";
+        ValueConfigurable c = new ValueConfigurable(new ValueConfig("Url", "url", title));
+        SimpleConfigurator content = new SimpleConfigurator(c, () -> {
+            String url = ((ValueConfig<String>) c.getFields().get(0)).getValue();
             if(add) 
-                addUrl(c.getText());
+                addUrl(url);
             else {
                 PLAYBACK.stop();
                 removeAllItems();
-                addUrl(c.getText());
+                addUrl(url);
                 playFirstItem();
             }
-            
-            return true;
         });
-        f.textProperty().addListener(text -> dialog.setMessagee(""));
-        dialog.show();
+        PopOver p = new PopOver(title, content.getPane());
+                p.show(PopOver.ScreenCentricPos.AppCenter);
+                p.setDetached(true);
     }
 
 }

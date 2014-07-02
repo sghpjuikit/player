@@ -7,6 +7,7 @@ import GUI.ItemHolders.ConfigField;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
@@ -30,13 +31,15 @@ public class SimpleConfigurator {
 
     /**
      * Constructor.
-     * @param p configurable object
+     * @param configurable configurable object
      * @param on_OK behavior executed when OK button is clicked, null or empty 
      * if none
      */
-    public SimpleConfigurator(Configurable p, Procedure on_OK) {
-        configurable = p;
-        onOK = on_OK==null ? ()->{} : on_OK;
+    public SimpleConfigurator(Configurable configurable, Procedure on_OK) {
+        Objects.requireNonNull(configurable);
+        
+        this.configurable = configurable;
+        this.onOK = on_OK;
         
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleConfigurator.class.getResource("SimpleConfigurator.fxml"));
         fxmlLoader.setRoot(root);
@@ -66,15 +69,12 @@ public class SimpleConfigurator {
     
     @FXML
     private void ok() {
-        if (configFields.stream().noneMatch(ConfigField::hasUnappliedValue)) {
-            Log.mess("No change");
-            return;
-        }
-        
+        // set and apply values if possible
         configFields.forEach(ConfigField::applyNsetIfAvailable);
-        
+        // refresh
         initialize();
-        onOK.run();
+        // always run the onOk procedure 
+        if(onOK!=null) onOK.run();
     }
     
     public AnchorPane getPane() {

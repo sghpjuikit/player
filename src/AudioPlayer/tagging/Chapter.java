@@ -15,15 +15,16 @@ public final class Chapter implements Comparable<Chapter> {
     private Duration time;
     private String info;
 
-    public Chapter(Duration _time) {
-        time = _time;
-        info = "";
+    public Chapter(Duration time) {
+        this(time, "");
     }
-    public Chapter(Duration _time, String _info) {
-        time = _time;
+    
+    public Chapter(Duration time, String _info) {
+        setTime(time);
         info = _info;
     }
-    public Chapter(String text) {System.out.println(text);
+    
+    public Chapter(String text) {
         int i = text.indexOf('-');
         if (i==-1) throw new IllegalArgumentException("Not parsable chapter string: " + text);
         String s = text.substring(0,i);
@@ -99,6 +100,6 @@ public final class Chapter implements Comparable<Chapter> {
     
     @Override
     public String toString() {
-        return time.toMillis() + "-" + info;
+        return Math.rint(time.toMillis()) + "-" + info;
     }
 }

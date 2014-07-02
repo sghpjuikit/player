@@ -167,37 +167,7 @@ public class Configuration {
             Action a = (Action)value;
             Action.getActions().get(name).set(a.isGlobal(), a.getKeys());
         } else {
-            Field f = c.sourceField;
-            Log.deb("Setting config field: "+ name + " to: " + value);
-
-            // set new config value
-            boolean was_set = false;
-            try {
-                f.set(null, value);
-                was_set = true;
-                Log.deb("Config field " + name + " set.");
-            } catch (IllegalAccessException e) {
-                Log.err("Failed to set config field: " + name + " . Reason: " + e.getMessage());
-            }
-
-            // apply new field value
-            if(was_set) {
-                Method m = c.applierMethod;
-                if(m != null) {
-                    Log.deb("Applying config: " + name);
-                    try {
-                        m.setAccessible(true);
-                        m.invoke(null, new Object[0]);
-                    } catch (IllegalAccessException | IllegalArgumentException | 
-                            InvocationTargetException | SecurityException e) {
-                        Log.err("Failed to apply config field: " + name + ". Reason: " + e.getMessage());
-                    } finally {
-                        m.setAccessible(false);
-                    }
-                } else {
-                    Log.deb("Failed to apply config field: " + name + ". Reason: No applier method.");
-                }
-            }
+            c.setNapplyValue(value);
         }
     }
     
@@ -214,19 +184,7 @@ public class Configuration {
             Action temp_a = (Action) value;
             Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
         } else {
-            Field f = c.sourceField;
-            if (f!=null) {
-                Log.deb("Setting config : "+ name + " to: " + value);
-
-                // set new config value
-                boolean was_set = false;
-                try {
-                    f.set(null, value);
-                    was_set = true;
-                } catch (IllegalAccessException e) {
-                    Log.err("Failed to set config: " + name + ". Reason: " + e.getMessage());
-                }
-            }
+            c.setValue(value);
         }
     }
     

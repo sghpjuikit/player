@@ -408,7 +408,6 @@ public class MetadataWriter extends MetaItem {
     }
     
     public void setChapters(List<Chapter> chapters) {
-//        this.chapters = chapters;
         setCustom2(chapters.stream().map(Chapter::toString).collect(Collectors.joining("\\|")));
     }
     
@@ -498,11 +497,6 @@ public class MetadataWriter extends MetaItem {
         }
     }
     
-    public void writeForce() {
-        fields_changed=1;
-        write();
-    }
-    
     /**
      * Finds out how many fields this writer needs to commit.
      * @return number of fields that will be written to 
@@ -553,7 +547,7 @@ public class MetadataWriter extends MetaItem {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setRatingPercent(rating);
         if (writer.write())
-            NotifierManager.showTextNotification("Song rating changed to: "+rating, "Update");
+            NotifierManager.showTextNotification("Song rating changed to: " + rating, "Update");
     }
 
 }

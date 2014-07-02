@@ -8,19 +8,22 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- config field add refresh() get rid of hard refresh in configurators
+- fix actions + configs
+- document and clean up configurable configuration
+- add URI configField
+- window maximization not restoring on app start
 - tagger use nice progress animation
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
 - seeker popup adder button-like hoverable dynamically repositioned popup
-- CHAPTERS TAG | XML OPTION and clean up
+- CHAPTERS TAG | XML OPTION and clean up + support 'infos' - custom comments
 - popup clean show methods
-- default button skin to something neat
-- set button -||-
-- window starts minimized
+- window starts minimized & on top
 - skin setting
 - file info handle comment label->Text add scrollbar and reimplement
 
-- configurable  support sub configurable by default
+- configurable support sub configurable by default
 - properly handle vol scolling and app dragging event consuminf at widget level
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird
@@ -61,19 +64,17 @@
 --------------------------------------------------------------------------------
 
 - cursor trail effect - 'frozen" effect
-- cursor api clean up, fix appliers
+- cursor api clean up, fix appliers, make actually usable
 - seeker orientation property and support with layout (chapter positions too)
 - settable img bgr
 - TextFlow for smart text tables
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?
-- widget manager widget                                                         (?)
-- cursor effects API
+- widget manager widget
 - cursor effect to popup, get rid of effectPane
 - tagger disable unsupported fields for type
 - tagger multithreaded writing to tag                                           (not needed)
 - playlist tabs
 - import/export some of the most used playlist file formats
-- extended circle context menu to allow multiple contents
 - gestures & touch
 - tagger filename change                                                        (?)
 - app taskbar flashing                                                          (still an issue ?)
@@ -148,8 +149,7 @@ GENERAL
   shortcut registering, but thats only partial and incomplete workaround
 - css parsing errors for settings widget - cant resolve value                   (minor, NaP, doesnt break funonality)
   cause: lazy loading of css file, possible javaFX bug
-
-- popup window fullcreen or maximizing(any) breaks popup position 
+- popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 
 SOLVED (with unwanted workaround)
   (bug presents no problems but the underlying cause still deserves attention)
@@ -185,13 +185,6 @@ SOLVED (with unwanted workaround)
   recession. The code pollution is now kept to minimum and workaround is easy to
   understand
   better solution: look for different serialisation of the properties ?
-- popups not propagating events to owner windows instead they simply close. Or 
-  rather - the closing itself consumes the click event. Its kind of bad - window
-  dragging doesnt function properly.
-  solution: hidden 'master' window. PopOver sets it as an owner.
-  problems: there can be countless problems in the future because of this. Plus,
-  normal popup menus are still affected.
-  edit: the 'countless problems' have been pretty much all eliminated
 - javafx.scene.text.Text doesnt have css style class and as such doesn allow
   default values and skinning
   solution: Text class extending javafx.scene.text.Text and adding custom 
@@ -237,17 +230,13 @@ Layouts---------
 - separate and implement Pure vs Leaf Containers better
 
 UNIFICATIONS, OVERHAULS, REDESIGN
-- unify chapters and infos into singular type of field allowing multiple values
 - playing item, metadata, ... in Playbackmanager, clear Player class
-
-IMPROVEMENTS
 - file format discovery. Unite Image and Audio types add category               (minor, although much needed for robustness)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - playlist table drag code duplication                                          (technicality, minor code pollution)
 - playlist table refresh currupted/playing row pseudoclass css code duplication (technicality, minor code pollution)
 - Notification class unite content, remove enum                                 (lot of code duplicity)
 - notification & popOver title unify                                            (almost impossible, let this one go...)
-
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)
@@ -280,8 +269,10 @@ PERFORMANCE
 - thumbnail border is expected to be 2px wide, dont change css until the
   hardcoded part in Thumbnail class is resolved
 - instead of javafx.scene.text.Text use Text class provided by the project. It
-  is exactly the same but provides css styleclass and support for skinning.
-- real main app window that is hidden is resized to screen size
+  is exactly the same but provides css styleclass and support for skinning. Also
+  comes in with a handy method
+- real main app window is hidden and owner of the others. this way they share
+ some of the state like minimized
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------

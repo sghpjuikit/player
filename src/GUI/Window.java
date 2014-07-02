@@ -9,7 +9,6 @@ import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.ClickEffect;
-import GUI.objects.Window.Resize;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
 import static GUI.objects.Window.Resize.NE;
@@ -30,6 +29,8 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.IOException;
 import java.net.URL;
 import javafx.animation.TranslateTransition;
@@ -41,6 +42,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
@@ -392,10 +394,23 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     
     /** Set icon. Null clears. */
     public void setIcon(Image img) {
-        iconI.setImage(img);
-        // correct title padding to avoid gap
-        if(img==null) header.setPadding(new Insets(0,0,0,0));
-        else header.setPadding(new Insets(0,0,0,25));
+        iconI.setImage(img); 
+       leftHeaderBox.getChildren().remove(iconI);
+//       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
+       leftHeaderBox.getChildren().add(0, AwesomeDude.createIconLabel(AwesomeIcon.MUSIC,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_ALT,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_SQUARE,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITTIP,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(0, AwesomeDude.createIconLabel(AwesomeIcon.CROSSHAIRS,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.REFRESH,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.RECYCLE,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.SQUARE,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.SQUARE_ALT,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.POWER_OFF,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.ALIGN_CENTER,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.ANDROID,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.CIRCLE,"","15","15", ContentDisplay.CENTER));
     }
     
 /**************************** WINDOW MECHANICS ********************************/
@@ -528,64 +543,62 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
 
     
 /*******************************    RESIZING    *******************************/
-    
-    private Resize resizing = NONE;
-    
+        
     @FXML
     private void border_onDragStart(MouseEvent e) {
         double X = e.getSceneX();
         double Y = e.getSceneY();
-        double Wi = getWidth();
-        double H = getHeight();
+        double WW = getWidth();
+        double WH = getHeight();
         double L = 18; // corner treshold
 
-        if ((X > Wi - L) && (Y > H - L)) {
-            resizing = SE;
-        } else if ((X < L) && (Y > H - L)) {
-            resizing = SW;
+        if ((X > WW - L) && (Y > WH - L)) {
+            is_being_resized = SE;
+        } else if ((X < L) && (Y > WH - L)) {
+            is_being_resized = SW;
         } else if ((X < L) && (Y < L)) {
-            resizing = NW;
-        } else if ((X > Wi - L) && (Y < L)) {
-            resizing = NE;
-        } else if ((X > Wi - L)) {
-            resizing = E;
-        } else if ((Y > H - L)) {
-            resizing = S;
+            is_being_resized = NW;
+        } else if ((X > WW - L) && (Y < L)) {
+            is_being_resized = NE;
+        } else if ((X > WW - L)) {
+            is_being_resized = E;
+        } else if ((Y > WH - L)) {
+            is_being_resized = S;
         } else if ((X < L)) {
-            resizing = W;
+            is_being_resized = W;
         } else if ((Y < L)) {
-            resizing = N;
+            is_being_resized = N;
         }
         e.consume();
     }
 
     @FXML
     private void border_onDragEnd(MouseEvent e) {
-        resizing = NONE;
+        is_being_resized = NONE;
         e.consume();
     }
 
     @FXML
     private void border_onDragged(MouseEvent e) {
-        if (resizing == SE) {
+        if (is_being_resized == SE) {
             setSize(e.getScreenX() - getX(), e.getScreenY() - getY());
-        } else if (resizing == S) {
+        } else if (is_being_resized == S) {
             setSize(getWidth(), e.getScreenY() - getY());
-        } else if (resizing == E) {
+        } else if (is_being_resized == E) {
             setSize(e.getScreenX() - getX(), getHeight());
-        } else if (resizing == SW) {
+        } else if (is_being_resized == SW) {
             setSize(getX()+getWidth()-e.getScreenX(), e.getScreenY() - getY());
             setLocation(e.getScreenX(), getY());
-        } else if (resizing == W) {
+        } else if (is_being_resized == W) {
             setSize(getX()+getWidth()-e.getScreenX(), getHeight());
             setLocation(e.getScreenX(), getY());
-        } else if (resizing == NW) {
+        } else if (is_being_resized == NW) {
             setSize(getX()+getWidth()-e.getScreenX(), getY()+getHeight()-e.getScreenY());
             setLocation(e.getScreenX(), e.getScreenY());
-        } else if (resizing == N) {
+        } else if (is_being_resized == N) {
             setSize(getWidth(), getY()+getHeight()-e.getScreenY());
             setLocation(getX(), e.getScreenY());
-        } else if (resizing == NE) {
+        } else if (is_being_resized == NE) {
             setSize(e.getScreenX() - getX(), getY()+getHeight()-e.getScreenY());
             setLocation(getX(), e.getScreenY());
         }

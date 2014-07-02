@@ -17,7 +17,6 @@ import java.io.File;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 
@@ -96,10 +95,8 @@ public class App extends Application {
             
             windowOwner = Window.create();          // create hidden main window
             windowOwner.setVisible(false);
-            windowOwner.setSize(Screen.getPrimary().getBounds().getWidth(),
-                                Screen.getPrimary().getBounds().getHeight());
-            windowOwner.show();
             windowOwner.getStage().setOpacity(0);
+            windowOwner.show();            
             ContextManager.windows.remove(windowOwner);    
             
             window = Window.create(true);           // create main app window

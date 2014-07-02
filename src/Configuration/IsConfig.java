@@ -12,7 +12,11 @@ import java.lang.annotation.Target;
  * {@link Config} by adding customary information to it such as name,
  * description, editability or visibility.
  * <p>
- * Any field can be successfully annotated with this annotation. There are two
+ * Any field can be successfully annotated with this annotation. The only absolute
+ * requirement is that it must be always initialized when declared to non null 
+ * value.
+ * <p>
+ * There are two
  * different use cases. Annotating a static field turns it into application
  * scope configuration field that can be set, applied, serialized and 
  * deserialized.
@@ -29,6 +33,7 @@ import java.lang.annotation.Target;
  * because of an incorrectly captured value change). The toString() method is
  * useful for debugging and messaging and should be overriden and return human
  * readable information about the state of the object or its value.
+ * <p>
  * <p>
  * Based on the application of the value of the field, there are two kinds of
  * fields. Those that can be simply set to a value and those that require some

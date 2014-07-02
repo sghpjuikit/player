@@ -18,20 +18,31 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
 @Immutable
 public abstract class Config {
     
-    final private String gui_name;
-    final private String name;
-    final private String group;
-    final private String info;
-    final private boolean editable;
-    final private boolean visible;
-    final private double min;
-    final private double max;
+    final protected String gui_name;
+    final protected String name;
+    final protected String group;
+    final protected String info;
+    final protected boolean editable;
+    final protected boolean visible;
+    final protected double min;
+    final protected double max;
     
     Field sourceField;
     Method applierMethod;
     public Object defaultValue;
     
-    
+    Config(String name, String gui_name, Object val, String category, String info, boolean editable, boolean visible, double min, double max, Field source_field) {
+        this.gui_name = gui_name;
+        this.name = name;
+        this.defaultValue = objectify(val);
+        this.group = category;
+        this.info = info;
+        this.editable = editable;
+        this.visible = visible;
+        this.min = min;
+        this.max = max;
+        this.sourceField = source_field;
+    }
     Config(String _name, IsConfig c, Object val, String category, Field field) {
         gui_name = c.name().isEmpty() ? _name : c.name();
         name = _name;
@@ -44,6 +55,7 @@ public abstract class Config {
         max = c.max();
         sourceField = field;
     }
+    
     Config(Action c) {
         gui_name = c.name + " Shortcut";
         name = c.name;
@@ -85,6 +97,17 @@ public abstract class Config {
      * </pre>
      */
     public abstract Object getValue();
+    
+    public abstract boolean setValue(Object val);
+    
+    public abstract boolean applyValue();
+    
+    public void setNapplyValue(Object val) {
+        // set new config value
+        boolean was_set = setValue(val);
+        // apply new field value on success
+        if(was_set) applyValue();
+    }
     
     /**
      * Returns class type of the value. The value and default value can only

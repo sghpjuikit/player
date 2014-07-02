@@ -52,6 +52,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
 import javafx.scene.control.Skin;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -63,6 +64,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import javafx.util.Duration;
 import main.App;
 
@@ -93,11 +95,13 @@ public class PopOver extends PopupControl {
 
     /**
      * Creates a pop over with a label as the content node.
+     * Sets autoFix and consumeAutoHidingEvents to false.
      */
     public PopOver() {
         super();
         getStyleClass().add(STYLE_CLASS);
-        setConsumeAutoHidingEvents(false);        
+        setConsumeAutoHidingEvents(false);
+        setAutoFix(false);
         
         
         // not working as advertized, disable for now...
@@ -116,18 +120,31 @@ public class PopOver extends PopupControl {
 
     /**
      * Creates a pop over with the given node as the content node.
+     * Sets autoFix and consumeAutoHidingEvents to false.
      * @param content shown by the pop over
      */
     public PopOver(Node content) {
         this();
         setContentNode(content);
     }
-
+    
+    /**
+     * Creates a pop over with the given node as the content node and provided
+     * title text.
+     * Sets autoFix and consumeAutoHidingEvents to false.
+     * @param content shown by the pop over
+     */
+    public PopOver(String title, Node content) {
+        this();
+        setTitle(title);
+        setContentNode(content);
+    }
+    
     @Override
     protected Skin<PopOver> createDefaultSkin() {
         return new PopOverSkin(this);
     }
-
+    
     
     private final ObjectProperty<Node> contentNode = new SimpleObjectProperty<Node>(this, "contentNode") {
         @Override
@@ -371,7 +388,7 @@ public class PopOver extends PopupControl {
 
     // move with handling -------
     private Node ownerNode = null;
-    private Stage ownerWindow = null;
+    private Window ownerWindow = null;
     
     private double deltaX = 0;
     private double deltaY = 0;
@@ -397,28 +414,33 @@ public class PopOver extends PopupControl {
     };
     
     private void installMoveWithWindow(Window owner) {
-        ownerWindow = (Stage)owner;
+        ownerWindow = owner;
         ownerWindow.xProperty().addListener(winXListener);
         ownerWindow.yProperty().addListener(winYListener);
         ownerWindow.widthProperty().addListener(winXListener);
         ownerWindow.heightProperty().addListener(winYListener);
+        // uninstall just before window gets hidden to prevent possible illegal states
+        ownerWindow.addEventFilter(WINDOW_HIDING, e -> visibilityListener.changed(null,null,null));
         // remember owner's position to monitor its position change
         deltaX = owner.getX();
         deltaY = owner.getY();
-        installLock();
+        installMonitoring();
     }
     private void installMoveWithNode(Node owner) {
         ownerNode = owner;
-        ownerNode.getScene().getWindow().xProperty().addListener(xListener);
-        ownerNode.getScene().getWindow().yProperty().addListener(yListener);
-        ownerNode.getScene().getWindow().widthProperty().addListener(xListener);
-        ownerNode.getScene().getWindow().heightProperty().addListener(yListener);
+        ownerWindow = ownerNode.getScene().getWindow();
+        ownerWindow.xProperty().addListener(xListener);
+        ownerWindow.yProperty().addListener(yListener);
+        ownerWindow.widthProperty().addListener(xListener);
+        ownerWindow.heightProperty().addListener(yListener);
         ownerNode.layoutXProperty().addListener(xListener);
         ownerNode.layoutYProperty().addListener(yListener);
+        // uninstall when Node is disconnected from scene graph to prevent possible illegal states
+        ownerNode.sceneProperty().addListener(visibilityListener);
         // remember owner's position to monitor its position change
         deltaX = ownerNode.localToScreen(0,0).getX();
         deltaY = ownerNode.localToScreen(0,0).getY();
-        installLock();
+        installMonitoring();
     }
     private void uninstallMoveWith() {
         if(ownerWindow!=null) {
@@ -426,18 +448,18 @@ public class PopOver extends PopupControl {
             ownerWindow.yProperty().removeListener(winYListener);
             ownerWindow.widthProperty().removeListener(winXListener);
             ownerWindow.heightProperty().removeListener(winYListener);
-            ownerWindow = null;
         }
         if(ownerNode!=null) {
             ownerNode.layoutXProperty().removeListener(xListener);
             ownerNode.layoutYProperty().removeListener(yListener);
-            ownerNode.getScene().getWindow().xProperty().removeListener(xListener);
-            ownerNode.getScene().getWindow().yProperty().removeListener(yListener);
-            ownerNode.getScene().getWindow().widthProperty().removeListener(xListener);
-            ownerNode.getScene().getWindow().heightProperty().removeListener(yListener);
-            ownerNode = null;
+            ownerWindow.xProperty().removeListener(xListener);
+            ownerWindow.yProperty().removeListener(yListener);
+            ownerWindow.widthProperty().removeListener(xListener);
+            ownerWindow.heightProperty().removeListener(yListener);
         }
-        uninstallLock();
+        ownerNode = null;
+        ownerWindow = null;
+        uninstallMonitoring();
     }
     
     // monitoring ----------
@@ -445,8 +467,14 @@ public class PopOver extends PopupControl {
     EventHandler<MouseEvent> lockOffHandler = e -> deltaThisLock=false;
     InvalidationListener deltaXListener = o->{ if(deltaThisLock) deltaThisX=getX(); };
     InvalidationListener deltaYListener = o->{ if(deltaThisLock) deltaThisY=getY(); };
+    ChangeListener<Scene> visibilityListener = (o,oldV,newV) -> { 
+        if(newV==null) {
+            uninstallMoveWith();
+            hideStrong();
+        } 
+    };
     
-    private void installLock() {
+    private void installMonitoring() {
         // this should have been handled like this:
         //     deltaThisX.bind(Bindings.when(deltaThisLock).then(xProperty()).otherwise(deltaThisX));
         // but the binding doesn seem to allow binding to itself or simply 'not
@@ -466,12 +494,13 @@ public class PopOver extends PopupControl {
         deltaThisX = getX();
         deltaThisY = getY();
     }
-    private void uninstallLock() {
+    private void uninstallMonitoring() {
         getScene().removeEventHandler(MOUSE_PRESSED, lockOnHandler);
         getScene().removeEventHandler(MOUSE_RELEASED, lockOffHandler);
         xProperty().removeListener(deltaXListener);
         yProperty().removeListener(deltaYListener);
     }
+    
     
 /******************************************************************************/
     

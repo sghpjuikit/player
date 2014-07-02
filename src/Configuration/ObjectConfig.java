@@ -10,11 +10,12 @@ import Action.Action;
 import java.lang.reflect.Field;
 
 /**
- * Instance cinfig. Refers to non static field of object instance.
+ * Instance config. Refers to non static field of object instance.
  * 
  * @author Plutonium_
  */
 public class ObjectConfig extends Config {
+    
     private Object value;
     
     ObjectConfig(String _name, IsConfig c, Object val, String category, Field field) {
@@ -36,6 +37,26 @@ public class ObjectConfig extends Config {
     public Object getValue() {
         return value;
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean setValue(Object val) {
+        if(!value.getClass().equals(val.getClass())) 
+            throw new ClassCastException("Can not set value to object config. "
+                    + "Parameter class type mismatch.");
+        value = val;
+        return true;
+    }
+
+    @Override
+    public boolean applyValue() {
+        // for now do nothing
+        return true;
+    }
+    
+    
     
     /**
      * {@inheritDoc}

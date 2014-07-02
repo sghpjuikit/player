@@ -117,7 +117,7 @@ public class ClickEffect {
         apply();
     }
     
-    private void play(double X, double Y) {        
+    private void play(double X, double Y) {
         parent = ContextManager.activeWindow.overlayPane;
         parent.getChildren().add(root);
         // center position on run

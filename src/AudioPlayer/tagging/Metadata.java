@@ -838,8 +838,7 @@ public final class Metadata extends MetaItem {
             try {
                 cs.add(new Chapter(c));
             } catch( IllegalArgumentException e) {
-                Log.err("String '" + c + "' not parsable chapter string. Will be"
-                        + "ignored.");
+                Log.err("String '" + c + "' not parsable chapter string. Will be ignored.");
                 // ignore
             }
         }

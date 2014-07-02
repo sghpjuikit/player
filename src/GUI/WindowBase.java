@@ -3,6 +3,8 @@ package GUI;
 
 import Configuration.Configuration;
 import GUI.objects.PopOver.PopOver;
+import GUI.objects.Window.Resize;
+import static GUI.objects.Window.Resize.NONE;
 import PseudoObjects.Maximized;
 import java.util.ArrayList;
 import javafx.application.Platform;
@@ -124,6 +126,10 @@ public class WindowBase {
         if(val) s.show();
         else s.hide();
     }
+/******************************************************************************/
+    
+    protected Resize is_being_resized = NONE;;
+    
     /**
      * Property description:
      * Defines whether the Stage is resizable or not by the user. Programatically
@@ -146,6 +152,10 @@ public class WindowBase {
         ResProp.set(val);
         s.setResizable(val);
     }
+    public boolean isResizing() {
+        return is_being_resized != NONE;
+    }
+    
     /**
      * The value of the property resizable
      * see {@link #setAlwaysOnTop(boolean)}
@@ -166,13 +176,19 @@ public class WindowBase {
     public void toggleAlwaysOnTOp() {
         s.setAlwaysOnTop(!s.isAlwaysOnTop());
     }
+    
     /** Brings the window to front if it was behind some window on the desktop.*/
     public void focus() {
-        // but preserve onTopProperty
-        boolean aOt = s.isAlwaysOnTop();
-        s.setAlwaysOnTop(true);
-        Platform.runLater(()->s.setAlwaysOnTop(aOt));       // is runLater a good idea here?
+        s.requestFocus();
     }
+    /** 
+     * Returns whether this window is focused. Only one window can be focused
+     * at a time.
+     */
+    public boolean isFocused() {
+        return s.isFocused();
+    }
+    
     /**
      * @return the value of the property minimized.
      */
@@ -370,6 +386,8 @@ public class WindowBase {
         s.setX(X);
         s.setY(Y);
         
+        // avoid snapping while resizing. It leads to unwanted behavior
+        if(isResizing()) return;
         
         double SW = Screen.getPrimary().getVisualBounds().getWidth();
         double SH = Screen.getPrimary().getVisualBounds().getHeight();

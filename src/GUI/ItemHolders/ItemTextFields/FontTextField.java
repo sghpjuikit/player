@@ -9,7 +9,6 @@ package GUI.ItemHolders.ItemTextFields;
 import javafx.scene.text.Font;
 import org.controlsfx.dialog.Dialogs;
 import utilities.Parser.FontParser;
-import utilities.Parser.Parser;
 import utilities.Parser.StringParser;
 
 /**
@@ -34,7 +33,7 @@ public class FontTextField extends ItemTextField<Font> {
     @Override
     String itemToString(Font item) {
         if(item != null) {
-            return Parser.toS(item);
+            return new FontParser().toS(item);
         } else {
             return "";
         }

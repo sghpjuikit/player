@@ -1276,7 +1276,7 @@ is being used to size a border should also be in pixels.
         rgb(218, 226, 224);
     -fx-background-insets: 0 0 -1 0, 0, 1.5;
     -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
+    -fx-padding: 3 5 2 5;
     -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
     
     -fx-prompt-text-fill: -fx-prompt-font-color;
@@ -3475,4 +3475,44 @@ is being used to size a border should also be in pixels.
 // class by default
 .text-shape {
     -fx-fill: -fx-def-font-color;
+}
+
+
+
+.congfig-field-default-button {
+    -fx-font-size: 0.9em;
+    -fx-background-color: transparent;
+    -fx-graphic-text-gap: 0px;
+    -icons-color: -fx-def-font-color;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
+}
+ 
+.congfig-field-default-button:pressed:hover {
+    -icons-color: black;
+    -fx-text-fill: black;
+    -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
+}
+ 
+.congfig-field-default-button:hover {
+    -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
+}
+
+.congfig-field-ok-button {
+    -fx-font-size: 0.9em;
+    -fx-background-color: transparent;
+    -fx-graphic-text-gap: 0px;
+    -icons-color: -fx-def-font-color;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
+}
+ 
+.congfig-field-ok-button:pressed:hover {
+    -icons-color: black;
+    -fx-text-fill: black;
+    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
+}
+ 
+.congfig-field-ok-button:hover {
+    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
 }

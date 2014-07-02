@@ -3,11 +3,11 @@ package GUI.ItemHolders;
 
 import Action.Action;
 import Configuration.Config;
-import Configuration.Configuration;
 import Configuration.StringEnum;
 import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
-import GUI.ItemHolders.ItemTextFields.ItemTextField.DialogButton;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
@@ -15,9 +15,11 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -30,6 +32,7 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -37,9 +40,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import utilities.FxTimer;
 import utilities.Parser.FileParser;
 import utilities.Parser.FontParser;
 import utilities.Parser.Parser;
@@ -65,16 +66,14 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         config = c;
         label.setText(c.getGuiName());
         
-        GlyphFont gf = GlyphFontRegistry.font("FontAwesome");
-        Node n = gf.fontColor(Color.AQUA).fontSize(11).create(FontAwesome.Glyph.REPEAT.getChar());
-             n.getStyleClass().setAll("mini-button");
-             n.setOpacity(0);
-             n.setOnMouseClicked(e-> {
-                Configuration.setNapplyField(config.getName(),config.defaultValue);
-                refreshItem();
-             });
-//        Node defaultB = FontAwesome.Glyph.ANCHOR.create();
-             n.resize(15,15);
+        Button n = AwesomeDude.createIconButton(AwesomeIcon.REPEAT, "", "11","10",ContentDisplay.GRAPHIC_ONLY);
+               n.setOpacity(0);
+               n.setOnMouseClicked(e-> {
+                  config.setNapplyValue(config.defaultValue);
+                  refreshItem();
+               });
+               n.getStyleClass().setAll("congfig-field-default-button");
+        Tooltip.install(n, new Tooltip("Set to default value."));
              
         box.getChildren().add(n);
         box.setMinSize(0,0);
@@ -82,10 +81,10 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         box.setSpacing(5);
         box.setAlignment(CENTER_LEFT);
         
-        FadeTransition fa = new FadeTransition(Duration.millis(500), n);
+        FadeTransition fa = new FadeTransition(Duration.millis(450), n);
         box.addEventFilter(MOUSE_ENTERED, e-> {
             fa.stop();
-            fa.setDelay(Duration.millis(300));
+            fa.setDelay(Duration.millis(270));
             fa.setToValue(1);
             fa.play();
         });
@@ -190,9 +189,9 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
      * @return whether any change occured. Occurs when change needs to be applied.
      * Equivalent to calling {@link #hasUnappliedValue()} method.
      */
-    public boolean applyNsetIfAvailable() {
+    public boolean applyNsetIfAvailable() {System.out.println(hasUnappliedValue());
         if(hasUnappliedValue()) {
-            Configuration.setNapplyField(config.getName(), getItem());
+            config.setNapplyValue(getItem());
             return true;
         } else return false;
     }
@@ -258,11 +257,17 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField txtF = new CustomTextField();
         final boolean allow_empty; // only for string
-        DialogButton applyB = new DialogButton(FontAwesome.Glyph.OK);
+        Button okBL= AwesomeDude.createIconButton(AwesomeIcon.THUMBS_UP, "", "15","15",ContentDisplay.GRAPHIC_ONLY);
+        AnchorPane okB = new AnchorPane(okBL);
         
         private GeneralField(Config c) {
             super(c);
             allow_empty = c.getType().equals(String.class);
+            
+            okBL.getStyleClass().setAll("congfig-field-ok-button");
+            // unfortunately the icon buttonis not aligned well, need to fix that
+            AnchorPane.setBottomAnchor(okBL, 3d);
+            AnchorPane.setLeftAnchor(okBL, 8d);
             
             txtF.setContextMenu(null);
             txtF.getStyleClass().setAll("text-field","text-input");
@@ -271,15 +276,22 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             txtF.setOnMouseClicked( e -> {
                 if (txtF.getText().isEmpty())
                     txtF.setText(txtF.getPromptText());
+                e.consume();
             });
+            
             txtF.focusedProperty().addListener((o,oldV,newV)->{
                 if(newV) {
-                    if (txtF.getText().isEmpty())
+                    if (txtF.getText().isEmpty()) 
                         txtF.setText(txtF.getPromptText());
                 } else {
-                    txtF.setText("");
-                    txtF.setLeft(new Region());
-                    applyB.setVisible(false);
+                    // the timer solves a little bug where the focus shift from
+                    // txtF to okB has a delay which we need to jump over
+                    FxTimer.run(Duration.millis(80), ()->{
+                        if(!okBL.isFocused() && !okB.isFocused()) {
+                            txtF.setText("");
+                            showOkButton(false);
+                        }
+                    });
                 }
             });
             
@@ -294,12 +306,11 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 });
             // applying value
             txtF.textProperty().addListener((o,oldV,newV)-> {
-                txtF.setLeft(!newV.isEmpty() && !newV.equals(txtF.getPromptText())
-                                ? applyB : new Region());
-                applyB.setVisible(!newV.isEmpty() && !newV.equals(txtF.getPromptText()));
+                boolean applicable = !newV.isEmpty() && !newV.equals(txtF.getPromptText());
+                showOkButton(applicable);
             });
-            applyB.setOnMouseClicked( e -> apply());
-            txtF.setOnKeyPressed(e-> { if(e.getCode()==ENTER) apply(); });
+            okBL.setOnMouseClicked( e -> apply());
+            txtF.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(); });
         }
         
         @Override public Control getNode() {
@@ -308,24 +319,29 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Object getItem() {
             String text = txtF.getText();
             if(allow_empty) {
-                return txtF.getPromptText().isEmpty() ? config.getValue() : "";
+                return text.isEmpty() ? txtF.getPromptText() : text;
             } else {
                 return text.isEmpty() ? config.getValue() : Parser.fromS(config.getType(), text);
             }
-        }
-        void apply() {
-            if(isApplyOnChange()) {
-                applyNsetIfAvailable();
-                txtF.setPromptText(Parser.toS(getItem()));
-            } 
-            txtF.setLeft(new Region());
-            applyB.setVisible(false);
-            
         }
         @Override void refreshItem() {
             txtF.setPromptText(Parser.toS(config.getValue()));
             txtF.setText("");
         }
+        private void apply() {
+            if(isApplyOnChange()) {
+                applyNsetIfAvailable();
+                txtF.setPromptText(Parser.toS(getItem()));
+                txtF.setText("");
+            } 
+            showOkButton(false);
+        }
+        private void showOkButton(boolean val) {
+            if (val) txtF.setLeft(okB);
+            else txtF.setLeft(new Region());
+            okB.setVisible(val);
+        }
+        
     }
     
     private static class BooleanField extends ConfigField<Boolean> {
@@ -359,12 +375,11 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             cBox = new ChoiceBox();
             ObservableList<Object> constants = FXCollections.observableArrayList();
             // get enum constants
+            //      of enums with class method bodies
             if(value.getClass().getEnclosingClass()!=null && value.getClass().getEnclosingClass().isEnum())
-                // handle enums with class method bodies
                 constants.setAll(value.getClass().getEnclosingClass().getEnumConstants());
-            else
-                // handle normal enums
-                constants.setAll(value.getClass().getEnumConstants());
+            //      of normal enums
+            else constants.setAll(value.getClass().getEnumConstants());
             
             cBox.setItems(constants);
             cBox.getSelectionModel().select(value);
@@ -484,20 +499,19 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         
         private ShortcutField(Config con) {
             super(con);
-            Action value = super.value;
             
             control = new TextField();
-            control.setPromptText(super.value.getKeys());
+            control.setPromptText(value.getKeys());
             control.setOnKeyReleased( e -> {
                 KeyCode c = e.getCode();
                 // handle substraction
                 if (c==BACK_SPACE || c==DELETE) {
                     control.setPromptText("");
-                    if (!control.getText().isEmpty()) control.setPromptText(super.value.getKeys());
+                    if (!control.getText().isEmpty()) control.setPromptText(value.getKeys());
                     
                     
                     if (t.isEmpty()) {  // set back to empty
-                        control.setPromptText(super.value.getKeys());
+                        control.setPromptText(value.getKeys());
                     } else {            // substract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
@@ -567,6 +581,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             
             txtF.setOnItemChange((oldFont,newFont) -> {
                 if(!newFont.equals(oldFont)) {  // we shouldnt rely on Font.equals here
+                    applyNsetIfAvailable();
                     txtF.setPromptText(new FontParser().toS(newFont));
                 }
                 txtF.setText(""); // always stay in prompt text more

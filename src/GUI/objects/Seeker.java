@@ -111,10 +111,13 @@ public final class Seeker extends AnchorPane {
                 p.setAutoHide(true);
                 p.setHideOnEscape(true);
                 p.setHideOnClick(true);
-                p.setAutoFix(true);
+//                p.setAutoFix(true);
                 p.setTitle(Util.formatDuration(time));
                 p.setArrowLocation(TOP_CENTER);
-                p.setOnHidden( event -> end.play());
+                p.setOnHidden( event -> {
+                    if (editOn) cancelEdit();
+                    end.play();
+                });
                 p.show(this);
                 content.setOnMouseClicked(me->{
                     if(me.getClickCount()==2) startEdit();
@@ -122,8 +125,17 @@ public final class Seeker extends AnchorPane {
                 });
             }
         }
+        
+        private boolean editOn = false;
+        
+        /** Returns whether editing is currently active. */
+        public boolean isEdited() {
+            return editOn;
+        }
+        
         /** Starts editable mode. */
         public void startEdit() {
+            editOn = true;
             ta = new TextArea();
             ta.setPrefSize(TextArea.USE_COMPUTED_SIZE, TextArea.USE_COMPUTED_SIZE);
             ta.textProperty().addListener((o,oldV,newV)->{
@@ -139,8 +151,10 @@ public final class Seeker extends AnchorPane {
             });
             content.getChildren().add(ta);
         }
+        
         /** Ends editable mode and applies changes. */
         public void okEdit() {
+            editOn = false;
             // go back
             content.getChildren().remove(ta);
             // & persist changes
@@ -161,8 +175,10 @@ public final class Seeker extends AnchorPane {
              // fire successful edit finish event
             if(onEditFinish!=null) onEditFinish.accept(true);
         }
+        
         /** Ends editable mode and discards all changes. */
         public void cancelEdit() {
+            editOn = false;
             // go back & dont persist changes
             content.getChildren().remove(ta);
             // fire unsuccessful edit finish event
@@ -171,6 +187,11 @@ public final class Seeker extends AnchorPane {
         
         UnProcedure<Boolean> onEditFinish;
         
+        /**
+         * Sets behavior executed after editing finishes.
+         * @param procedure to execute with a success parameter where true
+         * signifies changes were applied and false indicates cancellation.
+         */
         public void setOnEditFinish(UnProcedure<Boolean> onEditFinish) {
             this.onEditFinish = onEditFinish;
         }

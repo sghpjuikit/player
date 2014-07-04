@@ -1,15 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package AudioPlayer.services.LastFM;
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PercentTimeEventHandler;
@@ -27,7 +28,7 @@ import utilities.Log;
  *
  * @author Michal
  */
-public class LastFM {
+public class LastFMManager {
 
     private static String apiKey;
     private final String secret;
@@ -41,7 +42,7 @@ public class LastFM {
     private static String password;
 
     private Session session;
-    private final Preferences preferences;
+    private static Preferences preferences = Preferences.userNodeForPackage(LastFMManager.class);
 
     private static boolean percentSatisfied;
     private static boolean timeSatisfied;
@@ -66,11 +67,10 @@ public class LastFM {
     /**
      *
      */
-    public LastFM() {
+    public LastFMManager() {
         apiKey = acquireApiKey();
         secret = acquireSecret();
 
-        preferences = Preferences.userNodeForPackage(LastFM.class);
     }
 
     public void initialize() {
@@ -111,7 +111,7 @@ public class LastFM {
         username = "yourusername";
     }
 
-    public final void saveUserName(String username) {
+    public static final void saveUserName(String username) {
         preferences.put("lastfm_username", username);
     }
 

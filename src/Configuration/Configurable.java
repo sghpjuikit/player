@@ -9,17 +9,20 @@ import utilities.Parser.Parser;
 
 /**
  * Denotes object that can be configured.
- * Configurable object exports its configuration (which are in fact simple
- * annotated fields).
- * All configurable fields can be exported as a list of {@link Config}. This can
- * be very useful for serialization for example to save a configurable 'state'
- * of the object.
+ * Configurable object exports its configuration as {@link Config} fields. This can
+ * be very useful example to save a configurable's 'state' or restore it back 
+ * as a means to serialize complicated or composite objects. Also Configurable
+ * can be used to generate property sheet GUI to set change the state of the object.
+ * <p>
+ * The object denoted by a Configurable can be simple objects with some properties,
+ * composite object composed of sub Configurables exposing all its aggregated
+ * subparts transparently as one or it could even be a virtual object - simply
+ * a collection of objects and values wrapped into a Configurable.
  * <p>
  * This interface already provides default implementations of all its methods.
  * Implementing classes therefore get all the behavior with no additional work.
- * There is no additional work to do other than implementing this interface.
- * This is because default implementation uses reflection to introspect this
- * object's configurations.
+ * This is because the interface uses default methods and reflection to introspect this
+ * object's class and configurations.
  * <p>
  * The default implementation makes use of the {@link Configuration.IsConfig}
  * annotation. Annotating a field will make it compatible with default behavior
@@ -39,7 +42,7 @@ public interface Configurable {
             try {
                 IsConfig c = f.getAnnotation(IsConfig.class);
                 if (c != null)
-                    fields.add(new ObjectConfig(f.getName(),c, f.get(this), getClass().getSimpleName(), f));
+                    fields.add(new ObjectConfig(f.getName(),c, f.get(this), getClass().getSimpleName(), this, f));
             } catch (IllegalAccessException ex) {
                 Log.err(ex.getMessage());
             }
@@ -57,9 +60,11 @@ public interface Configurable {
         try {
             Field f = getClass().getField(name);
                   f.set(this, value);
+                  Log.deb("Config field: " + name + " set to: " + value);
             return true;
         } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
-            Log.err(ex.getMessage());
+            if(!name.equals("preferred"))
+            Log.err("Config field: " + name + " failed to set. Reason: " + ex.getMessage());
             return false;
         }
     }
@@ -75,9 +80,11 @@ public interface Configurable {
         try {
             Field f = getClass().getField(name);
                   f.set(this, Parser.fromS(f.getType(), value));
+                  Log.deb("Config field: " + name + " set to: " + value);
             return true;
         } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
-            Log.err(ex.getMessage());
+            if(!name.equals("preferred"))
+            Log.err("Config field: " + name + " failed to set. Reason: " + ex.getMessage());
             return false;
         }
     }

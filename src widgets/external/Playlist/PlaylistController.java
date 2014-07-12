@@ -8,17 +8,29 @@ import Configuration.IsConfig;
 import GUI.Dialogs.ContentDialog;
 import GUI.objects.PlaylistTable;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
+import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
+import Layout.Widgets.WidgetManager.Widget_Source;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.ERASER;
+import static de.jensd.fx.fontawesome.AwesomeIcon.FILTER;
 import java.util.Date;
 import java.util.function.Predicate;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -31,7 +43,7 @@ import utilities.Util;
  * Playlist FXML Controller class
  * Controls behavior of the Playlist FXML graphics.
  */
-public class PlaylistController extends FXMLController {
+public class PlaylistController extends FXMLController implements PlaylistFeature {
 
     @FXML AnchorPane root;
     @FXML TextField searchBox;
@@ -40,6 +52,12 @@ public class PlaylistController extends FXMLController {
     @FXML AnchorPane tablePane;
     @FXML AnchorPane optionPane;
     private PlaylistTable playlist;
+    
+    @FXML Menu addMenu;
+    @FXML Menu remMenu;
+    @FXML Menu selMenu;
+    @FXML Menu orderMenu;
+    @FXML Button filterB;
     
     // properties
     @IsConfig(name = "Table orientation", info = "Orientation of table.")
@@ -64,6 +82,34 @@ public class PlaylistController extends FXMLController {
     @Override
     public void init() {
         searchBox.setPromptText("search playlist");
+        
+        // filter button - change text for icon
+        filterB.setText("");
+        AwesomeDude.setIcon(filterB, filter_for_playback.get() ? ERASER : FILTER, "11");
+        String fOff = "      Enable filter for playback\n Causes the playback "
+                    + "to play only displayed items.";
+        String fOn = "       Disable filter for playback\n Causes the playback "
+                    + "to ignore the filter.";
+        Tooltip ft = new Tooltip(filter_for_playback.get() ? fOn : fOff);
+                ft.setWrapText(true);
+                ft.setMaxWidth(200);
+        filterB.setTooltip(ft);
+        // monitor value for icon change
+        filter_for_playback.addListener((o,oldV,newV) -> {
+            AwesomeDude.setIcon(filterB, newV ? ERASER : FILTER, "11");
+            ft.setText(newV ? fOn : fOff);
+        });
+        
+        // menubar - change text to icons
+        addMenu.setText("");
+        remMenu.setText("");
+        selMenu.setText("");
+        orderMenu.setText("");
+        AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
+        AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
+        AwesomeDude.setIcon(selMenu, AwesomeIcon.CROP, "11", "11");
+        AwesomeDude.setIcon(orderMenu, AwesomeIcon.NAVICON, "11", "11");
+        
         playlist = new PlaylistTable(tablePane);
         playlist.setItems(PlaylistManager.getItems());
 
@@ -131,6 +177,7 @@ public class PlaylistController extends FXMLController {
         
         // consume scroll event to prevent other scroll behavior // optional
         playlist.getTable().setOnScroll(Event::consume);
+        
     }
     
     @Override
@@ -151,7 +198,7 @@ public class PlaylistController extends FXMLController {
         // remove listeners
         PlaylistManager.lengthProperty().removeListener(lengthListener);
         playlist.clearResources();
-        if(active) deactivateUseFilterForPlayback();
+        if(filter_for_playback.get()) deactivateUseFilterForPlayback();
         
     }
     
@@ -233,8 +280,11 @@ public class PlaylistController extends FXMLController {
     
     @FXML
     public void tagEditSelected() {
-        TaggingFeature t = WidgetManager.getTaggerOrCreate();
-        if (t!=null) t.read(playlist.getSelectedItems());
+        Widget w = WidgetManager.getWidget(TaggingFeature.class,Widget_Source.FACTORY);
+        if (w!=null) {
+            TaggingFeature t = (TaggingFeature) w.getController();
+                           t.read(playlist.getSelectedItems());
+        }
     }
     @FXML
     public void savePlaylist() {
@@ -316,24 +366,32 @@ public class PlaylistController extends FXMLController {
         return PlaylistManager.getItems().size() != playlist.getItemsF().size();
     }
     
-    private boolean active = false;
+    
+    private final BooleanProperty filter_for_playback = new SimpleBooleanProperty(false);
+    
     public void toggleUseFilterForPlayback() {
-        if(active)
+        if(filter_for_playback.get())
             deactivateUseFilterForPlayback();
         else
             activateUseFilterForPlayback();
     }
+    
     public void activateUseFilterForPlayback() {
-        if(active) return;
-        active = true;
+        // avoid pointless operation
+        if(filter_for_playback.get()) return;
+        
+        filter_for_playback.set(true);
         playlist.getItemsF().predicateProperty().addListener(o->
             PlaylistManager.playingItemSelector.setFilter((Predicate<PlaylistItem>)playlist.getItemsF().getPredicate())
         );
         PlaylistManager.playingItemSelector.setFilter((Predicate<PlaylistItem>)playlist.getItemsF().getPredicate());
     }
+    
     public void deactivateUseFilterForPlayback() {
-        if(!active) return;
-        active = false;
+        // avoid pointless operation
+        if(!filter_for_playback.get()) return;
+        
+        filter_for_playback.set(false);
         playlist.getItemsF().predicateProperty().addListener(o->{});
         PlaylistManager.playingItemSelector.setFilter(null);
     }

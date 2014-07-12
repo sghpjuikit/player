@@ -1,12 +1,10 @@
 
 package GUI;
 
-import Configuration.Configuration;
-import GUI.objects.PopOver.PopOver;
 import GUI.objects.Window.Resize;
 import static GUI.objects.Window.Resize.NONE;
 import PseudoObjects.Maximized;
-import java.util.ArrayList;
+import static PseudoObjects.Maximized.ALL;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -17,7 +15,9 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 import main.App;
+import utilities.FxTimer;
 
 /**
  * Customized Stage, window of the application.
@@ -28,75 +28,40 @@ public class WindowBase {
     final DoubleProperty HProp = new SimpleDoubleProperty(100);
     final DoubleProperty XProp = new SimpleDoubleProperty(0);
     final DoubleProperty YProp = new SimpleDoubleProperty(0);
-    final BooleanProperty ResProp = new SimpleBooleanProperty(true);
-    final ObjectProperty<Maximized> MaxProp = new SimpleObjectProperty(Maximized.NONE);
+    final ObjectProperty<Maximized> MaxProp = new SimpleObjectProperty(NONE);
     final BooleanProperty FullProp = new SimpleBooleanProperty(false);
     
     Stage s = new Stage();
-    boolean main;
     
     public WindowBase() {
-        this(false);
-    }
-    public WindowBase(boolean isMain) {
-        main = isMain;
         s.initStyle(StageStyle.UNDECORATED);
-        s.setFullScreenExitHint(Configuration.fullscreenExitHintText);
-        
-        if(main) {    
-            WProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowWidth = (double)newV);
-            HProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowHeight = (double)newV);
-            XProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowPosX = (double)newV);
-            YProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowPosY = (double)newV);
-            s.iconifiedProperty().addListener((observable,oldV,newV) -> 
-                    Configuration.windowMinimized = newV );
-            MaxProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowMaximized = newV);
-            FullProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowFullscreen = newV);
-            ResProp.addListener((observable,oldV,newV) -> 
-                    Configuration.windowResizable = newV);
-            s.alwaysOnTopProperty().addListener((observable,oldV,newV) -> 
-                    Configuration.windowAlwaysOnTop = newV);   
-        }
+        s.setFullScreenExitHint("");
     }
     
     /**
-     * Initializes the last remembered state of the window represented by this
-     * application's settings.
-     * Mostly needed during window initialization. This method applies last
-     * remembered state. Can be also used as a refresh.
+     * Returns to last remembered state.
+     * Needed during window initialization.
      * Doesnt affect content of the window.
      */
-    public void update() {
-        s.setFullScreenExitHint(Configuration.fullscreenExitHintText);
+    public void update() {        
         s.setOpacity(Window.windowOpacity);
         
-        if(main) {
-            WProp.set(Configuration.windowWidth);
-            HProp.set(Configuration.windowHeight);
-            XProp.set(Configuration.windowPosX);
-            YProp.set(Configuration.windowPosY);
-            ResProp.set(Configuration.windowResizable);
-            MaxProp.set(Configuration.windowMaximized);
-            FullProp.set(Configuration.windowFullscreen);
-            
-        }
-        
-        // the order is importantif (main) setMinimized(Configuration.windowAlwaysOnTop);
+        // the order is important
         s.setWidth(WProp.get());
         s.setHeight(HProp.get());
         s.setX(XProp.get());
         s.setY(YProp.get());
-        setResizable(ResProp.get());
-        if (main) setMinimized(Configuration.windowMinimized);
-        setMaximized(MaxProp.get());
-        setFullscreen(FullProp.get());
-        if (main) setAlwaysOnTop(Configuration.windowAlwaysOnTop);
+        
+        // we need to refresh maximized value so set it to NONE and back
+        Maximized m = MaxProp.get();
+        setMaximized(Maximized.NONE);
+        setMaximized(m);
+        
+        // setFullscreen(FullProp.get())  produces a bug probably because the
+        // window is not yet ready. Delay execution. Avoid the whole process
+        // when the value is not true
+        if(FullProp.get())
+            FxTimer.run(Duration.millis(222), ()->setFullscreen(true));
     }
     /**
      * WARNING: Dont use the stage for positioning, maximizing and other
@@ -119,13 +84,6 @@ public class WindowBase {
         return s.getY();
     }
     
-    public boolean isVisible() {
-        return s.isShowing();
-    }
-    public void setVisible(boolean val) {
-        if(val) s.show();
-        else s.hide();
-    }
 /******************************************************************************/
     
     protected Resize is_being_resized = NONE;;
@@ -149,9 +107,12 @@ public class WindowBase {
      * @param val 
      */
     public void setResizable(boolean val) {
-        ResProp.set(val);
         s.setResizable(val);
     }
+    /**
+     * Returns whether the window is being resized at this moment.
+     * @return 
+     */
     public boolean isResizing() {
         return is_being_resized != NONE;
     }
@@ -204,9 +165,10 @@ public class WindowBase {
     public void setMinimized(boolean val) {
         // this would minimize window normally but we dont want that since it
         // is not supported when windows have the same owner
-//        s.setIconified(val);
-        Configuration.windowMinimized = val;
-        App.getWindowOwner().s.setIconified(val);    // minimize app
+        // s.setIconified(val);
+        
+        // instead minimize whole application
+        App.getWindowOwner().s.setIconified(val);
         // focus when deminimizing
         if(!val) focus();
     }
@@ -235,22 +197,12 @@ public class WindowBase {
         
         // remember window state if entering from non-mazimized state
         if(old==Maximized.NONE) {
-            switch (val) {
-                case ALL:
-                case LEFT:
-                case RIGHT:
-                case LEFT_TOP:
-                case RIGHT_TOP:
-                case LEFT_BOTTOM:
-                case RIGHT_BOTTOM:
-                                WProp.set(s.getWidth());
-                                HProp.set(s.getHeight());
-                                XProp.set(s.getX());
-                                YProp.set(s.getY());
-                                break;
-                case NONE:      break;
-                default:
-            }
+            // this must not execute when val==NONE but that will not
+            // happen because: old==none and we return if old==val
+            WProp.set(s.getWidth());
+            HProp.set(s.getHeight());
+            XProp.set(s.getX());
+            YProp.set(s.getY());
         }
         MaxProp.set(val);
         
@@ -319,10 +271,7 @@ public class WindowBase {
     * NONE maximize states.
     */    
     public void toggleMaximize() {
-        if (isMaximised() == Maximized.ALL)
-            setMaximized(Maximized.NONE);
-        else
-            setMaximized(Maximized.ALL);
+        setMaximized( isMaximised()==ALL ? Maximized.NONE : ALL);
     }
     
     /** @return value of property fulscreen of this window */
@@ -352,7 +301,6 @@ public class WindowBase {
      */
     public void setFullScreenExitHint(String text) {
         s.setFullScreenExitHint(text);
-        Configuration.fullscreenExitHintText = text;
     }
     
     private void snapUp() {
@@ -470,15 +418,16 @@ public class WindowBase {
         Platform.runLater(()->focus());     // cannot be done better? investigate
     }
     
+    public void hide() {
+        s.hide();
+    }
+    
+    public boolean isShowing() {
+        return s.isShowing();
+    }
+    
     public void close() {
-        if(main) {
-            // close all pop overs first (or we risk an exception and not closing app
-            // properly - PopOver bug
-            new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
-            // act as main window and close whole app
-            App.getWindowOwner().close();
-        }  
-        else s.close();
+       s.close();
     }
 
     

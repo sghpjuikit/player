@@ -263,6 +263,8 @@ public final class Action {
     
     @Override
     public boolean equals(Object o) {
+        if(this==o) return true; // this line can make a difference
+        
         if(o==null) return false;
         if(o==this) return true;
         if(!o.getClass().equals(Action.class)) return false;

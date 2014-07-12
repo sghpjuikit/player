@@ -1,13 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package AudioPlayer.tagging;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -67,8 +62,7 @@ public class MetadataReader{
         items.removeIf(Item::isCorrupt);
         // create task
         final Task<List<Metadata>> task = new Task<List<Metadata>>(){
-            @Override
-            protected List<Metadata> call() throws Exception{
+            @Override protected List<Metadata> call() throws Exception {
                 List<Metadata> metadatas = new ArrayList();
                 for (Item item: items){
                     if (isCancelled()){
@@ -92,13 +86,11 @@ public class MetadataReader{
         });
         task.setOnSucceeded((WorkerStateEvent e) -> {
             Platform.runLater(() -> {
-                try{
+                try {
                     onFinish.accept(true, task.get());
-                }
-                catch (InterruptedException | ExecutionException ex){
+                } catch (InterruptedException | ExecutionException ex){
                     onFinish.accept(false, null);
-                    Log.err("Reading metadata failed for items due to " +
-                            "interrupted execution.");
+                    Log.err("Reading metadata failed for items due to " + "interrupted execution.");
                 }
             });
         });
@@ -124,14 +116,14 @@ public class MetadataReader{
     public static Metadata create(Item item){
         // handle corrupt item
         if (item.isCorrupt()){
-            return Metadata.EMPTY();
+            return Metadata.EMPTY();        // is this good way to handle corrupt item? //no.
         }
         // handle items with no file representation
         if (!item.isFileBased()){
-            return createNonFileBased(item.getURI());
+            return createNonFileBased(item);
         }
         // handle normal item
-        else{
+        else {
             AudioFile afile = MetaItem.readAudioFile(item.getFile());
             return (afile == null) ? Metadata.EMPTY() : new Metadata(afile);
         }
@@ -157,28 +149,21 @@ public class MetadataReader{
      * completion or nothing when any error occurs. Never null.
      * @throws NullPointerException if any parameter null
      */
-    public static Task<Metadata> create(Item item,BiProcedure<Boolean, Metadata> onFinish){
+    public static Task<Metadata> create(Item item, BiProcedure<Boolean, Metadata> onFinish){
         Objects.requireNonNull(item);
         Objects.requireNonNull(onFinish);
 
         Task<Metadata> task = new Task<Metadata>(){
-            @Override
-            protected Metadata call() throws Exception{
-                if (item.isCorrupt()){
-                    throw new RuntimeException(
-                            "Metadata failed. Item is corrupt.");
-                }
+            @Override protected Metadata call() throws Exception {
                 return create(item);
             }
         };
         task.setOnSucceeded((WorkerStateEvent e) -> {
             Platform.runLater(() -> {
-                try{
+                try {
                     onFinish.accept(true, task.get());
-                }
-                catch (InterruptedException | ExecutionException ex){
-                    Log.err("Reading metadata failed for : " + item.getURI() +
-                            ".");
+                } catch (InterruptedException | ExecutionException ex){
+                    Log.err("Reading metadata failed for : " + item.getURI() + ".");
                     onFinish.accept(false, null);
                 }
             });
@@ -196,21 +181,21 @@ public class MetadataReader{
         return task;
     }
 
-    static private Metadata createNonFileBased(URI uri){
-        try{
-            Media m = new Media(uri.toString());
-            System.out.println("DEBUG");
-            m.getMetadata().forEach((String s, Object o) -> {
-                System.out.println(s + " " + o);
-            });
-            String name = m.getSource();
-            double time = m.getDuration().toMillis();
-            return new PlaylistItem(uri, name, time).toMetadata();
-        }
-        catch (IllegalArgumentException | NullPointerException |
-               UnsupportedOperationException e){
-            e.printStackTrace();
-            return null;
+    static private Metadata createNonFileBased(Item item){
+        try {
+            Media m = new Media(item.getURI().toString());
+//            m.getMetadata().forEach((String s, Object o) -> {
+//                System.out.println(s + " " + o);
+//            });
+            
+//            String name = m.getSource();  // this simply returns the URI which we already have
+            String name = item.getInitialName();    // for now initial name is the best we can do
+            double time = m.getDuration().toMillis();   //System.out.println("time "+time);
+            // make a playlistItem and covert to metadata
+            return new PlaylistItem(item.getURI(), name, time).toMetadata();
+        } catch (IllegalArgumentException | UnsupportedOperationException e){
+            Log.err("Error during creating metadat afor non file based item: " + item);
+            return item.toMetadata();
         }
     }
 

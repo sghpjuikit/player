@@ -9,9 +9,11 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
+import GUI.GUI;
 import GUI.WindowManager;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
 import javafx.beans.InvalidationListener;
@@ -40,7 +42,7 @@ import utilities.Util;
  * @author uranium
  */
 @WidgetInfo(name = "Tiny")
-public class PlayerControlsTinyController extends FXMLController {
+public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
     
     @FXML AnchorPane root;
     @FXML BorderPane seekerPane;
@@ -85,6 +87,7 @@ public class PlayerControlsTinyController extends FXMLController {
         seeker = new Seeker();
         seeker.prefWidthProperty().bind(seekerPane.widthProperty());
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
+        seeker.setChapterSnapDistance(GUI.snapDistance);
         seekerPane.setCenter(seeker);
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);

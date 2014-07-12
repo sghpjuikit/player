@@ -7,7 +7,9 @@
 package Configuration;
 
 import Action.Action;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.lang.reflect.Field;
+import utilities.Log;
 
 /**
  * Instance config. Refers to non static field of object instance.
@@ -16,13 +18,18 @@ import java.lang.reflect.Field;
  */
 public class ObjectConfig extends Config {
     
-    private Object value;
-    
-    ObjectConfig(String _name, IsConfig c, Object val, String category, Field field) {
+    public Object value;
+    @XStreamOmitField
+    public Object applier_object;
+//    @XStreamOmitField
+    public Object tmp;
+            
+    ObjectConfig(String _name, IsConfig c, Object val, String category, Object applier_object, Field field) {
         super(_name, c, val, category, field);
         
-        
+        this.applier_object = applier_object;
         value = defaultValue;
+        tmp = defaultValue;
     }
     
     ObjectConfig(Action c) {
@@ -34,20 +41,47 @@ public class ObjectConfig extends Config {
      * {@inheritDoc}
      */
     @Override
-    public Object getValue() {
-        return value;
+    public Object getValue() {System.out.println( " getting value for " + name);
+        if(getType().equals(Action.class)) return value;
+    
+        try {
+            Field f = applier_object.getClass().getField(name);
+            return f.get(applier_object);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Config " + getName() + 
+                        " can not return value. Wrong object type." + e.getMessage());
+        } catch (NoSuchFieldException e) {
+            // ignore this one
+            return false;
+        } catch (IllegalAccessException | SecurityException e) {
+            throw new RuntimeException("Config " + getName() + " can not return value. " + e.getMessage());
+        }
     }
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean setValue(Object val) {
-        if(!value.getClass().equals(val.getClass())) 
-            throw new ClassCastException("Can not set value to object config. "
-                    + "Parameter class type mismatch.");
-        value = val;
-        return true;
+    public boolean setValue(Object val) { System.out.println(" setting value for " + name + val + " " + val.getClass() + " " + applier_object);
+        if(getType().equals(Action.class)) {
+            value = val;
+            return true;
+        }
+        try {
+            Field f = applier_object.getClass().getField(name);
+                  f.set(applier_object, val);
+                  Log.deb("Config field: " + name + " set to: " + val);
+            return true;
+        } catch (SecurityException | IllegalAccessException ex) {
+            Log.err("Config field: " + name + " failed to set. Reason: " + ex.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Config value wrong object type. Cant "
+                    + "set " + getName() + " to: " + val + ".");
+        } catch (NoSuchFieldException e) {
+            // ignore this one
+            return false;
+        }
     }
 
     @Override

@@ -5,8 +5,6 @@
 package AudioPlayer.playlist;
 
 import AudioPlayer.Player;
-import AudioPlayer.playback.PlaybackState;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -14,7 +12,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.util.Duration;
 
 /**
  * @author uranium
@@ -80,6 +77,8 @@ public final class PlaylistState {
     
     @Override
     public boolean equals(Object o) {
+        if(this==o) return true; // this line can make a difference
+        
         if( o instanceof PlaylistState)
             return id.equals(((PlaylistState)o).id);
         else if( o instanceof UUID)

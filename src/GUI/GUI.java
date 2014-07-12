@@ -8,6 +8,7 @@ import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Configuration.SkinEnum;
+import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
 import Layout.LayoutManager;
@@ -60,7 +61,7 @@ public class GUI implements Configurable {
     public static boolean snapping = true;
     @IsConfig(name = "Snap distance", info = "Distance at which snap feature gets activated")
     public static double snapDistance = 7;
-    @IsConfig(name = "Tab auto align", info = "Always alignes tabs after tab dragging so only one is on screen.")
+    @IsConfig(name = "Tab auto align always", info = "Always alignes tabs after tab dragging so single tab covers the screen.")
     public static boolean align_tabs = true;
     @IsConfig(name = "Tab switch min distance", info = "Required length of drag at"
             + " which tab switch animation gets activated. Tab switch activates if"
@@ -89,16 +90,10 @@ public class GUI implements Configurable {
     
     public static void setLayoutMode(boolean val) {
         if (!val) {
-            LayoutManager.active.values().forEach(Layout::hide);
-            ContextManager.windows.forEach(w-> {
-                if(w.getLayout()!=null) w.getLayout().hide();
-            });
+            LayoutManager.getLayouts().forEach(Layout::hide);
             alt_state = false;
         } else {
-            LayoutManager.active.values().forEach(Layout::show);
-            ContextManager.windows.forEach(w-> {
-                if(w.getLayout()!=null) w.getLayout().show();
-            });
+            LayoutManager.getLayouts().forEach(Layout::show);
             alt_state = true;
         }
     }
@@ -134,20 +129,20 @@ public class GUI implements Configurable {
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
     @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F9")
     public static void toggleMinimize() {
-        if (ContextManager.activeWindow != null)
-            ContextManager.activeWindow.toggleMinimize();
+        if (Window.getFocused() != null)
+            Window.getFocused().toggleMinimize();
     }
     
     @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F10")
     public static void toggleMaximize() {
-        if (ContextManager.activeWindow != null)
-            ContextManager.activeWindow.toggleMaximize();
+        if (Window.getFocused() != null)
+            Window.getFocused().toggleMaximize();
     }
     
     @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F11")
     public static void toggleFullscreen() {
-        if (ContextManager.activeWindow != null)
-            ContextManager.activeWindow.toggleFullscreen();
+        if (Window.getFocused() != null)
+            Window.getFocused().toggleFullscreen();
     }
 
     
@@ -227,8 +222,8 @@ public class GUI implements Configurable {
         } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
             setSkinCaspian();
         }
-        String path = App.SKIN_FOLDER().getPath() + separator + skinname + separator + skinname + ".css";
-        File skin_file = new File(path);
+        File skin_file = new File(App.SKIN_FOLDER().getPath(), 
+                                    skinname + separator + skinname + ".css");
         setSkinExternal(skin_file);
     }
     /**
@@ -313,6 +308,10 @@ public class GUI implements Configurable {
     
     @AppliesConfig(config = "align_tabs")
     private static void applyAlignTabs() {
-        if(align_tabs) ContextManager.gui.alignTabs();
+        ContextManager.windows.stream()
+                .map(Window::getLayoutAggregator)
+                .filter(la->la instanceof SwitchPane)
+                .map(la->(SwitchPane)la)
+                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
 }

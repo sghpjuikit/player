@@ -12,7 +12,9 @@ import Configuration.IsConfigurable;
 import Configuration.ValueConfig;
 import Configuration.ValueConfigurable;
 import GUI.objects.PopOver.PopOver;
-import Layout.WidgetImpl.SimpleConfigurator;
+import GUI.objects.SimpleConfigurator;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -25,11 +27,15 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import main.App;
 import utilities.AudioFileFormat;
+import utilities.Enviroment;
 import utilities.FileUtil;
 
 /**
@@ -634,6 +640,7 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     private static void addOrEnqueueUrl(boolean add) {
+        // build content
         String title = add ? "Add url item." : "Play url item.";
         ValueConfigurable c = new ValueConfigurable(new ValueConfig("Url", "url", title));
         SimpleConfigurator content = new SimpleConfigurator(c, () -> {
@@ -647,7 +654,26 @@ public class PlaylistManager implements Configurable {
                 playFirstItem();
             }
         });
-        PopOver p = new PopOver(title, content.getPane());
+        
+        
+        // build help content
+        String uri = "http://www.scuola3d.eu";
+        Label infoB = AwesomeDude.createIconLabel(INFO, "", "11", "11", ContentDisplay.CENTER);
+              infoB.setTooltip(new Tooltip("Help"));
+              infoB.setOnMouseClicked( e -> {
+                PopOver helpP = PopOver.createHelpPopOver(uri);
+                        // turn to hyperlink by assigning proper styleclass
+                        helpP.getContentNode().getStyleClass().add("hyperlink");
+                        // open the uri in browser
+                        helpP.getContentNode().setOnMouseClicked( pe -> {
+                            Enviroment.browse(URI.create(uri));
+                            pe.consume();
+                        });
+                        helpP.show(infoB);
+              });
+        // build popup
+        PopOver p = new PopOver(title, content);
+                p.getHeaderIcons().add(infoB);
                 p.show(PopOver.ScreenCentricPos.AppCenter);
                 p.setDetached(true);
     }

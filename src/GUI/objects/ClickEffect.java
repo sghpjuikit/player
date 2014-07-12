@@ -4,7 +4,7 @@ package GUI.objects;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ContextManager;
+import GUI.Window;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -118,7 +118,10 @@ public class ClickEffect {
     }
     
     private void play(double X, double Y) {
-        parent = ContextManager.activeWindow.overlayPane;
+        Window w = Window.getFocused();
+        if(w==null) return;
+        
+        parent = w.overlayPane;
         parent.getChildren().add(root);
         // center position on run
         root.setLayoutX(X-(root.getWidth()/2));

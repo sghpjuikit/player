@@ -85,36 +85,33 @@ public final class LayoutManagerComponent {
      * Completely refreshes layouts - rereads them from files, etc...
      */
     public void refresh() {
-        LayoutManager.findLayouts();
-        layoutsCB.getItems().setAll(LayoutManager.layouts);
+        layoutsCB.getItems().setAll(LayoutManager.getAllLayoutsNames().collect(Collectors.toList()));
         layoutsCB.getSelectionModel().select(LayoutManager.getActive().getName());
     }
     
+    @FXML
     public void loadSelectedLayout() {
-        if (isSelected())
-            LayoutManager.changeActiveLayout(getSelectedLayout());
+        if (!isSelected()) return;
+        
+        LayoutManager.changeActiveLayout(getSelectedLayout());
     }
     
     public void saveSelectedLayout() {
         if (!isSelected()) return;
+        
         Layout l = getSelectedLayout();
-               l = l.equals(LayoutManager.active.get(0)) ? LayoutManager.active.get(0) : l;
-        l.setLocked(lockedChB.isSelected());
-        if (!nameF.getText().isEmpty())
-            l.setNameAndSave(nameF.getText());
-        else
-            l.serialize();
-        LayoutManager.makeSnapshot();
+               l.setLocked(lockedChB.isSelected());
+               if (!nameF.getText().isEmpty()) l.setName(nameF.getText());
+               l.serialize();
+               l.makeSnapshot();
         refresh();
     }
     
     @FXML
     public void newLayout() {
         Layout l = new Layout();
-        LayoutManager.layouts.add(l.getName());
-        l.serialize();
-        layoutsCB.getItems().setAll(LayoutManager.layouts);
-        layoutsCB.getSelectionModel().select(layoutsCB.getItems().size()-1);
+               l.serialize();
+        refresh();
     }
     @FXML
     public void removeLayout() {
@@ -123,7 +120,7 @@ public final class LayoutManagerComponent {
     }
     @FXML
     public void openLayoutDirectory() {
-        Enviroment.browse(App.LAYOUT_FOLDER());
+        Enviroment.browse(App.LAYOUT_FOLDER().toURI());
     }
     
     private boolean isSelected() {
@@ -131,14 +128,19 @@ public final class LayoutManagerComponent {
     }
     
     private Layout getSelectedLayout() {
-        Layout l =  new Layout(layoutsCB.getSelectionModel().getSelectedItem());
-               l.deserialize();
+        // create 'empty' layout based on name
+        String name = layoutsCB.getSelectionModel().getSelectedItem();
+        // attempt to get layout from active layouts
+        Layout l = LayoutManager.getLayouts().filter(al->al.getName().equals(name)).findAny().orElse(null);
+        // attempt to deserialize the layout if not active
+        if(l==null) { 
+            l = new Layout(name);
+            l.deserialize();
+        }
         return l;
     }
     
-    private void displayInfo(Layout l) {
-        l.deserialize();
-                
+    private void displayInfo(Layout l) {                
         nameF.setText("");
         nameF.setPromptText(l.getName());
         lockedChB.setSelected(l.isLocked());
@@ -154,7 +156,6 @@ public final class LayoutManagerComponent {
                                             .collect(Collectors.joining(", "));
         s += "\n";
         infoT.setText(s);
-        
         // show thumbnail
         thumb.loadImage(l.getThumbnail());
     }

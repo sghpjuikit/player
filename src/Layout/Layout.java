@@ -1,7 +1,7 @@
 
 package Layout;
 
-import Serialization.Serializator;
+import Serialization.Serializattion;
 import Serialization.Serializes;
 import Serialization.SerializesFile;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -24,8 +24,9 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
     private String name;
     
     /**
-     * Creates new layout with randomized unique name. Use to create completely
+     * Creates new layout with unique name. Use to create completely
      * new layouts.
+     * <p>
      * @see #setName(java.lang.String)
      */
     public Layout() {
@@ -36,6 +37,17 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      * Creates new layout with specified name. Please note that the name must
      * be unique. Use to create layout based on a name parameter, for example
      * when deserializing a file.
+     * <p>
+     * Do not use.
+     * This method is not intended to be used outside of serialization context.
+     * <p>
+     * Note that creating new Layout with specified name is dangerous due to 
+     * how {@link #equals(java.lang.Object)}
+     * is implemented. For example creating layout with a name that of a different
+     * layout which is currently active will result both of them being equal.
+     * Because of that, application could think the new layout is active and loaded
+     * while in fact, it isnt connected to any scene graph and has no children at
+     * all.
      * 
      * @see #setName(java.lang.String)
      * @param _name 
@@ -57,8 +69,8 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
     /**
      * Sets name.
      * <p>
-     * note: Name of layout directly affects file it will serialize into. Avoid
-     * this method if you want to avoid leaving out old file
+     * Do not use.
+     * This method is not intended to be used outside of serialization context.
      * @param new_name - name to set.
      */
     public void setName(String new_name) {
@@ -77,7 +89,7 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
         String old = name;
         name = _name;
         // save new
-        Serializator.serialize(this);
+        Serializattion.serialize(this);
         // delete old file
         FileUtil.deleteFile(new File(App.LAYOUT_FOLDER(), old + ".l"));
         // rename thumb
@@ -86,42 +98,57 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
             thumb.renameTo(new File(App.LAYOUT_FOLDER(), name + ".png"));
     }
     
-    /** @return true if and only if layout is displayed on the screen as main tab */
+    /** 
+     * Similar to {@link #isActive()} but this method returns true only if this
+     * layout is active layout within layout aggregator of the main application
+     * application window.
+     * @return true if and only if layout is displayed on the screen as main tab */
     public boolean isMain() {
-        return LayoutManager.active.get(0).equals(this);
+        return this == App.getWindow().getLayoutAggregator().getActive();
     }
-    /** @return true if and only if layout is loaded within the aplication */
+    /** 
+     * Returns whether this layout is active. Layout is active if its root is not
+     * null and is attached to the scene graph - if the layout is loaded.
+     * @return true if and only if layout is active.
+     */
     public boolean isActive() {
-        return LayoutManager.active.containsValue(this);
+        return LayoutManager.getLayouts().anyMatch(l->l.equals(this));
     }
-    public void setActive() {
-        LayoutManager.changeActiveLayout(this);
-    }
+    
     @Override
     public boolean isLocked() {
         return properties.getB("locked");
     }
+    
     @Override
     public void setLocked(boolean val) {
         properties.set("locked", val);
     }
     
     /**
-     * @return file of the image of the layout preview or null if none exists.
+     * Get the thumbnail image. If not available it wil be attempted to create
+     * a new one. It is only possible to create new thumbnail if the layout is
+     * active;
+     * @return file of the image of the layout preview or null if layout is not
+     * active.
      */
     public File getThumbnail() {
-        File file = new File(App.LAYOUT_FOLDER() + File.separator + name + ".png");
-        if (!file.exists() && isMain()) LayoutManager.makeSnapshot();
-        return file;
+        // get thumbnail file
+        File file = new File(App.LAYOUT_FOLDER(), name + ".png");
+        // if thumbnail not available attempt to make it
+        if (!file.exists()) makeSnapshot();
+        return (file.exists()) ? file : null;
     }
     
     /**
      * Takes preview/thumbnail/snapshot of the active layout and saves it as .png
      * under same name.
+     * <p>
+     * If the root is null this method is a no-op.
      */
     public void makeSnapshot() {
-        if(parent_pane!=null) {
-            WritableImage i = parent_pane.snapshot(new SnapshotParameters(),null);
+        if(root!=null) {
+            WritableImage i = root.snapshot(new SnapshotParameters(),null);
             File out = new File(App.LAYOUT_FOLDER(),name + ".png");
             FileUtil.writeImage(i, out);
         }
@@ -140,7 +167,7 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
         
         try {
             getAllWidgets().forEach(w->w.getController().OnClosing());
-            System.out.println("widgets reloaded");;
+            System.out.println("widgets reloaded");
         }catch(NullPointerException e) {
             // do nothing
             System.out.println("not initialized ");
@@ -152,50 +179,60 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
     }    
     
 
-     /**
-      * Serializes layout into file according to application specifications.
-      */
-     public void serialize() {                                                  // Log.deb("serializing"+name);
-        if(!getChildren().isEmpty())
-            Serializator.serialize(this);
-     }
-     /**
-      * Deserializes layout from file according to application specifications.
-      */
-     public void deserialize() {                                                // Log.deb("deserializing"+name);
-         Layout l = Serializator.deserializeLayout(getFile());
-         l.properties.getMap().forEach(properties::set);
+    /**
+     * Serializes layout into file according to application specifications.
+     */
+    public void serialize() {                                                  // Log.deb("serializing"+name);
+       if(!getChildren().isEmpty())
+           Serializattion.serialize(this);
+    }
+    /**
+     * Deserializes layout from file according to application specifications.
+     */
+    public void deserialize() {                                                // Log.deb("deserializing"+name);
+        deserialize(getFile());
+    }
+    public Layout deserialize(File f) {                                          // Log.deb("deserializing"+name);
+        Layout l = Serializattion.deserializeLayout(f);
+        l.properties.getMap().forEach(properties::set);
 //         l.getChildren().forEach(this::addChild);
-         child = l.child;
-     }
-     
-     public File getFile() {
-         return new File(App.LAYOUT_FOLDER(),name+".l");
-     }
-     
-     /**
-      * Removes files associated with this layout. Layout lives on in the
-      * application.
-      */
-     public void removeFile() {
-        FileUtil.deleteFile(getFile());
-        FileUtil.deleteFile(getThumbnail());
-     }
+        child = l.child;
+        return this;
+    }
+    
+    /**
+     * Get file this layout will sarialize as if not set otherwise. The file
+     * should always be derived from the layouts name, Specifically name+".l".
+     * 
+     * @return 
+     */
+    @Deprecated
+    public File getFile() {
+        return new File(App.LAYOUT_FOLDER(),name+".l");
+    }
+
+    /**
+     * Removes files associated with this layout. Layout lives on in the
+     * application.
+     */
+    public void removeFile() {
+       FileUtil.deleteFile(getFile());
+       FileUtil.deleteFile(getThumbnail());
+    }
      
      /** @return true if and only if two layouts share the same name. */
     @Override
-     public boolean equals(Object o) {
-         if (this==o) return true;
-         if ( o instanceof Layout) return name.equals(((Layout)o).name);
-         return false;
-     }
+    public boolean equals(Object o) {
+        if(this==o) return true; // this line can make a difference
+        
+        return ( o instanceof Layout && name.equals(((Layout)o).name));
+    }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 59 * hash + Objects.hashCode(this.name);
-        return hash;
+        return 59 * 3 + Objects.hashCode(this.name);
     }
+    
     /**
      * This implementation returns name of the layout.
      * @return name

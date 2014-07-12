@@ -1,16 +1,12 @@
 
 package Layout;
 
-import Action.IsActionable;
 import Configuration.Configurable;
-import Configuration.Configuration;
 import GUI.ContextManager;
-import Serialization.Serializator;
+import GUI.Window;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import main.App;
 import utilities.FileUtil;
@@ -20,25 +16,42 @@ import utilities.Log;
  * @author uranium
  *
  */
-@IsActionable
 public final class LayoutManager implements Configurable {
 
-    public static final List<String> layouts = new ArrayList<>();
-    public static final Map<Integer,Layout> active = new HashMap<>();
+    private static final List<String> layouts = new ArrayList();
     
     
     public static Layout getActive() {
-        return active.get(ContextManager.gui.currTab());
+        // get focused window (not active - that is an illegal state in this
+        // context. User should always be able to determine which layout is
+        // active by seeing the focused window. If none is focused no layout
+        // should be active as application is either not focused or in an
+        // illegal state itself.
+        Window aw = Window.getFocused();
+        // get active layout from focused window
+        return aw==null ? null : aw.getLayoutAggregator().getActive();
     }
     
     /**
      * @return all active Layouts in the application.
      */
     public static Stream<Layout> getLayouts() {
-        // combine sources and filter nulls as windows dont have non null layouts
-        // enforced
-        return Stream.concat(active.values().stream(), 
-            ContextManager.windows.stream().map(w->w.getLayout()).filter(l->l!=null));
+        // get all windows and fetch their layouts
+        return ContextManager.windows.stream()
+                    .map(w->w.getLayoutAggregator())
+                    .flatMap(la->la.getLayouts().stream());
+    }
+    
+    /**
+     * Return all names of all layouts available to the application, including
+     * serialized layouts in files.
+     * @return 
+     */
+    public static Stream<String> getAllLayoutsNames() {
+        findLayouts();
+        // get all windows and fetch their layouts
+        return Stream.concat(getLayouts().map(Layout::getName), layouts.stream()).distinct();
+        
     }
     
     /**
@@ -65,64 +78,12 @@ public final class LayoutManager implements Configurable {
             layouts.add(FileUtil.getName(f));
         }
     }
-
-    /**
-     * Loads layout marked as last used. 
-     * Allows resuming layout from last session. If last used layout is
-     * already being used, it reverts to its last saved state.
-     * This method guarantees initialization of the layout. 
-     * If layout fails to load, nothing happens, but in case of initialization,
-     * new empty layout will be created and assigned as active.
-     */
-    public static void loadLast() {
-        for (String l: layouts) {            
-            if (l.equals(Configuration.last_layout))
-                putLayout(0, l);
-            if (l.equals(Configuration.right_layout))
-                putLayout(1, l);
-            if (l.equals(Configuration.left_layout))
-                putLayout(-1, l);
-        }
-        active.putIfAbsent(0, new Layout("layout0"));
-        active.keySet().forEach( i -> App.getWindow().sp.addTab(i));
-    }
-    
-    private static void putLayout(int i, String s) {
-        Layout l = Serializator.deserializeLayout(new File(App.LAYOUT_FOLDER(),s+".l"));
-        if (l!=null) active.put(i, l);
-    }
-    
-    /**
-     * Takes preview/thumbnail/snapshot of the active layout and saves it as .png
-     * under same name.
-     */
-    public static void makeSnapshot() {        
-        active.values().forEach(Layout::makeSnapshot);
-    } 
-    
-    /** Loads/refreshes active layout. */
-    public static void loadActive() {
-        active.entrySet().forEach( l -> {
-            l.getValue().serialize();
-            l.getValue().load();
-            
-            if(l.getKey()==0)
-                Configuration.last_layout = l.getValue().getName();
-            if(l.getKey()==1)
-                Configuration.right_layout = l.getValue().getName();
-             if(l.getKey()==-1)
-                Configuration.left_layout = l.getValue().getName();
-        });
-    }
     
     /** Loads specified layout as active. */
     public static void changeActiveLayout(Layout l) {
-        active.get(0).makeSnapshot();
-        active.put(0, l);
-        loadActive();
-    }
-    
-    public static void serialize() {
-        active.values().forEach(Layout::serialize);
+        // get active layouot
+        Layout al = getActive();
+        // change layout
+        if (al!=null) al.setChild(l.getChild());
     }
 }

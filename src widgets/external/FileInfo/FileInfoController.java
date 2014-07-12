@@ -4,8 +4,9 @@ package FileInfo;
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.SimpleItem;
+import AudioPlayer.tagging.Cover.Cover;
+import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.Metadata.CoverSource;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configuration;
 import Configuration.IsConfig;
@@ -279,17 +280,9 @@ public class FileInfoController extends FXMLController  {
         }
         
         // set image
-        if (cover_source == CoverSource.TAG)
-            layout.setImage(m.getCover());
-        else
-        if (cover_source == CoverSource.DIRECTORY)
-           layout.setImage(m.getCoverFromAnySourceAsFile());
-        else
-        if (cover_source == CoverSource.ANY) {
-            layout.setImage(m.getCover());
-            if (!layout.hasImage())
-                layout.setImage(m.getCoverAsFile(cover_source));
-        }
+        Cover c = m.getCover(CoverSource.ANY);
+        if(c.getFile()!=null) layout.setImage(c.getFile());
+        else layout.setImage(c.getImage());
         
         // set rating
         rater.setDisable(false);
@@ -363,14 +356,19 @@ public class FileInfoController extends FXMLController  {
         visible_labels.clear();
         visible_labels.addAll(labels);
         visible_labels.forEach(l -> l.setVisible(false));
-        visible_labels.forEach(l -> l.setOpacity(1));
+        visible_labels.forEach(l -> l.setDisable(false));
 //        rater.setVisible(true);
 
-        // hide empty fields
+        // disable empty fields
         if (showEmptyFields) {
             visible_labels.stream()
-                    .filter(l->l.getText().substring(l.getText().indexOf(": ")+1).equals(" "))
-                    .forEach(l->l.setOpacity(0.5));
+                    .filter(l->{
+                        // filter out nonempty
+                        String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
+                        return content.isEmpty() || content.equalsIgnoreCase("?/?") ||
+                                content.equalsIgnoreCase("n/a") || content.equalsIgnoreCase("unknown");
+                    })
+                    .forEach(l->l.setDisable(true));
         }
         else {
             for(Label ll: labels)

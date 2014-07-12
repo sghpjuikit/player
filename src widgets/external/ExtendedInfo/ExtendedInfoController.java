@@ -4,8 +4,8 @@ package ExtendedInfo;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.tagging.Chapter;
-import AudioPlayer.tagging.CommentExtended;
+import AudioPlayer.tagging.Chapters.Chapter;
+import AudioPlayer.tagging.Chapters.CommentExtended;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.IsConfig;
@@ -223,7 +223,7 @@ public class ExtendedInfoController extends FXMLController {
             Chapter sel = chaptersT.getSelectionModel().getSelectedItem();
             if (!chaptersT.getSelectionModel().isEmpty()) {
                 type.setText("");
-                text.setText(sel.getInfo());
+                text.setText(sel.getText());
             }
         });
         infosT.setOnKeyPressed((KeyEvent t) -> {

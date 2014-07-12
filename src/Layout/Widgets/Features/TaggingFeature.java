@@ -2,23 +2,32 @@
 package Layout.Widgets.Features;
 
 import AudioPlayer.playlist.Item;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
- *
- * Defines functionality of a tagging widget
+ * Defines tagging feature - functionality of a tagging widget
  * 
  * @author Plutonium_
  */
-public interface TaggingFeature {
+public interface TaggingFeature extends Feature{
     
     /**
      * Convenience method for single item reading. For specifics read the
      * documentation for the other more general read method.
+     * <p>
+     * Default implementation wraps the item in a singleton list and passes it
+     * to {@link #read(java.util.List)} method. More effective implementation
+     * might be desirable.
+     * 
      * @param item
      * @throws NullPointerException if param null
      */    
-    public void read(Item item);
+    public default void read(Item item) {
+        Objects.requireNonNull(item);
+        read(Collections.singletonList(item));
+    };
     
     /**
      * Reads metadata on provided items and fills the data for tagging. If items

@@ -195,6 +195,8 @@ public final class PlaybackState {
     
     @Override
     public boolean equals(Object o) {
+        if(this==o) return true; // this line can make a difference
+        
         if( o instanceof PlaybackState)
             return id.equals(((PlaybackState)o).id);
         else if( o instanceof UUID)

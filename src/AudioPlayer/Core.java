@@ -15,112 +15,78 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.util.Duration;
+import utilities.FxTimer;
 import utilities.Log;
 
 /**
  *
  * @author uranium
  */
-final class Core{
-    final SimpleObjectProperty<Metadata> currentMetadataCache =
-                                         new SimpleObjectProperty<>(
-                                                 Metadata.EMPTY());
-    final SimpleObjectProperty<Metadata> nextMetadataCache =
-                                         new SimpleObjectProperty<>(
-                                                 Metadata.EMPTY());
+final class Core {
+    
+    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty<>(Metadata.EMPTY());
+    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty<>(Metadata.EMPTY());
 
-    final SimpleObjectProperty<Metadata> selectedMetadata =
-                                         new SimpleObjectProperty<>();
-    final ObservableList<Metadata> selectedMetadatas = FXCollections
-                                   .observableArrayList();
+    final SimpleObjectProperty<Metadata> selectedMetadata = new SimpleObjectProperty<>();
+    final ObservableList<Metadata> selectedMetadatas = FXCollections.observableArrayList();
 
-    Core(){
-    }
 
     void initialize(){
 
         // playing item changed
         //-> change current Metadata
         //-> wait, preload metadata for next item
-        PlaylistManager.playingItemProperty().addListener((observable, oldV,
-                newV) -> {
-                    // change current Metadata
-                    if (nextMetadataCache.get() != null && newV.same(
-                            nextMetadataCache.get())){
-                        Metadata oldM = currentMetadataCache.get();
-                        currentMetadataCache.set(nextMetadataCache.get());
-                        itemChange
-                        .fireEvent(true, oldM, nextMetadataCache.get());
-                        Log
-                        .deb("Metadata cache copied from next item metadata " +
-                                "cache.");
-                    }
-                    else{
-                        Log
-                        .deb("Metadata cache copy failed. " +
-                                "Next item metadata cache content doesnt " +
-                                "correspond to current item.");
-                        loadCurrentMetadataCache(true);
-                    }
+        PlaylistManager.playingItemProperty().addListener((observable, oldV, newV) -> {
+            // change current Metadata
+            if (nextMetadataCache.get() != null && newV.same(nextMetadataCache.get())){
+                Metadata oldM = currentMetadataCache.get();
+                currentMetadataCache.set(nextMetadataCache.get());
+                itemChange.fireEvent(true, oldM, nextMetadataCache.get());
+                Log.deb("Metadata cache copied from next item metadata " + "cache.");
+            }
+            else {
+                Log.deb("Metadata cache copy failed. " +
+                        "Next item metadata cache content doesnt " +
+                        "correspond to current item.");
+                loadCurrentMetadataCache(true);
+            }
 
-                    //new thread, wait 400ms, preload metadata for next item
-                    final PlaylistItem next =
-                                       PlaylistManager.playingItemSelector
-                                       .getNextPlaying();
-                    Thread thr = new Thread(() -> {
-                        try{
-                            Thread.sleep(400);
-                            preloadNextMetadataCache();
-                        }
-                        catch (InterruptedException ex){
-                            Log.err("Metadata preloading thread interrupted.");
-                        }
-                    });
-                    thr.setDaemon(true);
-                    thr.start();
-                });
+            // wait 400ms, preload metadata for next item
+            FxTimer.run(Duration.millis(400), () -> preloadNextMetadataCache());
+        });
 
         // playlist selection changed
         // -> manage selected playlist items' metadata list
         // -> manage lastly selected playlist item' list
-        PlaylistManager.getSelectedItems().addListener((
-                ListChangeListener.Change<? extends PlaylistItem> change) -> {
-                    while (change.next()){
-                        if (change.wasAdded() || change.wasRemoved() || change
-                        .wasReplaced()){
-                            loadPlaylistSelectedMetadatas();
-                        }
-                    }
-                });
+        PlaylistManager.getSelectedItems().addListener((ListChangeListener.Change<? extends PlaylistItem> change) -> {
+            while (change.next()){
+                if (change.wasAdded() || change.wasRemoved() || change.wasReplaced())
+                    loadPlaylistSelectedMetadatas();
+            }
+        });
     }
 
-    /** ****************************** current
-     * ************************************ */
+/******************************** current *************************************/
+    
     final ItemChangeEvent itemChange = new ItemChangeEvent();
 
     private void loadCurrentMetadataCache(boolean changeType){
         PlaylistItem item = PlaylistManager.getPlayingItem();
-        MetadataReader.create(item,
-                              (success, result) -> {
-                                  if (success){
-                                      Metadata oldM = currentMetadataCache.get();
-                                      currentMetadataCache.set(result);
-                                      itemChange.fireEvent(changeType, oldM,
-                                                           result);
-                                      Log.deb("Current metadata cache loaded.");
-                                  }
-                                  else{
-                                      Metadata oldM = currentMetadataCache.get();
-                                      currentMetadataCache
-                                      .set(item.toMetadata());
-                                      itemChange.fireEvent(changeType, oldM,
-                                                           currentMetadataCache
-                                                           .get());
-                                      Log
-                                      .deb("Current metadata cache load fail. Metadata will be empty.");
-                                  }
-                              }
-        );
+        MetadataReader.create(item, (success, result) -> {
+            if (success){
+                Metadata oldM = currentMetadataCache.get();
+                currentMetadataCache.set(result);
+                itemChange.fireEvent(changeType, oldM, result);
+                Log.deb("Current metadata cache loaded.");
+            }
+            else {
+                Metadata oldM = currentMetadataCache.get();
+                currentMetadataCache.set(item.toMetadata());
+                itemChange.fireEvent(changeType, oldM, currentMetadataCache.get());
+                Log.deb("Current metadata cache load fail. Metadata will be empty.");
+            }
+        });
     }
 
     void updateCurrent(){
@@ -131,36 +97,31 @@ final class Core{
         loadCurrentMetadataCache(true);
     }
 
-    /** ******************************** next
-     * ************************************* */
+/********************************** next ***************************************/
+    
     private void preloadNextMetadataCache(){
         PlaylistItem next = PlaylistManager.playingItemSelector.getNextPlaying();
         if (next == null){
-            Log
-                    .deb("Next item metadata cache preloading prevented. No next playing item.");
+            Log.deb("Next item metadata cache preloading prevented. No next playing item.");
             return;
         }
-        MetadataReader.create(next,
-                              (success, result) -> {
-                                  if (success){
-                                      nextMetadataCache.set(result);
-                                      Log
-                                      .deb("Next item metadata cache preloaded.");
-                                  }
-                                  else{
-                                      // dont set any value, not even empty
-                                      Log
-                                      .deb("Preloading next item metadata into cache failed.");
-                                  }
-                              });
+        MetadataReader.create(next,(success, result) -> {
+            if (success){
+                nextMetadataCache.set(result);
+                Log.deb("Next item metadata cache preloaded.");
+            } else {
+                // dont set any value, not even empty
+                Log.deb("Preloading next item metadata into cache failed.");
+            }
+        });
     }
 
-    /** ****************************** selected
-     * *********************************** */
+/******************************** selected ************************************/
+    
     void loadPlaylistSelectedMetadata(){
         // this algorithm makes use of the fact that selected items are already
         // loaded and Last selected must always be among them. No need to add
-        // more listeners and whatnot, just look it up
+        // more listeners and stuff, just look it up
 
         PlaylistItem lastSelected = PlaylistManager.getSelectedItem();
         for (Metadata m: selectedMetadatas){

@@ -4,6 +4,7 @@ package Layout.Widgets;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
+import Configuration.ObjectConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.List;
@@ -51,7 +52,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     C controller;
     
     @XStreamOmitField
-    @IsConfig(name = "Is preferred", info = "Preffered widget for its widget type.")
+    @IsConfig(name = "Is preferred", info = "Preferred widget for its widget type.")
     public boolean preferred = false;
     
     // list of properties of the widget to provide serialisation support since
@@ -164,8 +165,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
     }
     protected void restoreConfigs() {
         if(configs != null) {
-            configs.forEach((Config c) -> { // dont shorten this it causes some errors
-                setField(c.getName(), c.getValue());
+            configs.forEach(c -> {
+                c.setValue(((ObjectConfig)c).value);
             });
             configs = null;
         }

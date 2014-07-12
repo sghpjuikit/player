@@ -10,7 +10,7 @@
   <children>
     <AnchorPane fx:id="searchPane" prefHeight="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
-        <TextField fx:id="searchBox" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Button mnemonicParsing="false" onAction="#toggleUseFilterForPlayback" prefWidth="58.0" styleClass="header-button" text="use" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+        <TextField fx:id="searchBox" AnchorPane.leftAnchor="60.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Button fx:id="filterB" mnemonicParsing="false" onAction="#toggleUseFilterForPlayback" prefWidth="58.0" styleClass="header-button" text="use" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
 <tooltip><Tooltip text="Use filter for playback" />
 </tooltip></Button>
       </children>
@@ -26,7 +26,7 @@
           </center>
         </BorderPane><MenuBar layoutX="45.0" layoutY="164.5" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
   <menus>
-    <Menu mnemonicParsing="false" text="+">
+    <Menu fx:id="addMenu" mnemonicParsing="false" text="+">
 <items>
     <MenuItem mnemonicParsing="false" onAction="#chooseFiles" text="Add files">
 <accelerator>
@@ -35,18 +35,18 @@
     <MenuItem mnemonicParsing="false" onAction="#chooseFolder" text="Add folder" /><MenuItem mnemonicParsing="false" onAction="#chooseUrl" text="Add url" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsByOne" text="Duplicate selected (1)" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsAsGroup" text="Duplicate selected (+)" />
 </items>
     </Menu>
-    <Menu mnemonicParsing="false" text="-">
+    <Menu fx:id="remMenu" mnemonicParsing="false" text="-">
 <items>
     <MenuItem mnemonicParsing="false" onAction="#removeSelectedItems" text="Remove selected" />
     <MenuItem mnemonicParsing="false" onAction="#removeUnselectedItems" text="Remove unselected" /><MenuItem mnemonicParsing="false" onAction="#removeUnplayableItems" text="Remove unplayable" /><MenuItem mnemonicParsing="false" onAction="#removeDuplicateItems" text="Remove duplicates" /><MenuItem mnemonicParsing="false" onAction="#removeAllItems" text="Remove all" />
 </items>
     </Menu>
-    <Menu mnemonicParsing="false" text="s">
+    <Menu fx:id="selMenu" mnemonicParsing="false" text="s">
 <items>
     <MenuItem mnemonicParsing="false" onAction="#selectInverse" text="Select inverse" />
     <MenuItem mnemonicParsing="false" onAction="#selectAll" text="Select all" /><MenuItem mnemonicParsing="false" onAction="#selectNone" text="Select none" />
 </items>
-    </Menu><Menu mnemonicParsing="false" text="o">
+    </Menu><Menu fx:id="orderMenu" mnemonicParsing="false" text="o">
   <items>
     <MenuItem mnemonicParsing="false" onAction="#sortByTitle" text="Sort by title" />
     <MenuItem mnemonicParsing="false" onAction="#sortByArtist" text="Sort by artist" /><MenuItem mnemonicParsing="false" onAction="#sortByName" text="Sort by name" /><MenuItem mnemonicParsing="false" onAction="#sortByLength" text="Sort by length" /><MenuItem mnemonicParsing="false" onAction="#sortByFilename" text="Sort by filename" /><MenuItem mnemonicParsing="false" onAction="#reverseOrder" text="Reverse order" /><MenuItem mnemonicParsing="false" onAction="#randomOrder" text="Random order" /><MenuItem mnemonicParsing="false" onAction="#tagEditSelected" text="Edit selected" /><MenuItem mnemonicParsing="false" onAction="#saveSelectedAsPlaylist" text="Save selected as..." /><MenuItem mnemonicParsing="false" onAction="#savePlaylist" text="Save playlist as..." />

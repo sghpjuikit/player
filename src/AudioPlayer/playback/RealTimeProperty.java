@@ -37,10 +37,7 @@ public final class RealTimeProperty {
             realTime.set(d);
         });
         // update count
-        setOnTimeAt(new PercentTimeEventHandler(1, () -> {
-            count++;
-        },
-                "RealTimeProperty count"));
+        setOnTimeAt(new PercentTimeEventHandler(1, () -> count++, "RealTimeProperty count"));
         //
 //        locker.scheduleAtFixedRate(unlock,0,250);
     }

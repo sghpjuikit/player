@@ -8,61 +8,58 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- config field add refresh() get rid of hard refresh in configurators
+
+- finish tagger infoPopup etc, interrupt reading if double reading
+- object config clean up
 - fix actions + configs
 - document and clean up configurable configuration
-- add URI configField
-- window maximization not restoring on app start
-- tagger use nice progress animation
+
+- seeker chapter popup position a bit off for the first time
+- popover padding solve
+- the selected playlist metadata caching and all is probably useless, get rid   
+  of it and read the metadata manually
+
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
-- seeker popup adder button-like hoverable dynamically repositioned popup
-- CHAPTERS TAG | XML OPTION and clean up + support 'infos' - custom comments
-- popup clean show methods
-- window starts minimized & on top
+- support 'infos' - custom tagged extended comments like chapters - figure out
+  a good delimiter character - '|' is too common i think
 - skin setting
-- file info handle comment label->Text add scrollbar and reimplement
 
-- configurable support sub configurable by default
-- properly handle vol scolling and app dragging event consuminf at widget level
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird
-- app not closing propery on ALT+F4                                             (wth)
- 
-- popover set arrow location automatically based on available screen space      (tough one...)
+- popover set arrow location automatically based on available screen space
 - tab container not remembering its children - why this again
 - empty widget vs empty widget area & bgr
-- playcont incrementing fix misbehavior
-- ui not resizing when window size gets below certain threshold                 (wth)
-- windows hard to drag, especially in headerless mode
+
 - tagger color field
-- uidrag consume event
 - playlist selected item none->first when clicking on different widget          (wth)
 
-- figure out LoopMode - class on its own or within NextItemSelector
-- figure out LoopMode - should include Random? implement properly
-- finish the whole nextPlayingItem() thing. support with GUI
-- figure out serialisation of loopMode and random
+- layout change doesnt register sometimes                                       (major)
+- dynamically create LayoutAggregator depending on size or preferences          (?)
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
-- figure out tabs and layout serialisation
-- figure out window management and serialisation
 - figure out custom context menus
-- tabs make into a reusable object
-- widg man prefFactory per group configs
-  getWidget reimplement + widget Feature interface
+  getWidget - implement Target
 - Player update item not refreshing selected pl item
-- writeException - suspend playback (phew)                                      (medium)
 - splitter absolute size for both children
 - rater controls not resizing graphics
-- playback states - change, suspend, etc - perfect + cleanup
 - playlist table header button implement properly column hiding (nasty bug)
-- realTime serialize
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- beautify layout manager widget - add info popup and improve layout and looks
+  involves turning layout info turning into ValueConfigurable
+- layout manager add mockup layout builder to make custom layout without loading
+  the widgets, perhaps also display this mockup instead of thumbnail
+- add URI configField
+- file info handle long comment texts label->Text, add scrollbar ?
+- configurable support sub configurable by default
+- figure out LoopMode - class on its own or within NextItemSelector
+- figure out LoopMode - should include Random? implement properly
+- finish the whole nextPlayingItem() thing. support with GUI
+- seeker option to show chapters as they are passing
 - cursor trail effect - 'frozen" effect
 - cursor api clean up, fix appliers, make actually usable
 - seeker orientation property and support with layout (chapter positions too)
@@ -72,7 +69,7 @@
 - widget manager widget
 - cursor effect to popup, get rid of effectPane
 - tagger disable unsupported fields for type
-- tagger multithreaded writing to tag                                           (not needed)
+- tagger multithreaded writing to tag                                           (not needed, ?)
 - playlist tabs
 - import/export some of the most used playlist file formats
 - gestures & touch
@@ -151,16 +148,15 @@ GENERAL
   cause: lazy loading of css file, possible javaFX bug
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 
-SOLVED (with unwanted workaround)
-  (bug presents no problems but the underlying cause still deserves attention)
-- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if present       (minor)
-  workaround: custom comment reading method filters out CUSTOM fields
-  problem: carries potential risk of causing additional tagging problems
+SOLVED (but the underlying cause still deserves attention)
+- reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
+  nonempty.
+  solution: custom comment reading method filters out CUSTOM fields             (great)
 - split container divider position doesnt load properly (vertical only).        (medium)
   This has something to do with some other (probably orientation) property
   overriding divider position and consequently changing the "pos" value in the
   very container ultimately losing the original position value
-  workaround: change container "pos" value only when divider position changes as
+  solution: change container "pos" value only when divider position changes as  (bad)
   a result of mouse dragging.
   problem: performance aspect. There is possibility of infinite recursive call
   for setting divider position. Plus the setPosition is now called multiple
@@ -171,36 +167,37 @@ SOLVED (with unwanted workaround)
   solution: the layout map shouldnt load recursively. This has potential to
   get rid of major resizing bugs on layout init (like thumbnails and custom
   layouts).
-- Item if corrupted getLocation still works! set it to empty path               (minor)
-  problem: only that EMPTY metadata getLocation() shows application location
-  instead of none (? how can that be made so) and it really shoouldnt point
-  anywhere
-- getLocation causing a weird problem if item.getFile() doesnt return abs file  (NaP)
-  solution: make it return abs file...
-- widget loading defaulting widget settings                                     (minor)
-  Part of a larger (patched) problem of serializing widget properties. They must
-  be manually set on initial load. Producing this bug. Now setting fields on
-  every load-bug free so far.
-  problem: recurrent bug and code pollution. Current solution shouldnt cause 
-  recession. The code pollution is now kept to minimum and workaround is easy to
-  understand
-  better solution: look for different serialisation of the properties ?
 - javafx.scene.text.Text doesnt have css style class and as such doesn allow
   default values and skinning
   solution: Text class extending javafx.scene.text.Text and adding custom 
   styleclass. Use instead of the original if default behavior (skin) is expected
   Also got a nice additional method.
-- open PopOvers prevent app to close normally.
-  cause: java or controlsFX bug
-  solution: manually close them all when main window closes (introduces lots of
+- open PopOvers prevent app to close normally.                                  (medium-major)
+  cause: java or controlsFX bug                                                 (unsolvable)
+  solution: manually close them all when main window closes (introduces lots of (ideal)
   code pollution). This is very controversial solution but works great.
+- fullscreen not initializing on window deserialization, update() method bug    (minor)
+  cause: unknown                                                                (javafx bug?)
+  problem: fullscreen is set, resizability is set to false, the hint is shown
+  but the window does not cover whole screen - maybe its too soon
+  and the window is not really fully initialized
+  solution: delay execution 100ms (see WindowBase.update())                     (not ideal but no problems)
+- app not closing propery on ALT+F4                                             (medium-major)
+  cause: ALT+F4 closes focused window not application. It somehow closes windows(problematic)
+  without closing them (close() does not get invoked). Because of this closing
+  main window this way doesnt execute the necessary actions. Also, with the
+  hidden owner window app wont close as one window remains open
+  solution: have onCloseRequest event execute close()                           (great so far)
+
 
 PROBLEMS
 - widget controllers initialization && widget refresh
-  init method should be invoked only once! ?
+  init method should be invoked only once!
 - fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but invasive misbehavior)
   factory available - also instantiatingController should never return null in
   fxmlFactory
+- windows hard to drag, especially in headerless mode, uidrag consume event, 
+  properly handle vol scolling and app dragging event consuminf at widget level
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
@@ -213,8 +210,8 @@ CLEANUP
 - Thumbnail get border width param from css
 - clean ExtendedInfo widget - its completely fubar
 - Serializator and serialization code clean up
-- metadata caching playlist-selected
-- widget info
+- widget info and bridge widget factory and widget a bit more elegantly that this
+- centralize window management
 
 API
 Layouts---------
@@ -231,12 +228,17 @@ Layouts---------
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - playing item, metadata, ... in Playbackmanager, clear Player class
+  also involves Playback/Player/Playlist state and suspending/restoring them
 - file format discovery. Unite Image and Audio types add category               (minor, although much needed for robustness)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - playlist table drag code duplication                                          (technicality, minor code pollution)
 - playlist table refresh currupted/playing row pseudoclass css code duplication (technicality, minor code pollution)
-- Notification class unite content, remove enum                                 (lot of code duplicity)
-- notification & popOver title unify                                            (almost impossible, let this one go...)
+- Notification class unite contents, remove enum                                (lot of code + fxml duplicity)
+- metadata xml chapter reading class redo - its not good design. But it works   (not needed)
+  and is considered legacy code now anyway
+- popover investigate default NodeOwner and windowOwner and default move with   
+  functionality provided in house by javaFX. I might have reinvented the wheel
+  a bit here. It is questionable whether it is worth the effort
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)
@@ -248,10 +250,8 @@ PERFORMANCE
 - images load on separate thread (possibly imageLoader class?)                  (?)
 - picker static always in memory - mem leak                                     (not an issue?)
   problem: how to lazy load it if not as static field?
-- layout reload mem leak - investigate, weakListeners+OnClosing should help     (major)
-  analyze OnClosing resources removal for layout refresh, currently looks like
-  it is not helping as desired
-  - the culprits are: applySkin and layoutReload()
+- layout reload mem leak - investigate                                          (major)
+- skin refresh memory consumptin investigate                                    (medium)
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
@@ -272,14 +272,22 @@ PERFORMANCE
   is exactly the same but provides css styleclass and support for skinning. Also
   comes in with a handy method
 - real main app window is hidden and owner of the others. this way they share
- some of the state like minimized
+  some of the state like minimized
+- tooltip font size for AwesomeDude Label is same as icon size - which means
+  if default font size is 12 and the icon's size is 16 tooltips font will be 16.
+  Easily solvable by using fontAwesome method which takes font size as param too
+- when implementing equals() always test for reference equality like this:
+  if(o==this) return true; // this line can make a difference and it will never
+  be a bad thing. It can only help.
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------
 --------------------------------------------------------------------------------
 
 - need to run code after specific delay? use utilities.FxTimer. By far the most
-  simple asynchronous code execution you will have ever used
+  simple asynchronous code execution you will have ever used. Plus (or minus
+  depending on your 'belief') its all running on appFX thread - no bgr threads,
+  no concurrency problems
 
 --------------------------------------------------------------------------------
 ---------------------- TESTING - what nobody wants to do -----------------------

@@ -4,6 +4,12 @@ package AudioPlayer.tagging;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.Chapters.Chapter;
+import AudioPlayer.tagging.Chapters.MetadataExtended;
+import AudioPlayer.tagging.Cover.Cover;
+import AudioPlayer.tagging.Cover.Cover.CoverSource;
+import AudioPlayer.tagging.Cover.FileCover;
+import AudioPlayer.tagging.Cover.ImageCover;
 import Configuration.Configuration;
 import PseudoObjects.FormattedDuration;
 import java.awt.image.BufferedImage;
@@ -14,7 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import jdk.nashorn.internal.ir.annotations.Immutable;
@@ -98,7 +103,7 @@ import utilities.Util;
  */
 @Immutable
 public final class Metadata extends MetaItem {
-    private final File file;
+    private final URI uri;
     private final boolean empty;
     
     // header fields
@@ -152,7 +157,7 @@ public final class Metadata extends MetaItem {
      * For example, if the item is playlist item, sets artist, length and title fields.
      */
     public Metadata(Item item) {
-        file = item.isFileBased() ? item.getFile() : new File("");
+        uri = item.getURI();
         empty = false;
         if(item instanceof PlaylistItem) {
             PlaylistItem pitem = (PlaylistItem)item;
@@ -163,7 +168,7 @@ public final class Metadata extends MetaItem {
     }
     
     private Metadata() {
-        file = new File("");
+        uri = new File("").toURI();
         empty = true;
     }
     
@@ -174,7 +179,7 @@ public final class Metadata extends MetaItem {
      * 
      */
     Metadata(AudioFile audiofile) {
-        file = audiofile.getFile().getAbsoluteFile();
+        uri = audiofile.getFile().getAbsoluteFile().toURI();
         empty = false;
         AudioFile audioFile = audiofile;
         
@@ -312,13 +317,10 @@ public final class Metadata extends MetaItem {
     }
 
 /******************************************************************************/  
-    
-    @Override public File getFile() {
-        return file.getAbsoluteFile(); // the abs file call should be unnecessary but just in case
-    }
-    
-    @Override public URI getURI() {
-        return file.toURI();
+
+    @Override 
+    public URI getURI() {
+        return uri;
     }
     
     /** 
@@ -329,10 +331,12 @@ public final class Metadata extends MetaItem {
     }
     
     /**
+     * 
+     * String returning alternative to {@link #getSuffix} and {@link #getFormat}.
+     * These methods are not equivalent as this method returns information from tag.
+     * <p>
      * For example: mp3.
-     * String returning alternative to getType(). These methods are not equivalent
-     * as this method returns information from tag.
-     * @return the encoder format or empty string if not available
+     * @return format
      */
     public String getFormatFromTag() {
         return format;
@@ -484,9 +488,14 @@ public final class Metadata extends MetaItem {
     }
     
     /**
-     * Convenience method. Returns complete info about track order in album in
-     * format track/tracks_total. If you just need the info and dont intend to sort
-     * then use this instead of getTrack() and getTracksTotal().
+     * Convenience method. Returns complete info about track order within album in
+     * format track/tracks_total. If you just need this information as a string
+     * and dont intend to sort or use the numerical values
+     * then use this method instead of {@link #getTrack()} and {@link #getTracksTotal())}.
+     * <p>
+     * If disc or disc_total information is unknown the respective portion in the
+     * output will be substitued by character '?'.
+     * Example: 1/1, 4/23, ?/?, ...
      * @return track album order information.
      */
     public String getTrackInfo() {
@@ -522,10 +531,13 @@ public final class Metadata extends MetaItem {
     
     /**
      * Convenience method. Returns complete info about disc number in album in
-     * format disc/discs_total. If you just need the info and dont intend to sort
-     * then use this instead of getTrack() and getTracksTotal().
-     * If disc or disc_total information is unknown it is substitued by "?"
-     * character: ?/?, 5/?, ...
+     * format disc/discs_total. If you just need this information as a string
+     * and dont intend to sort or use the numerical values
+     * then use this method instead of {@link #getDisc() ()} and {@link #getDiscsTotal()}.
+     * <p>
+     * If disc or disc_total information is unknown the respective portion in the
+     * output will be substitued by character '?'.
+     * Example: 1/1, ?/?, 5/?, ...
      * @return disc information.
      */
     public String getDiscInfo() {
@@ -555,140 +567,86 @@ public final class Metadata extends MetaItem {
         return year;
     }
 
-    /** @return the cover image. Null if doesn't exist */
+    /**
+     * Do not use. Will be removed.
+     * @return the cover image. Null if doesn't exist */
+    @Deprecated
     public Artwork getCoverAsArtwork() {
         return cover;
     }
     
-    public enum CoverSource {
-        /** use tag as cover source */
-        TAG,
-        /** use parent directory image as source */
-        DIRECTORY,
-        /** use all of the sources in their respective order and return first find */
-        ANY;
-    }
-    
-    /**  @return the cover image from tag. Null if not available. */
-    public Image getCover() {
-        if (cover == null) return null;
-        try {
-            Image img = SwingFXUtils.toFXImage((BufferedImage) cover.getImage(), null);
-            return img;
-        } catch (IOException ex) {
-            Log.err("Error reading cover from item" + this.getTitle());
-            return null;
+    /**
+     * Returns cover from the respective source.
+     * @param source
+     */
+    public Cover getCover(CoverSource source) {
+        switch(source) {
+            case TAG: return getCover();
+            case DIRECTORY: return new FileCover(getCoverFromDirAsFile(), "");
+            case ANY : {
+                Cover c = getCover();
+                return c.getImage()!=null 
+                        ? c 
+                        : new FileCover(getCoverFromDirAsFile(), "");
+            }
+            default: throw new RuntimeException("Cover fetching error.");
         }
     }
     
-    /**  @return the cover image from specified source. Null if none available. */
-    public Image getCover(CoverSource from) {
-        if (from == CoverSource.TAG)
-            return getCover();
-        else if (from == CoverSource.DIRECTORY)
-            return getCoverFromDir();
-        else if (from == CoverSource.ANY)
-            return getCoverFromAnySource();
-        return null;
-    }
-    
-    /**  @return the cover image from specified source. Null if none available. */
-    public File getCoverAsFile(CoverSource from) {
-        if (from == CoverSource.TAG || from == CoverSource.DIRECTORY)
-            return getCoverFromDirAsFile();
-        else if (from == CoverSource.ANY)
-            return getCoverFromAnySourceAsFile();
-        return null;
-    }
-    
-    /**  @return information about cover.*/
-    public String getCoverInfo() {
-        String info = "";
+    private Cover getCover() {
         try {
-            info = cover.getDescription() + " " + cover.getMimeType() + " "
+            if(cover==null) return new ImageCover((Image)null, getCoverInfo());
+            else return new ImageCover((BufferedImage) cover.getImage(), getCoverInfo());
+        } catch (IOException ex) {
+            return new ImageCover((Image)null, getCoverInfo());
+        }
+    }
+    
+    private String getCoverInfo() {
+        try {
+            return cover.getDescription() + " " + cover.getMimeType() + " "
                        + ((RenderedImage)cover.getImage()).getWidth() + "x"
                        + ((RenderedImage)cover.getImage()).getHeight();
         } catch(IOException | NullPointerException e) {
             // nevermind errors. Return "" on fail.
+            return "";
         }
-        return info;
     }
     
     /**
-     * Looks for cover file in the location of the file. Returns the image if the
-     * file is of supported image format and at least on of the following conditions
-     * is met:
-     * - file is called 'folder';
-     * - file is called 'cover';
-     * - file name equals the audio file
-     * - file name equals the audio file (containing the audio file's extension too)
-     * 
-     * If more files fulfills at least one of the conditions, the first found image
-     * will be returned.
-     * 
-     * @return the cover image or null if no cover is found
-     */
-    public Image getCoverFromDir() {
-        File f = getCoverFromDirAsFile();
-        if (f == null) return null;
-        else return new Image(f.toURI().toString());
-    }
-    /**
-     * Identical to getCoverFromLocation() method, but returns the image file
-     * itself. If the Image object of the cover suffices, it is recommended to
+     * Identical to getCoverFromDir() method, but returns the image file
+     * itself. Only file based items.
+     * <p>
+     * If the Image object of the cover suffices, it is recommended to
      * avoid this method, or even better use getCoverFromAnySource()
      * @return 
      */
-    public File getCoverFromDirAsFile() {
+    private File getCoverFromDirAsFile() {
+        if(!isFileBased()) return null;
+        
         File dir = getFile().getParentFile();
         if (!FileUtil.isValidDirectory(dir)) return null;
-        
+                
         File[] files;
-        files = dir.listFiles((File f) -> {
-            boolean accept;
-            // check method javadoc to figure out what the below code does
-            accept = (ImageFileFormat.isSupported(f) && (
-                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase("cover") ||
-                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase("folder") ||
-                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getFilenameFull()) ||
-                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getFilename()) ||
-                f.getName().substring(0, f.getName().lastIndexOf('.')).equalsIgnoreCase(getAlbum())
+        files = dir.listFiles( f -> {
+            String filename = f.getName();
+            int i = filename.lastIndexOf('.');
+            if(i == -1) return false; 
+            String name = filename.substring(0, i);
+            return (ImageFileFormat.isSupported(f) && (
+                        name.equalsIgnoreCase("cover") ||
+                        name.equalsIgnoreCase("folder") ||
+                        (isFileBased() && (
+                            name.equalsIgnoreCase(getFilenameFull()) ||
+                            name.equalsIgnoreCase(getFilename()))) ||
+                        name.equalsIgnoreCase(getTitle()) ||
+                        name.equalsIgnoreCase(getAlbum())
                 ));
-            return accept;
         });
         
         if (files.length == 0) return null;
         else return files[0];
-    }  
-    /**
-     * Convenience method to get cover image easily.
-     * 
-     * This will attempt to return cover utilizing all available methods.
-     * It calls method in this order:
-     * 1. getCover();               = from tag
-     * 2. getCoverFromLocation();   = from audio file's location
-     * 
-     * If any method returns null, it continues to use other methods until
-     * image found or no more methods.
-     * 
-     * @return
-     * Null if all methods fail to load the image.
-     */
-    public Image getCoverFromAnySource() {  
-        Image c = getCover();
-        if (c != null) return c;
-        
-        c = getCoverFromDir();
-        if (c != null) return c;
-        
-        return null;
     }
-    public File getCoverFromAnySourceAsFile() {        
-        File c = getCoverFromDirAsFile();
-        if (c != null) return c;
-        
-        return null;
-    }  
     
     /** @return the rating null if empty. */
     public Long getRating() {
@@ -756,19 +714,19 @@ public final class Metadata extends MetaItem {
     }
 
     /**
-     * @return the lyrics
-     * "" if empty.
+     * @return the lyrics or "" if empty.
      */
     public String getLyrics() {
         return lyrics;
     }
 
-    /**  @return the mood "" if empty. */
+    /**  @return the mood or "" if empty. */
     public String getMood() {
         return mood;
     }
     
     /**  
+     * Color is located in the Custom1 tag field.
      * @return the color value associated with the song from tag or null if
      * none.
      */
@@ -804,7 +762,9 @@ public final class Metadata extends MetaItem {
      * @return some additional non-tag information
      */
     public MetadataExtended getExtended() {
-        return MetadataExtended.readFromFile(this);
+        MetadataExtended me = new MetadataExtended(this);
+                         me.readFromFile();
+        return me;
     }
     
     /**
@@ -823,17 +783,22 @@ public final class Metadata extends MetaItem {
      */
     public String getPlaylistIndexInfo() {
         int i = getPlaylistIndex();
-        if (i != -1) {
-            return i + "/" + PlaylistManager.getSize();
-        }
-        return "";
+        return i==-1 ? "" : i + "/" + PlaylistManager.getSize();
     }
     
-    
-    
-    
+    /**
+     * Returns chapters associated with this item. A {@link Chapter} is a textual
+     * information associated with time and the song item. There are usually
+     * many chapters per item.
+     * <p>
+     * Chapters string is located in the Custom2 tag field.
+     * <p>
+     * The result is ordered by natural order.
+     * @return ordered list of chapters parsed from tag data
+     */
     public List<Chapter> getChapters() {
         List<Chapter> cs = new ArrayList();
+        // we have got a regex over here so "||\" is equivalent to '\' character
         for(String c: getCustom2().split("\\|", 0)) {
             try {
                 cs.add(new Chapter(c));
@@ -845,9 +810,49 @@ public final class Metadata extends MetaItem {
         return cs;
     }
     
+    /**
+     * Legacy method.
+     * Before chapters were written to tag they were contained within xml files
+     * in the same directory as the item and the same file name (but xml suffix).
+     * This method reads the file when it is invoked and parses its content.
+     * <p>
+     * This method should only be used when transferring information in legacy
+     * xml files into tag.
+     * <p>
+     * The result is ordered by natural order.
+     * @return ordered list of chapters parsed from xml data
+     */
+    public List<Chapter> getChaptersFromXML() {
+        MetadataExtended me = new MetadataExtended(this);
+                         me.readFromFile();
+        List<Chapter> cs = me.getChapters();
+                      cs.sort(Chapter::compareTo);
+        return cs;
+    }
+    
+    /**
+     * Convenience method combining the results of {@link #getChapters()} and 
+     * {@link #getChaptersFromXML()}.
+     * <p>
+     * This method should only be used when transferring information in legacy
+     * xml files into tag.
+     * <p>
+     * The result is ordered by natural order.
+     * @return ordered list of chapters parsed from all available sources
+     */
+    public List<Chapter> getChaptersFromAny() {
+        List<Chapter> cs = getChapters();
+                      cs.addAll(getChaptersFromXML());
+                      cs.sort(Chapter::compareTo);
+        return cs;
+    }
+    
 /******************************************************************************/
     
-    /** @return Complete information about item's metadata in string form. */
+    /** 
+     * Non-tag data and chapters are excluded.
+     * @return mostly complete information about item's metadata in string form. 
+     */
     @Override
     public String toString() {
         String output;
@@ -890,5 +895,5 @@ public final class Metadata extends MetaItem {
         
         return output;
     }
-
+    
 }

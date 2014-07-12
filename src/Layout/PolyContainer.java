@@ -26,7 +26,7 @@ public final class PolyContainer extends Container {
         if (gui == null) gui = new TabArea(this);
         
         // load gui
-        parent_pane.getChildren().setAll(gui.root);
+        root.getChildren().setAll(gui.root);
         AnchorPane.setBottomAnchor(gui.root, 0.0);
         AnchorPane.setLeftAnchor(gui.root, 0.0);
         AnchorPane.setRightAnchor(gui.root, 0.0);

@@ -23,6 +23,9 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
+import static javafx.scene.media.MediaPlayer.Status.PAUSED;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
 import utilities.Enviroment;
 import utilities.Log;
@@ -74,14 +77,16 @@ public final class PLAYBACK implements Configurable {
             state.setStatus(Status.PAUSED);
         
         // create playback
+//        realTime
         createPlayback(PlaylistManager.getPlayingItem().getURI().toString());
-        if (state.getStatus() == MediaPlayer.Status.PAUSED || state.getStatus() == MediaPlayer.Status.PLAYING) {
+        if (state.getStatus() == PAUSED || state.getStatus() == PLAYING) {
             seek(state.getCurrentTime());
         }
     }
     
     public static void suspend() {
-        Player.state.suspendPlayback();
+        state.setRealTime(getRealTime());
+        Player.state.serialize();
         destroyPlayback();
     }
     public static void activate() {
@@ -246,7 +251,7 @@ public final class PLAYBACK implements Configurable {
     
     @IsAction(name = "Toggle looping", description = "Switch between playlist looping mode.", shortcut = "ALT+L")
     public static void toggleLoopMode() {
-        setLoopMode(getLoopMode().next()); System.out.println("MODE CYCLED "+getLoopMode());
+        setLoopMode(getLoopMode().next());
     }
     
     public static void setLoopMode(LoopMode mode) {
@@ -381,7 +386,7 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Explore current item directory", description = "Explore current item directory.", shortcut = "ALT+V", global = true)
     public static void openPlayedLocation() {
         Item i = PlaylistManager.getPlayingItem();
-        Enviroment.browse(i==null ? null : i.getLocation());
+        Enviroment.browse(i==null ? null : i.getURI());
     }
     
 /******************************************************************************/
@@ -456,7 +461,8 @@ public final class PLAYBACK implements Configurable {
         playback.balanceProperty().bind(state.balanceProperty());
         playback.muteProperty().bind(state.muteProperty());
         playback.rateProperty().bind(state.rateProperty());
-        
+        realTime.real_seek = state.getRealTime();
+        realTime.curr_sek = Duration.ZERO;
         // register listener/event distributors
         playback.setAudioSpectrumListener(core.spectrumListenerDistributor);
         playback.setOnEndOfMedia(core.playbackEndDistributor);
@@ -465,10 +471,8 @@ public final class PLAYBACK implements Configurable {
         // handle seeking when player in invalid statuses (seek when status becomes valid)
         playback.statusProperty().addListener(new ChangeListener<Status>() {
             @Override
-            public void changed(ObservableValue<? extends Status> ov, Status t, Status t1) {
-                if (playback.getStatus() == MediaPlayer.Status.PLAYING ||
-                        playback.getStatus() == MediaPlayer.Status.PAUSED ||
-                            playback.getStatus() == MediaPlayer.Status.STOPPED) {
+            public void changed(ObservableValue<? extends Status> o, Status oldV, Status newV) {
+                if (newV == PLAYING || newV == PAUSED || newV == STOPPED) {
                     // bind (read only) values: new playback -> global (manual initialization)
                     state.currentTimeProperty().bind(playback.currentTimeProperty());
                     state.durationProperty().bind(playback.cycleDurationProperty());
@@ -480,9 +484,8 @@ public final class PLAYBACK implements Configurable {
         });
         playback.statusProperty().addListener(new ChangeListener<Status>() {
             @Override
-            public void changed(ObservableValue<? extends Status> ov, Status t, Status t1) {
-                if (playback.getStatus() == MediaPlayer.Status.PLAYING ||
-                        playback.getStatus() == MediaPlayer.Status.PAUSED ) {
+            public void changed(ObservableValue<? extends Status> o, Status oldV, Status newV) {
+                if (newV == Status.PLAYING || newV == PAUSED ) {
                     if (core.needs_seek) {
                         seek(core.seekTo);
                     }

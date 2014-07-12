@@ -4,37 +4,32 @@
  */
 package AudioPlayer.tagging;
 
+import jdk.nashorn.internal.ir.annotations.Immutable;
+
 /**
- * Simple wrapper class for bitrate int, implementing toString method.
+ * Simple wrapper class for bitrate represented as int, implementing toString method.
  * This class is immutable.
  * Use -1 value if bitrate not available. It avoids null values of this
  * object and there is also implemented toString method for this scenario.
+ * 
+ * @author uranium
  */
+@Immutable
 public class Bitrate {
-    private int bitrate;
+    private final int bitrate;
     
     /**
      * Constructor.
-     * @param value 
+     * @param value bit rate value in kb per second. Use -1 if not available.
      */
     public Bitrate(int value){
         bitrate = value;
     }
     
     /**
-     * Constructor.
-     * @param value
-     * Use -1 if bitrate not available.
-     */    
-    public Bitrate(long value){
-        Long l = new Long(value);
-        bitrate = l.intValue();
-    }
-    
-    /**
      * Convenience static method for creating Bitrate objects.
      * @param value
-     * Use -1 if bitrate not available.
+     * @param value bit rate value in kb per second. Use -1 if not available.
      * @return 
      */
     public static Bitrate create(int value) {
@@ -44,31 +39,29 @@ public class Bitrate {
     /**
      * Convenience static method for creating Bitrate objects.
      * @param value
-     * Use -1 if bitrate not available.
+     * @param value bit rate value in kb per second. Use -1 if not available.
      * @return 
      */    
     public static Bitrate create(long value) {
-        return new Bitrate(value);
+        Long l = value;
+        return new Bitrate(l.intValue());
     }    
     
     /**
-     * @return value 
+     * @return bit rate value in kb per second.
      */
     public int getValue() {
         return bitrate;
     }
     
     /**
-     * Appends ' kbps' string after value. If no value available it returns "not
-     * available" string.
-     * For example: 320kbps.
+     * Appends ' kbps' string after value. If no value available it returns 
+     * "N/A" string.
+     * For example: "320 kbps" or "N/A"
      * @return string representation of the object
      */
     @Override
     public String toString() {
-        if ( bitrate == -1) {
-            return "not available";
-        }
-        return bitrate + " kbps";
+        return bitrate == -1 ? "N/A" : bitrate + " kbps";
     }
 }

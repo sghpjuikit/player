@@ -27,27 +27,31 @@
 package GUI.objects.PopOver;
 
 import GUI.objects.PopOver.PopOver.ArrowLocation;
-import static java.lang.Double.MAX_VALUE;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.DOT_CIRCLE_ALT;
+import static de.jensd.fx.fontawesome.AwesomeIcon.THUMB_TACK;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
-import javafx.scene.Group;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
+import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Skin;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.HLineTo;
-import javafx.scene.shape.Line;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -59,38 +63,41 @@ import javafx.stage.Window;
 
 public class PopOverSkin implements Skin<PopOver> {
 
-    private static final PseudoClass DETACHED_PSEUDOCLASS = PseudoClass.getPseudoClass("detached");
+    private static final PseudoClass DETACHED = PseudoClass.getPseudoClass("detached");
+    private static final PseudoClass FOCUSED = PseudoClass.getPseudoClass("focused");
 
     private double xOffset;
     private double yOffset;
 
     private boolean tornOff;
-
-    private Label title;
-    private Label closeIcon;
-
+    
+    private final StackPane root;
     private Path path;
     private BorderPane content;
-    private StackPane header;
-    private StackPane stackPane;
+    
+    private final Label title;
+    private final Label closeIcon;
+    private final Label pinIcon;
+    private BorderPane header;
+    private HBox headerControls;
 
     private Point2D dragStartLocation;
 
-    private PopOver popOver;
+    private final PopOver popOver;
 
     public PopOverSkin(final PopOver popOver) {
 
         this.popOver = popOver;
 
-        stackPane = new StackPane();
-        stackPane.setPickOnBounds(false);
-        stackPane.getStyleClass().add("popover");
+        root = new StackPane();
+        root.setPickOnBounds(false);
+        root.getStyleClass().add("popover");
 
         /*
          * The min width and height equal 2 * corner radius + 2 * arrow indent +
          * 2 * arrow size.
          */
-        stackPane.minWidthProperty().bind(
+        root.minWidthProperty().bind(
                 Bindings.add(Bindings.multiply(2, popOver.arrowSizeProperty()),
                         Bindings.add(
                                 Bindings.multiply(2,
@@ -98,75 +105,98 @@ public class PopOverSkin implements Skin<PopOver> {
                                 Bindings.multiply(2,
                                         popOver.arrowIndentProperty()))));
 
-        stackPane.minHeightProperty().bind(stackPane.minWidthProperty());
+        root.minHeightProperty().bind(root.minWidthProperty());
 
+        // create header & its content
         title = new Label();
         title.textProperty().bind(popOver.titleProperty());
-        title.setMaxSize(MAX_VALUE, MAX_VALUE);
-//        title.setAlignment(Pos.CENTER);
-        title.getStyleClass().add("text");
+        title.getStyleClass().add("title");
 
-        closeIcon = new Label();
-        closeIcon.setGraphic(createCloseIcon());
-        closeIcon.setMaxSize(MAX_VALUE, MAX_VALUE);
-        closeIcon.setContentDisplay(GRAPHIC_ONLY);
-        closeIcon.visibleProperty().bind(popOver.detachedProperty());
-        closeIcon.getStyleClass().add("icon");
-//        closeIcon.setAlignment(CENTER_LEFT);
-        closeIcon.getGraphic().setOnMouseClicked( e -> popOver.hideStrong());
-
-        header = new StackPane();
-        header.getChildren().add(title);
-        header.getChildren().add(closeIcon);
-        header.getStyleClass().add("title");
-
+        closeIcon = AwesomeDude.createIconLabel(AwesomeIcon.TIMES_CIRCLE, "11");
+        closeIcon.setOnMouseClicked( e -> popOver.hideStrong());
+        closeIcon.setTooltip(new Tooltip("Close"));
+        closeIcon.getStyleClass().add("popover-closebutton");
+        
+        pinIcon = AwesomeDude.createIconLabel(popOver.isAutoHide() ? THUMB_TACK : DOT_CIRCLE_ALT, "","11","11",CENTER);
+        pinIcon.setOnMouseClicked( e -> {
+            popOver.setAutoHide(!popOver.isAutoHide());
+            e.consume();
+        });
+        pinIcon.setTooltip(new Tooltip("Autohide"));
+        pinIcon.getStyleClass().add("popover-closebutton");
+        // maintain proper pinIcon icon
+        popOver.autoHideProperty().addListener((o,oldV,newV) -> {
+            AwesomeDude.setIcon(pinIcon, newV ? THUMB_TACK : DOT_CIRCLE_ALT, "11");
+        });
+        
+        headerControls = new HBox(closeIcon);
+        headerControls.setSpacing(5);
+        headerControls.setAlignment(Pos.CENTER_RIGHT);
+        headerControls.getStyleClass().add("header-buttons");
+        // initialize proper header content
+                headerControls.getChildren().setAll(popOver.getHeaderIcons());
+                headerControls.getChildren().add(headerControls.getChildren().size(),
+                        popOver.isDetached() ? closeIcon : pinIcon);
+        // maintain proper header content
+        popOver.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
+            while(e.next()) {
+                headerControls.getChildren().setAll(popOver.getHeaderIcons());
+                headerControls.getChildren().add(headerControls.getChildren().size(),
+                        popOver.isDetached() ? closeIcon : pinIcon);
+            }
+        });
+        // switch pin & close icons when on detach change
+        // we do this because detached/not d. modes differ in autohide
+        // we want to customize autohiding arbitrarily in undetached mode
+        // we want to close manually in detached mode with autohide off
+        popOver.detachedProperty().addListener((o,oldV,newV)->{
+            headerControls.getChildren().set(headerControls.getChildren().size()-1,
+                        newV ? closeIcon : pinIcon);
+        });
+        
+        header = new BorderPane();
+        header.setLeft(title);
+        header.setRight(headerControls);
+        header.getStyleClass().add("popover-header");
+        
+        // create content
         content = new BorderPane();
         content.setCenter(popOver.getContentNode());
-        content.setTop( !title.getText().isEmpty() ? header : null);    // show header only if title text not empty
+        content.setTop(shouldHeaderBeVisible() ? header : null);    // show header only if title text not empty
         content.getStyleClass().add("content");
-
+        
+        // show new content when changes
+        popOver.contentNodeProperty().addListener((o,oldV,newV) -> content.setCenter(newV));
+        
         // show header only if title text not empty
         popOver.titleProperty().addListener((o,oldV,newV)->
-                content.setTop( !title.getText().isEmpty() ? header : null));
+                content.setTop(shouldHeaderBeVisible() ? header : null));
 
         InvalidationListener updatePathListener = o -> updatePath();
 
-        getPopupWindow().xProperty().addListener(updatePathListener);
-        getPopupWindow().yProperty().addListener(updatePathListener);
+        popOver.getScene().getWindow().xProperty().addListener(updatePathListener);
+        popOver.getScene().getWindow().yProperty().addListener(updatePathListener);
 
         popOver.arrowLocationProperty().addListener(updatePathListener);
 
-        popOver.contentNodeProperty().addListener((o,oldV,newV) -> content.setCenter(newV));
-        
-        // detached state
-        popOver.detachedProperty().addListener((o,oldV,newV) -> {
-            updatePath();
-            content.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, newV);
-            path.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, newV);
-            content.setTop(header); // always show header in detached mode
-        });
-        
-        // title position
-        popOver.titlePosProperty().addListener((o,oldV,newV)->{
-//            if(newV!=null) 
-                title.setAlignment(newV);
-//            else title.applyCss();
-        });
-        if(popOver.getTitlePos()!=null) title.setAlignment(popOver.getTitlePos());
-        else title.applyCss();
-
+        // this block must be done before the next one
         path = new Path();
         path.getStyleClass().add("bgr");
         path.setManaged(false);
-
         createPathElements();
         updatePath();
         
-        if (popOver.isDetached()) {
-            content.setTop(header);
-            content.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, true);
-            path.pseudoClassStateChanged(DETACHED_PSEUDOCLASS, true);
-        }
+        // react on detached state change and initialize
+        popOver.detachedProperty().addListener((o,oldV,newV) -> {
+            updatePath();
+            content.pseudoClassStateChanged(DETACHED, newV);
+            path.pseudoClassStateChanged(DETACHED, newV);
+            content.setTop(header); // always show header in detached mode
+        });
+        boolean detached = popOver.isDetached();
+        content.setTop(shouldHeaderBeVisible() ? header : null);
+        content.pseudoClassStateChanged(DETACHED, detached);
+        path.pseudoClassStateChanged(DETACHED, detached);        
 
         final EventHandler<MouseEvent> mousePressedHandler = e -> {
             if (popOver.isDetachable()) {
@@ -180,9 +210,9 @@ public class PopOverSkin implements Skin<PopOver> {
         };
 
         final EventHandler<MouseEvent> mouseReleasedHandler = e -> {
-            if (tornOff && !getSkinnable().isDetached()) {
+            if (tornOff && !popOver.isDetached()) {
                 tornOff = false;
-                getSkinnable().detach();
+                popOver.detach();
             }
         };
 
@@ -191,7 +221,7 @@ public class PopOverSkin implements Skin<PopOver> {
                 double deltaX = e.getScreenX() - xOffset;
                 double deltaY = e.getScreenY() - yOffset;
                 
-                Window window = getSkinnable().getScene().getWindow();
+                Window window = popOver.getScene().getWindow();
                 
                 window.setX(window.getX() + deltaX);
                 window.setY(window.getY() + deltaY);
@@ -209,17 +239,17 @@ public class PopOverSkin implements Skin<PopOver> {
             }
         };
 
-        stackPane.setOnMousePressed(mousePressedHandler);
-        stackPane.setOnMouseDragged(mouseDragHandler);
-        stackPane.setOnMouseReleased(mouseReleasedHandler);
+        root.setOnMousePressed(mousePressedHandler);
+        root.setOnMouseDragged(mouseDragHandler);
+        root.setOnMouseReleased(mouseReleasedHandler);
 
-        stackPane.getChildren().add(path);
-        stackPane.getChildren().add(content);
+        root.getChildren().add(path);
+        root.getChildren().add(content);
     }
 
     @Override
     public Node getNode() {
-        return stackPane;
+        return root;
     }
 
     @Override
@@ -231,34 +261,9 @@ public class PopOverSkin implements Skin<PopOver> {
     public void dispose() {
     }
 
-    private Node createCloseIcon() {
-        Group group = new Group();
-        group.getStyleClass().add("graphics");
-
-        Circle circle = new Circle();
-        circle.getStyleClass().add("circle");
-        circle.setRadius(6);
-        circle.setCenterX(6);
-        circle.setCenterY(6);
-        group.getChildren().add(circle);
-
-        Line line1 = new Line();
-        line1.getStyleClass().add("line");
-        line1.setStartX(4);
-        line1.setStartY(4);
-        line1.setEndX(8);
-        line1.setEndY(8);
-        group.getChildren().add(line1);
-
-        Line line2 = new Line();
-        line2.getStyleClass().add("line");
-        line2.setStartX(8);
-        line2.setStartY(4);
-        line2.setEndX(4);
-        line2.setEndY(8);
-        group.getChildren().add(line2);
-
-        return group;
+    private boolean shouldHeaderBeVisible() {
+        return popOver.isDetached() || !title.getText().isEmpty() 
+                    || !popOver.getHeaderIcons().isEmpty();
     }
 
     private MoveTo moveTo;
@@ -296,28 +301,28 @@ public class PopOverSkin implements Skin<PopOver> {
         DoubleProperty bottomEdgeProperty = new SimpleDoubleProperty();
         DoubleProperty bottomEdgeMinusRadiusProperty = new SimpleDoubleProperty();
 
-        DoubleProperty cornerProperty = getSkinnable().cornerRadiusProperty();
+        DoubleProperty cornerProperty = popOver.cornerRadiusProperty();
 
-        DoubleProperty arrowSizeProperty = getSkinnable().arrowSizeProperty();
-        DoubleProperty arrowIndentProperty = getSkinnable()
+        DoubleProperty arrowSizeProperty = popOver.arrowSizeProperty();
+        DoubleProperty arrowIndentProperty = popOver
                 .arrowIndentProperty();
 
-        centerYProperty.bind(Bindings.divide(stackPane.heightProperty(), 2));
-        centerXProperty.bind(Bindings.divide(stackPane.widthProperty(), 2));
+        centerYProperty.bind(Bindings.divide(root.heightProperty(), 2));
+        centerXProperty.bind(Bindings.divide(root.widthProperty(), 2));
 
         leftEdgePlusRadiusProperty.bind(Bindings.add(leftEdgeProperty,
-                getSkinnable().cornerRadiusProperty()));
+                popOver.cornerRadiusProperty()));
 
         topEdgePlusRadiusProperty.bind(Bindings.add(topEdgeProperty,
-                getSkinnable().cornerRadiusProperty()));
+                popOver.cornerRadiusProperty()));
 
-        rightEdgeProperty.bind(stackPane.widthProperty());
+        rightEdgeProperty.bind(root.widthProperty());
         rightEdgeMinusRadiusProperty.bind(Bindings.subtract(rightEdgeProperty,
-                getSkinnable().cornerRadiusProperty()));
+                popOver.cornerRadiusProperty()));
 
-        bottomEdgeProperty.bind(stackPane.heightProperty());
+        bottomEdgeProperty.bind(root.heightProperty());
         bottomEdgeMinusRadiusProperty.bind(Bindings.subtract(
-                bottomEdgeProperty, getSkinnable().cornerRadiusProperty()));
+                bottomEdgeProperty, popOver.cornerRadiusProperty()));
 
         // INIT
         moveTo = new MoveTo();
@@ -570,19 +575,14 @@ public class PopOverSkin implements Skin<PopOver> {
         topCurveTo.controlYProperty().bind(topEdgeProperty);
     }
 
-    private Window getPopupWindow() {
-        return getSkinnable().getScene().getWindow();
-    }
-
-    private boolean showArrow(ArrowLocation location) {
-        ArrowLocation arrowLocation = getSkinnable().getArrowLocation();
-        return location.equals(arrowLocation) && !getSkinnable().isDetached()
-                && !tornOff;
+    private boolean showArrow(ArrowLocation loc) {
+        ArrowLocation arrowLocation = popOver.getArrowLocation();
+        return loc.equals(arrowLocation) && !popOver.isDetached() && !tornOff;
     }
 
     private void updatePath() {
-        // Point2D targetPoint = new Point2D(getSkinnable().getTargetX(),
-        // getSkinnable().getTargetY());
+        // Point2D targetPoint = new Point2D(popOver.getTargetX(),
+        // popOver.getTargetY());
         //
         // Point2D windowPoint = new Point2D(getPopupWindow().getX(),
         // getPopupWindow().getY());

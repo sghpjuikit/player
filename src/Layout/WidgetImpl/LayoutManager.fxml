@@ -15,11 +15,11 @@
     <ComboBox fx:id="layoutsCB" prefWidth="200.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="380.0" AnchorPane.topAnchor="20.0" /><HBox alignment="CENTER_LEFT" spacing="5.0">
 <children>
                 <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefWidth="48.0" text="Locked" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                <TextField fx:id="nameF" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                <CheckBox fx:id="lockedChB" alignment="CENTER" mnemonicParsing="false" text="" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 </children></HBox><HBox spacing="5.0">
 <children>
                 <Label alignment="CENTER_RIGHT" contentDisplay="RIGHT" prefWidth="48.0" text="Name" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="0" />
-                <CheckBox fx:id="lockedChB" alignment="CENTER" mnemonicParsing="false" text="" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                <TextField fx:id="nameF" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 </children></HBox><HBox alignment="CENTER" spacing="5.0">
 <children>
     <Button id="loadB" mnemonicParsing="false" onMouseClicked="#saveSelectedLayout" prefHeight="20.0" prefWidth="60.0" text="Save" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" />

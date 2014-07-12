@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
-
-<AnchorPane id="AnchorPane" fx:id="entireArea" mouseTransparent="false" prefHeight="-1.0" prefWidth="-1.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />

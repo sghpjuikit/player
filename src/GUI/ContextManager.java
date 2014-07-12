@@ -8,6 +8,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.ContextMenu;
 import GUI.objects.PopOver.PopOver;
+import GUI.objects.SimpleConfigurator;
 import GUI.objects.VerticalContextMenu;
 import Layout.Container;
 import Layout.Layout;
@@ -17,8 +18,11 @@ import Layout.UniContainer;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
+import Layout.Widgets.WidgetManager.Widget_Source;
 import Library.BookmarkItem;
 import Library.BookmarkManager;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,6 +34,9 @@ import java.util.stream.Collectors;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
+import static javafx.scene.control.ContentDisplay.CENTER;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.Clipboard;
@@ -37,6 +44,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import main.App;
 import utilities.Enviroment;
 import utilities.FileUtil;
@@ -65,7 +73,6 @@ public final class ContextManager {
     /** Context menus. */
     public static AnchorPane contextPane;
     public static AnchorPane overlayPane;
-    public static SwitchPane gui;
     
     //menus
     public static ContextMenu playlistMenu;
@@ -78,8 +85,7 @@ public final class ContextManager {
     private static boolean menu_open = false;
     
     
-    public ContextManager(AnchorPane o, AnchorPane c, SwitchPane g) {
-        gui = g;
+    public ContextManager(AnchorPane o, AnchorPane c) {
         contextPane = c;
         overlayPane = o;
         
@@ -100,16 +106,15 @@ public final class ContextManager {
     }
     /** Get last mouse click x coordinate. */
     public static double getX() {
-        return activeWindow.getX()+X;
+        return Window.getFocused().getX()+X;
     }
     /** Get last mouse click y coordinate. */
     public static double getY() {
-        return activeWindow.getY()+Y;
+        return Window.getFocused().getY()+Y;
     }
 /******************************************************************************/
     
-    public static final List<Window> windows = new ArrayList();
-    public static Window activeWindow;
+    public static final ArrayList<Window> windows = new ArrayList();
     
     /** 
      * @param widget widget to open, does nothing when null.
@@ -130,11 +135,27 @@ public final class ContextManager {
     public static PopOver showFloating(Widget w) {
         Objects.requireNonNull(w);
         
+        // build popup content
+        Label propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
+              propB.setTooltip(new Tooltip("Settings"));
+              propB.setOnMouseClicked( e -> {
+                  SimpleConfigurator c = new SimpleConfigurator(w,()->w.getController().refresh());
+                  PopOver ph = new PopOver();
+                          ph.setContentNode(c);
+                          ph.setTitle(w.getName() + " Settings");
+                          ph.setAutoFix(false);
+                          ph.setAutoHide(true);
+                          ph.show(propB);
+                  e.consume();
+              });
+        // build popup
         PopOver p = new PopOver(w.load());
                 p.setTitle(w.name);
                 p.setAutoFix(false);
-                p.setArrowLocation(PopOver.ArrowLocation.BOTTOM_LEFT);
-                p.show(App.getWindowOwner().getStage(),getX(),getY());
+                p.getHeaderIcons().addAll(propB);
+                p.show(Window.getFocused().getStage(),getX(),getY());
+                // unregister the widget from active eidgets manually
+                p.addEventFilter(WINDOW_HIDING, we -> WidgetManager.standaloneWidgets.remove(w));
         return p;
     }
     
@@ -145,8 +166,7 @@ public final class ContextManager {
         PopOver p = new PopOver(content);
                 p.setTitle(title);
                 p.setAutoFix(false);
-                p.setArrowLocation(PopOver.ArrowLocation.BOTTOM_LEFT);
-                p.show(App.getWindowOwner().getStage(),getX(),getY());
+                p.show(Window.getFocused().getStage(),getX(),getY());
         return p;
     }
     
@@ -229,8 +249,11 @@ public final class ContextManager {
         });
         cc.add("tag", "Edit the item/s in tag editor.",  () -> {
             List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
-            TaggingFeature t = WidgetManager.getTaggerOrCreate();
-            if (t != null) t.read(items);
+            Widget w = WidgetManager.getWidget(TaggingFeature.class,Widget_Source.FACTORY);
+            if (w!=null) {
+                TaggingFeature t = (TaggingFeature) w.getController();
+                               t.read(items);
+            }
         });
         cc.add("crop", "Remove unselected items on playlist.",  () -> {
             List<PlaylistItem> items = (List<PlaylistItem>)cc.userData;
@@ -265,9 +288,12 @@ public final class ContextManager {
             BookmarkManager.removeBookmarks(i);
         });
         cc.add("tag", "Edit the item/s in tag editor.", () -> {
-             TaggingFeature t = WidgetManager.getTaggerOrCreate();
-             List items = (List<Item>) cc.userData;
-             if (t!=null) t.read(items);
+            List items = (List<Item>) cc.userData;
+            Widget w = WidgetManager.getWidget(TaggingFeature.class,Widget_Source.FACTORY);
+            if (w!=null) {
+                TaggingFeature t = (TaggingFeature) w.getController();
+                               t.read(items);
+            }
         });
         cc.add("folder", "Browse the items in their dictionary.", () -> {
             List files = ((List<Item>) cc.userData).stream()
@@ -296,7 +322,9 @@ public final class ContextManager {
                 else
                     a.addChild(1,c);
             });
-        LayoutManager.layouts.stream().sorted((l1,l2) -> l1.compareToIgnoreCase(l2)).forEach( l -> {
+        LayoutManager.getAllLayoutsNames()
+                .sorted((l1,l2) -> l1.compareToIgnoreCase(l2))
+                .forEach( l -> {
             cc.add(l, "Open " + l + " layout.", () -> {
                 Container a = (Container) cc.userData;
                 Layout ll = new Layout(l);
@@ -341,7 +369,7 @@ public final class ContextManager {
         // populate
         cc.add("folder", "Open directory.", () -> {
             File f = (File) cc.userData;
-            Enviroment.browse(f);
+            Enviroment.browse(f.toURI());
         });
         cc.add("edit", "Edit the image in editor.", () -> {
             File f = (File) cc.userData;

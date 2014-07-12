@@ -48,7 +48,7 @@ public final class WidgetArea extends UniArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            if (!controlsOn) return;            // disallow in normal mode
+            if (!controls.isShowing()) return;  // disallow in normal mode
             if (e.getButton()==PRIMARY) {       // primary button drag only
                 ClipboardContent c = new ClipboardContent();
                 c.put(DragUtil.widgetDF, new WidgetTransfer(widget, container));
@@ -100,6 +100,7 @@ public final class WidgetArea extends UniArea {
     
     public void loadWidget(Widget w) {
         Objects.requireNonNull(w,"widget must not be null");
+        
         widget = w;
         
 //        if(widget.isEmpty()) content.getStyleClass().setAll("darker");

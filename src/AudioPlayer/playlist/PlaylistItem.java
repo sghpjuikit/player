@@ -130,10 +130,9 @@ public final class PlaylistItem extends Item {
      * wasnt updated yet. Never null.
      */
     public String getArtist() {
-        if(!isFileBased()) return "";
-        if(!updated()) return "";
         String s = name.get();
-        return s.substring(0, s.indexOf(" - "));
+        int i = s.indexOf(" - ");
+        return i==-1 ? "" : s.substring(0, i);
     }
     
     /**
@@ -141,10 +140,9 @@ public final class PlaylistItem extends Item {
      * wasnt updated yet. Never null.
      */
     public String getTitle() {
-        if(!updated()) return "";
-        if(!isFileBased()) return "";
         String s = name.get();
-        return s.substring(s.indexOf(" - ")+3);
+        int i = s.indexOf(" - ");
+        return i==-1 ? s : s.substring(i+3);
     }
     
     /**

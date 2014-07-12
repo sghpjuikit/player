@@ -88,7 +88,8 @@ public abstract class StringEnum {
     
     @Override
     public boolean equals(Object o){
-        if (o==this) return true;
+        if(this==o) return true; // this line can make a difference
+        
         if (! (o instanceof StringEnum)) return false;
         if (s== null) s = "";
         return s.equals(((StringEnum)o).s);

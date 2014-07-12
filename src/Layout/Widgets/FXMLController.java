@@ -5,12 +5,7 @@
  */
 package Layout.Widgets;
 
-import GUI.ContextManager;
-import Layout.WidgetImpl.SimpleConfigurator;
 import java.io.File;
-import javafx.scene.Node;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 
 /**
  * Template for fxml based Controller implementation.
@@ -74,41 +69,6 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
      */
     public File getResource(String filename) {
         return new File(getWidget().getLocation(),filename);
-    }
-    
-    /**
-     * This method installs configuration/settings gui implementation for this
-     * widget. In this context, installing means injecting show settings panel
-     * behavior into specified Node object's onMouseRightButtonClicked() method.
-     * 
-     * The settings will reflect current properties of the widget and 
-     * allow them to be changed by user, which will automatically call this
-     * controller's refresh() method.
-     * Its important to implement refresh() method sufficiently so it will reflect
-     * all possible changes.
-     * 
-     * Also, the introspection of the widget's properties makes it possible to
-     * discover only those properties that have been initialized. But they are
-     * initialized lazily.
-     * Therefore, it is recommended practice to manually initialize all properties.
-     * 
-     * It is possible to use this method to install the settings to any node in
-     * the application.
-     * @param node 
-     */
-    public void installSettings(Node node) {
-        installSettings(node, MouseButton.SECONDARY);
-    }
-    /**
-     * More parametrized version of previous method.
-     * @param node
-     * @param button button that activates show settings behavior on mouse click
-     */
-    public void installSettings(Node node, MouseButton button) {
-        node.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent event) -> {
-            if (event.getButton().equals(button))
-                ContextManager.showFloating(new SimpleConfigurator(widget, () -> refresh()).getPane(), "Settings");
-        });
     }
     
 }

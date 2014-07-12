@@ -9,7 +9,7 @@ import GUI.ContextManager;
 import GUI.DragUtil;
 import GUI.GUI;
 import PseudoObjects.FormattedDuration;
-import PseudoObjects.TODO;
+import utilities.TODO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -116,7 +116,7 @@ public final class PlaylistTable {
         table.setTableMenuButtonVisible(true);
         table.setFixedCellSize(GUI.font.getSize() + 4);
         
-        // initiaize table factories
+        // initialize table factories
         indexCellFactory = ( column -> {
             TableCell cell = new TableCell<PlaylistItem, String>() {
                 @Override
@@ -141,10 +141,7 @@ public final class PlaylistTable {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (!empty) {
-                        setText(item.toString());
-                    } 
-                    else setText("");
+                    setText(empty ? "" : item);
                 }
             };
             cell.setAlignment(cell_align);
@@ -154,9 +151,8 @@ public final class PlaylistTable {
             TableCell cell = new TableCell<PlaylistItem, FormattedDuration>() {
                 @Override
                 protected void updateItem(FormattedDuration item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (!empty) setText(item.toString());
-                    else setText("");
+                    super.updateItem(item, empty);getStyleClass().forEach(System.out::println);
+                    setText(empty ? "" : item.toString());
                 }
             };
             cell.setAlignment(reverse(cell_align));
@@ -304,7 +300,7 @@ public final class PlaylistTable {
         columnName.setCellFactory(nameCellFactory);
         
         columnTime.setCellValueFactory(new PropertyValueFactory<>("time"));
-        columnTime.setCellFactory(timeCellFactory);
+//        columnTime.setCellFactory(timeCellFactory);
         
         table.setRowFactory(rowFactory);
         

@@ -9,9 +9,11 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
+import GUI.GUI;
 import GUI.objects.Balancer.Balancer;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.PlaybackFeature;
 import java.io.File;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
@@ -36,7 +38,7 @@ import utilities.Util;
  * <p>
  * @author uranium
  */
-public class PlayerControlsController extends FXMLController {
+public class PlayerControlsController extends FXMLController implements PlaybackFeature {
     @FXML ImageView openFile;
     @FXML AnchorPane entireArea;
     @FXML BorderPane controlPanel;
@@ -102,6 +104,7 @@ public class PlayerControlsController extends FXMLController {
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
+        seeker.setChapterSnapDistance(GUI.snapDistance);
         
         // load resources
         pauseImg   = new Image(getResource("pause.png").toURI().toString());

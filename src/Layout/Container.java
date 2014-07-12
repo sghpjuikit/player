@@ -7,6 +7,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import utilities.Log;
@@ -59,7 +60,7 @@ public abstract class Container extends Component implements AltState {
      */
     public final PropertyMap properties = new PropertyMap();
     @XStreamOmitField
-    AnchorPane parent_pane;
+    AnchorPane root;
     @XStreamOmitField
     Container parent;
     
@@ -238,7 +239,7 @@ public abstract class Container extends Component implements AltState {
      * @return 
      */
     public Node load(AnchorPane _parent){
-        parent_pane = _parent;
+        root = _parent;
         return load();   
     }
     
@@ -269,8 +270,22 @@ public abstract class Container extends Component implements AltState {
             parent.removeChild(this);
     }
     
-    public void setParentPane(AnchorPane pane) {
-        parent_pane = pane;
+    /**
+     * Set the root of this container. The container is attached to the scene
+     * graph through this root. The root is parent node of all the nodes of
+     * this container (including its children).
+     * @param pane 
+     */
+    public void setRoot(AnchorPane pane) {
+        root = pane;
+    }
+    
+    /**
+     * Returns the root. See {@link #getRoot()}
+     * @return the root or null if none.
+     */
+    public AnchorPane getRoot() {
+        return root;
     }
 
     /**
@@ -323,14 +338,19 @@ public abstract class Container extends Component implements AltState {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o) {        
         return this==o;
     }
 
-//    @Override
-//    public int hashCode() {
-//        return 7;
-//    }
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 67 * hash + Objects.hashCode(this.properties);
+        hash = 67 * hash + Objects.hashCode(this.root);
+        hash = 67 * hash + Objects.hashCode(this.parent);
+        hash = 67 * hash + (this.b ? 1 : 0);
+        return hash;
+    }
     
 /******************************************************************************/
     

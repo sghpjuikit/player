@@ -4,6 +4,7 @@
  */
 package AudioPlayer;
 
+import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.PlaylistState;
 import Serialization.PlaybackStateConverter;
@@ -64,6 +65,7 @@ public final class PlayerState {
     public void serialize() {
         try {
             playlists.forEach(PlaylistState::suspend);
+            playback.setRealTime(PLAYBACK.getRealTime());
             suspendPlayback();
             playback_id = playback.getId();
             playlist_id = UUID.fromString(playlist.getId().toString()); // without string conversion serialization errored out... weird

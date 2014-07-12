@@ -8,10 +8,14 @@ import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
- * Object representation of a field annotated with {@link IsConfig}
- * annotation. This object wraps a value of that field or the field itself and 
- * provides access to it and its meta information so it can be provided to various
- * parts of application.
+ * Object representation of a configurable value - most often field annotated 
+ * with {@link IsConfig} annotation. 
+ * Config wraps a value of that field or the field itself or an object (depending
+ * on the implementation) and provides a means to change it. It also provides 
+ * access to the value and associated meta information.
+ * <p>
+ * Useful for creating {@link Configurable} objects or exporting values in a
+ * standardized way.
  * 
  * @author uranium
  */
@@ -144,10 +148,12 @@ public abstract class Config {
      * field are equal.
      */
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof Config)) return false;
+    public boolean equals(Object o) {
+        if(this==o) return true; // this line can make a difference
         
-        Config c = (Config)obj;
+        if (o == null || !(o instanceof Config)) return false;
+        
+        Config c = (Config)o;
         return getName().equals(c.getName()) & sourceField.equals(c.sourceField); 
     }
 

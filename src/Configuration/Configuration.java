@@ -2,7 +2,6 @@
 package Configuration;
 
 import Action.Action;
-import PseudoObjects.Maximized;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -28,33 +27,6 @@ import utilities.Parser.Parser;
  */
 @IsConfigurable(group = "General")
 public class Configuration {
-    
-    @IsConfig(info = "last height of the main window", editable = false)
-    public static double windowHeight = 800;
-    @IsConfig(info = "last width of the main window", editable = false)
-    public static double windowWidth = 1000;
-    @IsConfig(info = "last x position of the main window", editable = false)
-    public static double windowPosX = 200;
-    @IsConfig(info = "last y position of the main window", editable = false)
-    public static double windowPosY = 200;
-    @IsConfig(info = "last maximized state of the main window", editable = false)
-    public static Maximized windowMaximized = Maximized.NONE;
-    @IsConfig(info = "last fulscreen state of the main window", editable = false)
-    public static boolean windowFullscreen = false;
-    @IsConfig(info = "whether main window is resizable")
-    public static boolean windowAlwaysOnTop = false;
-    @IsConfig(info = "whether main window is resizable")
-    public static boolean windowResizable = true;
-    @IsConfig(info = "last minimized state of the main window", editable = false)
-    public static boolean windowMinimized = false;
-    @IsConfig(info = "exit hint text showed on fullscreen change")
-    public static String fullscreenExitHintText = "";
-    @IsConfig(info = "last used layout", editable = false)
-    public static String last_layout = "layout0";
-    @IsConfig(info = "last used rigsht layout", editable = false)
-    public static String right_layout = "new_layout1";
-    @IsConfig(info = "last used left layout", editable = false)
-    public static String left_layout = "new_layout-1";
     
     // preffered gui settings
     @IsConfig(info = "Turn animations on/off (if they suport disability.")

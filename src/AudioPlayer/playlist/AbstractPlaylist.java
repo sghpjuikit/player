@@ -367,7 +367,6 @@ abstract public class AbstractPlaylist {
         list().addAll(_items);
         
         updateDuration();
-        
     }
     
     /**

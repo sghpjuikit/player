@@ -28,7 +28,7 @@ public class UniContainer extends Container {
     public UniContainer() {
     }
     public UniContainer(AnchorPane _parent) {
-        parent_pane = _parent;
+        root = _parent;
     }
     
     @Override
@@ -44,7 +44,7 @@ public class UniContainer extends Container {
             out = new Layouter(this,1).load();
         else
         if (child instanceof Container)
-            out = ((Container)child).load(parent_pane);
+            out = ((Container)child).load(root);
         else
         if (child instanceof Widget) {
             gui.loadWidget((Widget)child);
@@ -52,7 +52,7 @@ public class UniContainer extends Container {
         }
         else out = new Layouter(this,1).load();
         
-        parent_pane.getChildren().setAll(out);
+        root.getChildren().setAll(out);
         AnchorPane.setBottomAnchor(out, 0.0);
         AnchorPane.setLeftAnchor(out, 0.0);
         AnchorPane.setRightAnchor(out, 0.0);

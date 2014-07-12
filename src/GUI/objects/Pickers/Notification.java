@@ -1,6 +1,8 @@
 
 package GUI.objects.Pickers;
 
+import AudioPlayer.tagging.Cover.Cover;
+import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import GUI.Window;
 import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
@@ -40,7 +42,7 @@ public class Notification extends PopOver{
     private Duration duration = Duration.seconds(5);
     
     // content 
-    Thumbnail t;
+    private Thumbnail thumb;
     @FXML private Label indexL;
     @FXML private Label songL;
     @FXML private Label artistL;
@@ -101,8 +103,8 @@ public class Notification extends PopOver{
             Log.err("Notifier source data coudlnt be read.");
         }
         
-        t = new Thumbnail(coverContainer.getPrefHeight());
-        coverContainer.getChildren().add(t.getPane());
+        thumb = new Thumbnail(coverContainer.getPrefHeight());
+        coverContainer.getChildren().add(thumb.getPane());
     }
     
     @Override
@@ -133,13 +135,15 @@ public class Notification extends PopOver{
             
             Metadata m = (Metadata)content;
             if (m == null) { // prevent displaying previous info
-                t.loadImage((Image)null);
+                thumb.loadImage((Image)null);
                 indexL.setText("");
                 songL.setText("");
                 artistL.setText("");
                 albumL.setText("");
             } else {
-                t.loadImage(m.getCoverFromAnySource());
+                Cover c = m.getCover(ANY);
+                thumb.loadImage(c.getImage());
+                thumb.setFile(c.getFile());
                 indexL.setText(m.getPlaylistIndexInfo());
                 songL.setText(m.getTitle());
                 artistL.setText(m.getArtistOrAlbumArist());

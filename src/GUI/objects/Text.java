@@ -42,6 +42,6 @@ public class Text extends javafx.scene.text.Text {
      */
     public void setWrappingWidthNaturally() {
         if(getText()!=null && !getText().isEmpty()) 
-            setWrappingWidth(80+getText().length()/4);
+            setWrappingWidth(90+getText().length()/4);
     }
 }

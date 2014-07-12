@@ -60,7 +60,7 @@ public final class TabArea extends PolyArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            if (!controlsOn) return;                        // disallow in normal mode
+            if (!controls.isShowing()) return;              // disallow in normal mode
             if (e.getButton() == MouseButton.PRIMARY) {     // primary button drag only
                 ClipboardContent cc = new ClipboardContent();
                 cc.put(DragUtil.widgetDF, new WidgetTransfer(container, container.getParent()));
@@ -201,8 +201,14 @@ public final class TabArea extends PolyArea {
     }
     @Override
     public void detach() {
+        // create new window with empty widget as content to initialize layouts
         Window w = ContextManager.showWindow(Widget.EMPTY());
-        container.getParent().swapChildren(container, w.getLayout(), w.getLayout().getChild());
+               // set size to that of a source
+               w.setSize(root.getWidth(), root.getHeight());
+        // change content
+        container.getParent().swapChildren(container, 
+                w.getLayoutAggregator().getActive(), 
+                w.getLayoutAggregator().getActive().getChild());
     }
     
     @Override

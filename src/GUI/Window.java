@@ -8,7 +8,11 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import GUI.LayoutAggregators.EmptyLayoutAggregator;
+import GUI.LayoutAggregators.LayoutAggregator;
+import GUI.LayoutAggregators.UnLayoutAggregtor;
 import GUI.objects.ClickEffect;
+import GUI.objects.PopOver.PopOver;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
 import static GUI.objects.Window.Resize.NE;
@@ -21,20 +25,35 @@ import static GUI.objects.Window.Resize.W;
 import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
+import Layout.Widgets.Features.ConfiguringFeature;
+import Layout.Widgets.WidgetManager;
+import Layout.Widgets.WidgetManager.Widget_Source;
 import PseudoObjects.Maximized;
-import Serialization.Serializes;
-import Serialization.SerializesFile;
+import Serialization.SelfSerializator;
+import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+import com.thoughtworks.xstream.io.StreamException;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.COLUMNS;
+import static de.jensd.fx.fontawesome.AwesomeIcon.GEARS;
+import static de.jensd.fx.fontawesome.AwesomeIcon.IMAGE;
+import de.jensd.fx.fontawesome.test.IconsBrowser;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Objects;
 import javafx.animation.TranslateTransition;
 import javafx.beans.value.ChangeListener;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -42,8 +61,9 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
+import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -92,8 +112,37 @@ import utilities.Log;
  * @author plutonium_, simdimdim
  */
 @IsConfigurable
-public class Window extends WindowBase implements SerializesFile, Serializes {
-        
+public class Window extends WindowBase implements SelfSerializator<Window> {
+    
+    /**
+     * Get focused window. There is only one focused window in the application
+     * at once.
+     * <p>
+     * Use when querying for focused window. 
+     * @return focused window or null if none focused.
+     */
+    public static Window getFocused() {
+        return ContextManager.windows.stream()
+                .filter(Window::isFocused).findAny().orElse(null);
+    }
+    /**
+     * Same as {@link #getFocused()} but when none focused returns main window
+     * instead of null.
+     * <p>
+     * Both methods are equivalent except for when the application itself has no
+     * focus - no window has focus.
+     * <p>
+     * Use when null must be avoided and the main window substitute for focused
+     * window will not cause problem and if this method risk being called when
+     * no window has focus.
+     * @return focused window or main window if none. Never null.
+     */
+    public static Window getActive() {
+        return ContextManager.windows.stream()
+                .filter(Window::isFocused).findAny().orElse(null);
+    }
+    
+/******************************** Configs *************************************/
     @IsConfig(name="Window header visiblility preference", info="Remembers header"
             + " state for both fullscreen and not. When selected 'auto off' is true ")
     public static boolean headerVisiblePreference = true;
@@ -191,32 +240,17 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     
     /** @return new window or null if error occurs during initialization. */
     public static Window create() {
-        return create(false);
-    }
-    /** @return new Window or null if error occurs during initialization. */
-    public static Window create(boolean main) {
         try {
-            Window w = new Window(main);
-            if(App.getWindowOwner()!=null) w.getStage().initOwner(App.getWindowOwner().getStage());
+            Window w = new Window();
+            if(App.getWindowOwner()!=null)
+                w.getStage().initOwner(App.getWindowOwner().getStage());
             URL fxml = Window.class.getResource("Window.fxml");
             FXMLLoader l = new FXMLLoader(fxml);
                        l.setRoot(w.root);
                        l.setController(w);
                        l.load();
             w.initialize();
-            w.minimizeB.setVisible(main);
-            
-            if(main) {
-                // activare main window functionality
-                w.layB.setVisible(true);
-                w.miniB.setVisible(true);
-                // load main window content
-                w.setContent(w.sp);
-                w.setIcon(App.getIcon());
-                w.setTitle(App.getAppName());
-                w.setTitlePosition(Pos.CENTER_LEFT);
-                new ContextManager(w.overlayPane,w.contextPane,w.sp);
-            }
+            w.minimizeB.setVisible(false);
                    
             return w;
         } catch (IOException ex) {
@@ -227,8 +261,8 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     
 /******************************************************************************/
     
-    Layout layout;
-    public SwitchPane sp = new SwitchPane();
+    private LayoutAggregator layout_aggregator = new EmptyLayoutAggregator();
+    boolean main = false;
     
     @FXML AnchorPane root = new AnchorPane();
     @FXML public AnchorPane content;
@@ -242,8 +276,8 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     public @FXML AnchorPane contextPane;
     public @FXML AnchorPane overlayPane;
     
-    private Window(boolean is_main) {
-        super(is_main);
+    private Window() {
+        super();
     }
     
     /** Initializes the controller class. */
@@ -251,10 +285,20 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         getStage().setScene(new Scene(root));
         getStage().setOpacity(windowOpacity);
         
+        // avoid some instances of not closing properly
+        s.setOnCloseRequest(e->{
+            System.out.println("CLOSING WINDOW REQUEST");
+            close();
+        });
+        
+        // root is assigned a 'window' styleclass to allow css skinning
+        // set 'focused' pseudoclass for window styleclass
+        PseudoClass focused = PseudoClass.getPseudoClass("focused");
+        s.focusedProperty().addListener((o,oldV,newV)->{
+            root.pseudoClassStateChanged(focused, newV);
+        });
         // add to list of active windows
         ContextManager.windows.add(this);
-        // maintain active (focused) window
-        getStage().focusedProperty().addListener((o,oldV,newV)-> ContextManager.activeWindow=this );
         // set shortcuts
         Action.getActions().values().stream().filter(a->!a.isGlobal())
                 .forEach(Action::register);
@@ -326,26 +370,58 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         });
     };
     
+    public void setAsMain() {
+        if (App.getWindow()!=null)
+            throw new RuntimeException("Only one window can be main");
+        main = true;
+        
+        setIcon(App.getIcon());
+        setTitle(App.getAppName());
+        setTitlePosition(Pos.CENTER_LEFT);
+        layB.setVisible(true);
+        miniB.setVisible(true);
+        minimizeB.setVisible(true);
+        new ContextManager(overlayPane,contextPane);
+        App.window = this;
+    }
+    
 /******************************* CONTENT **************************************/
     
     public void setContent(Node n) {
-        content.getChildren().setAll(n);
+        content.getChildren().clear();
+        content.getChildren().add(n);
         AnchorPane.setBottomAnchor(n, 0.0);
         AnchorPane.setRightAnchor(n, 0.0);
         AnchorPane.setLeftAnchor(n, 0.0);
         AnchorPane.setTopAnchor(n, 0.0);
     }
+    
     public void setContent(Component c) {
-        content.getChildren().clear();
-        layout = new Layout();
-        layout.setParentPane(content);
-        layout.load();
-        layout.setChild(c);
+        Layout l = new Layout();
+        // also sets parent pane for layout
+        LayoutAggregator la = new UnLayoutAggregtor(l);
+               // set child after parent pane is set for layout 
+               l.setChild(c);
+        setLayoutAggregator(la);
     }
     
-    /** Returns layout or null if none present. */
-    public Layout getLayout() {
-        return layout;
+    public void setLayoutAggregator(LayoutAggregator la) {
+        Objects.requireNonNull(la);
+        // clear previous content
+        layout_aggregator.getLayouts().forEach(Layout::close);
+        // set new content
+        layout_aggregator = la;
+        setContent(layout_aggregator.getRoot());
+        // load new content
+        layout_aggregator.getLayouts().forEach(Layout::load);
+    }
+    
+    /**
+     * Returns layout aggregator of this window.
+     * @return layout aggregator, never null.
+     */
+    public LayoutAggregator getLayoutAggregator() {
+        return layout_aggregator;
     }
     
 /******************************    HEADER & BORDER    **********************************/
@@ -353,9 +429,9 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
     @FXML private BorderPane header;
     @FXML private Region lBorder;
     @FXML private Region rBorder;
-    @FXML ImageView iconI;
-    @FXML Label titleL;
-    @FXML HBox leftHeaderBox;
+    @FXML private ImageView iconI;
+    @FXML private Label titleL;
+    @FXML private HBox leftHeaderBox;
     private boolean showHeader = true;
     
     /**
@@ -397,20 +473,33 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
         iconI.setImage(img); 
        leftHeaderBox.getChildren().remove(iconI);
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
-       leftHeaderBox.getChildren().add(0, AwesomeDude.createIconLabel(AwesomeIcon.MUSIC,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_ALT,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_SQUARE,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITTIP,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(0, AwesomeDude.createIconLabel(AwesomeIcon.CROSSHAIRS,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.REFRESH,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.RECYCLE,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.SQUARE,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.SQUARE_ALT,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.POWER_OFF,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.ALIGN_CENTER,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.ANDROID,"","15","15", ContentDisplay.CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.CIRCLE,"","15","15", ContentDisplay.CENTER));
+       leftHeaderBox.getChildren().add(0, AwesomeDude.createIconLabel(AwesomeIcon.MUSIC,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_ALT,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_SQUARE,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITTIP,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(1, AwesomeDude.createIconLabel(AwesomeIcon.CROSSHAIRS,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.REFRESH,"","15","11", CENTER));
+       
+        Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);
+              iconsB.setOnMouseClicked( e ->{
+                IconsBrowser ib = new IconsBrowser();
+                PopOver p = new PopOver(ib);
+                        p.show(iconsB);
+              });
+              iconsB.setTooltip(new Tooltip("Icon browser (developing tool)"));
+        Label propB = AwesomeDude.createIconLabel(GEARS,"","15","11",CENTER);
+              propB.setOnMouseClicked( e ->
+                  WidgetManager.getWidget(ConfiguringFeature.class,Widget_Source.FACTORY)
+              );
+              propB.setTooltip(new Tooltip("Application settings"));
+        Label leayoutB = AwesomeDude.createIconLabel(COLUMNS,"","15","11",CENTER);
+              leayoutB.setOnMouseClicked( e ->
+                  ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager")
+              );
+              leayoutB.setTooltip(new Tooltip("Manage layouts"));
+              
+         leftHeaderBox.getChildren().addAll(iconsB,leayoutB,propB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/
@@ -449,13 +538,23 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
 
     @Override
     public void close() {
-        super.close();
-        if(layout !=null) layout.close();
+        // serialize windows if this is main app window
+        if(main) WindowManager.serialize();
+        // close content- if not main window, it would prevent Layouts form serializing
+        // main window closes the app so closing layouts does not play role
+        if(!main) layout_aggregator.getLayouts().forEach(Layout::close);
         // remove from window list as life time of this ends
-        ContextManager.windows.remove(this);    
-        // remove reference if exist
-        if(this.equals(ContextManager.activeWindow))
-            ContextManager.activeWindow=null;
+        ContextManager.windows.remove(this); 
+        if(main) {
+            // close all pop overs first (or we risk an exception and not closing app
+            // properly - PopOver bug
+            // also have to create new list or we risk ConcurrentModificationError
+            new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
+            // act as main window and close whole app
+            App.getWindowOwner().close();
+        }
+        // in the end close itself
+        super.close();
     }
     
     /**
@@ -631,12 +730,44 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             } else {
                 showHeader(showHeader);
             }
-    } 
+    }
+
+    @Override
+    public void serialize(Window w, File f) throws IOException {
+        XStream xstream = new XStream(new DomDriver());
+        xstream.autodetectAnnotations(true);
+        xstream.registerConverter(new Window.WindowConverter());
+        xstream.toXML(w, new BufferedWriter(new FileWriter(f)));
+    }
+
+    public static Window deserialize(File f) throws IOException {
+        try {
+            XStream xstream = new XStream(new DomDriver());
+                    xstream.registerConverter(new Window.WindowConverter());
+            return (Window) xstream.fromXML(f);
+        } catch (ClassCastException | StreamException ex) {
+            Log.err("Unable to load window from the file: " + f.getPath() +
+                    ". The file not found or content corrupted. ");
+            throw new IOException();
+        }
+    }
+    public static Window deserializeSuppressed(File f) {
+        try {
+            XStream xstream = new XStream(new DomDriver());
+                    xstream.registerConverter(new Window.WindowConverter());
+            return (Window) xstream.fromXML(f);
+        } catch (ClassCastException | StreamException ex) {
+            Log.err("Unable to load window from the file: " + f.getPath() +
+                    ". The file not found or content corrupted. ");
+            return null;
+        }
+    }
     
     public static final class WindowConverter implements Converter {
+        
         @Override
         public boolean canConvert(Class type) {
-            return type.equals(Window.class);
+            return Window.class.equals(type);
         }
 
         @Override
@@ -664,10 +795,13 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             writer.setValue(w.FullProp.getValue().toString());
             writer.endNode();
             writer.startNode("resizable");
-            writer.setValue(w.ResProp.getValue().toString());
+            writer.setValue(w.s.resizableProperty().getValue().toString());
             writer.endNode();
             writer.startNode("alwaysOnTop");
             writer.setValue(w.s.alwaysOnTopProperty().getValue().toString());
+            writer.endNode();
+            writer.startNode("layout-aggregator-type");
+            writer.setValue(w.layout_aggregator.getClass().getName());
             writer.endNode();
         }
 
@@ -689,7 +823,7 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             w.YProp.set(Double.parseDouble(reader.getValue()));
             reader.moveUp();
             reader.moveDown();
-            Boolean.parseBoolean(reader.getValue());
+            w.s.setIconified(Boolean.parseBoolean(reader.getValue()));
             reader.moveUp();
             reader.moveDown();
             w.MaxProp.set(Maximized.valueOf(reader.getValue()));
@@ -698,11 +832,15 @@ public class Window extends WindowBase implements SerializesFile, Serializes {
             w.FullProp.set(Boolean.parseBoolean(reader.getValue()));
             reader.moveUp();
             reader.moveDown();
-            w.ResProp.set(Boolean.parseBoolean(reader.getValue()));
+            w.s.setResizable(Boolean.parseBoolean(reader.getValue()));
             reader.moveUp();
             reader.moveDown();
-            w.ResProp.set(Boolean.parseBoolean(reader.getValue()));
-            Boolean.parseBoolean(reader.getValue());                            // this should be fixed!
+            w.setAlwaysOnTop(Boolean.parseBoolean(reader.getValue()));
+            reader.moveUp();
+            reader.moveDown();
+            reader.getValue(); // ignore
+            reader.moveUp();
+            
             return w;
         }
     }

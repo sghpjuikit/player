@@ -13,17 +13,30 @@ package Layout.Widgets;
 public abstract class WidgetFactory<W extends Widget> {
     public final String name;
     public final WidgetInfo info;
+    public final Class<?> controller_class;
     
     /** Whether this factory will be preferred over others of the same group. */
     public boolean preferred = false;
     
-    WidgetFactory(String name, Class<?> info_carrier_type) {
+    /**
+     * Implementation note: this constructor must be called from every extending
+     * class' constructor with super().
+     * 
+     * @param name
+     * @param controller_class class of the controller. There are no restrictions
+     * for this general constructor, but more specific factories might impose some.
+     * In any case, it is recommended for the class to be at least Class<Controller>
+     *  - the controller should always implement Controller interface
+     */
+    WidgetFactory(String name, Class<?> controller_class) {
         // init name
         this.name = name;
+        this.controller_class = controller_class;
         
         // init info
-        WidgetInfo i = info_carrier_type.getAnnotation(WidgetInfo.class);
+        WidgetInfo i = controller_class.getAnnotation(WidgetInfo.class);
         info = i!=null ? i : Widget.EMPTY().getController().getClass().getAnnotation(WidgetInfo.class);
+        
     }
     
     /**

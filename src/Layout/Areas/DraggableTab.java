@@ -134,9 +134,8 @@ public class DraggableTab extends Tab {
                 getTabPane().getTabs().remove(DraggableTab.this);
                 pane.getTabs().add(DraggableTab.this);
                 pane.getTabs().addListener((ListChangeListener.Change<? extends Tab> change) -> {
-                    if(pane.getTabs().isEmpty()) {
-                        w.setVisible(false);
-                    }
+                    if(pane.getTabs().isEmpty())
+                        w.hide();
                 });
                 w.setContent(pane);
                 w.setLocation(e.getScreenX(), e.getScreenY());

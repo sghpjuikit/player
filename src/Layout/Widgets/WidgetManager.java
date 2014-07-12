@@ -4,13 +4,12 @@ package Layout.Widgets;
 import GUI.ContextManager;
 import Layout.LayoutManager;
 import Layout.WidgetImpl.Circles;
-import Layout.WidgetImpl.ConfiguratorComponent;
+import Layout.WidgetImpl.Configurator;
 import Layout.WidgetImpl.Graphs;
 import Layout.WidgetImpl.HtmlEditor;
 import Layout.WidgetImpl.PlaylistManagerComponent;
 import Layout.WidgetImpl.Spectrumator;
-import Layout.Widgets.Features.TaggingFeature;
-import Layout.Widgets.Widget.Group;
+import Layout.Widgets.Features.Feature;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -60,7 +59,7 @@ public final class WidgetManager {
     
     /** Registers internal widget factories. */
     private static void registerInternalWidgetFactories() {
-        new ClassWidgetFactory("Settings", ConfiguratorComponent.class).register();
+        new ClassWidgetFactory("Settings", Configurator.class).register();
         new ClassWidgetFactory("Playlist Manager", PlaylistManagerComponent.class).register();
         new ClassWidgetFactory("Circles", Circles.class).register();
         new ClassWidgetFactory("Graphs", Graphs.class).register();
@@ -102,36 +101,26 @@ public final class WidgetManager {
     
 /******************************************************************************/
     
-    // remembers standalone widgets not part of any layout, mostly in popups
-    public static final List<Widget> standaloneWidgets = new ArrayList();
-    
-    /** @return stream of currently loaded widgets. */
-    public static Stream<Widget> getWidgets() {
-        return Stream.concat(standaloneWidgets.stream(),
-            LayoutManager.getLayouts().flatMap(l->l.getAllWidgets().stream()));
-    }
-
     /**
-     * Returns widget based on condition. If there is preferred widget it will 
-     * be returned first. Otherwise any widget can be returned from those that
-     * fulfill condition.
-     * @param cond widget predicate
-     * @return widget testing true for predicate, null otherwise.
+     * remembers standalone widgets not part of any layout, mostly in popups
+     * as for normal widgets - they can be obtained from layouts
+     * Do not use.
      */
-    public static Widget getWidget(Predicate<Widget> cond) {
-        Widget out = null;
-        // attempt to get preferred widget from loaded widgets
-        if (out == null)
-            out = getWidgets()
-                    .filter(w-> cond.test(w))
-                    .filter(w-> w.isPreffered())
-                    .findFirst().orElse(null);
-        // attempt to get any widget from loaded widgets
-        if (out == null)
-            out = getWidgets()
-                    .filter(w->cond.test(w))
-                    .findFirst().orElse(null);
-        return out;
+    public static final List<Widget> standaloneWidgets = new ArrayList();
+
+    public static Stream<Widget> getWidgets(Widget_Source source) {
+        switch(source) {
+            case LAYOUT:
+                return LayoutManager.getLayouts()
+                        .flatMap(l->l.getAllWidgets().stream());
+            case ACTIVE:
+            case FACTORY:
+                return Stream.concat(standaloneWidgets.stream(), 
+                        LayoutManager.getLayouts()
+                            .flatMap(l->l.getAllWidgets().stream()));
+            // error out if not any of the above
+            default: return null; 
+        }
     }
     
     /**
@@ -144,12 +133,22 @@ public final class WidgetManager {
      * @return widget fulfilling condition. Null if application has no access to
      * any widget fulfilling the condition.
      */
-    public static Widget getWidgetOrCreate(Predicate<WidgetInfo> cond) {
-        // get preferred widget from loaded widgets
-        Widget out = getWidget(w->cond.test(w.getInfo()));
+    public static Widget getWidget(Predicate<WidgetInfo> cond, Widget_Source source) {
+        Widget out = null;
+        // attempt to get preferred widget from loaded widgets
+        if (out == null)
+            out = getWidgets(source)
+                    .filter(w-> cond.test(w.getInfo()))
+                    .filter(w-> w.isPreffered())
+                    .findFirst().orElse(null);
+        // attempt to get any widget from loaded widgets
+        if (out == null)
+            out = getWidgets(source)
+                    .filter(w->cond.test(w.getInfo()))
+                    .findFirst().orElse(null);
         
         // attempt to create new if no result yet
-        if (out == null) {
+        if (out == null && source==Widget_Source.FACTORY) {
             WidgetFactory f;
             // attempt to get preferred factory
                 f = factories.stream()
@@ -163,17 +162,110 @@ public final class WidgetManager {
                     .findFirst().orElse(null);
             // open widget if found
             out = f==null ? null : f.create();
-            if(out!=null) ContextManager.showFloating(out);
+            if(out!=null) {
+                standaloneWidgets.add(out);
+                ContextManager.showFloating(out);
+            }
         }
         
         return out;
     }
     
     /**
+     * Returns widget with specific behavior denoted by a {@link Feature}
+     * interface. This interface is implemented by the widget's controller.
+     * <p>
+     * It is expected that the application contains many widgets and widget
+     * types, some of which share some behavior. This can be discovered and
+     * exploited by using common behavior interface - Feature.
+     * <p>
+     * This method looks up the available widgets and attempts to return best fit
+     * for the specified Feature.
+     * <p>
+     * If the interface defines methods (it could be a simple marker
+     * interface) and developer wishes to use them, a casting to respective
+     * Feature is necessary. Cast only to the same interface as the one provided
+     * as a parameter - in such case the casting will always succeed.
+     * <p>
+     * Example:   (TaggingFeature) widget.getController()
+     * <p>
+     * It does not make sense to try to obtain the exact class type of the
+     * widget's controller as obtaining the widget or at most the Feature's type
+     * and behavior is the point of this method.
+     * In fact it is impossible to do this safely as there is no guarantee as to
+     * what the Controller's type will be. Using the reflection could get over
+     * this obstacle, but as noted, it should never be done.
      * @return any open widget supporting tagging or loaded new if none is loaded.
      * Null if no tagging widget available in application.
      */
-    public static TaggingFeature getTaggerOrCreate() {
-        return (TaggingFeature)getWidgetOrCreate(w->w.group()==Group.TAGGER).getController();
+    public static Widget getWidget(Class<? extends Feature> feature, Widget_Source source) {        
+        Widget out = null;
+        // attempt to get preferred widget from active widgets
+        if (out == null)
+            out = getWidgets(source)
+                    .filter(w-> feature.isAssignableFrom(w.getController().getClass()))
+                    .filter(w-> w.isPreffered())
+                    .findFirst().orElse(null);
+        // attempt to get any widget from active widgets
+        if (out == null)
+            out = getWidgets(source)
+                    .filter(w-> feature.isAssignableFrom(w.getController().getClass()))
+                    .findFirst().orElse(null);
+        
+        if (out == null && source==Widget_Source.FACTORY) {
+           WidgetFactory f;
+            // attempt to get preferred factory
+                f = factories.stream()
+                    .filter(w->feature.isAssignableFrom(w.controller_class))
+                    .filter(w->w.preferred)
+                    .findFirst().orElse(null);
+            if (f==null)
+            // attempt to get any factory
+                f = factories.stream()
+                    .filter(w->feature.isAssignableFrom(w.controller_class))
+                    .findFirst().orElse(null);
+            // open widget if found
+            out = f==null ? null : f.create();
+            if(out!=null) {
+                standaloneWidgets.add(out);
+                ContextManager.showFloating(out);
+            }
+        }
+        return out;
     }
+    
+    /**
+     * Denotes source for widgets. Used when looking up a widget. Sometimes it
+     * is desirable to limit the source.
+     */
+    public static enum Widget_Source {
+        /**
+         * The source will be all currently active widgets contained within all 
+         * of the layouts in all of the windows. Does not contain standalone
+         * widgets. Standalone widget is one that is not part of the layout. for
+         * example located in the popup. Most limited source.
+         */
+        LAYOUT,
+        /**
+         * The source will contain all currently active widgets in the app.
+         * Contains LAYOUT source and in addition all currently active 
+         * standalone widgets.
+         */
+        ACTIVE,
+        /**
+         * The source will contain all available widgets to the application.
+         * Contains ACTIVE source, but in addition will search all
+         * registered widget factories and create new widget if necessary.
+         * Most complete source.
+         */
+        FACTORY;
+    }
+    public static enum Widget_Target {
+        LAYOUT,
+        TAB,
+        POPUP,
+        WINDOW;
+    }
+    
+    // if space add new widget to layout, if not make new tab, switch tabs
 }

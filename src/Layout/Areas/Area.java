@@ -57,14 +57,14 @@ public abstract class Area<T extends Container> implements AltState {
         
         // init behavior
         root.setOnScroll(e -> {
-            if(controlsOn) {
+            if(controls.isShowing()) {
                 if(e.getDeltaY()<0) collapse();
                 else if(e.getDeltaY()>0) expand();
                 e.consume();
             }
         });
         root.setOnMouseClicked(e->{
-            if(controlsOn)
+            if(controls.isShowing())
                 if(e.getButton()==MouseButton.MIDDLE) {
                     setPadding(0);
                     e.consume();
@@ -124,9 +124,13 @@ public abstract class Area<T extends Container> implements AltState {
         if (c==null) return;
         
         // detach into new window
+        // create new window with empty widget as content to initialize layouts
         Window w = ContextManager.showWindow(Widget.EMPTY());
+               // set size to that of a source
                w.setSize(root.getWidth(), root.getHeight());
-        container.swapChildren(c, w.getLayout(), w.getLayout().getChild());
+        // change content
+        container.swapChildren(c, w.getLayoutAggregator().getActive(), 
+                w.getLayoutAggregator().getActive().getChild());
     }
     
     public void close() {
@@ -163,20 +167,16 @@ public abstract class Area<T extends Container> implements AltState {
     }
     
 /******************************* layout mode **********************************/
-    
-    protected boolean controlsOn = false;
-    
+        
     @FXML
     @Override
     public void show() {
         controls.show();
-        controlsOn = true;
     }
     @FXML
     @Override
     public void hide() {
         controls.hide();
-        controlsOn = false;
     }
     @FXML
     public void setLocked(boolean val) {

@@ -10,7 +10,7 @@ import GUI.ContextManager;
 import GUI.GUI;
 import GUI.NotifierManager;
 import GUI.Window;
-import Layout.LayoutManager;
+import GUI.WindowManager;
 import Layout.Widgets.WidgetManager;
 import Library.BookmarkManager;
 import java.io.File;
@@ -37,7 +37,7 @@ public class App extends Application {
     
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
-    private Window window;
+    public static Window window;
     private Window windowOwner;
     private boolean initialized = false;
     
@@ -91,25 +91,11 @@ public class App extends Application {
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
-            LayoutManager.findLayouts();            // must initialize before below
             
             windowOwner = Window.create();          // create hidden main window
-            windowOwner.setVisible(false);
             windowOwner.getStage().setOpacity(0);
-            windowOwner.show();            
-            ContextManager.windows.remove(windowOwner);    
-            
-            window = Window.create(true);           // create main app window
-            window.setVisible(false);
-            
-            Configuration.applyField("skin");   // fixes some problem
-            
-            // loading graphics
-            LayoutManager.loadLast();
-            window.getStage().initOwner(windowOwner.getStage());
-            window.show();                          // should load when GUI is ready
-//            window.getStage().getScene().getRoot().applyCss();
-//            window.getStage().getScene().getRoot().layout();
+            windowOwner.show();
+            ContextManager.windows.remove(windowOwner);
             
             initialized = true;
         } catch(Exception e) {
@@ -117,7 +103,8 @@ public class App extends Application {
             throw new RuntimeException("Application failed to start. Reason: " + e.getMessage());
         }
         
-
+        // initialize windows from previous session
+        WindowManager.deserialize();
         
         // initialize non critical parts
         Player.loadLast();                      // should load in the end
@@ -130,8 +117,6 @@ public class App extends Application {
         Action.getActions().values().forEach(Action::register);        
 
         Configuration.applyFieldsAll();         // apply all (and gui) settings
-        window.setVisible(true);                // show the application window
-        window.update();        
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         
@@ -157,8 +142,7 @@ public class App extends Application {
     public void stop() {
         Action.stopGlobalListening();
         if(initialized) {
-            Player.state.serialize();
-            LayoutManager.serialize();
+            Player.state.serialize();            
             Configuration.save();
             BookmarkManager.saveBookmarks();
             NotifierManager.free();

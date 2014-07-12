@@ -157,7 +157,12 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     @Override
     public abstract T getItem();
     
-    abstract void refreshItem();
+    /**
+     * Refreshes the content of this config field. The content is read from the
+     * Config and as such reflects the real value. Using this method after the
+     * applying the new value will confirm the success visually to the user.
+     */
+    public abstract void refreshItem();
     
     /**
      * Returns the {@link Config}. Use for custom implementations of setting and
@@ -178,6 +183,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     
     /**
      * Convenience method and default implementation of set and apply mechanism.
+     * Also calls the {@link #refreshItem()} when needed.
      * <p>
      * Checks te current value and compares it with the value obtainable from
      * the config (representing the currently set value) and sets and applies
@@ -189,11 +195,15 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
      * @return whether any change occured. Occurs when change needs to be applied.
      * Equivalent to calling {@link #hasUnappliedValue()} method.
      */
-    public boolean applyNsetIfAvailable() {System.out.println(hasUnappliedValue());
+    public boolean applyNsetIfAvailable() {
         if(hasUnappliedValue()) {
             config.setNapplyValue(getItem());
+            refreshItem();
             return true;
-        } else return false;
+        } else 
+            refreshItem();{
+            return false;
+        }
     }
     
 /******************************************************************************/
@@ -257,7 +267,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField txtF = new CustomTextField();
         final boolean allow_empty; // only for string
-        Button okBL= AwesomeDude.createIconButton(AwesomeIcon.THUMBS_UP, "", "15","15",ContentDisplay.GRAPHIC_ONLY);
+        Button okBL= AwesomeDude.createIconButton(AwesomeIcon.CHECK, "", "15","15",ContentDisplay.GRAPHIC_ONLY);
         AnchorPane okB = new AnchorPane(okBL);
         
         private GeneralField(Config c) {
@@ -265,6 +275,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             allow_empty = c.getType().equals(String.class);
             
             okBL.getStyleClass().setAll("congfig-field-ok-button");
+            Tooltip.install(okB, new Tooltip("Apply value."));
             // unfortunately the icon buttonis not aligned well, need to fix that
             AnchorPane.setBottomAnchor(okBL, 3d);
             AnchorPane.setLeftAnchor(okBL, 8d);
@@ -324,17 +335,13 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 return text.isEmpty() ? config.getValue() : Parser.fromS(config.getType(), text);
             }
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             txtF.setPromptText(Parser.toS(config.getValue()));
             txtF.setText("");
+            showOkButton(false);
         }
         private void apply() {
-            if(isApplyOnChange()) {
-                applyNsetIfAvailable();
-                txtF.setPromptText(Parser.toS(getItem()));
-                txtF.setText("");
-            } 
-            showOkButton(false);
+            if(isApplyOnChange()) applyNsetIfAvailable();
         }
         private void showOkButton(boolean val) {
             if (val) txtF.setLeft(okB);
@@ -362,7 +369,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Boolean getItem() {
             return cBox.isSelected();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             cBox.setSelected((Boolean)config.getValue());
         }
     }
@@ -394,7 +401,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Object getItem() {
             return cBox.getValue();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             cBox.setValue(config.getValue());
         }
     }
@@ -418,7 +425,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public StringEnum getItem() {
             return cBox.getValue();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             cBox.getSelectionModel().select((StringEnum)config.getValue());
         }
     }
@@ -460,7 +467,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Number getItem() {
             return slider.getValue();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             slider.setValue(((Number)config.getValue()).doubleValue());
         }
     }
@@ -543,7 +550,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Action getItem() {
             return value;
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             Action a = (Action)config.getValue();
             control.setPromptText(a.getKeys());
             control.setText("");
@@ -568,7 +575,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Color getItem() {
             return picker.getValue();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             picker.setValue((Color)config.getValue());
         }
     }
@@ -595,7 +602,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public Font getItem() {
             return txtF.getItem();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             txtF.setItem((Font)config.getValue());
         }
     }
@@ -622,7 +629,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         @Override public File getItem() {
             return txtF.getItem();
         }
-        @Override void refreshItem() {
+        @Override public void refreshItem() {
             txtF.setItem((File)config.getValue());
         }
     }

@@ -194,14 +194,17 @@ public interface Util {
      * Compares two Artwork objects.
      * Artwork's equals() method doesnt return true properly. Use this method
      * instead.
+     * <p>
+     * Method is deprecated as it Artwork should not be used anyway. The method
+     * works well though.
      * @param art1
      * @param art2
      * @return 
      */
+    @Deprecated
     public static boolean equals(Artwork art1, Artwork art2) {
         if (art1 == null && art2 == null) { return true; }
         if (art1 == null || art2 == null) { return false; }
         return Arrays.equals(art1.getBinaryData(), art2.getBinaryData());
     }
-    
 }

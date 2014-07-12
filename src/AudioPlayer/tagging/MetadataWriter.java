@@ -4,8 +4,10 @@ package AudioPlayer.tagging;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
+import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.Chapters.Chapter;
 import GUI.NotifierManager;
-import PseudoObjects.TODO;
+import utilities.TODO;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -407,8 +409,61 @@ public class MetadataWriter extends MetaItem {
         setField(FieldKey.CUSTOM1, Parser.toS(c));
     }
     
+    /**
+     * Write chapters to tag. This method rewrites any previous chapter data.
+     * In order to not losethe original data, the chapters first need to be
+     * obtained and the modified list passed as an argument to this method.
+     * @param list of chapters that will comprise the entirety of chapter data
+     * in the tag after the writing operation. Recommended use is to pass the
+     * modified list of already obtained Chapters.
+     */
     public void setChapters(List<Chapter> chapters) {
-        setCustom2(chapters.stream().map(Chapter::toString).collect(Collectors.joining("\\|")));
+        setCustom2(chapters.stream().map(Chapter::toString).collect(Collectors.joining("|")));
+    }
+    
+    /**
+     * Convenience method. 
+     * Adds the given chapter to the metadata or edits it if it already exists.
+     * The existence of the chapter is obtained through equality check of the
+     * {@link Chapter} (the equals method) comparing the provided with all of
+     * the available chapters.
+     * <p>
+     * Note: Dont abuse this method and use {@link #setChapters(java.util.List)}
+     * for more invasive changes like adding more chapter at once.
+     * @param chapter
+     * @param metadata. Source metadata for chapter data. In order to retain rest
+     * of the chapters, the metadata for the item are necessary.
+     */
+    public void setChapter(Chapter chapter, Metadata metadata) {
+        // get latest chapters
+        List<Chapter> chaps = metadata.getChapters();
+        // look up whether chapter exists
+        int ind = chaps.indexOf(chapter);
+        // replace if exists, add otherwise
+        if(ind==-1) chaps.add(chapter);
+        else chaps.set(ind, chapter);
+        // set
+        setChapters(chaps);
+    }
+    
+    /**
+     * Convenience method. 
+     * Removes the given chapter from the metadata if it exists.
+     * The existence of the chapter is obtained through equality check of the
+     * {@link Chapter} (the equals method) comparing the provided with all of
+     * the available chapters.
+     * <p>
+     * Note: Dont abuse this method and use {@link #setChapters(java.util.List)}
+     * for more invasive changes like removing several chapters at once.
+     * @param chapter
+     * @param metadata. Source metadata for chapter data. In order to retain rest
+     * of the chapters, the metadata for the item are necessary.
+     */
+    public void removeChapter(Chapter chapter, Metadata metadata) {
+        // get latest chapters
+        List<Chapter> chaps = metadata.getChapters();
+        chaps.remove(chapter);
+        setChapters(chaps);
     }
     
     /** @param val the year to set  */
@@ -416,12 +471,16 @@ public class MetadataWriter extends MetaItem {
         setField(FieldKey.YEAR, val);
     }
     
-    /** @param val custom1 field value to set  */
+    /** 
+     * Do not use. Used as color field.
+     * @param val custom1 field value to set  */
     public void setCustom1(String val) {
         setField(FieldKey.CUSTOM1, val);
     }
     
-    /** @param val custom1 field value to set  */
+    /** 
+     * Do not use. Used for chapters.
+     * @param val custom1 field value to set  */
     public void setCustom2(String val) {
         setField(FieldKey.CUSTOM2, val);
     }
@@ -463,31 +522,29 @@ public class MetadataWriter extends MetaItem {
     
     /** 
      * Writes all changes to tag.
-     * @return true if data were written to tag, false if nothing to write or
-     * if writing ends unsuccessfully.
+     * @return true if data were written to tag or nothing to write - on success,
+     * false otherwise - when writing ends unsuccessfully.
      */
     public boolean write() {
-        // do nothing if nothing to write
-        if (!hasFields()) {
-            Log.mess("No changes.");
-            return false;
-        }
-        
         // write changes to tag
         String f = (fields_changed == 1) ? "field" : "fields";
-        Log.mess(fields_changed + " " + f + " changed.");
-        Log.mess("Writing data to tag for: " + file.toString() + ".");
+        Log.deb("Writing " + fields_changed + f + " to tag for: " + getURI() + ".");
+        
+        // do nothing if nothing to write
+        if (!hasFields()) return true;  
+        
         try {
+            // suspend playback if necessary
+            boolean isPlaying = PlaylistManager.isSameItemPlaying(this);
+            if (isPlaying) PLAYBACK.suspend();         
+            // save tag
+            audioFile.commit();         
+            // restore playback
+            if (isPlaying) PLAYBACK.loadLastState();
+            // update this item for application
+            Player.refreshItem(this);
             
-            PLAYBACK.suspend();
-                        
-            audioFile.commit();         // save tag
-            
-            PLAYBACK.loadLastState();
-            
-            
-            Player.refreshItem(this);   // update this item for application
-            Log.mess("Done.");
+            Log.deb("Saving tag for " + getURI() + " finished successfuly.");
             return true;
         } catch (CannotWriteException ex) {
             Log.err("Can not write to tag for file: " + audioFile.getFile().getPath());
@@ -533,11 +590,11 @@ public class MetadataWriter extends MetaItem {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setPlaycount(String.valueOf(count));
         if (writer.write())
-            NotifierManager.showTextNotification("Song playcount incremented to: "+count, "Update");
+            NotifierManager.showTextNotification("Song playcount incremented to: " + count, "Update");
     }
     
     /**
-     * Rates playing item specified by percentage rating.
+     * Rates playing item and throws a notification.
      * @param item to rate.
      * @param rating <0-1> representing percentage of the rating, 0 being minimum
      * and 1 maximum possible rating for current item. Value outside range will

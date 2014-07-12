@@ -9,7 +9,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
 import utilities.AudioFileFormat;
-import utilities.FileUtil;
 
 /**
  * Playable item.
@@ -30,32 +29,36 @@ public abstract class Item implements Comparable<Item> {
     abstract public URI getURI();
     
     /**
-     * Item based on file is represented by a file in a file system om a local
-     * systen. Item can also be on the web accessed through http protocol.
-     * @return whether item is filebased.*/
+     * Item based on file is represented by a file in a file system on a local
+     * system. Non file based item can for example be file on the web accessed 
+     * through http protocol.
+     * @return whether item is filebased.
+     */
     public boolean isFileBased() {
         return "file".equals(getURI().getScheme());
     }
     
     /** 
-     * Returns absolute file of the item, if it is file based
-     * If there is a problem with the file being relative, call getAbsoluteFile()
-     * method on the file before using it.
+     * Returns absolute file of the item.
      * @return file representation of the item.
      * @throws UnsupportedOperationException if item is not file based
      */
     public File getFile() {
         if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
+        // we should return absolute file or we could cause trouble in some
+        // situations
         return new File(getURI()).getAbsoluteFile();
     }
     
     /**
      * Returns human-readable string representation of the path to the resource
-     * of this item. Useful for displaying pat in the graphical user interface.
+     * of this item. Useful for displaying path in the graphical user interface.
      * <p>
-     * The path doesnt guarantee ability to backward-reconstruct the original
-     * resource (URI), and must not be used this way.
-     * @return string representation of the path of the resource
+     * Uses getUri().getPath() and removes leading '/' character.
+     * <p>
+     * The path doesnt guarantee the possibility to backward-reconstruct the 
+     * original URI resource, and must not be used this way.
+     * @return string portion of the URI of this item or "" if not available
      */
     public String getPath() {
         String path = getURI().getPath();
@@ -64,6 +67,9 @@ public abstract class Item implements Comparable<Item> {
     
     /** 
      * Parent directory of the resource. Only for file based items.
+     * <p>
+     * Use to get location of the item, for example to fetch additional resources
+     * located there, such as cover.
      * @return parent directory of the item in the file system
      * @throws UnsupportedOperationException if item is not file based
      */
@@ -73,78 +79,78 @@ public abstract class Item implements Comparable<Item> {
     }
     
     /** 
-     * Returns name of the file without its suffix. Only for file based items.
+     * Returns name of the file without its suffix.
      * @return the filename without suffix
-     * @throws UnsupportedOperationException if item is not file based
      */
     public String getFilename() {
-        if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
-        return FileUtil.getName(getFile());
+        String n = getFilenameFull();
+        // remove extension
+        int p = n.lastIndexOf('.');
+        return (p == - 1) ? n : n.substring(0,p);
     }
     
     /** 
-     * Returns name of the file with its suffix. Only for file based items.
+     * Returns name of the file with its suffix.
      * @return the filename with suffix or empty string if none.
-     * @throws UnsupportedOperationException if item is not file based
      */
     public String getFilenameFull() {
-       if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
-        return getFile().getName();
+        String p = getURI().getPath();
+        // shouldnt happen ever, but just in case some damaged URL gets through
+        if(p==null || p.isEmpty()) return ""; 
+        int i = p.lastIndexOf('/');
+        // another exceptional state check (just in case, might be unnecessary)
+        if(i==-1 || p.length()<2) return p;
+        // get name portion of the path
+        return p.substring(i+1);
     }
     
     /** 
-     * Returns suffix part of the filename. Only for file based items.
+     * Returns suffix of the filename. For example: "mp3, flac"
      * <p>
      * It doesnt necessarily reflect real type of the file. Dont use this method
      * to find out type of the file. Use {@link #getFormat()}.
      * @return the suffix of the file of this item or empty string if none.
-     * @throws UnsupportedOperationException if item is not file based
      */
     public String getSuffix() {
-        if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
         String n = getFilenameFull();
+        // remove name
         int p = n.lastIndexOf('.');
-        return (p > 0 && p < n.length() - 1) ? n.substring(p + 1) : "";
+        return (p == - 1) ? "" : n.substring(p + 1);
     }
     
     /** 
-     * Returns file type of the file. Only for file based items.
-     * @return file format of this item as is recognized by the application. It
+     * Returns file type of the file.
+     * @return file format of this item as recognized by the application. It
      * can differ from simple suffix string. This is recommended way to obtain
      * type of file as it utilizes application's built-in mechanism.
-     * @throws UnsupportedOperationException if item is not file based
      */
     public AudioFileFormat getFormat() {
-        if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
         return AudioFileFormat.get(getURI());
     }
     
     /** 
-     * @return the filesize 
-     * @throws UnsupportedOperationException if item is not file based
+     * Returns filesize of the file resource of this item. The filesize will
+     * remain unknown if unable to determine.
+     * @return the filesize of this item. Never null.
      */    
     public FileSize getFilesize() {
-        if(!isFileBased()) throw new UnsupportedOperationException("Item is not file based.");
-        return new FileSize(getFile());
+        return isFileBased() ? new FileSize(getFile()) : new FileSize(0);
     }
     
     /**
-     * Returns initial name. Name derived purely from URI of the item. Use as an
-     * initialisation value when only URI is known about the item and more 
-     * user-friendly information is desired.
+     * Returns initial name. Name derived purely from URI of the item. 
      * <p>
-     * Attempts to return name of the file without suffix (even for files on the
-     * web for example through http) by parsing the path part of the URI.
+     * Name can denote an item such as PlaylistItem.
+     * <p>
+     * Use as an initialization value when only URI is known about the item and 
+     * more user-friendly information is desired than the raw uri.
+     * <p>
+     * Default implementation is equivalent to {@link #getFilename()}
+     * 
      * @return initial name of the item.
      */
     public String getInitialName() {
-        String p = getURI().getPath();
-        if(p==null || p.isEmpty()) return ""; // shouldnt happen ever, but just in case some badly damaged http URL gets through here
-        int i = p.lastIndexOf('/');
-        if(i==-1 || p.length()<2) return p; // another exceptional state check
-        p = p.substring(i+1);       // remove leading '/' character
-        i = p.lastIndexOf('.');     // remove extension
-        return (i==-1) ? p : p.substring(0, i);
+        return getFilename();
     }
     
 /******************************************************************************/
@@ -160,7 +166,7 @@ public abstract class Item implements Comparable<Item> {
      * - is not supported audio file
      * - file can not be read
      * otherwise:
-     * 
+     *  - always false
      * </pre>
      * Also see {@link #markedAsCorrupted()};
      * @return playability/validity of the item.
@@ -173,6 +179,7 @@ public abstract class Item implements Comparable<Item> {
                         !AudioFileFormat.isSupported(this) ||
                         !f.canRead();
         } else {
+            // this should get improved
             corrupted =  false;
         }
         return corrupted;

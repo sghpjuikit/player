@@ -96,6 +96,7 @@ import main.App;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
 import utilities.Animation.Interpolators.ElasticInterpolator;
 import utilities.Log;
+import utilities.Util;
 
 /**
  * Window for application.
@@ -502,32 +503,49 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager")
               );
               leayoutB.setTooltip(new Tooltip("Manage layouts"));
+        Image lastFMon = Util.loadImage(new File("lastFMon.png"), 30);
+        Image lastFMoff = Util.loadImage(new File("lastFMoff.png"), 30);
+        ImageView lastFMview = new ImageView();
+
+        lastFMview.setFitHeight(15);
+        lastFMview.setFitWidth(15);         
+        lastFMview.setPreserveRatio(true);
+        
         Label lastFMB = AwesomeDude.createIconLabel(AwesomeIcon.THUMBS_UP,"","15","11",CENTER);
-              lastFMB.setOnMouseClicked( e ->{
-                  if(LastFMManager.getScrobblingEnabled()){
-                      LastFMManager.toggleScrobbling();
-                  }else{
-                      if(LastFMManager.isLoginSet()){
-                          LastFMManager.toggleScrobbling();
-                      }else{
-                          ValueConfigurable vc = new ValueConfigurable(
-                                  new ValueConfig("Username", LastFMManager.acquireUserName()),
-                                  new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
-                          );
-                          SimpleConfigurator lfm = new SimpleConfigurator(
-                                  vc, ()->{
-                                      LastFMManager.saveLogin(
-                                              ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
-                                              ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
-                                  });
-                          PopOver p = new PopOver("LastFM login", lfm);
-                          p.show(lastFMB);
-                      }
-                  }
-              }
-                  
-              );
-              lastFMB.setTooltip(new Tooltip("Manage layouts"));
+              ChangeListener<Boolean> fmlistener = (o, oldV, newV)->{
+              lastFMview.setImage(newV ? lastFMon : lastFMoff);
+                 
+              };
+        lastFMB.setGraphic(lastFMview); 
+        
+        LastFMManager.scrobblingEnabledProperty().addListener(fmlistener);
+        fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
+        
+        lastFMB.setOnMouseClicked( e ->{
+            if(LastFMManager.getScrobblingEnabled()){
+                LastFMManager.toggleScrobbling();
+            }else{
+                if(LastFMManager.isLoginSet()){
+                    LastFMManager.toggleScrobbling();
+                }else{
+                    ValueConfigurable vc = new ValueConfigurable(
+                            new ValueConfig("Username", LastFMManager.acquireUserName()),
+                            new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
+                    );
+                    SimpleConfigurator lfm = new SimpleConfigurator(
+                            vc, ()->{
+                                LastFMManager.saveLogin(
+                                        ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
+                                        ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
+                            });
+                    PopOver p = new PopOver("LastFM login", lfm);
+                    p.show(lastFMB);
+                }
+            }
+        }
+
+        );
+        lastFMB.setTooltip(new Tooltip("Manage layouts"));
               
          leftHeaderBox.getChildren().addAll(iconsB,leayoutB,propB,lastFMB);
     }

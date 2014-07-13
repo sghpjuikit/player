@@ -108,9 +108,10 @@ public class LastFMManager {
      *
      */
     public LastFMManager() {
+        
         apiKey = acquireApiKey();
         secret = acquireSecret();
-
+            
     }
 
     public void initialize() {
@@ -153,7 +154,7 @@ public class LastFMManager {
     @TODO("Implement")
     public static boolean isLoginSet(){
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        return false;
+        return true;
     }
     public static final void saveUserName(String username) {
         preferences.put("lastfm_username", username);

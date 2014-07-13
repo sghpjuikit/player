@@ -19,7 +19,7 @@ import utilities.FileUtil;
  * @author uranium
  * 
  */
-public class Layout extends UniContainer implements Serializes, SerializesFile {
+public final class Layout extends UniContainer implements Serializes, SerializesFile {
     @XStreamOmitField
     private String name;
     
@@ -51,9 +51,10 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      * 
      * @see #setName(java.lang.String)
      * @param _name 
+     * @throws IllegalArgumentException if name parameter null or empty
      */
-    public Layout(String _name) {
-        name = _name;
+    public Layout(String new_name) {
+        setName(new_name);
         properties.initProperty(Boolean.class, "locked", false);
     }
     
@@ -72,8 +73,11 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      * Do not use.
      * This method is not intended to be used outside of serialization context.
      * @param new_name - name to set.
+     * @throws IllegalArgumentException if name parameter null or empty
      */
     public void setName(String new_name) {
+        if(new_name == null || new_name.isEmpty())
+            throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
         name = new_name;
     }
     
@@ -81,13 +85,15 @@ public class Layout extends UniContainer implements Serializes, SerializesFile {
      * Change name. This method immediately takes care of all file operations
      * needed to maintain consistency -saves layout to the new file, old
      * file will deleted, etc
-     * @param _name. Same as old one, empty or null will do nothing.
+     * @param new_name. Same as old one, empty or null will do nothing.
+     * @throws IllegalArgumentException if name parameter null or empty
      */
-    public void setNameAndSave(String _name) {
-        if (_name == null || _name.isEmpty() || _name.equals(name)) return;
+    public void setNameAndSave(String new_name) {
+        if(new_name == null || new_name.isEmpty())
+            throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
         // set name
         String old = name;
-        name = _name;
+        name = new_name;
         // save new
         Serializattion.serialize(this);
         // delete old file

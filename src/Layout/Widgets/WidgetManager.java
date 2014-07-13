@@ -198,7 +198,7 @@ public final class WidgetManager {
      * @return any open widget supporting tagging or loaded new if none is loaded.
      * Null if no tagging widget available in application.
      */
-    public static Widget getWidget(Class<? extends Feature> feature, Widget_Source source) {        
+    public static Widget getWidget(Class<? extends Feature> feature, Widget_Source source) {
         Widget out = null;
         // attempt to get preferred widget from active widgets
         if (out == null)

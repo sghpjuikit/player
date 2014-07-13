@@ -245,7 +245,7 @@ public final class PlaylistTable {
                 Dragboard d = t.getDragboard();
                 // accept if contains at least 1 audio file, audio url, playlist or items
                 if ( (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
-                     (d.hasUrl() && AudioFileFormat.isSupported(URI.create(d.getUrl()))) || 
+                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) || 
                         d.hasContent(DragUtil.items) ||
                         d.hasContent(DragUtil.playlist)) {
                     t.acceptTransferModes(TransferMode.ANY);
@@ -424,14 +424,19 @@ public final class PlaylistTable {
         });
         
         // dragging behavior (for empty table)
-        table.setOnDragOver( e -> {
-            if (e.getGestureSource() == table) return;
-//            if (table.getItems().isEmpty()) {
-                Dragboard db = e.getDragboard();
-                if (db.hasFiles() || db.hasUrl() || db.hasContent(DragUtil.items) ||
-                        db.hasContent(DragUtil.playlist))
-                    e.acceptTransferModes(TransferMode.ANY);
-//            }
+        table.setOnDragOver( t -> {
+            // avoid illegal operation on drag&drop from self to self
+            if(t.getGestureSource() == table) return;
+
+            Dragboard d = t.getDragboard();
+            // accept if contains at least 1 audio file, audio url, playlist or items
+            if ( (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+                 (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) || 
+                    d.hasContent(DragUtil.items) ||
+                    d.hasContent(DragUtil.playlist)) {
+                t.acceptTransferModes(TransferMode.ANY);
+                t.consume();
+            }
         });
         // handle drag (for empty table)
         table.setOnDragDropped( e -> {

@@ -8,7 +8,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-
 - finish tagger infoPopup etc, interrupt reading if double reading
 - object config clean up
 - fix actions + configs
@@ -33,8 +32,8 @@
 
 - tagger color field
 - playlist selected item none->first when clicking on different widget          (wth)
-
-- layout change doesnt register sometimes                                       (major)
+- windows handle negative layouts
+- windows simplify layout saving - all old files can be removed now
 - dynamically create LayoutAggregator depending on size or preferences          (?)
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin

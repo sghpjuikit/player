@@ -94,7 +94,8 @@ public class WindowManager {
                 // dont continue if layout empty
                 if(l.getChild() == null || l.getChild() instanceof Layouter) continue;
                 // associate the layout with the window by name & save
-                l.setNameAndSave("window" + i + "-layout" + j);
+                l.setName("window" + i + "-layout" + j);
+                l.serialize();
                 // remove file from the list of files from previous session
                 oldLs.remove(l.getFile());
             }
@@ -103,7 +104,7 @@ public class WindowManager {
         // remove serialized layout files from previous session - now its safe
         oldLs.forEach(File::delete);
         Log.deb("Removing " + oldLs.size() + " old layout files from previous session.");
-            
+        
         Log.deb("Serialized " + count + " windows.");
     }
     
@@ -148,12 +149,17 @@ public class WindowManager {
                     .collect(Collectors.toList());
             
             SwitchPane la = new SwitchPane();
+            
             for(int j=0; j<ls.size(); j++) la.addTab(j,ls.get(j));
             w.setLayoutAggregator(la);
         }
         
         // make sure there is at least one window
-        if(ws.isEmpty()) ws.add(Window.create());
+        if(ws.isEmpty()) {
+            Window w = Window.create();
+                   w.setLayoutAggregator(new SwitchPane());
+            ws.add(w);
+        }
         
         // grab main window and initialize it
         ws.get(0).setAsMain();

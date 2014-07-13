@@ -97,16 +97,17 @@ public class App extends Application {
             windowOwner.show();
             ContextManager.windows.remove(windowOwner);
             
-            Configuration.applyField("skin");   // fixes some problem
+            // we need to initialize skin before windows do
+            Configuration.applyField("skin");
+            
+            // initialize windows from previous session
+            WindowManager.deserialize();
             
             initialized = true;
         } catch(Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Application failed to start. Reason: " + e.getMessage());
         }
-        
-        // initialize windows from previous session
-        WindowManager.deserialize();
         
         // initialize non critical parts
         Player.loadLast();                      // should load in the end

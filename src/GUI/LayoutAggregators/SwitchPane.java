@@ -79,7 +79,6 @@ public class SwitchPane implements LayoutAggregator {
             tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
             ui.setTranslateX(-getTabX(currTab()));
         });
-        
     };
 
 /********************************    TABS   ***********************************/

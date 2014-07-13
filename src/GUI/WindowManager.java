@@ -136,18 +136,20 @@ public class WindowManager {
             Window w = Window.deserializeSuppressed(f);
             
             // handle next window if this was not successfully deserialized
-            if(w==null || lmap.get(i)==null) continue;
-            
+            if(w==null) continue;
             ws.add(w);
+            
+            // avoid null if no layout for this window
+            if(lmap.get(i)==null) lmap.put(i,new ArrayList<>());
             
             // otherwise deserialize layout
             List<Layout> ls = lmap.get(i).stream()
                     .map(lf->new Layout(FileUtil.getName(lf)).deserialize(lf))
                     .collect(Collectors.toList());
             
-                SwitchPane la = new SwitchPane();
-                for(int j=0; j<ls.size(); j++) la.addTab(j,ls.get(j));
-                w.setLayoutAggregator(la);
+            SwitchPane la = new SwitchPane();
+            for(int j=0; j<ls.size(); j++) la.addTab(j,ls.get(j));
+            w.setLayoutAggregator(la);
         }
         
         // make sure there is at least one window

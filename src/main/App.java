@@ -97,6 +97,8 @@ public class App extends Application {
             windowOwner.show();
             ContextManager.windows.remove(windowOwner);
             
+            Configuration.applyField("skin");   // fixes some problem
+            
             initialized = true;
         } catch(Exception e) {
             e.printStackTrace();

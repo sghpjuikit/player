@@ -33,62 +33,109 @@ import utilities.TODO;
  */
 public class LastFMManager {
 
-    private static String apiKey;
-    
-        private static BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false);
+    private static String username;
+    private static final String apiKey = "f429ccceafc6b81a6ffad442cec758c3";
+    private static final String secret = "8097fcb4a54a9805599060e47ab69561";
 
-    /**
-     * Get the value of scrobblingEnabled
-     *
-     * @return the value of scrobblingEnabled
-     */
-    public static boolean getScrobblingEnabled() {
-        return scrobblingEnabled.get();
-    }
-    
-    public static BooleanProperty scrobblingEnabledProperty(){
-        return scrobblingEnabled;
-    }
+    private static Session session;
+    private static final Preferences preferences = Preferences.userNodeForPackage(LastFMManager.class);
+
+    private static boolean percentSatisfied;
+    private static boolean timeSatisfied;
+    private boolean durationSatisfied;
+    private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false);
+
+ 
 
     public static String getHiddenPassword() {
         return "****";
     }
 
-    public static void saveLogin(String value, String value0) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     
-    /**
-     * Set the value of scrobblingEnabled
-     *
-     * @param value
-     */
-    public void setScrobblingEnabled(boolean value) {
-        LastFMManager.scrobblingEnabled.set(value);
-    }
-    
-    public static void toggleScrobbling(){
+
+
+
+    public static void toggleScrobbling() {
         scrobblingEnabled.set(!scrobblingEnabled.get());
     }
-    
-    private final String secret;
+
 
     /**
-     * Last.fm Username required for write last.fm operations - scrobbling
-     * username not required for reading
+     *
      */
-    private static String username;
+    public LastFMManager() {  
+    }
 
-    private static String password;
+    public static void initialize() {
+        if(scrobblingEnabled.get()){
+            acquireUserName();
+            session = Authenticator.getMobileSession(acquireUserName(), acquirePassword() , apiKey, secret);
 
-    private Session session;
-    private static Preferences preferences = Preferences.userNodeForPackage(LastFMManager.class);
+            Player.addOnItemChange((oldValue, newValue) -> {
+                if ((timeSatisfied || percentSatisfied)
+                        && oldValue.getLength().greaterThan(Duration.seconds(30))) {
+                    scrobble(oldValue);
+    //                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
+                }
 
-    private static boolean percentSatisfied;
-    private static boolean timeSatisfied;
-    private boolean durationSatisfied;
+                updateNowPlaying();
+                reset();
+            });
+            PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
+            PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
+        }        
+    }
 
-    private final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
+
+ 
+
+    @TODO("Implement")
+    public static boolean isLoginSet() {
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        return true;
+    }
+    
+    public static void saveLogin(String value, String value0) {
+        saveUserName(value);
+        savePassword(value0);
+        initialize();
+    }
+    
+    public static final void saveUserName(String username) {
+        preferences.put("lastfm_username", username);
+    }
+    public static final void savePassword(String pass) {
+        preferences.put("lastfm_password", pass);
+    }
+    public static String acquireUserName() {
+        return preferences.get("lastfm_username", null);        
+    }
+    private static String acquirePassword(){
+        return preferences.get("lastfm_password", null);
+    }
+    
+    /************** Scrobble logic - event handlers etc ***********************/
+     
+    public static final void updateNowPlaying() {
+        Metadata currentMetadata = AudioPlayer.Player.getCurrentMetadata();
+        ScrobbleResult result = Track.updateNowPlaying(
+                currentMetadata.getArtist(),
+                currentMetadata.getTitle(),
+                session
+        );
+    }
+
+    private static void scrobble(Metadata track) {
+        Log.mess("Scrobbling: " + track);
+        int now = (int) (System.currentTimeMillis() / 1000);
+        ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
+    }
+    
+    private static void reset() {
+        timeSatisfied = percentSatisfied = false;
+    }
+       
+    private static final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
             0.5,
             () -> {
                 Log.deb("percent event for scrobbling fired");
@@ -96,92 +143,30 @@ public class LastFMManager {
             },
             "LastFM percent event handler.");
 
-    private final TimeEventHandler timeEvent = new TimeEventHandler(
+    private static final TimeEventHandler timeEvent = new TimeEventHandler(
             Duration.minutes(4),
             () -> {
                 Log.deb("Time event for scrobbling fired");
                 setTimeSatisfied(true);
             },
             "LastFM time event handler");
-
-    /**
-     *
-     */
-    public LastFMManager() {
-        
-        apiKey = acquireApiKey();
-        secret = acquireSecret();
-            
+    
+/*     *************   GETTERS and SETTERS    ****************************    */
+    
+    public static boolean getScrobblingEnabled() {
+        return scrobblingEnabled.get();
     }
 
-    public void initialize() {
-
-        acquireUserName();
-        session = Authenticator.getMobileSession(username, "yourpassword", apiKey, secret);
-
-        Player.addOnItemChange((oldValue, newValue) -> {
-            if ((timeSatisfied || percentSatisfied)
-                    && oldValue.getLength().greaterThan(Duration.seconds(30))) {
-                scrobble(oldValue);
-//                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
-            }
-            System.out.println("hello from scrobbler");
-            updateNowPlaying();
-            reset();
-        });
-
-        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
-
-        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
+    public static BooleanProperty scrobblingEnabledProperty() {
+        return scrobblingEnabled;
     }
 
-    /**
-     *
-     * @return
-     */
-    private String acquireApiKey() {
-        return "f429ccceafc6b81a6ffad442cec758c3";
-    }
-
-    private String acquireSecret() {
-        return "8097fcb4a54a9805599060e47ab69561";
-    }
-
-    public static String acquireUserName() {
-//        username = preferences.get("lastfm_username", null);
-        return "yourusername";
-    }
-    @TODO("Implement")
-    public static boolean isLoginSet(){
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        return true;
-    }
-    public static final void saveUserName(String username) {
-        preferences.put("lastfm_username", username);
-    }
-
-    public final void updateNowPlaying() {
-        Metadata currentMetadata = AudioPlayer.Player.getCurrentMetadata();
-        ScrobbleResult result = Track.updateNowPlaying(
-                currentMetadata.getArtist(),
-                currentMetadata.getTitle(),
-                session
-        );
-
-//        System.out.println("ok: " + (result.isSuccessful() && !result.isIgnored()));
-    }
-
-    private void scrobble(Metadata track) {
-        Log.mess("Scrobbling: " + track);
-        int now = (int) (System.currentTimeMillis() / 1000);
-        ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
-
-    }
-
-    private static void reset() {
-        timeSatisfied = percentSatisfied = false;
-    }
-
+ 
+    public void setScrobblingEnabled(boolean value) {
+        LastFMManager.scrobblingEnabled.set(value);
+    }   
+    
+    
     private static void setTimeSatisfied(boolean b) {
         timeSatisfied = b;
     }
@@ -189,10 +174,11 @@ public class LastFMManager {
     private static void setPercentSatisfied(boolean b) {
         percentSatisfied = b;
     }
-
-    public void destroy() {
+    
+    
+    
+      public void destroy() {
         PLAYBACK.realTimeProperty().removeOnTimeAt(percentEvent);
         PLAYBACK.realTimeProperty().removeOnTimeAt(timeEvent);
     }
-
 }

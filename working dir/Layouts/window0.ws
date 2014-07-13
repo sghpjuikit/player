@@ -1,0 +1,12 @@
+<GUI.Window>
+  <W>719.0</W>
+  <H>464.0</H>
+  <X>907.0</X>
+  <Y>500.0</Y>
+  <minimized>false</minimized>
+  <maximized>NONE</maximized>
+  <fullscreen>false</fullscreen>
+  <resizable>true</resizable>
+  <alwaysOnTop>false</alwaysOnTop>
+  <layout-aggregator-type>GUI.LayoutAggregators.SwitchPane</layout-aggregator-type>
+</GUI.Window>

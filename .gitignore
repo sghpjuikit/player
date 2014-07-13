@@ -12,7 +12,7 @@ build.xml
 nbbuild.xml
 manifest.mf
 working dir/*.cfg
-working dir/Layouts/*.*
+#working dir/Layouts/*.*
 
 #################
 ## Eclipse

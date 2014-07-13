@@ -1,0 +1,12 @@
+<Layout.Layout>
+  <id>04dfdcb8-8cd2-4c02-b7d8-e9cbc6138c36</id>
+  <properties>
+    <map>
+      <entry>
+        <string>locked</string>
+        <boolean>false</boolean>
+      </entry>
+    </map>
+  </properties>
+  <b>false</b>
+</Layout.Layout>

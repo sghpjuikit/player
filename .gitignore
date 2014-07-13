@@ -11,8 +11,7 @@ nb-configuration.xml
 build.xml
 nbbuild.xml
 manifest.mf
-working dir/*.cfg
-working dir/Layouts/*.*
+
 
 #################
 ## Eclipse
@@ -229,3 +228,7 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+*.l
+*.ws
+working dir/*.cfg
+working dir/Layouts/*.*

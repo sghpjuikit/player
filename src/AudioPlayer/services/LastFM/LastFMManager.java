@@ -21,8 +21,11 @@ import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
 import utilities.Log;
+import utilities.TODO;
 
 /**
  *
@@ -31,6 +34,43 @@ import utilities.Log;
 public class LastFMManager {
 
     private static String apiKey;
+    
+        private static BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false);
+
+    /**
+     * Get the value of scrobblingEnabled
+     *
+     * @return the value of scrobblingEnabled
+     */
+    public static boolean getScrobblingEnabled() {
+        return scrobblingEnabled.get();
+    }
+    
+    public static BooleanProperty scrobblingEnabledProperty(){
+        return scrobblingEnabled;
+    }
+
+    public static String getHiddenPassword() {
+        return "****";
+    }
+
+    public static void saveLogin(String value, String value0) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    /**
+     * Set the value of scrobblingEnabled
+     *
+     * @param value
+     */
+    public void setScrobblingEnabled(boolean value) {
+        LastFMManager.scrobblingEnabled.set(value);
+    }
+    
+    public static void toggleScrobbling(){
+        scrobblingEnabled.set(!scrobblingEnabled.get());
+    }
+    
     private final String secret;
 
     /**
@@ -106,11 +146,15 @@ public class LastFMManager {
         return "8097fcb4a54a9805599060e47ab69561";
     }
 
-    private void acquireUserName() {
+    public static String acquireUserName() {
 //        username = preferences.get("lastfm_username", null);
-        username = "yourusername";
+        return "yourusername";
     }
-
+    @TODO("Implement")
+    public static boolean isLoginSet(){
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        return false;
+    }
     public static final void saveUserName(String username) {
         preferences.put("lastfm_username", username);
     }

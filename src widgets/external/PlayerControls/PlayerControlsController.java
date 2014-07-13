@@ -6,6 +6,7 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.services.LastFM.LastFMManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
@@ -31,7 +32,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import utilities.FileUtil;
+import utilities.Log;
 import utilities.Util;
+
 
 /**
  * Playback Controller class
@@ -57,6 +60,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label status;
     @FXML ImageView loopMode;
     @FXML ImageView mute;
+    @FXML ImageView lastfm;
     
     @FXML Label titleL;
     @FXML Label artistL;
@@ -71,6 +75,8 @@ public class PlayerControlsController extends FXMLController implements Playback
     Image loopONEImg;
     Image muteOFFImg;
     Image muteONImg;
+    Image scrobbleONImg;
+    Image scrobbleOFFImg;
     
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
@@ -81,6 +87,8 @@ public class PlayerControlsController extends FXMLController implements Playback
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
+    
+    public boolean LastFMenabled = false;
     
     @Override
     public void init() {
@@ -115,6 +123,10 @@ public class PlayerControlsController extends FXMLController implements Playback
         muteOFFImg = new Image(getResource("muteOFF.png").toURI().toString());
         muteONImg  = new Image(getResource("muteON.png").toURI().toString());
         
+        scrobbleONImg  = new Image(getResource("lastfmON.png").toURI().toString());
+        scrobbleOFFImg  = new Image(getResource("lastfmOFF.png").toURI().toString());
+     
+        
         // set updating + initialize manually
         Player.addOnItemUpdate(playbackItemChanged);                    // add listener
         playingItemChanged(Player.getCurrentMetadata());                // init value
@@ -127,6 +139,9 @@ public class PlayerControlsController extends FXMLController implements Playback
                 
         PLAYBACK.muteProperty().addListener(muteListener);              // add listener
         muteChanged(PLAYBACK.getMute());                                // init value
+        
+        LastFMManager.scrobblingEnabledProperty().addListener(lastfmListener);
+        scrobbleChanged(LastFMManager.getScrobblingEnabled());
         
         PLAYBACK.totalTimeProperty().addListener(totalTimeListener);    // add listener
         PLAYBACK.realTimeProperty().addListener(realTimeListener);      // add listener        
@@ -228,6 +243,12 @@ public class PlayerControlsController extends FXMLController implements Playback
         elapsedTime = !elapsedTime;
         currentTimeChanged();
     }
+    @FXML private void cycleLastFM(){
+        Log.deb("PPP");
+//        Log.deb(this.getClass(), "PlayerControlsController");
+        LastFMManager.toggleScrobbling();
+    }
+    
     
     @FXML private void consumeMouseEvent(MouseEvent event) {
         event.consume(); // for example to prevent dragging application on some areas
@@ -239,6 +260,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     private final ChangeListener<Status> statusListener = (o,oldV,newV)-> statusChanged(newV);
     private final ChangeListener<LoopMode> loopModeListener = (o,oldV,newV)-> loopModeChanged(newV);
     private final ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV);
+    private final ChangeListener<Boolean> lastfmListener = (o,oldV,newV)-> scrobbleChanged(newV);
     private final InvalidationListener currTimeListener = o -> currentTimeChanged();
     private final InvalidationListener realTimeListener = o -> realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       
@@ -289,6 +311,17 @@ public class PlayerControlsController extends FXMLController implements Playback
             mute.setImage(muteOFFImg);
         } else {
             mute.setImage(muteONImg);
+        }
+    }
+    
+    private void scrobbleChanged(boolean val){ 
+//        l.info("scrobbleChanged");
+//        Log.deb(this.getClass(), "AAAAAA");
+//        System.out.println("Tu sa: " + val);
+        if (val) {            
+            lastfm.setImage(scrobbleOFFImg);
+        } else {
+            lastfm.setImage(scrobbleONImg);
         }
     }
     private void currentTimeChanged() {

@@ -2,9 +2,9 @@
 package GUI;
 
 import GUI.objects.Window.Resize;
-import static GUI.objects.Window.Resize.NONE;
 import PseudoObjects.Maximized;
 import static PseudoObjects.Maximized.ALL;
+import static PseudoObjects.Maximized.NONE;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -86,7 +86,7 @@ public class WindowBase {
     
 /******************************************************************************/
     
-    protected Resize is_being_resized = NONE;;
+    protected Resize is_being_resized = Resize.NONE;
     
     /**
      * Property description:
@@ -114,7 +114,7 @@ public class WindowBase {
      * @return 
      */
     public boolean isResizing() {
-        return is_being_resized != NONE;
+        return is_being_resized != Resize.NONE;
     }
     
     /**

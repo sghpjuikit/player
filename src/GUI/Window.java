@@ -4,15 +4,19 @@ package GUI;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.services.LastFM.LastFMManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Configuration.ValueConfig;
+import Configuration.ValueConfigurable;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.UnLayoutAggregtor;
 import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
+import GUI.objects.SimpleConfigurator;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
 import static GUI.objects.Window.Resize.NE;
@@ -498,8 +502,34 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager")
               );
               leayoutB.setTooltip(new Tooltip("Manage layouts"));
+        Label lastFMB = AwesomeDude.createIconLabel(AwesomeIcon.THUMBS_UP,"","15","11",CENTER);
+              lastFMB.setOnMouseClicked( e ->{
+                  if(LastFMManager.getScrobblingEnabled()){
+                      LastFMManager.toggleScrobbling();
+                  }else{
+                      if(LastFMManager.isLoginSet()){
+                          LastFMManager.toggleScrobbling();
+                      }else{
+                          ValueConfigurable vc = new ValueConfigurable(
+                                  new ValueConfig("Username", LastFMManager.acquireUserName()),
+                                  new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
+                          );
+                          SimpleConfigurator lfm = new SimpleConfigurator(
+                                  vc, ()->{
+                                      LastFMManager.saveLogin(
+                                              ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
+                                              ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
+                                  });
+                          PopOver p = new PopOver("LastFM login", lfm);
+                          p.show(lastFMB);
+                      }
+                  }
+              }
+                  
+              );
+              lastFMB.setTooltip(new Tooltip("Manage layouts"));
               
-         leftHeaderBox.getChildren().addAll(iconsB,leayoutB,propB);
+         leftHeaderBox.getChildren().addAll(iconsB,leayoutB,propB,lastFMB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/

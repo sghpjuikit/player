@@ -13,6 +13,7 @@ import Configuration.ValueConfig;
 import Configuration.ValueConfigurable;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
+import GUI.objects.Text;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import java.io.File;
@@ -27,9 +28,11 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -656,14 +659,39 @@ public class PlaylistManager implements Configurable {
         });
         
         
+//        // build help content
+//        String uri = "http://www.musicaddict.com";
+//        Label infoB = AwesomeDude.createIconLabel(INFO, "", "11", "11", ContentDisplay.CENTER);
+//              infoB.setTooltip(new Tooltip("Help"));
+//              infoB.setOnMouseClicked( e -> {
+//                PopOver helpP = PopOver.createHelpPopOver(uri);
+//                        // turn to hyperlink by assigning proper styleclass
+//                        helpP.getContentNode().getStyleClass().add("hyperlink");
+//                        // open the uri in browser
+//                        helpP.getContentNode().setOnMouseClicked( pe -> {
+//                            Enviroment.browse(URI.create(uri));
+//                            pe.consume();
+//                        });
+//                        helpP.show(infoB);
+//              });
         // build help content
-        String uri = "http://www.scuola3d.eu";
+        String uri = "http://www.musicaddict.com";
+        Text t1 = new Text("Use direct url to a file, for example\n"
+                         + "a file on the web. The url is the\n"
+                         + "address to the file and should end \n"
+                         + "with file suffix like '.mp3'. Try\n"
+                         + "visiting: ");
+        Text t2 = new Text(uri);
+             // turn to hyperlink by assigning proper styleclass
+             t2.getStyleClass().add("hyperlink");
+        VBox cnt = new VBox(t1,t2);
+             cnt.setSpacing(8);
+        VBox.setMargin(t2, new Insets(0, 0, 0, 20));
         Label infoB = AwesomeDude.createIconLabel(INFO, "", "11", "11", ContentDisplay.CENTER);
               infoB.setTooltip(new Tooltip("Help"));
               infoB.setOnMouseClicked( e -> {
-                PopOver helpP = PopOver.createHelpPopOver(uri);
-                        // turn to hyperlink by assigning proper styleclass
-                        helpP.getContentNode().getStyleClass().add("hyperlink");
+                PopOver helpP = PopOver.createHelpPopOver("");
+                        helpP.setContentNode(cnt);
                         // open the uri in browser
                         helpP.getContentNode().setOnMouseClicked( pe -> {
                             Enviroment.browse(URI.create(uri));

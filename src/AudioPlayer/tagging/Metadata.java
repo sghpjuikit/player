@@ -633,7 +633,7 @@ public final class Metadata extends MetaItem {
             int i = filename.lastIndexOf('.');
             if(i == -1) return false; 
             String name = filename.substring(0, i);
-            return (ImageFileFormat.isSupported(f) && (
+            return (ImageFileFormat.isSupported(f.toURI()) && (
                         name.equalsIgnoreCase("cover") ||
                         name.equalsIgnoreCase("folder") ||
                         (isFileBased() && (

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
@@ -79,6 +80,7 @@ import javafx.util.Callback;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
+import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
@@ -213,6 +215,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         
         CoverV = new Thumbnail(200);
+        CoverV.setDragImage(false); // we have our own implementation below
         coverContainer.setCenter(CoverV.getPane());
         // add specialized mood text field
         grid.add(MoodF, 1, 14, 2, 1);
@@ -286,35 +289,51 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         // drag & drop content
         entireArea.setOnDragOver( t -> {
-            Dragboard db = t.getDragboard();
-            if (db.hasFiles() || db.hasUrl() || db.hasContent(DragUtil.playlist) || db.hasContent(DragUtil.items))
+            Dragboard d = t.getDragboard();
+            // accept if contains at least 1 audio file, audio url, playlist or items
+            if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+                (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
+                    d.hasContent(DragUtil.playlist) ||
+                        d.hasContent(DragUtil.items)) {
                 t.acceptTransferModes(TransferMode.ANY);
-            t.consume();
+                t.consume();
+            }
         });
         entireArea.setOnDragDropped( t -> {
             // get data
-            Dragboard db = t.getDragboard();
+            Dragboard d = t.getDragboard();
             ArrayList<Item> dropped = new ArrayList();
-            if (db.hasFiles()) {
-                FileUtil.getAudioFiles(db.getFiles(),0).stream()
+            if (d.hasFiles()) {
+                FileUtil.getAudioFiles(d.getFiles(),0).stream()
                         .map(SimpleItem::new).forEach(dropped::add);
             }
-            if (db.hasUrl())
-                dropped.add(new SimpleItem(URI.create(db.getUrl())));
-            if (db.hasContent(DragUtil.playlist))
-                dropped.addAll(DragUtil.getPlaylist(db).getItems());
-            if (db.hasContent(DragUtil.items))
-                dropped.addAll(DragUtil.getItems(db));
-            // read data
-            if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
-            if (!dropped.isEmpty()) read(dropped);
-            //end drag transfer
-            t.setDropCompleted(true);
-            t.consume();
+            if (d.hasUrl()) {
+                // watch out for non audio urls, we must filter those out or
+                // dropped.isEmpty will not work corrently
+                if(AudioFileFormat.isSupported(d.getUrl()))
+                    Optional.of(new SimpleItem(URI.create(d.getUrl())))
+                            .filter(AudioFileFormat::isSupported)
+                            .ifPresent(dropped::add);
+            }
+            if (d.hasContent(DragUtil.playlist))
+                dropped.addAll(DragUtil.getPlaylist(d).getItems());
+            if (d.hasContent(DragUtil.items))
+                dropped.addAll(DragUtil.getItems(d));
+            
+            if (!dropped.isEmpty()) {
+                // read data
+                if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
+                read(dropped);
+                
+                //end drag transfer
+                t.setDropCompleted(true);
+                t.consume();
+            }
+            
         });
         
         // add cover on click
-        coverContainer.setOnMouseClicked(e-> {
+        coverContainer.setOnMouseClicked( e -> {
             if (e.getButton()!=PRIMARY || metas.isEmpty()) return;
             
             // get initial directory
@@ -331,25 +350,37 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if (f!= null) addImg(f);
         });
         
-        // add cover on drag & drop file
+        // add cover on drag & drop image file
         CoverV.getPane().setOnDragOver( t -> {
-            if (t.getDragboard().hasFiles())
+            Dragboard d = t.getDragboard();
+            // accept if as at least one image file, note: we dont want url
+            // we are only interested in files - only those can be written in tag
+            if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported))
                 t.acceptTransferModes(TransferMode.ANY);
         });
         CoverV.getPane().setOnDragDropped( t -> {
             Dragboard d = t.getDragboard();
-            if (d.hasFiles())
-                d.getFiles().stream()
-                            .filter(ImageFileFormat::isSupported)
+            // check again if the image file is in the dragboard. If it isnt
+            // do not consume and let the event propagate bellow. In case there
+            // are playable items/files they will be captured with root's drag
+            // handler
+            // removing the condition would consume the event and stop propagation
+            if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) {
+                d.getFiles().stream().filter(ImageFileFormat::isSupported)
                             .findAny().ifPresent(this::addImg);
+                //end drag transfer
+                t.setDropCompleted(true);
+                t.consume();
+            }
         });
         
         // remove cover on drag exit
         CoverV.getPane().setOnDragDetected( e -> CoverV.getPane().startFullDrag());
         entireArea.addEventFilter(MOUSE_DRAG_RELEASED, e-> {
             Point2D click = CoverV.getPane().sceneToLocal(e.getSceneX(),e.getSceneY());
+            // only if drag starts on the cover and ends outside of it
             if(e.getGestureSource().equals(CoverV.getPane()) && !CoverV.getPane().contains(click)) {
-                addImg(null);
+                addImg(null); // removes image
             }
         });
         
@@ -490,12 +521,23 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // remove duplicates
         List<Item> to_add = new ArrayList();
         for (Item o: items) {
-            boolean contains = false;
-            for (Item i: to_add)
-                contains |= o.same(i);
-            if (!contains)
-                to_add.add(o);
+            // see if tagger already contains the same item
+            boolean exists = metas.stream().anyMatch(i->i.same(o));
+            // if not check for doubles
+            if(!exists) {
+                boolean has_double = false;
+                for (Item i: to_add) {
+                    has_double |= o.same(i);
+                }
+                if (!has_double)
+                    to_add.add(o);
+            }
         }
+        
+        // do not do anything if nothing to add - this is either because parameter
+        // list is empty or because all provided items are already being tagged
+        if (to_add.isEmpty()) return;
+        
         // do not use setAll we need to fire remove & add events
         this.allitems.clear();
         this.items.clear();
@@ -570,6 +612,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // empty previous content
         fields.forEach(TagField::emptyContent);
         CoverV.loadImage((Image)null);
+        CoverV.getPane().setDisable(true);
         CoverL.setUserData(false);
         new_cover_file = null;
         infoL.setText("No items loaded");
@@ -582,6 +625,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         AwesomeDude.setIcon(infoL, items.size()==1 ? AwesomeIcon.TAG : TAGS);
         
         fields.forEach(TagField::enable);
+        CoverV.getPane().setDisable(false);
         
         // initializing checkers for multiple values
             //0 = no value in all items       write "no assigned value"
@@ -804,7 +848,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         new_cover_file = ImageFileFormat.isSupported(f) ? f : null;
         if (new_cover_file != null) {
             CoverV.loadImage(new_cover_file);
-            CoverL.setText(ImageFileFormat.formatOf(new_cover_file.toURI()) + " "
+            CoverL.setText(ImageFileFormat.of(new_cover_file.toURI()) + " "
                     +(int)CoverV.getImage().getWidth()+"/"+(int)CoverV.getImage().getHeight());
             CoverL.setUserData(true);
         } else {

@@ -125,7 +125,7 @@ public abstract class Item implements Comparable<Item> {
      * type of file as it utilizes application's built-in mechanism.
      */
     public AudioFileFormat getFormat() {
-        return AudioFileFormat.get(getURI());
+        return AudioFileFormat.of(getURI());
     }
     
     /** 

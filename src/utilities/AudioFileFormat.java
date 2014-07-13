@@ -9,6 +9,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -43,17 +44,48 @@ public enum AudioFileFormat {
      * @return true if supported, false otherwise
      */
     public static boolean isSupported(Item item) {
-        return get(item.getURI()).isSupported();
+        return of(item.getURI()).isSupported();
     }
+    
     /**
      * Checks whether the file has supported audio format. Unsupported file
      * dont get any official support for any of the app's features and by default
      * are ignored.
-     * @param file
+     * @param uri
      * @return true if supported, false otherwise
+     * @throws NullPointerException if param is null
+     */
+    public static boolean isSupported(URI uri) {
+        Objects.requireNonNull(uri);
+        return of(uri).isSupported();
+    }
+    
+    /**
+     * Equivalent to {@link #isSupported(java.io.URI)} using file.toURI().
+     * @param file
+     * @return 
+     * @throws NullPointerException if param is null
      */
     public static boolean isSupported(File file) {
-        return get(file.toURI()).isSupported();
+        Objects.requireNonNull(file);
+        return of(file.toURI()).isSupported();
+    }
+    
+    /**
+     * Equivalent to {@link #isSupported(java.io.URI)} using URI.create(url). If
+     * the provided url can not be used to construct an URI, false is returned.
+     * On the other hand, if true is returned the validity of the url is guaranteed.
+     * @param url
+     * @return 
+     * @throws NullPointerException if param is null
+     */
+    public static boolean isSupported(String url) {
+        try {
+            URI uri = URI.create(url);
+            return of(uri).isSupported();
+        } catch(IllegalArgumentException e) {
+            return false;
+        }
     }
     
     /**
@@ -61,7 +93,7 @@ public enum AudioFileFormat {
      * @param uri
      * @return 
      */
-    public static AudioFileFormat get(URI uri) {
+    public static AudioFileFormat of(URI uri) {
         AudioFileFormat type = UNKNOWN;
         for(AudioFileFormat f: values())
             if (uri.getPath().endsWith(f.toString()))

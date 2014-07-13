@@ -184,7 +184,7 @@ public final class FileUtil {
         List<File> out = new ArrayList<>();
         File[] files = dir.listFiles();
         for (File f: files) {
-            if(ImageFileFormat.isSupported(f)) {
+            if(ImageFileFormat.isSupported(f.toURI())) {
                 out.add(f);
             }
             if (maxDepth>=1 && f.isDirectory() && isValidDirectory(f)) {
@@ -203,7 +203,7 @@ public final class FileUtil {
     public static List<Image> FilesToImages(List<File> files) {
         List<Image> list = new ArrayList<>();
         for(File f: files) {
-            if(ImageFileFormat.isSupported(f)) {
+            if(ImageFileFormat.isSupported(f.toURI())) {
                 Image img = new Image(f.toURI().toString());
                 list.add(img);
             }
@@ -243,7 +243,7 @@ public final class FileUtil {
         List<File> out = new ArrayList<>();
         File[] files = dir.listFiles();
         for (File f: files) {
-            if(AudioFileFormat.isSupported(f))
+            if(AudioFileFormat.isSupported(f.toURI()))
                 out.add(f);
             if (maxDepth>0 && f.isDirectory() && isValidDirectory(f))
                 out.addAll(getAudioFiles(f, maxDepth-1));
@@ -263,7 +263,7 @@ public final class FileUtil {
     public static List<File> getAudioFiles(List<File> files, int maxDepth) {
         ArrayList<File> out = new ArrayList<>();
         for(File f: files) {
-            if(AudioFileFormat.isSupported(f))
+            if(AudioFileFormat.isSupported(f.toURI()))
                 out.add(f);
             if ( maxDepth>=0 && f.isDirectory()) {
                 for(File ff: getAudioFiles(f,maxDepth))
@@ -428,7 +428,7 @@ public final class FileUtil {
         Objects.requireNonNull(img);
         Objects.requireNonNull(file);
         
-        ImageFileFormat t = ImageFileFormat.formatOf(file.toURI());
+        ImageFileFormat t = ImageFileFormat.of(file.toURI());
         if (!t.isSupported()) {
             Log.err("Error during saving image " + file.getPath() + ". Format "
                     + t.name() + " not supported.");

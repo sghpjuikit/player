@@ -11,6 +11,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * All image filetypes known and supported by application except for UNKNOWN that
@@ -36,24 +37,51 @@ public enum ImageFileFormat {
     public static boolean isSupported(ImageFileFormat f) {
         return f.isSupported();
     }
+
     /**
      * Checks whether the file has supported image format. Unsupported formats
      * dont get any official support for any of the app's features and by default
      * are ignored.
-     * @param file
+     * @param uri
      * @return true if supported, false otherwise
-     */
-    public static boolean isSupported(File file) {
-        if (file == null) return false;
-        return formatOf(file.toURI()).isSupported();
+     */    
+    public static boolean isSupported(URI uri) {
+        Objects.requireNonNull(uri);
+        return of(uri).isSupported();
     }
     
+    /**
+     * Equivalent to {@link #isSupported(java.io.URI)} using file.toURI().
+     * @param file
+     * @return 
+     */
+    public static boolean isSupported(File file) {
+        Objects.requireNonNull(file);
+        return of(file.toURI()).isSupported();
+    }
+    
+    /**
+     * Equivalent to {@link #isSupported(java.io.URI)} using URI.create(url). If
+     * the provided url can not be used to construct an URI, false is returned.
+     * On the other hand, if true is returned the validity of the url is guaranteed.
+     * @param url
+     * @return 
+     * @throws NullPointerException if param is null
+     */
+    public static boolean isSupported(String url) {
+        try {
+            URI uri = URI.create(url);
+            return of(uri).isSupported();
+        } catch(IllegalArgumentException e) {
+            return false;
+        }
+    }
     /**
      * Labels file as one of the image file types the application recognizes.
      * @param uri
      * @return 
      */
-    public static ImageFileFormat formatOf(URI uri) {
+    public static ImageFileFormat of(URI uri) {
         ImageFileFormat type = UNKNOWN;
         for(ImageFileFormat f: values())
             if (uri.getPath().endsWith(f.toString()))

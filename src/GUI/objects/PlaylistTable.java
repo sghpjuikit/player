@@ -9,7 +9,6 @@ import GUI.ContextManager;
 import GUI.DragUtil;
 import GUI.GUI;
 import PseudoObjects.FormattedDuration;
-import utilities.TODO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -42,8 +41,10 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
+import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.MathUtil;
+import utilities.TODO;
 import utilities.TableUtil;
 
 /**
@@ -238,13 +239,15 @@ public final class PlaylistTable {
             });
             //support drag over transfer
             row.setOnDragOver( t -> {
-                // avoid illegal operation
+                // avoid illegal operation on drag&drop from self to self
                 if(t.getGestureSource() == table) return;
                 
-                Dragboard db = t.getDragboard();
-                if ( (db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
-                        db.hasUrl() || db.hasContent(DragUtil.items) ||
-                                db.hasContent(DragUtil.playlist)) {
+                Dragboard d = t.getDragboard();
+                // accept if contains at least 1 audio file, audio url, playlist or items
+                if ( (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+                     (d.hasUrl() && AudioFileFormat.isSupported(URI.create(d.getUrl()))) || 
+                        d.hasContent(DragUtil.items) ||
+                        d.hasContent(DragUtil.playlist)) {
                     t.acceptTransferModes(TransferMode.ANY);
                     t.consume();
                 }
@@ -252,22 +255,22 @@ public final class PlaylistTable {
             // handle drag transfer
             row.setOnDragDropped( t -> {
                 int index = row.isEmpty() ? table.getItems().size() : row.getIndex();
-                Dragboard db = t.getDragboard();
-                if (db.hasFiles()) {
+                Dragboard d = t.getDragboard();
+                if (d.hasFiles()) {
                     List<URI> uris = new ArrayList<>();
-                    FileUtil.getAudioFiles(db.getFiles(), 1).stream().map(File::toURI).forEach(uris::add);
+                    FileUtil.getAudioFiles(d.getFiles(), 1).stream().map(File::toURI).forEach(uris::add);
                     enqueueItems(uris, index);
                     t.setDropCompleted(!uris.isEmpty());
-                } else if (db.hasUrl()) {
-                    String url = db.getUrl();
+                } else if (d.hasUrl()) {
+                    String url = d.getUrl();
                     enqueueItem(url, index);
                     t.setDropCompleted(true);
-                } else if (db.hasContent(DragUtil.playlist)) {
-                    Playlist pl = DragUtil.getPlaylist(db);
+                } else if (d.hasContent(DragUtil.playlist)) {
+                    Playlist pl = DragUtil.getPlaylist(d);
                     PlaylistManager.addItems(pl, index);
                     t.setDropCompleted(true);
-                } else if (db.hasContent(DragUtil.items)) {
-                    List<Item> pl = DragUtil.getItems(db);
+                } else if (d.hasContent(DragUtil.items)) {
+                    List<Item> pl = DragUtil.getItems(d);
                     PlaylistManager.addItems(pl, index);
                     t.setDropCompleted(true);
                 }

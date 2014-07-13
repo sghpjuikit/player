@@ -558,6 +558,7 @@ public class PopOver extends PopupControl {
     };
     
     private void installMoveWithWindow(Window owner) {
+        ownerNode = null;
         ownerWindow = owner;
         ownerWindow.xProperty().addListener(winXListener);
         ownerWindow.yProperty().addListener(winYListener);
@@ -701,37 +702,8 @@ public class PopOver extends PopupControl {
     */
     private void adjustWindowLocation() {
         Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
-        
-//        double SW = Screen.getPrimary().getVisualBounds().getWidth();
-//        double SH = Screen.getPrimary().getVisualBounds().getHeight();
-//        double W = getWidth();
-//        double H = getHeight();
         double X = getX();
-//        double Y = getY();
-//        double right = SW-X;
-//        double left = X;
-//        double down = SH-Y;
-//        double up = Y;
-//        double vdiff = right-left;
-//        double hdiff = down-up;
-//        double h_content_screen_span = W/SW;
-//        double v_content_screen_span = H/SH;
-//        
-//        
-//        if(right>left) {
-//            if(down>up) {
-//                setArrowLocation(ArrowLocation.LEFT_TOP);
-//            } else {
-//                setArrowLocation(ArrowLocation.LEFT_BOTTOM);
-//            }
-//        } else {
-//            if(down>up) {
-//                setArrowLocation(ArrowLocation.RIGHT_TOP);
-//            } else {
-//                setArrowLocation(ArrowLocation.RIGHT_BOTTOM);
-//            }
-//        }
-//        setArrowLocation(ArrowLocation.LEFT_TOP);
+        
         switch (getArrowLocation()) {
         case TOP_CENTER:
         case TOP_LEFT:
@@ -1210,8 +1182,8 @@ public class PopOver extends PopupControl {
     private EventHandler<MouseEvent> hideOnClick;
     
 /******************************************************************************/
-    public void setParentPopup(PopOver popover) {System.out.println("instlled");
-        popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {System.out.println("hiding");System.out.println(this !=null && this.isShowing());
+    public void setParentPopup(PopOver popover) {
+        popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {
             if(this != null && this.isShowing())
                 // same bug as with 'open popups preventing app
                 // closing properly' due to owner being closed before the child

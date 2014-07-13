@@ -8,7 +8,6 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.ContextManager;
 import GUI.Traits.ScaleOnHoverTrait;
-import utilities.TODO;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -44,6 +43,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import utilities.Log;
+import utilities.TODO;
 import utilities.Util;
 
 /**
@@ -346,7 +346,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             dragHandler = buildDragHandler();
             root.addEventHandler(DRAG_DETECTED, dragHandler);
         } else {
-            root.removeEventHandler(DRAG_DETECTED, null);
+            root.removeEventHandler(DRAG_DETECTED, dragHandler);
             dragHandler = null;
         }
     }

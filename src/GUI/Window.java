@@ -522,24 +522,26 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
         
         lastFMB.setOnMouseClicked( e ->{
-            if(LastFMManager.getScrobblingEnabled()){
-                LastFMManager.toggleScrobbling();
-            }else{
-                if(LastFMManager.isLoginSet()){
+            if(e.getButton() == MouseButton.PRIMARY){
+                if(LastFMManager.getScrobblingEnabled()){
                     LastFMManager.toggleScrobbling();
                 }else{
-                    ValueConfigurable vc = new ValueConfigurable(
-                            new ValueConfig("Username", LastFMManager.acquireUserName()),
-                            new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
-                    );
-                    SimpleConfigurator lfm = new SimpleConfigurator(
-                            vc, ()->{
-                                LastFMManager.saveLogin(
-                                        ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
-                                        ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
-                            });
-                    PopOver p = new PopOver("LastFM login", lfm);
-                    p.show(lastFMB);
+                    if(LastFMManager.isLoginSet()){
+                        LastFMManager.toggleScrobbling();
+                    }else{
+                        ValueConfigurable vc = new ValueConfigurable(
+                                new ValueConfig("Username", LastFMManager.acquireUserName()),
+                                new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
+                        );
+                        SimpleConfigurator lfm = new SimpleConfigurator(
+                                vc, ()->{
+                                    LastFMManager.saveLogin(
+                                            ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
+                                            ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
+                                });
+                        PopOver p = new PopOver("LastFM login", lfm);
+                        p.show(lastFMB);
+                    }
                 }
             }
         }

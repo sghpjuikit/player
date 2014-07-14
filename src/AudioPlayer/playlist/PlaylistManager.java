@@ -44,7 +44,7 @@ import utilities.FileUtil;
 /**
  * Provides unified handling to everything playlist related in the application
  */
-@IsConfigurable(group = "Playlist")
+@IsConfigurable("Playlist")
 @IsActionable
 public class PlaylistManager implements Configurable {
     
@@ -645,35 +645,20 @@ public class PlaylistManager implements Configurable {
     private static void addOrEnqueueUrl(boolean add) {
         // build content
         String title = add ? "Add url item." : "Play url item.";
-        ValueConfigurable c = new ValueConfigurable(new ValueConfig("Url", "url", title));
-        SimpleConfigurator content = new SimpleConfigurator(c, () -> {
-            String url = ((ValueConfig<String>) c.getFields().get(0)).getValue();
-            if(add) 
-                addUrl(url);
-            else {
-                PLAYBACK.stop();
-                removeAllItems();
-                addUrl(url);
-                playFirstItem();
-            }
-        });
+        SimpleConfigurator content = new SimpleConfigurator(
+            new ValueConfigurable(new ValueConfig("Url", "url", title)),
+            c -> {
+                String url = ((ValueConfig<String>) c.getFields().get(0)).getValue();
+                if(add) {
+                    addUrl(url);
+                } else {
+                    PLAYBACK.stop();
+                    removeAllItems();
+                    addUrl(url);
+                    playFirstItem();
+                }
+            });
         
-        
-//        // build help content
-//        String uri = "http://www.musicaddict.com";
-//        Label infoB = AwesomeDude.createIconLabel(INFO, "", "11", "11", ContentDisplay.CENTER);
-//              infoB.setTooltip(new Tooltip("Help"));
-//              infoB.setOnMouseClicked( e -> {
-//                PopOver helpP = PopOver.createHelpPopOver(uri);
-//                        // turn to hyperlink by assigning proper styleclass
-//                        helpP.getContentNode().getStyleClass().add("hyperlink");
-//                        // open the uri in browser
-//                        helpP.getContentNode().setOnMouseClicked( pe -> {
-//                            Enviroment.browse(URI.create(uri));
-//                            pe.consume();
-//                        });
-//                        helpP.show(infoB);
-//              });
         // build help content
         String uri = "http://www.musicaddict.com";
         Text t1 = new Text("Use direct url to a file, for example\n"

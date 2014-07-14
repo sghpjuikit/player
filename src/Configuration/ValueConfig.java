@@ -115,7 +115,7 @@ public final class ValueConfig<V> extends Config {
      * use where possible.
      * @param value to set. Must not be null.
      */
-    public boolean setValueG(V val) {
+    public boolean setValueSafe(V val) {
         Objects.requireNonNull(val);
         value = val;
         return true;

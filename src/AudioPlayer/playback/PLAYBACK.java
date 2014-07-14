@@ -35,7 +35,7 @@ import utilities.functional.functor.Procedure;
  * Provides methods for playback.
  */
 @IsActionable
-@IsConfigurable
+@IsConfigurable("Playback")
 public final class PLAYBACK implements Configurable {
     @IsConfig(name="Remember playback state", info = "Continue last remembered playback when application starts.")
     public static boolean continuePlaybackOnStart = true;

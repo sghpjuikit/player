@@ -139,7 +139,7 @@ public final class ContextManager {
         Label propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
               propB.setTooltip(new Tooltip("Settings"));
               propB.setOnMouseClicked( e -> {
-                  SimpleConfigurator c = new SimpleConfigurator(w,()->w.getController().refresh());
+                  SimpleConfigurator c = new SimpleConfigurator(w,con->w.getController().refresh());
                   PopOver ph = new PopOver();
                           ph.setContentNode(c);
                           ph.setTitle(w.getName() + " Settings");
@@ -194,6 +194,7 @@ public final class ContextManager {
     /** Shows specified menu at specified coordinates. */
     public static void showMenu(ContextMenu menu, double x, double y, Object o) {
         if(!allowMultipleMenus) closeMenus();
+//        meu.set
         menu.show(x,y,o);
         menu_open = true;
         if (!menus.contains(menu)) menus.add(menu);

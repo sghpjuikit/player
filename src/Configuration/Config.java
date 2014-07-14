@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import utilities.Parser.Parser;
 
 /**
  * Object representation of a configurable value - most often field annotated 
@@ -238,6 +239,16 @@ public abstract class Config {
      */
     public double getMax() {
         return max;
+    }
+    
+    
+    
+    public String toS() {
+        return Parser.toS(getValue());
+    }
+    
+    public Object fromS(String str) {
+        return Parser.fromS(getType(), str);
     }
     
     

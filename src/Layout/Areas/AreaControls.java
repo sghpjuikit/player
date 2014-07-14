@@ -198,8 +198,8 @@ public final class AreaControls {
         if(area.getActiveComponents().isEmpty()) return;
         Widget w = (Widget) area.getActiveComponents().get(0);
         
-        SimpleConfigurator c = new SimpleConfigurator(w,()->w.getController().refresh());
-        PopOver p = new PopOver(c);
+        SimpleConfigurator sc = new SimpleConfigurator(w,c->w.getController().refresh());
+        PopOver p = new PopOver(sc);
                 p.setTitle(w.getName() + " Settings");
                 p.setAutoFix(false);
                 p.setAutoHide(true);

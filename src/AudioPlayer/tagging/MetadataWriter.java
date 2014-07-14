@@ -7,7 +7,6 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Chapters.Chapter;
 import GUI.NotifierManager;
-import utilities.TODO;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -27,7 +26,8 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import utilities.Log;
-import utilities.Parser.Parser;
+import utilities.Parser.ColorParser;
+import utilities.TODO;
 
 /**
  * 
@@ -406,7 +406,7 @@ public class MetadataWriter extends MetaItem {
     
     /** @param c the color to set */
     public void setColor(Color c) {
-        setField(FieldKey.CUSTOM1, Parser.toS(c));
+        setField(FieldKey.CUSTOM1, new ColorParser().toS(c));
     }
     
     /**

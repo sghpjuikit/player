@@ -8,18 +8,22 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- finish tagger infoPopup etc, interrupt reading if double reading
-- object config clean up
-- fix actions + configs
-- document and clean up configurable configuration
-
+- context menus for all windows
+- mood manager add some customizations and more diverse behavior
+- setings & configurable subcategories through '.' or '/'
+- LastFM saveLogin return boolean success flag - ise in Window LastFmB when
+  saving to turn on Scrobbling on success
+- password config field
+- object config clean up, make ActionConfig, improve javadocs for the whole
+  Configuration framework + clean configurable configuration
 - seeker chapter popup position a bit off for the first time
 - popover padding solve
+- popover position jumps when drag starts
 - the selected playlist metadata caching and all is probably useless, get rid   
   of it and read the metadata manually
-
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
+- finish tagger infoPopup etc, interrupt reading if double reading
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - skin setting
@@ -29,9 +33,8 @@
 - popover set arrow location automatically based on available screen space
 - tab container not remembering its children - why this again
 - empty widget vs empty widget area & bgr
-
 - tagger color field
-- playlist selected item none->first when clicking on different widget          (wth)
+- playlist selected item none->first when clicking on different widget          (NaP anymore?)
 - windows handle negative layouts
 - windows simplify layout saving - all old files can be removed now
 - dynamically create LayoutAggregator depending on size or preferences          (?)
@@ -43,6 +46,8 @@
 - splitter absolute size for both children
 - rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
+- playlist sorting
+- playlist index column width still not perfect
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
@@ -173,7 +178,7 @@ SOLVED (but the underlying cause still deserves attention)
   Also got a nice additional method.
 - open PopOvers prevent app to close normally.                                  (medium-major)
   cause: java or controlsFX bug                                                 (unsolvable)
-  solution: manually close them all when main window closes (introduces lots of (ideal)
+  solution: manually close them all when main window closes (introduces some    (ideal)
   code pollution). This is very controversial solution but works great.
 - fullscreen not initializing on window deserialization, update() method bug    (minor)
   cause: unknown                                                                (javafx bug?)
@@ -278,6 +283,12 @@ PERFORMANCE
 - when implementing equals() always test for reference equality like this:
   if(o==this) return true; // this line can make a difference and it will never
   be a bad thing. It can only help.
+- when implementing DragEvent make sure to properly accept the incoming drag
+  only when all necessary onditions are met, not always. For example if we
+  accept onl certain type of files we need to query the dragboard files and
+  whether we should accept or not. The accpting has a visual effect and indicates
+  to the user whether the drag can be dropped on the specific Node or now with
+  an icon.
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------

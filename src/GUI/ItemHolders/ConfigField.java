@@ -43,7 +43,6 @@ import org.controlsfx.control.textfield.CustomTextField;
 import utilities.FxTimer;
 import utilities.Parser.FileParser;
 import utilities.Parser.FontParser;
-import utilities.Parser.Parser;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -310,7 +309,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 txtF.addEventHandler(KEY_RELEASED, e -> {
                     if (e.getCode()==BACK_SPACE || e.getCode()==DELETE) {
                         if (txtF.getPromptText().isEmpty())
-                            txtF.setPromptText(Parser.toS(config.getValue()));
+                            txtF.setPromptText(config.toS());
                         else
                             txtF.setPromptText("");
                     }
@@ -332,11 +331,11 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             if(allow_empty) {
                 return text.isEmpty() ? txtF.getPromptText() : text;
             } else {
-                return text.isEmpty() ? config.getValue() : Parser.fromS(config.getType(), text);
+                return text.isEmpty() ? config.getValue() : config.fromS(text);
             }
         }
         @Override public void refreshItem() {
-            txtF.setPromptText(Parser.toS(config.getValue()));
+            txtF.setPromptText(config.toS());
             txtF.setText("");
             showOkButton(false);
         }

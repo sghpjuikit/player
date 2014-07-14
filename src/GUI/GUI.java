@@ -45,9 +45,9 @@ public class GUI implements Configurable {
     @IsConfig(name = "Skin", info = "Application skin.")
     public static SkinEnum skin = new SkinEnum("Default");
     
-    @IsConfig(name = "Layout mode blur", info = "Layout mode use blur effect.")
+    @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
     public static boolean blur_layoutMode = false;
-    @IsConfig(name = "Layout mode fade", info = "Layout mode use fade effect.")
+    @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
     public static boolean opacity_layoutMode = false;
     @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.", min=0.0, max=1.0)
     public static double opacity_LM = 0.2;
@@ -57,29 +57,27 @@ public class GUI implements Configurable {
     public static double duration_LM = 250;
     
 
-    @IsConfig(name = "Snapping", info = "Allows snapping feature for windows and controls.")
+    @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
     public static boolean snapping = true;
-    @IsConfig(name = "Snap distance", info = "Distance at which snap feature gets activated")
+    @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     public static double snapDistance = 7;
-    @IsConfig(name = "Tab auto align always", info = "Always alignes tabs after tab dragging so single tab covers the screen.")
+    @IsConfig(name = "Tab always auto align", info = "Always alignes tabs after tab dragging so single tab covers the screen.")
     public static boolean align_tabs = true;
-    @IsConfig(name = "Tab switch min distance", info = "Required length of drag at"
+    @IsConfig(name = "Tab switch min drag distance", info = "Required length of drag at"
             + " which tab switch animation gets activated. Tab switch activates if"
             + " at least one condition is fulfilled min distance or min fraction.")
     public static double dragDistance = 350;
-    @IsConfig(name = "Tab switch min fraction", info = "Required length of drag as"
+    @IsConfig(name = "Tab switch min drag fraction", info = "Required length of drag as"
             + " a fraction of window at which tab switch animation gets activated."
             + " Tab switch activates if at least one condition is fulfilled min "
             + "distance or min fraction.", min=0.0, max=1.0)
     public static double dragFraction = 350;
     
-//    @IsConfig(info = "Preffered delay for tooltip to show up.")
-//    public static double tooltipDelay = 800;
-    
     // other
     public static boolean alt_state = false;
     
     // 'singleton' objects and controls for use within app
+    // TO DO: get rid of this
     public static final MoodPicker MOOD_PICKER = new MoodPicker();
     
 /******************************************************************************/

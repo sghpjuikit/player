@@ -83,7 +83,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         });
         
         // sort & populate groups
-        groups.stream().sorted((o1,o2) -> o1.name().compareTo(o2.name()))
+        groups.stream().sorted((o1,o2) -> o1.name().compareToIgnoreCase(o2.name()))
                        .forEach(g -> accordion.getPanes().add(g.pane));
         
         // expand     

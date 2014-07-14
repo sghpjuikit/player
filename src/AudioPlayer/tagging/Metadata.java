@@ -36,7 +36,7 @@ import org.jaudiotagger.tag.images.Artwork;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
-import utilities.Parser.Parser;
+import utilities.Parser.ColorParser;
 import utilities.Util;
 
 /**
@@ -731,7 +731,7 @@ public final class Metadata extends MetaItem {
      * none.
      */
     public Color getColor() {
-         return custom1.isEmpty() ? null : (Color) Parser.fromS(Color.class, custom1);
+         return custom1.isEmpty() ? null : new ColorParser().fromS(custom1);
     }
     
     /** @return the value of custom1 field. "" if empty. */

@@ -173,7 +173,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void init() {
-
+        
         items.addListener((ListChangeListener.Change<? extends Item> c) -> {
             while (c.next()) {
                 // on remove: remove concerned metadatas and populate gui

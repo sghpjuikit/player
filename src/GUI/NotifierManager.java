@@ -24,7 +24,7 @@ import javafx.util.Duration;
  * 
  * @author uranium
  */
-@IsConfigurable(group = "Notification")
+@IsConfigurable("Notification")
 public final class NotifierManager {
     
     @IsConfig(name = "Show notifications.", info = "Turn notification on and off completely")

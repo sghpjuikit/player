@@ -486,6 +486,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
        leftHeaderBox.getChildren().add(1, AwesomeDude.createIconLabel(AwesomeIcon.CROSSHAIRS,"","15","11", CENTER));
        leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.REFRESH,"","15","11", CENTER));
        
+       // icon button - show all available FontAwesome icons in a popup
         Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);
               iconsB.setOnMouseClicked( e ->{
                 IconsBrowser ib = new IconsBrowser();
@@ -493,52 +494,50 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                         p.show(iconsB);
               });
               iconsB.setTooltip(new Tooltip("Icon browser (developing tool)"));
+        // settings button - show application settings in a popup
         Label propB = AwesomeDude.createIconLabel(GEARS,"","15","11",CENTER);
               propB.setOnMouseClicked( e ->
                   WidgetManager.getWidget(ConfiguringFeature.class,Widget_Source.FACTORY)
               );
               propB.setTooltip(new Tooltip("Application settings"));
-        Label leayoutB = AwesomeDude.createIconLabel(COLUMNS,"","15","11",CENTER);
-              leayoutB.setOnMouseClicked( e ->
+        // manage layout button - sho layout manager in a popp
+        Label layB = AwesomeDude.createIconLabel(COLUMNS,"","15","11",CENTER);
+              layB.setOnMouseClicked( e ->
                   ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager")
               );
-              leayoutB.setTooltip(new Tooltip("Manage layouts"));
+              layB.setTooltip(new Tooltip("Manage layouts"));
+        // lasFm button - show basic lastFm settings nd toggle scrobbling on/off 
+              // create graphics once
         Image lastFMon = Util.loadImage(new File("lastFMon.png"), 30);
         Image lastFMoff = Util.loadImage(new File("lastFMoff.png"), 30);
         ImageView lastFMview = new ImageView();
-
-        lastFMview.setFitHeight(15);
-        lastFMview.setFitWidth(15);         
-        lastFMview.setPreserveRatio(true);
-        
-        Label lastFMB = AwesomeDude.createIconLabel(AwesomeIcon.THUMBS_UP,"","15","11",CENTER);
-              ChangeListener<Boolean> fmlistener = (o, oldV, newV)->{
+                  lastFMview.setFitHeight(15);
+                  lastFMview.setFitWidth(15);         
+                  lastFMview.setPreserveRatio(true);
+            // maintain proper icon
+        ChangeListener<Boolean> fmlistener = (o, oldV, newV)->
               lastFMview.setImage(newV ? lastFMon : lastFMoff);
-                 
-              };
-        lastFMB.setGraphic(lastFMview); 
-        
         LastFMManager.scrobblingEnabledProperty().addListener(fmlistener);
+            // initialize proper icon
         fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
         
+        Label lastFMB = new Label("",lastFMview);
         lastFMB.setOnMouseClicked( e ->{
             if(e.getButton() == MouseButton.PRIMARY){
                 if(LastFMManager.getScrobblingEnabled()){
                     LastFMManager.toggleScrobbling();
-                }else{
+                } else {
                     if(LastFMManager.isLoginSet()){
                         LastFMManager.toggleScrobbling();
-                    }else{
-                        ValueConfigurable vc = new ValueConfigurable(
+                    } else {
+                        SimpleConfigurator lfm = new SimpleConfigurator(
+                            new ValueConfigurable(
                                 new ValueConfig("Username", LastFMManager.acquireUserName()),
                                 new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
-                        );
-                        SimpleConfigurator lfm = new SimpleConfigurator(
-                                vc, ()->{
-                                    LastFMManager.saveLogin(
-                                            ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
-                                            ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
-                                });
+                            ), vc->{ LastFMManager.saveLogin(
+                                ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
+                                ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
+                        });
                         PopOver p = new PopOver("LastFM login", lfm);
                         p.show(lastFMB);
                     }
@@ -549,7 +548,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         );
         lastFMB.setTooltip(new Tooltip("Manage layouts"));
               
-         leftHeaderBox.getChildren().addAll(iconsB,leayoutB,propB,lastFMB);
+         leftHeaderBox.getChildren().addAll(iconsB,layB,propB,lastFMB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/

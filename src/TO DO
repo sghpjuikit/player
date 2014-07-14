@@ -8,6 +8,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- make Config generic, casting to ValueConfig from ValueConfigurable is 
+  very dangerous! as it is now and exposes implementation
 - context menus for all windows
 - mood manager add some customizations and more diverse behavior
 - setings & configurable subcategories through '.' or '/'

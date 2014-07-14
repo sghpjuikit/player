@@ -16,6 +16,8 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PercentTimeEventHandler;
 import AudioPlayer.playback.TimeEventHandler;
 import AudioPlayer.tagging.Metadata;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
@@ -31,6 +33,7 @@ import utilities.TODO;
  *
  * @author Michal
  */
+@IsConfigurable("LastFM")
 public class LastFMManager {
 
     private static String username;
@@ -43,6 +46,7 @@ public class LastFMManager {
     private static boolean percentSatisfied;
     private static boolean timeSatisfied;
     private boolean durationSatisfied;
+    @IsConfig(name = "Scrobbling on")
     private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false);
 
  

@@ -51,6 +51,27 @@ public class ValueConfigurable implements Configurable {
         for(Config c : configs) this.configs.add(c);
     }
     
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Use to get Configs and access their values. The configs retain their
+     * position - are in the order in which they were added. Because there is
+     * no knowing of the type of the Config and its generic type - the type
+     * of object it stores, casting is necessary.
+     * <p>
+     * There are two possible ways:<br>
+     * <t>Casting to Config with the correct generic parameter and then calling
+     * the getValue() like this:
+     * <p>
+     * String val = ((Config<String>) c.getFields().get(0)).getValue();
+     * <p>
+     *     Or obtaining the value and then casting it to the correct type. This 
+     * should be the preferred way of doing this. Like this:
+     * <p>
+     * String val = (String) c.getFields().get(0).getValue();
+     * 
+     * @return 
+     */
     @Override
     public List<Config> getFields() {
         return configs;

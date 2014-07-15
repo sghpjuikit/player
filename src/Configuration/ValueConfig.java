@@ -49,7 +49,7 @@ import utilities.functional.functor.UnProcedure;
  *
  * @author Plutonium_
  */
-public final class ValueConfig<V> extends Config {
+public final class ValueConfig<V> extends Config<V> {
     
     private V value;
     private UnProcedure<V> applier;
@@ -104,7 +104,7 @@ public final class ValueConfig<V> extends Config {
      * @param value to set. Must not be null.
      */
     @Override
-    public boolean setValue(Object val) {
+    public boolean setValue(V val) {
         Objects.requireNonNull(val);
         value = (V) val;
         return true;
@@ -136,8 +136,8 @@ public final class ValueConfig<V> extends Config {
     
     /** {@inheritDoc} */
     @Override
-    public Class<?> getType() {
-        return value.getClass();
+    public Class<V> getType() {
+        return (Class<V>) value.getClass();
     }
 
     /**

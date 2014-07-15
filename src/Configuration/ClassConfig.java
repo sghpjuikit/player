@@ -15,9 +15,9 @@ import utilities.Log;
  * 
  * @author Plutonium_
  */
-public final class ClassConfig extends Config {
+public final class ClassConfig<T> extends Config<T> {
     
-    ClassConfig(String _name, IsConfig c, Object val, String category, Field field) {
+    ClassConfig(String _name, IsConfig c, T val, String category, Field field) {
         super(_name, c, val, category, field);
     }
     
@@ -25,9 +25,9 @@ public final class ClassConfig extends Config {
      * {@inheritDoc}
      */
     @Override
-    public Object getValue() {
+    public T getValue() {
         try {
-            return sourceField.get(null);
+            return (T) sourceField.get(null);
         } catch (IllegalArgumentException | IllegalAccessException ex) {
             throw new RuntimeException("Field " + getName() + " can not access value.");
         }
@@ -37,7 +37,7 @@ public final class ClassConfig extends Config {
      * {@inheritDoc}
      */
     @Override
-    public boolean setValue(Object val) {
+    public boolean setValue(T val) {
         try {
             sourceField.set(null, val);
             Log.deb("Config field " + name + " set.");
@@ -76,8 +76,8 @@ public final class ClassConfig extends Config {
      * {@inheritDoc}
      */
     @Override
-    public Class<?> getType() {
-        return sourceField.getType();
+    public Class<T> getType() {
+        return (Class<T>) sourceField.getType();
     }
     
     

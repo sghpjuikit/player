@@ -21,7 +21,7 @@ import utilities.Parser.Parser;
  * @author uranium
  */
 @Immutable
-public abstract class Config {
+public abstract class Config<T> {
     
     final protected String gui_name;
     final protected String name;
@@ -34,9 +34,9 @@ public abstract class Config {
     
     Field sourceField;
     Method applierMethod;
-    public Object defaultValue;
+    public T defaultValue;
     
-    Config(String name, String gui_name, Object val, String category, String info, boolean editable, boolean visible, double min, double max, Field source_field) {
+    Config(String name, String gui_name, T val, String category, String info, boolean editable, boolean visible, double min, double max, Field source_field) {
         this.gui_name = gui_name;
         this.name = name;
         this.defaultValue = objectify(val);
@@ -48,7 +48,7 @@ public abstract class Config {
         this.max = max;
         this.sourceField = source_field;
     }
-    Config(String _name, IsConfig c, Object val, String category, Field field) {
+    Config(String _name, IsConfig c, T val, String category, Field field) {
         gui_name = c.name().isEmpty() ? _name : c.name();
         name = _name;
         defaultValue = objectify(val);
@@ -64,7 +64,7 @@ public abstract class Config {
     Config(Action c) {
         gui_name = c.name + " Shortcut";
         name = c.name;
-        defaultValue = c;
+        defaultValue = (T)c;
         group = "Shortcuts";
         info = c.info;
         editable = true;
@@ -73,7 +73,7 @@ public abstract class Config {
         max = Double.NaN;
     }
     
-    Config(Config old, Object new_value) {
+    Config(Config<T> old, Object T) {
         gui_name = old.gui_name;
         name = old.name;
         defaultValue = old.defaultValue;
@@ -101,13 +101,13 @@ public abstract class Config {
      *     value instance of Enum
      * </pre>
      */
-    public abstract Object getValue();
+    public abstract T getValue();
     
-    public abstract boolean setValue(Object val);
+    public abstract boolean setValue(T val);
     
     public abstract boolean applyValue();
     
-    public void setNapplyValue(Object val) {
+    public void setNapplyValue(T val) {
         // set new config value
         boolean was_set = setValue(val);
         // apply new field value on success
@@ -121,14 +121,14 @@ public abstract class Config {
      * Semantically equivalent to getValue().getClass() but will never fail to
      * return proper class even if the value is null.
      */
-    public abstract Class<?> getType();
+    public abstract Class<T> getType();
     
     /**
      * Returns source class this config originates from.
      * @return 
      */
-    Class<?> getSourceClass() {
-        return sourceField.getDeclaringClass();
+    Class<T> getSourceClass() {
+        return (Class<T>) sourceField.getDeclaringClass();
     }
     
     /**
@@ -166,16 +166,17 @@ public abstract class Config {
         return hash;
     }
     
-    private Object objectify(Object o) {
+    private T objectify(T o) {
         Class<?> clazz = o.getClass();
-        if (boolean.class.equals(clazz)) return new Boolean((boolean)o);
-        else if (float.class.equals(clazz)) return new Float((float)o);
-        else if (int.class.equals(clazz)) return new Integer((int)o);
-        else if (double.class.equals(clazz)) return new Double((double)o);
-        else if (long.class.equals(clazz)) return new Long((long)o);
-        else if (byte.class.equals(clazz)) return new Byte((byte)o);
-        else if (short.class.equals(clazz)) return new Short((short)o);
-        else return o;
+//        if (boolean.class.equals(clazz)) return new Boolean((boolean)o);
+//        else if (float.class.equals(clazz)) return new Float((float)o);
+//        else if (int.class.equals(clazz)) return new Integer((int)o);
+//        else if (double.class.equals(clazz)) return new Double((double)o);
+//        else if (long.class.equals(clazz)) return new Long((long)o);
+//        else if (byte.class.equals(clazz)) return new Byte((byte)o);
+//        else if (short.class.equals(clazz)) return new Short((short)o);
+//        else 
+        return (T) o;
     }
 
     /**

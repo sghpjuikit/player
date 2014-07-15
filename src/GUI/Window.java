@@ -535,8 +535,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                                 new ValueConfig("Username", LastFMManager.acquireUserName()),
                                 new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
                             ), vc->{ LastFMManager.saveLogin(
-                                ((ValueConfig<String>)(vc.getFields().get(0))).getValue(),
-                                ((ValueConfig<String>)(vc.getFields().get(1))).getValue());                                              
+                                (String)vc.getFields().get(0).getValue(),
+                                (String)vc.getFields().get(1).getValue());                                              
                         });
                         PopOver p = new PopOver("LastFM login", lfm);
                         p.show(lastFMB);

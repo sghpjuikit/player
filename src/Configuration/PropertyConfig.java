@@ -14,7 +14,7 @@ import javafx.beans.property.Property;
  *
  * @author Plutonium_
  */
-public class PropertyConfig<T extends Object> extends Config {
+public class PropertyConfig<T> extends Config<T> {
     
     Property<T> property;
 
@@ -45,8 +45,8 @@ public class PropertyConfig<T extends Object> extends Config {
     }
 
     @Override
-    public Class<?> getType() {
-        return getValue().getClass();
+    public Class<T> getType() {
+        return (Class<T>)getValue().getClass();
     }
 
     /**

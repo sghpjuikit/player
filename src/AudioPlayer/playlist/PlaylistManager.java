@@ -648,7 +648,7 @@ public class PlaylistManager implements Configurable {
         SimpleConfigurator content = new SimpleConfigurator(
             new ValueConfigurable(new ValueConfig("Url", "url", title)),
             c -> {
-                String url = ((ValueConfig<String>) c.getFields().get(0)).getValue();
+                String url = (String) c.getFields().get(0).getValue();
                 if(add) {
                     addUrl(url);
                 } else {

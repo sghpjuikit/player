@@ -8,6 +8,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- make verifiers classes or sth
+- add uri verifier before adding to playlist and get runtime exception
 - make Config generic, casting to ValueConfig from ValueConfigurable is 
   very dangerous! as it is now and exposes implementation
 - context menus for all windows

@@ -2,18 +2,17 @@
 package Configuration;
 
 import Action.Action;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import utilities.Parser.Parser;
 
 /**
- * Object representation of a configurable value - most often field annotated 
+ * Object representation of a configurable value - possibly field annotated 
  * with {@link IsConfig} annotation. 
  * Config wraps a value of that field or the field itself or an object (depending
- * on the implementation) and provides a means to change it. It also provides 
- * access to the value and associated meta information.
+ * on the implementation) and provides a means to set or get the object or its
+ * value and also associated meta information.
  * <p>
  * Useful for creating {@link Configurable} objects or exporting values in a
  * standardized way.
@@ -32,35 +31,63 @@ public abstract class Config<T> {
     final protected double min;
     final protected double max;
     
-    Field sourceField;
     Method applierMethod;
     public T defaultValue;
     
-    Config(String name, String gui_name, T val, String category, String info, boolean editable, boolean visible, double min, double max, Field source_field) {
+    /**
+     * 
+     * @param name
+     * @param gui_name
+     * @param val
+     * @param category
+     * @param info
+     * @param editable
+     * @param visible
+     * @param min
+     * @param max 
+     * 
+     * @throws NullPointerException if val parameter null. The wrapped value must
+     * no be null.
+     */
+    Config(String name, String gui_name, T val, String category, String info, boolean editable, boolean visible, double min, double max) {
+        Objects.requireNonNull(val);
         this.gui_name = gui_name;
         this.name = name;
-        this.defaultValue = objectify(val);
+        this.defaultValue = val;
         this.group = category;
         this.info = info;
         this.editable = editable;
         this.visible = visible;
         this.min = min;
         this.max = max;
-        this.sourceField = source_field;
     }
-    Config(String _name, IsConfig c, T val, String category, Field field) {
+    
+    /**
+     * 
+     * @param _name
+     * @param c
+     * @param val
+     * @param category 
+     * 
+     * @throws NullPointerException if val parameter null. The wrapped value must
+     * no be null.
+     */
+    Config(String _name, IsConfig c, T val, String category) {
+        Objects.requireNonNull(val);
         gui_name = c.name().isEmpty() ? _name : c.name();
         name = _name;
-        defaultValue = objectify(val);
+        defaultValue = val;
         group = category;
         info = c.info();
         editable = c.editable();
         visible = c.visible();
         min = c.min();
         max = c.max();
-        sourceField = field;
     }
-    
+    /**
+     * 
+     * @param c 
+     */
     Config(Action c) {
         gui_name = c.name + " Shortcut";
         name = c.name;
@@ -71,18 +98,6 @@ public abstract class Config<T> {
         visible = true;
         min = Double.NaN;
         max = Double.NaN;
-    }
-    
-    Config(Config<T> old, Object T) {
-        gui_name = old.gui_name;
-        name = old.name;
-        defaultValue = old.defaultValue;
-        group = old.group;
-        info = old.info;
-        editable = old.editable;
-        visible = old.visible;
-        min = old.min;
-        max = old.max;
     }
     
     /**
@@ -102,6 +117,15 @@ public abstract class Config<T> {
      * </pre>
      */
     public abstract T getValue();
+    
+    /**
+     * Get default value for this config. It is the first value this config
+     * contained.
+     * @return default value. Never null.
+     */
+    public T getDefaultValue() {
+        return defaultValue;
+    }
     
     public abstract boolean setValue(T val);
     
@@ -124,14 +148,6 @@ public abstract class Config<T> {
     public abstract Class<T> getType();
     
     /**
-     * Returns source class this config originates from.
-     * @return 
-     */
-    Class<T> getSourceClass() {
-        return (Class<T>) sourceField.getDeclaringClass();
-    }
-    
-    /**
      * Use to determine whether min and max fields dont dontain illegal value.
      * If they dont, they can be used to query minimal and maximal number value.
      * Otherwise Double not a number is returned and should not be used.
@@ -142,41 +158,6 @@ public abstract class Config<T> {
         return getValue() instanceof Number &&
                 !(Double.compare(min, Double.NaN)==0 ||
                     Double.compare(max, Double.NaN)==0);
-    }
-    
-    /** 
-     * Equals if and only if non null, is Config type and their name and source
-     * field are equal.
-     */
-    @Override
-    public boolean equals(Object o) {
-        if(this==o) return true; // this line can make a difference
-        
-        if (o == null || !(o instanceof Config)) return false;
-        
-        Config c = (Config)o;
-        return getName().equals(c.getName()) & sourceField.equals(c.sourceField); 
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        hash = 59 * hash + Objects.hashCode(this.getName());
-        hash = 59 * hash + Objects.hashCode(this.sourceField);
-        return hash;
-    }
-    
-    private T objectify(T o) {
-        Class<?> clazz = o.getClass();
-//        if (boolean.class.equals(clazz)) return new Boolean((boolean)o);
-//        else if (float.class.equals(clazz)) return new Float((float)o);
-//        else if (int.class.equals(clazz)) return new Integer((int)o);
-//        else if (double.class.equals(clazz)) return new Double((double)o);
-//        else if (long.class.equals(clazz)) return new Long((long)o);
-//        else if (byte.class.equals(clazz)) return new Byte((byte)o);
-//        else if (short.class.equals(clazz)) return new Short((short)o);
-//        else 
-        return (T) o;
     }
 
     /**

@@ -157,6 +157,7 @@ public class WindowManager {
         // make sure there is at least one window
         if(ws.isEmpty()) {
             Window w = Window.create();
+                   w.setSizeAndLocationToInitial();
                    w.setLayoutAggregator(new SwitchPane());
             ws.add(w);
         }

@@ -4,7 +4,7 @@ package Layout.Widgets;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
-import Configuration.ObjectConfig;
+import Configuration.InstanceFieldConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.List;
@@ -166,7 +166,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     protected void restoreConfigs() {
         if(configs != null) {
             configs.forEach(c -> {
-                c.setValue(((ObjectConfig)c).value);
+                c.setValue(((InstanceFieldConfig)c).value);
             });
             configs = null;
         }

@@ -8,19 +8,14 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- make verifiers classes or sth
 - add uri verifier before adding to playlist and get runtime exception
-- make Config generic, casting to ValueConfig from ValueConfigurable is 
-  very dangerous! as it is now and exposes implementation
 - context menus for all windows
-- mood manager add some customizations and more diverse behavior
+- mood manager add some customizations and more diverse options
 - setings & configurable subcategories through '.' or '/'
-- LastFM saveLogin return boolean success flag - ise in Window LastFmB when
+- LastFM saveLogin return boolean success flag - use in Window LastFmB when
   saving to turn on Scrobbling on success
 - password config field
-- object config clean up, make ActionConfig, improve javadocs for the whole
-  Configuration framework + clean configurable configuration
-- seeker chapter popup position a bit off for the first time
+- make ActionConfig, clean configurable & configuration
 - popover padding solve
 - popover position jumps when drag starts
 - the selected playlist metadata caching and all is probably useless, get rid   
@@ -247,6 +242,8 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
+- InstanceFieldConfig and StaticClassConfig unite into FieldConfig
+- make AppConfigurable and make all managers non static
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)

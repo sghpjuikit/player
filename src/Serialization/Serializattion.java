@@ -1,7 +1,7 @@
 
 package Serialization;
 
-import Configuration.ObjectConfig;
+import Configuration.InstanceFieldConfig;
 import Layout.Layout;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
@@ -100,7 +100,7 @@ public final class Serializattion {
                         .filter( w -> w!=null)
                         .forEach( w ->{
                              w.configs.stream().map(c->c).forEach(c->
-                                 ((ObjectConfig)c).applier_object = w
+                                 ((InstanceFieldConfig)c).applier_object = w
                              );
                          });
             return l;
@@ -120,7 +120,7 @@ public final class Serializattion {
                         .filter( w -> w!=null)
                         .forEach( w ->{
                              w.configs.stream().map(c->c).forEach(c->
-                                 ((ObjectConfig)c).applier_object = w
+                                 ((InstanceFieldConfig)c).applier_object = w
                              );
                          });
             return l;

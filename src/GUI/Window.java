@@ -648,8 +648,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private void appDragDo(MouseEvent e) {
         if(!app_drag)return;
         
-        double SW = Screen.getPrimary().getVisualBounds().getWidth(); //screen_width
-        double SH = Screen.getPrimary().getVisualBounds().getHeight(); //screen_height
+        double SW = Screen.getPrimary().getBounds().getWidth(); //screen_width
+        double SH = Screen.getPrimary().getBounds().getHeight(); //screen_height
         double X = e.getScreenX();
         double Y = e.getScreenY();
         double SH5 = SH/5;

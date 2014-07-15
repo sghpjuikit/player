@@ -28,7 +28,6 @@ import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
 import java.io.File;
 import java.net.URI;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,6 +83,10 @@ import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
+import utilities.Validators.IsBetween0And1;
+import utilities.Validators.Validator;
+import utilities.Validators.isIntString;
+import utilities.Validators.isYearString;
 
 /**
  * TaggerController graphical component.
@@ -246,15 +249,20 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         fields.add(new TagField(Custom5F));
         fields.add(new TagField(LyricsA));
         
+        // validating input
+        Validator<String> isPercent = new IsBetween0And1();
+        Validator<String> isYear = new isYearString();
+        Validator<String> isInt = new isIntString();
+        
         
         ValidationSupport val = new ValidationSupport();
         val.setValidationDecorator(new GraphicValidationDecoration());
-        // year validation
-        val.registerValidator(YearF, (Control c, String newV) -> ValidationResult.fromErrorIf(
+            // year validation
+        val.registerValidator(YearF, (Control c, String text) -> ValidationResult.fromErrorIf(
             YearF, "Year must be greater than 0 and not greater than current year.",
-            !newV.isEmpty() && !isValidYear(newV))
-        );
-        // cd validation
+            !text.isEmpty() || !isYear.test(text)
+        ));
+            // cd validation
         DiscsTotalF.textProperty().addListener(o->{
             String old = DiscF.getText();
             DiscF.setText("");old+="";
@@ -262,17 +270,17 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         val.registerValidator(DiscF, (Control c, String newV) -> ValidationResult.fromErrorIf(
             DiscF, "Disc.",
-            !newV.isEmpty() && (!isValidInt(newV) || (isValidInt(newV)&&new Integer(newV)<0) ||
-                    (isValidInt(newV)&&(isValidInt(DiscsTotalF.getText())&& new Integer(newV)>Integer.parseInt(DiscsTotalF.getText())))
+            !newV.isEmpty() && (!isInt.test(newV) || (isInt.test(newV)&&new Integer(newV)<0) ||
+                    (isInt.test(newV)&&(isInt.test(DiscsTotalF.getText())&& new Integer(newV)>Integer.parseInt(DiscsTotalF.getText())))
                     )));
-        // rating validation
+            // rating validation
         val.registerValidator(RatingF, (Control c, String newV) -> ValidationResult.fromErrorIf(
             RatingF, "Rating must be between 0 and max value.",
-            !newV.isEmpty() && !isValidRating(RatingPF.getText()))
+            !newV.isEmpty() && !isPercent.test(RatingPF.getText()))
         );
         val.registerValidator(RatingPF, (Control c, String newV) -> ValidationResult.fromErrorIf(
             RatingPF, "Rating must be between 0 and 1.",
-            !newV.isEmpty() && !isValidRating(newV))
+            !newV.isEmpty() && !isPercent.test(newV))
         );
         
         // deselect text fields on click
@@ -926,33 +934,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         void setVerticalAlignment(Pos alignment) {
             if (c instanceof TextField)
                 ((TextField)c).setAlignment(alignment);
-        }
-    }
-    
-    
-    private boolean isValidInt(String val) {
-        try {
-            int i = new Integer(val);
-            return true;
-        } catch(NumberFormatException e) {
-            return false;
-        }
-    }
-    private boolean isValidYear(String val) {
-        try {
-            int i = new Integer(val);
-            int max = Year.now().getValue();
-            return i>0 && i<=max;
-        } catch(NumberFormatException e) {
-            return false;
-        }
-    }
-    private boolean isValidRating(String val) {
-        try {
-            double i = new Double(val);
-            return i>=0 && i<=1;
-        } catch(NumberFormatException e) {
-            return false;
         }
     }
     

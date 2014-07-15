@@ -9,51 +9,54 @@ package Configuration;
 import Action.Action;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.lang.reflect.Field;
+import java.util.Objects;
 import utilities.Log;
 
 /**
- * Instance config. Refers to non static field of object instance.
+ * Object instance level {@link Config}.
+ * <p>
+ * Wraps non-static {@link Field}.
+ * <p>
+ * Use for object instance level configurations. See {#link Configurable}
  * 
  * @author Plutonium_
  */
-public class ObjectConfig extends Config {
+public class InstanceFieldConfig<T> extends Config<T> {
     
-    public Object value;
+    public T value;
+    @XStreamOmitField
+    private final Field sourceField;
     @XStreamOmitField
     public Object applier_object;
-//    @XStreamOmitField
-    public Object tmp;
             
-    ObjectConfig(String _name, IsConfig c, Object val, String category, Object applier_object, Field field) {
-        super(_name, c, val, category, field);
+    InstanceFieldConfig(String _name, IsConfig c, T val, String category, Object applier_object, Field field) {
+        super(_name, c, val, category);
         
         this.applier_object = applier_object;
+        this.sourceField = field;
         value = defaultValue;
-        tmp = defaultValue;
     }
     
-    ObjectConfig(Action c) {
+    InstanceFieldConfig(Action c) {
         super(c);
-        value = c;
+        sourceField = null;
+        value = (T)c;
     }
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public Object getValue() {System.out.println( " getting value for " + name);
+    public T getValue() {System.out.println( " getting value for " + name);
         if(getType().equals(Action.class)) return value;
     
         try {
             Field f = applier_object.getClass().getField(name);
-            return f.get(applier_object);
+            return (T) f.get(applier_object);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Config " + getName() + 
                         " can not return value. Wrong object type." + e.getMessage());
-        } catch (NoSuchFieldException e) {
-            // ignore this one
-            return false;
-        } catch (IllegalAccessException | SecurityException e) {
+        } catch (NoSuchFieldException | IllegalAccessException | SecurityException e) {
             throw new RuntimeException("Config " + getName() + " can not return value. " + e.getMessage());
         }
     }
@@ -62,7 +65,7 @@ public class ObjectConfig extends Config {
      * {@inheritDoc}
      */
     @Override
-    public boolean setValue(Object val) { System.out.println(" setting value for " + name + val + " " + val.getClass() + " " + applier_object);
+    public boolean setValue(T val) { System.out.println(" setting value for " + name + val + " " + val.getClass() + " " + applier_object);
         if(getType().equals(Action.class)) {
             value = val;
             return true;
@@ -83,21 +86,42 @@ public class ObjectConfig extends Config {
             return false;
         }
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean applyValue() {
         // for now do nothing
         return true;
     }
     
-    
-    
     /**
      * {@inheritDoc}
      */
     @Override
-    public Class<?> getType() {
-        return value.getClass();
+    public Class<T> getType() {
+        return (Class<T>) value.getClass();
+    }
+    
+    /** 
+     * Equals if and only if non null, is Config type and source field is equal.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if(this==o) return true; // this line can make a difference
+        
+        if (o == null || !(o instanceof InstanceFieldConfig)) return false;
+        
+        InstanceFieldConfig c = (InstanceFieldConfig)o;
+        return sourceField.equals(c.sourceField); 
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Objects.hashCode(this.sourceField);
+        return hash;
     }
     
 }

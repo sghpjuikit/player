@@ -37,13 +37,6 @@ import utilities.functional.functor.UnProcedure;
  * <p>
  * Basically, this class can be used to pass an object somewhere to modify its
  * value and then provide the result.
- * <p>
- * <p>
- * The class is generified to improve type safety. Note, that if aggregated in
- * ValueConfigurable that is not generified, a casting will still be necessary
- * to get exact parameterized type. If this is not done the {@link #getValue()}
- * will return Object instead of V. Avoid casting the wrapped object to V and
- * rather cast the into ValueConfig first.
  * 
  * @param V - type of value - wrapped object
  *
@@ -55,40 +48,47 @@ public final class ValueConfig<V> extends Config<V> {
     private UnProcedure<V> applier;
     
     public ValueConfig(String name, String gui_name, V value, String category, String info, boolean editable, boolean visible, double min, double max, UnProcedure<V> onChange) {
-        super(name, gui_name, value, name, info, editable, visible, min, max, null);
+        super(name, gui_name, value, name, info, editable, visible, min, max);
         this.value = value;
         this.applier = onChange;
     }
     
     public ValueConfig(String name, V value) {
-        super(name, name, value, "", "", true, true, Double.NaN, Double.NaN, null);
+        super(name, name, value, "", "", true, true, Double.NaN, Double.NaN);
         this.value = value;
     }
     
     public ValueConfig(String name, V value, UnProcedure<V> onChange) {
-        super(name, name, value, "", "", true, true, Double.NaN, Double.NaN, null);
+        super(name, name, value, "", "", true, true, Double.NaN, Double.NaN);
         this.value = value;
         this.applier = onChange;
     }
     
     public ValueConfig(String name, V value, String info) {
-        super(name, name, value, "", info, true, true, Double.NaN, Double.NaN, null);
+        super(name, name, value, "", info, true, true, Double.NaN, Double.NaN);
         this.value = value;
     }
     
     public ValueConfig(String name, V value, String info, UnProcedure<V> onChange) {
-        super(name, name, value, "", info, true, true, Double.NaN, Double.NaN, null);
+        super(name, name, value, "", info, true, true, Double.NaN, Double.NaN);
         this.value = value;
         this.applier = onChange;
     }
     
     /** 
      * {@inheritDoc} 
-     * Note that if the value changed before, the returned object reference will
-     * most likely be entirely new one. Dont store the old object with the expectation
-     * it will have changed when setValue will be called. After the change the
-     * result can only be obtained by calling this method again while the old
-     * results will not match with it anymore.
+     * <p>
+     * Note that if the value changed see {@link #setValue(java.lang.Object)},
+     * the returned object reference will most likely be entirely new one. 
+     * Dont store the old object in order to avoid using this getter and directly
+     * access the value with the expectation it will have changed. What is changing
+     * is the object itself not its value (if you wish to only change the value
+     * use {@link PropertyConfig}). After the change the result can only be 
+     * obtained by calling this method and the old results will not == equal 
+     * with it anymore.
+     * 
+     * @return the wrapped value. Never null. The wrapped value must no be
+     * null.
      */
     @Override
     public V getValue() {
@@ -96,28 +96,23 @@ public final class ValueConfig<V> extends Config<V> {
     }
     
     /** {@inheritDoc} 
-     * Note that if the value changed before, the returned object reference will
-     * most likely be entirely new one. Dont store the old object with the expectation
-     * it will have changed when setValue will be called. After the change the
-     * result can only be obtained by calling getValue again while the old
-     * results will not match with it anymore.
-     * @param value to set. Must not be null.
+     * <p>
+     * Note that if the value changed see {@link #setValue(java.lang.Object)},
+     * the returned object reference will most likely be entirely new one. 
+     * Dont store the old object in order to avoid using this getter and directly
+     * access the value with the expectation it will have changed. What is changing
+     * is the object itself not its value (if you wish to only change the value
+     * use {@link PropertyConfig}). After the change the result can only be 
+     * obtained by calling this method and the old results will not == equal 
+     * with it anymore.
+     * 
+     * @throws NullPointerException if param null. The wrapped value must no be
+     * null.
      */
     @Override
     public boolean setValue(V val) {
         Objects.requireNonNull(val);
         value = (V) val;
-        return true;
-    }
-    
-    /** 
-     * Generic and type safe version of {@link #setValue(java.lang.Object)}. Always
-     * use where possible.
-     * @param value to set. Must not be null.
-     */
-    public boolean setValueSafe(V val) {
-        Objects.requireNonNull(val);
-        value = val;
         return true;
     }
 
@@ -160,6 +155,22 @@ public final class ValueConfig<V> extends Config<V> {
      */
     public void setApplier(UnProcedure<V> applier) {
         this.applier = applier;
+    }
+
+    /**
+     * Equivalent to this==o
+     * @param o
+     * @return 
+     */
+    @Override
+    public boolean equals(Object o) {
+        return this==o;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        return hash;
     }
     
     

@@ -12,8 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.property.Property;
 import main.App;
 import org.atteo.classindex.ClassIndex;
@@ -69,7 +67,7 @@ public class Configuration {
         for (Class c : classes) discoverConfigFieldsOf(c);
         
         // add action fields
-        Action.getActions().values().stream().map(ObjectConfig::new).forEach(f->configs.put(f.getName(), f));
+        Action.getActions().values().stream().map(InstanceFieldConfig::new).forEach(f->configs.put(f.getName(), f));
         
         // add methods in the end to avoid incorrect initialization
        for (Class c : classes) discoverMethodsOf(c);
@@ -82,29 +80,35 @@ public class Configuration {
             if (Modifier.isStatic(f.getModifiers())) {
                 IsConfig a = f.getAnnotation(IsConfig.class);
                 if (a != null) {
-                    try {
-                        String group = a.group().isEmpty() ? _group : a.group();
-                        String name = f.getName();
-                        f.setAccessible(true);
-                        Object val = f.get(null);
-                        
-                        // create  appropriate Config
-                        Config c;
-                        if(Property.class.isAssignableFrom(f.getType())) {
-                            // make sure the field is final first
+                    String group = a.group().isEmpty() ? _group : a.group();
+                    String name = f.getName();
+
+                    // create  appropriate Config
+                    Config c;
+                    if(Property.class.isAssignableFrom(f.getType())) {
+                        try {
+                            // make sure the field is final
                             if(!Modifier.isFinal(f.getModifiers())) 
                                 // if not -> runtime exception, dev needs to fix his code
                                 throw new IllegalStateException("Property config must be final.");
-                            c = new PropertyConfig(name, a, (Property)val, group, f);
-                        } else {
-                            c = new ClassConfig(name, a, val, group, f);
+                            // make sur the field is accessible
+                            f.setAccessible(true);
+                            // get the property
+                            Property val = (Property)f.get(null);
+                            // make property config based on the property
+                            c = new PropertyConfig(name, a, val, group);
+                        } catch (IllegalAccessException | SecurityException ex) {
+                            throw new RuntimeException("Can not access field: " + f.getName()
+                                    + " for class: " + f.getDeclaringClass());
+                        } finally {
+                            // allways set accessible back
+                            f.setAccessible(false);
                         }
-                        configs.put(c.getName(), c);
-                    } catch (IllegalAccessException | SecurityException ex) {
-                        Logger.getLogger(Action.class.getName()).log(Level.SEVERE, null, ex);
-                    } finally {
-                        f.setAccessible(false);
+                    } else {
+                        // make statif field config based on the field
+                        c = new StaticFieldConfig(name, a, group, f);
                     }
+                    configs.put(c.getName(), c);
                 }
             }
         }
@@ -184,7 +188,6 @@ public class Configuration {
         }
         
         if(!c.getType().equals(Action.class)) {
-            Field f = c.sourceField;
             Method m = c.applierMethod;
             if(m != null) {
                 Log.deb("Applying config: " + name);

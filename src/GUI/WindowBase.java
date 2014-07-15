@@ -219,46 +219,46 @@ public class WindowBase {
         }
     }
     private void maximizeAll() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX());
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth());
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight());
+        s.setX(Screen.getPrimary().getBounds().getMinX());
+        s.setY(Screen.getPrimary().getBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getBounds().getWidth());
+        s.setHeight(Screen.getPrimary().getBounds().getHeight());
     }
     private void maximizeRight() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX() + Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight());
+        s.setX(Screen.getPrimary().getBounds().getMinX() + Screen.getPrimary().getBounds().getWidth()/2);
+        s.setY(Screen.getPrimary().getBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight());
     }
     private void maximizeLeft() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX());
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight());
+        s.setX(Screen.getPrimary().getBounds().getMinX());
+        s.setY(Screen.getPrimary().getBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight());
     }
     private void maximizeLeftTop() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX());
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+        s.setX(Screen.getPrimary().getBounds().getMinX());
+        s.setY(Screen.getPrimary().getBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
     }
     private void maximizeRightTop() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX() + Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+        s.setX(Screen.getPrimary().getBounds().getMinX() + Screen.getPrimary().getBounds().getWidth()/2);
+        s.setY(Screen.getPrimary().getBounds().getMinY());
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
     }
     private void maximizeLeftBottom() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX());
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY() + Screen.getPrimary().getVisualBounds().getHeight()/2);
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+        s.setX(Screen.getPrimary().getBounds().getMinX());
+        s.setY(Screen.getPrimary().getBounds().getMinY() + Screen.getPrimary().getBounds().getHeight()/2);
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
     }
     private void maximizeRightBottom() {
-        s.setX(Screen.getPrimary().getVisualBounds().getMinX() + Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setY(Screen.getPrimary().getVisualBounds().getMinY() + Screen.getPrimary().getVisualBounds().getHeight()/2);
-        s.setWidth(Screen.getPrimary().getVisualBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getVisualBounds().getHeight()/2);
+        s.setX(Screen.getPrimary().getBounds().getMinX() + Screen.getPrimary().getBounds().getWidth()/2);
+        s.setY(Screen.getPrimary().getBounds().getMinY() + Screen.getPrimary().getBounds().getHeight()/2);
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
     }
     
     private void demaximize() {
@@ -307,13 +307,13 @@ public class WindowBase {
         s.setY(0);
     }
     private void snapDown() {
-        s.setY(Screen.getPrimary().getVisualBounds().getHeight() - s.getHeight());
+        s.setY(Screen.getPrimary().getBounds().getHeight() - s.getHeight());
     }
     private void snapLeft() {
         s.setX(0);
     }    
     private void snapRight() {
-        s.setX(Screen.getPrimary().getVisualBounds().getWidth() - s.getWidth());
+        s.setX(Screen.getPrimary().getBounds().getWidth() - s.getWidth());
     }
     
     /**
@@ -337,8 +337,8 @@ public class WindowBase {
         // avoid snapping while resizing. It leads to unwanted behavior
         if(isResizing()) return;
         
-        double SW = Screen.getPrimary().getVisualBounds().getWidth();
-        double SH = Screen.getPrimary().getVisualBounds().getHeight();
+        double SW = Screen.getPrimary().getBounds().getWidth();
+        double SH = Screen.getPrimary().getBounds().getHeight();
         double S = GUI.snapDistance;
         
 //        // snap to screen edges (x and y separately)
@@ -379,8 +379,8 @@ public class WindowBase {
     }
     
     public void setLocationCenter() {
-        double x = Screen.getPrimary().getVisualBounds().getWidth() / 2 - getWidth() / 2;
-        double y = Screen.getPrimary().getVisualBounds().getHeight() / 2 - getHeight() / 2;
+        double x = Screen.getPrimary().getBounds().getWidth() / 2 - getWidth() / 2;
+        double y = Screen.getPrimary().getBounds().getHeight() / 2 - getHeight() / 2;
         setLocation(x, y);
     }
     
@@ -407,6 +407,19 @@ public class WindowBase {
         s.setHeight(height);
         WProp.set(s.getWidth());
         HProp.set(s.getHeight());
+    }
+    
+    /**
+     * Sets initial size and location by invoking the {@link #setSize} and
+     * {@link #setLocation()} method. The initial size values are primary screen
+     * size divided by half and the location will be set so the window is
+     * center aligned on the primary screen.
+     */
+    public void setSizeAndLocationToInitial() {
+        setSize(Screen.getPrimary().getBounds().getWidth()/2,
+                Screen.getPrimary().getBounds().getHeight()/2);
+        setLocation(Screen.getPrimary().getBounds().getWidth()/4,
+                    Screen.getPrimary().getBounds().getHeight()/4);
     }
     
     /** Sets the window visible and focuses it. */

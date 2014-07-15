@@ -13,7 +13,6 @@ import GUI.ContextManager;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.ScaleTransition;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
@@ -58,7 +57,7 @@ public abstract class ContextMenu extends Positionable {
         in.setToX(1);
         //in.setFromY(0); 
         in.setToY(1);
-        in.setOnFinished((ActionEvent t) -> {
+        in.setOnFinished(e -> {
             showMenu();
         });
         out = new ScaleTransition(animation, menu);
@@ -66,7 +65,7 @@ public abstract class ContextMenu extends Positionable {
         out.setToX(0);
         //out.setFromY(1); 
         out.setToY(0);
-        out.setOnFinished((ActionEvent t) -> {
+        out.setOnFinished(e -> {
             closeMenu();
         });
         
@@ -156,6 +155,7 @@ public abstract class ContextMenu extends Positionable {
     }
     @Override
     public final AnchorPane getDisplay() {
+//        return Window.getActive().contextPane;
         return ContextManager.contextPane;
     }
     @Override

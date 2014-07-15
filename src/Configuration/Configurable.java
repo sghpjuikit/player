@@ -42,7 +42,7 @@ public interface Configurable {
             try {
                 IsConfig c = f.getAnnotation(IsConfig.class);
                 if (c != null)
-                    fields.add(new ObjectConfig(f.getName(),c, f.get(this), getClass().getSimpleName(), this, f));
+                    fields.add(new InstanceFieldConfig(f.getName(),c, f.get(this), getClass().getSimpleName(), this, f));
             } catch (IllegalAccessException ex) {
                 Log.err(ex.getMessage());
             }

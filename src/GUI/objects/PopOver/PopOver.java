@@ -665,8 +665,8 @@ public class PopOver extends PopupControl {
     private void adjustArrowLocation() {
         Bounds bounds = PopOver.this.getSkin().getNode().getBoundsInParent();
         
-        double SW = Screen.getPrimary().getVisualBounds().getWidth();
-        double SH = Screen.getPrimary().getVisualBounds().getHeight();
+        double SW = Screen.getPrimary().getBounds().getWidth();
+        double SH = Screen.getPrimary().getBounds().getHeight();
         double W = getWidth();
         double H = getHeight();
         double X = getX();
@@ -862,7 +862,7 @@ public class PopOver extends PopupControl {
         
         public double calcX(PopOver popup) {
             double W = popup.getContentNode().layoutBoundsProperty().get().getWidth() + GAP;
-            Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            Rectangle2D screen = Screen.getPrimary().getBounds();
             WindowBase app = App.getWindow();
             switch(this) {
                 case AppTopLeft:
@@ -880,7 +880,7 @@ public class PopOver extends PopupControl {
         }
         public double calcY(PopOver popup) {
             double H = popup.getContentNode().layoutBoundsProperty().get().getHeight() + GAP;
-            Rectangle2D screen = Screen.getPrimary().getVisualBounds();
+            Rectangle2D screen = Screen.getPrimary().getBounds();
             WindowBase app = App.getWindow();
             switch(this) {
                 case AppBottomLeft:

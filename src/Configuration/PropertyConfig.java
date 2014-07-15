@@ -6,21 +6,54 @@
 
 package Configuration;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
 import javafx.beans.property.Property;
 
 /**
+ * {@Config} wrapping a {@Property}.
+ * <p>
+ * Property Config wraps a Property and acts as a Config, but as opposed to
+ * other Config implementations, its getter and setter directly sets and gets the
+ * value from the property acting as if the PropertyConfig were the Property
+ * itself. The result is clean reflection free Config implementation.
+ * <p>
+ * Note that the wrapped property should be defined as final or be effectively
+ * final, otherwise it could be changed to different one and this config would 
+ * no longer be accessing the same property, leading to bugs.
  *
+ * @param <T> generic type of the property.
+ * 
  * @author Plutonium_
  */
 public class PropertyConfig<T> extends Config<T> {
     
     Property<T> property;
 
-    PropertyConfig(String _name, IsConfig c, Property<T> val, String category, Field field) {
-        super(_name, c, val.getValue(), category, field);
-        property = val;
+    /**
+     * 
+     * @param _name
+     * @param c
+     * @param property Property to wrap. 
+     * @param category
+     * @param field Field of the property to wrap.
+     * @throws IllegalStateException if the property field is not final
+     */
+    PropertyConfig(String _name, IsConfig c, Property<T> property, String category) {
+        super(_name, c, property.getValue(), category);
+        this.property = property;
+    }
+    
+    public PropertyConfig(String name, Property<T> property) {
+        this(name, name, property, "", "", true, true, Double.NaN, Double.NaN);
+    }
+    
+    public PropertyConfig(String name, Property<T> property, String info) {
+        this(name, name, property, "", info, true, true, Double.NaN, Double.NaN);
+    }
+    
+    public PropertyConfig(String name, String gui_name, Property<T> property, String category, String info, boolean editable, boolean visible, double min, double max) {
+        super(name, gui_name, property.getValue(), category, info, editable, visible, min, max);
+        this.property = property;
     }
 
     @Override
@@ -29,12 +62,7 @@ public class PropertyConfig<T> extends Config<T> {
     }
 
     @Override
-    public boolean setValue(Object val) {
-        property.setValue((T)val);
-        return true;
-    }
-    
-    public boolean setValueSafe(T val) {
+    public boolean setValue(T val) {
         property.setValue(val);
         return true;
     }

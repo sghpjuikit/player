@@ -200,7 +200,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     }
     public Layout deserialize(File f) {                                          // Log.deb("deserializing"+name);
         Layout l = Serializattion.deserializeLayout(f);
-        l.properties.getMap().forEach(properties::set);
+               l.properties.getMap().forEach(properties::set);
 //         l.getChildren().forEach(this::addChild);
         child = l.child;
         return this;

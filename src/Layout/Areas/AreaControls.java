@@ -14,6 +14,7 @@ import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
 import Layout.Component;
 import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK;
@@ -38,6 +39,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
@@ -94,9 +96,14 @@ public final class AreaControls {
                     }
                     // update text
                     Component c = area.getActiveComponent();
-                    String componentInfo = (c!=null && c instanceof Widget)
-                            ? "\n\n" + ((Widget)c).getInfo().description() 
-                            : "";
+                    String info = "";
+                    if (c!=null && c instanceof Widget) {
+                        WidgetInfo i = ((Widget)c).getInfo();
+                        info = "\n\nWidget: " + i.name() +
+                               "\n\n" +i.description() + 
+                               "\n\n" +i.howto() + 
+                               "\n\n" +i.notes();
+                    }
                     String text = "Available buttons:\n"
                                  + "    Close : closes the widget\n"
                                  + "    Detach : opens the widget in new window\n"
@@ -105,8 +112,8 @@ public final class AreaControls {
                                  + "    Refresh : refreshes the widget\n"
                                  + "    Lock : forbids entering layout mode on mouse hover\n"
                                  + "           in the top right corner"
-                                 + componentInfo;
-                    Text t = (Text) helpPopOver.getContentNode();
+                                 + info;
+                    Text t = (Text) ((Pane)helpPopOver.getContentNode()).getChildren().get(0);
                          t.setText(text);
                    
                    helpPopOver.show(helpB);

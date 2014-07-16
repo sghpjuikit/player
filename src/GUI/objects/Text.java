@@ -59,7 +59,11 @@ public class Text extends javafx.scene.text.Text {
         @Override
         public void set(boolean newV) {
             super.set(newV);
-            if(newV) textProperty().addListener(wrapWidthSetter);
+            if(newV) {
+                textProperty().addListener(wrapWidthSetter);
+                // fire to initialize
+                wrapWidthSetter.changed(null,null,getText());
+            }
             else textProperty().removeListener(wrapWidthSetter);
         }
     };

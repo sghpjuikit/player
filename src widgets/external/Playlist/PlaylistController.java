@@ -11,6 +11,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.Widget_Source;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -43,6 +44,31 @@ import utilities.Util;
  * Playlist FXML Controller class
  * Controls behavior of the Playlist FXML graphics.
  */
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Playlist",
+    description = "Provides list of items to play. Highlights playing and unplayable "
+                + "items.",
+    howto = "Available actions:\n" +
+            "    Item left click : Selects item\n" +
+            "    Item right click : Opens context menu\n" +
+            "    Item double click : Plays item\n" +
+            "    Item drag : Moves item within playlist\n" +
+            "    Item drag + CTRL : Activates Drag&Drop\n" +
+            "    Press ENTER : Plays item\n" +
+            "    Press ESC : Clear selection & filter\n" +
+            "    Type : Searches for item - applies filter\n" +
+            "    Filter button : Uses filter for playback\n" +
+            "    Drag column : Changes column order\n" +
+            "    Click column : Changes sort order\n" +
+            "    Menu bar : Opens additional actions\n",
+    notes = "Plans: multiple playlists through tabs.\n" + 
+            "Bugs: sorting through menubar broken",
+    version = "0.9",
+    year = "2014",
+    group = Widget.Group.PLAYLIST
+)
 public class PlaylistController extends FXMLController implements PlaylistFeature {
 
     @FXML AnchorPane root;

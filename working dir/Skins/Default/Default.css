@@ -3515,20 +3515,30 @@ is being used to size a border should also be in pixels.
     // be aware that changing this has effect on positioning of the popup near screen
     // borders. padding value should be canceled out with 'gap' value which is not yet
     // supported in css - the current gap calue is 6 (but it doesnt scale lineary)
-    // the only problem when not caneling the padding value is that the popover's border
-    // touching the screen border will be outside the screen - whats touching the border: 
+    // the problem when not caneling the padding value exactly is that the popover's border
+    // supposed to touch the screen border will be outside the screen - whats touching the border:
     // is popovers content
+
+    // note that padding creates area between the real border and the element, which means
+    // the style of the element will not apply on this gap - like bgr of the elements
+    // - children of this content
     -fx-padding: 3;
+
+    // set the below to set bgr for the whole content including the padded area
+    //-fx-background-color: yellow;
 }
 
 // header of the popup - rectangular area at the top of the content
 .popover > .content > .popover-header {
-    -fx-padding: 5 8 3 8;
+    -fx-padding: 3 8 0 8;
 }
 
 // title label
 .popover > .content > .popover-header > .title  {
     -fx-font-weight: bold;
+    // give title some space, for small popups the control buttons on the right
+    // easily become invasive when they come close to the title, looks ugly
+    -fx-padding: 0 20 0 0;
 }
 
 // note: more general tha popup - already defined above
@@ -3537,7 +3547,8 @@ is being used to size a border should also be in pixels.
 
 // close button in the header
 .popover-closebutton {
-    -fx-padding: 0 0 0 5; // separate the close button from the rest a bit visually
+    // separate the close button from the rest a bit visually
+    //-fx-padding: 0 0 0 5; 
 }
 
 //****************************** THUMBNAIL ***********************************//

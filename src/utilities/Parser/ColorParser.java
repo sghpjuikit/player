@@ -21,7 +21,11 @@ public class ColorParser implements StringParser<Color> {
 
     @Override
     public Color fromS(String source) {
-        return Color.valueOf(source);
+        try {
+            return Color.valueOf(source);
+        } catch(IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override

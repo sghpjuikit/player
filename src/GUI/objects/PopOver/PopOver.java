@@ -51,6 +51,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
@@ -64,6 +65,7 @@ import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -214,7 +216,9 @@ public class PopOver extends PopupControl {
     public static PopOver createHelpPopOver(String text) {
         Text t = new Text(text);
              t.setWrappingWidthNatural(true);
-        PopOver p = new PopOver(t);
+        StackPane r = new StackPane(t);
+               r.setPadding(new Insets(8));
+        PopOver p = new PopOver(r);
                 p.setTitle("Help");
                 p.setAutoHide(true);
                 p.setHideOnClick(true);

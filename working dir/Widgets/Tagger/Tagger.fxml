@@ -9,7 +9,7 @@
 
 <AnchorPane fx:id="entireArea" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <ScrollPane id="ScrollPane" fx:id="scrollPaneContent" fitToWidth="true" hbarPolicy="NEVER" prefHeight="547.0" prefWidth="500.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
+    <ScrollPane id="ScrollPane" fx:id="scrollPaneContent" fitToWidth="true" hbarPolicy="NEVER" prefHeight="523.0" prefWidth="500.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="20.0">
       <content>
         <AnchorPane id="AnchorPane" prefWidth="-1.0">
           <children>
@@ -74,19 +74,19 @@
                 <Label text="Mood" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.rowIndex="14">
 <GridPane.margin>
 <Insets right="10.0" />
-</GridPane.margin></Label><Label text="Custom 1" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
+</GridPane.margin></Label><Label text="Custom 1" GridPane.halignment="RIGHT" GridPane.rowIndex="15">
 <GridPane.margin>
 <Insets right="10.0" />
-</GridPane.margin></Label><Label text="Custom 2" GridPane.halignment="RIGHT" GridPane.rowIndex="17">
+</GridPane.margin></Label><Label text="Custom 2" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
 <GridPane.margin>
 <Insets right="10.0" />
-</GridPane.margin></Label><Label text="Custom 3" GridPane.halignment="RIGHT" GridPane.rowIndex="18">
+</GridPane.margin></Label><Label text="Custom 3" GridPane.halignment="RIGHT" GridPane.rowIndex="17">
 <GridPane.margin>
 <Insets right="10.0" />
-</GridPane.margin></Label><Label text="Custom 4" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
+</GridPane.margin></Label><Label text="Custom 4" GridPane.halignment="RIGHT" GridPane.rowIndex="18">
 <GridPane.margin>
 <Insets right="10.0" />
-</GridPane.margin></Label><Label text="Custom 5" GridPane.halignment="RIGHT" GridPane.rowIndex="20">
+</GridPane.margin></Label><Label text="Custom 5" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
 <GridPane.margin>
 <Insets right="10.0" />
 </GridPane.margin></Label>
@@ -129,8 +129,8 @@
                 <TextField fx:id="RatingF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefColumnCount="0" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="11" /><TextField fx:id="RatingPF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" BorderPane.alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="11" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" />
                 <TextField fx:id="PlaycountF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="12" />
                 <TextField fx:id="CommentF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" /><AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
-<children><ColorPicker fx:id="ColorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
-</children></AnchorPane><TextField fx:id="Custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" /><TextField fx:id="Custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" /><TextField fx:id="Custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" /><TextField fx:id="Custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" /><TextField fx:id="Custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
+<children><TextField fx:id="Custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" /><ColorPicker fx:id="ColorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
+</children></AnchorPane><TextField fx:id="Custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" /><TextField fx:id="Custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" /><TextField fx:id="Custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" /><TextField fx:id="Custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
               </children>
               <columnConstraints>
                 <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="-Infinity" />
@@ -156,7 +156,6 @@
                 <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                 <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                 <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-<RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
 <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
 <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
 <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />

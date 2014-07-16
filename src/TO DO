@@ -10,7 +10,6 @@
 
 - add uri verifier before adding to playlist and get runtime exception
 - context menus for all windows
-- setings & configurable subcategories through '.' or '/'
 - LastFM saveLogin return boolean success flag - use in Window LastFmB when
   saving to turn on Scrobbling on success
 - password config field
@@ -26,20 +25,16 @@
   a good delimiter character - '|' is too common i think
 - skin setting
 - window apply overlay on new window upon creation
-- windw header visible preference application is weird
+- windw header visible preference application is weird                          (test)
 - popover set arrow location automatically based on available screen space
-- tab container not remembering its children - why this again
+- tab container not remembering its children - why this again                   (major)
 - empty widget vs empty widget area & bgr
-- tagger color field
-- playlist selected item none->first when clicking on different widget          (NaP anymore?)
-- windows handle negative layouts
+- windows handle negative layouts                                               (major)
 - windows simplify layout saving - all old files can be removed now
-- dynamically create LayoutAggregator depending on size or preferences          (?)
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
-- figure out custom context menus - just get rid of them
-  as for circle CM - its a waste, but what to do with it?
   getWidget - implement Target
+- tagger verifier causes layout graphics to break when mouse over window border
 - Player update item not refreshing selected pl item
 - splitter absolute size for both children
 - rater controls not resizing graphics
@@ -51,6 +46,7 @@
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable
 - layout manager add mockup layout builder to make custom layout without loading
@@ -72,14 +68,12 @@
 - cursor effect to popup, get rid of effectPane
 - tagger ability to add or remove from the list by CTRL/SHIFT drag&drop on popup
 - tagger disable unsupported fields for type
-- tagger multithreaded writing to tag                                           (not needed, ?)
+- tagger multithreaded writing to tag                                           (test if needed, ?)
 - playlist tabs
 - import/export some of the most used playlist file formats
 - gestures & touch
 - tagger filename change                                                        (?)
-- app taskbar flashing                                                          (still an issue ?)
-- context menus circular labels' position off - more like what to do with
-  custom context menus?
+- context menus circular labels' position off
 
 FURTHER DOWN THE LIST FUNCTIONALITIES
 - even more flexibly resizable widget areas
@@ -124,7 +118,7 @@ DIRS
 
 GENERAL
 - rating not initialized visually on reload                                     (medium)
-- deselecting single items with CTRL not working sometimes                      (medium, still an issue?)
+- playlist deselecting single items with CTRL not working sometimes             (medium, still an issue?)
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
 - little bug with position slider on repositioning                              (minor)
   cause: it takes a while for seek() to actually seek. During this time the
@@ -149,6 +143,7 @@ GENERAL
   shortcut registering, but thats only partial and incomplete workaround
 - css parsing errors for settings widget - cant resolve value                   (minor, NaP, doesnt break funonality)
   cause: lazy loading of css file, possible javaFX bug
+  note: its interesting Settings widget causes this but not others
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 
 SOLVED (but the underlying cause still deserves attention)
@@ -201,6 +196,10 @@ PROBLEMS
   fxmlFactory
 - windows hard to drag, especially in headerless mode, uidrag consume event, 
   properly handle vol scolling and app dragging event consuminf at widget level
+- dynamically create LayoutAggregator depending on size or preferences when
+  deserializing and creating windows, or make it into a container?
+- figure out custom context menus - just get rid of them? would be the best
+  as for circle CM - its a waste, but what to do with it?
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------

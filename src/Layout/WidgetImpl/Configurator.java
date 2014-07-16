@@ -25,12 +25,21 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import utilities.Log;
 
-@WidgetInfo(author = "Martin Polakovic",
-            name = "Settings",
-            description = "Settings",
-            version = "0.8",
-            year = "2014",
-            group = Widget.Group.APP)
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Settings",
+    description = "Provides access to application settings",
+    howto = "Available actions:\n" +
+            "    Select category\n" +
+            "    Change setting value: Automatically takes change\n" +
+            "    OK : Applies any unapplied change\n" +
+            "    Default : Set default value for this setting\n",
+    notes = "To do: generate active widget settings, allow subcategories.",
+    version = "0.8",
+    year = "2014",
+    group = Widget.Group.APP
+)
 public final class Configurator extends AnchorPane implements Controller<ClassWidget>, ConfiguringFeature {
         
     @FXML Accordion accordion;

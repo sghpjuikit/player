@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>ce6f13a2-2c5c-4d74-9e8f-1b573733cf05</id>
+  <id>31b3fda4-64be-4b64-b173-4d2a8fc4f138</id>
   <properties>
     <map>
       <entry>
@@ -197,7 +197,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.5</double>
+                  <double>0.14322916666666666</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -317,10 +317,72 @@
                     </map>
                   </properties>
                   <b>false</b>
-                  <child class="Layout.Widgets.EmptyWidget">
-                    <id>7eae9240-6650-47ce-9dbe-82c1792083af</id>
-                    <name>Empty</name>
-                    <configs class="empty-list"/>
+                  <child class="Layout.Widgets.ClassWidget">
+                    <id>0b3b2394-c31e-48ac-891d-8294e0e44137</id>
+                    <name>Settings</name>
+                    <configs>
+                      <Configuration.InstanceFieldConfig>
+                        <gui__name>Is preferred</gui__name>
+                        <name>preferred</name>
+                        <group>ClassWidget</group>
+                        <info>Preferred widget for its widget type.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                        <defaultValue class="boolean">false</defaultValue>
+                        <value class="boolean">false</value>
+                      </Configuration.InstanceFieldConfig>
+                      <Configuration.InstanceFieldConfig>
+                        <gui__name>Show non editable fields</gui__name>
+                        <name>show_noneditable</name>
+                        <group>Configurator</group>
+                        <info>Include non read-only fields.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                        <defaultValue class="boolean">false</defaultValue>
+                        <value class="boolean">false</value>
+                      </Configuration.InstanceFieldConfig>
+                      <Configuration.InstanceFieldConfig>
+                        <gui__name>Field names alignment</gui__name>
+                        <name>alignemnt</name>
+                        <group>Configurator</group>
+                        <info>Alignment of field names.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                        <defaultValue class="javafx.geometry.HPos">RIGHT</defaultValue>
+                        <value class="javafx.geometry.HPos">RIGHT</value>
+                      </Configuration.InstanceFieldConfig>
+                      <Configuration.InstanceFieldConfig>
+                        <gui__name>Group titles alignment</gui__name>
+                        <name>title_align</name>
+                        <group>Configurator</group>
+                        <info>Alignment of group names.</info>
+                        <editable>true</editable>
+                        <visible>true</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                        <defaultValue class="javafx.geometry.Pos">CENTER</defaultValue>
+                        <value class="javafx.geometry.Pos">CENTER</value>
+                      </Configuration.InstanceFieldConfig>
+                      <Configuration.InstanceFieldConfig>
+                        <gui__name>expanded</gui__name>
+                        <name>expanded</name>
+                        <group>Configurator</group>
+                        <info></info>
+                        <editable>true</editable>
+                        <visible>false</visible>
+                        <min>NaN</min>
+                        <max>NaN</max>
+                        <defaultValue class="string">General</defaultValue>
+                        <value class="string">General</value>
+                      </Configuration.InstanceFieldConfig>
+                    </configs>
+                    <class__type>Layout.WidgetImpl.Configurator</class__type>
                   </child>
                 </Layout.UniContainer>
               </entry>

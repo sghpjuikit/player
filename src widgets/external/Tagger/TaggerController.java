@@ -75,6 +75,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
@@ -85,6 +86,7 @@ import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
+import utilities.Parser.ColorParser;
 import utilities.functional.impl.Validators.IsBetween0And1;
 import utilities.functional.impl.Validators.Validator;
 import utilities.functional.impl.Validators.isIntString;
@@ -100,17 +102,19 @@ import utilities.functional.impl.Validators.isYearString;
  * @author Plutonium_
  */
 @WidgetInfo(
+    name = "Tagger",
     author = "Martin Polakovic",
-    description =  "Tag editor for audio files." + 
-                   "untaggable items. Taggable items can be unselected " +
-                   "in selective list mode.\n\n" +
-                   "Available actions:\n" +
-                   "    Drag cover away : Removes cover\n" +
-                   "    Drop image file : Adds cover\n" +
-                   "    Drop audio files : Adds files to tagger\n" +
-                   "    Write : Saves the tags\n" +
-                   "    Open list of tagged items",
-    version = "0.7",
+    programmer = "Martin Polakovic",
+    howto = "Available actions:\n" +
+            "    Drag cover away : Removes cover\n" +
+            "    Drop image file : Adds cover\n" +
+            "    Drop audio files : Adds files to tagger\n" +
+            "    Write : Saves the tags\n" +
+            "    Loaded items label click : Opens editable source list of items",
+    description = "Tag editor for audio files. Supports reading and writing to tag." +
+                  "Taggable items can be unselected in selective list mode.",
+    notes = "To do: improve tagging performance. Support for ogg and flac.",
+    version = "0.8",
     year = "2014",
     group = Widget.Group.TAGGER)
 public class TaggerController extends FXMLController implements TaggingFeature {
@@ -274,6 +278,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         fields.add(new TagField(Custom4F));
         fields.add(new TagField(Custom5F));
         fields.add(new TagField(LyricsA));
+            // associate color picker with custom1 field
+        Custom1F.setEditable(false);
+        ColorF.disableProperty().bind(Custom1F.disabledProperty());
+        ColorF.valueProperty().addListener( (o,oldV,newV) -> {
+            Custom1F.setText(new ColorParser().toS(newV));
+        });
         
         // validating input
         Validator<String> isPercent = new IsBetween0And1();
@@ -796,7 +806,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         setPromptText(Custom5F, Custom5, Custom5S);
         setPromptText(LyricsA, Lyrics, LyricsS);
         fields.forEach(TagField::rememberPromptText);
-        
+        // set color value
+        Color c = new ColorParser().fromS(Custom1S);
+        ColorF.setValue(c==null ? Color.WHITE : c);
+                
         // set image info
              if (Cov == 0)    CoverL.setText(TAG_NO_VALUE);
         else if (Cov == 1)    CoverL.setText(CovInfoS);
@@ -873,6 +886,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         public TagField(TextInputControl control) { 
             c = control;
+            emptyContent();
             
             // if not commitable yet, enable commitable & set text to tag value on click
             c.setOnMouseClicked( e -> OnMouseClicked() );

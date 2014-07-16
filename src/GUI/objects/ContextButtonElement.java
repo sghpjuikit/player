@@ -20,11 +20,11 @@ public final class ContextButtonElement extends ContextElement{
     private static final double HEIGHT = 20;
     private static final double WIDTH = 80;
     
-    private final ContextMenu parent;
+    private final Context_Menu parent;
     private final Button e = new Button();
     private final ScaleTransition scale = new ScaleTransition(animDur,e);
     
-    public ContextButtonElement(final ContextMenu _parent, String name, String tooltip, final Procedure behavior) {
+    public ContextButtonElement(final Context_Menu _parent, String name, String tooltip, final Procedure behavior) {
         parent = _parent;
         e.setText(name);
         e.setOnMousePressed((MouseEvent t) -> {

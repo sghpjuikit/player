@@ -72,7 +72,7 @@ public class MetadataReader{
 
                     Metadata m = create(item);
                     if (!m.isEmpty()){
-                        metadatas.add(create(item));
+                        metadatas.add(m);
                     }
                 }
                 return metadatas;

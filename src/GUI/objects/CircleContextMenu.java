@@ -14,7 +14,7 @@ package GUI.objects;
  * 
  * @author uranium
  */
-public class CircleContextMenu extends ContextMenu {
+public class CircleContextMenu extends Context_Menu {
     private static double radius = 200;
     private static final double PI = Math.PI; // 360 degrees = 2PI
     private static double minAngle = 0;       // min degree

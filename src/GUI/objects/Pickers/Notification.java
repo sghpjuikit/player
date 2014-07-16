@@ -164,7 +164,7 @@ public class Notification extends PopOver{
             // roughly rectangular - with slight bias horizontal bias
             // this has surprisingly great result
             Text message = new Text(text);
-                 message.setWrappingWidthNaturally();
+                 message.setWrappingWidthNatural(true);
             titleText.setText(title);
             textContainer.setCenter(message);
 //            textContainer.setPadding(Insets.EMPTY);

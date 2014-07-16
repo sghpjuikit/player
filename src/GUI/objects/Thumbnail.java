@@ -6,12 +6,14 @@ package GUI.objects;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ContextManager;
 import GUI.Traits.ScaleOnHoverTrait;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -24,8 +26,12 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import static javafx.scene.input.DataFormat.FILES;
 import javafx.scene.input.Dragboard;
@@ -41,7 +47,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Duration;
+import main.App;
+import utilities.Enviroment;
+import utilities.FileUtil;
+import utilities.ImageFileFormat;
 import utilities.Log;
 import utilities.TODO;
 import utilities.Util;
@@ -178,14 +190,21 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
 //            if (animated)
 //                fadeOut.play();
 //        });
-        
+       
         root.addEventHandler(MOUSE_CLICKED, e -> {
-            if (e.getButton() == SECONDARY)
+            if (e.getButton() == SECONDARY) {
+//                if (img_file != null)
+//                    ContextManager.showMenu(ContextManager.imageFileMenu,img_file);
+//                else 
+//                    if (getImage() != null)
+//                    ContextManager.showMenu(ContextManager.imageMenu,getImage());
+                double X = root.localToScreen(0, 0).getX() + root.getWidth()/2;
+                double Y = root.localToScreen(0, 0).getY() + root.getHeight()/2;
                 if (img_file != null)
-                    ContextManager.showMenu(ContextManager.imageFileMenu,img_file);
-                else 
-                    if (getImage() != null)
-                    ContextManager.showMenu(ContextManager.imageMenu,getImage());
+                    buildFileCM(this).show(root,X,Y);
+                else if (getImage() !=null)
+                    buildImageCM(this).show(root,X,Y);
+            }
         });
         
         size-=borderWidth();
@@ -424,4 +443,91 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             img_border.maxHeightProperty().bind(image.fitHeightProperty());
         }
     };
+    
+
+/******************************************************************************/
+    
+    private static ContextMenu buildImageCM(Thumbnail thumb) {
+        final ContextMenu contextMenu = new ContextMenu();
+        
+
+        MenuItem item1 = new MenuItem("Edit image");
+                 item1.setOnAction(e -> {
+                     System.out.println("About");
+                 });
+        MenuItem item2 = new MenuItem("Save the image as ...");
+                 item2.setOnAction(e -> {
+                    Image i = thumb.getImage();
+                    FileChooser fc = new FileChooser();
+                        fc.getExtensionFilters().addAll(ImageFileFormat.extensions()
+                                .stream().map(ext->new ExtensionFilter( ext,ext))
+                                .collect(Collectors.toList()));
+                        fc.setTitle("Save image as...");
+                        fc.setInitialFileName("new_image");
+                        fc.setInitialDirectory(App.getAppLocation());
+                    File f = fc.showSaveDialog(App.getWindowOwner().getStage());
+                    FileUtil.writeImage(i, f);
+                 });
+        MenuItem item3 = new MenuItem("Copy the image to clipboard");
+                 item3.setOnAction(e -> {
+                    Image i = thumb.getImage();
+                    if (i==null) return;
+                    Clipboard clipboard = Clipboard.getSystemClipboard();
+                    ClipboardContent content = new ClipboardContent();
+                                     content.putImage(i);
+                    clipboard.setContent(content);
+                 });
+                 
+        contextMenu.getItems().addAll(item1, item2, item3);
+        contextMenu.setConsumeAutoHidingEvents(true);
+        return contextMenu;
+    }
+    
+    private static ContextMenu buildFileCM(Thumbnail thumb) {
+        final ContextMenu contextMenu = new ContextMenu();
+
+        MenuItem item1 = new MenuItem("Browse location");
+                 item1.setOnAction(e -> {
+                     if(thumb.img_file==null) return;
+                     Enviroment.browse(thumb.img_file.toURI());
+                 });
+        MenuItem item2 = new MenuItem("Edit the image in editor");
+                 item2.setOnAction(e -> {
+                     if(thumb.img_file==null) return;
+                     Enviroment.edit(thumb.img_file);
+                 });
+        MenuItem item3 = new MenuItem("Open image");
+                 item3.setOnAction(e -> {
+                     if(thumb.img_file==null) return;
+                     Enviroment.open(thumb.img_file);
+                 });
+        MenuItem item4 = new MenuItem("Delete the image from disc");
+                 item4.setOnAction(e -> {
+                     if(thumb.img_file==null) return;
+                     FileUtil.deleteFile(thumb.img_file);
+                 });
+        MenuItem item5 = new MenuItem("Save the image as ...");
+                 item5.setOnAction(e -> {
+                    File f = thumb.img_file;
+                    if (f==null) return;
+                    
+                    FileChooser fc = new FileChooser();
+                        fc.getExtensionFilters().addAll(ImageFileFormat.extensions()
+                                .stream().map(ext->new ExtensionFilter(ext,ext))
+                                .collect(Collectors.toList()));
+                        fc.setTitle("Save image as...");
+                        fc.setInitialFileName("new_image");
+                        fc.setInitialDirectory(App.getAppLocation());
+                    File newff = fc.showSaveDialog(App.getWindowOwner().getStage());
+                    try {
+                        Files.copy(f.toPath(), newff.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        Log.mess("File export failed.");
+                    }
+                 });
+                 
+        contextMenu.getItems().addAll(item1, item2, item3, item4, item5);
+        contextMenu.setConsumeAutoHidingEvents(true);
+        return contextMenu;
+    } 
 }

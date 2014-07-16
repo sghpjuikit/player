@@ -10,7 +10,6 @@
 
 - add uri verifier before adding to playlist and get runtime exception
 - context menus for all windows
-- mood manager add some customizations and more diverse options
 - setings & configurable subcategories through '.' or '/'
 - LastFM saveLogin return boolean success flag - use in Window LastFmB when
   saving to turn on Scrobbling on success
@@ -22,11 +21,10 @@
   of it and read the metadata manually
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
-- finish tagger infoPopup etc, interrupt reading if double reading
+- interrupt reading if double reading
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - skin setting
-
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird
 - popover set arrow location automatically based on available screen space
@@ -39,7 +37,8 @@
 - dynamically create LayoutAggregator depending on size or preferences          (?)
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
-- figure out custom context menus
+- figure out custom context menus - just get rid of them
+  as for circle CM - its a waste, but what to do with it?
   getWidget - implement Target
 - Player update item not refreshing selected pl item
 - splitter absolute size for both children
@@ -71,6 +70,7 @@
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?
 - widget manager widget
 - cursor effect to popup, get rid of effectPane
+- tagger ability to add or remove from the list by CTRL/SHIFT drag&drop on popup
 - tagger disable unsupported fields for type
 - tagger multithreaded writing to tag                                           (not needed, ?)
 - playlist tabs

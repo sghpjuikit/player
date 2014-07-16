@@ -274,7 +274,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML private HBox controls;
 
     @FXML Button pinB;
-    @FXML Button layB;
     @FXML Button miniB;
     @FXML Button minimizeB;
     @FXML Pane colorEffectPane;
@@ -319,7 +318,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             if (!ClickEffect.trail_effect) 
                 ClickEffect.run(e.getSceneX(), e.getSceneY());
             ContextManager.closeMenus();
-            ContextManager.closeFloatingWindows(this);
             appDragStart(e);
         });
         
@@ -383,7 +381,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         setIcon(App.getIcon());
         setTitle(App.getAppName());
         setTitlePosition(Pos.CENTER_LEFT);
-        layB.setVisible(true);
         miniB.setVisible(true);
         minimizeB.setVisible(true);
         new ContextManager(overlayPane,contextPane);
@@ -553,37 +550,37 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
 /**************************** WINDOW MECHANICS ********************************/
     
-    private boolean isPopup = false;
-    private boolean autoclose = true;
-    
-    /** 
-     * Set false to get normal behavior. Set true to enable popup-like autoclosing
-     * that can be turned off. Setting this to false will cause autoclosing
-     * value be ignored. Default false;
-     */
-    public void setIsPopup(boolean val) {
-        isPopup = val;
-        pinB.setVisible(val);
-    }
-    public boolean isPopup() {
-        return isPopup;
-    }
-    /**
-     * Set autoclose functinality. If isPopup==false this property is ignored.
-     * False is standard window behavior. Setting
-     * true will cause the window to close on mouse click occuring anywhere
-     * within the application and outside of this window - like popup. Default
-     * is false.
-     */
-    public void setAutoClose(boolean val) {
-        autoclose = val;
-    }
-    public boolean isAutoClose() {
-        return autoclose;
-    }
-    public void toggleAutoClose() {
-        autoclose = !autoclose;
-    }
+//    private boolean isPopup = false;
+//    private boolean autoclose = true;
+//    
+//    /** 
+//     * Set false to get normal behavior. Set true to enable popup-like autoclosing
+//     * that can be turned off. Setting this to false will cause autoclosing
+//     * value be ignored. Default false;
+//     */
+//    public void setIsPopup(boolean val) {
+//        isPopup = val;
+//        pinB.setVisible(val);
+//    }
+//    public boolean isPopup() {
+//        return isPopup;
+//    }
+//    /**
+//     * Set autoclose functinality. If isPopup==false this property is ignored.
+//     * False is standard window behavior. Setting
+//     * true will cause the window to close on mouse click occuring anywhere
+//     * within the application and outside of this window - like popup. Default
+//     * is false.
+//     */
+//    public void setAutoClose(boolean val) {
+//        autoclose = val;
+//    }
+//    public boolean isAutoClose() {
+//        return autoclose;
+//    }
+//    public void toggleAutoClose() {
+//        autoclose = !autoclose;
+//    }
 
     @Override
     public void close() {
@@ -606,13 +603,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         super.close();
     }
     
-    /**
-     * Closes window if (isPopup && autoclose) evaluates to true. This method is
-     * designed specifically for auto-closing functionality.
-     */
-    public void closeWeak() {
-        if(isPopup && autoclose) close(); 
-    }
+//    /**
+//     * Closes window if (isPopup && autoclose) evaluates to true. This method is
+//     * designed specifically for auto-closing functionality.
+//     */
+//    public void closeWeak() {
+//        if(isPopup && autoclose) close(); 
+//    }
 
     
    @Override  
@@ -628,9 +625,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     @FXML public void toggleMini() {
         WindowManager.toggleMini();
-    }
-    @FXML public void manageLayouts() {
-        ContextManager.showFloating((new LayoutManagerComponent()).getPane(), "Layout Manager");
     }
 
     

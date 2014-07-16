@@ -4,19 +4,17 @@
  * and open the template in the editor.
  */
 
-package utilities.Validators;
-
-import java.time.Year;
+package utilities.functional.impl.Validators;
 
 /**
  *
  * @author Plutonium_
  */
-public class isYear implements Validator<Integer> {
-    
+public class isEmptyString implements Validator<String> {
+
     @Override
-    public boolean test(Integer i) {
-        int max = Year.now().getValue();
-        return i>0 && i<=max;
+    public boolean test(String t) {
+        return t.isEmpty();
     }
+    
 }

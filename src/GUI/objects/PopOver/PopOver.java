@@ -212,7 +212,9 @@ public class PopOver extends PopupControl {
      * @return 
      */
     public static PopOver createHelpPopOver(String text) {
-        PopOver p = new PopOver(new Text(text));
+        Text t = new Text(text);
+             t.setWrappingWidthNatural(true);
+        PopOver p = new PopOver(t);
                 p.setTitle("Help");
                 p.setAutoHide(true);
                 p.setHideOnClick(true);

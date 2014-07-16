@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.paint.Color;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
@@ -44,6 +47,7 @@ public class MetadataWriter extends MetaItem {
     private final File file;
     private final AudioFile audioFile;
     int fields_changed = 0;
+    private final BooleanProperty isWriting = new SimpleBooleanProperty(false);
 
     // dont provide access here
     private MetadataWriter(File file, AudioFile audioFile) {
@@ -577,6 +581,16 @@ public class MetadataWriter extends MetaItem {
      */
     public void reset() {
         fields_changed = 0;
+    }
+    
+/*******************************************************************************/
+    
+    public boolean isWriting() {
+        return isWriting.getValue();
+    }
+    
+    public ReadOnlyBooleanProperty isWritingProperty() {
+        return ReadOnlyBooleanProperty.readOnlyBooleanProperty(isWriting);
     }
     
 /*******************************************************************************/

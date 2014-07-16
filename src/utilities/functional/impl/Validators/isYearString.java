@@ -4,19 +4,22 @@
  * and open the template in the editor.
  */
 
-package utilities.Validators;
+package utilities.functional.impl.Validators;
+
+import java.time.Year;
 
 /**
  *
  * @author Plutonium_
  */
-public class isIntString implements Validator<String> {
+public class isYearString implements Validator<String>{
 
     @Override
     public boolean test(String t) {
         try {
             int i = new Integer(t);
-            return true;
+            int max = Year.now().getValue();
+            return i>0 && i<=max;
         } catch(NumberFormatException e) {
             return false;
         }

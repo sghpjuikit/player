@@ -6,9 +6,15 @@
 
 package GUI.objects;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
+
 /**
- * {@link javafx.scene.text.Text} with a default styleclass. There is no other
- *  difference. Use when css-specific default values are expected.
+ * {@link javafx.scene.text.Text} with a default styleclass "text-shape" and 
+ * support for automatic wrap width based on contained text value.
+ * <p>
+ * 
  * @author Plutonium_
  */
 public class Text extends javafx.scene.text.Text {
@@ -41,7 +47,50 @@ public class Text extends javafx.scene.text.Text {
      * optimal results. Try and see.
      */
     public void setWrappingWidthNaturally() {
-        if(getText()!=null && !getText().isEmpty()) 
-            setWrappingWidth(90+getText().length()/4);
+        wrapWidthSetter.changed(null,null,getText());
     }
+    
+    ChangeListener<String> wrapWidthSetter = (o,oldV,newV) -> {
+        String s = newV==null ? "" : newV;
+        setWrappingWidth(90+s.length()/4);
+    };
+    
+    private final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {
+        @Override
+        public void set(boolean newV) {
+            super.set(newV);
+            if(newV) textProperty().addListener(wrapWidthSetter);
+            else textProperty().removeListener(wrapWidthSetter);
+        }
+    };
+    
+    /**
+     * Returns natural wrapping width property.
+     * @see #setWrappingWidthNatural(boolean)
+     * @return 
+     */
+    public BooleanProperty wrappingWidthNatural() {
+        return wrappingWithNatural;
+    }
+    
+    /**
+     * Returns value of natural wrapping width property.
+     * @see #setWrappingWidthNatural(boolean)
+     * @return 
+     */
+    public boolean isWrappingWidthNatural() {
+        return wrappingWithNatural.getValue();
+    }
+    
+    /**
+     * Sets natural wrapping width dynamically reacting on text change on/off.
+     * @see #setWrappingWidthNaturally()
+     * @param val 
+     */
+    public void setWrappingWidthNatural(boolean val) {
+        wrappingWithNatural.setValue(val);
+    }
+    
+    
+    
 }

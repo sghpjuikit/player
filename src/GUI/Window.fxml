@@ -24,17 +24,9 @@
 </children></HBox>
     <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" onKeyPressed="#entireArea_OnKeyPressed" onKeyReleased="#entireArea_OnKeyReleased" snapToPixel="false" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
         <HBox fx:id="controls" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" snapToPixel="false" spacing="5.0" visible="true" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
-          <children><Button fx:id="layB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#manageLayouts" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="l" visible="false">
-<tooltip>
-<Tooltip text="Layout Manager" />
-</tooltip>
-</Button><Button fx:id="miniB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMini" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T" visible="false">
+          <children><Button fx:id="miniB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMini" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T" visible="false">
 <tooltip>
 <Tooltip text="Toggle Mini" />
-</tooltip>
-</Button><Button fx:id="pinB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAutoClose" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="･" visible="false">
-<tooltip>
-<Tooltip text="Pin" />
 </tooltip>
 </Button>
             <Button fx:id="minimizeB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMinimize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="▁">

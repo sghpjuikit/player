@@ -131,7 +131,7 @@ public abstract class Config<T> {
     
     public abstract boolean applyValue();
     
-    public void setNapplyValue(T val) {
+    public void setNapplyValue(T val) {;
         // set new config value
         boolean was_set = setValue(val);
         // apply new field value on success
@@ -224,14 +224,34 @@ public abstract class Config<T> {
     }
     
     
-    
+    /**
+     * Converts the value to String utilizing generic {@link Parser}.
+     * Use for serialization or filling out guis.
+     */
     public String toS() {
         return Parser.toS(getValue());
     }
     
-    public Object fromS(String str) {
-        return Parser.fromS(getType(), str);
+    /**
+     * Converts the string to a valid value for this config utilizing generic 
+     * {@link Parser}.
+     * Use for serialization or filling out guis.
+     * <p>
+     * Note: the value of this config is not changed.
+     * @see #setValueFrom(java.lang.String)
+     */
+    public T fromS(String str) {
+        return (T) Parser.fromS(getType(), str);
     }
     
+    /**
+     * Sets value converted from string.
+     * Equivalent to: return setValue(fromS(str));
+     * @param str
+     * @return 
+     */
+    public boolean setValueFrom(String str) {
+        return setValue(fromS(str));
+    }
     
 }

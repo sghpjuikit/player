@@ -13,7 +13,7 @@ package GUI.objects;
  *
  * @author uranium
  */
-public class VerticalContextMenu extends ContextMenu{
+public class VerticalContextMenu extends Context_Menu{
     
     @Override
     public double getHeight() {

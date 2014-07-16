@@ -18,12 +18,12 @@ public class ContextCircleElement extends ContextElement{
     private static final double size = 20;
     private static final double text_gap = 20;
     
-    private final ContextMenu parent;
+    private final Context_Menu parent;
     private final Circle e = new Circle(size/2);
     private final Label label = new Label();
     private final ScaleTransition scale = new ScaleTransition(animDur,e);
     
-    public ContextCircleElement(final ContextMenu _parent, String name, String tooltip, final Procedure behavior) {
+    public ContextCircleElement(final Context_Menu _parent, String name, String tooltip, final Procedure behavior) {
         parent = _parent;
         e.setOpacity(0.4);
         e.setStroke(Paint.valueOf("black"));

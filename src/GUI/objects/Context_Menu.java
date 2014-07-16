@@ -22,7 +22,7 @@ import utilities.functional.functor.Procedure;
  *
  * @author uranium
  */
-public abstract class ContextMenu extends Positionable {
+public abstract class Context_Menu extends Positionable {
     
     public enum ElementType {
         BUTTON,
@@ -45,7 +45,7 @@ public abstract class ContextMenu extends Positionable {
     private final ScaleTransition in;
     private final ScaleTransition out;
     
-    public ContextMenu() {
+    public Context_Menu() {
         menu.setVisible(false);
         menu.setPickOnBounds(false); // == mouse transparent without making children as well
         menu.setPrefSize(1, 1); // so it will contract and tightly envelop children

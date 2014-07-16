@@ -11,6 +11,8 @@ import GUI.objects.Pickers.WidgetPicker;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import GUI.objects.SimpleConfigurator;
+import GUI.objects.Text;
+import Layout.Component;
 import Layout.Widgets.Widget;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
@@ -80,23 +82,33 @@ public final class AreaControls {
         Button helpB = AwesomeDude.createIconButton(INFO,"","12","12",CENTER);
                helpB.setTooltip(new Tooltip("Help"));
                helpB.setOnMouseClicked( e -> {
-                   if(helpPopOver==null) {
-                       String text = "Available buttons:\n"
-                                   + "    Close : closes the widget\n"
-                                   + "    Detach : opens the widget in new window\n"
-                                   + "    Change : opens widget chooser to pick new widget\n"
-                                   + "    Settings : opens settings for the widget if available\n"
-                                   + "    Refresh : refreshes the widget\n"
-                                   + "    Lock : forbids entering layout mode on mouse hover\n"
-                                   + "           in the top right corner";
-                       helpPopOver = PopOver.createHelpPopOver(text);
-                       // we need to handle hiding this AreaControls when popup
-                       // closes and 
-                       // we are outside of the area (not implemented yet)
-                       helpPopOver.addEventHandler(WINDOW_HIDDEN, we -> {
-                           if(isShowingStrong) hide();
-                       });
-                   }
+                    // create popover lazily if not yet
+                    if(helpPopOver==null) {
+                        helpPopOver = PopOver.createHelpPopOver("");
+                        // we need to handle hiding this AreaControls when popup
+                        // closes and 
+                        // we are outside of the area (not implemented yet)
+                        helpPopOver.addEventHandler(WINDOW_HIDDEN, we -> {
+                            if(isShowingWeak) hide();
+                        });
+                    }
+                    // update text
+                    Component c = area.getActiveComponent();
+                    String componentInfo = (c!=null && c instanceof Widget)
+                            ? "\n\n" + ((Widget)c).getInfo().description() 
+                            : "";
+                    String text = "Available buttons:\n"
+                                 + "    Close : closes the widget\n"
+                                 + "    Detach : opens the widget in new window\n"
+                                 + "    Change : opens widget chooser to pick new widget\n"
+                                 + "    Settings : opens settings for the widget if available\n"
+                                 + "    Refresh : refreshes the widget\n"
+                                 + "    Lock : forbids entering layout mode on mouse hover\n"
+                                 + "           in the top right corner"
+                                 + componentInfo;
+                    Text t = (Text) helpPopOver.getContentNode();
+                         t.setText(text);
+                   
                    helpPopOver.show(helpB);
                    e.consume();
                });
@@ -158,15 +170,15 @@ public final class AreaControls {
         blur.heightProperty().bind(area.getContent().translateZProperty());
         area.getContent().setEffect(blur);
         
-        // weak mode and strong mode - strong mode is show/hide from outside
-        // - weak mode is show/hide by mouse enter/exit events in the corner
+        // weak mode and strong mode - strong mode is show/hide called from external code
+        // - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
         // - the weak behavior must not work in strong mode
         
         // show when area is hovered and in weak mode
         area.activator.addEventFilter(MOUSE_ENTERED, e -> {
             // avoid when locked and in strong mode
             if (!area.isUnderLock() && !isShowingStrong && 
-                    // avoiid pointless operation
+                    // avoid pointless operation
                     !isShowingWeak)
                 showWeak();
         });

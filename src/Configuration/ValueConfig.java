@@ -7,7 +7,7 @@
 package Configuration;
 
 import java.util.Objects;
-import utilities.functional.functor.UnProcedure;
+import javafx.util.Callback;
 
 /**
  * {@link Config} wrapper for a standalone object. This is the only implementation
@@ -45,12 +45,12 @@ import utilities.functional.functor.UnProcedure;
 public final class ValueConfig<V> extends Config<V> {
     
     private V value;
-    private UnProcedure<V> applier;
+    private Callback<V,Boolean> applier;
     
-    public ValueConfig(String name, String gui_name, V value, String category, String info, boolean editable, boolean visible, double min, double max, UnProcedure<V> onChange) {
+    public ValueConfig(String name, String gui_name, V value, String category, String info, boolean editable, boolean visible, double min, double max, Callback<V,Boolean> applier) {
         super(name, gui_name, value, name, info, editable, visible, min, max);
         this.value = value;
-        this.applier = onChange;
+        this.applier = applier;
     }
     
     public ValueConfig(String name, V value) {
@@ -58,10 +58,10 @@ public final class ValueConfig<V> extends Config<V> {
         this.value = value;
     }
     
-    public ValueConfig(String name, V value, UnProcedure<V> onChange) {
+    public ValueConfig(String name, V value, Callback<V,Boolean> applier) {
         super(name, name, value, "", "", true, true, Double.NaN, Double.NaN);
         this.value = value;
-        this.applier = onChange;
+        this.applier = applier;
     }
     
     public ValueConfig(String name, V value, String info) {
@@ -69,10 +69,10 @@ public final class ValueConfig<V> extends Config<V> {
         this.value = value;
     }
     
-    public ValueConfig(String name, V value, String info, UnProcedure<V> onChange) {
+    public ValueConfig(String name, V value, String info, Callback<V,Boolean> applier) {
         super(name, name, value, "", info, true, true, Double.NaN, Double.NaN);
         this.value = value;
-        this.applier = onChange;
+        this.applier = applier;
     }
     
     /** 
@@ -118,15 +118,18 @@ public final class ValueConfig<V> extends Config<V> {
 
     /** 
      * {@inheritDoc} 
-     * Runs the associated runnable to apply the changes of the value or to
-     * simply execute some code.
+     * Runs the associated applier to apply the changes of the value or to
+     * simply execute its code. Does nothing if no applier available.
      * <p>
      * Mostly called automatically by the object/framework doing the modification.
+     * <p>
+     * Equivalent to: return applier==null ? true : getApplier().call(value);
+     * @return success flag. Returns the applier's success flag or true if no
+     * applier to signify there was no error.
      */
     @Override
     public boolean applyValue() {
-        if(getApplier()!=null) getApplier().accept(value);
-        return true;
+        return applier==null ? true : getApplier().call(value);
     }
     
     /** {@inheritDoc} */
@@ -138,22 +141,20 @@ public final class ValueConfig<V> extends Config<V> {
     /**
      * @return the applier
      */
-    public UnProcedure<V> getApplier() {
+    public Callback<V,Boolean> getApplier() {
         return applier;
     }
 
     /**
      * Sets applier. The applies takes a parameter which is value of this Config
-     * at the time of applier's execution.
+     * and applies it and returns whether the application was a success.
      * @param applier Runnable to apply the changes of the value or to
      * simply execute some code when there is intention to apply the value.
      * The runnable is called in {@link #applyValue()} method.
      * <p>
-     * For example apply a different css stylesheet to an object or the application.
-     * Assuming there is a standalone value as a configuration it needs to be
-     * applied
+     * For example apply a different css stylesheet to a gui or the application.
      */
-    public void setApplier(UnProcedure<V> applier) {
+    public void setApplier(Callback<V,Boolean> applier) {
         this.applier = applier;
     }
 

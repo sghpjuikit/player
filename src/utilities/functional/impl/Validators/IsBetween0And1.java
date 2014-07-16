@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package utilities.Validators;
+package utilities.functional.impl.Validators;
 
 /**
  *

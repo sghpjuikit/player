@@ -43,6 +43,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -61,6 +62,7 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
@@ -83,10 +85,10 @@ import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
-import utilities.Validators.IsBetween0And1;
-import utilities.Validators.Validator;
-import utilities.Validators.isIntString;
-import utilities.Validators.isYearString;
+import utilities.functional.impl.Validators.IsBetween0And1;
+import utilities.functional.impl.Validators.Validator;
+import utilities.functional.impl.Validators.isIntString;
+import utilities.functional.impl.Validators.isYearString;
 
 /**
  * TaggerController graphical component.
@@ -97,11 +99,20 @@ import utilities.Validators.isYearString;
  * 
  * @author Plutonium_
  */
-@WidgetInfo(author = "Martin Polakovic",
-            description = "song tag editor",
-            version = "0.7",
-            year = "2014",
-            group = Widget.Group.TAGGER)
+@WidgetInfo(
+    author = "Martin Polakovic",
+    description =  "Tag editor for audio files." + 
+                   "untaggable items. Taggable items can be unselected " +
+                   "in selective list mode.\n\n" +
+                   "Available actions:\n" +
+                   "    Drag cover away : Removes cover\n" +
+                   "    Drop image file : Adds cover\n" +
+                   "    Drop audio files : Adds files to tagger\n" +
+                   "    Write : Saves the tags\n" +
+                   "    Open list of tagged items",
+    version = "0.7",
+    year = "2014",
+    group = Widget.Group.TAGGER)
 public class TaggerController extends FXMLController implements TaggingFeature {
     
     @FXML AnchorPane entireArea;
@@ -165,7 +176,9 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     Task<List<Metadata>> loader;
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data chagnge during writing
-    
+    Task<List<Metadata>> metaReader;
+//    BiProcedure<Boolean,List<Metadata>> onMetaReadingFinish = 
+            
     // listeners
     private final InvalidationListener playlistListener = o -> 
             read(PlaylistManager.getSelectedItems());
@@ -177,7 +190,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void init() {
         
-        items.addListener((ListChangeListener.Change<? extends Item> c) -> {
+        items.addListener((ListChangeListener.Change<? extends Item> c) -> {System.out.println("has change");
             while (c.next()) {
                 // on remove: remove concerned metadatas and populate gui
                 if (c.wasRemoved()) {
@@ -187,7 +200,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                     populate(metas);
                 }
                 // on add: get metadata for all items and populate
-                if (c.wasAdded()) {
+                else if (c.wasAdded()) {System.out.println("added " + c.getAddedSize());
                     // get added
                     List<Metadata> ready = new ArrayList();
                     List<Item> needs_read = new ArrayList();
@@ -200,11 +213,24 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                             else needs_read.add(i);
                         });
                     
+                    // prevent double reading while reading
+                    if(metaReader!=null && metaReader.isRunning()) {
+                        System.out.println("DOUBLE READING");
+                    }
                     // read metadata for items
                     MetadataReader.readMetadata(needs_read, (success,result) -> {
                         if(success) {
                             ready.addAll(result);
-                            metas.addAll(ready);
+                            ready.forEach(i->{
+                                if(!metas.stream().anyMatch(ii->ii.same(i)))
+                                    metas.add(i);
+                            });
+                            // bugged most probably because this listener is called
+                            // twice for some unknown reason
+//                            metas.addAll(result);
+                            System.out.println(result.size() + " "
+//                                    + ready.size()
+                                    + " " + metas.size());
                             populate(metas);
                             Log.mess("Tagger: Metadata reading succeeded.");
                         } else {
@@ -260,7 +286,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // year validation
         val.registerValidator(YearF, (Control c, String text) -> ValidationResult.fromErrorIf(
             YearF, "Year must be greater than 0 and not greater than current year.",
-            !text.isEmpty() || !isYear.test(text)
+            !text.isEmpty() && !isYear.test(text)
         ));
             // cd validation
         DiscsTotalF.textProperty().addListener(o->{
@@ -296,49 +322,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         
         // drag & drop content
-        entireArea.setOnDragOver( t -> {
-            Dragboard d = t.getDragboard();
-            // accept if contains at least 1 audio file, audio url, playlist or items
-            if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
-                (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
-                    d.hasContent(DragUtil.playlist) ||
-                        d.hasContent(DragUtil.items)) {
-                t.acceptTransferModes(TransferMode.ANY);
-                t.consume();
-            }
-        });
-        entireArea.setOnDragDropped( t -> {
-            // get data
-            Dragboard d = t.getDragboard();
-            ArrayList<Item> dropped = new ArrayList();
-            if (d.hasFiles()) {
-                FileUtil.getAudioFiles(d.getFiles(),0).stream()
-                        .map(SimpleItem::new).forEach(dropped::add);
-            }
-            if (d.hasUrl()) {
-                // watch out for non audio urls, we must filter those out or
-                // dropped.isEmpty will not work corrently
-                if(AudioFileFormat.isSupported(d.getUrl()))
-                    Optional.of(new SimpleItem(URI.create(d.getUrl())))
-                            .filter(AudioFileFormat::isSupported)
-                            .ifPresent(dropped::add);
-            }
-            if (d.hasContent(DragUtil.playlist))
-                dropped.addAll(DragUtil.getPlaylist(d).getItems());
-            if (d.hasContent(DragUtil.items))
-                dropped.addAll(DragUtil.getItems(d));
-            
-            if (!dropped.isEmpty()) {
-                // read data
-                if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
-                read(dropped);
-                
-                //end drag transfer
-                t.setDropCompleted(true);
-                t.consume();
-            }
-            
-        });
+        entireArea.setOnDragOver(drag_over_handler);
+        entireArea.setOnDragDropped(drag_dropped_handler);
         
         // add cover on click
         coverContainer.setOnMouseClicked( e -> {
@@ -370,7 +355,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             Dragboard d = t.getDragboard();
             // check again if the image file is in the dragboard. If it isnt
             // do not consume and let the event propagate bellow. In case there
-            // are playable items/files they will be captured with root's drag
+            // are playable items/files they will be captured by root's drag
             // handler
             // removing the condition would consume the event and stop propagation
             if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) {
@@ -381,7 +366,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 t.consume();
             }
         });
-        
+
         // remove cover on drag exit
         CoverV.getPane().setOnDragDetected( e -> CoverV.getPane().startFullDrag());
         entireArea.addEventFilter(MOUSE_DRAG_RELEASED, e-> {
@@ -426,6 +411,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // show metadata list
         infoL.setOnMouseClicked( e -> showItemsPopup());
         infoL.setCursor(Cursor.HAND);
+        
     }
     
     private void setR() {
@@ -526,32 +512,40 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     public void read(List<? extends Item> items) {
         Objects.requireNonNull(items);
         
-        // remove duplicates
-        List<Item> to_add = new ArrayList();
-        for (Item o: items) {
-            // see if tagger already contains the same item
-            boolean exists = metas.stream().anyMatch(i->i.same(o));
-            // if not check for doubles
-            if(!exists) {
-                boolean has_double = false;
-                for (Item i: to_add) {
-                    has_double |= o.same(i);
-                }
-                if (!has_double)
-                    to_add.add(o);
-            }
+        List<Item> unique = new ArrayList();
+        for(Item i : items) {
+            boolean has_double = false;
+            for (Item o : unique) has_double |= o.same(i);
+            // add if doesnt
+            if (!has_double) unique.add(i);
         }
         
-        // do not do anything if nothing to add - this is either because parameter
-        // list is empty or because all provided items are already being tagged
-        if (to_add.isEmpty()) return;
         
-        // do not use setAll we need to fire remove & add events
+//        List<Item> to_add = new ArrayList(unique);
+//        List<Item> to_del = new ArrayList<>(metas);
+//        for (Item o: unique) {
+//            // if exists already dont do anything
+//            for(Item i : metas) {
+//                if(i.same(o)) {
+//                    to_del.remove(i);
+//                    to_add.remove(o);
+//                }
+//            }
+//        }
+//        
+//        // do not use setAll we need to fire remove & add events
+//        // remove all unwanted and keep those that are the same as new ones
+//        this.allitems.removeAll(to_del);
+//        this.items.removeAll(to_del);
+//        // add new ones that werent on the list before
+//        this.allitems.addAll(to_add);
+//        this.items.addAll(to_add);
+        
+        
         this.allitems.clear();
         this.items.clear();
-        this.allitems.addAll(to_add);
-        this.items.addAll(to_add);
-
+        this.allitems.addAll(unique);
+        this.items.addAll(unique);
     }
     
     /**
@@ -853,7 +847,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     private void addImg(File f) {
         if (isEmpty()) return;
         
-        new_cover_file = ImageFileFormat.isSupported(f) ? f : null;
+        new_cover_file = f!=null && ImageFileFormat.isSupported(f) ? f : null;
         if (new_cover_file != null) {
             CoverV.loadImage(new_cover_file);
             CoverL.setText(ImageFileFormat.of(new_cover_file.toURI()) + " "
@@ -951,6 +945,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                        list.setCellFactory(getDefCellFactory());
                        // list will be atomatically updated now
                        list.setItems(allitems);
+                       // support same drag & drop as tagger
+                       list.setOnDragOver(drag_over_handler);
+                       list.setOnDragDropped(drag_dropped_handler);
+           
         
         // build content controls
         Label helpB = AwesomeDude.createIconLabel(AwesomeIcon.INFO,"11");                     
@@ -958,7 +956,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // build help content for help popup if not yet built
             // with this we avoid constructing multuple popups
             if(helpP == null) {
-                String text = "Single click : Close" + "\n";
+                String text = "List of all items in the tagger. Highlights " + 
+                              "untaggable items. Taggable items can be unselected " +
+                              "in selective list mode.\n\n" +
+                              "Available actions:\n" +
+                              "    Edit button : Switch to selectable list\n" +
+                              "    Drop items : Adds them to tagger.\n" +
+                              "    Drop audio files : Adds them to tagger.";
                 helpP = PopOver.createHelpPopOver(text);
             }
             helpP.show(helpB);
@@ -966,7 +970,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         helpB.setTooltip(new Tooltip("Help"));
         Label editSwitchB = AwesomeDude.createIconLabel(AwesomeIcon.PENCIL,"11");                     
-        editSwitchB.setOnMouseClicked( e -> {System.out.println(list.getCellFactory().equals(defCellFactory));
+        editSwitchB.setOnMouseClicked( e -> {
             // switch factories
             list.setCellFactory(list.getCellFactory().equals(defCellFactory)
                                         ? getEditCellFactory()
@@ -1049,4 +1053,53 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         };
         return defCellFactory;
     }
+    
+    
+    
+    private final EventHandler<DragEvent> drag_over_handler = t -> {
+        Dragboard d = t.getDragboard();
+        // accept if contains at least 1 audio file, audio url, playlist or items
+        if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+                (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
+                d.hasContent(DragUtil.playlist) ||
+                d.hasContent(DragUtil.items)) {
+            t.acceptTransferModes(TransferMode.ANY);
+            t.consume();
+        }
+    };
+    private final EventHandler<DragEvent> drag_dropped_handler = t -> {
+        // get data
+        Dragboard d = t.getDragboard();
+        ArrayList<Item> dropped = new ArrayList();
+        if (d.hasFiles()) {
+            FileUtil.getAudioFiles(d.getFiles(),0).stream()
+                    .map(SimpleItem::new).forEach(dropped::add);
+        } else
+        if (d.hasUrl()) {
+            // watch out for non audio urls, we must filter those out or
+            // dropped.isEmpty will not work corrently
+            if(AudioFileFormat.isSupported(d.getUrl()))
+                Optional.of(new SimpleItem(URI.create(d.getUrl())))
+                        .filter(AudioFileFormat::isSupported)
+                        .ifPresent(dropped::add);
+        } else
+        if (d.hasContent(DragUtil.playlist)) {
+            dropped.addAll(DragUtil.getPlaylist(d).getItems());
+        } else
+        if (d.hasContent(DragUtil.items)) {
+            dropped.addAll(DragUtil.getItems(d));
+        }
+        
+        if (!dropped.isEmpty()) {
+            // read data
+            if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
+            read(dropped);
+
+            //end drag transfer
+            t.setDropCompleted(true);
+            t.consume();
+        }
+    };
+    
+    
 }

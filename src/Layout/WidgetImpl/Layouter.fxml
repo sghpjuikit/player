@@ -13,13 +13,13 @@
     </BorderPane><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <center>
         <GridPane fx:id="controls" alignment="CENTER" focusTraversable="true" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-48.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
-          <children><BorderPane onMouseClicked="#showWidgetArea" styleClass="lighter-button">
+          <children><BorderPane onMouseClicked="#showWidgetArea" styleClass="area-bgr">
 <center><Label mouseTransparent="true" text="Place Widget" BorderPane.alignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-</center></BorderPane><BorderPane onMouseClicked="#showTabs" styleClass="lighter-button" GridPane.columnIndex="1">
+</center></BorderPane><BorderPane onMouseClicked="#showTabs" styleClass="area-bgr" GridPane.columnIndex="1">
 <center><Label mouseTransparent="true" text="Place Tabs" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
-</center></BorderPane><BorderPane onMouseClicked="#showSplitH" styleClass="lighter-button" BorderPane.alignment="CENTER" GridPane.rowIndex="1">
+</center></BorderPane><BorderPane onMouseClicked="#showSplitH" styleClass="area-bgr" BorderPane.alignment="CENTER" GridPane.rowIndex="1">
 <center><Label mouseTransparent="true" text="Split Horizontally" BorderPane.alignment="CENTER" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
-</center></BorderPane><BorderPane onMouseClicked="#showSplitV" styleClass="lighter-button" GridPane.columnIndex="1" GridPane.rowIndex="1">
+</center></BorderPane><BorderPane onMouseClicked="#showSplitV" styleClass="area-bgr" GridPane.columnIndex="1" GridPane.rowIndex="1">
 <center><Label mouseTransparent="true" text="Split Vertically" BorderPane.alignment="CENTER" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
 </center></BorderPane>
           </children>

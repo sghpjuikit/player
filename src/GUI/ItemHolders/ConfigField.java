@@ -4,6 +4,7 @@ package GUI.ItemHolders;
 import Action.Action;
 import Configuration.Config;
 import Configuration.StringEnum;
+import GUI.GUI;
 import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -219,9 +220,9 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         Object val = f.getValue();
         
         ConfigField cf;
-//        if (name.equals("skin"))
-//            cf = new SkinField(f);
-//        else
+        if (name.equals("skin"))
+            cf = new SkinField(f);
+        else
         if (val instanceof Boolean)
             cf = new BooleanField(f);
         else 
@@ -472,29 +473,39 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     }
     
     
-//    /** Specifically for listing out available skins. */
-//    private static class SkinField extends ConfigField<Object> {
-//        ChoiceBox<Object> cBox;
-//        
-//        private SkinField(Config c) {
-//            super(c);
-//            cBox = new ChoiceBox();
-//            ObservableList<Object> items = FXCollections.observableArrayList();
-//                                   items.setAll(GUI.getSkins());
-//            cBox.setItems(items);
-//            cBox.getSelectionModel().select(super.value);
-//            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
-//                if(isApplyOnChange()) applyNsetIfAvailable();
-//            });
-//        }
-//        
-//        @Override public Control getControl() {
-//            return cBox;
-//        }
-//        @Override public Object getItem() {
-//            return cBox.getValue();
-//        }
-//    }
+    /** Specifically for listing out available skins. */
+    private static class SkinField extends ConfigField<Object> {
+        ChoiceBox<Object> cBox;
+        
+        private SkinField(Config c) {
+            super(c);
+            cBox = new ChoiceBox();
+            ObservableList<Object> items = FXCollections.observableArrayList();
+                                   items.setAll(GUI.getSkins());
+            cBox.setItems(items);
+            cBox.getSelectionModel().select(GUI.skin.get());
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
+                if(isApplyOnChange()) 
+                    GUI.setSkin(getItem());
+            });
+        }
+        @Override public String getItem() {
+            return (String)cBox.getValue();
+        }
+
+        @Override
+        public void refreshItem() {
+            ObservableList<Object> items = FXCollections.observableArrayList();
+                                   items.setAll(GUI.getSkins());
+            cBox.setItems(items);
+            cBox.getSelectionModel().select(GUI.skin.get());
+        }
+
+        @Override
+        Node getNode() {
+            return cBox;
+        }
+    }
     
     private static class ShortcutField extends ConfigField<Action> {
         TextField control;

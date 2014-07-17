@@ -21,7 +21,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
@@ -121,22 +120,23 @@ public final class Seeker extends AnchorPane {
         
         
         // new chapter button
-        AddChapButton adder = new AddChapButton();
-        getChildren().add(adder);
+        AddChapButton addB = new AddChapButton();
+                      addB.setOpacity(0);
+        getChildren().add(addB);
         addEventFilter(MOUSE_MOVED, e -> {
-            if(adder.isVisible() && adder.getOpacity()>0)
-                adder.setLayoutX(e.getX()-adder.getWidth()/2);
+            if(addB.isVisible() && addB.getOpacity()>0)
+                addB.setLayoutX(e.getX()-addB.getWidth()/2);
         });
         position.addEventFilter(MOUSE_ENTERED, e -> {
-            adder.show();
-            adder.setDisable(!Player.getCurrentMetadata().isFileBased());
+            addB.show();
+            addB.setDisable(!Player.getCurrentMetadata().isFileBased());
         });
         position.addEventFilter(MOUSE_EXITED, e -> 
                 FxTimer.run(Duration.millis(200), () -> {
-                    if(!adder.isHover() && !position.isHover()) 
-                        adder.hide();
+                    if(!addB.isHover() && !position.isHover()) 
+                        addB.hide();
         }));
-        adder.addEventHandler(MOUSE_EXITED, e -> adder.hide());
+        addB.addEventHandler(MOUSE_EXITED, e -> addB.hide());
     }
     
     // Updates positions of chapters. No reloading takes place. Use on resize.
@@ -238,7 +238,8 @@ public final class Seeker extends AnchorPane {
 /******************************************************************************/
     
     private class AddChapButton extends StackPane {
-        Label l = AwesomeDude.createIconLabel(AwesomeIcon.PLUS_CIRCLE,"","18","18", ContentDisplay.GRAPHIC_ONLY);
+//        Label l = AwesomeDude.createIconLabel(AwesomeIcon.PLUS_CIRCLE,"","18","18", ContentDisplay.GRAPHIC_ONLY);
+        FadeButton l = new FadeButton(AwesomeIcon.PLUS_CIRCLE, 18);
         
         public AddChapButton() {
             getChildren().add(l);

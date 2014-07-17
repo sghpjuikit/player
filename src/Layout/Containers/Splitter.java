@@ -10,7 +10,6 @@ import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
-import utilities.TODO;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -23,12 +22,15 @@ import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
+import utilities.TODO;
 
 /**
  * @author uranium
@@ -166,6 +168,14 @@ public final class Splitter implements AltState {
                     Platform.runLater(()->applyPos());
             }
 
+        });
+        
+        // close container if empty on right click
+        splitPane.addEventFilter(MOUSE_CLICKED, e -> {
+            if(e.getButton()==SECONDARY) {
+                if (con.getAllWidgets().isEmpty())
+                    con.close();
+            }
         });
         
         positionControls();

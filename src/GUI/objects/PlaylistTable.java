@@ -435,8 +435,8 @@ public final class PlaylistTable {
     
     /** Set visibility of columns header. Default true. */
     public void setHeaderVisible(boolean val) {
-        if(val) table.getStylesheets().remove(getClass().getResource("PlaylistTable.css").toExternalForm());
-        else    table.getStylesheets().add(getClass().getResource("PlaylistTable.css").toExternalForm());
+        if(val) table.getStylesheets().remove(PlaylistTable.class.getResource("PlaylistTable.css").toExternalForm());
+        else    table.getStylesheets().add(PlaylistTable.class.getResource("PlaylistTable.css").toExternalForm());
     }
     
     /**

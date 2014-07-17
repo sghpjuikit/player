@@ -15,6 +15,8 @@ import GUI.objects.FadeButton;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import javafx.beans.InvalidationListener;
@@ -22,6 +24,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -41,6 +44,21 @@ import utilities.Util;
  * <p>
  * @author uranium
  */
+@WidgetInfo(
+    name = "Playback Control",
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    howto = "Available actions:\n" +
+            "    Control Playback\n" +
+            "    Add button left click : Opens file chooser and plays files\n" +
+            "    Add button right click: Opens directory chooser and plays files\n" +
+            "    Drop audio files : Adds or plays the files\n",
+    description = "Controls playback.",
+    notes = "",
+    version = "0.8",
+    year = "2014",
+    group = Widget.Group.TAGGER
+)
 public class PlayerControlsController extends FXMLController implements PlaybackFeature {
     
     
@@ -64,13 +82,13 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label channelsL;
     
     @FXML HBox playButtons;
-    FadeButton p1;
-    FadeButton f2;
-    FadeButton f3;
-    FadeButton f4;
-    FadeButton f5;
-    FadeButton f6;
-    FadeButton muteB;
+    FadeButton p1 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
+    FadeButton f2 = new FadeButton(AwesomeIcon.FAST_BACKWARD,25);
+    FadeButton f3 = new FadeButton(AwesomeIcon.PLAY,25);
+    FadeButton f4 = new FadeButton(AwesomeIcon.FAST_FORWARD,25);
+    FadeButton f5 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
+    FadeButton f6 = new FadeButton(AwesomeIcon.STOP,25);
+    FadeButton muteB = new FadeButton(AwesomeIcon.VOLUME_UP,18);
     FadeButton addB = new FadeButton(AwesomeIcon.PLUS_SQUARE_ALT,10);
     
     @FXML HBox infoBox;
@@ -112,13 +130,6 @@ public class PlayerControlsController extends FXMLController implements Playback
         seeker.setChapterSnapDistance(GUI.snapDistance);        
         
         // create play buttons
-        p1 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
-        f2 = new FadeButton(AwesomeIcon.FAST_BACKWARD,25);
-        f3 = new FadeButton(AwesomeIcon.PLAY,25);
-        f4 = new FadeButton(AwesomeIcon.FAST_FORWARD,25);
-        f5 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
-        f6 = new FadeButton(AwesomeIcon.STOP,25);
-        
         p1.setOnMouseClicked(e->previous());
         f2.setOnMouseClicked(e->rewind());
         f3.setOnMouseClicked(e->play_pause());
@@ -129,6 +140,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
         
         // addButton
+        Tooltip.install(addB, new Tooltip("Add files or folder (left/right click)."));
         addB.setOnMouseClicked(e->{
             if(e.getButton()==MouseButton.PRIMARY)
                 PlaylistManager.addOrEnqueueFiles(true);
@@ -145,7 +157,6 @@ public class PlayerControlsController extends FXMLController implements Playback
         infoBox.getChildren().add(1, loopB);
         
         // volume button
-        muteB = new FadeButton(AwesomeIcon.VOLUME_UP,18);
         muteB.setOnMouseClicked(e->cycleMute());
         soundGrid.add(muteB, 0, 0);
      
@@ -314,14 +325,17 @@ public class PlayerControlsController extends FXMLController implements Playback
     private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
             case OFF:       loopB.setIcon(AwesomeIcon.ALIGN_CENTER); // linear
+                            Tooltip.install(loopB, new Tooltip("Loop mode: off"));
                             break;
             case PLAYLIST:  loopB.setIcon(AwesomeIcon.REORDER);     // linear playlist
+                            Tooltip.install(loopB, new Tooltip("Loop mode: loop playlist"));
                             break;
-            case SONG:      loopB.setIcon(AwesomeIcon.REPEAT);      // point  
+            case SONG:      loopB.setIcon(AwesomeIcon.REPEAT);      // point
+                            Tooltip.install(loopB, new Tooltip("Loop mode: loop song"));
                             break;
             case RANDOM:    loopB.setIcon(AwesomeIcon.RANDOM);      // random
+                            Tooltip.install(loopB, new Tooltip("Play mode: random"));
                             break;
-            default:
         }
     }
     private void muteChanged(boolean mute, double valume) {

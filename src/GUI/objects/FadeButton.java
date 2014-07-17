@@ -51,8 +51,13 @@ public class FadeButton extends StackPane {
         
         // react on hover
         hoverProperty().addListener((o,oldV,newV) -> {
-            if(newV) in.play();
-            else out.play();
+            if(newV) {
+                out.stop();
+                in.play();
+            } else {
+                in.stop();
+                out.play();
+            }
         });
     }
     

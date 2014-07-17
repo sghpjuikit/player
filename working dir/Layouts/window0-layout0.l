@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>a1b5d14d-3344-425a-9678-640a6a19d8bb</id>
+  <id>e1b9b021-4a33-4ab3-8cc2-792dd596c5df</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>211a04f1-2b38-43b7-94c3-77ad0213d14c</id>
+          <id>96436f3d-6156-479a-8af4-a7af7e59378d</id>
           <properties>
             <map>
               <entry>
@@ -61,108 +61,27 @@
               </entry>
             </map>
           </properties>
-          <b>false</b>
-          <child class="Layout.Widgets.FXMLWidget">
-            <id>a76d717d-1b38-4fff-8e82-d92fd53b10c1</id>
-            <name>Tagger</name>
-            <configs>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Is preferred</gui__name>
-                <name>preferred</name>
-                <group>FXMLWidget</group>
-                <info>Preferred widget for its widget type.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="boolean">false</defaultValue>
-                <value class="boolean">false</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Read Mode</gui__name>
-                <name>readMode</name>
-                <group>TaggerController</group>
-                <info>Source of data for the widget.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="PseudoObjects.ReadMode">CUSTOM</defaultValue>
-                <value class="PseudoObjects.ReadMode">CUSTOM</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Read mode change on drag</gui__name>
-                <name>changeReadModeOnTransfer</name>
-                <group>TaggerController</group>
-                <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="boolean">false</defaultValue>
-                <value class="boolean">false</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>No value text</gui__name>
-                <name>TAG_NO_VALUE</name>
-                <group>TaggerController</group>
-                <info>Field text in case no tag value for field.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="string">-- no assigned value --</defaultValue>
-                <value class="string">-- no assigned value --</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Multiple value text</gui__name>
-                <name>TAG_MULTIPLE_VALUE</name>
-                <group>TaggerController</group>
-                <info>Field text in case multiple tag values per field.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="string">-- multiple values --</defaultValue>
-                <value class="string">-- multiple values --</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Allow change of playcount</gui__name>
-                <name>allow_playcount_change</name>
-                <group>TaggerController</group>
-                <info>Change editability of playcount field. Generally to prevent change to non customary values.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="boolean">false</defaultValue>
-                <value class="boolean">false</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Field text alignement</gui__name>
-                <name>field_text_alignment</name>
-                <group>TaggerController</group>
-                <info>Alignment of the text in fields.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="javafx.geometry.Pos">CENTER_LEFT</defaultValue>
-                <value class="javafx.geometry.Pos">CENTER_LEFT</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Mood picker popup position</gui__name>
-                <name>popupPos</name>
-                <group>TaggerController</group>
-                <info>Position of the mood picker pop up relative to the mood text field.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="GUI.objects.PopOver.PopOver$NodeCentricPos">DownCenter</defaultValue>
-                <value class="GUI.objects.PopOver.PopOver$NodeCentricPos">DownCenter</value>
-              </Configuration.InstanceFieldConfig>
-            </configs>
+          <b>true</b>
+          <child class="Layout.PolyContainer">
+            <id>5f8b359a-2510-425b-bb69-a6052f2e532b</id>
+            <properties>
+              <map>
+                <entry>
+                  <string>padding</string>
+                  <double>0.0</double>
+                </entry>
+                <entry>
+                  <string>locked</string>
+                  <boolean>false</boolean>
+                </entry>
+                <entry>
+                  <string>selected</string>
+                  <int>0</int>
+                </entry>
+              </map>
+            </properties>
+            <b>false</b>
+            <children/>
           </child>
         </Layout.UniContainer>
       </entry>
@@ -303,12 +222,12 @@
               <entry>
                 <int>2</int>
                 <Layout.UniContainer>
-                  <id>65628086-13c3-4353-966e-c28fd920397f</id>
+                  <id>95ba76d2-24e0-4452-9088-6ac9b36fb9ef</id>
                   <properties>
                     <map>
                       <entry>
                         <string>padding</string>
-                        <double>26.0</double>
+                        <double>0.0</double>
                       </entry>
                       <entry>
                         <string>locked</string>
@@ -318,7 +237,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.ClassWidget">
-                    <id>0b3b2394-c31e-48ac-891d-8294e0e44137</id>
+                    <id>e5a42825-c755-4db2-8336-074eac557b7b</id>
                     <name>Settings</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>

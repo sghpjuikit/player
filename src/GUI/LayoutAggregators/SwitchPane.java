@@ -34,7 +34,7 @@ import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
 public class SwitchPane implements LayoutAggregator {
     
     private final AnchorPane root = new AnchorPane();
-    private final AnchorPane ui = new AnchorPane();
+    public final AnchorPane ui = new AnchorPane();
     
     public SwitchPane() {
         // set ui
@@ -142,7 +142,8 @@ public class SwitchPane implements LayoutAggregator {
     
 /****************************  TAB  ANIMATIONS   ******************************/
     
-    private TranslateTransition uiDrag;
+    private static final double MASS_COEFICIENT = 0.7;
+    private final TranslateTransition uiDrag;
     private double uiCurrX;
     private double uiStartX;
     boolean uiDragActive = false;
@@ -159,24 +160,33 @@ public class SwitchPane implements LayoutAggregator {
         if(!uiDragActive) return;System.out.println("end");
         uiDragActive = false;
         
-        if(always_align_tabs)     // switch tabs if allowed
+        if(always_align_tabs)
             alignTabs(e);
-        else {                  
-            int currT = currTab();
-            double is = ui.getTranslateX();
-            double should_be = -getTabX(currT);
-            double dist = Math.abs(is-should_be);
-            double treshold = uiWidth()/10;
-            if(Math.abs(dist) < treshold) {             // else animation snap if close to edge 
-                uiDrag.setOnFinished( a -> addTab(currT));
-                uiDrag.setToX(should_be);
-                uiDrag.play();
-            } else {                                    // ease out manual drag animation
-                double dir = Math.signum(e.getSceneX()-uiStartX);
-                uiDrag.setOnFinished( a -> addTab(currT));
-                uiDrag.setToX(is + treshold/2 * dir);
-                uiDrag.play();
-            }
+        else {
+            // ease out manual drag animation
+            double x = ui.getTranslateX();
+                                                
+            double traveled = Math.abs(e.getSceneX()-uiStartX);
+            double dir = Math.signum(e.getSceneX()-uiStartX);
+            // simulate mass - the more traveled the longer ease out
+            uiDrag.setToX(x + traveled * MASS_COEFICIENT * dir); 
+            // at the end of animation snap if close to edge 
+            uiDrag.setOnFinished( a -> {
+                int currT = currTab();
+                double is = ui.getTranslateX();
+                double should_be = -getTabX(currT);
+                double dist = Math.abs(is-should_be);
+                double treshold = uiWidth()/20;
+                if(dist < treshold) {             
+                    uiDrag.setOnFinished( of -> addTab(currT));
+                    uiDrag.setToX(should_be);
+                    uiDrag.play();
+                }
+                // & make layout
+                addTab(currT);
+            });
+            uiDrag.play();
+            
         }
         // prevent from propagating the event - disable app behavior while ui drag
         e.consume();

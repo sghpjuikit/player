@@ -13,6 +13,7 @@ import Configuration.ValueConfig;
 import Configuration.ValueConfigurable;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
+import GUI.LayoutAggregators.SwitchPane;
 import GUI.LayoutAggregators.UnLayoutAggregtor;
 import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
@@ -277,6 +278,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML Button miniB;
     @FXML Button minimizeB;
     @FXML Pane colorEffectPane;
+    @FXML AnchorPane bgrImgLayer;
     public @FXML AnchorPane contextPane;
     public @FXML AnchorPane overlayPane;
     
@@ -409,6 +411,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     public void setLayoutAggregator(LayoutAggregator la) {
         Objects.requireNonNull(la);
+        bgrImgLayer.prefWidthProperty().bind(root.widthProperty().multiply(2));
+        
+        bgrImgLayer.translateXProperty().unbind();
+        
         // clear previous content
         layout_aggregator.getLayouts().forEach(Layout::close);
         // set new content
@@ -416,6 +422,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         setContent(layout_aggregator.getRoot());
         // load new content
         layout_aggregator.getLayouts().forEach(Layout::load);
+        
+        bgrImgLayer.translateXProperty().bind(((SwitchPane)la).ui.translateXProperty().divide(10));
     }
     
     /**

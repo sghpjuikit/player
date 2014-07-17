@@ -89,6 +89,7 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
     @FXML
     private void showWidgetArea(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
+        
         Integer i = container.indexOf(this);            // cant use here because it returns null
                                                         // because Layouter is not part of Layout map
         container.addChild(index, Widget.EMPTY());
@@ -96,18 +97,21 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
     @FXML
     private void showSplitV(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
+        
         Integer i = container.indexOf(this);
         container.addChild(index, new BiContainerPure(Orientation.HORIZONTAL));
     }
     @FXML
     private void showSplitH(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
+        
         Integer i = container.indexOf(this);
         container.addChild(index, new BiContainerPure(Orientation.VERTICAL));
     }
     @FXML
     private void showTabs(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
+        
         Integer i = container.indexOf(this);
         container.addChild(index, new PolyContainer());
     }    

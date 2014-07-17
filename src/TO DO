@@ -34,14 +34,14 @@
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
   getWidget - implement Target
-- tagger verifier causes layout graphics to break when mouse over window border
 - Player update item not refreshing selected pl item
 - splitter absolute size for both children
 - rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
-- font does not get applied on main window
+- font does not get applied on main window or its elements                      (NaP, make sure)
+- blurry Configurator graphics
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
@@ -146,6 +146,7 @@ GENERAL
   cause: lazy loading of css file, possible javaFX bug
   note: its interesting Settings widget causes this but not others
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
+- tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug, unsolvable for now)
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
@@ -251,8 +252,7 @@ PERFORMANCE
   cut down number of cycles (200ms should be MORE than enough)
   edit: clock done, reimplement more effectively and clean up
 - played files leak on song change                                              (still an issue ?)
-- improve picture loading
-- images load on separate thread (possibly imageLoader class?)                  (?)
+- test picture loading
 - picker static always in memory - mem leak                                     (not an issue?)
   problem: how to lazy load it if not as static field?
 - layout reload mem leak - investigate                                          (major)

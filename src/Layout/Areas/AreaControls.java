@@ -99,10 +99,10 @@ public final class AreaControls {
                     String info = "";
                     if (c!=null && c instanceof Widget) {
                         WidgetInfo i = ((Widget)c).getInfo();
-                        info = "\n\nWidget: " + i.name() +
-                               "\n\n" +i.description() + 
-                               "\n\n" +i.howto() + 
-                               "\n\n" +i.notes();
+                        info = "\n\nWidget: " + i.name();
+                        if(!i.description().isEmpty()) info += "\n\n" + i.description();  
+                        if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
+                        if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
                     }
                     String text = "Available actions:\n"
                                  + "    Close : Closes the widget\n"

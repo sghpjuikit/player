@@ -104,14 +104,16 @@ public final class AreaControls {
                                "\n\n" +i.howto() + 
                                "\n\n" +i.notes();
                     }
-                    String text = "Available buttons:\n"
-                                 + "    Close : closes the widget\n"
-                                 + "    Detach : opens the widget in new window\n"
-                                 + "    Change : opens widget chooser to pick new widget\n"
-                                 + "    Settings : opens settings for the widget if available\n"
-                                 + "    Refresh : refreshes the widget\n"
-                                 + "    Lock : forbids entering layout mode on mouse hover\n"
-                                 + "           in the top right corner"
+                    String text = "Available actions:\n"
+                                 + "    Close : Closes the widget\n"
+                                 + "    Detach : Opens the widget in new window\n"
+                                 + "    Change : Opens widget chooser to pick new widget\n"
+                                 + "    Settings : Opens settings for the widget if available\n"
+                                 + "    Refresh : Refreshes the widget\n"
+                                 + "    Lock : Forbids entering layout mode on mouse hover\n"
+                                 + "    Drag & Drop : Drags widget to other area\n"
+                                 + "    Sroll : Changes widget size within area\n"
+                                 + "    Middle click : Set widget size to max\n"
                                  + info;
                     Text t = (Text) ((Pane)helpPopOver.getContentNode()).getChildren().get(0);
                          t.setText(text);

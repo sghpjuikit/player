@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>31b3fda4-64be-4b64-b173-4d2a8fc4f138</id>
+  <id>a1b5d14d-3344-425a-9678-640a6a19d8bb</id>
   <properties>
     <map>
       <entry>
@@ -27,7 +27,7 @@
         </entry>
         <entry>
           <string>pos</string>
-          <double>0.5028340080971659</double>
+          <double>0.5028478437754271</double>
         </entry>
         <entry>
           <string>collap</string>
@@ -218,7 +218,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>e7557c5c-024e-4395-b590-e47850854c8c</id>
+                  <id>30ed8414-a53c-44f8-9eed-5e9b70f2651d</id>
                   <properties>
                     <map>
                       <entry>
@@ -233,7 +233,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>20bf067a-0cb0-45a3-9bc9-f8ab09115b54</id>
+                    <id>2c87ed05-3e4a-4c3e-980c-d768c9cee2f5</id>
                     <name>PlayerControls</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>
@@ -308,7 +308,7 @@
                     <map>
                       <entry>
                         <string>padding</string>
-                        <double>0.0</double>
+                        <double>26.0</double>
                       </entry>
                       <entry>
                         <string>locked</string>
@@ -378,8 +378,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string">General</defaultValue>
-                        <value class="string">General</value>
+                        <defaultValue class="string"></defaultValue>
+                        <value class="string"></value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

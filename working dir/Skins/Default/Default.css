@@ -3599,13 +3599,24 @@ is being used to size a border should also be in pixels.
 }
 
 
+// all icons created with AwesomeDude library
+// most of the buttons with an icon in the application
+.awesome {
+    -icons-color: -fx-def-font-color;
+    -fx-text-fill: -fx-def-font-color;
+}
+.awesome: hover {
+    -fx-text-fill: rgba(255,255,255,0.6);
+}
+
+// the following are all subtypes of .awesome
 
 .congfig-field-default-button {
     -fx-font-size: 0.9em;
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
+    //-icons-color: -fx-def-font-color;
+    //-fx-text-fill: -fx-def-font-color;
     -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
 }
  
@@ -3636,4 +3647,27 @@ is being used to size a border should also be in pixels.
  
 .congfig-field-ok-button:hover {
     -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
+}
+
+/***********************************************************************************/
+
+// special button with two graphics and fade transition on hover between them.
+// This way anything can be faded into anything. Simply define the two states
+.fade-button-normal {
+    -fx-font-size: 0.9em;
+    -fx-background-color: transparent;
+    -fx-graphic-text-gap: 0px;
+    -icons-color: -fx-def-font-color;
+    -fx-text-fill: -fx-def-font-color;
+}
+.fade-button-hover {
+    -fx-font-size: 0.9em;
+    -fx-background-color: transparent;
+    -fx-graphic-text-gap: 0px;
+    -icons-color: -fx-sel-font-color;
+    -fx-text-fill: -fx-sel-font-color;
+    -fx-effect: dropshadow( gaussian, -fx-sel-font-color, 5, 0.0 , 0 , 0 );
+}
+.fade-button:hover > .fade-button-hover {
+    -fx-text: "\uf002";
 }

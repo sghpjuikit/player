@@ -41,6 +41,7 @@
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
+- font does not get applied on main window
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------

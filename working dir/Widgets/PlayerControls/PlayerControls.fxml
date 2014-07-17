@@ -3,7 +3,6 @@
 <?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
 <AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="100.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
@@ -13,53 +12,16 @@
         <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <left>
             <BorderPane fx:id="controlPanel" onMouseDragged="#consumeMouseEvent" BorderPane.alignment="CENTER">
-<center><HBox alignment="CENTER" prefHeight="60.0" prefWidth="161.0" spacing="5.0" BorderPane.alignment="CENTER">
-<children>
-                    <ImageView fx:id="previous" fitHeight="20.0" fitWidth="20.0" onMouseClicked="#previous" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@previous.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="rewind" fitHeight="20.0" fitWidth="20.0" onMouseClicked="#rewind" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@rewind.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="play" fitHeight="30.0" fitWidth="30.0" onMouseClicked="#play_pause" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@play.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fitHeight="30.0" fitWidth="30.0" onMouseClicked="#stop" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@stop.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="forward" fitHeight="20.0" fitWidth="20.0" onMouseClicked="#forward" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@forward.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="next" fitHeight="20.0" fitWidth="20.0" onMouseClicked="#next" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@next.png" />
-                      </image>
-                    </ImageView>
-</children></HBox>
+<center><HBox fx:id="playButtons" alignment="CENTER" spacing="5.0" BorderPane.alignment="CENTER" />
 </center>
 <right><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
 <center>
         <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#consumeMouseEvent" pickOnBounds="true" prefHeight="58.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER_LEFT">
           <children>
             <Label id="" fx:id="currTime" onMouseClicked="#cycleElapsed" pickOnBounds="true" text="00:00" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label id="" fx:id="totTime" text="00:00" GridPane.columnIndex="1" GridPane.rowIndex="2" /><HBox prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+            <Label id="" fx:id="totTime" text="00:00" GridPane.columnIndex="1" GridPane.rowIndex="2" /><HBox fx:id="infoBox" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="CENTER">
 <children>
             <Label fx:id="status" text="status" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <ImageView id="" fx:id="loopMode" fitHeight="20.0" fitWidth="20.0" onMouseClicked="#cycleLoopMode" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="2" GridPane.rowIndex="3">
-              <image>
-                <Image preserveRatio="false" smooth="false" url="@loopOFF.png" />
-              </image>
-            </ImageView>
 </children></HBox>
             <Label id="" fx:id="realTime" pickOnBounds="true" text="00:00" GridPane.columnIndex="1" />
           </children>
@@ -87,11 +49,6 @@
                 <GridPane fx:id="soundGrid" alignment="CENTER" BorderPane.alignment="CENTER">
                   <children>
                     <Slider fx:id="volume" prefWidth="110.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                    <ImageView fx:id="mute" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#cycleMute" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@muteOFF.png" />
-                      </image>
-                    </ImageView>
                   </children>
                   <columnConstraints>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="99.0" minWidth="10.0" prefWidth="33.0" />

@@ -11,23 +11,25 @@ import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.Balancer.Balancer;
+import GUI.objects.FadeButton;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import utilities.FileUtil;
@@ -40,14 +42,10 @@ import utilities.Util;
  * @author uranium
  */
 public class PlayerControlsController extends FXMLController implements PlaybackFeature {
-    @FXML ImageView openFile;
+    
+    
     @FXML AnchorPane entireArea;
     @FXML BorderPane controlPanel;
-    @FXML ImageView revind;
-    @FXML ImageView previous;
-    @FXML ImageView play;    
-    @FXML ImageView next;
-    @FXML ImageView forward;
     @FXML GridPane soundGrid;
     @FXML Slider volume;
     @FXML Balancer balance;
@@ -56,8 +54,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label totTime;
     @FXML Label realTime;
     @FXML Label status;
-    @FXML ImageView loopMode;
-    @FXML ImageView mute;
+    
 
     
     @FXML Label titleL;
@@ -66,13 +63,18 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label sampleRateL;
     @FXML Label channelsL;
     
-    Image pauseImg;
-    Image playImg;
-    Image loopOFFImg;
-    Image loopALLImg;
-    Image loopONEImg;
-    Image muteOFFImg;
-    Image muteONImg;
+    @FXML HBox playButtons;
+    FadeButton p1;
+    FadeButton f2;
+    FadeButton f3;
+    FadeButton f4;
+    FadeButton f5;
+    FadeButton f6;
+    FadeButton muteB;
+    FadeButton addB = new FadeButton(AwesomeIcon.PLUS_SQUARE_ALT,10);
+    
+    @FXML HBox infoBox;
+    FadeButton loopB = new FadeButton(AwesomeIcon.RANDOM,14);
     
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
@@ -107,17 +109,45 @@ public class PlayerControlsController extends FXMLController implements Playback
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        seeker.setChapterSnapDistance(GUI.snapDistance);
+        seeker.setChapterSnapDistance(GUI.snapDistance);        
         
-        // load resources
-        pauseImg   = new Image(getResource("pause.png").toURI().toString());
-        playImg    = new Image(getResource("play.png").toURI().toString());
-        loopOFFImg = new Image(getResource("loopOFF.png").toURI().toString());
-        loopALLImg = new Image(getResource("loopALL.png").toURI().toString());
-        loopONEImg = new Image(getResource("loopONE.png").toURI().toString());
-        muteOFFImg = new Image(getResource("muteOFF.png").toURI().toString());
-        muteONImg  = new Image(getResource("muteON.png").toURI().toString());
+        // create play buttons
+        p1 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
+        f2 = new FadeButton(AwesomeIcon.FAST_BACKWARD,25);
+        f3 = new FadeButton(AwesomeIcon.PLAY,25);
+        f4 = new FadeButton(AwesomeIcon.FAST_FORWARD,25);
+        f5 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
+        f6 = new FadeButton(AwesomeIcon.STOP,25);
         
+        p1.setOnMouseClicked(e->previous());
+        f2.setOnMouseClicked(e->rewind());
+        f3.setOnMouseClicked(e->play_pause());
+        f4.setOnMouseClicked(e->stop());
+        f5.setOnMouseClicked(e->forward());
+        f6.setOnMouseClicked(e->next());
+        
+        playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
+        
+        // addButton
+        addB.setOnMouseClicked(e->{
+            if(e.getButton()==MouseButton.PRIMARY)
+                PlaylistManager.addOrEnqueueFiles(true);
+            else
+                PlaylistManager.addOrEnqueueFolder(true);
+        });
+        entireArea.getChildren().add(addB);
+        AnchorPane.setTopAnchor(addB, 5d);
+        AnchorPane.setLeftAnchor(addB, 5d);
+        
+        // loopmode
+        loopB.setOnMouseClicked(e->PLAYBACK.toggleLoopMode());
+        loopB.setScaleX(1.3); // scale horizontally a bit for non-rectangle icon
+        infoBox.getChildren().add(1, loopB);
+        
+        // volume button
+        muteB = new FadeButton(AwesomeIcon.VOLUME_UP,18);
+        muteB.setOnMouseClicked(e->cycleMute());
+        soundGrid.add(muteB, 0, 0);
      
         
         // set updating + initialize manually
@@ -131,13 +161,17 @@ public class PlayerControlsController extends FXMLController implements Playback
         loopModeChanged(PLAYBACK.getLoopMode());                        // init value
                 
         PLAYBACK.muteProperty().addListener(muteListener);              // add listener
-        muteChanged(PLAYBACK.getMute());                                // init value
+        muteChanged(PLAYBACK.getMute(), volume.getValue());             // init value
         
         
         PLAYBACK.totalTimeProperty().addListener(totalTimeListener);    // add listener
         PLAYBACK.realTimeProperty().addListener(realTimeListener);      // add listener        
         PLAYBACK.currentTimeProperty().addListener(currTimeListener);   // add listener
         currTimeListener.invalidated(null);                             // init value
+        
+        ChangeListener<Number> volumeListener = (o,oldV,newV) -> 
+                muteChanged(PLAYBACK.isMute(), newV.doubleValue());
+        volume.valueProperty().addListener(volumeListener);
         
         // support drag transfer
         entireArea.setOnDragOver( e -> {
@@ -245,7 +279,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     private final ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playingItemChanged(newV);
     private final ChangeListener<Status> statusListener = (o,oldV,newV)-> statusChanged(newV);
     private final ChangeListener<LoopMode> loopModeListener = (o,oldV,newV)-> loopModeChanged(newV);
-    private final ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV);
+    private final ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV, volume.getValue());
     private final InvalidationListener currTimeListener = o -> currentTimeChanged();
     private final InvalidationListener realTimeListener = o -> realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       
@@ -271,31 +305,32 @@ public class PlayerControlsController extends FXMLController implements Playback
             status.setText(newStatus.toString()); 
 
             if (newStatus == Status.PLAYING) {
-                play.setImage(pauseImg);
+                f3.setIcon(AwesomeIcon.PAUSE);
             } else {
-                play.setImage(playImg);
+                f3.setIcon(AwesomeIcon.PLAY);
             }
         }
     }
     private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
-            case OFF:       loopMode.setImage(loopOFFImg);
-                            loopMode.setOpacity(0.3);
+            case OFF:       loopB.setIcon(AwesomeIcon.ALIGN_CENTER); // linear
                             break;
-            case PLAYLIST:  loopMode.setImage(loopALLImg);
-                            loopMode.setOpacity(0.6);
+            case PLAYLIST:  loopB.setIcon(AwesomeIcon.REORDER);     // linear playlist
                             break;
-            case SONG:      loopMode.setImage(loopONEImg);
-                            loopMode.setOpacity(0.6);            
+            case SONG:      loopB.setIcon(AwesomeIcon.REPEAT);      // point  
+                            break;
+            case RANDOM:    loopB.setIcon(AwesomeIcon.RANDOM);      // random
                             break;
             default:
         }
     }
-    private void muteChanged(boolean val) {
-        if (val) {
-            mute.setImage(muteOFFImg);
+    private void muteChanged(boolean mute, double valume) {
+        
+        if (mute) {
+            muteB.setIcon(AwesomeIcon.VOLUME_OFF);
         } else {
-            mute.setImage(muteONImg);
+            muteB.setIcon(valume>0.5 
+                    ? AwesomeIcon.VOLUME_UP : AwesomeIcon.VOLUME_DOWN);
         }
     }
     

@@ -52,7 +52,7 @@ public class Text extends javafx.scene.text.Text {
     
     ChangeListener<String> wrapWidthSetter = (o,oldV,newV) -> {
         String s = newV==null ? "" : newV;
-        setWrappingWidth(90+s.length()/4);
+        setWrappingWidth(100+s.length()/4);
     };
     
     private final BooleanProperty wrappingWithNatural = new SimpleBooleanProperty(false) {

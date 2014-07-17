@@ -287,7 +287,8 @@ public class GUI implements Configurable {
         // apply only if application initialized correctly
         if (App.isInitialized()) {
             // we need to apply to each window separately
-            ContextManager.windows.forEach( w ->{
+            List<Window> ws = new ArrayList<>(ContextManager.windows);
+            ws.forEach(w ->{
                 String tmp = font.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;

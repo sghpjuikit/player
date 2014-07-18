@@ -6,8 +6,6 @@
 
 package GUI.objects.Pickers;
 
-import GUI.ContextManager;
-import GUI.objects.PopOver.PopOver;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -22,7 +20,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
-import main.App;
+import utilities.Parser.ToStringConverter;
 import utilities.functional.functor.UnProcedure;
 
 /**
@@ -43,25 +41,22 @@ public class Picker<E> {
     
     /** Style class for cell. */
     public static final String CELL_STYLE_CLASS = "item-picker-button";
-    private static final String STYLE_CLASS = "item-picker";
-    
     private static final int EGAP = 5;      // element gap
     
     private final GridPane grid = new GridPane();
     private final ScrollPane scroll = new ScrollPane(grid);
-    private final PopOver popup = new PopOver(scroll);
     
     private UnProcedure<E> onSelect = item -> {};
-    private ToStringMapper<E> converter = item -> item.toString();
+    private ToStringConverter<E> converter = item -> item.toString();
     private ItemAccumulator<E> accumulator = () -> Stream.empty();
     private CellFactory<E> cellFactory = item -> {
-        String text = converter.convert(item);
+        String text = getConverter().toS(item);
         Label l = new Label(text);
         BorderPane b = new BorderPane();
-               b.setCenter(l);
-               b.setPrefSize(85,20);
-               b.getStyleClass().setAll(CELL_STYLE_CLASS);
-        Tooltip.install(b, new Tooltip(text));
+                   b.setCenter(l);
+                   b.setPrefSize(85,20);
+                   b.getStyleClass().setAll(CELL_STYLE_CLASS);
+                   Tooltip.install(b, new Tooltip(text));
         return b;
     };
     
@@ -73,34 +68,17 @@ public class Picker<E> {
         scroll.setPannable(false);
         scroll.setMaxHeight(450);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        
-        popup.setDetachable(false);
-        popup.setArrowSize(0);
-        popup.setArrowIndent(0);
-        popup.setCornerRadius(0);
-        popup.setAutoHide(true);
-        popup.setAutoFix(true);
-        popup.getStyleClass().setAll(STYLE_CLASS); // doesnt work
-        
-        // support layout mode transition
-        popup.setOnShown(e-> {
-            if(ContextManager.transitForMenu)
-                GUI.GUI.setLayoutMode(true);
-        });
-        popup.setOnHiding(e-> {
-            if(ContextManager.transitForMenu)
-                GUI.GUI.setLayoutMode(false);
-        });
-        
+                
         // consume problematic events and prevent from propagating
         // disables unwanted behavior of the popup
         scroll.addEventFilter(MOUSE_PRESSED, e->e.consume());
         scroll.addEventFilter(MOUSE_DRAGGED, e->e.consume());
     }
     
-    private void buildContent(Node n) {
-        List<E> items = accumulator.accumulate()
-                .sorted((o1,o2) -> converter.convert(o1).compareToIgnoreCase(converter.convert(o2)))
+    private void buildContent() {
+        List<E> items = getAccumulator().accumulate()
+                .sorted((o1,o2) -> getConverter().toS(o1).
+                        compareToIgnoreCase(getConverter().toS(o2)))
                 .collect(Collectors.toList());
         
         grid.getChildren().clear();
@@ -111,10 +89,9 @@ public class Picker<E> {
         // populate
         for (int i=0; i<items.size(); i++) {
             E item = items.get(i);
-            Region cell = cellFactory.createCell(item);
+            Region cell = getCellFactory().createCell(item);
                    cell.setOnMouseClicked( e -> {
-                       onSelect.accept(item);
-                       popup.hideStrong();
+                       getOnSelect().accept(item);
                        e.consume();
                    });
             
@@ -124,24 +101,11 @@ public class Picker<E> {
         }
         
         // calculate size
-        double height = Math.ceil(items.size()/(double)row_size)*(el_h+EGAP)+2*EGAP;
-        double width = row_size*(el_w+EGAP);System.out.println("w "+width);
-        // calculate size fixes
-            // the height fix is remnants of reccuring bug, handles baseline offset
-            // the width fix handles scrollbar 
-        double h_fix = n.getScene().getWindow().equals(App.getWindow().getStage()) ? 0 : 0;
-        double w_fix = scroll.getMaxHeight() < height ? 15 : 0;// needs vertical scrollbar
-        // set size
-        scroll.setPrefSize(width+w_fix,height+h_fix);
-    }
-
-    public void show(Node n, PopOver.NodeCentricPos pos) {
-        buildContent(n);
-        popup.show(n, pos);
-    }
-    
-    public boolean isShowing() {
-        return popup.isShowing();
+        double height = Math.ceil(items.size()/(double)row_size)*(el_h+EGAP)-EGAP;
+        double width = row_size*(el_w+EGAP)-EGAP;
+        
+        if(scroll.getHeight() < height) // FIX THIS
+            scroll.setPrefWidth(width+15);
     }
     
     /***
@@ -149,9 +113,17 @@ public class Picker<E> {
      * Default implementation uses item's toString() method.
      * @param converter coverter. Must not be null;
      */
-    public void setConverter(ToStringMapper<E> converter) {
+    public void setConverter(ToStringConverter<E> converter) {
         Objects.requireNonNull(converter);
         this.converter = converter;
+    }
+    
+    /**
+     * Returns converter. Never null.
+     * @see #setConverter(utilities.Parser.ToStringConverter)
+     */
+    public ToStringConverter<E> getConverter() {
+        return converter;
     }
     
     /***
@@ -162,6 +134,14 @@ public class Picker<E> {
     public void setOnSelect(UnProcedure<E> onSelect) {
         Objects.requireNonNull(onSelect);
         this.onSelect = onSelect;
+    }
+    
+    /**
+     * Returns onSelect handler. Never null.
+     * @see #setOnSelect(utilities.functional.functor.UnProcedure) 
+     */
+    public UnProcedure<E> getOnSelect() {
+        return onSelect;
     }
     
     /***
@@ -175,6 +155,14 @@ public class Picker<E> {
         this.accumulator = acc;
     }
     
+    /**
+     * Returns item accumulator. Never null.
+     * @see #setAccumulator(GUI.objects.Pickers.ItemAccumulator) 
+     */
+    public ItemAccumulator<E> getAccumulator() {
+        return accumulator;
+    }
+    
     /***
      * Sets cell factory.
      * Creates graphic representation of the item.
@@ -185,6 +173,14 @@ public class Picker<E> {
         this.cellFactory = cf;
     }
     
+    /**
+     * Returns cell factory. Never null.
+     * @see #setAccumulator(GUI.objects.Pickers.ItemAccumulator) 
+     */
+    public CellFactory<E> getCellFactory() {
+        return cellFactory;
+    }
+    
     
     protected int calculateRowSize(int items_amount) {
         return 4;
@@ -192,6 +188,11 @@ public class Picker<E> {
     
     public void setMaxWidth(double max_width) {
         
+    }
+    
+    public Node getNode() {
+        buildContent();
+        return scroll;
     }
 }
     

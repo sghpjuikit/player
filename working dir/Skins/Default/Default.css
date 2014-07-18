@@ -3242,8 +3242,8 @@ is being used to size a border should also be in pixels.
 }
 // default background
 .background {
-    -fx-background-image: url("CoarseGrid.png");
-    -fx-background-repeat: repeat;
+    //-fx-background-image: url("CoarseGrid.png");
+    //-fx-background-repeat: repeat;
     -fx-background-color:
         linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
        linear-gradient(#30363b, #292d32),
@@ -3284,7 +3284,7 @@ is being used to size a border should also be in pixels.
 }
 .window:hover {
 }
-.window: focused {
+.window:focused {
 }
 
 // header will inherit default header style
@@ -3313,9 +3313,8 @@ is being used to size a border should also be in pixels.
 .window > .brg-image {
     -fx-opacity:1;
     -fx-background-image: url("bgr.jpg");
-    -fx-background-repeat: repeat;
-    //-fx-background-size: stretch;
-    //-fx-blend-mode: multiply;
+    -fx-background-repeat: no-repeat;
+    -fx-background-size: cover; // maintain aspect ratio, stretch to coverwhole screen
 }
 
 // left, right, bottom borders of the window. There is no top border as there is

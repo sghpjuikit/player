@@ -13,16 +13,22 @@ package utilities.Parser;
  */
 public class StringStringParser implements StringParser<String> {
 
+    /**
+     * @param type
+     * @return true if and only if the class is String
+     */
     @Override
-    public boolean supports(Class type) {
-        return type.equals(String.class);
+    public boolean supports(Class<?> type) {
+        return String.class.isAssignableFrom(type);
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public String fromS(String source) {
         return source;
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public String toS(String object) {
         return object;

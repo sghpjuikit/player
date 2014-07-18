@@ -5,9 +5,7 @@ import GUI.ContextManager;
 import Layout.LayoutManager;
 import Layout.WidgetImpl.Circles;
 import Layout.WidgetImpl.Configurator;
-import Layout.WidgetImpl.Graphs;
 import Layout.WidgetImpl.HtmlEditor;
-import Layout.WidgetImpl.PlaylistManagerComponent;
 import Layout.WidgetImpl.Spectrumator;
 import Layout.Widgets.Features.Feature;
 import java.io.File;
@@ -60,11 +58,12 @@ public final class WidgetManager {
     /** Registers internal widget factories. */
     private static void registerInternalWidgetFactories() {
         new ClassWidgetFactory("Settings", Configurator.class).register();
-        new ClassWidgetFactory("Playlist Manager", PlaylistManagerComponent.class).register();
+        //new ClassWidgetFactory("Playlist Manager", PlaylistManagerComponent.class).register();
         new ClassWidgetFactory("Circles", Circles.class).register();
-        new ClassWidgetFactory("Graphs", Graphs.class).register();
+        //new ClassWidgetFactory("Graphs", Graphs.class).register();
         new ClassWidgetFactory("HTMLEditor", HtmlEditor.class).register();
         new ClassWidgetFactory("Spectrumator", Spectrumator.class).register();
+        new EmptyWidgetFactory().register();
     }
     /**
      * Registers external widget factories.

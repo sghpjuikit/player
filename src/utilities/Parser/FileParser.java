@@ -14,16 +14,22 @@ import java.io.File;
  */
 public class FileParser implements StringParser<File> {
 
+    /**
+     * @param type
+     * @return true if and only if the class is a File
+     */
     @Override
-    public boolean supports(Class type) {
-        return type.equals(File.class);
+    public boolean supports(Class<?> type) {
+        return File.class.isAssignableFrom(type);
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public File fromS(String source) {
         return new File(source);
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public String toS(File object) {
         return object.getPath();

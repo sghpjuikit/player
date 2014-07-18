@@ -37,7 +37,6 @@ import static javafx.scene.input.DataFormat.FILES;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -173,38 +172,12 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             if(e.getButton()==MIDDLE) {
                 setBorderToImage(!isBorderToImage());}
         });
-        
-        // REIMPLEMENT TO TIMELINE and setting border valuethrough css
-//        final FadeTransition fadeIn = new FadeTransition(Duration.millis(animDur), border);
-//            fadeIn.setFromValue(0.3);
-//            fadeIn.setToValue(0.8);
-//        final FadeTransition fadeOut = new FadeTransition(Duration.millis(animDur), border);
-//            fadeOut.setFromValue(0.8);
-//            fadeOut.setToValue(0.3);
-//            
-//        root.setOnMouseEntered( e -> {      // layout();
-//            if (animated)
-//                fadeIn.play();
-//        });            
-//        root.setOnMouseExited( e -> {
-//            if (animated)
-//                fadeOut.play();
-//        });
-       
-        root.addEventHandler(MOUSE_CLICKED, e -> {
-            if (e.getButton() == SECONDARY) {
-//                if (img_file != null)
-//                    ContextManager.showMenu(ContextManager.imageFileMenu,img_file);
-//                else 
-//                    if (getImage() != null)
-//                    ContextManager.showMenu(ContextManager.imageMenu,getImage());
-                double X = root.localToScreen(0, 0).getX() + root.getWidth()/2;
-                double Y = root.localToScreen(0, 0).getY() + root.getHeight()/2;
-                if (img_file != null)
-                    buildFileCM(this).show(root,X,Y);
-                else if (getImage() !=null)
-                    buildImageCM(this).show(root,X,Y);
-            }
+        // context menu, decide mode, build lazily & show where requested
+        root.setOnContextMenuRequested(e -> {               
+            if (img_file != null)
+                getFileCM().show(root,e.getScreenX(),e.getScreenY());
+            else if (getImage() !=null)
+                getImgCM().show(root,e.getScreenX(),e.getScreenY());
         });
         
         size-=borderWidth();
@@ -446,6 +419,19 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
 
 /******************************************************************************/
+    
+    private ContextMenu imgCM;
+    private ContextMenu fileCM;
+    
+    private ContextMenu getFileCM() {
+        if(fileCM==null) fileCM = buildFileCM(this);
+        return fileCM;
+    }
+    
+    private ContextMenu getImgCM() {
+        if(imgCM==null) imgCM = buildImageCM(this);
+        return imgCM;
+    }
     
     private static ContextMenu buildImageCM(Thumbnail thumb) {
         final ContextMenu contextMenu = new ContextMenu();

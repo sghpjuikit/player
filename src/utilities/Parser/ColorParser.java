@@ -14,11 +14,15 @@ import javafx.scene.paint.Color;
  */
 public class ColorParser implements StringParser<Color> {
 
+    /**
+     * @param type
+     * @return true if and only if the class is Color or its subclass
+     */
     @Override
-    public boolean supports(Class type) {
-        return type.equals(Color.class);
+    public boolean supports(Class<?> type) {
+        return Color.class.isAssignableFrom(type);
     }
-
+    
     @Override
     public Color fromS(String source) {
         try {

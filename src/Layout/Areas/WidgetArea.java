@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -45,6 +46,9 @@ public final class WidgetArea extends UniArea {
         AnchorPane.setTopAnchor(controls.root, 0.0);
         AnchorPane.setLeftAnchor(controls.root, 0.0);
         AnchorPane.setRightAnchor(controls.root, 0.0);
+        
+        // support css styling
+        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
         // support drag from
         root.setOnDragDetected( e -> {
@@ -103,19 +107,14 @@ public final class WidgetArea extends UniArea {
         
         widget = w;
         
-//        if(widget.isEmpty()) content.getStyleClass().setAll("darker");
-//        else 
-        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
-        
         // load widget
-        AnchorPane widgetPane;
-        widgetPane = (AnchorPane) w.load();
+        Node wNode = w.load();
         content.getChildren().clear();
-        content.getChildren().add(widgetPane);
-        AnchorPane.setBottomAnchor(widgetPane, 0.0);
-        AnchorPane.setLeftAnchor(widgetPane, 0.0);
-        AnchorPane.setRightAnchor(widgetPane, 0.0);
-        AnchorPane.setTopAnchor(widgetPane, 0.0);
+        content.getChildren().add(wNode);
+        AnchorPane.setBottomAnchor(wNode, 0.0);
+        AnchorPane.setLeftAnchor(wNode, 0.0);
+        AnchorPane.setRightAnchor(wNode, 0.0);
+        AnchorPane.setTopAnchor(wNode, 0.0);
         
         // set controls to new widget
         controls.title.setText(w.getName());                // set title

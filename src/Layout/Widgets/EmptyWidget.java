@@ -8,21 +8,27 @@ import Configuration.Config;
 import java.util.Collections;
 import java.util.List;
 import javafx.scene.Node;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Region;
 
 /**
  * Empty widget.
- * Widget wrapping empty AnchorPane. Its useful for certain layout operations
- * as a fill null object - when no widget is present.
- * 
- * Abstract oriented mind will notice that this widget is its own controller
- * which along with being empty makes an interesting case of primitive widget
- * implementation, because both Controller's getWidget, Widget's getController()
- * point to each other - the same object - itself.
+ * <p>
+ * Useful for certain layout operations and as a fill in for null
+ * <p>.
+ * Also its own Controller. To be able to be part of scene graph it returns
+ * empty node when loaded.
  *  
  * @author uranium
  */
-@WidgetInfo
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Empty",
+    description = "Empty widget with no content or functionality.",
+    version = "1.0",
+    year = "2014",
+    group = Widget.Group.OTHER
+)
 class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> {
 
     public EmptyWidget() {
@@ -43,7 +49,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     
     
     @Override public Node load() {
-        return new AnchorPane();
+        return new Region();
     }
     
     @Override public Controller getController() {

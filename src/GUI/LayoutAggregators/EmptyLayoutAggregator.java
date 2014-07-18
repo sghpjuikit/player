@@ -7,8 +7,8 @@
 package GUI.LayoutAggregators;
 
 import Layout.Layout;
-import static java.util.Collections.EMPTY_LIST;
-import java.util.List;
+import static java.util.Collections.EMPTY_MAP;
+import java.util.Map;
 import javafx.scene.Parent;
 import javafx.scene.layout.Region;
 
@@ -20,8 +20,8 @@ public class EmptyLayoutAggregator implements LayoutAggregator {
 
     /** {@inheritDoc} */
     @Override
-    public List<Layout> getLayouts() {
-        return EMPTY_LIST;
+    public Map<Integer,Layout> getLayouts() {
+        return EMPTY_MAP;
     }
 
     /** {@inheritDoc} */

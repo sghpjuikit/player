@@ -293,12 +293,12 @@ public final class PlaylistTable {
             int i = MathUtil.DecMin1(PlaylistManager.getItems().size());    
             tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
-            double W1 = tmp.getWidth()+5;
+            double W1 = tmp.getWidth()+6;
             
             // column 3
             tmp2.setText("");
             tmp2.setText("00:00");
-            double W3 = tmp2.getWidth()+5;
+            double W3 = tmp2.getWidth()+6;
             
             // slider
             double H = table.getItems().size()*table.getFixedCellSize();

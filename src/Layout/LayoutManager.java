@@ -39,7 +39,7 @@ public final class LayoutManager implements Configurable {
         // get all windows and fetch their layouts
         return ContextManager.windows.stream()
                     .map(w->w.getLayoutAggregator())
-                    .flatMap(la->la.getLayouts().stream());
+                    .flatMap(la->la.getLayouts().values().stream());
     }
     
     /**

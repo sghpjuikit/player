@@ -4,20 +4,18 @@
  * and open the template in the editor.
  */
 
-package GUI.objects.Pickers;
+package utilities.Parser;
 
 /**
  *
  * @author Plutonium_
  */
 @FunctionalInterface
-public interface ToStringMapper<T> {
+public interface ToStringConverter<T> {
     
-    /**
-     * Converts item to String.
-     * @param item
-     * @return string representation of the object according to this mapper's
-     * specification.
+    /** 
+     * Converts object into String.
+     * @return String the object has been converted.
      */
-    String convert(T item);
+    String toS(T object);
 }

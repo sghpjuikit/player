@@ -58,7 +58,6 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
-import javafx.scene.control.Skin;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseEvent;
@@ -74,18 +73,19 @@ import javafx.util.Duration;
 import main.App;
 
 /**
- * The PopOver control provides detailed information about an owning node or 
- * simply displays content in a
- * popup window. The popup window has a very lightweight appearance (no default
+ * Customized popup window with enhanced functionalities and customizations.
+ * <br><p>
+ * The popover can be queried for content safely because of the generic parameter
+ * utilizing {@link #getContentNode()}
+ * <br><p>
+ * The popover can be queried for skin (see {@link #getSkinn()}). The skin
+ * should extend {@link PopOverSkin} and has additional methods that help with
+ * the visual side of the popover.
+ * <br><p>
+ * The popup window has a very lightweight appearance (no default
  * window decorations) and an arrow pointing at the owner. Due to the nature of
  * popup windows the PopOver will move around with the parent window when the
  * user drags it. <br>
- * <center> <img src="popover.png"/> </center>
- * <br>
- * <center> <img src="popover-detached.png"/> </center> <br>
- * The following image shows a popover with an accordion content node. 
- * <br>
- * <center> <img src="popover-accordion.png"/> </center> <br>
  * PopOver controls are automatically resizing themselves when the content node
  * changes its size.
  * <br><p><pre>
@@ -169,8 +169,10 @@ import main.App;
  * popovers. However the owning window will be the owning window of the parent
  * popup, not the popup itself. Although Node inside a popup can be an owner node
  * for another popup.
+ * 
+ * @param <N> Type of Content.
  */
-public class PopOver extends PopupControl {
+public class PopOver<N extends Node> extends PopupControl {
 
     private static final String STYLE_CLASS = "popover";
     public static List<PopOver> active_popups = new ArrayList(); 
@@ -213,16 +215,17 @@ public class PopOver extends PopupControl {
      * @param text
      * @return 
      */
-    public static PopOver createHelpPopOver(String text) {
+    public static PopOver<Text> createHelpPopOver(String text) {
         Text t = new Text(text);
              t.setWrappingWidthNatural(true);
         StackPane r = new StackPane(t);
-               r.setPadding(new Insets(8));
-        PopOver p = new PopOver(r);
-                p.setTitle("Help");
-                p.setAutoHide(true);
-                p.setHideOnClick(true);
-                p.setDetachable(false);
+               
+        PopOver<Text> p = new PopOver(r);
+        p.getSkinn().setContentPadding(new Insets(8));
+        p.setTitle("Help");
+        p.setAutoHide(true);
+        p.setHideOnClick(true);
+        p.setDetachable(false);
         return p;
     }
     
@@ -256,7 +259,7 @@ public class PopOver extends PopupControl {
      * Sets autoFix and consumeAutoHidingEvents to false.
      * @param content shown by the pop over
      */
-    public PopOver(Node content) {
+    public PopOver(N content) {
         this();
         setContentNode(content);
     }
@@ -267,20 +270,27 @@ public class PopOver extends PopupControl {
      * Sets autoFix and consumeAutoHidingEvents to false.
      * @param content shown by the pop over
      */
-    public PopOver(String title, Node content) {
+    public PopOver(String title, N content) {
         this();
         setTitle(title);
         setContentNode(content);
     }
     
     @Override
-    protected Skin<PopOver> createDefaultSkin() {
+    public PopOverSkin createDefaultSkin() {
         return new PopOverSkin(this);
     }
+    /**
+     * Type safe alternative to {@link #getSkin()} which should be avoided.
+     * @return 
+     */
+    public PopOverSkin getSkinn() {
+        return (PopOverSkin) getSkin();
+    }    
     
-    private final ObjectProperty<Node> contentNode = new SimpleObjectProperty<Node>(this, "contentNode") {
-        @Override
-        public void setValue(Node node) {
+    private final ObjectProperty<N> contentNode = new SimpleObjectProperty<N>(this, "contentNode") {
+        @Override public void setValue(N node) {
+            // enforce null check
             Objects.requireNonNull(node, "content node can not be null");
             super.setValue(node);
         }
@@ -290,7 +300,7 @@ public class PopOver extends PopupControl {
      * Returns the content shown by the pop over.
      * @return the content node property
      */
-    public final ObjectProperty<Node> contentNodeProperty() {
+    public final ObjectProperty<N> contentNodeProperty() {
         return contentNode;
     }
 
@@ -300,7 +310,7 @@ public class PopOver extends PopupControl {
      * @return the content node
      * @see #contentProperty()
      */
-    public final Node getContentNode() {
+    public final N getContentNode() {
         return contentNodeProperty().get();
     }
 
@@ -311,8 +321,7 @@ public class PopOver extends PopupControl {
      * @see #contentProperty()
      * @throws  NullPointerException if param null.
      */
-    public final void setContentNode(Node content) {
-        Objects.requireNonNull(content);
+    public final void setContentNode(N content) {
         contentNodeProperty().set(content);
     }
     

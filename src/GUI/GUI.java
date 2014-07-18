@@ -30,6 +30,7 @@ import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
+import utilities.Util;
 
 /**
  *
@@ -152,7 +153,7 @@ public class GUI implements Configurable {
         // get + verify path
         File dir = App.SKIN_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
-            Log.err("Search for skins failed.");
+            Log.err("Search for skins failed." + dir.getPath() + " could not be accessed.");
             return;
         }
         // find skin directories
@@ -178,8 +179,8 @@ public class GUI implements Configurable {
             Log.mess("Skin " + name + " registered.");
         }
         
-        skin.add(STYLESHEET_CASPIAN);
-        skin.add(STYLESHEET_MODENA);
+        skin.add(Util.capitalizeStrong(STYLESHEET_CASPIAN));
+        skin.add(Util.capitalizeStrong(STYLESHEET_MODENA));
     }
     
     public static List<String> getSkins() {
@@ -278,7 +279,7 @@ public class GUI implements Configurable {
 /****************************  applying methods *******************************/
     
     @AppliesConfig(config = "skin")
-    private static void applySkin() {System.out.println("RUNNING SKIN "+skin);
+    private static void applySkin() {
         setSkin(skin.get());
     }
     

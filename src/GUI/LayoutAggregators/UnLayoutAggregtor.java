@@ -8,7 +8,7 @@ package GUI.LayoutAggregators;
 
 import Layout.Layout;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 import javafx.scene.Parent;
 import javafx.scene.layout.AnchorPane;
 
@@ -28,8 +28,8 @@ public class UnLayoutAggregtor implements LayoutAggregator {
 
     /** {@inheritDoc} */
     @Override
-    public List<Layout> getLayouts() {
-        return Collections.singletonList(l);
+    public Map<Integer,Layout> getLayouts() {
+        return Collections.singletonMap(0, l);
     }
 
     /** {@inheritDoc} */

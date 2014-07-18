@@ -64,6 +64,5 @@ public class FadeButton extends StackPane {
     public void setIcon(AwesomeIcon icon) {
           normal.setText(icon.toString());
           hover.setText(icon.toString());
-          System.out.println(icon);
     }
 }

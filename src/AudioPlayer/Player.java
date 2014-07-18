@@ -8,10 +8,7 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import PseudoObjects.ReadMode;
-import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.util.Duration;
 
 /**
@@ -41,18 +38,15 @@ public class Player {
     public static SimpleObjectProperty<Metadata> currentMetadataProperty() {
         return core.currentMetadataCache;
     }
+    
     public static Metadata getPlaylistLastSelectedMetadata() {
         return core.selectedMetadata.get();
     }
+    
     static SimpleObjectProperty<Metadata> playlistLastSelectedMetadataProperty() {
         return core.selectedMetadata;
     }
-    public static List<Metadata> getPlaylistSelectedMetadatas() {
-        return FXCollections.unmodifiableObservableList(core.selectedMetadatas);
-    }
-    static ObservableList<Metadata> playlistSelectedMetadatasProperty() {
-        return core.selectedMetadatas;
-    }
+    
     public static void bindObservedMetadata(SimpleObjectProperty<Metadata> observer, ReadMode mode) {
         observer.unbind();
         switch (mode) {
@@ -86,9 +80,6 @@ public class Player {
     }
     public static void bindSelectedItem(SimpleObjectProperty<PlaylistItem> observer) {
         observer.bind(PlaylistManager.selectedItemProperty());
-    }
-    public static void bindSelectedItems(ObservableList<PlaylistItem> observer) {
-        observer = FXCollections.unmodifiableObservableList(PlaylistManager.getSelectedItems());
     }
     public static void bindPlaylistDuration(SimpleObjectProperty<Duration> observer) {
         observer.bind(PlaylistManager.lengthProperty());

@@ -2,6 +2,7 @@
 package GUI.ItemHolders.ItemTextFields;
 
 import AudioPlayer.tagging.MoodManager;
+import GUI.objects.PopOver.ContextPopOver;
 import GUI.objects.PopOver.PopOver;
 import java.util.stream.Collectors;
 import org.controlsfx.control.textfield.TextFields;
@@ -57,8 +58,12 @@ public class MoodTextField extends ItemTextField<String> {
 
     @Override
     void onDialogAction() {
-        GUI.GUI.MOOD_PICKER.setOnSelect(pickMood);
-        GUI.GUI.MOOD_PICKER.show(this, pos);
+        ContextPopOver pp = new ContextPopOver(GUI.GUI.MOOD_PICKER.getNode());
+        GUI.GUI.MOOD_PICKER.setOnSelect(mood -> {
+            setItem(mood);
+            pp.hide();
+        });
+        pp.show(this, pos);
     }
 
     @Override

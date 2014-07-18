@@ -57,6 +57,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 import javafx.animation.TranslateTransition;
+import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -411,19 +412,27 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     public void setLayoutAggregator(LayoutAggregator la) {
         Objects.requireNonNull(la);
-        bgrImgLayer.prefWidthProperty().bind(root.widthProperty().multiply(2));
         
+        bgrImgLayer.prefWidthProperty().bind(root.widthProperty().multiply(1));
         bgrImgLayer.translateXProperty().unbind();
+        bgrImgLayer.setScaleX(1.25);
+        bgrImgLayer.setScaleY(1.25);
         
         // clear previous content
-        layout_aggregator.getLayouts().forEach(Layout::close);
+        layout_aggregator.getLayouts().values().forEach(Layout::close);
         // set new content
         layout_aggregator = la;
         setContent(layout_aggregator.getRoot());
         // load new content
-        layout_aggregator.getLayouts().forEach(Layout::load);
+        layout_aggregator.getLayouts().values().forEach(Layout::load);
         
-        bgrImgLayer.translateXProperty().bind(((SwitchPane)la).ui.translateXProperty().divide(10));
+        if(la instanceof SwitchPane) {
+        bgrImgLayer.translateXProperty().bind(((SwitchPane)la).ui.translateXProperty().divide(15));
+        bgrImgLayer.translateXProperty().bind(Bindings.max(
+            Bindings.min(bgrImgLayer.widthProperty().multiply(0.12), 
+                         ((SwitchPane)la).ui.translateXProperty().divide(15)),
+            bgrImgLayer.widthProperty().multiply(-0.12)));
+        }
     }
     
     /**
@@ -596,7 +605,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         if(main) WindowManager.serialize();
         // close content- if not main window, it would prevent Layouts form serializing
         // main window closes the app so closing layouts does not play role
-        if(!main) layout_aggregator.getLayouts().forEach(Layout::close);
+        if(!main) layout_aggregator.getLayouts().values().forEach(Layout::close);
         // remove from window list as life time of this ends
         ContextManager.windows.remove(this); 
         if(main) {

@@ -40,6 +40,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -83,9 +84,9 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private Point2D dragStartLocation;
 
-    private final PopOver popOver;
+    private final PopOver<?> popOver;
 
-    public PopOverSkin(final PopOver popOver) {
+    public PopOverSkin(final PopOver<?> popOver) {
 
         this.popOver = popOver;
 
@@ -256,7 +257,23 @@ public class PopOverSkin implements Skin<PopOver> {
     public PopOver getSkinnable() {
         return popOver;
     }
-
+    
+    /**
+     * Sets padding of content within popover. Overrides and defaults to css.
+     * @param i 
+     */
+    public void setContentPadding(Insets i) {
+        content.setPadding(i);
+    }
+    
+    /**
+     * Returns padding of content within popover. Default is css value.
+     * @return 
+     */
+    public Insets getContentPadding() {
+        return content.getPadding();
+    }
+    
     @Override
     public void dispose() {
     }

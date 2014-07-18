@@ -1,8 +1,3 @@
---------------------------------------------------------------------------------
------------------------------------- LEGEND ------------------------------------
---------------------------------------------------------------------------------
-
-- NaP - not a problem
 
 --------------------------------------------------------------------------------
 --------------------- IMMEDIATE  - what is being worked on ---------------------
@@ -16,20 +11,16 @@
 - make ActionConfig, clean configurable & configuration
 - popover padding solve
 - popover position jumps when drag starts
-- the selected playlist metadata caching and all is probably useless, get rid   
-  of it and read the metadata manually
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
 - interrupt reading if double reading
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
-- skin setting
+- skin setting defaulting
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird                          (test)
 - popover set arrow location automatically based on available screen space
 - tab container not remembering its children - why this again                   (major)
-- empty widget vs empty widget area & bgr
-- windows handle negative layouts                                               (major)
 - windows simplify layout saving - all old files can be removed now
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
@@ -40,13 +31,18 @@
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
-- font does not get applied on main window or its elements                      (NaP, make sure)
 - blurry Configurator graphics
+- picker size fix + delete ContextPopOver?
+- rating star button style remove border
+- tab animation speed make dynamic for ultimate naturalness
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- bgr scrolling use easing function to slow it down when close to edges
+  preferrably to infinity so the scroll speed never reaches zero
+  it jsut needs good function and figure out the binding or use listener
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable

@@ -5,16 +5,11 @@
  */
 package AudioPlayer;
 
-import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
-import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.util.Duration;
 import utilities.FxTimer;
 import utilities.Log;
@@ -25,11 +20,10 @@ import utilities.Log;
  */
 final class Core {
     
-    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty<>(Metadata.EMPTY());
-    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty<>(Metadata.EMPTY());
+    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty(Metadata.EMPTY());
+    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty(Metadata.EMPTY());
 
-    final SimpleObjectProperty<Metadata> selectedMetadata = new SimpleObjectProperty<>();
-    final ObservableList<Metadata> selectedMetadatas = FXCollections.observableArrayList();
+    final SimpleObjectProperty<Metadata> selectedMetadata = new SimpleObjectProperty();
 
 
     void initialize(){
@@ -54,16 +48,6 @@ final class Core {
 
             // wait 400ms, preload metadata for next item
             FxTimer.run(Duration.millis(400), () -> preloadNextMetadataCache());
-        });
-
-        // playlist selection changed
-        // -> manage selected playlist items' metadata list
-        // -> manage lastly selected playlist item' list
-        PlaylistManager.getSelectedItems().addListener((ListChangeListener.Change<? extends PlaylistItem> change) -> {
-            while (change.next()){
-                if (change.wasAdded() || change.wasRemoved() || change.wasReplaced())
-                    loadPlaylistSelectedMetadatas();
-            }
         });
     }
 
@@ -118,36 +102,17 @@ final class Core {
 
 /******************************** selected ************************************/
     
-    void loadPlaylistSelectedMetadata(){
-        // this algorithm makes use of the fact that selected items are already
-        // loaded and Last selected must always be among them. No need to add
-        // more listeners and stuff, just look it up
-
+    void loadPlaylistSelectedMetadata() {
         PlaylistItem lastSelected = PlaylistManager.getSelectedItem();
-        for (Metadata m: selectedMetadatas){
-            if (m.same(lastSelected)){
-                selectedMetadata.set(m);
-                Log.deb("In playlist last selected metadata loaded.");
-                return; // return if found
+        
+        MetadataReader.create(lastSelected, (success,result) -> {
+            if (success) {
+                Log.deb("In playlist last selected item metadata loaded.");
+                selectedMetadata.set(result);
+            } else {
+                Log.deb("In playlist last selected item metadata reading failed.");
+                selectedMetadata.set(Metadata.EMPTY());
             }
-        }
-        // handle error
-        Log.deb("In playlist last selected metadata loaded. Empty.");
-        // this must never be called if the loading is success or it can cause
-        // incorrect selected item value and break application behavior
-        selectedMetadata.set(null); // if empty leave null (null=empty)
-    }
-
-    private void loadPlaylistSelectedMetadatas(){
-        List<? extends Item> items = PlaylistManager.getSelectedItems();
-        MetadataReader.readMetadata(items,(success, result) -> {
-            if(success){
-                selectedMetadatas.setAll(result);
-                Log.deb("In playlist selected metadatas loaded.");
-                loadPlaylistSelectedMetadata();
-            }else{
-                //DO_NOTHING
-            } 
         });
     }
 }

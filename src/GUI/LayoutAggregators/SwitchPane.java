@@ -3,9 +3,7 @@ package GUI.LayoutAggregators;
 
 import GUI.GUI;
 import Layout.Layout;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Parent;
@@ -274,8 +272,8 @@ public class SwitchPane implements LayoutAggregator {
     
     /** {@inheritDoc} */
     @Override
-    public List<Layout> getLayouts() {
-        return new ArrayList(layouts.values());
+    public Map<Integer,Layout> getLayouts() {
+        return layouts;
     }
 
     /** {@inheritDoc} */

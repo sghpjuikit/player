@@ -8,6 +8,7 @@ package Layout.Areas;
 
 import GUI.GUI;
 import GUI.objects.Pickers.WidgetPicker;
+import GUI.objects.PopOver.ContextPopOver;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import GUI.objects.SimpleConfigurator;
@@ -39,7 +40,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
@@ -51,7 +51,7 @@ import javafx.util.Duration;
  */
 public final class AreaControls {
     
-    private static PopOver helpPopOver; // we only need one instance for all areas
+    private static PopOver<Text> helpPopOver; // we only need one instance for all areas
     
     @FXML public AnchorPane root = new AnchorPane();
     @FXML public Region deactivator;
@@ -115,11 +115,9 @@ public final class AreaControls {
                                  + "    Sroll : Changes widget size within area\n"
                                  + "    Middle click : Set widget size to max\n"
                                  + info;
-                    Text t = (Text) ((Pane)helpPopOver.getContentNode()).getChildren().get(0);
-                         t.setText(text);
-                   
-                   helpPopOver.show(helpB);
-                   e.consume();
+                    helpPopOver.getContentNode().setText(text);
+                    helpPopOver.show(helpB);
+                    e.consume();
                });
         Button closeB = AwesomeDude.createIconButton(TIMES,"","12","12",CENTER);
                closeB.setTooltip(new Tooltip("Close widget"));
@@ -192,7 +190,7 @@ public final class AreaControls {
                 showWeak();
         });
         // hide when no longer hovered and in weak mode
-        root.addEventFilter(MOUSE_EXITED, e -> {
+        deactivator.addEventFilter(MOUSE_EXITED, e -> {
             // avoid when locked and in strong mode
             if(!area.isUnderLock() && !isShowingStrong && 
                 // avoid pointless operation
@@ -228,10 +226,13 @@ public final class AreaControls {
     }
 
     void choose() {
-        WidgetPicker p = new WidgetPicker();
-                     p.setConverter(widget_factory->widget_factory.name);
-                     p.setOnSelect(factory->area.add(factory.create()));
-                     p.show(propB,NodeCentricPos.Center);
+        WidgetPicker w = new WidgetPicker();
+        ContextPopOver pp = new ContextPopOver(w.getNode());
+        w.setOnSelect(factory -> {
+            area.add(factory.create());
+            pp.hide();
+        });
+        pp.show(propB,NodeCentricPos.Center);
     }
     
     void detach() {

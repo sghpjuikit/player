@@ -485,8 +485,11 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             cBox.setItems(items);
             cBox.getSelectionModel().select(GUI.skin.get());
             cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
-                if(isApplyOnChange()) 
+                if(isApplyOnChange()) {
+                    GUI.skin.set(getItem());
                     GUI.setSkin(getItem());
+                }
+                    
             });
         }
         @Override public String getItem() {

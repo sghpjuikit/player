@@ -7,7 +7,7 @@
 package GUI.LayoutAggregators;
 
 import Layout.Layout;
-import java.util.List;
+import java.util.Map;
 import javafx.scene.Parent;
 
 /**
@@ -20,7 +20,7 @@ public interface LayoutAggregator {
      * Get all layouts of this aggregator.
      * @return 
      */
-    List<Layout> getLayouts();
+    Map<Integer,Layout> getLayouts();
     
     /**
      * Root of this layout aggregator. Use to place the layouts to the scene 

@@ -142,12 +142,17 @@ public interface Util {
         return out;
     }
     
-    /** Converts first letter of the string to upper case. */
+    /** 
+     * Converts first letter of the string to upper case and all others into
+     * lower case.
+     */
     public static String capitalize(String s) {
-        String letter = s.substring(0, 1).toUpperCase();
-        return letter + s.substring(1);
+        return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
-
+    public static String capitalizeStrong(String s) {
+        return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
+    
     /**
      * Anytime you are asked for STRING REPRESENTATION OF THE FILE you want to 
      * use this method if you are not sure what to do.

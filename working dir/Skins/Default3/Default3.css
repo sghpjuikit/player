@@ -3242,8 +3242,8 @@ is being used to size a border should also be in pixels.
 }
 // default background
 .background {
-    -fx-background-image: url("CoarseGrid.png");
-    -fx-background-repeat: repeat;
+    //-fx-background-image: url("CoarseGrid.png");
+    //-fx-background-repeat: repeat;
     -fx-background-color:
         linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
        linear-gradient(#30363b, #292d32),
@@ -3272,19 +3272,19 @@ is being used to size a border should also be in pixels.
 // available pseudoclasses: focused, hover
 
 .window {
-    //-fx-background-image: url("CoarseGrid.png");
-    //-fx-background-repeat: repeat;
+    -fx-background-image: url("CoarseGrid.png");
+    -fx-background-repeat: repeat;
     -fx-background-color:
         linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
        linear-gradient(#30363b, #292d32),
         radial-gradient(center 50% 0%, radius 100%, rgba(124,141,158,0.9), rgba(255,255,255,0));
 
     // try the below for a 'milk' skin
-    //-fx-background-color: white
+    -fx-background-color: white
 }
 .window:hover {
 }
-.window: focused {
+.window:focused {
 }
 
 // header will inherit default header style
@@ -3311,11 +3311,9 @@ is being used to size a border should also be in pixels.
 // sub 1 opacity
 // an example would be a slight image overlay over background
 .window > .brg-image {
-    //-fx-opacity:0.1;
     -fx-opacity:1;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
-    //-fx-blend-mode: multiply;
 }
 
 // left, right, bottom borders of the window. There is no top border as there is

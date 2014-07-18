@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -59,16 +58,24 @@ public class WindowManager {
 
     
     public static void serialize() {
+        // make sure directory is accessible
+        File dir = App.LAYOUT_FOLDER();
+        if (!FileUtil.isValidatedDirectory(dir)) {
+            Log.err("Serialization of windows and layouts failed. " + dir.getPath() +
+                    " could not be accessed.");
+            return;
+        }
+        
         // get windows
         List<Window> src = new ArrayList<>(ContextManager.windows);
         Log.deb("Serializing " + src.size() + " application windows for next session.");
         
         // remove serialized window files from previous session
-        File[] oldFs = App.LAYOUT_FOLDER().listFiles(f->f.getPath().endsWith(".ws"));
+        File[] oldFs = dir.listFiles(f->f.getPath().endsWith(".ws"));
         for(File f: oldFs) f.delete();
         Log.deb("Removing " + oldFs.length + " old windows files from previous session.");
         // remove serialized layout files from previous session
-        File[] oldLsA = App.LAYOUT_FOLDER().listFiles(f->
+        File[] oldLsA = dir.listFiles(f->
             f.getPath().contains("window")&&f.getPath().contains("-layout"));
         // but we have to delay deleting or we can delete new files (a bug)
         // if a layout is going to be serialized into one of the to-be-deleted
@@ -83,18 +90,18 @@ public class WindowManager {
             // ret resources
             Window w = src.get(i);
             String name = "window" + i;
-            File f = new File(App.LAYOUT_FOLDER(), name + ".ws").getAbsoluteFile();
+            File f = new File(dir, name + ".ws").getAbsoluteFile();
             // serialize
             boolean success = w.serializeSupressed(f);
             if (success) count++;
             // serialize contained layouts
-            List<Layout> ls = w.getLayoutAggregator().getLayouts();
-            for(int j=0; j<ls.size(); j++) {
-                Layout l = ls.get(j);
+            for(Map.Entry<Integer,Layout> e : w.getLayoutAggregator().getLayouts().entrySet()) {
+                int index = e.getKey();
+                Layout l = e.getValue();
                 // dont continue if layout empty
                 if(l.getChild() == null || l.getChild() instanceof Layouter) continue;
                 // associate the layout with the window by name & save
-                l.setName("window" + i + "-layout" + j);
+                l.setName("window" + i + "-layout" + index);
                 l.serialize();
                 // remove file from the list of files from previous session
                 oldLs.remove(l.getFile());
@@ -109,25 +116,51 @@ public class WindowManager {
     }
     
     public static void deserialize() {
+        // make sure directory is accessible
+        File dir = App.LAYOUT_FOLDER();
+        if (!FileUtil.isValidatedDirectory(dir)) {
+            Log.err("Deserialization of windows and layouts failed. " + dir.getPath() +
+                    " could not be accessed.");
+            return;
+        }
+        
         Log.deb("Deserializing application windows from next session.");
         // discover all window files with 'ws extension
-        File[] fs = App.LAYOUT_FOLDER().listFiles(f->f.getName().endsWith(".ws"));
+        File[] fs = dir.listFiles(f->f.getName().endsWith(".ws"));
         Log.deb("Discovered " + fs.length + " window files to deserialize.");
         
         // prepare layout files
-        Map<Integer,List<File>> lmap= new HashMap(); // map windowIndex-layoutFiles
-        File[] lfs = App.LAYOUT_FOLDER().listFiles(f->f.getPath().endsWith(".l"));
+        Map<Integer,Map<Integer,File>> lmap= new HashMap(); // map windowIndex-layoutFiles
+        File[] lfs = dir.listFiles(f->f.getPath().endsWith(".l"));
         for(File f : lfs) {
-            // look for the window index for the layout, put 50 as a window amount limit
-            for(int i=0; i<50; i++) { // i - window index
-                // put layout to map's list with index of the window it belongs to
-                if(f.getName().contains("window"+i)) {
-                    if(!lmap.containsKey(i)) lmap.put(i, new ArrayList<>());
-                    lmap.get(i).add(f);
-                    // we found the index, stop searching
-                    break;
-                }
+            // parse string and get window index
+            String name = f.getName();
+            int from = name.indexOf("window");
+            int to = name.indexOf('-');
+            String number = name.substring(from+6, to);
+            int wIndex;
+            try{
+                wIndex = new Integer(number);
+            } catch(NumberFormatException e) {
+                // ignore file if damaged name
+                continue;
             }
+            
+            // parse string and get layout index
+            from = name.indexOf("layout");
+            to = name.indexOf(".");
+            number = name.substring(from+6, to);
+            int lIndex;
+            try{
+                lIndex = new Integer(number);
+            } catch(NumberFormatException e) {
+                // ignore file if damaged name
+                continue;
+            }
+            
+            // put layout to map's list with index of the window it belongs to
+            if(!lmap.containsKey(wIndex)) lmap.put(wIndex, new HashMap());
+            lmap.get(wIndex).put(lIndex,f);
         }
         
         // deserialize windows
@@ -141,16 +174,16 @@ public class WindowManager {
             ws.add(w);
             
             // avoid null if no layout for this window
-            if(lmap.get(i)==null) lmap.put(i,new ArrayList<>());
+            if(lmap.get(i)==null) lmap.put(i,new HashMap<>());
             
-            // otherwise deserialize layout
-            List<Layout> ls = lmap.get(i).stream()
-                    .map(lf->new Layout(FileUtil.getName(lf)).deserialize(lf))
-                    .collect(Collectors.toList());
             
             SwitchPane la = new SwitchPane();
+            // otherwise deserialize layout
+            lmap.get(i).forEach( (at,lf) -> {
+                Layout l = new Layout(FileUtil.getName(lf)).deserialize(lf);
+                la.addTab(at,l);
+            });
             
-            for(int j=0; j<ls.size(); j++) la.addTab(j,ls.get(j));
             w.setLayoutAggregator(la);
         }
         

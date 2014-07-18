@@ -10,6 +10,7 @@ package Layout.Widgets;
  * <p>
  * @author uranium
  */
+@WidgetInfo
 public abstract class WidgetFactory<W extends Widget> {
     public final String name;
     public final WidgetInfo info;
@@ -34,8 +35,10 @@ public abstract class WidgetFactory<W extends Widget> {
         this.controller_class = controller_class;
         
         // init info
+            // grab Controller's class and its annotation
         WidgetInfo i = controller_class.getAnnotation(WidgetInfo.class);
-        info = i!=null ? i : Widget.EMPTY().getController().getClass().getAnnotation(WidgetInfo.class);
+            // initialize default value if not n/a
+        info = i!=null ? i : WidgetFactory.class.getAnnotation(WidgetInfo.class);
         
     }
     

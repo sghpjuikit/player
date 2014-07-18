@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>e1b9b021-4a33-4ab3-8cc2-792dd596c5df</id>
+  <id>92e6f699-89db-4210-8f6d-5f9da7408207</id>
   <properties>
     <map>
       <entry>
@@ -27,7 +27,7 @@
         </entry>
         <entry>
           <string>pos</string>
-          <double>0.5028478437754271</double>
+          <double>0.5028949545078577</double>
         </entry>
         <entry>
           <string>collap</string>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>96436f3d-6156-479a-8af4-a7af7e59378d</id>
+          <id>d6c815b3-17df-4d6b-90dc-406b1db146a2</id>
           <properties>
             <map>
               <entry>
@@ -61,28 +61,7 @@
               </entry>
             </map>
           </properties>
-          <b>true</b>
-          <child class="Layout.PolyContainer">
-            <id>5f8b359a-2510-425b-bb69-a6052f2e532b</id>
-            <properties>
-              <map>
-                <entry>
-                  <string>padding</string>
-                  <double>0.0</double>
-                </entry>
-                <entry>
-                  <string>locked</string>
-                  <boolean>false</boolean>
-                </entry>
-                <entry>
-                  <string>selected</string>
-                  <int>0</int>
-                </entry>
-              </map>
-            </properties>
-            <b>false</b>
-            <children/>
-          </child>
+          <b>false</b>
         </Layout.UniContainer>
       </entry>
       <entry>
@@ -116,7 +95,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.14322916666666666</double>
+                  <double>0.14342105263157895</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -297,8 +276,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string"></defaultValue>
-                        <value class="string"></value>
+                        <defaultValue class="string">GUI</defaultValue>
+                        <value class="string">GUI</value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

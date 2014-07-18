@@ -2,6 +2,9 @@
 package Layout.WidgetImpl;
 
 import Configuration.Config;
+import GUI.objects.Pickers.WidgetPicker;
+import GUI.objects.PopOver.ContextPopOver;
+import GUI.objects.PopOver.PopOver;
 import Layout.AltState;
 import Layout.BiContainerPure;
 import Layout.Container;
@@ -15,12 +18,16 @@ import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
+import javafx.beans.binding.Bindings;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Orientation;
+import static javafx.geometry.Orientation.HORIZONTAL;
+import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
@@ -34,7 +41,7 @@ import utilities.Animation.Interpolators.ElasticInterpolator;
  * TO Do file API section
  */
 @WidgetInfo
-public class Layouter extends Widget implements AltState, Controller<Widget> {
+public final class Layouter extends Widget implements AltState, Controller<Widget> {
     
     private int index;              // hack (see to do API section, layouts)
     
@@ -43,6 +50,7 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
     private final Container container;
     private final FadeTransition anim;
     private final ScaleTransition animS;
+    private boolean enabled = false;
     
     public Layouter(Container con, int index) {
         super("Layouter");
@@ -61,13 +69,30 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
         
         Interpolator i = new ElasticInterpolator(EASE_OUT);
         anim = new FadeTransition(Duration.millis(350), controls);
-//        anim.setInterpolator(i);
+        // anim.setInterpolator(i); // use the LINEAR by defaul instead
         animS = new ScaleTransition(Duration.millis(350), controls);
         animS.setInterpolator(i);
         controls.setOpacity(0);
-        entireArea.setOnMouseEntered( e -> showControls(true));
-        entireArea.setOnMouseExited( e -> showControls(false));
+        
+        setWeakMode(false);
+        
         entireArea.getStyleClass().setAll("darker");
+        
+        // dont show when opacity 0, this has a MouseTransparent=true effect
+        // which we need to prevent clicking on controls when they are 'hidden'
+        controls.visibleProperty().bind(Bindings.notEqual(controls.opacityProperty(),0));
+    }
+
+/****************************  functionality  *********************************/
+    
+    @Override
+    public void show() {
+        showControls(true);
+    }
+
+    @Override
+    public void hide() {
+        showControls(false);
     }
     
     private void showControls(boolean val) {
@@ -86,27 +111,77 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
         animS.play();
     }
     
+    private boolean weakMode = false;
+    
+    /**
+     * In normal mode the controls are displayed on mouse click
+     * In weak mode the controls are displayed on mouse hover
+     * Default false.
+     * @param val 
+     */
+    public void setWeakMode(boolean val) {
+        weakMode = val;
+        
+        // always hide on mouse exit, but make sure it is initialized
+        if (entireArea.getOnMouseExited()==null)
+            entireArea.setOnMouseExited(controlsHider);
+        // swap handlers
+        if(val) {
+            entireArea.setOnMouseClicked(null);
+            entireArea.setOnMouseEntered(controlsShower);
+        } else {
+            entireArea.setOnMouseClicked(controlsShower);
+            entireArea.setOnMouseEntered(null);
+        }
+    }
+    
+    public void toggleWeakMode() {
+        weakMode = !weakMode;
+    }
+    public boolean isWeakMode() {
+        return weakMode;
+    }
+    
+    private final EventHandler<MouseEvent> controlsShower =  e -> {
+        showControls(true);
+        e.consume();
+    };
+    private final EventHandler<MouseEvent> controlsHider =  e -> {
+        if(e.getEventType().equals(MOUSE_CLICKED) && e.getButton()!=PRIMARY) return;
+        showControls(false);
+        e.consume();
+    };
+
+    
     @FXML
     private void showWidgetArea(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
-        
-        Integer i = container.indexOf(this);            // cant use here because it returns null
-                                                        // because Layouter is not part of Layout map
-        container.addChild(index, Widget.EMPTY());
+        // cant use here because it returns null
+        // because Layouter is not part of Layout map
+        // same goes for below methods
+         Integer i = container.indexOf(this);
+         
+        WidgetPicker w = new WidgetPicker();
+        ContextPopOver p = new ContextPopOver(w.getNode());
+                       p.show((Node)e.getSource(), PopOver.NodeCentricPos.UpLeft);
+        w.setOnSelect(f -> {
+            container.addChild(index, f.create());
+            p.hide();
+        });
     }
     @FXML
     private void showSplitV(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
         Integer i = container.indexOf(this);
-        container.addChild(index, new BiContainerPure(Orientation.HORIZONTAL));
+        container.addChild(index, new BiContainerPure(HORIZONTAL));
     }
     @FXML
     private void showSplitH(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
         Integer i = container.indexOf(this);
-        container.addChild(index, new BiContainerPure(Orientation.VERTICAL));
+        container.addChild(index, new BiContainerPure(VERTICAL));
     }
     @FXML
     private void showTabs(MouseEvent e) {
@@ -114,16 +189,6 @@ public class Layouter extends Widget implements AltState, Controller<Widget> {
         
         Integer i = container.indexOf(this);
         container.addChild(index, new PolyContainer());
-    }    
-
-    @Override
-    public void show() {
-        showControls(true);
-    }
-
-    @Override
-    public void hide() {
-        showControls(false);
     }
 
 /****************************  as controller  *********************************/

@@ -589,7 +589,7 @@ public final class Metadata extends MetaItem {
                         ? c 
                         : new FileCover(getCoverFromDirAsFile(), "");
             }
-            default: throw new RuntimeException("Cover fetching error.");
+            default: throw new AssertionError(source + " in default switch value.");
         }
     }
     

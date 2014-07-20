@@ -34,7 +34,6 @@
 - blurry Configurator graphics
 - picker size fix + delete ContextPopOver?
 - rating star button style remove border
-- tab animation speed make dynamic for ultimate naturalness
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
@@ -114,7 +113,6 @@ DIRS
 --------------------------------------------------------------------------------
 
 GENERAL
-- rating not initialized visually on reload                                     (medium)
 - playlist deselecting single items with CTRL not working sometimes             (medium, still an issue?)
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
 - little bug with position slider on repositioning                              (minor)

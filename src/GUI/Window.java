@@ -427,14 +427,47 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         layout_aggregator.getLayouts().values().forEach(Layout::load);
         
         if(la instanceof SwitchPane) {
-        bgrImgLayer.translateXProperty().bind(((SwitchPane)la).ui.translateXProperty().divide(15));
+            
         bgrImgLayer.translateXProperty().bind(Bindings.max(
             Bindings.min(bgrImgLayer.widthProperty().multiply(0.12), 
                          ((SwitchPane)la).ui.translateXProperty().divide(15)),
             bgrImgLayer.widthProperty().multiply(-0.12)));
+            
+//            bgrImgLayer.translateXProperty().bind(
+//                        Bindings.subtract(
+//                            1,
+//                            Bindings.divide(
+//                                1,
+//                                ((SwitchPane)la).ui.translateXProperty().add(1)
+//                            )
+//                        ).multiply(bgrImgLayer.scaleXProperty().divide(2))
+//            );
+            
+//            bgrImgLayer.translateXProperty().bind(
+//                Bindings
+//                    .when(((SwitchPane)la).ui.translateXProperty().greaterThan(0))
+//                    .then(
+//                        Bindings.subtract(
+//                            1,
+//                            Bindings.divide(
+//                                1,
+//                                ((SwitchPane)la).ui.translateXProperty().add(1)
+//                            )
+//                        ).multiply(5)
+//                    ).otherwise(
+//                        Bindings.subtract(
+//                            1,
+//                            Bindings.divide(
+//                                1,
+//                                ((SwitchPane)la).ui.translateXProperty().multiply(-1).add(1)
+//                            )
+//                        ).multiply(-5)
+//                    )
+//            );
+                
         }
     }
-    
+                
     /**
      * Returns layout aggregator of this window.
      * @return layout aggregator, never null.

@@ -28,6 +28,11 @@ import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
+import utilities.AudioFileFormat;
+import static utilities.AudioFileFormat.flac;
+import static utilities.AudioFileFormat.mp3;
+import static utilities.AudioFileFormat.ogg;
+import static utilities.AudioFileFormat.wav;
 import utilities.Log;
 import utilities.Parser.ColorParser;
 import utilities.TODO;
@@ -238,12 +243,14 @@ public class MetadataWriter extends MetaItem {
      * clipped to 0-max value. */
     public void setRating(double val) {
         val = val==-1 ? -1 : clipRating(val);
-        switch(getFormat()) {
+        
+        AudioFileFormat f = getFormat();
+        switch(f) {
             case mp3:   setRatingMP3(val); break;
             case flac:  Log.mess("Unsupported operation."); break;
             case ogg:   Log.mess("Unsupported operation."); break;
             case wav:   Log.mess("Unsupported operation."); break;
-            default: break;
+            default: throw new AssertionError(f + " in default switch value.");
         } 
     }
     
@@ -301,12 +308,14 @@ public class MetadataWriter extends MetaItem {
     
     /** @param val rating to set. -1 to remove the field from tag. */
     public void setPlaycount(int val) {
-        switch(getFormat()) {
+        
+        AudioFileFormat f = getFormat();
+        switch(f) {
             case mp3:   setPlaycountMP3(val); break;
             case flac:  Log.mess("Unsupported operation."); break;
             case ogg:   Log.mess("Unsupported operation."); break;
             case wav:   Log.mess("Unsupported operation."); break;
-            default: break;
+            default: throw new AssertionError(f + " in default switch value.");
         } 
     }
     
@@ -334,12 +343,14 @@ public class MetadataWriter extends MetaItem {
 
     /** @param val the publisher to set  */
     public void setPublisher(String val) {
-        switch(getFormat()) {
+        
+        AudioFileFormat f = getFormat();
+        switch(f) {
             case mp3:   setPublisherMP3(val); break;
             case flac:  Log.mess("Unsupported operation."); break;
             case ogg:   Log.mess("Unsupported operation."); break;
             case wav:   Log.mess("Unsupported operation."); break;
-            default: break;
+            default: throw new AssertionError(f + " in default switch value.");
         }        
     }
     
@@ -368,12 +379,14 @@ public class MetadataWriter extends MetaItem {
      * supporting id3 tag (mp3). For other types (flac, ogg, wav) does nothing.
      */
     public void setUserMailID3(String val) {
-        switch(getFormat()) {
+        
+        AudioFileFormat f = getFormat();
+        switch(f) {
             case mp3:   seUserPopmID3(val); break;
             case flac:  Log.mess("Unsupported operation."); break;
             case ogg:   Log.mess("Unsupported operation."); break;
             case wav:   Log.mess("Unsupported operation."); break;
-            default: break;
+            default: throw new AssertionError(f + " in default switch value.");
         }
     }
     private void seUserPopmID3(String val) {

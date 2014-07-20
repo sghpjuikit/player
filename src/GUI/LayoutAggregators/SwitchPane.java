@@ -16,6 +16,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
+import utilities.FxTimer;
 
 /**
  * Pane with switchable content.
@@ -140,34 +141,48 @@ public class SwitchPane implements LayoutAggregator {
     
 /****************************  TAB  ANIMATIONS   ******************************/
     
-    private static final double MASS_COEFICIENT = 0.7;
+    private static final double MASS_COEFICIENT = 1.5;
     private final TranslateTransition uiDrag;
-    private double uiCurrX;
+    private double uiTransX;
     private double uiStartX;
     boolean uiDragActive = false;
+    
+    private double lastX = 0;
+    private double nowX = 0;
+    FxTimer measurePulser = FxTimer.createPeriodic(Duration.millis(100), () -> {
+        lastX = nowX;
+        nowX = ui.getTranslateX();System.out.println("iii");
+    });
     
     private void startUiDrag(MouseEvent e) {
         if(uiDragActive) return;System.out.println("start");
         uiDrag.stop();
         uiStartX = e.getSceneX();
-        uiCurrX = ui.getTranslateX();
+        uiTransX = ui.getTranslateX();
         uiDragActive = true;
+        measurePulser.restart();
         e.consume();
     }
     private void endUIDrag(MouseEvent e) {
         if(!uiDragActive) return;System.out.println("end");
+        // stop drag
         uiDragActive = false;
-        
+        measurePulser.stop();
+        // handle drag end
         if(always_align_tabs)
             alignTabs(e);
         else {
             // ease out manual drag animation
-            double x = ui.getTranslateX();
-                                                
-            double traveled = Math.abs(e.getSceneX()-uiStartX);
-            double dir = Math.signum(e.getSceneX()-uiStartX);
+            double x = ui.getTranslateX(); 
+            double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
-            uiDrag.setToX(x + traveled * MASS_COEFICIENT * dir); 
+            uiDrag.setToX(x + traveled * MASS_COEFICIENT);
+            uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
+//            uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
+//                @Override protected double baseCurve(double x) {
+//                    return Math.pow(2-2/(x+1), 0.4);
+//                }
+//            });
             // at the end of animation snap if close to edge 
             uiDrag.setOnFinished( a -> {
                 int currT = currTab();
@@ -180,12 +195,14 @@ public class SwitchPane implements LayoutAggregator {
                     uiDrag.setToX(should_be);
                     uiDrag.play();
                 }
-                // & make layout
+                // & make sure layout appears
                 addTab(currT);
             });
             uiDrag.play();
-            
         }
+        // reset
+        nowX = 0;
+        lastX = 0;
         // prevent from propagating the event - disable app behavior while ui drag
         e.consume();
     }
@@ -193,7 +210,7 @@ public class SwitchPane implements LayoutAggregator {
         if(!uiDragActive) return;
         
         double byX = e.getSceneX()-uiStartX;
-        ui.setTranslateX(uiCurrX + byX);
+        ui.setTranslateX(uiTransX + byX);
          
         if(GUI.snapping) {        // snap closest
             double distance = ui.getTranslateX()%(uiWidth()+5);
@@ -205,16 +222,15 @@ public class SwitchPane implements LayoutAggregator {
         e.consume();
     }
     private void alignTabs(MouseEvent e) {
-        double dist = e.getSceneX()-uiStartX;   // distance
+        double dist = lastX==0 ? uiStartX-e.getSceneX() : nowX-lastX;   // distance
         int byT = 0;                            // tabs to travel by
 
         double dAbs = Math.abs(dist);
         if (dAbs > ui.getWidth()*GUI.dragFraction || dAbs > GUI.dragDistance)
             byT = (int) - Math.signum(dist);
 
-        int currentT = (int) Math.rint(-1*uiCurrX/(uiWidth()+5));
+        int currentT = (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
         int toT = currentT + byT;
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA " + toT);
         uiDrag.stop();
         uiDrag.setOnFinished( a -> addTab(toT));
         uiDrag.setToX(-getTabX(toT));
@@ -238,7 +254,7 @@ public class SwitchPane implements LayoutAggregator {
      * @return index of currently viewed tab. It is the tab consuming the most
      * of the view space on the layout screen.
      */
-    public int currTab() {
+    public final int currTab() {
         return (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
     }
     

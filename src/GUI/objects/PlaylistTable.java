@@ -523,7 +523,7 @@ public final class PlaylistTable {
             case BOTTOM_CENTER:
             case CENTER:
             case TOP_CENTER: return val;
-            default: return val;
+            default: throw new AssertionError(val + " in default switch value.");
         }
     }
 /************************************* DATA ***********************************/

@@ -117,8 +117,7 @@ public final class WidgetManager {
                 return Stream.concat(standaloneWidgets.stream(), 
                         LayoutManager.getLayouts()
                             .flatMap(l->l.getAllWidgets().stream()));
-            // error out if not any of the above
-            default: return null; 
+            default: throw new AssertionError(source + " in default switch value.");
         }
     }
     

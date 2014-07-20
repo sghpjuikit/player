@@ -819,7 +819,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case LeftUp:        return RightDown;
                 case LeftCenter:    return RightCenter;
                 case LeftDown:      return RightUp;
-                default: return this;
+                default: throw new AssertionError(this + " in default switch value.");
             }
         }
         public double calcX(Node n, PopOver popup) {
@@ -839,7 +839,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case DownLeft:  return X;
                 case UpRight:
                 case DownRight: return X + n.getBoundsInParent().getWidth() - W;
-                default: return 0;
+                default: throw new AssertionError(this + " in default switch value.");
             }
         }
         public double calcY(Node n, PopOver popup) {
@@ -859,7 +859,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case RightCenter:return Y + n.getBoundsInParent().getHeight()/2-H/2;
                 case LeftDown:
                 case RightDown: return Y + n.getBoundsInParent().getHeight()-H;
-                default: return 0;
+                default: throw new AssertionError(this + " in default switch value.");
             }
         }
     }
@@ -890,7 +890,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case ScreenTopRight:
                 case ScreenBottomRight: return screen.getWidth()-W;
                 case ScreenCenter:      return screen.getWidth()/2-W/2;
-                default:                return screen.getWidth()/2-W/2;
+                default: throw new AssertionError(this + " in default switch value.");
             }
         }
         public double calcY(PopOver popup) {
@@ -908,7 +908,7 @@ public class PopOver<N extends Node> extends PopupControl {
                 case ScreenCenter:      return screen.getHeight()/2-H/2;
                 case ScreenTopLeft:
                 case ScreenTopRight:    return 0;
-                default:                return screen.getHeight()/2-H/2;
+                default: throw new AssertionError(this + " in default switch value.");
             }
         }
     }

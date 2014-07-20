@@ -84,10 +84,16 @@ public abstract class Context_Menu extends Positionable {
     public void add(String name, String tooltip, final Procedure behavior) {
         ContextElement e = null;
         switch(ContextManager.contextMenuItemType) {
-            case BUTTON: e = new ContextButtonElement(this, name, tooltip, behavior); break;
-            case CIRCLE: e = new ContextCircleElement(this, name, tooltip, behavior); break;
-            default:
+            case BUTTON: 
+                e = new ContextButtonElement(this, name, tooltip, behavior);
+                break;
+            case CIRCLE: 
+                e = new ContextCircleElement(this, name, tooltip, behavior);
+                break;
+            default: 
+                throw new AssertionError(ContextManager.contextMenuItemType + " in default switch value.");
         }
+        
         elements.add(e);
         menu.getChildren().add(e.getElement());
             if (e instanceof ContextCircleElement) {

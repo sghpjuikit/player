@@ -3,8 +3,8 @@ package Layout.Widgets;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import Configuration.IsConfig;
 import Configuration.InstanceFieldConfig;
+import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.List;
@@ -91,6 +91,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     /** @return metadata information for this widget. Never null. */
     public WidgetInfo getInfo() {
+        
         return getFactory().getInfo();
     }
     
@@ -105,7 +106,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     /** @return factory that produces this widget */
     public WidgetFactory getFactory() {
-        return WidgetManager.getFactory(name);
+        WidgetFactory f = WidgetManager.getFactory(name);
+        assert f!=null;
+        return f;
     }
     
 /******************************************************************************/

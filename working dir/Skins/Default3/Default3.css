@@ -3234,13 +3234,15 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 // default header class
-.header {/*
+.header {
     -fx-background-color: -fx-pane-color;
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.05) rgba(0, 0, 222, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
     -fx-border-width: 1, 1;
-    -fx-border-insets: -2, -0.5;*/-fx-background-color: null;
+    -fx-border-insets: -2, -0.5;
+    // borderless alternative below
+    //-fx-background-color: null;
 }
 // default background
 .background {
@@ -3310,6 +3312,8 @@ is being used to size a border should also be in pixels.
 // Therefore skinning both header and border to the same background is  recommended
 .window > .w-border {
     -fx-background-color: -fx-pane-color;
+    // borderless alternative below
+    //-fx-background-color: null;
 }
 
 /****************************************************************************************/
@@ -3347,13 +3351,13 @@ is being used to size a border should also be in pixels.
     -fx-border-width: 0;
 }
 .header-button:hover {
-    -fx-background-color: rgba(0,0,0,0.25);
+    -fx-background-color: rgba(250,250,250,0.25);
     -fx-background-insets: 0;
     -fx-border: null;
     -fx-border-width: 0;
 }
 .header-button:pressed {
-    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-background-color: rgba(250,250,250,0.4);
     -fx-background-insets: 0;
     -fx-border: null;
     -fx-border-width: 0;

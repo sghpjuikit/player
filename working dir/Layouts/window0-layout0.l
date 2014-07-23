@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>eb1cd440-0ec1-414c-93b2-7bab02a315f9</id>
+  <id>afca3073-53e6-42f4-8c55-7ba6c587bd77</id>
   <properties>
     <map>
       <entry>
@@ -276,8 +276,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string"></defaultValue>
-                        <value class="string"></value>
+                        <defaultValue class="string">GUI</defaultValue>
+                        <value class="string">GUI</value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

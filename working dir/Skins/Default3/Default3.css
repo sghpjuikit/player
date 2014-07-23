@@ -3234,13 +3234,13 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 // default header class
-.header {
-    -fx-background-color: rgba(0,0,0,0.32);
+.header {/*
+    -fx-background-color: -fx-pane-color;
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.05) rgba(0, 0, 222, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
     -fx-border-width: 1, 1;
-    -fx-border-insets: -2, -0.5;
+    -fx-border-insets: -2, -0.5;*/-fx-background-color: null;
 }
 // default background
 .background {
@@ -3273,33 +3273,14 @@ is being used to size a border should also be in pixels.
 // of root
 // available pseudoclasses: focused, hover
 
-.window {/*
-   // -fx-background-image: url("CoarseGrid.png");
-   // -fx-background-repeat: repeat;
-    -fx-background-color:
-        linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
-       linear-gradient(#30363b, #292d32),
-        radial-gradient(center 50% 0%, radius 100%, rgba(124,141,158,0.9), rgba(255,255,255,0));*/
-
-    // try the below for a 'milk' skin
-    -fx-background-color: white
+.window {
+    // we use bgr image, but fill some basic color behind just in case
+    // if no image is set or is partially transparent this color is the basic bgr
+    -fx-background-color: black;
 }
 .window:hover {
 }
 .window:focused {
-}
-
-// header will inherit default header style
-.window > .header {
-}
-
-
-.window:focused > .header {
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.05) rgba(0, 0, 222, 0.3) rgba(0, 0, 0, 0.3) rgba(255, 255, 255, 0.08);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -1;
 }
 
 // empty layer right above background for brg-image. It is possible to use more
@@ -3312,11 +3293,23 @@ is being used to size a border should also be in pixels.
     -fx-background-size: stretch;
 }
 
+// header will inherit default header style
+.window > .header {
+}
+// lets signal which window has focus by altering the header border slightly
+.window:focused > .header {
+    -fx-border-color: 
+        transparent transparent rgba(255, 255, 255, 0.08) transparent,
+        rgba(255, 255, 255, 0.05) rgba(0, 0, 222, 0.3) rgba(0, 0, 0, 0.3) rgba(255, 255, 255, 0.08);
+    -fx-border-width: 1, 1.5;
+    -fx-border-insets: -2, -1;
+}
+
 // left, right, bottom borders of the window. There is no top border as there is
 // a header instead. When header collapses it turns into top border
 // Therefore skinning both header and border to the same background is  recommended
 .window > .w-border {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: -fx-pane-color;
 }
 
 /****************************************************************************************/

@@ -141,7 +141,7 @@ public class SwitchPane implements LayoutAggregator {
     
 /****************************  TAB  ANIMATIONS   ******************************/
     
-    private static final double MASS_COEFICIENT = 3;//1.5;
+    private static final double MASS_COEFICIENT = 1.5;
     private final TranslateTransition uiDrag;
     private double uiTransX;
     private double uiStartX;
@@ -151,7 +151,7 @@ public class SwitchPane implements LayoutAggregator {
     private double nowX = 0;
     FxTimer measurePulser = FxTimer.createPeriodic(Duration.millis(100), () -> {
         lastX = nowX;
-        nowX = ui.getTranslateX();System.out.println("iii");
+        nowX = ui.getTranslateX();
     });
     
     private void startUiDrag(MouseEvent e) {
@@ -222,12 +222,12 @@ public class SwitchPane implements LayoutAggregator {
         e.consume();
     }
     private void alignTabs(MouseEvent e) {
-        double dist = lastX==0 ? uiStartX-e.getSceneX() : nowX-lastX;   // distance
+        double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
         int byT = 0;                            // tabs to travel by
 
         double dAbs = Math.abs(dist);
         if (dAbs > ui.getWidth()*GUI.dragFraction || dAbs > GUI.dragDistance)
-            byT = (int) - Math.signum(dist);
+            byT = (int) -Math.signum(dist);
 
         int currentT = (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
         int toT = currentT + byT;

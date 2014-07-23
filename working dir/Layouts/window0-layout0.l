@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>17b0b567-5321-4b6a-bafe-2e3ccba60c2e</id>
+  <id>eb1cd440-0ec1-414c-93b2-7bab02a315f9</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>e71133d9-b59b-47d2-acda-b16d41bfabb0</id>
+          <id>b9943b5e-5c1c-428e-9d7a-49fb4705fb30</id>
           <properties>
             <map>
               <entry>
@@ -62,11 +62,6 @@
             </map>
           </properties>
           <b>false</b>
-          <child class="Layout.Widgets.EmptyWidget">
-            <id>3feddb2d-0b76-4b2e-963e-d1ea039b9916</id>
-            <name>Empty</name>
-            <configs class="empty-list"/>
-          </child>
         </Layout.UniContainer>
       </entry>
       <entry>

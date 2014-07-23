@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>bfdb3b46-dd84-45d5-b957-d7a90742cfb4</id>
+  <id>8f1e04ca-2228-4890-9b40-c7f73c7fe153</id>
   <properties>
     <map>
       <entry>
@@ -62,6 +62,11 @@
             </map>
           </properties>
           <b>false</b>
+          <child class="Layout.Widgets.EmptyWidget">
+            <id>3feddb2d-0b76-4b2e-963e-d1ea039b9916</id>
+            <name>Empty</name>
+            <configs class="empty-list"/>
+          </child>
         </Layout.UniContainer>
       </entry>
       <entry>
@@ -95,7 +100,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.1251646903820817</double>
+                  <double>0.10732323232323232</double>
                 </entry>
                 <entry>
                   <string>collap</string>

@@ -130,12 +130,12 @@ public class PlayerControlsController extends FXMLController implements Playback
         seeker.setChapterSnapDistance(GUI.snapDistance);        
         
         // create play buttons
-        p1.setOnMouseClicked(e->previous());
-        f2.setOnMouseClicked(e->rewind());
+        p1.setOnMouseClicked(e->rewind());
+        f2.setOnMouseClicked(e->previous());
         f3.setOnMouseClicked(e->play_pause());
-        f4.setOnMouseClicked(e->stop());
+        f4.setOnMouseClicked(e->next());
         f5.setOnMouseClicked(e->forward());
-        f6.setOnMouseClicked(e->next());
+        f6.setOnMouseClicked(e->stop());
         
         playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
         

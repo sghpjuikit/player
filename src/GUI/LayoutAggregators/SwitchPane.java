@@ -141,7 +141,7 @@ public class SwitchPane implements LayoutAggregator {
     
 /****************************  TAB  ANIMATIONS   ******************************/
     
-    private static final double MASS_COEFICIENT = 1.5;
+    private static final double MASS_COEFICIENT = 3;//1.5;
     private final TranslateTransition uiDrag;
     private double uiTransX;
     private double uiStartX;
@@ -189,7 +189,7 @@ public class SwitchPane implements LayoutAggregator {
                 double is = ui.getTranslateX();
                 double should_be = -getTabX(currT);
                 double dist = Math.abs(is-should_be);
-                double treshold = uiWidth()/20;
+                double treshold = uiWidth()/15;
                 if(dist < treshold) {             
                     uiDrag.setOnFinished( of -> addTab(currT));
                     uiDrag.setToX(should_be);

@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>9ea87231-c37c-4ef5-a796-041a37c93cdd</id>
+  <id>bfdb3b46-dd84-45d5-b957-d7a90742cfb4</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>bfd97f3e-3f48-4e6f-a847-e0188318b880</id>
+          <id>e71133d9-b59b-47d2-acda-b16d41bfabb0</id>
           <properties>
             <map>
               <entry>
@@ -62,11 +62,6 @@
             </map>
           </properties>
           <b>false</b>
-          <child class="Layout.Widgets.EmptyWidget">
-            <id>42dbc333-b8dc-44f0-a770-77a0d19f2028</id>
-            <name>Empty</name>
-            <configs class="empty-list"/>
-          </child>
         </Layout.UniContainer>
       </entry>
       <entry>
@@ -121,7 +116,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>30ed8414-a53c-44f8-9eed-5e9b70f2651d</id>
+                  <id>28caea7b-2373-4752-a3a6-800b3df54206</id>
                   <properties>
                     <map>
                       <entry>
@@ -136,7 +131,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>2c87ed05-3e4a-4c3e-980c-d768c9cee2f5</id>
+                    <id>0c97b17e-4239-48ae-91d4-cb5333a79dc8</id>
                     <name>PlayerControls</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>
@@ -206,7 +201,7 @@
               <entry>
                 <int>2</int>
                 <Layout.UniContainer>
-                  <id>6ed712ad-10b1-48dd-8c49-d744abb9ae10</id>
+                  <id>5f37068c-f281-47d8-a469-f0d147b69c62</id>
                   <properties>
                     <map>
                       <entry>
@@ -221,7 +216,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.ClassWidget">
-                    <id>0491afca-cc78-415a-b547-1847bffe3e7b</id>
+                    <id>fa25c957-9aba-452f-9aad-01e477c4956d</id>
                     <name>Settings</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>

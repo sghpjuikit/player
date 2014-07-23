@@ -3232,13 +3232,13 @@ is being used to size a border should also be in pixels.
  ******************************************************************************/
 
 // default header class
-.header {
+.header {/*
     -fx-background-color: rgba(0,0,0,0.2);
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
     -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
+    -fx-border-insets: -2, -0.5;*/
 }
 // default background
 .background {
@@ -3288,13 +3288,13 @@ is being used to size a border should also be in pixels.
 }
 
 // header will inherit default header style
-.window > .header {
+.window > .header {/*
     -fx-background-color: rgba(0,0,0,0.32);
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.05) rgba(0, 0, 222, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
     -fx-border-width: 1, 1;
-    -fx-border-insets: -2, -0.5;
+    -fx-border-insets: -2, -0.5;*/
 }
 /*
 .window:focused > .header {

@@ -3,13 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- improved Layouter (gui for laying out widgets)
-- fixed certain window functionalities not working when no window has focus
-- fixed skin saving/loading
-- removed broken class SkinEnum
-- creating new window does not create tabs fixed
-- improved window background scrolling
-
 - add uri verifier before adding to playlist and get runtime exception
 - context menus for all windows
 - LastFM saveLogin return boolean success flag - use in Window LastFmB when
@@ -37,7 +30,7 @@
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
-- blurry Configurator graphics in custom3 skin
+- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug?)
 - picker size fix + delete ContextPopOver?
 - rating star button style remove border
 
@@ -46,9 +39,6 @@
 --------------------------------------------------------------------------------
 
 - use layouter from within Area
-- bgr scrolling use easing function to slow it down when close to edges
-  preferrably to infinity so the scroll speed never reaches zero
-  it jsut needs good function and figure out the binding or use listener
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable

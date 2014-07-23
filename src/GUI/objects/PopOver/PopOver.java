@@ -64,7 +64,6 @@ import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -217,15 +216,13 @@ public class PopOver<N extends Node> extends PopupControl {
      */
     public static PopOver<Text> createHelpPopOver(String text) {
         Text t = new Text(text);
-             t.setWrappingWidthNatural(true);
-        StackPane r = new StackPane(t);
-               
-        PopOver<Text> p = new PopOver(r);
-        p.getSkinn().setContentPadding(new Insets(8));
-        p.setTitle("Help");
-        p.setAutoHide(true);
-        p.setHideOnClick(true);
-        p.setDetachable(false);
+             t.setWrappingWidthNatural(true);               
+        PopOver<Text> p = new PopOver(t);
+                      p.getSkinn().setContentPadding(new Insets(8));
+                      p.setTitle("Help");
+                      p.setAutoHide(true);
+                      p.setHideOnClick(true);
+                      p.setDetachable(false);
         return p;
     }
     
@@ -235,6 +232,11 @@ public class PopOver<N extends Node> extends PopupControl {
      */
     public PopOver() {
         super();
+        
+        // we need to make the skin or getSkin() throws null if we call i too 
+        // soon - improve this if possible
+        setSkin(createDefaultSkin());
+        
         getStyleClass().add(STYLE_CLASS);
         setConsumeAutoHidingEvents(false);
         setAutoFix(false);
@@ -277,14 +279,14 @@ public class PopOver<N extends Node> extends PopupControl {
     }
     
     @Override
-    public PopOverSkin createDefaultSkin() {
+    public final PopOverSkin createDefaultSkin() {
         return new PopOverSkin(this);
     }
     /**
      * Type safe alternative to {@link #getSkin()} which should be avoided.
      * @return 
      */
-    public PopOverSkin getSkinn() {
+    public PopOverSkin getSkinn() {System.out.println("getting skin " + getSkin());
         return (PopOverSkin) getSkin();
     }    
     

@@ -2,7 +2,7 @@
 ## Project Specific
 ##########################
 working dir/*.cfg
-working dir/Layouts/*.*
+working dir/Layouts/**
 src/TO DO_YossarianXXII
 
 #####################

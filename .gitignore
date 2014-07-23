@@ -1,3 +1,10 @@
+########################
+## Project Specific
+##########################
+working dir/*.cfg
+working dir/Layouts/*.*
+src/TO DO_YossarianXXII
+
 #####################
 # NetBeans specific #
 #####################
@@ -228,8 +235,3 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-*.l
-*.ws
-working dir/*.cfg
-working dir/Layouts/*.*
-src/TO DO_YossarianXXII

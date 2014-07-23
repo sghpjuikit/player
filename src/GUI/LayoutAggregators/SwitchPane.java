@@ -212,12 +212,12 @@ public class SwitchPane implements LayoutAggregator {
         double byX = e.getSceneX()-uiStartX;
         ui.setTranslateX(uiTransX + byX);
          
-        if(GUI.snapping) {        // snap closest
-            double distance = ui.getTranslateX()%(uiWidth()+5);
-            if(Math.abs(distance) < GUI.snapDistance) {
-                ui.setTranslateX(-getTabX(currTab()));
-            }
-        }
+//        if(GUI.snapping) {        // snap closest
+//            double distance = ui.getTranslateX()%(uiWidth()+5);
+//            if(Math.abs(distance) < GUI.snapDistance) {
+//                ui.setTranslateX(-getTabX(currTab()));
+//            }
+//        }
         // prevent from propagating the event - disable app behavior while ui drag
         e.consume();
     }

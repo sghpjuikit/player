@@ -12,6 +12,7 @@ package utilities;
  * Doesn't provide any abstract methods, instead provides default implementations
  * for two enum traversing methods - next and previous and their static
  * counterparts.
+ * 
  * @param <E> {@link Enum} type. It must be the same type as the extended enum. 
  * For example: {@code enum MyEnum implements CyclicEnum<MyEnum>}
  * <p>

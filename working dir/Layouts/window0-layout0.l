@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>1becfc7f-4e98-483c-a0a8-c76442e1aeee</id>
+  <id>9ea87231-c37c-4ef5-a796-041a37c93cdd</id>
   <properties>
     <map>
       <entry>
@@ -27,7 +27,7 @@
         </entry>
         <entry>
           <string>pos</string>
-          <double>0.5028949545078577</double>
+          <double>0.5077574047954866</double>
         </entry>
         <entry>
           <string>collap</string>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>d6c815b3-17df-4d6b-90dc-406b1db146a2</id>
+          <id>bfd97f3e-3f48-4e6f-a847-e0188318b880</id>
           <properties>
             <map>
               <entry>
@@ -62,6 +62,11 @@
             </map>
           </properties>
           <b>false</b>
+          <child class="Layout.Widgets.EmptyWidget">
+            <id>42dbc333-b8dc-44f0-a770-77a0d19f2028</id>
+            <name>Empty</name>
+            <configs class="empty-list"/>
+          </child>
         </Layout.UniContainer>
       </entry>
       <entry>
@@ -95,7 +100,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.14342105263157895</double>
+                  <double>0.1251646903820817</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -201,7 +206,7 @@
               <entry>
                 <int>2</int>
                 <Layout.UniContainer>
-                  <id>95ba76d2-24e0-4452-9088-6ac9b36fb9ef</id>
+                  <id>6ed712ad-10b1-48dd-8c49-d744abb9ae10</id>
                   <properties>
                     <map>
                       <entry>
@@ -216,7 +221,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.ClassWidget">
-                    <id>e5a42825-c755-4db2-8336-074eac557b7b</id>
+                    <id>0491afca-cc78-415a-b547-1847bffe3e7b</id>
                     <name>Settings</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>
@@ -276,8 +281,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string">GUI</defaultValue>
-                        <value class="string">GUI</value>
+                        <defaultValue class="string"></defaultValue>
+                        <value class="string"></value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

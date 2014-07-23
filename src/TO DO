@@ -3,6 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- improved Layouter (gui for laying out widgets)
+- fixed certain window functionalities not working when no window has focus
+- fixed skin saving/loading
+- removed broken class SkinEnum
+- creating new window does not create tabs fixed
+- improved window background scrolling
+
 - add uri verifier before adding to playlist and get runtime exception
 - context menus for all windows
 - LastFM saveLogin return boolean success flag - use in Window LastFmB when
@@ -16,7 +23,6 @@
 - interrupt reading if double reading
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
-- skin setting defaulting
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird                          (test)
 - popover set arrow location automatically based on available screen space
@@ -25,13 +31,13 @@
 - mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
   getWidget - implement Target
-- Player update item not refreshing selected pl item
+- Player update item not refreshing selected pl item                            ?
 - splitter absolute size for both children
 - rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
-- blurry Configurator graphics
+- blurry Configurator graphics in custom3 skin
 - picker size fix + delete ContextPopOver?
 - rating star button style remove border
 
@@ -39,6 +45,7 @@
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- use layouter from within Area
 - bgr scrolling use easing function to slow it down when close to edges
   preferrably to infinity so the scroll speed never reaches zero
   it jsut needs good function and figure out the binding or use listener
@@ -237,7 +244,8 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
-- InstanceFieldConfig and StaticClassConfig unite into FieldConfig
+- InstanceFieldConfig and StaticClassConfig unite into FieldConfig +
+  config turn into interface
 - make AppConfigurable and make all managers non static
 
 PERFORMANCE

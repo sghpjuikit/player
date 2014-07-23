@@ -14,7 +14,6 @@ import Configuration.ValueConfigurable;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
-import GUI.LayoutAggregators.UnLayoutAggregtor;
 import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
@@ -57,7 +56,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 import javafx.animation.TranslateTransition;
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -122,8 +120,11 @@ import utilities.Util;
 public class Window extends WindowBase implements SelfSerializator<Window> {
     
     /**
-     * Get focused window. There is only one focused window in the application
+     * Get focused window. There is only one at most focused window in the application
      * at once.
+     * <p>
+     * Use {@link #getActive()} for non null alternative that always returns a
+     * Window.
      * <p>
      * Use when querying for focused window. 
      * @return focused window or null if none focused.
@@ -137,16 +138,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      * instead of null.
      * <p>
      * Both methods are equivalent except for when the application itself has no
-     * focus - no window has focus.
+     * focus - which is when no window has focus.
      * <p>
-     * Use when null must be avoided and the main window substitute for focused
-     * window will not cause problem and if this method risk being called when
-     * no window has focus.
+     * Use when null must absolutely be avoided and the main window substitute 
+     * for focused window will not break expected behavior and when this method
+     * can get called when app  has no focus (such as through global shortcut).
      * @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
         return ContextManager.windows.stream()
-                .filter(Window::isFocused).findAny().orElse(null);
+                .filter(Window::isFocused).findAny().orElse(App.getWindow());
     }
     
 /******************************** Configs *************************************/
@@ -403,10 +404,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     public void setContent(Component c) {
         Layout l = new Layout();
-        // also sets parent pane for layout
-        LayoutAggregator la = new UnLayoutAggregtor(l);
-               // set child after parent pane is set for layout 
-               l.setChild(c);
+        SwitchPane la = new SwitchPane();
+                   la.addTab(0, l);
+                   la.setAlwaysAlignTabs(GUI.align_tabs);
+        l.setChild(c);
         setLayoutAggregator(la);
     }
     
@@ -427,44 +428,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         layout_aggregator.getLayouts().values().forEach(Layout::load);
         
         if(la instanceof SwitchPane) {
-            
-        bgrImgLayer.translateXProperty().bind(Bindings.max(
-            Bindings.min(bgrImgLayer.widthProperty().multiply(0.12), 
-                         ((SwitchPane)la).ui.translateXProperty().divide(15)),
-            bgrImgLayer.widthProperty().multiply(-0.12)));
-            
-//            bgrImgLayer.translateXProperty().bind(
-//                        Bindings.subtract(
-//                            1,
-//                            Bindings.divide(
-//                                1,
-//                                ((SwitchPane)la).ui.translateXProperty().add(1)
-//                            )
-//                        ).multiply(bgrImgLayer.scaleXProperty().divide(2))
-//            );
-            
-//            bgrImgLayer.translateXProperty().bind(
-//                Bindings
-//                    .when(((SwitchPane)la).ui.translateXProperty().greaterThan(0))
-//                    .then(
-//                        Bindings.subtract(
-//                            1,
-//                            Bindings.divide(
-//                                1,
-//                                ((SwitchPane)la).ui.translateXProperty().add(1)
-//                            )
-//                        ).multiply(5)
-//                    ).otherwise(
-//                        Bindings.subtract(
-//                            1,
-//                            Bindings.divide(
-//                                1,
-//                                ((SwitchPane)la).ui.translateXProperty().multiply(-1).add(1)
-//                            )
-//                        ).multiply(-5)
-//                    )
-//            );
-                
+            // scroll bgr along with the tabs
+            // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
+            // -try at: http://www.mathe-fa.de
+            ((SwitchPane)la).ui.translateXProperty().addListener((o,oldx,newV) -> {
+                double x = newV.doubleValue();
+                double space = bgrImgLayer.getWidth()*0.125;
+                double dir = Math.signum(x);
+                       x = Math.abs(x);
+                bgrImgLayer.setTranslateX(dir * space * (1-(1/(1+0.0005*x))));
+            });  
         }
     }
                 
@@ -525,13 +498,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         iconI.setImage(img); 
        leftHeaderBox.getChildren().remove(iconI);
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
-       leftHeaderBox.getChildren().add(0, AwesomeDude.createIconLabel(AwesomeIcon.MUSIC,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(3, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_ALT,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_SQUARE,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(4, AwesomeDude.createIconLabel(AwesomeIcon.GITTIP,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(1, AwesomeDude.createIconLabel(AwesomeIcon.CROSSHAIRS,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(2, AwesomeDude.createIconLabel(AwesomeIcon.REFRESH,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITHUB,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_ALT,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_SQUARE,"","15","11", CENTER));
+       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITTIP,"","15","11", CENTER));
        
        // icon button - show all available FontAwesome icons in a popup
         Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);

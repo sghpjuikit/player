@@ -3,7 +3,6 @@ package GUI.ItemHolders;
 
 import Action.Action;
 import Configuration.Config;
-import Configuration.StringEnum;
 import GUI.GUI;
 import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
@@ -238,9 +237,6 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         if (val instanceof File)
             cf = new FileField(f);
         else
-        if (val instanceof StringEnum)
-            cf = new EnumListField(f);
-        else
         if (val instanceof Font)
             cf = new FontField(f);
         else
@@ -406,30 +402,6 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         }
     }
     
-    private static class EnumListField extends ConfigField<StringEnum> {
-        ChoiceBox<StringEnum> cBox;
-        
-        private EnumListField(Config c) {
-            super(c);
-            cBox = new ChoiceBox();
-            cBox.getItems().setAll(value.valuesOrig());
-            cBox.getSelectionModel().select(value);
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
-                if(isApplyOnChange()) applyNsetIfAvailable();
-            });
-        }
-        
-        @Override public Control getNode() {
-            return cBox;
-        }
-        @Override public StringEnum getItem() {
-            return cBox.getValue();
-        }
-        @Override public void refreshItem() {
-            cBox.getSelectionModel().select((StringEnum)config.getValue());
-        }
-    }
-    
     private static class SliderField extends ConfigField<Number> {
         Slider slider;
         private SliderField(Config c) {
@@ -474,34 +446,34 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     
     
     /** Specifically for listing out available skins. */
-    private static class SkinField extends ConfigField<Object> {
-        ChoiceBox<Object> cBox;
+    private static class SkinField extends ConfigField<String> {
+        ChoiceBox<String> cBox;
         
         private SkinField(Config c) {
             super(c);
-            cBox = new ChoiceBox();
-            ObservableList<Object> items = FXCollections.observableArrayList();
+            cBox = new ChoiceBox<>();
+            ObservableList<String> items = FXCollections.observableArrayList();
                                    items.setAll(GUI.getSkins());
             cBox.setItems(items);
-            cBox.getSelectionModel().select(GUI.skin.get());
+            cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
             cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
                 if(isApplyOnChange()) {
-                    GUI.skin.set(getItem());
-                    GUI.setSkin(getItem());
+                    GUI.skin = getItem();
+                    GUI.applySkin();
+//                    applyNsetIfAvailable(); // causes StackOverflow sometimes !
                 }
-                    
             });
         }
-        @Override public String getItem() {
-            return (String)cBox.getValue();
+        @Override public final String getItem() {
+            return cBox.getValue();
         }
 
         @Override
         public void refreshItem() {
-            ObservableList<Object> items = FXCollections.observableArrayList();
-                                   items.setAll(GUI.getSkins());
-            cBox.setItems(items);
-            cBox.getSelectionModel().select(GUI.skin.get());
+//            ObservableList<String> items = FXCollections.observableArrayList();
+//                                   items.setAll(GUI.getSkins());
+//            cBox.setItems(items);
+//            cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
         }
 
         @Override

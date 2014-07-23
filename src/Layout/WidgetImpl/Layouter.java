@@ -3,8 +3,6 @@ package Layout.WidgetImpl;
 
 import Configuration.Config;
 import GUI.objects.Pickers.WidgetPicker;
-import GUI.objects.PopOver.ContextPopOver;
-import GUI.objects.PopOver.PopOver;
 import Layout.AltState;
 import Layout.BiContainerPure;
 import Layout.Container;
@@ -29,10 +27,10 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
+import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
-import utilities.Animation.Interpolators.ElasticInterpolator;
 
 /**
  * @author uranium
@@ -43,14 +41,15 @@ import utilities.Animation.Interpolators.ElasticInterpolator;
 @WidgetInfo
 public final class Layouter extends Widget implements AltState, Controller<Widget> {
     
+    private static final Duration ANIM_DUR = Duration.millis(300);
     private int index;              // hack (see to do API section, layouts)
     
-    @FXML Pane controls;
-    @FXML AnchorPane entireArea = new AnchorPane();
+    @FXML BorderPane controls;
+    @FXML AnchorPane root = new AnchorPane();
+    @FXML AnchorPane content;
     private final Container container;
     private final FadeTransition anim;
     private final ScaleTransition animS;
-    private boolean enabled = false;
     
     public Layouter(Container con, int index) {
         super("Layouter");
@@ -58,7 +57,7 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         this.container = con;
         
         FXMLLoader fxmlLoader = new FXMLLoader(Layouter.class.getResource("Layouter.fxml"));
-        fxmlLoader.setRoot(entireArea);
+        fxmlLoader.setRoot(root);
         fxmlLoader.setController(this);
 
         try {
@@ -67,20 +66,23 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
             throw new RuntimeException(exception);
         }
         
-        Interpolator i = new ElasticInterpolator(EASE_OUT);
-        anim = new FadeTransition(Duration.millis(350), controls);
+        Interpolator i = new CircularInterpolator(EASE_OUT);
+        anim = new FadeTransition(ANIM_DUR, content);
         // anim.setInterpolator(i); // use the LINEAR by defaul instead
-        animS = new ScaleTransition(Duration.millis(350), controls);
+        animS = new ScaleTransition(ANIM_DUR, content);
         animS.setInterpolator(i);
-        controls.setOpacity(0);
+            // initialize state for animations
+        content.setOpacity(0);
         
-        setWeakMode(false);
+        // initialize mode
+        setWeakMode(false); // this needs to be called in constructor
         
-        entireArea.getStyleClass().setAll("darker");
+        // prevent action & allow passing mouse events when not fully visible
+        content.mouseTransparentProperty().bind(Bindings.notEqual(content.opacityProperty(), 1));
         
-        // dont show when opacity 0, this has a MouseTransparent=true effect
-        // which we need to prevent clicking on controls when they are 'hidden'
-        controls.visibleProperty().bind(Bindings.notEqual(controls.opacityProperty(),0));
+        
+        
+        root.getStyleClass().setAll("darker");
     }
 
 /****************************  functionality  *********************************/
@@ -95,7 +97,7 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         showControls(false);
     }
     
-    private void showControls(boolean val) {
+    private void showControls(boolean val) {System.out.println("show " + val);
         anim.stop();
         animS.stop();
         if (val) {
@@ -106,6 +108,13 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
             anim.setToValue(0);
             animS.setToX(0);
             animS.setToY(0);
+            if(content.getChildren().size()>1 && !end) {
+                animS.setOnFinished( ae -> {
+                    controls.setVisible(true);
+                    content.getChildren().retainAll(controls);
+                    animS.setOnFinished(null);
+                });
+            }
         }
         anim.play();
         animS.play();
@@ -123,15 +132,15 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         weakMode = val;
         
         // always hide on mouse exit, but make sure it is initialized
-        if (entireArea.getOnMouseExited()==null)
-            entireArea.setOnMouseExited(controlsHider);
+        if (root.getOnMouseExited()==null)
+            root.setOnMouseExited(controlsHider);
         // swap handlers
         if(val) {
-            entireArea.setOnMouseClicked(null);
-            entireArea.setOnMouseEntered(controlsShower);
+            root.setOnMouseClicked(null);
+            root.setOnMouseEntered(controlsShower);
         } else {
-            entireArea.setOnMouseClicked(controlsShower);
-            entireArea.setOnMouseEntered(null);
+            root.setOnMouseClicked(controlsShower);
+            root.setOnMouseEntered(null);
         }
     }
     
@@ -143,31 +152,54 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
     }
     
     private final EventHandler<MouseEvent> controlsShower =  e -> {
-        showControls(true);
+        show();
         e.consume();
     };
     private final EventHandler<MouseEvent> controlsHider =  e -> {
         if(e.getEventType().equals(MOUSE_CLICKED) && e.getButton()!=PRIMARY) return;
-        showControls(false);
+        hide();
         e.consume();
     };
 
-    
+    // quick fix to prevent overwriting onFinished animation handler
+    boolean end = false;
     @FXML
     private void showWidgetArea(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         // cant use here because it returns null
         // because Layouter is not part of Layout map
         // same goes for below methods
-         Integer i = container.indexOf(this);
+        // Integer i = container.indexOf(this);
          
         WidgetPicker w = new WidgetPicker();
-        ContextPopOver p = new ContextPopOver(w.getNode());
-                       p.show((Node)e.getSource(), PopOver.NodeCentricPos.UpLeft);
         w.setOnSelect(f -> {
-            container.addChild(index, f.create());
-            p.hide();
+            end = true;
+            animS.setOnFinished( a -> {
+                // actually not needed since layouter is removed when widget is
+                // loaded in the container in its place
+//                controls.setVisible(true);
+//                content.getChildren().retainAll(controls);
+//                animS.setOnFinished(null);
+                // this is the crucial part
+                container.addChild(index, f.create());
+            });
+            showControls(false);
         });
+        
+        animS.setOnFinished( ae -> {
+            Node n = w.getNode();
+            content.getChildren().add(n);
+            AnchorPane.setBottomAnchor(n, 0d);
+            AnchorPane.setTopAnchor(n, 0d);
+            AnchorPane.setRightAnchor(n, 0d);
+            AnchorPane.setLeftAnchor(n, 0d);
+            controls.setVisible(false);
+            showControls(true);
+            animS.setOnFinished(null);
+        });
+        showControls(false);
+        
+        e.consume();
     }
     @FXML
     private void showSplitV(MouseEvent e) {
@@ -175,6 +207,8 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         
         Integer i = container.indexOf(this);
         container.addChild(index, new BiContainerPure(HORIZONTAL));
+        
+        e.consume();
     }
     @FXML
     private void showSplitH(MouseEvent e) {
@@ -182,6 +216,8 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         
         Integer i = container.indexOf(this);
         container.addChild(index, new BiContainerPure(VERTICAL));
+        
+        e.consume();
     }
     @FXML
     private void showTabs(MouseEvent e) {
@@ -189,6 +225,8 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         
         Integer i = container.indexOf(this);
         container.addChild(index, new PolyContainer());
+        
+        e.consume();
     }
 
 /****************************  as controller  *********************************/
@@ -212,7 +250,7 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
 /******************************   as widget  **********************************/
     
     @Override public Node load() {
-        return entireArea;
+        return root;
     }
 
     @Override public Controller getController() {

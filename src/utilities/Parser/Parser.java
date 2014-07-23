@@ -1,6 +1,5 @@
 package utilities.Parser;
 
-import Configuration.SkinEnum;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +33,7 @@ public class Parser {
     }
     
     public static boolean supports(Class type) {
-        return  type.equals(SkinEnum.class) ||
-                type.equals(File.class) ||
+        return  type.equals(File.class) ||
                 prim_parser.supports(type) ||
                 font_parser.supports(type) ||
                 valOfParser.supports(type) ||
@@ -51,8 +49,6 @@ public class Parser {
      * @throws UnsupportedOperationException if class type not supported.
      */
     public static Object fromS(Class type, String value) {
-        
-        if (type.equals(SkinEnum.class)) return new SkinEnum(value);
         if (type.equals(File.class))        return new FileParser().fromS(value);
         if(prim_parser.supports(type)) return prim_parser.fromS(type, value);
         if(font_parser.supports(type)) return font_parser.fromS(value);

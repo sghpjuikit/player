@@ -4,15 +4,12 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root fx:id="entireArea" prefHeight="222.0" prefWidth="222.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root fx:id="root" prefHeight="222.0" prefWidth="222.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <BorderPane prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-      <center>
-        <Label opacity="0.51" text="Mouse over to select container" visible="false" BorderPane.alignment="CENTER" />
-      </center>
-    </BorderPane><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<AnchorPane fx:id="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<children><BorderPane fx:id="controls" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <center>
-        <GridPane fx:id="controls" alignment="CENTER" focusTraversable="true" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-48.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
+        <GridPane alignment="CENTER" focusTraversable="true" hgap="5.0" vgap="5.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-48.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
           <children><BorderPane onMouseClicked="#showWidgetArea" styleClass="area-bgr">
 <center><Label mouseTransparent="true" text="Place Widget" BorderPane.alignment="CENTER" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
 </center></BorderPane><BorderPane onMouseClicked="#showTabs" styleClass="area-bgr" GridPane.columnIndex="1">
@@ -33,5 +30,7 @@
           </rowConstraints>
         </GridPane>
 </center></BorderPane>
+</children>
+</AnchorPane>
   </children>
 </fx:root>

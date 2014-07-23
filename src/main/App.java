@@ -112,7 +112,6 @@ public class App extends Application {
         // initialize non critical parts
         Player.loadLast();                      // should load in the end
 
-
         //            new LastFM().initialize();
         NotifierManager.initialize();           // after window is shown (and css aplied)
         PlaycountIncrementer.initialize();

@@ -131,7 +131,7 @@ public abstract class Config<T> {
     
     public abstract boolean applyValue();
     
-    public void setNapplyValue(T val) {;
+    public void setNapplyValue(T val) {
         // set new config value
         boolean was_set = setValue(val);
         // apply new field value on success

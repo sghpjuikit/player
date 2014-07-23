@@ -7,7 +7,6 @@ import Configuration.AppliesConfig;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Configuration.SkinEnum;
 import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
@@ -44,7 +43,7 @@ public class GUI implements Configurable {
     @IsConfig(name = "Font", info = "Application font.")
     public static Font font = Font.getDefault();
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static SkinEnum skin = new SkinEnum("Default");
+    public static String skin = "Default";
     
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
     public static boolean blur_layoutMode = false;
@@ -76,6 +75,7 @@ public class GUI implements Configurable {
     
     // other
     public static boolean alt_state = false;
+    private static final List<String> skins = new ArrayList();
     
     // 'singleton' objects and controls for use within app
     // TO DO: get rid of this
@@ -101,7 +101,7 @@ public class GUI implements Configurable {
         return alt_state;
     }
     /** Loads/refreshes whole gui. */
-    @IsAction(name = "Reload GUI.", description = "Reload application GUI.", shortcut = "F5")
+    @IsAction(name = "Reload GUI.", description = "Reload application GUI. Includes skin, font, layout.", shortcut = "F5")
     public static void refresh() {
         if (App.isInitialized()) {
             applySkin();
@@ -128,20 +128,17 @@ public class GUI implements Configurable {
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
     @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F9")
     public static void toggleMinimize() {
-        if (Window.getFocused() != null)
-            Window.getFocused().toggleMinimize();
+        Window.getActive().toggleMinimize();
     }
     
     @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F10")
     public static void toggleMaximize() {
-        if (Window.getFocused() != null)
-            Window.getFocused().toggleMaximize();
+        Window.getActive().toggleMaximize();
     }
     
     @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F11")
     public static void toggleFullscreen() {
-        if (Window.getFocused() != null)
-            Window.getFocused().toggleFullscreen();
+        Window.getActive().toggleFullscreen();
     }
 
     
@@ -157,34 +154,33 @@ public class GUI implements Configurable {
             return;
         }
         // find skin directories
-        File[] dirs;
-        dirs = dir.listFiles(f -> FileUtil.isValidDirectory(f));
-        // find skins
-        List<File> files = new ArrayList<>();
+        File[] dirs = dir.listFiles(File::isDirectory);
+        // find & register skins
+        Log.mess("Registering external skins.");
+        skins.clear();
         for (File d: dirs) {
-            File[] tmp;
-            tmp = d.listFiles(f -> FileUtil.isValidSkinFile(f));
-            files.add(tmp[0]);
+            String name = d.getName();
+            File css = new File(d, name + ".css");
+            if(FileUtil.isValidFile(css)) {
+                skins.add(name);
+                Log.mess("    Skin " + name + " registered.");
+            }
         }
-        // populate skins
-        skin.removeAll();
-        if (files.isEmpty())
-            Log.mess("Skin folder '" + dir.getPath() + "' is empty. No valid skins found.");
+        
+        if (skins.isEmpty())
+            Log.mess("No skins found.");
         else
-            Log.mess(files.size() + " valid skins found.");
+            Log.mess(skins.size() + " skins found.");
         
-        for (File f : files) {
-            String name = FileUtil.getName(f);
-            skin.add(name);
-            Log.mess("Skin " + name + " registered.");
-        }
-        
-        skin.add(Util.capitalizeStrong(STYLESHEET_CASPIAN));
-        skin.add(Util.capitalizeStrong(STYLESHEET_MODENA));
+        Log.mess("Registering internal skins.");
+        skins.add(Util.capitalizeStrong(STYLESHEET_CASPIAN));
+        skins.add(Util.capitalizeStrong(STYLESHEET_MODENA));
+        Log.mess("    Skin Modena registered.");
+        Log.mess("    Skin Caspian registered.");
     }
     
     public static List<String> getSkins() {
-       return skin.values();
+       return skins;
     }
     
     
@@ -215,7 +211,7 @@ public class GUI implements Configurable {
      * of that method.
      * @param skinname name of the skin to apply.
      */
-    public static void setSkin(String skinname) {
+    public static void setSkin(String skinname) { System.out.println("setting " + skinname + " "+ skin);
         if (skinname == null || skinname.isEmpty() || skinname.equalsIgnoreCase(STYLESHEET_MODENA)) {
             setSkinModena();
         } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
@@ -227,7 +223,7 @@ public class GUI implements Configurable {
     }
     /**
      * Changes application's skin and applies it.
-     * @param skin - css file of the skin to load. It is expected that the skin
+     * @param file - css file of the skin to load. It is expected that the skin
      * will have all its external resources ready and usable or it could fail
      * to load properly.
      * To avoid exceptions and errors, isValidSkinFile() check  is ran on this
@@ -238,18 +234,20 @@ public class GUI implements Configurable {
      * True return value doesnt imply successful skin loading, but guarantees
      * that the new skin has been applied regardless of the success.
      */
-    private static boolean setSkinExternal(File skin) {
-        if (App.getWindowOwner().isInitialized() && FileUtil.isValidSkinFile(skin)) {
+    private static boolean setSkinExternal(File file) {
+        if (App.getWindowOwner().isInitialized() && FileUtil.isValidSkinFile(file)) {
             try {
-                String url = skin.toURI().toURL().toExternalForm();
+                String url = file.toURI().toURL().toExternalForm();
                 // force refresh skin if already set
-                if (GUI.skin.get().equals(FileUtil.getName(skin))) {
+                if (skin.equals(FileUtil.getName(file))) {
                     Application.setUserAgentStylesheet(null);
                     Application.setUserAgentStylesheet(url);
                 // set skin
                 } else {
                     Application.setUserAgentStylesheet(url);
-                    GUI.skin = new SkinEnum(FileUtil.getName(skin));
+                    // TODO
+//                    App.getWindowOwner().getStage().getScene().getRoot().getStylesheets().setAll(url);
+                    skin = FileUtil.getName(file);
                 }
                 return true;
             } catch (MalformedURLException ex) {
@@ -262,7 +260,7 @@ public class GUI implements Configurable {
     private static boolean setSkinModena() {
         if (App.getWindowOwner().isInitialized()) {
             Application.setUserAgentStylesheet(STYLESHEET_MODENA);
-            GUI.skin = new SkinEnum("Modena");
+            skin = "Modena";
             return true;
         }
         return false;
@@ -270,7 +268,7 @@ public class GUI implements Configurable {
     private static boolean setSkinCaspian() {
         if (App.getWindowOwner().isInitialized()) {
             Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
-            GUI.skin = new SkinEnum("Caspian");
+            skin = "Caspian";
             return true;
         }
         return false;
@@ -279,8 +277,8 @@ public class GUI implements Configurable {
 /****************************  applying methods *******************************/
     
     @AppliesConfig(config = "skin")
-    private static void applySkin() {
-        setSkin(skin.get());
+    public static void applySkin() {
+        setSkin(skin);
     }
     
     @AppliesConfig(config = "font")

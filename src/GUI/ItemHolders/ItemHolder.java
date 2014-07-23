@@ -7,7 +7,7 @@
 package GUI.ItemHolders;
 
 /**
- * Denotes an object wrapping a value or a different object as a held item.
+ * Denotes an object wrapping a value or a different object as an item.
  *
  * @author Plutonium_
  */

@@ -7,7 +7,6 @@ import Configuration.AppliesConfig;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
 import Layout.LayoutManager;
@@ -61,17 +60,7 @@ public class GUI implements Configurable {
     public static boolean snapping = true;
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     public static double snapDistance = 7;
-    @IsConfig(name = "Tab always auto align", info = "Always alignes tabs after tab dragging so single tab covers the screen.")
-    public static boolean align_tabs = true;
-    @IsConfig(name = "Tab switch min drag distance", info = "Required length of drag at"
-            + " which tab switch animation gets activated. Tab switch activates if"
-            + " at least one condition is fulfilled min distance or min fraction.")
-    public static double dragDistance = 350;
-    @IsConfig(name = "Tab switch min drag fraction", info = "Required length of drag as"
-            + " a fraction of window at which tab switch animation gets activated."
-            + " Tab switch activates if at least one condition is fulfilled min "
-            + "distance or min fraction.", min=0.0, max=1.0)
-    public static double dragFraction = 350;
+
     
     // other
     public static boolean alt_state = false;
@@ -107,7 +96,6 @@ public class GUI implements Configurable {
             applySkin();
             applyFont();
             loadLayout();
-            applyAlignTabs();
         }
     }
     
@@ -302,14 +290,5 @@ public class GUI implements Configurable {
                 );
             });
         }
-    }
-    
-    @AppliesConfig(config = "align_tabs")
-    private static void applyAlignTabs() {
-        ContextManager.windows.stream()
-                .map(Window::getLayoutAggregator)
-                .filter(la->la instanceof SwitchPane)
-                .map(la->(SwitchPane)la)
-                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
 }

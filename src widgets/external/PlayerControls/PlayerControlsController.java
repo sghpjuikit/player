@@ -18,6 +18,9 @@ import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_DOWN;
+import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_OFF;
+import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_UP;
 import java.io.File;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
@@ -88,7 +91,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     FadeButton f4 = new FadeButton(AwesomeIcon.FAST_FORWARD,25);
     FadeButton f5 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
     FadeButton f6 = new FadeButton(AwesomeIcon.STOP,25);
-    FadeButton muteB = new FadeButton(AwesomeIcon.VOLUME_UP,18);
+    FadeButton muteB = new FadeButton(AwesomeIcon.VOLUME_UP,15);
     FadeButton addB = new FadeButton(AwesomeIcon.PLUS_SQUARE_ALT,10);
     
     @FXML HBox infoBox;
@@ -341,10 +344,9 @@ public class PlayerControlsController extends FXMLController implements Playback
     private void muteChanged(boolean mute, double valume) {
         
         if (mute) {
-            muteB.setIcon(AwesomeIcon.VOLUME_OFF);
+            muteB.setIcon(VOLUME_OFF);
         } else {
-            muteB.setIcon(valume>0.5 
-                    ? AwesomeIcon.VOLUME_UP : AwesomeIcon.VOLUME_DOWN);
+            muteB.setIcon(valume>0.5 ? VOLUME_UP : VOLUME_DOWN);
         }
     }
     

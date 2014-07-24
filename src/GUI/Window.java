@@ -388,7 +388,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         Layout l = new Layout();
         SwitchPane la = new SwitchPane();
                    la.addTab(0, l);
-                   la.setAlwaysAlignTabs(GUI.align_tabs);
+                   la.setAlwaysAlignTabs(SwitchPane.align_tabs);
         l.setChild(c);
         setLayoutAggregator(la);
     }
@@ -539,6 +539,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             }
         });
         lastFMB.setTooltip(new Tooltip("LastFM"));
+        lastFMB.setDisable(true);
        // help button - show hel information
         Label helpB = AwesomeDude.createIconLabel(INFO,"","15","11",CENTER);
         helpB.setOnMouseClicked( e -> {

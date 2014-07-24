@@ -1,9 +1,11 @@
 
 package GUI.LayoutAggregators;
 
+import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.GUI;
+import GUI.ContextManager;
+import GUI.Window;
 import Layout.Layout;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +39,52 @@ import utilities.FxTimer;
  */
 @IsConfigurable("Tabs")
 public class SwitchPane implements LayoutAggregator {
+    
+    @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
+            + " Tabs are always aligned. Seamless mode alows any tab position.")
+    public static boolean align_tabs = true;
+    @IsConfig(name = "Switch drag distance (D)", info = "Required length of drag at"
+            + " which tab switch animation gets activated. Tab switch activates if"
+            + " at least one condition is fulfilled min distance or min fraction.")
+    private static double min_tab_switch_dist = 250;
+    @IsConfig(name = "Switch drag distance coeficient (D)", info = "Defines distance from edge in "
+            + "percent of tab's width in which the tab switches.", min = 0, max = 1)
+    private static double min_tab_switch_coeficient = 0.2;
+    @IsConfig(name = "Drag inertia (S)", info = "Inertia of the tab switch animation. "
+            + "Defines distance the dragging will travel after input has been stopped. Only when ", min = 0, max = 10)
+    private static double DRAG_INERTIA = 1.5;
+    @IsConfig(name = "Snap tabs (S)", info = "Align tabs when close to edge.")
+    public static boolean snap_tabs = true;
+    @IsConfig(name = "Snap distance coeficient (S)", info = "Defines distance from edge in "
+            + "percent of tab's width in which the tab autoalignes. Setting to maximum "
+            + "(0.5) has effect of always snapping the tabs, while setting to minimum"
+            + " (0) has effect of disabling tab snapping.", min = 0, max = 0.5)
+    private static double SNAP_TRESHOLD_COEFICIENT = 0.05;
+    @IsConfig(name = "Snap distance (S)", info = "Required distance from edge at"
+            + " which tabs align. Tab snap activates if"
+            + " at least one condition is fulfilled min distance or min fraction.")
+    public static double SNAP_TRESHOLD_DIST = 25;
+    
+    @AppliesConfig(config = "align_tabs")
+    private static void applyAlignTabs() {
+        ContextManager.windows.stream()
+                .map(Window::getLayoutAggregator)
+                .filter(la->la instanceof SwitchPane)
+                .map(la->(SwitchPane)la)
+                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
+    }
+    
+    @AppliesConfig(config = "snap_tabs")
+    private static void applySnapTabs() {
+        ContextManager.windows.stream()
+                .map(Window::getLayoutAggregator)
+                .filter(la->la instanceof SwitchPane)
+                .map(la->(SwitchPane)la)
+                .forEach(sp -> sp.snapTabs());
+    }
+    
+/******************************************************************************/
+    
     
     private final AnchorPane root = new AnchorPane();
     public final AnchorPane ui = new AnchorPane();
@@ -166,12 +214,6 @@ public class SwitchPane implements LayoutAggregator {
     
 /****************************  DRAG ANIMATIONS   ******************************/
     
-    @IsConfig(name = "Animation inertia", info = "Inertia of the tab switch animation.", min = 0, max = 10)
-    private static double MASS_COEFICIENT = 1.5;
-    @IsConfig(name = "Snap activation treshold", info = "Defines region close to edge in "
-            + "percent of tab's width in which the tab autoalignes.", min = 0, max = 0.5)
-    private static double SNAP_TRESHOLD_COEFICIENT = 0.5;
-    
     private final TranslateTransition uiDrag;
     private double uiTransX;
     private double uiStartX;
@@ -199,35 +241,22 @@ public class SwitchPane implements LayoutAggregator {
         uiDragActive = false;
         measurePulser.stop();
         // handle drag end
-        if(always_align_tabs)
-            alignTabs(e);
+        if(always_align)
+            alignNextTab(e);
         else {
             // ease out manual drag animation
-            double x = ui.getTranslateX(); 
+            double x = ui.getTranslateX();
             double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
-            uiDrag.setToX(x + traveled * MASS_COEFICIENT);
+            uiDrag.setToX(x + traveled * DRAG_INERTIA);
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
 //            uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
 //                @Override protected double baseCurve(double x) {
 //                    return Math.pow(2-2/(x+1), 0.4);
 //                }
 //            });
-            // at the end of animation snap if close to edge 
-            uiDrag.setOnFinished( a -> {
-                int currT = currTab();
-                double is = ui.getTranslateX();
-                double should_be = -getTabX(currT);
-                double dist = Math.abs(is-should_be);
-                double treshold = uiWidth()*SNAP_TRESHOLD_COEFICIENT;
-                if(dist < treshold) {             
-                    uiDrag.setOnFinished( of -> addTab(currT));
-                    uiDrag.setToX(should_be);
-                    uiDrag.play();
-                }
-                // & make sure layout appears
-                addTab(currT);
-            });
+            // snap at the end of animation 
+            uiDrag.setOnFinished( a -> snapTabs());
             uiDrag.play();
         }
         // reset
@@ -238,39 +267,20 @@ public class SwitchPane implements LayoutAggregator {
     }
     private void dragUi(MouseEvent e) {
         if(!uiDragActive) return;
-        
+        // drag
         double byX = e.getSceneX()-uiStartX;
         ui.setTranslateX(uiTransX + byX);
-         
-//        if(GUI.snapping) {        // snap closest
-//            double distance = ui.getTranslateX()%(uiWidth()+5);
-//            if(Math.abs(distance) < GUI.snapDistance) {
-//                ui.setTranslateX(-getTabX(currTab()));
-//            }
-//        }
         // prevent from propagating the event - disable app behavior while ui drag
         e.consume();
     }
-    private void alignTabs(MouseEvent e) {
-        double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
-        int byT = 0;                            // tabs to travel by
 
-        double dAbs = Math.abs(dist);
-        if (dAbs > ui.getWidth()*GUI.dragFraction || dAbs > GUI.dragDistance)
-            byT = (int) -Math.signum(dist);
-
-        int currentT = (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
-        int toT = currentT + byT;
-        uiDrag.stop();
-        uiDrag.setOnFinished( a -> addTab(toT));
-        uiDrag.setToX(-getTabX(toT));
-        uiDrag.play();
-    }
     
     /** 
      * Scrolls to tab best suited to be shown. It is the tab that already occupies
      * the biggest portion of this pane.
      * It is pointless to use this method when autoalign is enabled.
+     * <p>
+     * Use to force-align tabs.
      */
     public void alignTabs() {
         int toT = currTab();
@@ -279,6 +289,25 @@ public class SwitchPane implements LayoutAggregator {
         uiDrag.setToX(-getTabX(toT));
         uiDrag.play();
     }
+    
+    /**
+     * Executes {@link #alignTabs()} if the position of the tabs fullfills
+     * snap requirements.
+     * <p>
+     * Use to align tabs while adhering to user settings.
+     */
+    public void snapTabs() {
+        if(!snap_tabs) return;
+        double is = ui.getTranslateX();
+        double should_be = -getTabX(currTab());
+        double dist = Math.abs(is-should_be);
+        double treshold1 = ui.getWidth()*SNAP_TRESHOLD_COEFICIENT;
+        double treshold2 = SNAP_TRESHOLD_DIST;
+        if(dist < Math.max(treshold1, treshold2))  
+            alignTabs();
+    }
+    
+
     
     /** 
      * @return index of currently viewed tab. It is the tab consuming the most
@@ -303,6 +332,23 @@ public class SwitchPane implements LayoutAggregator {
             return (uiWidth()+5)*i;
     }
     
+    // align to next tab
+    private void alignNextTab(MouseEvent e) {
+        double dist = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;   // distance
+        int byT = 0;                            // tabs to travel by
+        double dAbs = Math.abs(dist);
+        double treshold1 = ui.getWidth()*min_tab_switch_coeficient;
+        double treshold2 = min_tab_switch_dist;
+        if (dAbs > Math.min(treshold1, treshold2))
+            byT = (int) -Math.signum(dist);
+
+        int currentT = (int) Math.rint(-1*ui.getTranslateX()/(uiWidth()+5));
+        int toT = currentT + byT;
+        uiDrag.stop();
+        uiDrag.setOnFinished( a -> addTab(toT));
+        uiDrag.setToX(-getTabX(toT));
+        uiDrag.play();
+    }    
     
 /******************************** SCROLLING ***********************************/
     
@@ -339,10 +385,10 @@ public class SwitchPane implements LayoutAggregator {
     
 /******************************** PROPERTIES **********************************/
     
-    private boolean always_align_tabs = true;
+    private boolean always_align = true;
     
     public void setAlwaysAlignTabs(boolean val) {
-        always_align_tabs = val;
+        always_align = val;
         if(val) alignTabs();
     }
     

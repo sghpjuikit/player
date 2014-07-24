@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>17d0c9f8-ce31-47a6-8842-fec8e09e14b3</id>
+  <id>809c2921-82e5-489d-808f-8cddf9733826</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>7255cda7-1b53-4ae2-9694-0c84762da583</id>
+          <id>98d123bf-f941-4837-abad-74523df61fae</id>
           <properties>
             <map>
               <entry>
@@ -276,8 +276,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string"></defaultValue>
-                        <value class="string"></value>
+                        <defaultValue class="string">Tabs</defaultValue>
+                        <value class="string">Tabs</value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

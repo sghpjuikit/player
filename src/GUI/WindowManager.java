@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.stage.Screen;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -42,6 +43,7 @@ public class WindowManager {
             File f = new File(App.LAYOUT_FOLDER(), name + ".w");
             Window tmp = Window.deserializeSuppressed(f);
             miniWindow = tmp!=null ? tmp : Window.create();
+            miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
             miniWindow.setContent(WidgetManager.getFactory("PlayerControlsTiny").create().load());
             miniWindow.show();
             miniWindow.setShowHeader(false);

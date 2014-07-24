@@ -14,6 +14,7 @@ import GUI.WindowManager;
 import Layout.Widgets.WidgetManager;
 import Library.BookmarkManager;
 import java.io.File;
+import java.net.URI;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
@@ -197,6 +198,11 @@ public class App extends Application {
     /** @return image of the icon of the application. */
     public static Image getIcon() {
         return new Image(new File("icon.png").toURI().toString());
+    }
+    
+    /** @return github link for this application. */
+    public static URI getGithubLink() {
+        return URI.create("https://www.github.com/sghpjuikit/player/");
     }
 
     /** @return Player state file. */

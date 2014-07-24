@@ -17,6 +17,7 @@ import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
+import GUI.objects.Text;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
 import static GUI.objects.Window.Resize.NE;
@@ -43,10 +44,11 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COLUMNS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GEARS;
+import static de.jensd.fx.fontawesome.AwesomeIcon.GITHUB;
 import static de.jensd.fx.fontawesome.AwesomeIcon.IMAGE;
+import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import de.jensd.fx.fontawesome.test.IconsBrowser;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -91,6 +93,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import main.App;
+import utilities.Enviroment;
 import utilities.Log;
 import utilities.Util;
 
@@ -477,18 +480,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         iconI.setImage(img); 
        leftHeaderBox.getChildren().remove(iconI);
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
-       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITHUB,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_ALT,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITHUB_SQUARE,"","15","11", CENTER));
-       leftHeaderBox.getChildren().add(AwesomeDude.createIconLabel(AwesomeIcon.GITTIP,"","15","11", CENTER));
        
+       // github button - show all available FontAwesome icons in a popup
+        Label gitB = AwesomeDude.createIconLabel(GITHUB,"","15","11",CENTER);
+              gitB.setOnMouseClicked( e -> Enviroment.browse(App.getGithubLink()));
+              gitB.setTooltip(new Tooltip("Icon browser (developing tool)"));
        // icon button - show all available FontAwesome icons in a popup
         Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);
-              iconsB.setOnMouseClicked( e ->{
-                IconsBrowser ib = new IconsBrowser();
-                PopOver p = new PopOver(ib);
-                        p.show(iconsB);
-              });
+              iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
               iconsB.setTooltip(new Tooltip("Icon browser (developing tool)"));
         // settings button - show application settings in a popup
         Label propB = AwesomeDude.createIconLabel(GEARS,"","15","11",CENTER);
@@ -518,7 +517,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
         
         Label lastFMB = new Label("",lastFMview);
-        lastFMB.setOnMouseClicked( e ->{
+        lastFMB.setOnMouseClicked( e -> {
             if(e.getButton() == MouseButton.PRIMARY){
                 if(LastFMManager.getScrobblingEnabled()){
                     LastFMManager.toggleScrobbling();
@@ -534,17 +533,33 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                                 (String)vc.getFields().get(0).getValue(),
                                 (String)vc.getFields().get(1).getValue());                                              
                         });
-                        PopOver p = new PopOver("LastFM login", lfm);
-                        p.show(lastFMB);
+                        new PopOver("LastFM login", lfm).show(lastFMB);
                     }
                 }
             }
-        }
-
-        );
+        });
         lastFMB.setTooltip(new Tooltip("LastFM"));
+       // help button - show hel information
+        Label helpB = AwesomeDude.createIconLabel(INFO,"","15","11",CENTER);
+        helpB.setOnMouseClicked( e -> {
+            PopOver<Text> helpP = PopOver.createHelpPopOver(
+                "Available actions:\n" +
+                "    Header icons : Providing custom functionalities. Use tooltips.\n" +
+                "    Header buttons : Providing window contorl. Use tooltips.\n" +
+                "    Mouse drag : Move window. Windows snap to screen or to other windows.\n" +
+                "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n" +
+                "    Mouse drag edge : Resizes window.\n" +
+                "    Double left click : Toggle meximized mode on/off.\n" +
+                "    Double right click : Toggle hide header on/off.\n" +
+                "    Press ALT : Show hidden header temporarily.\n" +
+                "    Content right drag : drag tabs."
+            );
+            helpP.show(helpB);
+            helpP.getContentNode().setWrappingWidth(400);
+        });
+        helpB.setTooltip(new Tooltip("Icon browser (developing tool)"));
               
-         leftHeaderBox.getChildren().addAll(iconsB,layB,propB,lastFMB);
+        leftHeaderBox.getChildren().addAll(gitB,iconsB,layB,propB,lastFMB,helpB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/

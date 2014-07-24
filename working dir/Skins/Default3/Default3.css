@@ -18,6 +18,16 @@
  * Modelled after the second generation theme for JavaFX - Modena.
  */
 
+
+
+
+/* What follows is mostly javaFX stuff, for application skinning go to bottom of
+   this file. */
+
+
+
+
+
 /*
  * MODENA Copyright
  * Copyright (c) 2009, 2013, Oracle and/or its affiliates. All rights reserved. 
@@ -3231,9 +3241,21 @@ is being used to size a border should also be in pixels.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 /*******************************************************************************
  *                                                                             *
- * CUSTOM		                                                               *
+ *  THE APPLICATION ELEMENTS                                                   *
  *                                                                             *
  ******************************************************************************/
 

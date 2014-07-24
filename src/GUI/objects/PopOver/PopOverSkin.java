@@ -263,7 +263,10 @@ public class PopOverSkin implements Skin<PopOver> {
      * @param i 
      */
     public void setContentPadding(Insets i) {
+        // set padding from borders
         content.setPadding(i);
+        // set header - content gap
+        header.setPadding(new Insets(0, 0, i.getTop(), 0));
     }
     
     /**

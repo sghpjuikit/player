@@ -41,10 +41,11 @@ Know that:
 
 contribution:
 In case you are interested in the development or in contribution, send mail associated with this github account.
-There are several areas that can be worked on
+There are several areas that can one can contribute to
 - application core - involves java & javaFX code
 - skins - requires knowledge of css
 - widgets - involves java & javaFX code
+- testing - simply run he application from IDE and report bugs
 
 
 developing:
@@ -59,6 +60,12 @@ In order to successfully build and run the application the working directory sho
 In order to be able to develop and use widgets (even thouse included in this project already) '/src widgets' directory must be included as a source location for source files in project properties.
 
 Proper manuals and HOWTOs will be provided later.
+
+
+skinning:
+
+A skin is a single css file that works the same way as if you are skinning a html web site. [a link](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
+The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder. For now there are two complete skins Default1 and Default3.
 
 
 dependencies:

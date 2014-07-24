@@ -37,16 +37,16 @@ public class Text extends javafx.scene.text.Text {
      * Sets wrappingWidth to achieve roughly rectangular size. There is a slight
      * horizontal bias (width > height).
      * <p>
-     * Use this feature when this Text object is expected to resize on its own
-     * or/and influences the size of its parent. For example popups displaying
-     * text.
+     * Use this feature when this Text object is expected to have size dependent
+     * on its text and influences the size of its parent. For example popups 
+     * displaying text.
      * <p>
      * Invoke after text has been set.
      * <p>
      * The value depends on type and size of the font and might not produce
      * optimal results. Try and see.
      */
-    public void setWrappingWidthNaturally() {
+    public void wrapWidthNaturally() {
         wrapWidthSetter.changed(null,null,getText());
     }
     
@@ -78,17 +78,19 @@ public class Text extends javafx.scene.text.Text {
     }
     
     /**
-     * Returns value of natural wrapping width property.
+     * Returns value of natural wrapping width property. Default false.
      * @see #setWrappingWidthNatural(boolean)
      * @return 
      */
-    public boolean isWrappingWidthNatural() {
+    public boolean isWrappingWidthNaturally() {
         return wrappingWithNatural.getValue();
     }
     
     /**
-     * Sets natural wrapping width dynamically reacting on text change on/off.
-     * @see #setWrappingWidthNaturally()
+     * Sets value of natural wrapping width property.
+     * Sets natural wrapping width dynamically reacting on text change on/off. 
+     * Default false.
+     * @see #wrapWidthNaturally()
      * @param val 
      */
     public void setWrappingWidthNatural(boolean val) {

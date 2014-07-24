@@ -19,7 +19,7 @@ import utilities.functional.functor.Procedure;
 public class PlaycountIncrementer {
     
     @IsConfig(name="Playcount incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    public static Playcount.IncrStrategy increment_playcount = Playcount.IncrStrategy.ON_PERCENT;
+    public static Playcount.IncrStrategy increment_playcount = Playcount.IncrStrategy.NEVER;
     @IsConfig(name="Playcount incrementing at percent", info = "Percent at which playcount is incremented.")
     public static double increment_playcount_at_percent = 0.5;
     @IsConfig(name="Playcount incrementing at time", info = "Time at which playcount is incremented.")

@@ -201,7 +201,16 @@ public final class AreaControls {
                     // now we need to handle hiding when popup closes
                     (helpPopOver==null || !helpPopOver.isShowing()))
                 hideWeak();
-        });        
+        });
+        // hide on mouse exit from area
+        // same thing as above - need to take care of popup
+        // theoretically not needed but sometimes mouse exited deactivator does
+        // not get captured in fast movement. This additional handler fixes
+        // the issue
+        area.root.addEventFilter(MOUSE_EXITED, e -> {
+            if(isShowingWeak && (helpPopOver==null || !helpPopOver.isShowing()))
+                hide();
+        });
     }
 
     void refreshWidget() {
@@ -263,8 +272,8 @@ public final class AreaControls {
         root.setMouseTransparent(false);
         // make activator accessible when showing
         deactivator.setMouseTransparent(false);
-        deactivator.setScaleX(1.5);
-        deactivator.setScaleY(1.5);        
+        deactivator.setScaleX(1.6);
+        deactivator.setScaleY(2);        
     }
     
     private void hideWeak() {

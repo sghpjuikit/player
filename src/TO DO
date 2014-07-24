@@ -33,6 +33,7 @@
 - picker size fix + delete ContextPopOver?
 - rating star button style remove border
 - allow null in swap children operation
+- make more Actions, make util class for it
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------

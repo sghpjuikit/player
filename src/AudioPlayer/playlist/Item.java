@@ -62,7 +62,8 @@ public abstract class Item implements Comparable<Item> {
      */
     public String getPath() {
         String path = getURI().getPath();
-        return path==null||path.isEmpty() ? "" : getURI().getPath().substring(1);
+        return path==null || path.isEmpty()
+                ? "" : getURI().getPath().substring(1);
     }
     
     /** 
@@ -70,6 +71,7 @@ public abstract class Item implements Comparable<Item> {
      * <p>
      * Use to get location of the item, for example to fetch additional resources
      * located there, such as cover.
+     * @see #getPath()
      * @return parent directory of the item in the file system
      * @throws UnsupportedOperationException if item is not file based
      */

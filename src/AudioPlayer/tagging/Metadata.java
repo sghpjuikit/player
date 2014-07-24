@@ -104,7 +104,6 @@ import utilities.Util;
 @Immutable
 public final class Metadata extends MetaItem {
     private final URI uri;
-    private final boolean empty;
     
     // header fields
     private String format = "";
@@ -158,7 +157,6 @@ public final class Metadata extends MetaItem {
      */
     public Metadata(Item item) {
         uri = item.getURI();
-        empty = false;
         if(item instanceof PlaylistItem) {
             PlaylistItem pitem = (PlaylistItem)item;
             artist = pitem.getArtist();
@@ -169,7 +167,6 @@ public final class Metadata extends MetaItem {
     
     private Metadata() {
         uri = new File("").toURI();
-        empty = true;
     }
     
     /**
@@ -180,7 +177,6 @@ public final class Metadata extends MetaItem {
      */
     Metadata(AudioFile audiofile) {
         uri = audiofile.getFile().getAbsoluteFile().toURI();
-        empty = false;
         AudioFile audioFile = audiofile;
         
         loadGeneralFields(audioFile);
@@ -325,10 +321,31 @@ public final class Metadata extends MetaItem {
     
     /** 
      * Empty metadata should always be used instead of null value.
-     * @return true if this metadata is empty.*/
+     * @{@inheritDoc}
+     * @return true if this metadata is empty.
+     */
     public boolean isEmpty() {
-        return empty;
+        return new File("").toURI().equals(getURI());
     }
+    
+    // because of the above we need to override the following two methods:
+    
+    /** @{@inheritDoc} */
+    @Override
+    public String getPath() {
+        if (isEmpty()) return "";
+        else return super.getPath();
+    }
+    
+    /** @{@inheritDoc} */
+    @Override
+    public FileSize getFilesize() {
+        if (isEmpty()) return new FileSize(0);
+        return super.getFilesize();
+    }
+    
+    
+    
     
     /**
      * 

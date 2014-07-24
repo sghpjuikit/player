@@ -30,9 +30,9 @@
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
-- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug?)
 - picker size fix + delete ContextPopOver?
 - rating star button style remove border
+- allow null in swap children operation
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
@@ -133,11 +133,9 @@ GENERAL
 - local shortcuts for complex characters (BACK_SLASH, etc) not working
   solution: solved for some characters by manually rewriting them upon
   shortcut registering, but thats only partial and incomplete workaround
-- css parsing errors for settings widget - cant resolve value                   (minor, NaP, doesnt break funonality)
-  cause: lazy loading of css file, possible javaFX bug
-  note: its interesting Settings widget causes this but not others
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
-- tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug, unsolvable for now)
+- tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug)
+- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bu)
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)

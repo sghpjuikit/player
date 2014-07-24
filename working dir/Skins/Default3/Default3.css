@@ -3233,7 +3233,7 @@ is being used to size a border should also be in pixels.
 
 /*******************************************************************************
  *                                                                             *
- * CUSTOM		                                                       *
+ * CUSTOM		                                                               *
  *                                                                             *
  ******************************************************************************/
 
@@ -3277,10 +3277,10 @@ is being used to size a border should also be in pixels.
 
 
 /************************************ WINDOW ***********************************/
+
 /* Window. More specifically its root pane. Element with this class will also have class
    of root, but prefer this class and leave .root empty.
    available pseudoclasses: focused, hover */
-
 .window {
     /* We can also use bgr image (see below classes), but always fill some basic 
        color behind just in case.
@@ -3302,7 +3302,7 @@ is being used to size a border should also be in pixels.
     -fx-background-size: stretch;
 }
 
-// header will inherit default header style
+/* header will inherit default header style */
 .window > .header {
 }
 // lets signal which window has focus by altering the header border slightly

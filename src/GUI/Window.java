@@ -542,7 +542,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         }
 
         );
-        lastFMB.setTooltip(new Tooltip("Manage layouts"));
+        lastFMB.setTooltip(new Tooltip("LastFM"));
               
          leftHeaderBox.getChildren().addAll(iconsB,layB,propB,lastFMB);
     }

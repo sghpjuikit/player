@@ -9,12 +9,12 @@ Application's main focus is on modularity of the graphical user interface (GUI) 
 Below are screenshots of current looks with different (experimental) skins:
 
 ![ScreenShot](/extra/screenshot1.png)
-![ScreenShot](/extra/screenshot2.png)
+![ScreenShot](/extra/screenshot3.png)
 
 
 use:
 
-To run the application download the [a relative link](/extra/executable.zip), extract to arbitrary location and run the Player.jar file.
+To run the application download the [zip with the executable](/extra/executable.zip), extract to arbitrary location and run the Player.jar file.
 To customize layout, click on any empty area and chose the container. Placing mouse in the top right corner of the container will display container options. Holding ALT key will display options for all containers and show additional controls for layouting.
 Tip: Most of the controls like buttons have informative tooltips explaining their functionality. Mouse over the controls to display tooltips.
 Tip: Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 

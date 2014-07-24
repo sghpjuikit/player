@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>ded4ec3e-dfce-4cd3-8602-3e17c7b64f35</id>
+  <id>9ee4d0df-2942-494f-ad59-dc3fa9a17209</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>ed09a9eb-58ac-44ce-be44-423d0fd8ef53</id>
+          <id>7255cda7-1b53-4ae2-9694-0c84762da583</id>
           <properties>
             <map>
               <entry>
@@ -62,108 +62,6 @@
             </map>
           </properties>
           <b>false</b>
-          <child class="Layout.Widgets.FXMLWidget">
-            <id>34699643-9395-4074-8ca2-d52a2fdfb852</id>
-            <name>Tagger</name>
-            <configs>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Is preferred</gui__name>
-                <name>preferred</name>
-                <group>FXMLWidget</group>
-                <info>Preferred widget for its widget type.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="boolean">false</defaultValue>
-                <value class="boolean">false</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Read Mode</gui__name>
-                <name>readMode</name>
-                <group>TaggerController</group>
-                <info>Source of data for the widget.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="PseudoObjects.ReadMode">CUSTOM</defaultValue>
-                <value class="PseudoObjects.ReadMode">CUSTOM</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Read mode change on drag</gui__name>
-                <name>changeReadModeOnTransfer</name>
-                <group>TaggerController</group>
-                <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="boolean">false</defaultValue>
-                <value class="boolean">false</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>No value text</gui__name>
-                <name>TAG_NO_VALUE</name>
-                <group>TaggerController</group>
-                <info>Field text in case no tag value for field.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="string">-- no assigned value --</defaultValue>
-                <value class="string">-- no assigned value --</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Multiple value text</gui__name>
-                <name>TAG_MULTIPLE_VALUE</name>
-                <group>TaggerController</group>
-                <info>Field text in case multiple tag values per field.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="string">-- multiple values --</defaultValue>
-                <value class="string">-- multiple values --</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Allow change of playcount</gui__name>
-                <name>allow_playcount_change</name>
-                <group>TaggerController</group>
-                <info>Change editability of playcount field. Generally to prevent change to non customary values.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="boolean">false</defaultValue>
-                <value class="boolean">false</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Field text alignement</gui__name>
-                <name>field_text_alignment</name>
-                <group>TaggerController</group>
-                <info>Alignment of the text in fields.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="javafx.geometry.Pos">CENTER_LEFT</defaultValue>
-                <value class="javafx.geometry.Pos">CENTER_LEFT</value>
-              </Configuration.InstanceFieldConfig>
-              <Configuration.InstanceFieldConfig>
-                <gui__name>Mood picker popup position</gui__name>
-                <name>popupPos</name>
-                <group>TaggerController</group>
-                <info>Position of the mood picker pop up relative to the mood text field.</info>
-                <editable>true</editable>
-                <visible>true</visible>
-                <min>NaN</min>
-                <max>NaN</max>
-                <defaultValue class="GUI.objects.PopOver.PopOver$NodeCentricPos">DownCenter</defaultValue>
-                <value class="GUI.objects.PopOver.PopOver$NodeCentricPos">DownCenter</value>
-              </Configuration.InstanceFieldConfig>
-            </configs>
-          </child>
         </Layout.UniContainer>
       </entry>
       <entry>
@@ -197,7 +95,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.11514392991239049</double>
+                  <double>0.13161290322580646</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -378,8 +276,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string">PlaycountIncrementer</defaultValue>
-                        <value class="string">PlaycountIncrementer</value>
+                        <defaultValue class="string"></defaultValue>
+                        <value class="string"></value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

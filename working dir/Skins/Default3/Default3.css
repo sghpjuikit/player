@@ -111,6 +111,10 @@ is being used to size a border should also be in pixels.
     -fx-color-darker: rgba(0,0,0,0.2);
     -fx-color-lighter: rgba(180,200,255,0.08);
 
+    /* default color for panels such as header or widget area or other areas. 
+       Panel is equivalent to java's .filler i suppose. */
+    /* when changing this value be aware that .header class emulates it manually
+       be sure to change it there too*/
     -fx-pane-color: rgba(0,0,0,0.32);
 
     /* Default bgr color for tooltips and popups. */
@@ -3233,28 +3237,30 @@ is being used to size a border should also be in pixels.
  *                                                                             *
  ******************************************************************************/
 
-// default header class
+/* Default headers style. Unrelated headers might use this class. Each of them
+  should also have its own class defined in addition to this one. */
 .header {
-    -fx-background-color: -fx-pane-color;
+    // cant use rgba color (rgb with non 1 opacity) for header because it creates artefacts
+    // for window header when mouse hovers over content inside it
+    // instead emulate the color by setting opacity
+    //-fx-background-color: -fx-pane-color;
+    -fx-background-color: black; // emulate -fx-pane-color
+    -fx-opacity: 0.32;           // emulate -fx-pane-color
+
     -fx-border-color: 
         transparent transparent rgba(255, 255, 255, 0.08) transparent,
         rgba(255, 255, 255, 0.05) rgba(0, 0, 222, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
     -fx-border-width: 1, 1;
     -fx-border-insets: -2, -0.5;
-    // borderless alternative below
-    //-fx-background-color: null;
 }
-// default background
+
+/* Default bgr style. Unrelated bgrs might use this class. Each of them
+  should also have its own class defined in addition to this one. */
 .background {
-    //-fx-background-image: url("CoarseGrid.png");
-    //-fx-background-repeat: repeat;
     -fx-background-color:
         linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
-       linear-gradient(#30363b, #292d32),
+        linear-gradient(#30363b, #292d32),
         radial-gradient(center 50% 0%, radius 100%, rgba(124,141,158,0.9), rgba(255,255,255,0));
-
-    // try the below for a 'milk' skin
-    //-fx-background-color: white
 }
 
 .darker {
@@ -3271,13 +3277,14 @@ is being used to size a border should also be in pixels.
 
 
 /************************************ WINDOW ***********************************/
-// window. More specifically its root. Element with this class will also have class
-// of root
-// available pseudoclasses: focused, hover
+/* Window. More specifically its root pane. Element with this class will also have class
+   of root, but prefer this class and leave .root empty.
+   available pseudoclasses: focused, hover */
 
 .window {
-    // we use bgr image, but fill some basic color behind just in case
-    // if no image is set or is partially transparent this color is the basic bgr
+    /* We can also use bgr image (see below classes), but always fill some basic 
+       color behind just in case.
+       If no image is set or is partially transparent this color is the basic bgr. */
     -fx-background-color: black;
 }
 .window:hover {

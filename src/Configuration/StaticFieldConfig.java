@@ -50,9 +50,12 @@ public final class StaticFieldConfig<T> extends Config<T> {
     @Override
     public T getValue() {
         try {
-            return (T) sourceField.get(null);
-        } catch (IllegalArgumentException | IllegalAccessException ex) {
-            throw new RuntimeException("Field " + getName() + " can not access value.");
+            sourceField.setAccessible(true);
+            T val =  (T) sourceField.get(null);
+            sourceField.setAccessible(false);
+            return val;
+        } catch (IllegalArgumentException | IllegalAccessException | SecurityException e) {
+            throw new RuntimeException("Field " + getName() + " can not access value." + e.getMessage());
         }
     }
     
@@ -62,11 +65,14 @@ public final class StaticFieldConfig<T> extends Config<T> {
     @Override
     public boolean setValue(T val) {
         try {
+            sourceField.setAccessible(true);
             sourceField.set(null, val);
+            sourceField.setAccessible(false);
             Log.deb("Config field " + name + " set.");
             return true;
-        } catch (IllegalAccessException e) {
+        } catch (IllegalAccessException | SecurityException e) {
             Log.err("Failed to set config field: " + name + " . Reason: " + e.getMessage());
+            sourceField.setAccessible(false);
             return false;
         }
     }

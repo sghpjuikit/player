@@ -55,7 +55,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
-import javafx.animation.TranslateTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -91,10 +90,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
-import javafx.util.Duration;
 import main.App;
-import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
-import utilities.Animation.Interpolators.ElasticInterpolator;
 import utilities.Log;
 import utilities.Util;
 
@@ -293,11 +289,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         getStage().setScene(new Scene(root));
         getStage().setOpacity(windowOpacity);
         
+        // clip the content to its bounds to prevent leeking out
+        Rectangle contentMask = new Rectangle(1, 1, Color.BLACK);
+        contentMask.widthProperty().bind(content.widthProperty());
+        contentMask.heightProperty().bind(content.heightProperty());
+        content.setClip(contentMask);
+        
         // avoid some instances of not closing properly
-        s.setOnCloseRequest(e->{
-            System.out.println("CLOSING WINDOW REQUEST");
-            close();
-        });
+        s.setOnCloseRequest(e -> close());
         
         // root is assigned a 'window' styleclass to allow css skinning
         // set 'focused' pseudoclass for window styleclass
@@ -354,26 +353,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         root.setOnScroll( e -> {
             if(e.getDeltaY()>0) PLAYBACK.incVolume();
             else if(e.getDeltaY()<0) PLAYBACK.decVolume();
-        });
-        
-        
-        Rectangle r = new Rectangle(15, 15, Color.BLACK);
-                  r.widthProperty().bind(controls.widthProperty().subtract(20));
-                  r.heightProperty().bind(controls.heightProperty());
-                  r.relocate(controls.getLayoutX()+controls.getWidth()-20,controls.getLayoutY());
-//        controls.setClip(r);
-        
-        TranslateTransition t = new TranslateTransition(Duration.millis(450), r);
-                            t.setInterpolator(new ElasticInterpolator(EASE_OUT));
-        header.setOnMouseEntered(e -> {
-//            t.stop();
-            t.setByX(-100);
-            t.play();
-        });
-        header.setOnMouseExited(e -> {
-//            t.stop();
-            t.setToX(100);
-            t.play();
         });
     };
     

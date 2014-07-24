@@ -179,6 +179,10 @@ SOLVED (but the underlying cause still deserves attention)
   main window this way doesnt execute the necessary actions. Also, with the
   hidden owner window app wont close as one window remains open
   solution: have onCloseRequest event execute close()                           (great so far)
+- bgr artefacts for window header buttons and icons
+  cause: rgba (-fx-panel-color) for .header styleclass                          
+  solution: use rgb color and apply -fx-opacity instead of alpha channel
+  problem: css polution, dev might overlook header if he changes -fx-panel-color
 
 
 PROBLEMS

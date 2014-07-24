@@ -1,17 +1,22 @@
 
 package GUI.LayoutAggregators;
 
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import GUI.GUI;
 import Layout.Layout;
 import java.util.HashMap;
 import java.util.Map;
+import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Parent;
+import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
@@ -30,6 +35,7 @@ import utilities.FxTimer;
  *
  * @author plutonium_
  */
+@IsConfigurable("Tabs")
 public class SwitchPane implements LayoutAggregator {
     
     private final AnchorPane root = new AnchorPane();
@@ -52,15 +58,21 @@ public class SwitchPane implements LayoutAggregator {
 //                        ui.setMouseTransparent(true);
 //                }
 //            }
+            
+            if(e.getButton()==MIDDLE) {
+                ui.setMouseTransparent(true);
+                startScroll(e);
+            }
         });
         
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
                 startUiDrag(e);
-            }
-            if(e.getButton()==SECONDARY)
                 dragUi(e);
+            }
+            if(e.isMiddleButtonDown())
+                doScrolling(e);
         });
         
         root.addEventFilter(MOUSE_CLICKED, e-> {
@@ -69,12 +81,25 @@ public class SwitchPane implements LayoutAggregator {
                 ui.setMouseTransparent(false);
             }
         });
+        root.addEventFilter(MOUSE_RELEASED, e-> {
+            if(e.getButton()==MIDDLE) {
+                endScroll(e);
+                ui.setMouseTransparent(false);
+            }
+        });
         
         uiDrag = new TranslateTransition(Duration.millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
         
+        scrolling = new TranslateTransition(Duration.millis(400), ui);
+        scrolling.setByX(3000);
+        scrolling.setInterpolator(Interpolator.LINEAR);
+        scrolling.setOnFinished( e -> {
+            scrolling.play();
+        });
+        
         // bind widths for automatic dynamic resizing (works perfectly)
-        ui.widthProperty().addListener(l-> {
+        ui.widthProperty().addListener(l -> {
             tabs.forEach((i,p)->p.setLayoutX(i*(uiWidth() + 5)));
             ui.setTranslateX(-getTabX(currTab()));
         });
@@ -139,10 +164,13 @@ public class SwitchPane implements LayoutAggregator {
     }
 
     
-/****************************  TAB  ANIMATIONS   ******************************/
+/****************************  DRAG ANIMATIONS   ******************************/
     
-    private static final double MASS_COEFICIENT = 1.5;
-    private static final double SNAP_TRESHOLD_COEFICIENT = 1/4d;
+    @IsConfig(name = "Animation inertia", info = "Inertia of the tab switch animation.", min = 0, max = 10)
+    private static double MASS_COEFICIENT = 1.5;
+    @IsConfig(name = "Snap activation treshold", info = "Defines region close to edge in "
+            + "percent of tab's width in which the tab autoalignes.", min = 0, max = 0.5)
+    private static double SNAP_TRESHOLD_COEFICIENT = 0.5;
     
     private final TranslateTransition uiDrag;
     private double uiTransX;
@@ -191,7 +219,7 @@ public class SwitchPane implements LayoutAggregator {
                 double is = ui.getTranslateX();
                 double should_be = -getTabX(currT);
                 double dist = Math.abs(is-should_be);
-                double treshold = uiWidth()*SNAP_TRESHOLD_COEFICIENT;System.out.println(SNAP_TRESHOLD_COEFICIENT);
+                double treshold = uiWidth()*SNAP_TRESHOLD_COEFICIENT;
                 if(dist < treshold) {             
                     uiDrag.setOnFinished( of -> addTab(currT));
                     uiDrag.setToX(should_be);
@@ -275,7 +303,41 @@ public class SwitchPane implements LayoutAggregator {
             return (uiWidth()+5)*i;
     }
     
-/******************************************************************************/
+    
+/******************************** SCROLLING ***********************************/
+    
+    private final TranslateTransition scrolling;
+    private double scrollStartX = 0;
+    private boolean scrollActive = false;
+    
+    private void startScroll(MouseEvent e) {
+        if(scrollActive) return;System.out.println("scroll start");
+        scrollStartX = e.getSceneX();
+        scrollActive = true;
+        scrolling.play();
+    }
+    private void doScrolling(MouseEvent e) {
+        if(!scrollActive) return;
+        System.out.println("scroll do");
+        // calculate distance from start
+        double distance = e.getSceneX()-scrollStartX;
+        // set animation speed, 1 = max speed, 0 = min
+        scrolling.setRate(distance/uiWidth());
+        
+        e.consume();
+    }
+    private void endScroll(MouseEvent e) {
+        if(!scrollActive) return;
+        System.out.println("scroll end");
+        scrollActive = false;
+        scrolling.stop();
+        alignTabs();
+        
+        e.consume();
+    }
+    
+    
+/******************************** PROPERTIES **********************************/
     
     private boolean always_align_tabs = true;
     

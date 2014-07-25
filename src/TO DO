@@ -9,7 +9,6 @@
   saving to turn on Scrobbling on success
 - password config field
 - clean configurable & configuration
-- popover padding solve
 - popover position jumps when drag starts
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation

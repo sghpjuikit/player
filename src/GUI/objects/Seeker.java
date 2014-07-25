@@ -37,6 +37,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.Popup;
 import javafx.util.Duration;
 import utilities.FxTimer;
 import utilities.Log;
@@ -68,13 +69,14 @@ public final class Seeker extends AnchorPane {
         } catch (IOException ex) {
             Log.err("Seeker source data coudlnt be read.");
         }
+        initializeC();
     }
     
     /**
      * Should be run automatically. Dont invoke this method in constructor - it
      * would run twice.
      */
-    public void initialize() {
+    public void initializeC() {
         this.setHeight(15);
         position.setMin(0);
         position.setMax(1);
@@ -120,23 +122,30 @@ public final class Seeker extends AnchorPane {
         
         
         // new chapter button
-        AddChapButton addB = new AddChapButton();
-                      addB.setOpacity(0);
-        getChildren().add(addB);
+        AddChapButton addB = new AddChapButton(position);
+                      addB.l.setOpacity(0);
         addEventFilter(MOUSE_MOVED, e -> {
-            if(addB.isVisible() && addB.getOpacity()>0)
-                addB.setLayoutX(e.getX()-addB.getWidth()/2);
+            if(addB.isVisible() && addB.l.getOpacity()>0) {
+                addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
+                addB.p.setY(position.localToScreen(0,0).getY()+13);
+            }
         });
         position.addEventFilter(MOUSE_ENTERED, e -> {
             addB.show();
-            addB.setDisable(!Player.getCurrentMetadata().isFileBased());
+            addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
+            addB.p.setY(position.localToScreen(0,0).getY()+13);
+            addB.l.setDisable(!Player.getCurrentMetadata().isFileBased());
         });
         position.addEventFilter(MOUSE_EXITED, e -> 
-                FxTimer.run(Duration.millis(200), () -> {
-                    if(!addB.isHover() && !position.isHover()) 
-                        addB.hide();
+            FxTimer.run(Duration.millis(300), () -> {
+                if(!addB.l.isHover() && !position.isHover()) 
+                    addB.hide();
         }));
-        addB.addEventHandler(MOUSE_EXITED, e -> addB.hide());
+        addB.l.addEventHandler(MOUSE_EXITED, e ->
+            FxTimer.run(Duration.millis(150), () -> {
+                 if(!addB.l.isHover() && !position.isHover()) 
+                    addB.hide();
+        }));
     }
     
     // Updates positions of chapters. No reloading takes place. Use on resize.
@@ -237,40 +246,59 @@ public final class Seeker extends AnchorPane {
     
 /******************************************************************************/
     
-    private class AddChapButton extends StackPane {
-//        Label l = AwesomeDude.createIconLabel(AwesomeIcon.PLUS_CIRCLE,"","18","18", ContentDisplay.GRAPHIC_ONLY);
+    private class AddChapButton {
+        Popup p;
         FadeButton l = new FadeButton(AwesomeIcon.PLUS_CIRCLE, 18);
+        Slider s;
+        FadeTransition ft = new FadeTransition(Duration.millis(250), l);
         
-        public AddChapButton() {
-            getChildren().add(l);
-            setLayoutY(-23);
-            setDisable(false);
-            setOnMouseClicked(e -> addChapterAt(getLayoutX()+getWidth()/2));
-            setOpacity(0);
-            Tooltip.install(this, new Tooltip("Create chapter."));
+        public AddChapButton(Slider s) {
+            p = new Popup();
+            p.getContent().add(l);
+            this.s = s;
+            
+            l.setDisable(false);
+            l.setOnMouseClicked(e -> {
+                double deltaX = p.getX()-Seeker.this.position.localToScreen(0,0).getX()+p.getWidth();
+                addChapterAt(deltaX/s.getWidth());
+            });
+            l.setOpacity(0);
+            Tooltip.install(l, new Tooltip("Create chapter."));
         }
-        public void show() {
-            FadeTransition ft = new FadeTransition(Duration.millis(250), this);
-            if(getOpacity()==0) ft.setDelay(Duration.millis(250));
+        public void show() {System.out.println("SHOW");
+            ft.setOnFinished(null);
+            ft.stop();
+            p.show(s.getScene().getWindow());
+            FadeTransition ft = new FadeTransition(Duration.millis(250), l);
+            if(l.getOpacity()==0) ft.setDelay(Duration.millis(300));
             ft.setToValue(1);
+            ft.setOnFinished(null);
             ft.play();
         }
-        public void hide() {
-            FadeTransition ft = new FadeTransition(Duration.millis(250), this);
-            ft.setDelay(Duration.millis(0));
+        public void hide() {System.out.println("HIDE");
+            ft.setOnFinished(null);
+            ft.stop();
+            ft.setDelay(Duration.ZERO);
             ft.setToValue(0);
+            ft.setOnFinished(a -> p.hide());
             ft.play();
+        }
+        
+        boolean isVisible() {
+            return p!=null && p.isShowing();
         }
     }
     
+    
+    
     private void addChapterAt(double x) {
-        Duration now = totalTime.get().multiply(x/position.getWidth());
+        Duration now = totalTime.get().multiply(x);
         Chap c = new Chap(new Chapter(now, ""), now);
              c.setOpacity(0.5);
         getChildren().add(c);
-             c.setLayoutX(x);
+             c.setLayoutX(x*position.getWidth());
              c.showPopup();
-             c.setOnEditFinish((success)-> getChildren().remove(c));
+             c.setOnEditFinish( success -> getChildren().remove(c));
              c.startEdit();
     }
     
@@ -342,8 +370,8 @@ public final class Seeker extends AnchorPane {
                 message.setWrappingWidthNatural(true);
                 message.setTextAlignment(TextAlignment.CENTER);
                 content = new StackPane(message);
-                content.setPadding(new Insets(8)); // 8 - default padding
-                
+                content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+                content.autosize();
                 // buttons
                 editB = AwesomeDude.createIconLabel(AwesomeIcon.PENCIL,"11");
                 editB.setOnMouseClicked( e -> {
@@ -391,6 +419,7 @@ public final class Seeker extends AnchorPane {
                 
                 // popup
                 p = new PopOver(content);
+                p.getSkinn().setContentPadding(new Insets(8));
                 p.setAutoHide(true);
                 p.setHideOnEscape(true);
                 p.setHideOnClick(false); // we will emulate it on our own
@@ -452,15 +481,20 @@ public final class Seeker extends AnchorPane {
             if (!editableChapters) return;
             // start edit
             editOn = true;
+            // create text area
             ta = new TextArea();
             ta.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-            // maintain 'sensible' width dynamically by content
-            ta.textProperty().addListener((o,oldV,newV)->{
-                if(newV!=null && !newV.isEmpty()) 
-                   ta.setPrefWidth(100+newV.length()/3);
-            });
-            // maintain proportional size
-            ta.prefHeightProperty().bind(ta.prefWidthProperty().multiply(0.8));
+                // maintain 'sensible' width dynamically by content
+            ChangeListener<String> resizer = (o,oldV,newV) -> {
+                int len = newV==null ? 0 : newV.length();
+                ta.setPrefWidth(100+len/3);
+                ta.setPrefHeight(ta.getPrefWidth() * 0.8);
+            };
+            ta.textProperty().addListener(resizer);
+                // initialize size, resizer wont fire if the setText() below
+                // does not change text value! fire manually here
+            resizer.changed(null,null,"");
+                // set more properties
             ta.setWrapText(true);
             ta.setText(message.getText());
             ta.setOnKeyPressed(e->{

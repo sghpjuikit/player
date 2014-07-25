@@ -70,19 +70,14 @@ public final class CommentExtended implements Comparable<CommentExtended> {
     
     /**
      * Compares object by natural order - alphabetically by key.
-     * 
-     * @param o
-     * @return 
      */
     @Override
     public int compareTo(CommentExtended o) {
-        String n1 = key.toLowerCase();
-        String n2 = o.getKey().toLowerCase();
-        return (int) Math.signum(n1.compareTo(n2));
+        return key.toLowerCase().compareTo(o.getKey().toLowerCase());
     }
     
     @Override
     public String toString() {
-        return key.toString() + "\n" + value.toString();
+        return key + "\n" + value;
     }
 }

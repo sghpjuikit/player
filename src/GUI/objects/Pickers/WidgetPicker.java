@@ -18,8 +18,8 @@ public class WidgetPicker extends Picker<WidgetFactory>{
     public WidgetPicker() {
         super();
         
-        setAccumulator(()->WidgetManager.getFactories().stream());
-        setConverter(wf->wf.name);
+        setAccumulator(() -> WidgetManager.getFactories().stream());
+        setConverter(wf -> wf.name);
     }
     
 }

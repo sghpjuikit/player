@@ -1,14 +1,8 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 package GUI.objects.Pickers;
 
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -17,17 +11,17 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
+import javafx.util.Callback;
 import utilities.Parser.ToStringConverter;
+import utilities.Util;
 import utilities.functional.functor.UnProcedure;
 
 /**
- * Generic item picker pop-up.
+ * Generic item picker.
  * <p>
- * The window displays elements as text within a single scrollable pop-up window
- * like a grid.
+ * Node displaying elements as grid.
  * Elements are converted to their text representation according to provided
  * mapper. Element should override toString() method if no mapper is provided. 
  * <p>
@@ -43,69 +37,61 @@ public class Picker<E> {
     public static final String CELL_STYLE_CLASS = "item-picker-button";
     private static final int EGAP = 5;      // element gap
     
-    private final GridPane grid = new GridPane();
+    private final TilePane grid = new TilePane();
     private final ScrollPane scroll = new ScrollPane(grid);
     
     private UnProcedure<E> onSelect = item -> {};
     private ToStringConverter<E> converter = item -> item.toString();
-    private ItemAccumulator<E> accumulator = () -> Stream.empty();
-    private CellFactory<E> cellFactory = item -> {
+    private Supplier<Stream<E>> accumulator = () -> Stream.empty();
+    private Callback<E,Node> cellFactory = item -> {
         String text = getConverter().toS(item);
         Label l = new Label(text);
-        BorderPane b = new BorderPane();
-                   b.setCenter(l);
-                   b.setPrefSize(85,20);
-                   b.getStyleClass().setAll(CELL_STYLE_CLASS);
-                   Tooltip.install(b, new Tooltip(text));
+        StackPane b = new StackPane(l);
+        b.getStyleClass().setAll(CELL_STYLE_CLASS);
+        Tooltip.install(b, new Tooltip(text));
         return b;
     };
     
-    public Picker() {        
+    public Picker() {
+        // set spacing
         grid.setHgap(EGAP);
         grid.setVgap(EGAP);
-        scroll.setPadding(new Insets(EGAP));
+        // set autosizing for tiles to always fill the grid entirely
+        grid.widthProperty().addListener((o,oldV,newV) -> {
+            int rows = (int) Math.floor((newV.doubleValue())/100);
+            // set maximum number of columns to 8
+                rows = Math.min(rows, 7);
+            double cell_width = (newV.doubleValue())/rows;
+            grid.setPrefTileWidth(cell_width-EGAP);
+        });
+        scroll.setPadding(new Insets(0,0,EGAP,0));
         
-        scroll.setPannable(false);
-        scroll.setMaxHeight(450);
+        scroll.setPannable(false);  // forbid mouse panning
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-                
+        scroll.setPrefSize(-1,-1);  // leave resizable
+        scroll.setFitToWidth(true); // make content resize with scroll pane        
         // consume problematic events and prevent from propagating
         // disables unwanted behavior of the popup
         scroll.addEventFilter(MOUSE_PRESSED, e->e.consume());
         scroll.addEventFilter(MOUSE_DRAGGED, e->e.consume());
+        
     }
     
     private void buildContent() {
-        List<E> items = getAccumulator().accumulate()
-                .sorted((o1,o2) -> getConverter().toS(o1).
-                        compareToIgnoreCase(getConverter().toS(o2)))
-                .collect(Collectors.toList());
-        
-        grid.getChildren().clear();
-        double el_w = 0;
-        double el_h = 0;
-        int row_size = calculateRowSize(items.size());
-        
-        // populate
-        for (int i=0; i<items.size(); i++) {
-            E item = items.get(i);
-            Region cell = getCellFactory().createCell(item);
-                   cell.setOnMouseClicked( e -> {
-                       getOnSelect().accept(item);
-                       e.consume();
-                   });
-            
-            grid.add(cell, i%row_size, i/row_size);
-            el_w = cell.getPrefWidth();
-            el_h = cell.getPrefHeight();
-        }
-        
-        // calculate size
-        double height = Math.ceil(items.size()/(double)row_size)*(el_h+EGAP)-EGAP;
-        double width = row_size*(el_w+EGAP)-EGAP;
-        
-        if(scroll.getHeight() < height) // FIX THIS
-            scroll.setPrefWidth(width+15);
+        grid.getChildren().clear(); 
+        // get items
+        getAccumulator().get()
+            // & sort
+            .sorted(Util.cmpareNoCase(getConverter()::toS))
+            // & create cells
+            .forEach( item -> {
+                Node cell = getCellFactory().call(item);
+                     cell.setOnMouseClicked( e -> {
+                         getOnSelect().accept(item);
+                         e.consume();
+                     });
+                grid.getChildren().add(cell);
+            });
     }
     
     /***
@@ -145,21 +131,20 @@ public class Picker<E> {
     }
     
     /***
-     * Sets item accumulator.
+     * Sets item supplier.
      * Gathers the source items as a stream. Default implementation returns empty
      * stream.
-     * @param acc accumulator. Must not be null;
+     * @param acc supplier. Must not be null;
      */
-    public void setAccumulator(ItemAccumulator<E> acc) {
+    public void setAccumulator(Supplier<Stream<E>> acc) {
         Objects.requireNonNull(acc);
         this.accumulator = acc;
     }
     
     /**
-     * Returns item accumulator. Never null.
-     * @see #setAccumulator(GUI.objects.Pickers.ItemAccumulator) 
+     * Returns item supplier. Never null.
      */
-    public ItemAccumulator<E> getAccumulator() {
+    public Supplier<Stream<E>> getAccumulator() {
         return accumulator;
     }
     
@@ -168,26 +153,16 @@ public class Picker<E> {
      * Creates graphic representation of the item.
      * @param cf cell factory. Must not be null;
      */
-    public void setCellFactory(CellFactory<E> cf) {
+    public void setCellFactory(Callback<E,Node> cf) {
         Objects.requireNonNull(cf);
         this.cellFactory = cf;
     }
     
     /**
      * Returns cell factory. Never null.
-     * @see #setAccumulator(GUI.objects.Pickers.ItemAccumulator) 
      */
-    public CellFactory<E> getCellFactory() {
+    public Callback<E,Node> getCellFactory() {
         return cellFactory;
-    }
-    
-    
-    protected int calculateRowSize(int items_amount) {
-        return 4;
-    }
-    
-    public void setMaxWidth(double max_width) {
-        
     }
     
     public Node getNode() {

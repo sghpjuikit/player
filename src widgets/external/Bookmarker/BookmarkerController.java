@@ -43,6 +43,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
 import utilities.FileUtil;
+import utilities.Util;
 
 
 /**
@@ -322,12 +323,12 @@ public class BookmarkerController extends FXMLController {
         List<TableColumn> cols = new ArrayList(table.getColumns());
         table.getColumns().clear();
         colPos.entrySet().stream()
-                .sorted((e1,e2) -> e1.getValue().compareTo(e2.getValue()))
+                .sorted(Util.cmpareBy(e->e.getValue()))
                 .forEach( e -> {
                     TableColumn c = cols.stream().filter(cc->cc.getText().equals(e.getKey())).findAny().get();
-                    if(c!=null) {
+                    if(c!=null)
                         table.getColumns().add(c);
-                    }
+                
         });
     }
     

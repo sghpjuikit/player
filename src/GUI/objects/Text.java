@@ -23,6 +23,7 @@ public class Text extends javafx.scene.text.Text {
     public Text() {
         super();
         getStyleClass().add(STYLECLASS);
+        
     }
     public Text(String text) {
         super(text);

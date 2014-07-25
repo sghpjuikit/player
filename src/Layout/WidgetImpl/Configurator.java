@@ -24,6 +24,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import utilities.Log;
+import utilities.Util;
 
 @WidgetInfo(
     author = "Martin Polakovic",
@@ -80,7 +81,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         
         // sort & populate fields
         Configuration.getFields().stream()
-        .sorted((o1,o2) -> o1.getGuiName().compareToIgnoreCase(o2.getGuiName())).forEach(f-> {
+        .sorted(Util.cmpareNoCase(o->o.getGuiName())).forEach(f-> {
             ConfigGroup g = getGroup(f.getGroup());                             // find group
             ConfigField cf = ConfigField.create(f);                             // create
             if (cf != null && !(!show_noneditable && !f.isEditable())) {        // ignore on fail || noneditabe
@@ -92,7 +93,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         });
         
         // sort & populate groups
-        groups.stream().sorted((o1,o2) -> o1.name().compareToIgnoreCase(o2.name()))
+        groups.stream().sorted(Util.cmpareNoCase(e->e.name()))
                        .forEach(g -> accordion.getPanes().add(g.pane));
         
         // expand     

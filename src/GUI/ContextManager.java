@@ -38,6 +38,8 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import utilities.Enviroment;
+import utilities.Util;
+import static utilities.Util.IGNORE_CASE_STR_COMPARATOR;
 
 /**
  *
@@ -274,7 +276,7 @@ public final class ContextManager {
     }
     private static Context_Menu makeWidgetContextMenu() {
         final Context_Menu cc = new VerticalContextMenu();
-        WidgetManager.getFactories().stream().sorted((w1,w2) -> w1.name.compareToIgnoreCase(w2.name)).forEach( w -> {
+        WidgetManager.getFactories().stream().sorted(Util.cmpareNoCase(w->w.name)).forEach( w -> {
             cc.add(w.getName(), "Open " + w.getName() + " widget.", () -> {
                 Container a = (Container) cc.userData;
                 if (a instanceof PolyContainer)
@@ -292,7 +294,7 @@ public final class ContextManager {
                     a.addChild(1,c);
             });
         LayoutManager.getAllLayoutsNames()
-                .sorted((l1,l2) -> l1.compareToIgnoreCase(l2))
+                .sorted(IGNORE_CASE_STR_COMPARATOR)
                 .forEach( l -> {
             cc.add(l, "Open " + l + " layout.", () -> {
                 Container a = (Container) cc.userData;

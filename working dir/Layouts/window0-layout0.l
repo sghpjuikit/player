@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>39b6e472-48b5-49e8-8ad2-e4e840b9e695</id>
+  <id>fe309a11-750e-4fd1-83ad-6481abc95869</id>
   <properties>
     <map>
       <entry>
@@ -27,7 +27,7 @@
         </entry>
         <entry>
           <string>pos</string>
-          <double>0.5077574047954866</double>
+          <double>0.43724696356275305</double>
         </entry>
         <entry>
           <string>collap</string>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>fc6a0699-9792-482e-a38c-c8f475fd5685</id>
+          <id>2af37b6d-a1d3-48df-9c7f-b18c6eb68c6b</id>
           <properties>
             <map>
               <entry>
@@ -116,7 +116,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>28caea7b-2373-4752-a3a6-800b3df54206</id>
+                  <id>58706c94-16f6-410b-a826-a4d7b0aae46c</id>
                   <properties>
                     <map>
                       <entry>
@@ -131,7 +131,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>0c97b17e-4239-48ae-91d4-cb5333a79dc8</id>
+                    <id>497b4e67-92b6-418d-8e03-3cbf632f3a17</id>
                     <name>PlayerControls</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>
@@ -276,8 +276,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string">GUI</defaultValue>
-                        <value class="string">GUI</value>
+                        <defaultValue class="string"></defaultValue>
+                        <value class="string"></value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

@@ -17,7 +17,7 @@ public class MoodPicker extends Picker<String> {
 
     public MoodPicker() {
         super();
-        setAccumulator(()->MoodManager.moods.stream());
+        setAccumulator(() -> MoodManager.moods.stream());
     }
     
 }

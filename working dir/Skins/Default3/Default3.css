@@ -3489,10 +3489,12 @@ is being used to size a border should also be in pixels.
     -fx-stroke-width: 2;
 }
 .item-picker-button {
-    -fx-background-color: rgba(10,10,10,0.85);
-    -fx-background-radius: 2;
+    //-fx-background-color: rgba(10,10,10,0.85);
+    -fx-background-color: -fx-pane-color;
+    -fx-background-radius: 0;
+    -fx-pref-height: 2em;
     /*-fx-text-fill: -fx-def-font-color;*/
-    -fx-padding: 0.3em 0.7em 0.3em 0.7em;
+    //-fx-padding: 0.3em 0.7em 0.3em 0.7em;
 }
 .item-picker-button:hover {
     -fx-background-color: rgba(20,20,30,0.85);

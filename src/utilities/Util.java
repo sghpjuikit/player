@@ -6,8 +6,10 @@ package utilities;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Objects;
 import javafx.scene.image.Image;
+import javafx.util.Callback;
 import javafx.util.Duration;
 import org.jaudiotagger.tag.images.Artwork;
 
@@ -15,6 +17,41 @@ import org.jaudiotagger.tag.images.Artwork;
  * Provides static utility methods for various purposes.
  */
 public interface Util {
+    
+    /** Basic string comparator utilizing String.compareTo(). */
+    public static final Comparator<String> STR_COMPARATOR = (a,b) -> a.compareTo(b);
+    
+    /** Basic string comparator utilizing String.compareToIgnoreCase(). */
+    public static final Comparator<String> IGNORE_CASE_STR_COMPARATOR = (a,b) -> a.compareToIgnoreCase(b);
+    
+    /** 
+     * Creates comparator comparing E elements by some associated {@link Comparable}
+     * object, mostly their property, Utilizing Comparable.compareTo().
+     * <p>
+     * Easy and concise way to compare objects without code duplication
+     * <p>
+     * This method is generic Comparator factory producing comparators comparing
+     * the obtained result of the comparable supplier.
+     * 
+     * @param toC Comparable supplier - E to Comparable mapper. Returns the 
+     * Comparable derived from the E.
+     */
+    public static<E> Comparator<E> cmpareBy(Callback<E,Comparable> toC) {
+        return (a,b) -> toC.call(a).compareTo(toC.call(b));
+    }
+    
+    /** 
+     * Creates comparator comparing E elements by their string representation
+     * obtained by provided implementation. Utilizes String.compareToIgnoreCase().
+     * <p>
+     * Easy and concise way to compare objects without code duplication.
+     * 
+     * @param cmpGetter Comparable supplier. Returns the Comparable derived from
+     * the object.
+     */
+    public static<E> Comparator<E> cmpareNoCase(Callback<E,String> strGetter) {
+        return (a,b) -> strGetter.call(a).compareToIgnoreCase(strGetter.call(b));
+    }
     
     /**
      * Method equivalent to object's equal method, but if both objects are null

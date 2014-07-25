@@ -120,17 +120,18 @@ public abstract class Area<T extends Container> implements AltState {
     public void detach() {
         // get first active component
         Component c = getActiveComponent();
-        // return if empty
-        if (c==null) return;
         
         // detach into new window
-        // create new window with empty widget as content to initialize layouts
-        Window w = ContextManager.showWindow(Widget.EMPTY());
-               // set size to that of a source
-               w.setSize(root.getWidth(), root.getHeight());
+        // create new window with no content (not even empty widget)
+        Window w = ContextManager.showWindow(null);
+               // set size to that of a source (also add jeader & border space)
+               w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
-        container.swapChildren(c, w.getLayoutAggregator().getActive(), 
-                w.getLayoutAggregator().getActive().getChild());
+        Container c2 = w.getLayoutAggregator().getActive();
+        // watch out indexOf returns null if param null, but that will not happen here
+        int i1 = container.indexOf(c);
+        int i2 = c2.indexOf(w.getLayoutAggregator().getActive().getChild());
+        container.swapChildren(c2,i1,i2);
     }
     
     public void close() {

@@ -12,7 +12,6 @@ import PseudoObjects.FormattedDuration;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
@@ -43,7 +42,6 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
-import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.MathUtil;
 import utilities.TODO;
@@ -289,7 +287,8 @@ public final class PlaylistTable {
             double W = table.getWidth();
 
             // column 1
-            // need this weird method to get 9s as their are wide (font isnt always proportional)
+            // need this weird method to get 9s as their are wide 
+            // (font isnt always proportional)
             int i = MathUtil.DecMin1(PlaylistManager.getItems().size());    
             tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
@@ -350,7 +349,7 @@ public final class PlaylistTable {
             if (e.getButton()!=MouseButton.PRIMARY) return;
             
             double ROW = table.getFixedCellSize();
-            double diff = e.getScreenY()- last; // note: use getSceneY() instead getY()
+            double diff = e.getScreenY()- last;
             
             int by = (int) (diff/ROW);
             if (by >= 1 || by <= -1) {
@@ -405,9 +404,9 @@ public final class PlaylistTable {
         // reflect selection for whole application
         bindSelection();
         
-        // observe and show playing item
-        PlaylistManager.playingItemProperty().addListener(playingListener); // set listener
-        playingListener.invalidated(PlaylistManager.playingItemProperty()); // init value
+        // observe and show playing item - set listener & init value
+        PlaylistManager.playingItemProperty().addListener(playingListener);
+        playingListener.invalidated(PlaylistManager.playingItemProperty());
         
 //        table.setSortPolicy( t -> {
 //            SortedList itemsList = (SortedList) t.getItems();
@@ -590,13 +589,10 @@ public final class PlaylistTable {
 //        
 //        table.setItems(itemsS);
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        columnName.setComparator(new Comparator<String>() {
-
-            @Override
-            public int compare(String o1, String o2) {
-                return PlaylistItem.getComparatorArtist().compare(new PlaylistItem(null, o1, last), new PlaylistItem(null, o2, last));
-            }
-        });
+        columnName.setComparator((String o1, String o2) -> 
+                PlaylistItem.getComparatorArtist().compare(
+                        new PlaylistItem(null, o1, last), 
+                        new PlaylistItem(null, o2, last)));
         columnName.setSortType(TableColumn.SortType.ASCENDING);
         table.sort();
         
@@ -710,19 +706,10 @@ public final class PlaylistTable {
     
 /****************************** DRAG AND DROP *********************************/
     
-    private final EventHandler<DragEvent> dragOverHandler =  t -> {
+    private final EventHandler<DragEvent> dragOverHandler =  e -> {
         // avoid illegal operation on drag&drop from self to self
-        if(t.getGestureSource() == table) return;
-
-        Dragboard d = t.getDragboard();
-        // accept if contains at least 1 audio file, audio url, playlist or items
-        if ( (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
-             (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) || 
-                d.hasContent(DragUtil.items) ||
-                d.hasContent(DragUtil.playlist)) {
-            t.acceptTransferModes(TransferMode.ANY);
-            t.consume();
-        }
+        if(e.getGestureSource() != table)
+            DragUtil.audioDragAccepthandler.handle(e);
     };
     
     private void onDragDropped(DragEvent e, int index) {

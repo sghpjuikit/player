@@ -6,9 +6,9 @@
 
 package Configuration;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
 import utilities.Log;
@@ -24,8 +24,8 @@ import utilities.Log;
  */
 public final class StaticFieldConfig<T> extends Config<T> {
     
-    @XStreamOmitField
     private final Field sourceField;
+    Method applierMethod;
     
     /**
      * 
@@ -68,10 +68,10 @@ public final class StaticFieldConfig<T> extends Config<T> {
             sourceField.setAccessible(true);
             sourceField.set(null, val);
             sourceField.setAccessible(false);
-            Log.deb("Config field " + name + " set.");
+            Log.deb("Config field " + getName() + " set.");
             return true;
         } catch (IllegalAccessException | SecurityException e) {
-            Log.err("Failed to set config field: " + name + " . Reason: " + e.getMessage());
+            Log.err("Failed to set config field: " + getName() + " . Reason: " + e.getMessage());
             sourceField.setAccessible(false);
             return false;
         }
@@ -83,20 +83,20 @@ public final class StaticFieldConfig<T> extends Config<T> {
     @Override
     public boolean applyValue() {
         if(applierMethod != null) {
-            Log.deb("Applying config: " + name);
+            Log.deb("Applying config: " + getName());
             try {
                 applierMethod.setAccessible(true);
                 applierMethod.invoke(null, new Object[0]);
                 return true;
             } catch (IllegalAccessException | IllegalArgumentException | 
                     InvocationTargetException | SecurityException e) {
-                Log.err("Failed to apply config field: " + name + ". Reason: " + e.getMessage());
+                Log.err("Failed to apply config field: " + getName() + ". Reason: " + e.getMessage());
                 return false;
             } finally {
                 applierMethod.setAccessible(false);
             }
         } else {
-            Log.deb("Ommitting to apply config field: " + name + ". Reason: No applier method.");
+            Log.deb("Ommitting to apply config field: " + getName() + ". Reason: No applier method.");
             return true;
         }
     }

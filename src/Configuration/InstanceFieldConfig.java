@@ -33,16 +33,16 @@ public class InstanceFieldConfig<T> extends Config<T> {
         
         this.applier_object = applier_object;
         this.sourceField = field;
-        value = defaultValue;
+        value = val; // sa as default value
     }
     
     /**
      * {@inheritDoc}
      */
     @Override
-    public T getValue() {System.out.println( " getting value for " + name);
+    public T getValue() {System.out.println( " getting value for " + getName());
         try {
-            Field f = applier_object.getClass().getField(name);
+            Field f = applier_object.getClass().getField(getName());
             
             return (T) f.get(applier_object);
         } catch (IllegalArgumentException e) {
@@ -57,14 +57,14 @@ public class InstanceFieldConfig<T> extends Config<T> {
      * {@inheritDoc}
      */
     @Override
-    public boolean setValue(T val) { System.out.println(" setting value for " + name + val + " " + val.getClass() + " " + applier_object);
+    public boolean setValue(T val) { System.out.println(" setting value for " + getName() + val + " " + val.getClass() + " " + applier_object);
         try {
-            Field f = applier_object.getClass().getField(name);
+            Field f = applier_object.getClass().getField(getName());
                   f.set(applier_object, val);
-                  Log.deb("Config field: " + name + " set to: " + val);
+                  Log.deb("Config field: " + getName() + " set to: " + val);
             return true;
         } catch (SecurityException | IllegalAccessException ex) {
-            Log.err("Config field: " + name + " failed to set. Reason: " + ex.getMessage());
+            Log.err("Config field: " + getName() + " failed to set. Reason: " + ex.getMessage());
             return false;
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Config value wrong object type. Cant "

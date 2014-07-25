@@ -8,9 +8,13 @@ import AudioPlayer.playlist.SimplePlaylistItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.event.EventHandler;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import utilities.AudioFileFormat;
 
 /**
  *
@@ -25,6 +29,38 @@ public final class DragUtil {
     /** Data Format for WidgetTransfer. */
     public static final DataFormat widgetDF = new DataFormat("widget");
     
+    /**
+     * Accepts drag if contains {@link #widgetDF} Data format.
+     * <p>
+     * Reuse this handler spares code duplication and multiple object instances.
+     */
+    public static final EventHandler<DragEvent> componentDragAcceptHandler = e -> {
+        Dragboard db = e.getDragboard();
+        if (db.hasContent(DragUtil.widgetDF)) {
+            e.acceptTransferModes(TransferMode.ANY);
+            e.consume();
+        }
+    };
+    
+    /**
+     * Accepts drag if contains at least 1 audio file, audio url, {@link Playlist}
+     * or list of {@link Item}.
+     * <p>
+     * Reusing this handler spares code duplication and multiple object instances.
+     */
+    public static final EventHandler<DragEvent> audioDragAccepthandler = t -> {
+        Dragboard d = t.getDragboard();
+        // accept if contains at least 1 audio file, audio url, playlist or items
+        if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+                (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
+                d.hasContent(DragUtil.playlist) ||
+                d.hasContent(DragUtil.items)) {
+            t.acceptTransferModes(TransferMode.ANY);
+            t.consume();
+        }
+    };
+    
+/******************************************************************************/
 
     
     public static void setContent(Dragboard db, Playlist p) {
@@ -49,5 +85,9 @@ public final class DragUtil {
         return ((List<SimpleItem>) db.getContent(DragUtil.items))
                 .stream()
                 .collect(Collectors.toList());
+    }
+    
+    public static WidgetTransfer getWidgetTransfer(Dragboard db) {
+        return (WidgetTransfer) db.getContent(DragUtil.widgetDF);
     }
 }

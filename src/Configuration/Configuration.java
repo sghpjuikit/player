@@ -113,15 +113,18 @@ public class Configuration {
             }
         }
     }
-    private static void discoverMethodsOf(Class c) {
-        for (Method m : c.getDeclaredMethods()) {
+    private static void discoverMethodsOf(Class cls) {
+        for (Method m : cls.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
                 for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
                     if (a != null) {
                         String name = a.config();
                         if(!name.isEmpty() && configs.containsKey(name)) {
-                            configs.get(name).applierMethod = m;
-                            Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
+                            Config c = configs.get(name);
+                            if(c instanceof StaticFieldConfig) {
+                                ((StaticFieldConfig)c).applierMethod = m;
+                                Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
+                            }
                         }
                     }
                 }
@@ -181,11 +184,11 @@ public class Configuration {
         configs.values().forEach(Config::applyValue);
     }
     
-    public static void applyFieldsOfClass(Class<?> clazz) {
-        configs.values().stream()
-                .filter(c->c.defaultValue.getClass().equals(clazz))
-                .forEach(Config::applyValue);
-    }
+//    public static void applyFieldsOfClass(Class<?> clazz) {
+//        configs.values().stream()
+//                .filter(c->c.getDefaultValue().getClass().equals(clazz)) // this is broken
+//                .forEach(Config::applyValue);
+//    }
     
     public static void applyFieldsByName(List<String> fields_to_apply) {
         fields_to_apply.forEach(Configuration::applyField);

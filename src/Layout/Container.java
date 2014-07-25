@@ -144,25 +144,27 @@ public abstract class Container extends Component implements AltState {
      * @param c2 child to swap with
      * @param w2 container containing the child to swap with
      */
-    public void swapChildren(Component w1, Container c2, Component w2) {        
+    public void swapChildren(Container c2, int i1, int i2) {
         Container c1 = this;
         // avoid pointless operation but dont rely on equals
         // subclass can overide it and cause problems
         if (c1==c2) return;
-        // forbid nulls - it should never cause problems but just in case
-        if(w1==null) w1 = Widget.EMPTY();
-        if(w2==null) w2 = Widget.EMPTY();
         
-        Log.deb("Swapping widgets " + w1.getName() + " and " + w2.getName());
+        Component w1 = c1.getChildren().get(i1);
+        Component w2 = c2.getChildren().get(i2);
         
-        Integer i1 = c1.indexOf(w1);
-        Integer i2 = c2.indexOf(w2);
+        String w1n = w1==null ? "null" : w1.getName();
+        String w2n = w2==null ? "null" : w2.getName();
+        Log.deb("Swapping widgets " + w1n + " and " + w2n);
+        
+        // remove old
         c1.addChild(i1, null);
         c2.addChild(i2, null);
-        c1.addChild(i1, w2);
-        c2.addChild(i2, w1);
-        c1.load();
-        c2.load();        
+        // add new
+        if (w2!=null) c1.addChild(i1, w2);
+        if (w1!=null) c2.addChild(i2, w1);
+//        c1.load();
+//        c2.load();  
     }
     
     /**

@@ -199,7 +199,10 @@ public final class AreaControls {
                     // mouse entering the popup qualifies as root.mouseExited which we need
                     // to avoid
                     // now we need to handle hiding when popup closes
-                    (helpPopOver==null || !helpPopOver.isShowing()))
+                    (helpPopOver==null || !helpPopOver.isShowing())
+                        // if we hover on a child of deactivator it 
+                        // receives mouse exit, make sure the event is legit
+                        && !deactivator.contains(e.getX(), e.getY()))
                 hideWeak();
         });
         // hide on mouse exit from area

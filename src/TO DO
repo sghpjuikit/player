@@ -29,15 +29,14 @@
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist sorting
 - playlist index column width still not perfect
-- picker size fix + delete ContextPopOver?
 - rating star button style remove border
-- allow null in swap children operation
-- make more Actions, make util class for it
+- DragUtils add List<Item> getAudioItems() method
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- make more Actions, make util class for it
 - use layouter from within Area
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks

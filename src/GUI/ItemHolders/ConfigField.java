@@ -69,7 +69,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         Button n = AwesomeDude.createIconButton(AwesomeIcon.REPEAT, "", "11","10",ContentDisplay.GRAPHIC_ONLY);
                n.setOpacity(0);
                n.setOnMouseClicked(e-> {
-                  config.setNapplyValue(config.defaultValue);
+                  config.setNapplyValue(config.getDefaultValue());
                   refreshItem();
                });
                n.getStyleClass().setAll("congfig-field-default-button");

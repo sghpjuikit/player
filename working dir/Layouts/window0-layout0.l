@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>fe309a11-750e-4fd1-83ad-6481abc95869</id>
+  <id>d408234d-e572-48fb-ba0e-6ce0438f23a2</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>2af37b6d-a1d3-48df-9c7f-b18c6eb68c6b</id>
+          <id>c04fb8f4-d2eb-4b3f-bdc6-cb63e44fb46c</id>
           <properties>
             <map>
               <entry>
@@ -62,6 +62,73 @@
             </map>
           </properties>
           <b>false</b>
+          <child class="Layout.Widgets.ClassWidget">
+            <id>ad19b730-d637-4ae7-a9a9-3d2ec551f865</id>
+            <name>Settings</name>
+            <configs>
+              <Configuration.InstanceFieldConfig>
+                <gui__name>Is preferred</gui__name>
+                <name>preferred</name>
+                <group>ClassWidget</group>
+                <info>Preferred widget for its widget type.</info>
+                <editable>true</editable>
+                <visible>true</visible>
+                <min>NaN</min>
+                <max>NaN</max>
+                <defaultValue class="boolean">false</defaultValue>
+                <value class="boolean">false</value>
+              </Configuration.InstanceFieldConfig>
+              <Configuration.InstanceFieldConfig>
+                <gui__name>Show non editable fields</gui__name>
+                <name>show_noneditable</name>
+                <group>Configurator</group>
+                <info>Include non read-only fields.</info>
+                <editable>true</editable>
+                <visible>true</visible>
+                <min>NaN</min>
+                <max>NaN</max>
+                <defaultValue class="boolean">false</defaultValue>
+                <value class="boolean">false</value>
+              </Configuration.InstanceFieldConfig>
+              <Configuration.InstanceFieldConfig>
+                <gui__name>Field names alignment</gui__name>
+                <name>alignemnt</name>
+                <group>Configurator</group>
+                <info>Alignment of field names.</info>
+                <editable>true</editable>
+                <visible>true</visible>
+                <min>NaN</min>
+                <max>NaN</max>
+                <defaultValue class="javafx.geometry.HPos">RIGHT</defaultValue>
+                <value class="javafx.geometry.HPos">RIGHT</value>
+              </Configuration.InstanceFieldConfig>
+              <Configuration.InstanceFieldConfig>
+                <gui__name>Group titles alignment</gui__name>
+                <name>title_align</name>
+                <group>Configurator</group>
+                <info>Alignment of group names.</info>
+                <editable>true</editable>
+                <visible>true</visible>
+                <min>NaN</min>
+                <max>NaN</max>
+                <defaultValue class="javafx.geometry.Pos">CENTER</defaultValue>
+                <value class="javafx.geometry.Pos">CENTER</value>
+              </Configuration.InstanceFieldConfig>
+              <Configuration.InstanceFieldConfig>
+                <gui__name>expanded</gui__name>
+                <name>expanded</name>
+                <group>Configurator</group>
+                <info></info>
+                <editable>true</editable>
+                <visible>false</visible>
+                <min>NaN</min>
+                <max>NaN</max>
+                <defaultValue class="string"></defaultValue>
+                <value class="string"></value>
+              </Configuration.InstanceFieldConfig>
+            </configs>
+            <class__type>Layout.WidgetImpl.Configurator</class__type>
+          </child>
         </Layout.UniContainer>
       </entry>
       <entry>

@@ -9,7 +9,6 @@ package GUI;
 import Configuration.IsConfig;
 import GUI.LayoutAggregators.SwitchPane;
 import Layout.Layout;
-import Layout.WidgetImpl.Layouter;
 import Layout.Widgets.WidgetManager;
 import java.io.File;
 import java.util.ArrayList;
@@ -101,7 +100,7 @@ public class WindowManager {
                 int index = e.getKey();
                 Layout l = e.getValue();
                 // dont continue if layout empty
-                if(l.getChild() == null || l.getChild() instanceof Layouter) continue;
+                if(l.getChild() == null) continue;
                 // associate the layout with the window by name & save
                 l.setName("window" + i + "-layout" + index);
                 l.serialize();

@@ -20,7 +20,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 
 /**
- * Parametrized implementation of Area for UniContainer.
+ * Implementation of Area for UniContainer.
  */
 public final class WidgetArea extends UniArea {
     
@@ -30,6 +30,7 @@ public final class WidgetArea extends UniArea {
     
     public WidgetArea(UniContainer con) {
         super(con);
+        
         // load graphics
         try {
             FXMLLoader loader = new FXMLLoader(this.getClass().getResource("WidgetArea.fxml"));
@@ -52,29 +53,28 @@ public final class WidgetArea extends UniArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            if (!controls.isShowing()) return;  // disallow in normal mode
-            if (e.getButton()==PRIMARY) {       // primary button drag only
+            // disallow in normal mode & primary button drag only
+            if (controls.isShowing() && e.getButton()==PRIMARY) {
                 ClipboardContent c = new ClipboardContent();
-                c.put(DragUtil.widgetDF, new WidgetTransfer(widget, container));
+                c.put(DragUtil.widgetDF, new WidgetTransfer(container.indexOf(widget), container));
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                           db.setContent(c);
                 e.consume();
             }
         });
-        // support drag onto
-        root.setOnDragOver( e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDF))
-                e.acceptTransferModes(TransferMode.ANY);
-            e.consume();
-        });
+        // accept drag onto
+        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
+        // handle drag onto
         root.setOnDragDropped( e -> {
             Dragboard db = e.getDragboard();
             if (db.hasContent(DragUtil.widgetDF)) {
-                WidgetTransfer wt = (WidgetTransfer) db.getContent(DragUtil.widgetDF);
-                container.swapChildren(widget, wt.getContainer(),wt.getWidget());
+                WidgetTransfer wt = DragUtil.getWidgetTransfer(db);
+                // use first free index (0) if empty (widget==null)
+                int i1 = widget==null ? 0 : container.indexOf(widget);
+                int i2 = wt.childIndex();
+                container.swapChildren(wt.getContainer(),i1,i2);
+                e.consume();
             }
-            e.consume();
         });
         
         controls.hide();

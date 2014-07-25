@@ -332,7 +332,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         
         // drag & drop content
-        entireArea.setOnDragOver(drag_over_handler);
+        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         entireArea.setOnDragDropped(drag_dropped_handler);
         
         // add cover on click
@@ -960,7 +960,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                        // list will be atomatically updated now
                        list.setItems(allitems);
                        // support same drag & drop as tagger
-                       list.setOnDragOver(drag_over_handler);
+                       list.setOnDragOver(DragUtil.audioDragAccepthandler);
                        list.setOnDragDropped(drag_dropped_handler);
            
         
@@ -1068,19 +1068,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         return defCellFactory;
     }
     
-    
-    
-    private final EventHandler<DragEvent> drag_over_handler = t -> {
-        Dragboard d = t.getDragboard();
-        // accept if contains at least 1 audio file, audio url, playlist or items
-        if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
-                (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
-                d.hasContent(DragUtil.playlist) ||
-                d.hasContent(DragUtil.items)) {
-            t.acceptTransferModes(TransferMode.ANY);
-            t.consume();
-        }
-    };
     private final EventHandler<DragEvent> drag_dropped_handler = t -> {
         // get data
         Dragboard d = t.getDragboard();

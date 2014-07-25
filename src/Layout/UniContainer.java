@@ -1,8 +1,8 @@
 
 package Layout;
 
-import Layout.WidgetImpl.Layouter;
 import Layout.Areas.WidgetArea;
+import Layout.Areas.Layouter;
 import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.Collections;
@@ -21,9 +21,12 @@ import javafx.scene.layout.AnchorPane;
  * @author uranium
  */
 public class UniContainer extends Container {
+    
     Component child;
     @XStreamOmitField
     private WidgetArea gui;
+    @XStreamOmitField
+    private Layouter guiL;
  
     public UniContainer() {
     }
@@ -33,24 +36,24 @@ public class UniContainer extends Container {
     
     @Override
     public Node load() {
-        // lazy load fields
-        if (gui == null) gui = new WidgetArea(this);
-        
-        // although Layouter is legit Widget, dont add it as child, it would wrap
-        // it in Widget Gui Container which is not desirable
-        
         Node out;
-        if (child == null)
-            out = new Layouter(this,1).load();
-        else
-        if (child instanceof Container)
+        
+        if (child instanceof Container) {
+            guiL = null;
             out = ((Container)child).load(root);
-        else
+        } else 
         if (child instanceof Widget) {
+            guiL = null;
+            // lazy load gui
+            if (gui == null) gui = new WidgetArea(this);
             gui.loadWidget((Widget)child);
             out = gui.root;
         }
-        else out = new Layouter(this,1).load();
+        else {
+            gui = null;
+            if(guiL == null) guiL = new Layouter(this,1);
+            out = guiL.getRoot();
+        }
         
         root.getChildren().setAll(out);
         AnchorPane.setBottomAnchor(out, 0.0);
@@ -108,12 +111,14 @@ public class UniContainer extends Container {
     @Override
     public void show() {
         super.show();
-        gui.show();
+        if(gui!=null) gui.show();
+        if(guiL!=null) guiL.show();
     }
     @Override
     public void hide() {
         super.hide();
-        gui.hide();
+        if(gui!=null) gui.hide();
+        if(guiL!=null) guiL.hide();
     }
 
     @Override

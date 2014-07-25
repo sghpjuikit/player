@@ -1,9 +1,7 @@
 
 package Configuration;
 
-import java.lang.reflect.Method;
 import java.util.Objects;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import utilities.Parser.Parser;
 
 /**
@@ -18,20 +16,18 @@ import utilities.Parser.Parser;
  * 
  * @author uranium
  */
-@Immutable
 public abstract class Config<T> {
     
-    final protected String gui_name;
-    final protected String name;
-    final protected String group;
-    final protected String info;
-    final protected boolean editable;
-    final protected boolean visible;
-    final protected double min;
-    final protected double max;
+    private final String gui_name;
+    private final String name;
+    private final String group;
+    private final String info;
+    private final boolean editable;
+    private final boolean visible;
+    private final double min;
+    private final double max;
+    private final T defaultValue;
     
-    Method applierMethod;
-    public T defaultValue;
     
     /**
      * 

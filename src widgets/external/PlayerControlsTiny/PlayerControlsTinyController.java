@@ -25,7 +25,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.media.MediaPlayer.Status;
@@ -33,7 +32,6 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
 import main.App;
-import utilities.FileUtil;
 import utilities.Util;
 
 /**
@@ -117,15 +115,8 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         currTimeListener.invalidated(null);                             // init value
         
         // support drag transfer
-        root.setOnDragOver( e -> {
-            Dragboard db = e.getDragboard();
-            if ((db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
-                    db.hasUrl() || 
-                        db.hasContent(DragUtil.playlist)) {
-                e.acceptTransferModes(TransferMode.ANY);
-                e.consume();
-            }
-        });
+        root.setOnDragOver(DragUtil.audioDragAccepthandler);
+        // handle drag transfer
         root.setOnDragDropped( e -> {
             // get items
             Dragboard db = e.getDragboard();

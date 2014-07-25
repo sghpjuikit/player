@@ -7,8 +7,8 @@ import GUI.DragUtil;
 import GUI.WidgetTransfer;
 import GUI.Window;
 import Layout.Component;
+import Layout.Container;
 import Layout.PolyContainer;
-import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +22,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 
@@ -33,7 +33,6 @@ public final class TabArea extends PolyArea {
     
     @FXML TabPane tabPane;
     @FXML AnchorPane content;
-    
     
     private Component widget;  // active component, max one, null if none
     
@@ -62,30 +61,30 @@ public final class TabArea extends PolyArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            if (!controls.isShowing()) return;              // disallow in normal mode
-            if (e.getButton() == MouseButton.PRIMARY) {     // primary button drag only
-                ClipboardContent cc = new ClipboardContent();
-                cc.put(DragUtil.widgetDF, new WidgetTransfer(container, container.getParent()));
+            // disallow in normal mode & primary button drag only
+            if (controls.isShowing() && e.getButton()==PRIMARY) {
+                ClipboardContent c = new ClipboardContent();
+                // use first free index (0) id empty (widget==null)
+                int i = widget==null ? 0 : container.indexOf(widget);
+                c.put(DragUtil.widgetDF, new WidgetTransfer(i, container));
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                          db.setContent(cc);
+                          db.setContent(c);
                 e.consume();
             }
         });
         // support drag onto
-        root.setOnDragOver( e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDF)) {
-                e.acceptTransferModes(TransferMode.ANY);
-                e.consume();
-            }
-        });
+        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
+        // handle drag onto
         root.setOnDragDropped( e -> {
             Dragboard db = e.getDragboard();
             if (db.hasContent(DragUtil.widgetDF)) {
-                WidgetTransfer wt = (WidgetTransfer) db.getContent(DragUtil.widgetDF);
-                container.swapChildren(container, wt.getContainer(),wt.getWidget());
+                WidgetTransfer wt = DragUtil.getWidgetTransfer(db);
+                // use first free index (0) if empty (widget==null)
+                int i1 = widget==null ? 0 : container.indexOf(widget);
+                int i2 = wt.childIndex();
+                container.swapChildren(wt.getContainer(), i1, i2);
+                e.consume();
             }
-            e.consume();
         });
         
 
@@ -205,14 +204,15 @@ public final class TabArea extends PolyArea {
     }
     @Override
     public void detach() {
-        // create new window with empty widget as content to initialize layouts
-        Window w = ContextManager.showWindow(Widget.EMPTY());
-               // set size to that of a source
-               w.setSize(root.getWidth(), root.getHeight());
+        // create new window with no content (not even empty widget)
+        Window w = ContextManager.showWindow(null);
+               // set size to that of a source (also add jeader & border space)
+               w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
-        container.getParent().swapChildren(container, 
-                w.getLayoutAggregator().getActive(), 
-                w.getLayoutAggregator().getActive().getChild());
+        Container c2 = w.getLayoutAggregator().getActive();
+        int i1 = container.getParent().indexOf(container);
+        int i2 = c2.indexOf(w.getLayoutAggregator().getActive().getChild());
+        container.getParent().swapChildren(c2,i1,i2);
     }
     
     @Override

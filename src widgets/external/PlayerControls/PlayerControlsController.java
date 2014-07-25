@@ -31,14 +31,12 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
-import utilities.FileUtil;
 import utilities.Util;
 
 
@@ -188,15 +186,8 @@ public class PlayerControlsController extends FXMLController implements Playback
         volume.valueProperty().addListener(volumeListener);
         
         // support drag transfer
-        entireArea.setOnDragOver( e -> {
-            Dragboard db = e.getDragboard();
-            if ((db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
-                    db.hasUrl() || 
-                        db.hasContent(DragUtil.playlist)) {
-                e.acceptTransferModes(TransferMode.ANY);
-                e.consume();
-            }
-        });
+        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
+        // handle drag transfer
         entireArea.setOnDragDropped( e -> {
             // get items
             Dragboard db = e.getDragboard();

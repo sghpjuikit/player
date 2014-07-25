@@ -104,17 +104,12 @@ public final class ContextManager {
     
     /** 
      * @param widget widget to open, does nothing when null.
-     * @throws NullPointerException if param null
      */
     public static Window showWindow(Widget widget) {
-        Objects.requireNonNull(widget);
-        
         Window w = Window.create();
-        w.setTitle(widget.getName());
-        w.setContent(widget);
-        w.show();
-        w.setLocationCenter();
-        
+               w.setContent(widget);
+               w.show();
+               w.setLocationCenter();
         return w;
     }
     

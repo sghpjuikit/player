@@ -1,28 +1,26 @@
 
-package Layout.WidgetImpl;
+package Layout.Areas;
 
-import Configuration.Config;
+import GUI.DragUtil;
+import GUI.WidgetTransfer;
 import GUI.objects.Pickers.WidgetPicker;
 import Layout.AltState;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.PolyContainer;
-import Layout.Widgets.Controller;
-import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
-import javafx.beans.binding.Bindings;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -39,20 +37,19 @@ import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
  * TO Do file API section
  */
 @WidgetInfo
-public final class Layouter extends Widget implements AltState, Controller<Widget> {
+public final class Layouter implements AltState {
     
     private static final Duration ANIM_DUR = Duration.millis(300);
     private int index;              // hack (see to do API section, layouts)
     
-    @FXML BorderPane controls;
-    @FXML AnchorPane root = new AnchorPane();
-    @FXML AnchorPane content;
+    private @FXML BorderPane controls;
+    private @FXML AnchorPane root = new AnchorPane();
+    private @FXML AnchorPane content;
     private final Container container;
     private final FadeTransition anim;
     private final ScaleTransition animS;
     
     public Layouter(Container con, int index) {
-        super("Layouter");
         this.index = index;
         this.container = con;
         
@@ -78,9 +75,21 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
         setWeakMode(false); // this needs to be called in constructor
         
         // prevent action & allow passing mouse events when not fully visible
-        content.mouseTransparentProperty().bind(Bindings.notEqual(content.opacityProperty(), 1));
+        content.mouseTransparentProperty().bind(content.opacityProperty().isNotEqualTo(1));
         
-        
+        // do not support drag from - no content
+        // but accept drag onto
+        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
+        // handle drag onto
+        root.setOnDragDropped( e -> {
+            Dragboard db = e.getDragboard();
+            if (db.hasContent(DragUtil.widgetDF)) {
+                WidgetTransfer wt = DragUtil.getWidgetTransfer(db);
+                int i1 = index;
+                container.swapChildren(wt.getContainer(),i1,wt.childIndex());
+                e.consume();
+            }
+        });
         
         root.getStyleClass().setAll("darker");
     }
@@ -166,11 +175,7 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
     @FXML
     private void showWidgetArea(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
-        // cant use here because it returns null
-        // because Layouter is not part of Layout map
-        // same goes for below methods
-        // Integer i = container.indexOf(this);
-         
+        
         WidgetPicker w = new WidgetPicker();
         w.setOnSelect(f -> {
             end = true;
@@ -205,7 +210,6 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
     private void showSplitV(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        Integer i = container.indexOf(this);
         container.addChild(index, new BiContainerPure(HORIZONTAL));
         
         e.consume();
@@ -214,7 +218,6 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
     private void showSplitH(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        Integer i = container.indexOf(this);
         container.addChild(index, new BiContainerPure(VERTICAL));
         
         e.consume();
@@ -223,54 +226,15 @@ public final class Layouter extends Widget implements AltState, Controller<Widge
     private void showTabs(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        Integer i = container.indexOf(this);
         container.addChild(index, new PolyContainer());
         
         e.consume();
     }
-
-/****************************  as controller  *********************************/
     
-    private Widget widget;
-
-    @Override public String getName() {
-        return "Layouter";
-    }
     
-    @Override public void refresh() { }
-
-    @Override public void setWidget(Widget w) {
-        widget = w;
-    }
-
-    @Override public Widget getWidget() {
-        return widget;
-    }
-
-/******************************   as widget  **********************************/
-    
-    @Override public Node load() {
+    public Parent getRoot() {
         return root;
     }
-
-    @Override public Controller getController() {
-        return this;
-    }
-    
-    @Override public WidgetInfo getInfo() {
-        return getClass().getAnnotation(WidgetInfo.class);
-    }
-
-    @Override public List<Config> getFields() {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return true;
-    }
-    
-    
 }
 
 

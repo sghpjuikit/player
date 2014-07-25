@@ -101,7 +101,7 @@ public abstract class Container extends Component implements AltState {
      * position.
      */
     public void addChild(Integer index, Component c) {
-        System.out.println("B" +b+" index "+index + " c "+c);
+        System.out.println("adding child" +b+" index "+index + " c "+c);
         if(c==null) {
             if(index!=null) {
                 if(b) return;

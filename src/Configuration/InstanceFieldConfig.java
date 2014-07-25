@@ -6,7 +6,6 @@
 
 package Configuration;
 
-import Action.Action;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -37,21 +36,14 @@ public class InstanceFieldConfig<T> extends Config<T> {
         value = defaultValue;
     }
     
-    InstanceFieldConfig(Action c) {
-        super(c);
-        sourceField = null;
-        value = (T)c;
-    }
-    
     /**
      * {@inheritDoc}
      */
     @Override
     public T getValue() {System.out.println( " getting value for " + name);
-        if(getType().equals(Action.class)) return value;
-    
         try {
             Field f = applier_object.getClass().getField(name);
+            
             return (T) f.get(applier_object);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Config " + getName() + 
@@ -66,10 +58,6 @@ public class InstanceFieldConfig<T> extends Config<T> {
      */
     @Override
     public boolean setValue(T val) { System.out.println(" setting value for " + name + val + " " + val.getClass() + " " + applier_object);
-        if(getType().equals(Action.class)) {
-            value = val;
-            return true;
-        }
         try {
             Field f = applier_object.getClass().getField(name);
                   f.set(applier_object, val);

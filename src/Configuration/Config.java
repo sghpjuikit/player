@@ -1,7 +1,6 @@
 
 package Configuration;
 
-import Action.Action;
 import java.lang.reflect.Method;
 import java.util.Objects;
 import jdk.nashorn.internal.ir.annotations.Immutable;
@@ -83,21 +82,6 @@ public abstract class Config<T> {
         visible = c.visible();
         min = c.min();
         max = c.max();
-    }
-    /**
-     * 
-     * @param c 
-     */
-    Config(Action c) {
-        gui_name = c.name + " Shortcut";
-        name = c.name;
-        defaultValue = (T)c;
-        group = "Shortcuts";
-        info = c.info;
-        editable = true;
-        visible = true;
-        min = Double.NaN;
-        max = Double.NaN;
     }
     
     /**

@@ -203,7 +203,7 @@ public final class Action {
 /*********************** registering helper methods ***************************/
     
     private void changeKeys(String keys) {
-        if(keys.isEmpty()) { System.out.println("EMPTY");       
+        if(keys.isEmpty()) {   
             this.keys = NO_MATCH;   // disable shortcut for empty keys
             return;
         }
@@ -265,9 +265,7 @@ public final class Action {
     public boolean equals(Object o) {
         if(this==o) return true; // this line can make a difference
         
-        if(o==null) return false;
-        if(o==this) return true;
-        if(!o.getClass().equals(Action.class)) return false;
+        if(o==null || !o.getClass().equals(Action.class)) return false;
         Action a = ((Action)o);
         return a.name.equals(name) && a.global==global && a.keys.equals(keys);
     }

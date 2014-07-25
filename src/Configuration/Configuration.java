@@ -4,13 +4,13 @@ package Configuration;
 import Action.Action;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import javafx.beans.property.Property;
 import main.App;
@@ -67,7 +67,7 @@ public class Configuration {
         for (Class c : classes) discoverConfigFieldsOf(c);
         
         // add action fields
-        Action.getActions().values().stream().map(InstanceFieldConfig::new).forEach(f->configs.put(f.getName(), f));
+        Action.getActions().values().stream().map(ActionConfig::new).forEach(f->configs.put(f.getName(), f));
         
         // add methods in the end to avoid incorrect initialization
        for (Class c : classes) discoverMethodsOf(c);
@@ -137,92 +137,73 @@ public class Configuration {
 /******************************** setting fields ******************************/
 
     /**
-     * If application doesnt have any config with specified name this method is
-     * a no-op
-     * @param value Object value. If not a proper type one of the two exceptions
-     * will be thrown.
+     * @param value Object value. If not a proper type exceptions will be thrown.
      * @throws ClassCastException when value parameter not of expected type.
      * @throws IllegalArgumentException when value parameter not of expected type.
+     * @throws RuntimeException if config does not exist. Such case must be a 
+     * programming error.
      */
     public static void setNapplyField(String name, Object value) {
         Log.deb("Attempting to set and apply config field " + name + " to " + value);
-        
         Config c = configs.get(name);
-        if(c == null) {
-            Log.deb("Failed to set and apply config field: " + name + " . Reason: Does not exist.");
-            return;
-        }
-        
-        if(c.getType().equals(Action.class)) {
-            Action a = (Action)value;
-            Action.getActions().get(name).set(a.isGlobal(), a.getKeys());
-        } else {
-            c.setNapplyValue(value);
-        }
+        Objects.requireNonNull(c,"Failed to set and apply config field: " + name + " . Reason: Does not exist.");
+        c.setNapplyValue(value);
     }
     
+    /**
+     * 
+     * @param name
+     * @param value 
+     * @throws RuntimeException if config does not exist. Such case must be a 
+     * programming error.
+     */
     public static void setField(String name, Object value) {
-        // Log.deb("Setting field "+name+" "+value);
-        
+        Log.deb("Attempting to set config field value of: " + name + " to: " + value);
         Config c = configs.get(name);
-        if(c == null) {
-            Log.deb("Failed to set config field: " + name + " . Reason: Does not exist.");
-            return;
-        }
-        
-        if(c.getType().equals(Action.class)) {
-            Action temp_a = (Action) value;
-            Action.getActions().get(name).set(temp_a.isGlobal(), temp_a.getKeys());
-        } else {
-            c.setValue(value);
-        }
+        Objects.requireNonNull(c,"Failed to set config field: " + name + " . Reason: Does not exist.");
+        c.setValue(value);
     }
     
+    /**
+     * 
+     * @param name 
+     * @throws RuntimeException if config does not exist. Such case must be a 
+     * programming error.
+     */
     public static void applyField(String name) {
-        // Log.deb("Setting and applying field " + name + " " + value);
-        
+        Log.deb("Attempting to apply config field " + name);
         Config c = configs.get(name);
-        if(c == null) {
-            Log.deb("Failed to apply config field: " + name + " . Reason: Does not exist.");
-            return;
-        }
-        
-        if(!c.getType().equals(Action.class)) {
-            Method m = c.applierMethod;
-            if(m != null) {
-                Log.deb("Applying config: " + name);
-                try {
-                    m.setAccessible(true);
-                    m.invoke(null, new Object[0]);
-                } catch (IllegalAccessException | IllegalArgumentException | 
-                        InvocationTargetException | SecurityException e) {
-                    Log.err("Failed to apply config: " + name + ". Reason: " + e.getMessage());
-                } finally {
-                    m.setAccessible(false);
-                }
-            }
-        }
+        Objects.requireNonNull(c,"Failed to apply config field: " + name + " . Reason: Does not exist.");
+        c.applyValue();
     }
     
     public static void applyFieldsAll() {
-        configs.forEach((name,field)->applyField(name));
+        configs.values().forEach(Config::applyValue);
     }
     
     public static void applyFieldsOfClass(Class<?> clazz) {
         configs.values().stream()
                 .filter(c->c.defaultValue.getClass().equals(clazz))
-                .forEach(c->applyField(c.getName()));
+                .forEach(Config::applyValue);
     }
     
     public static void applyFieldsByName(List<String> fields_to_apply) {
         fields_to_apply.forEach(Configuration::applyField);
     }
     
-    public static void applyFieldsByConfig(List<Config> fields_to_apply) {
-        fields_to_apply.forEach(c -> applyField(c.getName()));
+    public static void applyFields(List<Config> fields_to_apply) {
+        fields_to_apply.forEach(Config::applyValue);
     }
     
 /******************************* public api ***********************************/
+    
+    /**
+     * @param name
+     * @return config with given name or null if such config does not exists
+     */
+    public static Config getField(String name) {
+        return configs.get(name);
+    }
     
     public static List<Config> getFields() {
         return new ArrayList(configs.values());
@@ -238,12 +219,12 @@ public class Configuration {
      * Changes all config fields to their default value and applies them
      */
     public static void toDefault() {
-        configs.forEach((name,config) -> setNapplyField(name,config.defaultValue));
+        configs.values().forEach(c -> c.setNapplyValue(c.getDefaultValue()));
     }
     
     /**
-     * Saves configuration to the file. The file is created if it doesnt exist,
-     * otherwise it is completely overwriten.
+     * Saves configuration to the file. The file is created if it does not exist,
+     * otherwise it is completely overwritten.
      * Loops through Configuration fields and stores them all into file.
      */
     public static void save() {     
@@ -261,12 +242,13 @@ public class Configuration {
     
     /**
      * Loads previously saved configuration file and set its values for this.
-     * 
+     * <p>
      * Attempts to load all configuration fields from file. Fields might not be 
      * read either through I/O error or parsing errors. Parsing errors are
-     * recoverable, meaning only corrupted fields will not be read regardless of
-     * their position in the file.
-     * Old values will be used for all unread fields.
+     * recoverable, meaning corrupted fields will be ignored.
+     * Default values will be used for all unread fields.
+     * <p>
+     * If field of given name does not exist it will be ignored as well.
      */
     public static void load() {
         Log.mess("Loading configuration");
@@ -278,9 +260,11 @@ public class Configuration {
                     + "default settings.");
         
         lines.forEach((name,value) -> {
-            if(configs.containsKey(name)) {
-                Configuration.setField(name,configs.get(name).fromS(value));
-            } else Log.mess("Config field " + name + " not available. Possible"
+            Config c = getField(name);
+            if (c!=null)
+                c.setValueFrom(value);
+            else
+                Log.mess("Config field " + name + " not available. Possible"
                     + " error in the configuration file.");
         });
     }

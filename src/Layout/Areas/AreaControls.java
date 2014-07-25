@@ -208,7 +208,7 @@ public final class AreaControls {
         // not get captured in fast movement. This additional handler fixes
         // the issue
         area.root.addEventFilter(MOUSE_EXITED, e -> {
-            if(isShowingWeak && (helpPopOver==null || !helpPopOver.isShowing()))
+            if(isShowingWeak && !isShowingStrong && (helpPopOver==null || !helpPopOver.isShowing()))
                 hide();
         });
     }

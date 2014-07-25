@@ -5,11 +5,11 @@
  */
 package AudioPlayer.playback;
 
-import utilities.functional.functor.Procedure;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.util.Duration;
+import utilities.functional.functor.Procedure;
 
 /**
  * @author uranium
@@ -39,12 +39,14 @@ public final class PlaybackCore {
     void addAudioSpectrumListener(AudioSpectrumListener l) {
         spectrumListeners.add(l);
         if(spectrumListeners.size()==1)
-            PLAYBACK.playback.setAudioSpectrumListener(l);
+            if(PLAYBACK.playback!=null)
+                PLAYBACK.playback.setAudioSpectrumListener(l);
     }
     void removeAudioSpectrumListener(AudioSpectrumListener l) {
         spectrumListeners.remove(l);
         if(spectrumListeners.isEmpty())
-            PLAYBACK.playback.setAudioSpectrumListener(null);
+            if(PLAYBACK.playback!=null)
+                PLAYBACK.playback.setAudioSpectrumListener(null);
     }
     
 //*****************************************************************************/

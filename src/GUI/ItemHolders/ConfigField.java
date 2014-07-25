@@ -29,6 +29,7 @@ import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
+import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -483,45 +484,61 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     }
     
     private static class ShortcutField extends ConfigField<Action> {
-        TextField control;
-        CheckBox global;
+        TextField txtF;
+        CheckBox glob;
         HBox group;
-        Class<?> type;
         String t="";
         
         private ShortcutField(Config con) {
             super(con);
             
-            control = new TextField();
-            control.setPromptText(value.getKeys());
-            control.setOnKeyReleased( e -> {
+            txtF = new TextField();
+            txtF.setPromptText(value.getKeys());
+            txtF.setOnKeyReleased( e -> {
                 KeyCode c = e.getCode();
                 // handle substraction
                 if (c==BACK_SPACE || c==DELETE) {
-                    control.setPromptText("");
-                    if (!control.getText().isEmpty()) control.setPromptText(value.getKeys());
+                    txtF.setPromptText("");
+                    if (!txtF.getText().isEmpty()) txtF.setPromptText(value.getKeys());
                     
                     
                     if (t.isEmpty()) {  // set back to empty
-                        control.setPromptText(value.getKeys());
+                        txtF.setPromptText(value.getKeys());
                     } else {            // substract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
-                        control.setText(t);
+                        txtF.setText(t);
                     }
+                } else if(c==ENTER) {
+                    if (isApplyOnChange()) applyNsetIfAvailable();
+                } else if(c==ESCAPE) {
+                    refreshItem();
                 // handle addition
                 } else {
                     t += t.isEmpty() ? c.getName() : "+" + c.getName();
-                    control.setText(t);
+                    txtF.setText(t);
                 }
             });
-            control.setEditable(false);
-            control.setTooltip(new Tooltip(value.info));
+            txtF.setEditable(false);
+            txtF.setTooltip(new Tooltip(value.info));
+            txtF.focusedProperty().addListener((o,oldV,newV) -> {
+                if(newV) {
+                    txtF.setText(txtF.getPromptText());
+                } else {
+                    // prevent 'deselection' if we txtF lost focus because glob
+                    // received click
+                    if(!glob.isFocused())
+                        txtF.setText("");
+                }
+            });
             
-            global = new CheckBox();
-            global.setSelected(value.isGlobal());
-            global.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
-            group = new HBox(global,control);
+            glob = new CheckBox();
+            glob.setSelected(value.isGlobal());
+            glob.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
+            glob.selectedProperty().addListener((o,oldV,newV) -> {
+                if (isApplyOnChange()) applyNsetIfAvailable();
+            });
+            group = new HBox(glob,txtF);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
@@ -530,16 +547,44 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return group;
         }
         @Override public boolean hasUnappliedValue() {
-            return false;
+            Action a = ((Config<Action>)config).getValue();
+            boolean sameglobal = glob.isSelected()==a.isGlobal();
+            boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
+                    (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
+            return !sameKeys || !sameglobal;
+        }
+        @Override public final boolean applyNsetIfAvailable() {
+            // its pointless to make new Action just for this
+            // config.setNapplyValue(getItem()); 
+            // rather operate on the Action manually
+
+            Action a = ((Config<Action>)config).getValue();
+            boolean sameglobal = glob.isSelected()==a.isGlobal();
+            boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
+                    (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
+            
+            if(!sameglobal && !sameKeys)
+                a.set(glob.isSelected(), txtF.getText());
+            else if (!sameKeys)
+                a.setKeys(txtF.getText());
+            else if (!sameglobal)
+                a.setGlobal(glob.isSelected());
+            else {
+                refreshItem();
+                return false;
+            }
+
+            refreshItem();
+            return true;
         }
         @Override public Action getItem() {
             return value;
         }
         @Override public void refreshItem() {
             Action a = (Action)config.getValue();
-            control.setPromptText(a.getKeys());
-            control.setText("");
-            global.setSelected(a.isGlobal());
+            txtF.setPromptText(a.getKeys());
+            txtF.setText("");
+            glob.setSelected(a.isGlobal());
         }
     }
     

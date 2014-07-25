@@ -12,9 +12,11 @@ import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -93,7 +95,8 @@ public final class TabArea extends PolyArea {
     /** @return active - currently displayed component */
     @Override
     public Component getActiveComponent() {
-        return (Component)tabPane.getSelectionModel().getSelectedItem().getUserData();
+        Tab t = tabPane.getSelectionModel().getSelectedItem();
+        return t == null ? null : (Component)t.getUserData();
     }
     
     /**
@@ -101,7 +104,8 @@ public final class TabArea extends PolyArea {
      */
     @Override
     public List<Component> getActiveComponents() {
-        return Collections.singletonList(getActiveComponent());
+        Component c = getActiveComponent();
+        return c==null ? EMPTY_LIST : Collections.singletonList(c);
     }
     
     
@@ -179,7 +183,7 @@ public final class TabArea extends PolyArea {
     private void loadTab(Tab t, Component c) {
         if (c == null || t == null) return;
         widget = c;
-        AnchorPane w = (AnchorPane) c.load();
+        Node w = c.load();
         t.setContent(w);
         t.getContent().setLayoutX(0);
         t.getContent().setLayoutY(0);

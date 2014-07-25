@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>809c2921-82e5-489d-808f-8cddf9733826</id>
+  <id>39b6e472-48b5-49e8-8ad2-e4e840b9e695</id>
   <properties>
     <map>
       <entry>
@@ -48,7 +48,7 @@
       <entry>
         <int>1</int>
         <Layout.UniContainer>
-          <id>98d123bf-f941-4837-abad-74523df61fae</id>
+          <id>fc6a0699-9792-482e-a38c-c8f475fd5685</id>
           <properties>
             <map>
               <entry>
@@ -95,7 +95,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.13161290322580646</double>
+                  <double>0.13932291666666666</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -276,8 +276,8 @@
                         <visible>false</visible>
                         <min>NaN</min>
                         <max>NaN</max>
-                        <defaultValue class="string">Tabs</defaultValue>
-                        <value class="string">Tabs</value>
+                        <defaultValue class="string">GUI</defaultValue>
+                        <value class="string">GUI</value>
                       </Configuration.InstanceFieldConfig>
                     </configs>
                     <class__type>Layout.WidgetImpl.Configurator</class__type>

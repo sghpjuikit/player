@@ -46,11 +46,11 @@ public class ClickEffect {
     @IsConfig(name="Blend Mode", info = "Blending mode for the effect.")
     public static BlendMode blend_mode = BlendMode.SRC_OVER;
     
-    @AppliesConfig(config = "blend_mode")
-    @AppliesConfig(config = "DURATION")
-    @AppliesConfig(config = "MIN_SCALE")
-    @AppliesConfig(config = "MAX_SCALE")
-    @AppliesConfig(config = "DELAY")
+    @AppliesConfig( "blend_mode")
+    @AppliesConfig( "DURATION")
+    @AppliesConfig( "MIN_SCALE")
+    @AppliesConfig( "MAX_SCALE")
+    @AppliesConfig( "DELAY")
     private static void applyEffectAttributes() {
         pool.forEach(ClickEffect::apply);
     }

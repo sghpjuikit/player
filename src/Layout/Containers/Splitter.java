@@ -173,7 +173,7 @@ public final class Splitter implements AltState {
         // close container if empty on right click
         splitPane.addEventFilter(MOUSE_CLICKED, e -> {
             if(e.getButton()==SECONDARY) {
-                if (con.getAllWidgets().isEmpty())
+                if (con.getAllWidgets().count()==0)
                     con.close();
             }
         });

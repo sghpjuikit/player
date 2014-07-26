@@ -8,7 +8,6 @@ import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.List;
-import java.util.Objects;
 import javafx.scene.Node;
 import utilities.Log;
 
@@ -78,14 +77,18 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /**
      * Returns controller of the widget. It provides access to public behavior
      * of the widget.
+     * <p>
      * The controller is instantiated when widget loads. The controller should
-     * not be called before that happens and exception will be thrown in such
-     * case.
-     * @return controller of the widget, never null
-     * @throws NullPointerException if controller not yet instantiated
+     * not be used (and needed) before that happens.
+     * <p>
+     * Do not check the output of this method for null! Receiving null implies
+     * wrong use of this method (with the exception of internal use)
+     * 
+     * @return controller of the widget or null if widget has not been loaded
+     * yet.
      */
     public C getController() {
-        Objects.requireNonNull(controller, "Illegal call. Widget doesnt have a controller before it loads.");
+        Log.warn("Possible illegal call. Widget doesnt have a controller before it loads.");
         return controller;
     }
     

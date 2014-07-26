@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
+import static utilities.Util.NotNULL;
 
 /**
  * Serializes objects.
@@ -83,7 +84,7 @@ public final class Serializattion {
             xstream.autodetectAnnotations(true);
             
             // serialize widget properties as well
-            o.getAllWidgets().stream().filter(w->w!=null).forEach(w -> w.configs = w.getFields());
+            o.getAllWidgets().filter(NotNULL).forEach(w -> w.configs = w.getFields());
             xstream.toXML(o, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + o.getName() + "' into the file: " + f.toPath());
@@ -96,8 +97,8 @@ public final class Serializattion {
                     xstream.autodetectAnnotations(true);
             Layout l = (Layout) xstream.fromXML(f);
                    l.setName(FileUtil.getName(f));
-                   l.getAllWidgets().stream()
-                        .filter( w -> w!=null)
+                   l.getAllWidgets()
+                        .filter(NotNULL)
                         .forEach( w ->{
                              w.configs.stream().map(c->c).forEach(c->
                                  ((InstanceFieldConfig)c).applier_object = w
@@ -116,8 +117,8 @@ public final class Serializattion {
                     xstream.autodetectAnnotations(true);
             Layout l = (Layout) xstream.fromXML(f);
                    l.setName(FileUtil.getName(f));
-                   l.getAllWidgets().stream()
-                        .filter( w -> w!=null)
+                   l.getAllWidgets()
+                        .filter(NotNULL)
                         .forEach( w ->{
                              w.configs.stream().map(c->c).forEach(c->
                                  ((InstanceFieldConfig)c).applier_object = w

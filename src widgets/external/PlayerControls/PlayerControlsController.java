@@ -3,6 +3,7 @@ package PlayerControls;
 import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
@@ -22,13 +23,13 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_DOWN;
 import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_OFF;
 import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_UP;
 import java.io.File;
+import java.util.List;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
@@ -62,7 +63,6 @@ import utilities.Util;
 )
 public class PlayerControlsController extends FXMLController implements PlaybackFeature {
     
-    
     @FXML AnchorPane entireArea;
     @FXML BorderPane controlPanel;
     @FXML GridPane soundGrid;
@@ -73,8 +73,6 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label totTime;
     @FXML Label realTime;
     @FXML Label status;
-    
-
     
     @FXML Label titleL;
     @FXML Label artistL;
@@ -190,21 +188,17 @@ public class PlayerControlsController extends FXMLController implements Playback
         // handle drag transfer
         entireArea.setOnDragDropped( e -> {
             // get items
-            Dragboard db = e.getDragboard();
-            Playlist p = new Playlist();
-            if (db.hasFiles())
-                p.addFiles(db.getFiles());
-            if (db.hasUrl())
-                p.addUrl(db.getUrl());
-            if (db.hasContent(DragUtil.playlist))
-                p.addItems(DragUtil.getPlaylist(db).getItems());
-            
-            // handle items
-            if(playDropped) PlaylistManager.playPlaylist(p);
-            else PlaylistManager.addPlaylist(p);
+            List<Item> items = DragUtil.getAudioItems(e);
             // end drag
             e.setDropCompleted(true);
             e.consume();
+            // handle result
+            if(playDropped) {
+                PlaylistManager.playPlaylist(new Playlist(
+                        items.stream().map(Item::getURI), true));
+            } else {
+                PlaylistManager.addItems(items);
+            }
         });
         
     }

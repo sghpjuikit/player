@@ -64,5 +64,5 @@ public @interface AppliesConfig {
      * {@link IsConfig}, not the name value of that annotation.
      * @return 
      */
-    String config() default ""; 
+    String value() default ""; 
 }

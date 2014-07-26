@@ -118,7 +118,7 @@ public class Configuration {
             if (Modifier.isStatic(m.getModifiers())) {
                 for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
                     if (a != null) {
-                        String name = a.config();
+                        String name = a.value();
                         if(!name.isEmpty() && configs.containsKey(name)) {
                             Config c = configs.get(name);
                             if(c instanceof StaticFieldConfig) {

@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.util.Duration;
 
 /**
@@ -32,8 +33,8 @@ public class Playlist extends AbstractPlaylist {
      * @param i unused parameter to avoid the same constructor method erasure. Use
      * arbitrary value. For example 0.
      */
-    public Playlist(List<File> files, int i) {
-        this(files.stream().map(File::toURI).map(PlaylistItem::new)
+    public Playlist(Stream<File> files, int i) {
+        this(files.map(File::toURI).map(PlaylistItem::new)
                 .collect(Collectors.toList()));
     }
     
@@ -42,8 +43,8 @@ public class Playlist extends AbstractPlaylist {
      * @param i unused parameter to avoid the same constructor method erasure. Use
      * arbitrary value. For example true.
      */
-    public Playlist(List<URI> uris, boolean i) {
-        this(uris.stream().map(PlaylistItem::new).collect(Collectors.toList()));
+    public Playlist(Stream<URI> uris, boolean i) {
+        this(uris.map(PlaylistItem::new).collect(Collectors.toList()));
     }
     
     /** Wraps provided item into playlist. It is safe to use this method for any

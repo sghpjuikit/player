@@ -234,6 +234,7 @@ abstract public class AbstractPlaylist {
     public void setItems(Playlist p) {
         list().clear();
         list().addAll(p.getItems());
+        updateItems(list());
         updateDuration();
     }
     /**

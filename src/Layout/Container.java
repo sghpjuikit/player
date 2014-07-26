@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import utilities.Log;
@@ -188,47 +190,44 @@ public abstract class Container extends Component implements AltState {
      * words all children recursively. The root (this) is included in the list.
      * @return 
      */
-    public List<Component> getAllChildren() {
+    public Stream<Component> getAllChildren() {
         List<Component> out = new ArrayList<>();
                         out.add(this);
+                        
         for (Component w: getChildren().values()) {
             if(w!=null) out.add(w);
             if (w instanceof Container)
-                out.addAll(((Container)w).getAllChildren());
+                out.addAll(((Container)w).getAllChildren().collect(Collectors.toList()));
         }
-        return out;
+        return out.stream();
     }
     /**
      * Returns all widgets in layout map of which this is the root. In other words
      * all widget children recursively.
      * @return 
      */
-    public List<Widget> getAllWidgets() {
+    public Stream<Widget> getAllWidgets() {
         List<Widget> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
-                out.addAll(((Container)w).getAllWidgets());
+                out.addAll(((Container)w).getAllWidgets().collect(Collectors.toList()));
             else
             if (w instanceof Widget)
                 out.add((Widget)w);
         }
-        return out;
+        return out.stream();
     }
     /**
      * Returns all containers in layout map of which this is the root. In other words
      * all container children recursively. The root (this) is included in the list.
      * @return 
      */
-    public List<Container> getAllContainers() {
-        List<Container> out = new ArrayList<>();
-                        out.add(this);
-        for (Component c: getChildren().values()) {
-            if (c instanceof Container) {
-                out.add((Container)c);
-                out.addAll(((Container)c).getAllContainers());
-            }
-        }
-        return out;
+    public Stream<Container> getAllContainers() {
+        Stream<Container> outs = Stream.of(this);
+        Stream<Container> subs = getChildren().values().stream()
+                .filter(c -> c instanceof Container)
+                .flatMap(c -> ((Container)c).getAllContainers());
+        return Stream.concat(outs,subs);
     }
     
     /**
@@ -263,7 +262,7 @@ public abstract class Container extends Component implements AltState {
      */
     public void close() {
 //        System.out.println("SIZE "+getAllWidgets().size());
-        getAllWidgets().stream().map(w->w.getController()).forEach(c->{
+        getAllWidgets().map(w->w.getController()).forEach(c->{
 //            System.out.println(c.getClass().getName());
 //            System.out.println(indexOf(c.getWidget()) + " " + c.getWidget().getName());
             c.OnClosing();

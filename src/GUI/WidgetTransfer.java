@@ -41,7 +41,7 @@ public class WidgetTransfer implements Serializable {
      * specifics of the exception and can lead to troublesome bugs.
      */
     public Container getContainer() {
-        return LayoutManager.getLayouts().flatMap(l->l.getAllContainers().stream())
+        return LayoutManager.getLayouts().flatMap(l->l.getAllContainers())
                 .filter(c->containerID.equals(c.getID()))
                 .findAny()
                 .orElseThrow(()-> new RuntimeException("Widget not found"));

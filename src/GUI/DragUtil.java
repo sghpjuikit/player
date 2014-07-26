@@ -5,8 +5,10 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.playlist.SimplePlaylistItem;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.event.EventHandler;
 import javafx.scene.input.ClipboardContent;
@@ -15,6 +17,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import utilities.AudioFileFormat;
+import utilities.FileUtil;
 
 /**
  *
@@ -30,7 +33,8 @@ public final class DragUtil {
     public static final DataFormat widgetDF = new DataFormat("widget");
     
     /**
-     * Accepts drag if contains {@link #widgetDF} Data format.
+     * Accepts and consumes drag over event if contains {@link #widgetDF} Data 
+     * format.
      * <p>
      * Reuse this handler spares code duplication and multiple object instances.
      */
@@ -43,8 +47,8 @@ public final class DragUtil {
     };
     
     /**
-     * Accepts drag if contains at least 1 audio file, audio url, {@link Playlist}
-     * or list of {@link Item}.
+     * Accepts and consumes drag over event if contains at least 1 audio file, 
+     * audio url, {@link Playlist} or list of {@link Item}.
      * <p>
      * Reusing this handler spares code duplication and multiple object instances.
      */
@@ -89,5 +93,40 @@ public final class DragUtil {
     
     public static WidgetTransfer getWidgetTransfer(Dragboard db) {
         return (WidgetTransfer) db.getContent(DragUtil.widgetDF);
+    }
+    
+    /**
+     * 
+     * <p>
+     * Use in conjunction with {@link #audioDragAccepthandler}
+     * 
+     * @param e 
+     * @return list of supported items derived from dragboard of the event.
+     */
+    public static List<Item> getAudioItems(DragEvent e) {
+        Dragboard d = e.getDragboard();
+        ArrayList<Item> out = new ArrayList();
+        
+        if (d.hasFiles()) {
+            FileUtil.getAudioFiles(d.getFiles(),0).stream()
+                    .map(SimpleItem::new).forEach(out::add);
+        } else
+        if (d.hasUrl()) {
+            String url = d.getUrl();
+            // watch out for non audio urls, we must filter those out, or
+            // we could couse subtle bugs
+            if(AudioFileFormat.isSupported(url))
+                Optional.of(new SimpleItem(URI.create(url)))  // isnt this dangerous?
+                        .filter(AudioFileFormat::isSupported) // isnt this pointless?
+                        .ifPresent(out::add);
+        } else
+        if (d.hasContent(DragUtil.playlist)) {
+            out.addAll(DragUtil.getPlaylist(d).getItems());
+        } else 
+        if (d.hasContent(DragUtil.items)) {
+            out.addAll(DragUtil.getItems(d));
+        }
+        
+        return out;
     }
 }

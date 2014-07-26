@@ -9,7 +9,6 @@ import GUI.ContextManager;
 import GUI.DragUtil;
 import GUI.GUI;
 import PseudoObjects.FormattedDuration;
-import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +41,6 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
-import utilities.FileUtil;
 import utilities.MathUtil;
 import utilities.TODO;
 import utilities.TableUtil;
@@ -709,28 +707,14 @@ public final class PlaylistTable {
     private final EventHandler<DragEvent> dragOverHandler =  e -> {
         // avoid illegal operation on drag&drop from self to self
         if(e.getGestureSource() != table)
+            // rest of the logic is common, leave to existing implementation
             DragUtil.audioDragAccepthandler.handle(e);
     };
     
     private void onDragDropped(DragEvent e, int index) {
-        Dragboard db = e.getDragboard();
-        if (db.hasFiles()) {    // add files and folders
-            List<URI> uris = new ArrayList<>();
-            FileUtil.getAudioFiles(db.getFiles(), 1).stream().map(File::toURI).forEach(uris::add);
-            PlaylistManager.addUris(uris);
-        } else                  // add url
-        if (db.hasUrl()) {                  
-            String url = db.getUrl();
-            PlaylistManager.addUrl(url,0);
-        } else                  // add playlist items
-        if (db.hasContent(DragUtil.playlist)) {
-            Playlist p = DragUtil.getPlaylist(db);
-            PlaylistManager.addItems(p,0); // 0 cause empty table, 0 is last item
-        } else if(db.hasContent(DragUtil.items)) {
-            List<Item> p = DragUtil.getItems(db);
-            PlaylistManager.addItems(p);
-        }
-
+        List<Item> items = DragUtil.getAudioItems(e);
+        PlaylistManager.addItems(items, index);
+        //end drag transfer
         e.setDropCompleted(true);
         e.consume();
     }

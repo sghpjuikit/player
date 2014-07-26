@@ -4,8 +4,6 @@ package ImageViewer;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
@@ -32,9 +30,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
@@ -123,28 +119,12 @@ public class ImageViewerController extends FXMLController {
         });
         
         // accept drag transfer
-        entireArea.setOnDragOver( e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasFiles() || db.hasContent(DragUtil.playlist)) {
-                e.acceptTransferModes(TransferMode.ANY);
-            }
-            e.consume();
-        });
+        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped( e -> {
-            Dragboard db = e.getDragboard();
-            Item item = null;
             // get first item
-            if (db.hasFiles()) {
-                item = FileUtil.getAudioFiles(db.getFiles(),0).stream()
-                        .findFirst().map(SimpleItem::new).orElse(null);
-            } else if (db.hasContent(DragUtil.playlist)) {
-                Playlist pl = DragUtil.getPlaylist(db);
-                item = pl.getItem(0);
-            } else if (db.hasContent(DragUtil.items)) {
-                List<Item> pl = DragUtil.getItems(db);
-                item = pl.get(0);
-            }
+            List<Item> items = DragUtil.getAudioItems(e);
+            Item item = items.isEmpty() ? null : items.get(0);
             // getMetadata, refresh
             if (item != null) {
                 if (changeReadModeOnTransfer) {
@@ -290,10 +270,8 @@ public class ImageViewerController extends FXMLController {
     public void slideshowStart() {
         slideshow.restart(Duration.millis(slideshow_dur));
     }
+    
     public void slideshowEnd() {
         slideshow.stop();
     }
-//    public boolean slideshowRunning() {
-//        return slideshow.isRunning();
-//    }
 }

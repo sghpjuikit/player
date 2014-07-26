@@ -8,10 +8,14 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import javafx.scene.image.Image;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import org.jaudiotagger.tag.images.Artwork;
+import utilities.functional.impl.NotNull;
 
 /**
  * Provides static utility methods for various purposes.
@@ -52,6 +56,13 @@ public interface Util {
     public static<E> Comparator<E> cmpareNoCase(Callback<E,String> strGetter) {
         return (a,b) -> strGetter.call(a).compareToIgnoreCase(strGetter.call(b));
     }
+    
+    /** Simple Predicate returning true if object is not null. Use in lambda. */
+    public static Predicate<Object> NotNULL = new NotNull();
+    
+    /** Simple Collector concatenating Strings to coma separated list (CSList)
+     * by delimiter ", ".  Use in lambda. */
+    public static Collector<CharSequence,?,String> toCSList = Collectors.joining(", ");
     
     /**
      * Method equivalent to object's equal method, but if both objects are null

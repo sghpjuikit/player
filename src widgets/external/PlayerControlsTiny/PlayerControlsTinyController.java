@@ -4,18 +4,19 @@ package PlayerControlsTiny;
 import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
-import GUI.WindowManager;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
+import java.util.List;
 import javafx.beans.InvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
@@ -23,7 +24,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -31,7 +31,6 @@ import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
-import main.App;
 import utilities.Util;
 
 /**
@@ -83,13 +82,10 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
         
         seeker = new Seeker();
-        seeker.prefWidthProperty().bind(seekerPane.widthProperty());
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
         seeker.setChapterSnapDistance(GUI.snapDistance);
         seekerPane.setCenter(seeker);
-        AnchorPane.setBottomAnchor(seeker, 0.0);
-        AnchorPane.setLeftAnchor(seeker, 0.0);
-        AnchorPane.setRightAnchor(seeker, 0.0);
+//        BorderPane.setAlignment(seeker, Pos.CENTER);
         
         // load resources
         pauseImg   = new Image(getResource("pause.png").toURI().toString());
@@ -119,18 +115,17 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         // handle drag transfer
         root.setOnDragDropped( e -> {
             // get items
-            Dragboard db = e.getDragboard();
-            Playlist p = new Playlist();
-            if (db.hasFiles())
-                p.addFiles(db.getFiles());
-            if (db.hasUrl())
-                p.addUrl(db.getUrl());
-            // handle items
-            if(playDropped) PlaylistManager.playPlaylist(p);
-            else PlaylistManager.addPlaylist(p);
+            List<Item> items = DragUtil.getAudioItems(e);
             // end drag
             e.setDropCompleted(true);
             e.consume();
+            // handle result
+            if(playDropped) {
+                PlaylistManager.playPlaylist(new Playlist(
+                        items.stream().map(Item::getURI), true));
+            } else {
+                PlaylistManager.addItems(items);
+            }
         });
     }
     
@@ -243,13 +238,5 @@ public class PlayerControlsTinyController extends FXMLController implements Play
             Duration remaining = PLAYBACK.getRemainingTime();
             currTime.setText("- " + Util.formatDuration(remaining)); 
         }
-    }
-    
-    
-    @FXML public void toggleMini() {
-        WindowManager.toggleMini();
-    }
-    @FXML public void closeApp() {
-        App.getWindow().close();
     }
 }

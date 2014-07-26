@@ -264,12 +264,12 @@ public class GUI implements Configurable {
     
 /****************************  applying methods *******************************/
     
-    @AppliesConfig(config = "skin")
+    @AppliesConfig( "skin")
     public static void applySkin() {
         setSkin(skin);
     }
     
-    @AppliesConfig(config = "font")
+    @AppliesConfig( "font")
     private static void applyFont() {
         // apply only if application initialized correctly
         if (App.isInitialized()) {

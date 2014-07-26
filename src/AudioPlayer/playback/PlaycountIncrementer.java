@@ -55,11 +55,11 @@ public class PlaycountIncrementer {
         timeIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
     }
     
-    @AppliesConfig(config = "increment_playcount")
-    @AppliesConfig(config = "increment_playcount_at_percent")
-    @AppliesConfig(config = "increment_playcount_at_time")
-    @AppliesConfig(config = "increment_playcount_min_percent")
-    @AppliesConfig(config = "increment_playcount_min_time")
+    @AppliesConfig( "increment_playcount")
+    @AppliesConfig( "increment_playcount_at_percent")
+    @AppliesConfig( "increment_playcount_at_time")
+    @AppliesConfig( "increment_playcount_min_percent")
+    @AppliesConfig( "increment_playcount_min_time")
     public static void configureIncrementation() {
         Log.mess("Resetting playcount incrementer settings.");
         if (increment_playcount == Playcount.IncrStrategy.ON_PERCENT) {

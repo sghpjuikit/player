@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.util.Duration;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
@@ -862,6 +863,10 @@ public final class Metadata extends MetaItem {
                       cs.addAll(getChaptersFromXML());
                       cs.sort(Chapter::compareTo);
         return cs;
+    }
+    
+    public boolean containsChapterAt(Duration at) {
+        return getChapters().stream().anyMatch(ch->ch.getTime().equals(at));
     }
     
 /******************************************************************************/

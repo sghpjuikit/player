@@ -2,17 +2,13 @@ package Bookmarker;
 
 
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
 import Configuration.IsConfig;
 import GUI.ContextManager;
 import GUI.DragUtil;
 import Layout.Widgets.FXMLController;
 import Library.BookmarkItem;
 import Library.BookmarkManager;
-import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
@@ -28,21 +24,20 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.LEFT;
 import static javafx.scene.input.KeyCode.RIGHT;
 import javafx.scene.input.KeyEvent;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import javafx.scene.input.ScrollEvent;
+import static javafx.scene.input.ScrollEvent.SCROLL;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
-import utilities.FileUtil;
 import utilities.Util;
 
 
@@ -65,7 +60,7 @@ public class BookmarkerController extends FXMLController {
     public void init() {
         
         //initiaize table columns
-        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory("name"));
         nameColumn.setCellFactory( column -> {
             TableCell<BookmarkItem,String> cell = new TableCell<BookmarkItem,String>() {
                 private TextField textField;
@@ -187,7 +182,7 @@ public class BookmarkerController extends FXMLController {
             TableRow<BookmarkItem> row = new TableRow<>();
             // support dragging from table
             row.setOnDragDetected( e -> {
-                if (e.getButton()==MouseButton.PRIMARY) {
+                if (e.getButton()==PRIMARY) {
                     Dragboard db = table.startDragAndDrop(TransferMode.ANY);
                     DragUtil.setContent(db ,table.getSelectionModel().getSelectedItems());
                     e.consume();
@@ -195,7 +190,7 @@ public class BookmarkerController extends FXMLController {
             });
             // show contextmenu on right click
             row.setOnMouseClicked( e -> {
-                if (!row.isEmpty() && e.getButton().equals(MouseButton.SECONDARY)) {  
+                if (!row.isEmpty() && e.getButton().equals(SECONDARY)) {  
                     if (!table.getSelectionModel().getSelectedItems().isEmpty())
                         ContextManager.showMenu(ContextManager.bookmarkMenu,table.getSelectionModel().getSelectedItems());
                 }
@@ -204,51 +199,25 @@ public class BookmarkerController extends FXMLController {
             return row;
         });
         // support drag transfer
-        table.setOnDragOver( t -> {
-            if (t.getGestureSource() == table) return;
-            Dragboard db = t.getDragboard();
-            if (db.hasFiles() || db.hasUrl() || db.hasContent(DragUtil.items) ||
-                db.hasContent(DragUtil.playlist))
-                if (t.getSource().equals(table))
-                t.acceptTransferModes(TransferMode.ANY);
-            t.consume();
-        });
-        
+        table.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag drop
-        table.setOnDragDropped((DragEvent t) -> {
-            Dragboard db = t.getDragboard();
-
-            if (db.hasFiles()) {    // add files and folders
-                List<File> files = FileUtil.getAudioFiles(db.getFiles(), 1);
-                BookmarkManager.addBookmarksAsFiles(files);
-            } else                  // add url
-            if (db.hasUrl()) {
-                String url = db.getUrl();
-                BookmarkManager.addBookmarksAsURI(Collections.singletonList(URI.create(url)));
-            } else                  // add playlist
-            if (db.hasContent(DragUtil.playlist)) {
-                Playlist pl = DragUtil.getPlaylist(db);
-                BookmarkManager.addBookmarks(pl.getItems());
-            } else
-            if (db.hasContent(DragUtil.items)) {
-                List<Item> i = DragUtil.getItems(db);
-                BookmarkManager.addBookmarks(i);
-            }
-            
-            t.setDropCompleted(true);
-            t.consume();
+        table.setOnDragDropped( e -> {
+            List<Item> items = DragUtil.getAudioItems(e);
+            BookmarkManager.addBookmarks(items);
+            e.setDropCompleted(true);
+            e.consume();
         });
         
         // scroll vertically when holding shift
-        table.addEventFilter(ScrollEvent.SCROLL, e -> {
+        table.addEventFilter(SCROLL, e -> {
             if(e.isShiftDown()) {
                 if(e.getDeltaY()<0) {   // scroll to the right
                     KeyEvent ev = new KeyEvent(KEY_PRESSED, RIGHT.getName(),
-                            RIGHT.getName(), KeyCode.RIGHT, false,false,false,false);
+                            RIGHT.getName(), RIGHT, false,false,false,false);
                     Event.fireEvent(table, ev);
                 } else {                // scroll to the left
                     KeyEvent ev = new KeyEvent(KEY_PRESSED, LEFT.getName(),
-                            LEFT.getName(), KeyCode.LEFT, false,false,false,false);
+                            LEFT.getName(), LEFT, false,false,false,false);
                     Event.fireEvent(table, ev);
                 }
                 e.consume(); // consume so table wont scroll vertically
@@ -330,9 +299,7 @@ public class BookmarkerController extends FXMLController {
                         table.getColumns().add(c);
                 
         });
-    }
-    
-    
+    }    
     
     
     @Override

@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utilities;
+package unused;
 
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.util.Duration;
+import utilities.Log;
 import utilities.functional.functor.Procedure;
 
 /**

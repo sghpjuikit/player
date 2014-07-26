@@ -168,13 +168,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @IsConfig(name = "Overlay effect intensity", info = "Intensity of the color overlay effect.", min=0, max=1)
     public static double overlay_norm_factor = 0.5;
     
-    @AppliesConfig(config = "headerVisiblePreference")
+    @AppliesConfig( "headerVisiblePreference")
     private static void applyHeaderVisiblePreference() {
         // weird that this still doesnt apply it correctly, whats wrong?
         ContextManager.windows.forEach(w->w.setShowHeader(w.showHeader));
     }
     
-    @AppliesConfig(config = "windowOpacity")
+    @AppliesConfig( "windowOpacity")
     private static void applyWindowOpacity() {
         ContextManager.windows.forEach(w->w.getStage().setOpacity(windowOpacity));
     }
@@ -184,11 +184,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         applyColorOverlay();
     }
     
-    @AppliesConfig(config = "overlay_norm_factor")
-    @AppliesConfig(config = "gui_overlay_use_song")
-    @AppliesConfig(config = "gui_overlay_normalize")
-    @AppliesConfig(config = "gui_overlay_color")
-    @AppliesConfig(config = "gui_overlay")
+    @AppliesConfig( "overlay_norm_factor")
+    @AppliesConfig( "gui_overlay_use_song")
+    @AppliesConfig( "gui_overlay_normalize")
+    @AppliesConfig( "gui_overlay_color")
+    @AppliesConfig( "gui_overlay")
     public static void applyColorOverlay() {
         if(gui_overlay_use_song) applyOverlayUseSongColor();
         else applyColorEffect(gui_overlay_color);
@@ -298,6 +298,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         contentMask.heightProperty().bind(content.heightProperty());
         content.setClip(contentMask);
         
+        bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
+        
         // avoid some instances of not closing properly
         s.setOnCloseRequest(e -> close());
         
@@ -396,10 +398,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public void setLayoutAggregator(LayoutAggregator la) {
         Objects.requireNonNull(la);
         
-        bgrImgLayer.prefWidthProperty().bind(root.widthProperty().multiply(1));
-        bgrImgLayer.translateXProperty().unbind();
-        bgrImgLayer.setScaleX(1.25);
-        bgrImgLayer.setScaleY(1.25);
+        
         
         // clear previous content
         layout_aggregator.getLayouts().values().forEach(Layout::close);
@@ -410,6 +409,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         layout_aggregator.getLayouts().values().forEach(Layout::load);
         
         if(la instanceof SwitchPane) {
+            bgrImgLayer.translateXProperty().unbind();
+            bgrImgLayer.setTranslateX(0);
+            bgrImgLayer.setScaleX(1.25);
+            bgrImgLayer.setScaleY(1.25);
             // scroll bgr along with the tabs
             // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
             // -try at: http://www.mathe-fa.de
@@ -429,6 +432,21 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      */
     public LayoutAggregator getLayoutAggregator() {
         return layout_aggregator;
+    }
+    
+    /**
+     * Blocks input to content, but not to root.
+     * <p>
+     * Use when any input to content is not desirable, for example during
+     * window manipulation like animations.
+     * <p>
+     * Sometimes content could consume or interfere with the input directed
+     * towards the window (root), in such situations this method will help.
+     * 
+     * @param val 
+     */
+    public void setContentMouseTransparent(boolean val) {
+        content.setMouseTransparent(val);
     }
     
 /******************************    HEADER & BORDER    **********************************/
@@ -565,38 +583,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
 /**************************** WINDOW MECHANICS ********************************/
     
-//    private boolean isPopup = false;
-//    private boolean autoclose = true;
-//    
-//    /** 
-//     * Set false to get normal behavior. Set true to enable popup-like autoclosing
-//     * that can be turned off. Setting this to false will cause autoclosing
-//     * value be ignored. Default false;
-//     */
-//    public void setIsPopup(boolean val) {
-//        isPopup = val;
-//        pinB.setVisible(val);
-//    }
-//    public boolean isPopup() {
-//        return isPopup;
-//    }
-//    /**
-//     * Set autoclose functinality. If isPopup==false this property is ignored.
-//     * False is standard window behavior. Setting
-//     * true will cause the window to close on mouse click occuring anywhere
-//     * within the application and outside of this window - like popup. Default
-//     * is false.
-//     */
-//    public void setAutoClose(boolean val) {
-//        autoclose = val;
-//    }
-//    public boolean isAutoClose() {
-//        return autoclose;
-//    }
-//    public void toggleAutoClose() {
-//        autoclose = !autoclose;
-//    }
-
     @Override
     public void close() {
         // serialize windows if this is main app window
@@ -617,14 +603,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // in the end close itself
         super.close();
     }
-    
-//    /**
-//     * Closes window if (isPopup && autoclose) evaluates to true. This method is
-//     * designed specifically for auto-closing functionality.
-//     */
-//    public void closeWeak() {
-//        if(isPopup && autoclose) close(); 
-//    }
 
     
    @Override  
@@ -665,7 +643,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         double SW5 = SW/5;
         
         if (isMaximised() == Maximized.NONE)
-            setLocation(X - appX, Y - appY);
+            setXY(X - appX, Y - appY);
         
         // (imitate Aero Snap)
         Maximized to;
@@ -745,19 +723,19 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             setSize(e.getScreenX() - getX(), getHeight());
         } else if (is_being_resized == SW) {
             setSize(getX()+getWidth()-e.getScreenX(), e.getScreenY() - getY());
-            setLocation(e.getScreenX(), getY());
+            setXY(e.getScreenX(), getY());
         } else if (is_being_resized == W) {
             setSize(getX()+getWidth()-e.getScreenX(), getHeight());
-            setLocation(e.getScreenX(), getY());
+            setXY(e.getScreenX(), getY());
         } else if (is_being_resized == NW) {
             setSize(getX()+getWidth()-e.getScreenX(), getY()+getHeight()-e.getScreenY());
-            setLocation(e.getScreenX(), e.getScreenY());
+            setXY(e.getScreenX(), e.getScreenY());
         } else if (is_being_resized == N) {
             setSize(getWidth(), getY()+getHeight()-e.getScreenY());
-            setLocation(getX(), e.getScreenY());
+            setXY(getX(), e.getScreenY());
         } else if (is_being_resized == NE) {
             setSize(e.getScreenX() - getX(), getY()+getHeight()-e.getScreenY());
-            setLocation(getX(), e.getScreenY());
+            setXY(getX(), e.getScreenY());
         }
         e.consume();
     }
@@ -789,7 +767,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 showHeader(showHeader);
             }
     }
-
+    
+/**************************** SERIALIZATION ***********************************/
+    
     @Override
     public void serialize(Window w, File f) throws IOException {
         XStream xstream = new XStream(new DomDriver());

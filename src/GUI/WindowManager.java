@@ -6,16 +6,28 @@
 
 package GUI;
 
+import Configuration.AppliesConfig;
 import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import GUI.LayoutAggregators.SimpleWithMenuAgregator;
 import GUI.LayoutAggregators.SwitchPane;
+import GUI.objects.FadeButton;
 import Layout.Layout;
 import Layout.Widgets.WidgetManager;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javafx.animation.Animation;
+import javafx.animation.Transition;
+import javafx.scene.control.Tooltip;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.stage.Screen;
+import javafx.util.Duration;
+import static javafx.util.Duration.ZERO;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -24,36 +36,149 @@ import utilities.Log;
  *
  * @author Plutonium_
  */
+@IsConfigurable("Window")
 public class WindowManager {
     
-    @IsConfig(name="Docked mode", info="Whether application layout is in mini - docked mode.")
+    @IsConfig(name="Docked mini mode", info="Whether application layout is in mini - docked mode.")
     public static boolean mini = false;
+    
+    @AppliesConfig( "mini")
+    private static void applyMini() {
+        setMini(mini);
+    }
     
     static Window miniWindow;
     
     public static void toggleMini() {
         setMini(!mini);
     }
+    
+    private static Animation t;
+    
     public static void setMini(boolean val) {
         mini = val;
-            App.getWindow().hide();
         if(val) {
-            String name = "mini-window";
-            File f = new File(App.LAYOUT_FOLDER(), name + ".w");
-            Window tmp = Window.deserializeSuppressed(f);
-            miniWindow = tmp!=null ? tmp : Window.create();
-            miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
-            miniWindow.setContent(WidgetManager.getFactory("PlayerControlsTiny").create().load());
+            
+//            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
+//            Window tmp = Window.deserializeSuppressed(f);
+//            miniWindow = tmp!=null ? tmp : Window.create();
+//            miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
+//            Layout l = new Layout();
+//                   l.setLocked(true);
+//            SimpleWithMenuAgregator la= new SimpleWithMenuAgregator(l);
+//            FadeButton closeB = new FadeButton(AwesomeIcon.TIMES, 15);
+//                       closeB.setOnMouseClicked( e -> {
+//                           App.close(); // closing the window is not enogh
+//                           e.consume();
+//                       });
+//                       Tooltip.install(closeB, new Tooltip("Close"));
+//            FadeButton toggleMiniB = new FadeButton(AwesomeIcon.CARET_UP, 15);
+//                       toggleMiniB.setOnMouseClicked( e -> {
+//                           toggleMini();
+//                           e.consume();
+//                       });
+//                       Tooltip.install(toggleMiniB, new Tooltip("Toggle mini mode"));
+//            la.getMenu().getChildren().addAll(toggleMiniB,closeB);
+//            miniWindow.setContent(la.getRoot());
+//            l.setChild(WidgetManager.getFactory("PlayerControlsTiny").create());
+//            miniWindow.show();
+//            miniWindow.setShowHeader(false);
+//            miniWindow.update();App.getWindow().hide();
+            
+            
+           
+            // avoid pointless operation
+            if(miniWindow!=null && miniWindow.isShowing()) return;
+            // get window instance by deserializing saved state
+            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
+            miniWindow = Window.deserializeSuppressed(f);
+            // if not available, make new onw, set initial size
+            if(miniWindow == null) {
+                miniWindow = Window.create();
+                miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
+            }
+            // create content
+                // layout
+            Layout l = new Layout();
+                   l.setLocked(true);
+                // layout wrapper
+            SimpleWithMenuAgregator la= new SimpleWithMenuAgregator(l);
+                // window control buttons
+            FadeButton closeB = new FadeButton(AwesomeIcon.TIMES, 15);
+                       closeB.setOnMouseClicked( e -> {
+                           App.close(); // closing the window is not enogh
+                           e.consume();
+                       });
+                       Tooltip.install(closeB, new Tooltip("Close"));
+            FadeButton onTopB = new FadeButton(AwesomeIcon.STOP, 15);
+                       onTopB.setOnMouseClicked( e -> {
+                           miniWindow.toggleAlwaysOnTOp();
+                           e.consume();
+                       });
+                       Tooltip.install(onTopB, new Tooltip("Toggle on top"));
+            FadeButton toggleMiniB = new FadeButton(AwesomeIcon.CARET_UP, 15);
+                       toggleMiniB.setOnMouseClicked( e -> {
+                           toggleMini();
+                           e.consume();
+                       });
+                       Tooltip.install(toggleMiniB, new Tooltip("Toggle mini mode"));
+            la.getMenu().getChildren().addAll(toggleMiniB,onTopB,closeB);
+            miniWindow.setContent(la.getRoot());
+                // widget
+            l.setChild(WidgetManager.getFactory("PlayerControlsTiny").create());
+            // show and apply state
             miniWindow.show();
             miniWindow.setShowHeader(false);
             miniWindow.update();
+            
+            // install autohiding
+            t = new Transition() {
+                {
+                    setCycleDuration(Duration.millis(300));
+                }
+                @Override
+                protected void interpolate(double frac) {
+                    double H = miniWindow.getHeight()-2; // leave 2 pixels visible
+                    miniWindow.setY(-H*frac, false);
+                }
+            };
+            
+            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
+                Duration d = t.getCurrentTime();
+                t.stop();
+                t.setDelay(Duration.seconds(0.8));
+                t.setOnFinished(a->miniWindow.setContentMouseTransparent(true));
+                t.setRate(1);
+                t.playFrom(d);
+            });
+            
+            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_ENTERED, e -> {
+                miniWindow.focus();
+                Duration d = t.getCurrentTime();
+                t.stop();
+                t.setDelay(ZERO);
+                t.setOnFinished(a->miniWindow.setContentMouseTransparent(false));
+                t.setRate(-1);
+                t.playFrom(d);
+            });
+            
+            App.getWindow().hide();
+            
+            
         } else {
-            String name = "mini-window";
-            File f = new File(App.LAYOUT_FOLDER(), name + ".w");
+            // do nothing if not in minimode (for example during initialization)
+            if(miniWindow==null) return;
+            // serialize mini
+            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
             miniWindow.serializeSupressed(f);
+            // hide mini, show normal
             App.getWindow().show();
             miniWindow.close();
             miniWindow=null;
+            if(t!=null) {
+                t.stop();
+                t=null;
+            }
         }
     }
 
@@ -69,6 +194,7 @@ public class WindowManager {
         
         // get windows
         List<Window> src = new ArrayList<>(ContextManager.windows);
+                     src.remove(miniWindow);
         Log.deb("Serializing " + src.size() + " application windows for next session.");
         
         // remove serialized window files from previous session

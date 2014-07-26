@@ -138,7 +138,7 @@ public class DraggableTab extends Tab {
                         w.hide();
                 });
                 w.setContent(pane);
-                w.setLocation(e.getScreenX(), e.getScreenY());
+                w.setXY(e.getScreenX(), e.getScreenY());
                 w.show();
                 
                 pane.requestLayout();

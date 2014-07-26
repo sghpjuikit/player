@@ -111,12 +111,12 @@ public final class WidgetManager {
         switch(source) {
             case LAYOUT:
                 return LayoutManager.getLayouts()
-                        .flatMap(l->l.getAllWidgets().stream());
+                        .flatMap(l->l.getAllWidgets());
             case ACTIVE:
             case FACTORY:
                 return Stream.concat(standaloneWidgets.stream(), 
                         LayoutManager.getLayouts()
-                            .flatMap(l->l.getAllWidgets().stream()));
+                            .flatMap(l->l.getAllWidgets()));
             default: throw new AssertionError(source + " in default switch value.");
         }
     }

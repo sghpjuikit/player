@@ -20,9 +20,9 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
-import static de.jensd.fx.fontawesome.AwesomeIcon.LIST;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.REFRESH;
+import static de.jensd.fx.fontawesome.AwesomeIcon.TH_LARGE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TIMES;
 import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import java.io.IOException;
@@ -100,7 +100,7 @@ public final class AreaControls {
                     if (c!=null && c instanceof Widget) {
                         WidgetInfo i = ((Widget)c).getInfo();
                         info = "\n\nWidget: " + i.name();
-                        if(!i.description().isEmpty()) info += "\n\n" + i.description();  
+                        if(!i.description().isEmpty()) info += "\n\n" + i.description();
                         if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
                         if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
                     }
@@ -131,7 +131,7 @@ public final class AreaControls {
                    detach();
                    e.consume();
                });
-        Button changeB = AwesomeDude.createIconButton(LIST,"","12","12",CENTER);
+        Button changeB = AwesomeDude.createIconButton(TH_LARGE,"","12","12",CENTER);
                changeB.setTooltip(new Tooltip("Change widget"));
                changeB.setOnMouseClicked( e -> {
                    choose();

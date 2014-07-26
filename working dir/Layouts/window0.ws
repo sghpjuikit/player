@@ -1,8 +1,8 @@
 <GUI.Window>
-  <W>1245.0</W>
-  <H>777.0</H>
-  <X>86.0</X>
-  <Y>130.0</Y>
+  <W>1506.0</W>
+  <H>965.0</H>
+  <X>157.0</X>
+  <Y>145.0</Y>
   <minimized>false</minimized>
   <maximized>NONE</maximized>
   <fullscreen>false</fullscreen>

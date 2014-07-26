@@ -5,8 +5,10 @@ import GUI.objects.Text;
 import GUI.objects.Thumbnail;
 import Layout.Layout;
 import Layout.LayoutManager;
-import Layout.Widgets.Widget;
+import Layout.UniContainer;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +23,7 @@ import javafx.scene.layout.VBox;
 import main.App;
 import utilities.Enviroment;
 import utilities.Log;
+import static utilities.Util.toCSList;
 
 /**
  *
@@ -145,15 +148,23 @@ public final class LayoutManagerComponent {
         nameF.setPromptText(l.getName());
         lockedChB.setSelected(l.isLocked());
         
+        List<String> w_names = new ArrayList();
+        // get children counts by counting leaf Components
+            // all widgets (and fetch names while at it to avoid reiterating
+        long ws = l.getAllWidgets().peek(w->w_names.add(w.getName())).count();
+            // all leaf containers - cs that contain only widgets
+        long chs = l.getAllContainers().filter(c->c instanceof UniContainer).count();
+            // all empty leaf containers
+        long cs = chs-ws;
+        
         // show info
         String s;
         s  = "Name: " + l.getName() + "\n";
         s += "Active: " + (l.isMain()) + "\n";
-        s += "Children: " + l.getAllChildren().size() + "\n";
-        s += "Containers: " + l.getAllContainers().size() + "\n";
-        s += "Widgets: " + l.getAllWidgets().size() + "\n";
-        s += "Widgets: " + l.getAllWidgets().stream().map(Widget::getName)
-                                            .collect(Collectors.joining(", "));
+        s += "Children: " + (ws+cs) + "\n";
+        s += "Containers: " + cs + "\n";
+        s += "Widgets: " + ws + "\n";
+        s += "Widgets: " + w_names.stream().collect(toCSList);
         s += "\n";
         infoT.setText(s);
         // show thumbnail

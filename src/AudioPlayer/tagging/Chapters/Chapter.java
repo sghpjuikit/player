@@ -47,9 +47,12 @@ public final class Chapter implements Comparable<Chapter> {
     }
     
     /**
-     * @return the time with granularity of 1 millisecond.
+     * Gets time as Duration with granularity of 1 millisecond.
      */
     public Duration getTime() {
+        // time must always be equivalent to mathematical integer, so lets
+        // assert that assumption
+        assert time.toMillis() == Math.rint(time.toMillis());
         return time;
     }
 

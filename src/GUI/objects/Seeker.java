@@ -46,6 +46,10 @@ import utilities.functional.functor.UnProcedure;
 
 /**
  * 
+ * If the seeker turns out to be problematic to resize (particularly height)
+ * in layouts such as BorderPane, it is recommended to set different min, max
+ * and prefSize.
+ * 
  * @author uranium
  */
 public final class Seeker extends AnchorPane {
@@ -77,7 +81,10 @@ public final class Seeker extends AnchorPane {
      * would run twice.
      */
     public void initializeC() {
-        this.setHeight(15);
+        this.setMinSize(0,0);
+        this.setMaxSize(USE_COMPUTED_SIZE,15);
+        this.setPrefSize(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
+        
         position.setMin(0);
         position.setMax(1);
         position.setCursor(Cursor.HAND);
@@ -265,7 +272,7 @@ public final class Seeker extends AnchorPane {
             l.setOpacity(0);
             Tooltip.install(l, new Tooltip("Create chapter."));
         }
-        public void show() {System.out.println("SHOW");
+        public void show() {
             ft.setOnFinished(null);
             ft.stop();
             p.show(s.getScene().getWindow());
@@ -275,7 +282,7 @@ public final class Seeker extends AnchorPane {
             ft.setOnFinished(null);
             ft.play();
         }
-        public void hide() {System.out.println("HIDE");
+        public void hide() {
             ft.setOnFinished(null);
             ft.stop();
             ft.setDelay(Duration.ZERO);
@@ -333,8 +340,11 @@ public final class Seeker extends AnchorPane {
             // set up skin
             this.getStyleClass().add(STYLECLASS);
             // set up layout
-            double height = (Seeker.this.getLayoutBounds().getHeight()-getLayoutBounds().getHeight())/4;
-            AnchorPane.setTopAnchor(this, height);
+            double height = //Seeker.this.position.getLayoutY() + 
+                    (Seeker.this.position.getBoundsInParent().getHeight() - getPadding().getTop())/2;
+//            this.layoutYProperty().bind(Seeker.this.position.heightProperty().subtract(heightProperty()).divide(2));
+//            double height = (Seeker.this.getLayoutBounds().getHeight()-getLayoutBounds().getHeight())/4;
+            AnchorPane.setTopAnchor(this, 3d);
             // build animations
             start = new ScaleTransition(Duration.millis(150), this);
             start.setToX(8);
@@ -387,14 +397,17 @@ public final class Seeker extends AnchorPane {
                 commitB.setTooltip(new Tooltip("Confirm changes"));
                 delB = AwesomeDude.createIconLabel(AwesomeIcon.TRASH_ALT,"11");                     
                 delB.setOnMouseClicked( e -> {
-                     Metadata m = Player.getCurrentMetadata();            
+                     Metadata m = Player.getCurrentMetadata();
+//                     // avoid removing chapter that does not exist
+//                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
+//                         return;
                      MetadataWriter mw = MetadataWriter.create(m);
                                     mw.removeChapter(c,m);
                                     mw.write();
                      e.consume();
                 });
                 delB.setTooltip(new Tooltip("Remove chapter"));
-                cancelB = AwesomeDude.createIconLabel(AwesomeIcon.BACKWARD,"11");                     
+                cancelB = AwesomeDude.createIconLabel(AwesomeIcon.REPLY,"11");                     
                 cancelB.setOnMouseClicked( e -> {
                     cancelEdit();
                     e.consume();
@@ -507,6 +520,9 @@ public final class Seeker extends AnchorPane {
             content.getChildren().add(ta);
             p.getHeaderIcons().set(0, commitB);
             p.getHeaderIcons().add(1, cancelB);
+                // do not add remove buton if the chapter is being created
+            if (!Player.getCurrentMetadata().containsChapterAt(c.getTime()))
+                p.getHeaderIcons().remove(delB);
         }
         
         /** Ends editable mode and applies changes. */
@@ -528,6 +544,8 @@ public final class Seeker extends AnchorPane {
             // maintain proper content
             p.getHeaderIcons().set(0, editB);
             p.getHeaderIcons().remove(cancelB);
+                // add remove button back if it wasnt added yet
+            p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);
             // stop edit
             editOn = false;
             // fire successful edit finish event after edit ends

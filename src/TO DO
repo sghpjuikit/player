@@ -31,6 +31,13 @@
 - playlist index column width still not perfect
 - rating star button style remove border
 - DragUtils add List<Item> getAudioItems() method
+- Dirs widget prevents app closing normally (again)
+- button contorls within HBox have virtual height tht of the HBox
+- mini window bgr stretched, artefact on the right since menu doesnt have bgr
+- when mini is on, deserialisation of windows doesnt restore window states
+- miniMode autohide add option, clean code, start autohide on window creation
+- minmode autohide hide when in showing transition produces ugly effect
+- minimode popups should prevent from autohiding, but how?
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
@@ -238,6 +245,7 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - InstanceFieldConfig and StaticClassConfig unite into FieldConfig +
   config turn into interface
 - make AppConfigurable and make all managers non static
+- Container getAll Children/Containers/Widgets  improve code
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)

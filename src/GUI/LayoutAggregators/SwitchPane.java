@@ -65,7 +65,7 @@ public class SwitchPane implements LayoutAggregator {
             + " at least one condition is fulfilled min distance or min fraction.")
     public static double SNAP_TRESHOLD_DIST = 25;
     
-    @AppliesConfig(config = "align_tabs")
+    @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
         ContextManager.windows.stream()
                 .map(Window::getLayoutAggregator)
@@ -74,7 +74,7 @@ public class SwitchPane implements LayoutAggregator {
                 .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
     
-    @AppliesConfig(config = "snap_tabs")
+    @AppliesConfig( "snap_tabs")
     private static void applySnapTabs() {
         ContextManager.windows.stream()
                 .map(Window::getLayoutAggregator)

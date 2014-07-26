@@ -4,7 +4,6 @@ package Tagger;
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;
@@ -27,12 +26,10 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
@@ -82,8 +79,6 @@ import javafx.util.Callback;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
-import utilities.AudioFileFormat;
-import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
 import utilities.Parser.ColorParser;
@@ -1068,37 +1063,15 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         return defCellFactory;
     }
     
-    private final EventHandler<DragEvent> drag_dropped_handler = t -> {
-        // get data
-        Dragboard d = t.getDragboard();
-        ArrayList<Item> dropped = new ArrayList();
-        if (d.hasFiles()) {
-            FileUtil.getAudioFiles(d.getFiles(),0).stream()
-                    .map(SimpleItem::new).forEach(dropped::add);
-        } else
-        if (d.hasUrl()) {
-            // watch out for non audio urls, we must filter those out or
-            // dropped.isEmpty will not work corrently
-            if(AudioFileFormat.isSupported(d.getUrl()))
-                Optional.of(new SimpleItem(URI.create(d.getUrl())))
-                        .filter(AudioFileFormat::isSupported)
-                        .ifPresent(dropped::add);
-        } else
-        if (d.hasContent(DragUtil.playlist)) {
-            dropped.addAll(DragUtil.getPlaylist(d).getItems());
-        } else
-        if (d.hasContent(DragUtil.items)) {
-            dropped.addAll(DragUtil.getItems(d));
-        }
-        
+    private final EventHandler<DragEvent> drag_dropped_handler = e -> {
+        List<Item> dropped = DragUtil.getAudioItems(e);
+        //end drag transfer
+        e.setDropCompleted(true);
+        e.consume();
+        // handle result - read data
         if (!dropped.isEmpty()) {
-            // read data
             if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
             read(dropped);
-
-            //end drag transfer
-            t.setDropCompleted(true);
-            t.consume();
         }
     };
     

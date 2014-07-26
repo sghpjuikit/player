@@ -332,7 +332,7 @@ public final class Action {
     
     public static String Shortcut_COLAPSE = "Ctrl+C";
     
-    @AppliesConfig(config = "global_media_shortcuts")
+    @AppliesConfig( "global_media_shortcuts")
     private static void applyAllowMediaShortcuts() {
         if(isGlobalShortcutsSupported()) {
             if(global_media_shortcuts) {
@@ -345,7 +345,7 @@ public final class Action {
         }
     }
     
-    @AppliesConfig(config = "global_shortcuts")
+    @AppliesConfig( "global_shortcuts")
     private static void applyAllowGlobalShortcuts() {
         if(isGlobalShortcutsSupported()) {
             if(global_shortcuts){

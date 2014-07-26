@@ -87,6 +87,10 @@ public class WindowBase {
     
 /******************************************************************************/
     
+    /**
+     * Indicates whether and how the window is being resized. Implementing is
+     * left up on subclass.
+     */
     protected Resize is_being_resized = Resize.NONE;
     
     /**
@@ -265,7 +269,7 @@ public class WindowBase {
     private void demaximize() {
         MaxProp.set(Maximized.NONE);
         setSize(WProp.get(),HProp.get());
-        setLocation(XProp.get(),YProp.get());
+        setXY(XProp.get(),YProp.get());
     }
    /** 
     * Maximize/demaximize main application window. Switches between ALL and
@@ -317,24 +321,72 @@ public class WindowBase {
         s.setX(Screen.getPrimary().getBounds().getWidth() - s.getWidth());
     }
     
+    /** @see #setX(double, boolean)  */
+    public void setX(double x) {
+        setXY(x, getY(), true);
+    }
+    /** @see #setX(double, double, boolean)  */
+    public void setX(double x, boolean snap) {
+        setXY(x, getY(), snap);
+    }
+    /** @see #setX(double, boolean)  */
+    public void setY(double y) {
+        setXY(getX(), y, true);
+    }
+    /** @see #setX(double, double, boolean)  */
+    public void setY(double y, boolean snap) {
+        setXY(getX(), y, snap);
+    }
+    
+    /**
+     * Calls {@link #setXY(double, double, boolean)} with provided parameters
+     * and true for snap.
+     */
+    public void setXY(double x, double y) {
+        setXY(x, y, true);
+    }
+    
     /**
      * Sets position of the window on the screen.
-     * WARNING: Dont use getStage().setX() and similar !
-     * This method is weak solution to inability to override setX(), setY()
-     * methods of Stage. Not using this may cause the window not revert to its
-     * remembered previous state during demaximization.
+     * <p>
+     * Note: Always use methods provided in this class for resizing and never
+     * those in the Stage of this window.
+     * <p>
      * If the window is in full screen mode, this method is no-op.
-     * @param X
-     * @param Y
+     * 
+     * @param x x coordinate for left upper corner
+     * @param y y coordinate for left upper corner
+     * @param snap flag for snapping to screen edge and other windows. Snapping
+     * will be executed only if the window id not being resized.
      */
-    public void setLocation(double X, double Y) {
+    public void setXY(double x,double y, boolean snap) {
         if (isFullscreen()) return;
+        
         MaxProp.set(Maximized.NONE);
         XProp.set(s.getX());
         YProp.set(s.getY());
-        s.setX(X);
-        s.setY(Y);
+        s.setX(x);
+        s.setY(y);
         
+        if(snap) snap();
+    }
+    
+    public void setLocationCenter() {
+        double x = Screen.getPrimary().getBounds().getWidth() / 2 - getWidth() / 2;
+        double y = Screen.getPrimary().getBounds().getHeight() / 2 - getHeight() / 2;
+        setXY(x, y);
+    }
+    
+    /**
+     * Snaps window to edge of the screen or other window.
+     * <p>
+     * Executes snapping. Window will snap if snapping is allowed and if the
+     * preconditions of window's state require snapping to be done.
+     * <p>
+     * Because convenience methods are provided that auto-snap on position
+     * change, there is little use for calling this method externally.
+     */
+    public void snap() {
         // avoid snapping while resizing. It leads to unwanted behavior
         if(isResizing()) return;
         
@@ -342,7 +394,7 @@ public class WindowBase {
         double SH = Screen.getPrimary().getBounds().getHeight();
         double S = GUI.snapDistance;
         
-//        // snap to screen edges (x and y separately)
+        // snap to screen edges (x and y separately)
         if (GUI.snapping) {  
             // x snapping
             if (Math.abs(s.getX())<S)
@@ -379,12 +431,6 @@ public class WindowBase {
         }
     }
     
-    public void setLocationCenter() {
-        double x = Screen.getPrimary().getBounds().getWidth() / 2 - getWidth() / 2;
-        double y = Screen.getPrimary().getBounds().getHeight() / 2 - getHeight() / 2;
-        setLocation(x, y);
-    }
-    
     /**
      * Sets size of the window.
      * Always use this over setWidth(), setHeight(). Not using this method will
@@ -419,7 +465,7 @@ public class WindowBase {
     public void setSizeAndLocationToInitial() {
         setSize(Screen.getPrimary().getBounds().getWidth()/2,
                 Screen.getPrimary().getBounds().getHeight()/2);
-        setLocation(Screen.getPrimary().getBounds().getWidth()/4,
+        setXY(Screen.getPrimary().getBounds().getWidth()/4,
                     Screen.getPrimary().getBounds().getHeight()/4);
     }
     

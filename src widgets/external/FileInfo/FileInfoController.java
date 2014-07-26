@@ -3,7 +3,6 @@ package FileInfo;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import AudioPlayer.tagging.Metadata;
@@ -23,13 +22,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.image.Image;
-import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import utilities.FileUtil;
 
 /**
  * 
@@ -188,6 +184,9 @@ public class FileInfoController extends FXMLController  {
         // refresh if metadata source data changed
         meta.addListener( o -> refreshNoBinding());
         
+        // bind rater to rating
+        rater.disableProperty().bind(rating.disableProperty());
+        rater.visibleProperty().bind(rating.visibleProperty());
         // write metadata on rating change
         rater.setOnRatingChanged( e -> MetadataWriter.rate(meta.get(),rater.getRatingPercent()));
         // swap skin on right mouse click
@@ -206,29 +205,12 @@ public class FileInfoController extends FXMLController  {
         layout.getContentPane().heightProperty().addListener( o -> reposition());
         
         // accept drag transfer
-        entireArea.setOnDragOver( e -> {
-            Dragboard db = e.getDragboard();
-            if ((db.hasFiles() && FileUtil.hasAudioFiles(db.getFiles())) ||
-                    db.hasContent(DragUtil.playlist) || 
-                        db.hasContent(DragUtil.items)) {
-                e.acceptTransferModes(TransferMode.ANY);
-                e.consume();
-            }
-        });
+        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped( e -> {
             // get first item
-            Dragboard db = e.getDragboard();
-            Item item = null;
-            if (db.hasFiles()) {
-                item = FileUtil.getAudioFiles(db.getFiles(),0).stream()
-                        .findFirst().map(SimpleItem::new).orElse(null);
-            }
-            else if (db.hasContent(DragUtil.playlist))
-                item = DragUtil.getPlaylist(db).getItem(0);
-            else if (db.hasContent(DragUtil.items))
-                item = DragUtil.getItems(db).get(0);
-            
+            List<Item> items = DragUtil.getAudioItems(e);
+            Item item = items.isEmpty() ? null : items.get(0);
             // getMetadata, refresh
             if (item != null) {
                 if (changeReadModeOnTransfer) readMode = ReadMode.CUSTOM;
@@ -285,7 +267,6 @@ public class FileInfoController extends FXMLController  {
         else layout.setImage(c.getImage());
         
         // set rating
-        rater.setDisable(false);
         rater.setRating(m.getRatingToStars(rater.getMax()));
         
         // set other fields
@@ -316,7 +297,6 @@ public class FileInfoController extends FXMLController  {
     private void clear() {
             layout.setImage((Image)null);
             rater.setRating(0.0);
-            rater.setDisable(true);
             title.setText("title: ");
             track.setText("track: ");
             disc.setText("disc: ");
@@ -344,10 +324,7 @@ public class FileInfoController extends FXMLController  {
     
     private void setVisibility() {
         // image visibility
-        if (layout.hasImage())
-            layout.setShowImage(showCover);
-        else
-            layout.setShowImage(false);
+        layout.setShowImage(layout.hasImage() ? showCover : false);
         
         // hide all fields
         layout.setShowContent(showFields);
@@ -357,7 +334,6 @@ public class FileInfoController extends FXMLController  {
         visible_labels.addAll(labels);
         visible_labels.forEach(l -> l.setVisible(false));
         visible_labels.forEach(l -> l.setDisable(false));
-//        rater.setVisible(true);
 
         // disable empty fields
         if (showEmptyFields) {
@@ -369,14 +345,10 @@ public class FileInfoController extends FXMLController  {
                                 content.equalsIgnoreCase("n/a") || content.equalsIgnoreCase("unknown");
                     })
                     .forEach(l->l.setDisable(true));
-        }
-        else {
-            for(Label ll: labels)
-                if (ll.getText().substring(ll.getText().indexOf(": ")+1).equals(" ")) {
-                    visible_labels.remove(ll);
-                    if (ll.getText().startsWith("rating"))
-                        rater.setVisible(false);
-                }
+        } else {
+            labels.stream()
+                .filter(ll -> ll.getText().substring(ll.getText().indexOf(": ")+1).equals(" "))
+                .forEach((ll) -> visible_labels.remove(ll));
         }
         
         // hide individual fields
@@ -390,7 +362,7 @@ public class FileInfoController extends FXMLController  {
         if (!showgenre)         visible_labels.remove(genre);
         if (!showcomposer)      visible_labels.remove(composer);
         if (!showpublisher)     visible_labels.remove(publisher);
-        if (!showrating)       {visible_labels.remove(rating);}// rater.setVisible(false);}
+        if (!showrating)        visible_labels.remove(rating);
         if (!showplaycount)     visible_labels.remove(playcount);
         if (!showcomment)       visible_labels.remove(comment);
         if (!showcategory)      visible_labels.remove(category);

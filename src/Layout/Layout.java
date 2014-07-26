@@ -1,6 +1,8 @@
 
 package Layout;
 
+import Layout.Widgets.Controller;
+import Layout.Widgets.Widget;
 import Serialization.Serializattion;
 import Serialization.Serializes;
 import Serialization.SerializesFile;
@@ -14,6 +16,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import main.App;
 import utilities.FileUtil;
+import static utilities.Util.NotNULL;
 
 /**
  * @author uranium
@@ -171,14 +174,10 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     public Node load(AnchorPane rootPane) {
         Objects.requireNonNull(rootPane);
         
-        try {
-            getAllWidgets().forEach(w->w.getController().OnClosing());
-            System.out.println("widgets reloaded");
-        }catch(NullPointerException e) {
-            // do nothing
-            System.out.println("not initialized ");
-        }
-        
+        // close widgets first to free resources
+        getAllWidgets().map(Widget::getController)
+                .filter(NotNULL).forEach(Controller::OnClosing);
+        // load
         Node n = super.load(rootPane);
         initialize();
         return n;
@@ -200,8 +199,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     }
     public Layout deserialize(File f) {                                          // Log.deb("deserializing"+name);
         Layout l = Serializattion.deserializeLayout(f);
-               l.properties.getMap().forEach(properties::set);
-//         l.getChildren().forEach(this::addChild);
+        l.properties.getMap().forEach(properties::set);
         child = l.child;
         return this;
     }

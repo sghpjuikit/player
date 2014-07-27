@@ -45,6 +45,7 @@ import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COLUMNS;
+import static de.jensd.fx.fontawesome.AwesomeIcon.FOLDER;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GEARS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GITHUB;
 import static de.jensd.fx.fontawesome.AwesomeIcon.IMAGE;
@@ -502,11 +503,15 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
        // github button - show all available FontAwesome icons in a popup
         Label gitB = AwesomeDude.createIconLabel(GITHUB,"","15","11",CENTER);
               gitB.setOnMouseClicked( e -> Enviroment.browse(App.getGithubLink()));
-              gitB.setTooltip(new Tooltip("Icon browser (developing tool)"));
+              gitB.setTooltip(new Tooltip("Open github project page for this application"));
+       // github button - show all available FontAwesome icons in a popup
+        Label dirB = AwesomeDude.createIconLabel(FOLDER,"","15","11",CENTER);
+              dirB.setOnMouseClicked( e -> Enviroment.browse(App.getLocation().toURI()));
+              dirB.setTooltip(new Tooltip("Open application location (fevelopment tool)"));
        // icon button - show all available FontAwesome icons in a popup
         Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
-              iconsB.setTooltip(new Tooltip("Icon browser (developing tool)"));
+              iconsB.setTooltip(new Tooltip("Icon browser (development tool)"));
         // settings button - show application settings in a popup
         Label propB = AwesomeDude.createIconLabel(GEARS,"","15","11",CENTER);
               propB.setOnMouseClicked( e ->
@@ -578,7 +583,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         });
         helpB.setTooltip(new Tooltip("Icon browser (developing tool)"));
               
-        leftHeaderBox.getChildren().addAll(gitB,iconsB,layB,propB,lastFMB,helpB);
+        leftHeaderBox.getChildren().addAll(gitB,dirB,iconsB,layB,propB,lastFMB,helpB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/

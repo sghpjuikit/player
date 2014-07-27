@@ -84,7 +84,7 @@ public class App extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-
+        
         Configuration.load();           // must initialize first
         
         try {
@@ -120,6 +120,12 @@ public class App extends Application {
         Action.getActions().values().forEach(Action::register);        
 
         Configuration.applyFieldsAll();         // apply all (and gui) settings
+        
+        
+        
+//        FxTimer.runPeriodic(Duration.seconds(10), () -> {
+//            PlatformImpl.setTaskbarApplication(!PlatformImpl.isTaskbarApplication());
+//        });
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         
@@ -186,7 +192,7 @@ public class App extends Application {
      * @return absolute file of location of the root directory of this
      * application.
      */
-    public static File getAppLocation() {
+    public static File getLocation() {
         return new File("").getAbsoluteFile();
     }
 

@@ -450,7 +450,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                                 .collect(Collectors.toList()));
                         fc.setTitle("Save image as...");
                         fc.setInitialFileName("new_image");
-                        fc.setInitialDirectory(App.getAppLocation());
+                        fc.setInitialDirectory(App.getLocation());
                     File f = fc.showSaveDialog(App.getWindowOwner().getStage());
                     FileUtil.writeImage(i, f);
                  });
@@ -503,7 +503,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                                 .collect(Collectors.toList()));
                         fc.setTitle("Save image as...");
                         fc.setInitialFileName("new_image");
-                        fc.setInitialDirectory(App.getAppLocation());
+                        fc.setInitialDirectory(App.getLocation());
                     File newff = fc.showSaveDialog(App.getWindowOwner().getStage());
                     try {
                         Files.copy(f.toPath(), newff.toPath(), StandardCopyOption.REPLACE_EXISTING);

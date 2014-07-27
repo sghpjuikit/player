@@ -475,7 +475,7 @@ public class PopOver<N extends Node> extends PopupControl {
     
     /** Display at specified designated screen position */
     public void show(ScreenCentricPos pos) {
-        showThis(null, App.getWindow().getStage());
+        showThis(null, GUI.Window.getActive().getStage());
         position(pos.calcX(this), pos.calcY(this));
         
         if(pos==ScreenBottomLeft || pos==ScreenBottomRight || pos==ScreenCenter 

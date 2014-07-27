@@ -13,9 +13,7 @@ import javafx.scene.Node;
  *
  * @author Plutonium_
  */
-public class ContextPopOver<N extends Node> extends PopOver<N>{
-    
-    private static final String STYLE_CLASS = "item-picker";
+public class ContextPopOver<N extends Node> extends PopOver<N> {
     
     public ContextPopOver() {
         super();
@@ -26,7 +24,6 @@ public class ContextPopOver<N extends Node> extends PopOver<N>{
         setCornerRadius(0);
         setAutoHide(true);
         setAutoFix(true);
-        getStyleClass().setAll(STYLE_CLASS); // doesnt work
         
         // support layout mode transition
         setOnShown(e-> {

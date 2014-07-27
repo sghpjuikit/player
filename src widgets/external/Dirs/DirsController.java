@@ -42,7 +42,7 @@ public class DirsController extends FXMLController {
     @FXML TreeView<Path> tree;
     
     @IsConfig(name = "Root directory", info = "Root directory path for the directory tree to display.")
-    public File rootDir = App.getAppLocation();
+    public File rootDir = App.getLocation();
     @IsConfig(name = "Drag type", info = "Indicates type of dragging action.")
     public DragType dragType = DragType.COPY;
     

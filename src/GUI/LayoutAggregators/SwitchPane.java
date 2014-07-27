@@ -108,8 +108,8 @@ public class SwitchPane implements LayoutAggregator {
 //            }
             
             if(e.getButton()==MIDDLE) {
-                ui.setMouseTransparent(true);
-                startScroll(e);
+                //ui.setMouseTransparent(true);
+                //startScroll(e);
             }
         });
         
@@ -119,8 +119,8 @@ public class SwitchPane implements LayoutAggregator {
                 startUiDrag(e);
                 dragUi(e);
             }
-            if(e.isMiddleButtonDown())
-                doScrolling(e);
+            //if(e.isMiddleButtonDown())
+                //doScrolling(e);
         });
         
         root.addEventFilter(MOUSE_CLICKED, e-> {
@@ -131,8 +131,8 @@ public class SwitchPane implements LayoutAggregator {
         });
         root.addEventFilter(MOUSE_RELEASED, e-> {
             if(e.getButton()==MIDDLE) {
-                endScroll(e);
-                ui.setMouseTransparent(false);
+                //endScroll(e);
+                //ui.setMouseTransparent(false);
             }
         });
         

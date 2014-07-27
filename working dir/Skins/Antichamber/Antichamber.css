@@ -1,0 +1,73 @@
+/* 
+    Document    : Antichamber skin for PLayerFX
+    Author      : Martin Polakovic
+    Description : skin
+*/
+
+// TODO: table selected row border relocates text by 1px - fix
+
+.root {
+    
+    -fx-def-font-color: rgb(80,80,80);
+    -fx-def-font-color-hover: rgb(180,180,180);
+    -fx-sel-font-color: rgb(0,0,0);
+    -fx-prompt-font-color: rgb(180,180,180);
+    -fx-pane-color: transparent;
+
+    // this skin specific variables
+    -fx-dark-color: rgb(60,60,60);
+}
+
+/* Default 'block'. Several elements subclass block but some can use it directly
+   too. Use to set default properties for allblocks and block derived classes.
+   One can for example make several GUI layout elements appear the same.
+
+   Subclasses: window > .header, area, area-controls, layouter-element
+   Dev note: assigning a subclass styleclass to a javaFX object does not automatically
+            assign it area too. Must be done manually.
+    */
+.block {
+    -fx-background-color: null;
+    -fx-border-color: grey;
+    -fx-border-width: 1;
+    -fx-border-radius: 1;
+}
+
+.window {
+    -fx-background-color: white;
+}
+
+.window > .header{
+    -fx-border-width: 0;
+}
+
+.window > .w-border {
+    -fx-background-color: -fx-pane-color;
+}
+
+.item-picker-element:hover {
+    -fx-background-color: -fx-pane-color;
+}
+
+/* Selected rows focused control*/
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell:filled:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:filled:selected,
+.table-view:focused > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
+.tree-table-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
+    -fx-background-color: white;
+    -fx-border-width: 1;
+    -fx-border-color: black;
+}
+/* Selected when control is not focused */
+.list-cell:filled:selected,
+.tree-cell:filled:selected,
+.table-row-cell:filled:selected,
+.tree-table-row-cell:filled:selected,
+.table-row-cell:filled > .table-cell:selected,
+.tree-table-row-cell:filled > .tree-table-cell:selected {
+    -fx-background-color: white;
+    -fx-border-width: 1;
+    -fx-border-color: black;
+}

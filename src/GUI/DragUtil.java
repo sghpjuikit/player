@@ -51,6 +51,8 @@ public final class DragUtil {
      * audio url, {@link Playlist} or list of {@link Item}.
      * <p>
      * Reusing this handler spares code duplication and multiple object instances.
+     * 
+     * @see #getAudioItems(javafx.scene.input.DragEvent)
      */
     public static final EventHandler<DragEvent> audioDragAccepthandler = t -> {
         Dragboard d = t.getDragboard();
@@ -96,7 +98,8 @@ public final class DragUtil {
     }
     
     /**
-     * 
+     * Obtains all supported audio items from dragboard. Looks for files, url,
+     * list of items, playlist int this exact order.
      * <p>
      * Use in conjunction with {@link #audioDragAccepthandler}
      * 

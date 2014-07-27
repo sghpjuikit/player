@@ -8,6 +8,7 @@ import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javafx.fxml.FXML;
@@ -29,7 +30,7 @@ import javafx.scene.layout.Region;
  */
 public abstract class Area<T extends Container> implements AltState {
     
-    public static final String bgr_STYLECLASS = "area-bgr";
+    public static final List<String> bgr_STYLECLASS = Arrays.asList("area", "block");
     
     /**
      * Container this are is associated with. The relationship can not be changed.

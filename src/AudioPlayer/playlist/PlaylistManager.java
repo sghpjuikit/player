@@ -552,7 +552,7 @@ public class PlaylistManager implements Configurable {
 /******************************************************************************/
     
     @IsConfig(name = "Default browse location", info = "Opens this location for file dialogs.")
-    public static File browse = App.getAppLocation();
+    public static File browse = App.getLocation();
     @IsConfig(name = "File search depth", info = "Depth for recursive search within directories. 0 denotes specified directory.")
     public static int folder_depth = 1;
     

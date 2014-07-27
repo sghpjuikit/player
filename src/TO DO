@@ -20,7 +20,6 @@
 - popover set arrow location automatically based on available screen space
 - tab container not remembering its children - why this again                   (major)
 - windows simplify layout saving - all old files can be removed now
-- mini window controls move from widget to window - add mini view to it too
 - tabview tab close button skin
   getWidget - implement Target
 - Player update item not refreshing selected pl item                            ?
@@ -30,7 +29,6 @@
 - playlist sorting
 - playlist index column width still not perfect
 - rating star button style remove border
-- DragUtils add List<Item> getAudioItems() method
 - Dirs widget prevents app closing normally (again)
 - button contorls within HBox have virtual height tht of the HBox
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
@@ -38,11 +36,20 @@
 - miniMode autohide add option, clean code, start autohide on window creation
 - minmode autohide hide when in showing transition produces ugly effect
 - minimode popups should prevent from autohiding, but how?
+- minimode alt shows header disable - how to do this cleanly?
+- notification bgr inconsistent with skin
+- widget showing single picture, + slideshow, associated images with skin
+- picker elements sometimes sometimes off by 1 px and column size ends up wrong 
+- window serialize header visible state
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- full lastFM support
+- support ui autoscroll when near edge while dragging something
+- support middle mouse ui scroll
+- add ability to show Node near cursor with an XY offset 
 - make more Actions, make util class for it
 - use layouter from within Area
 - setings & configurable subcategories through '.' or '/'

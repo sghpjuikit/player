@@ -1,14 +1,14 @@
 
 package GUI.objects.Pickers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.StackPane;
@@ -34,11 +34,13 @@ import utilities.functional.functor.UnProcedure;
 public class Picker<E> {
     
     /** Style class for cell. */
-    public static final String CELL_STYLE_CLASS = "item-picker-button";
+    public static final String STYLE_CLASS = "item-picker";
+    public static final List<String> CELL_STYLE_CLASS = Arrays.asList("block","item-picker-element");
+    
     private static final int EGAP = 5;      // element gap
     
-    private final TilePane grid = new TilePane();
-    private final ScrollPane scroll = new ScrollPane(grid);
+    private final TilePane tiles = new TilePane();
+    private final ScrollPane scroll = new ScrollPane(tiles);
     
     private UnProcedure<E> onSelect = item -> {};
     private ToStringConverter<E> converter = item -> item.toString();
@@ -48,23 +50,24 @@ public class Picker<E> {
         Label l = new Label(text);
         StackPane b = new StackPane(l);
         b.getStyleClass().setAll(CELL_STYLE_CLASS);
-        Tooltip.install(b, new Tooltip(text));
         return b;
     };
     
     public Picker() {
         // set spacing
-        grid.setHgap(EGAP);
-        grid.setVgap(EGAP);
+        tiles.setHgap(EGAP);
+        tiles.setVgap(EGAP);
         // set autosizing for tiles to always fill the grid entirely
-        grid.widthProperty().addListener((o,oldV,newV) -> {
+        tiles.widthProperty().addListener((o,oldV,newV) -> {
             int rows = (int) Math.floor((newV.doubleValue())/100);
-            // set maximum number of columns to 8
+            // set maximum number of columns to 7
                 rows = Math.min(rows, 7);
-            double cell_width = (newV.doubleValue())/rows;
-            grid.setPrefTileWidth(cell_width-EGAP);
+            // for n elements there is n-1 gaps so we need to add 1 gap width
+            double cell_width = (newV.doubleValue()+EGAP)/rows;
+            // above cell width includes 1 gap width per element so substract it
+            tiles.setPrefTileWidth(cell_width-EGAP);
         });
-        scroll.setPadding(new Insets(0,0,EGAP,0));
+//        scroll.setPadding(new Insets(0,0,EGAP,0));
         
         scroll.setPannable(false);  // forbid mouse panning
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -74,11 +77,11 @@ public class Picker<E> {
         // disables unwanted behavior of the popup
         scroll.addEventFilter(MOUSE_PRESSED, e->e.consume());
         scroll.addEventFilter(MOUSE_DRAGGED, e->e.consume());
-        
+        scroll.getStyleClass().add(STYLE_CLASS);
     }
     
     private void buildContent() {
-        grid.getChildren().clear(); 
+        tiles.getChildren().clear(); 
         // get items
         getAccumulator().get()
             // & sort
@@ -90,7 +93,7 @@ public class Picker<E> {
                          getOnSelect().accept(item);
                          e.consume();
                      });
-                grid.getChildren().add(cell);
+                tiles.getChildren().add(cell);
             });
     }
     

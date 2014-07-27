@@ -31,14 +31,14 @@ public class FileTextField extends ItemTextField<File> {
     @Override
     void onDialogAction() {
         if(item==null || item.isDirectory()) {
-            File initf = item==null ? App.getAppLocation() : item;
+            File initf = item==null ? App.getLocation() : item;
             DirectoryChooser dc = new DirectoryChooser();
                              dc.setInitialDirectory(initf);
                              dc.setTitle("Choose directory");
             File newfile = dc.showDialog(getScene().getWindow());
             setItem(newfile);
         } else {
-            File initf = item==null ? App.getAppLocation() : item;
+            File initf = item==null ? App.getLocation() : item;
             FileChooser fc = new FileChooser();
                         fc.setInitialDirectory(initf);
                         fc.setTitle("Choose file");

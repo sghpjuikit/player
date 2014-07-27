@@ -2,6 +2,7 @@
 package Layout.Areas;
 
 import GUI.DragUtil;
+import GUI.GUI;
 import GUI.WidgetTransfer;
 import GUI.objects.Pickers.WidgetPicker;
 import Layout.AltState;
@@ -90,8 +91,6 @@ public final class Layouter implements AltState {
                 e.consume();
             }
         });
-        
-        root.getStyleClass().setAll("darker");
     }
 
 /****************************  functionality  *********************************/
@@ -103,10 +102,12 @@ public final class Layouter implements AltState {
 
     @Override
     public void hide() {
+        // prevent leaving layout mode when layout mode active
+        if(GUI.isLayoutMode())return;
         showControls(false);
     }
     
-    private void showControls(boolean val) {System.out.println("show " + val);
+    private void showControls(boolean val) {
         anim.stop();
         animS.stop();
         if (val) {
@@ -161,11 +162,14 @@ public final class Layouter implements AltState {
     }
     
     private final EventHandler<MouseEvent> controlsShower =  e -> {
+        // avoid right click activation
+        if(e.getEventType().equals(MOUSE_CLICKED) && e.getButton()!=PRIMARY) return;
+        // rely on the public show() implementation, not internal one
         show();
         e.consume();
     };
     private final EventHandler<MouseEvent> controlsHider =  e -> {
-        if(e.getEventType().equals(MOUSE_CLICKED) && e.getButton()!=PRIMARY) return;
+        // rely on the public show() implementation, not internal one
         hide();
         e.consume();
     };

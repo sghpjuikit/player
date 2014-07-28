@@ -60,7 +60,9 @@ public abstract class ImageNode {
      * @return size the image will load in.
      */
     public double calculateImageLoadSize(Region from) {
-        return LOAD_COEFICIENT*Math.max(from.getPrefHeight(),from.getPrefWidth());
+        double size1 = Math.max(from.getWidth(), from.getHeight());
+        double size2 = Math.max(from.getPrefHeight(), from.getPrefWidth());
+        return LOAD_COEFICIENT*Math.max(size1,size2);
     }
     public abstract AnchorPane getPane();
     /**

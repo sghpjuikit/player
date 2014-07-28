@@ -27,7 +27,7 @@
             assign it area too. Must be done manually.
     */
 .block {
-    -fx-background-color: null;
+    -fx-background-color: rgba(255,255,255,1);
     -fx-border-color: grey;
     -fx-border-width: 1;
     -fx-border-radius: 1;
@@ -41,6 +41,12 @@
     -fx-border-width: 0;
 }
 
+.window > .brg-image {
+    -fx-opacity: 0.15;
+    -fx-background-image: url("bgr.jpg");
+    -fx-background-size: stretch;
+}
+
 .window > .w-border {
     -fx-background-color: -fx-pane-color;
 }
@@ -48,7 +54,9 @@
 .item-picker-element:hover {
     -fx-background-color: -fx-pane-color;
 }
-
+.notification {
+    -fx-background-color: white;
+}
 /* Selected rows focused control*/
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,

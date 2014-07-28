@@ -45,6 +45,7 @@ import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COLUMNS;
+import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
 import static de.jensd.fx.fontawesome.AwesomeIcon.FOLDER;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GEARS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GITHUB;
@@ -55,6 +56,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -172,7 +174,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @AppliesConfig( "headerVisiblePreference")
     private static void applyHeaderVisiblePreference() {
         // weird that this still doesnt apply it correctly, whats wrong?
-        ContextManager.windows.forEach(w->w.setShowHeader(w.showHeader));
+        ContextManager.windows.forEach(w->w.setHeaderVisible(w.headerVisible));
     }
     
     @AppliesConfig( "windowOpacity")
@@ -349,7 +351,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             }
             if(e.getButton()==MouseButton.SECONDARY) {
                 if(e.getClickCount()==2)
-                    setShowHeader(!showHeader);
+                    setHeaderVisible(!headerVisible);
             }
         });
         
@@ -458,16 +460,24 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML private ImageView iconI;
     @FXML private Label titleL;
     @FXML private HBox leftHeaderBox;
-    private boolean showHeader = true;
+    private boolean headerVisible = true;
+    private boolean headerAllowed = true;
     
     /**
      * Sets visibility of the window header, including its buttons for control
      * of the window (close, etc).
      */
-    public void setShowHeader(boolean val) {
-        showHeader = val;
+    public void setHeaderVisible(boolean val) {
+        // prevent pointless operation
+        if(!headerAllowed) return;
+        headerVisible = val;
         showHeader(val);
     }
+    
+    public boolean isHeaderVisible() {
+        return headerVisible;
+    }
+    
     private void showHeader(boolean val) {
         controls.setVisible(val);
         leftHeaderBox.setVisible(val);
@@ -484,6 +494,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         }
     }
     
+    /** Set false to permanently hide header. */
+    public void setHeaderAllowed(boolean val) {
+        setHeaderVisible(val);
+        headerAllowed = val;
+    }
+    
     /** Set title for this window shown in the header.*/
     public void setTitle(String text) {
         titleL.setText(text);
@@ -497,7 +513,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /** Set icon. Null clears. */
     public void setIcon(Image img) {
         iconI.setImage(img); 
-       leftHeaderBox.getChildren().remove(iconI);
+        leftHeaderBox.getChildren().remove(iconI);
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
        
        // github button - show all available FontAwesome icons in a popup
@@ -505,9 +521,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
               gitB.setOnMouseClicked( e -> Enviroment.browse(App.getGithubLink()));
               gitB.setTooltip(new Tooltip("Open github project page for this application"));
        // github button - show all available FontAwesome icons in a popup
-        Label dirB = AwesomeDude.createIconLabel(FOLDER,"","15","11",CENTER);
-              dirB.setOnMouseClicked( e -> Enviroment.browse(App.getLocation().toURI()));
+        Label dirB = AwesomeDude.createIconLabel(CSS3,"","15","11",CENTER);
+              dirB.setOnMouseClicked( e -> Enviroment.browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
               dirB.setTooltip(new Tooltip("Open application location (fevelopment tool)"));
+       // css button - show all available FontAwesome icons in a popup
+        Label cssB = AwesomeDude.createIconLabel(FOLDER,"","15","11",CENTER);
+              cssB.setOnMouseClicked( e -> Enviroment.browse(App.getLocation().toURI()));
+              cssB.setTooltip(new Tooltip("Open css guide"));
        // icon button - show all available FontAwesome icons in a popup
         Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
@@ -568,14 +588,15 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         helpB.setOnMouseClicked( e -> {
             PopOver<Text> helpP = PopOver.createHelpPopOver(
                 "Available actions:\n" +
-                "    Header icons : Providing custom functionalities. Use tooltips.\n" +
-                "    Header buttons : Providing window contorl. Use tooltips.\n" +
+                "    Header icons : Providing custom functionalities. See tooltips.\n" +
+                "    Header buttons : Providing window contorl. See tooltips.\n" +
                 "    Mouse drag : Move window. Windows snap to screen or to other windows.\n" +
                 "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n" +
                 "    Mouse drag edge : Resizes window.\n" +
                 "    Double left click : Toggle meximized mode on/off.\n" +
                 "    Double right click : Toggle hide header on/off.\n" +
                 "    Press ALT : Show hidden header temporarily.\n" +
+                "    Press ALT : Activate layout mode.\n" +
                 "    Content right drag : drag tabs."
             );
             helpP.show(helpB);
@@ -583,7 +604,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         });
         helpB.setTooltip(new Tooltip("Icon browser (developing tool)"));
               
-        leftHeaderBox.getChildren().addAll(gitB,dirB,iconsB,layB,propB,lastFMB,helpB);
+        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,helpB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/
@@ -615,9 +636,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         super.setFullscreen(val);
         if(headerVisiblePreference){
             if(val)showHeader(false);
-            else showHeader(showHeader);
+            else showHeader(headerVisible);
         } else {
-            setShowHeader(!showHeader);
+            setHeaderVisible(!headerVisible);
         }
     }
     
@@ -767,9 +788,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         if (e.getCode()==ALT)  
             if(headerVisiblePreference){
                 if(isFullscreen()) showHeader(false); 
-                else showHeader(showHeader);
+                else showHeader(headerVisible);
             } else {
-                showHeader(showHeader);
+                showHeader(headerVisible);
             }
     }
     
@@ -846,6 +867,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             writer.startNode("layout-aggregator-type");
             writer.setValue(w.layout_aggregator.getClass().getName());
             writer.endNode();
+            writer.startNode("header-visible");
+            writer.setValue(String.valueOf(w.isHeaderVisible()));
+            writer.endNode();
         }
 
         @Override
@@ -881,9 +905,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             w.setAlwaysOnTop(Boolean.parseBoolean(reader.getValue()));
             reader.moveUp();
             reader.moveDown();
-            reader.getValue(); // ignore
+            reader.getValue(); // ignore layout aggregator
             reader.moveUp();
-            
+            reader.moveDown();
+            w.setHeaderVisible(Boolean.parseBoolean(reader.getValue()));
+            reader.moveUp();
             return w;
         }
     }

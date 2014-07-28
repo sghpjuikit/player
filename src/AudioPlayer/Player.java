@@ -126,6 +126,6 @@ public class Player {
         
         // reload selected playlist
         if (item.same(PlaylistManager.getSelectedItem()))
-            core.loadPlaylistSelectedMetadata();
+            core.loadPlaylistSelectedMetadata(item);
     }
 }

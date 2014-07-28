@@ -3229,15 +3229,6 @@
     -fx-opacity: 0.32;           // emulate -fx-pane-color
 }
 
-/* Default bgr style. Unrelated bgrs might use this class. Each of them
-  should also have its own class defined in addition to this one. */
-.background {
-    -fx-background-color:
-        linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
-        linear-gradient(#30363b, #292d32),
-        radial-gradient(center 50% 0%, radius 100%, rgba(124,141,158,0.9), rgba(255,255,255,0));
-}
-
 .darker {
     //-fx-background-color: -fx-color-darker;
 }
@@ -3534,6 +3525,12 @@
 .popover-closebutton {
     // separate the close button from the rest a bit visually
     //-fx-padding: 0 0 0 5; 
+}
+
+/* Application notification poover. This styleclass styles the content while the
+   underlying popover is styled above.
+   Inherites .block & .anchor-pane */
+.notification {
 }
 
 //****************************** THUMBNAIL ***********************************//

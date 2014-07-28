@@ -34,18 +34,24 @@
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - when mini is on, deserialisation of windows doesnt restore window states
 - miniMode autohide add option, clean code, start autohide on window creation
-- minmode autohide hide when in showing transition produces ugly effect
 - minimode popups should prevent from autohiding, but how?
-- minimode alt shows header disable - how to do this cleanly?
-- notification bgr inconsistent with skin
-- widget showing single picture, + slideshow, associated images with skin
 - picker elements sometimes sometimes off by 1 px and column size ends up wrong 
 - window serialize header visible state
+- closing bookmarker prevents bookmarks being saved sometimes
+- thumbnail image bound to prefSize causes problems, anchorPane doesn work
+- widget padding set uniform
+- widget configs do not persist (not even widget transfer (if it werent for the
+  fact that we cache the root to avoid loading 1+ times))
+- cant open two info popup at once - evolution of singleton = death
+- make loadInitial() in WIdget and guarantee root caching for all widgets
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
 --------------------------------------------------------------------------------
 
+- window docking awareness - disable autohiding when not, enable for all Wndws
+- ability to passivate widget - it autocloses after set amount of time. It
+  is within layout but not loaded.
 - full lastFM support
 - support ui autoscroll when near edge while dragging something
 - support middle mouse ui scroll
@@ -66,10 +72,8 @@
 - seeker option to show chapters as they are passing
 - cursor trail effect - 'frozen" effect
 - cursor api clean up, fix appliers, make actually usable
-- seeker orientation property and support with layout (chapter positions too)
-- settable img bgr
 - TextFlow for smart text tables
-- gradient masks - it IS possible, proved by image on drag&drop, but HOW?
+- gradient masks - it IS possible, proved by image on drag&drop, but HOW?       (picture as mask?)
 - widget manager widget
 - cursor effect to popup, get rid of effectPane
 - tagger ability to add or remove from the list by CTRL/SHIFT drag&drop on popup
@@ -123,6 +127,7 @@ DIRS
 --------------------------------------------------------------------------------
 
 GENERAL
+- playlist manual sorting does not work
 - playlist deselecting single items with CTRL not working sometimes             (medium, still an issue?)
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
 - little bug with position slider on repositioning                              (minor)

@@ -15,6 +15,7 @@ import java.io.File;
 import static java.io.File.separator;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
@@ -295,6 +296,16 @@ public class GUI implements Configurable {
             return true;
         }
         return false;
+    }
+    
+    public static List<File> getGuiImages() {
+        File location = new File(App.SKIN_FOLDER(), skin + separator + "Images");
+        if(FileUtil.isValidDirectory(location)) {
+            return FileUtil.getImageFiles(location);
+        } else {
+            Log.deb("Can not access skin directory: " + location.getPath());
+            return EMPTY_LIST;
+        }
     }
     
 /****************************  applying methods *******************************/

@@ -10,6 +10,8 @@ import GUI.DragUtil;
 import GUI.Panes.ImageFlowPane;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import java.io.File;
 import java.util.ArrayList;
@@ -44,6 +46,19 @@ import utilities.functional.functor.Procedure;
  * <p>
  * @author Plutonium_
  */
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Image Viewer",
+    description = "Displays images.",
+    howto = "Available actions:\n" +
+            "    Thumbnail click : Select image\n" +
+            "    Image click : Toggle no thumbnails mode on/off\n",
+    notes = "",
+    version = "0.8",
+    year = "2014",
+    group = Widget.Group.OTHER
+)
 public class ImageViewerController extends FXMLController {
     @FXML AnchorPane entireArea;
     @FXML private ScrollPane thumb_root;

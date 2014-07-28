@@ -116,6 +116,9 @@ public final class AreaControls {
                                  + "    Middle click : Set widget size to max\n"
                                  + info;
                     helpPopOver.getContentNode().setText(text);
+                    // for some reason we need to set this every time, which
+                    // should not be the case, investigate
+                    helpPopOver.getContentNode().setWrappingWidth(400);
                     helpPopOver.show(helpB);
                     e.consume();
                });

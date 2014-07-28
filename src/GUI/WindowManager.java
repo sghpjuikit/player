@@ -24,7 +24,6 @@ import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
@@ -57,36 +56,7 @@ public class WindowManager {
     
     public static void setMini(boolean val) {
         mini = val;
-        if(val) {
-            
-//            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-//            Window tmp = Window.deserializeSuppressed(f);
-//            miniWindow = tmp!=null ? tmp : Window.create();
-//            miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
-//            Layout l = new Layout();
-//                   l.setLocked(true);
-//            SimpleWithMenuAgregator la= new SimpleWithMenuAgregator(l);
-//            FadeButton closeB = new FadeButton(AwesomeIcon.TIMES, 15);
-//                       closeB.setOnMouseClicked( e -> {
-//                           App.close(); // closing the window is not enogh
-//                           e.consume();
-//                       });
-//                       Tooltip.install(closeB, new Tooltip("Close"));
-//            FadeButton toggleMiniB = new FadeButton(AwesomeIcon.CARET_UP, 15);
-//                       toggleMiniB.setOnMouseClicked( e -> {
-//                           toggleMini();
-//                           e.consume();
-//                       });
-//                       Tooltip.install(toggleMiniB, new Tooltip("Toggle mini mode"));
-//            la.getMenu().getChildren().addAll(toggleMiniB,closeB);
-//            miniWindow.setContent(la.getRoot());
-//            l.setChild(WidgetManager.getFactory("PlayerControlsTiny").create());
-//            miniWindow.show();
-//            miniWindow.setShowHeader(false);
-//            miniWindow.update();App.getWindow().hide();
-            
-            
-           
+        if(val) {App.getWindow().hide();
             // avoid pointless operation
             if(miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
@@ -128,7 +98,7 @@ public class WindowManager {
             l.setChild(WidgetManager.getFactory("PlayerControlsTiny").create());
             // show and apply state
             miniWindow.show();
-            miniWindow.setShowHeader(false);
+            miniWindow.setHeaderAllowed(false);
             miniWindow.update();
             
             // install autohiding
@@ -143,26 +113,49 @@ public class WindowManager {
                 }
             };
             
-            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
+            miniWindow.s.focusedProperty().addListener( (o,oldV,newV) -> {System.out.println("FOCUS "+newV);
+                if(newV) return;
+                Duration delay = Duration.ZERO;//Duration.seconds(0.8);
                 Duration d = t.getCurrentTime();
+                if(d.equals(Duration.ZERO)) {
+                    d = Duration.millis(300).subtract(d);
+                    delay = Duration.seconds(0.8);
+                }
                 t.stop();
-                t.setDelay(Duration.seconds(0.8));
+                t.setDelay(delay);
                 t.setOnFinished(a->miniWindow.setContentMouseTransparent(true));
                 t.setRate(1);
-                t.playFrom(d);
+                t.playFrom(Duration.millis(300).subtract(d));
             });
+//            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
+//                Duration delay = Duration.ZERO;//Duration.seconds(0.8);
+//                Duration d = t.getCurrentTime();
+//                if(d.equals(Duration.ZERO)) {
+//                    d = Duration.millis(300).subtract(d);
+//                    delay = Duration.seconds(0.8);
+//                }
+//                t.stop();
+//                t.setDelay(delay);
+//                t.setOnFinished(a->miniWindow.setContentMouseTransparent(true));
+//                t.setRate(1);
+//                t.playFrom(Duration.millis(300).subtract(d));
+//            });
             
             miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_ENTERED, e -> {
-                miniWindow.focus();
                 Duration d = t.getCurrentTime();
+                if(d.equals(Duration.ZERO)) 
+                    d = Duration.millis(300).subtract(d);
                 t.stop();
                 t.setDelay(ZERO);
                 t.setOnFinished(a->miniWindow.setContentMouseTransparent(false));
                 t.setRate(-1);
                 t.playFrom(d);
+                
+                miniWindow.getStage().toFront();miniWindow.focus();
+                miniWindow.getStage().getScene().getRoot().requestFocus();
             });
             
-            App.getWindow().hide();
+            
             
             
         } else {
@@ -194,7 +187,7 @@ public class WindowManager {
         
         // get windows
         List<Window> src = new ArrayList<>(ContextManager.windows);
-                     src.remove(miniWindow);
+                     src.remove(miniWindow);    // manually
         Log.deb("Serializing " + src.size() + " application windows for next session.");
         
         // remove serialized window files from previous session
@@ -240,6 +233,12 @@ public class WindowManager {
         Log.deb("Removing " + oldLs.size() + " old layout files from previous session.");
         
         Log.deb("Serialized " + count + " windows.");
+        
+        // serialize mini too
+        if(miniWindow!=null) {
+            File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
+            miniWindow.serializeSupressed(f);
+        }
     }
     
     public static void deserialize() {

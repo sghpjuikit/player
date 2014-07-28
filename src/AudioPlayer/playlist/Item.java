@@ -270,9 +270,9 @@ public abstract class Item implements Comparable<Item> {
      * or on error.
      */
     public final Metadata getMetadata() {
-        if (this.same(Player.getCurrentMetadata()))
-            return Player.getCurrentMetadata();
-        return MetadataReader.create(this);
+        return same(Player.getCurrentMetadata()) 
+                ? Player.getCurrentMetadata()
+                : MetadataReader.create(this);
     }
 
     
@@ -292,8 +292,6 @@ public abstract class Item implements Comparable<Item> {
      * @return Comparator. Compares by location - uri;
      */
     public static Comparator<PlaylistItem> getComparatorURI() {
-        return ( p1, p2) -> {
-            return p1.getURI().compareTo(p2.getURI());
-        };
+        return (p1,p2) -> p1.getURI().compareTo(p2.getURI());
     }
 }

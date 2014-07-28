@@ -1,5 +1,5 @@
 <Layout.Layout>
-  <id>6aa677d1-5900-4d8d-8aee-25fdd8037602</id>
+  <id>05180b24-e2c9-4d1d-906f-2f51cefbc376</id>
   <properties>
     <map>
       <entry>
@@ -23,7 +23,7 @@
         </entry>
         <entry>
           <string>pos</string>
-          <double>0.49664879356568364</double>
+          <double>0.5014025245441796</double>
         </entry>
         <entry>
           <string>collap</string>
@@ -68,7 +68,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.5036880927291886</double>
+                  <double>0.3546099290780142</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -89,7 +89,7 @@
               <entry>
                 <int>1</int>
                 <Layout.UniContainer>
-                  <id>03bff42f-b419-4613-b0b0-78b79935d282</id>
+                  <id>0477c28d-cdde-4f1d-af08-a0b0daa58440</id>
                   <properties>
                     <map>
                       <entry>
@@ -104,7 +104,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.ClassWidget">
-                    <id>2447cbe0-f58a-4177-a841-8ecf8c0723a6</id>
+                    <id>dc5efbfa-21b3-4f79-8d5d-4ce531a79b8c</id>
                     <name>Settings</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>
@@ -186,7 +186,7 @@
                   </properties>
                   <b>true</b>
                   <child class="Layout.BiContainerPure">
-                    <id>93dfabbb-ffb2-4e7a-9260-96e6cd47ede8</id>
+                    <id>9f43d54d-ba81-4a63-ad63-e0eaa801b3d5</id>
                     <properties>
                       <map>
                         <entry>
@@ -199,7 +199,7 @@
                         </entry>
                         <entry>
                           <string>pos</string>
-                          <double>0.5047361299052774</double>
+                          <double>0.6605890603085554</double>
                         </entry>
                         <entry>
                           <string>collap</string>
@@ -209,6 +209,10 @@
                           <string>abs_size</string>
                           <boolean>false</boolean>
                         </entry>
+                        <entry>
+                          <string>locked</string>
+                          <boolean>false</boolean>
+                        </entry>
                       </map>
                     </properties>
                     <b>false</b>
@@ -216,23 +220,18 @@
                       <entry>
                         <int>1</int>
                         <Layout.UniContainer>
-                          <id>65e566a4-17d7-43df-9102-1967e3b03763</id>
+                          <id>7e41982b-7035-4687-95dd-bc02f094dacc</id>
                           <properties>
-                            <map/>
-                          </properties>
-                          <b>false</b>
-                        </Layout.UniContainer>
-                      </entry>
-                      <entry>
-                        <int>2</int>
-                        <Layout.UniContainer>
-                          <id>44cfea25-3a89-443f-b658-c3979b548836</id>
-                          <properties>
-                            <map/>
+                            <map>
+                              <entry>
+                                <string>locked</string>
+                                <boolean>false</boolean>
+                              </entry>
+                            </map>
                           </properties>
                           <b>false</b>
                           <child class="Layout.BiContainerPure">
-                            <id>ae43f5a9-1c51-4ee0-9837-76c79320b844</id>
+                            <id>9dfd114a-0fb6-4492-a8d0-dbd564467896</id>
                             <properties>
                               <map>
                                 <entry>
@@ -241,11 +240,11 @@
                                 </entry>
                                 <entry>
                                   <string>orient</string>
-                                  <javafx.geometry.Orientation>VERTICAL</javafx.geometry.Orientation>
+                                  <javafx.geometry.Orientation>HORIZONTAL</javafx.geometry.Orientation>
                                 </entry>
                                 <entry>
                                   <string>pos</string>
-                                  <double>0.5</double>
+                                  <double>0.3283582089552239</double>
                                 </entry>
                                 <entry>
                                   <string>collap</string>
@@ -255,6 +254,10 @@
                                   <string>abs_size</string>
                                   <boolean>false</boolean>
                                 </entry>
+                                <entry>
+                                  <string>locked</string>
+                                  <boolean>false</boolean>
+                                </entry>
                               </map>
                             </properties>
                             <b>false</b>
@@ -262,24 +265,293 @@
                               <entry>
                                 <int>1</int>
                                 <Layout.UniContainer>
-                                  <id>5bdc058d-b37a-428c-8f48-2f51b12e6fbb</id>
+                                  <id>ededefca-0a48-4fe5-b73f-ebb967eb1167</id>
                                   <properties>
-                                    <map/>
+                                    <map>
+                                      <entry>
+                                        <string>locked</string>
+                                        <boolean>false</boolean>
+                                      </entry>
+                                    </map>
                                   </properties>
                                   <b>false</b>
+                                  <child class="Layout.BiContainerPure">
+                                    <id>53039989-a6c3-4dc3-aa6a-492eb541504f</id>
+                                    <properties>
+                                      <map>
+                                        <entry>
+                                          <string>col</string>
+                                          <int>0</int>
+                                        </entry>
+                                        <entry>
+                                          <string>orient</string>
+                                          <javafx.geometry.Orientation>VERTICAL</javafx.geometry.Orientation>
+                                        </entry>
+                                        <entry>
+                                          <string>pos</string>
+                                          <double>0.5900735294117647</double>
+                                        </entry>
+                                        <entry>
+                                          <string>collap</string>
+                                          <double>0.0</double>
+                                        </entry>
+                                        <entry>
+                                          <string>abs_size</string>
+                                          <boolean>false</boolean>
+                                        </entry>
+                                        <entry>
+                                          <string>locked</string>
+                                          <boolean>false</boolean>
+                                        </entry>
+                                      </map>
+                                    </properties>
+                                    <b>false</b>
+                                    <children>
+                                      <entry>
+                                        <int>1</int>
+                                        <Layout.UniContainer>
+                                          <id>dbb28f4b-adbd-4267-b8aa-80f4aa598e1d</id>
+                                          <properties>
+                                            <map/>
+                                          </properties>
+                                          <b>false</b>
+                                        </Layout.UniContainer>
+                                      </entry>
+                                      <entry>
+                                        <int>2</int>
+                                        <Layout.UniContainer>
+                                          <id>830dc32f-aca1-435b-9314-306a16c5a407</id>
+                                          <properties>
+                                            <map>
+                                              <entry>
+                                                <string>padding</string>
+                                                <double>0.0</double>
+                                              </entry>
+                                              <entry>
+                                                <string>locked</string>
+                                                <boolean>false</boolean>
+                                              </entry>
+                                            </map>
+                                          </properties>
+                                          <b>false</b>
+                                          <child class="Layout.Widgets.FXMLWidget">
+                                            <id>cbab19d8-03ed-4747-8a4b-a8dbd2765ff4</id>
+                                            <name>Image</name>
+                                            <configs>
+                                              <Configuration.InstanceFieldConfig>
+                                                <gui__name>Is preferred</gui__name>
+                                                <name>preferred</name>
+                                                <group>FXMLWidget</group>
+                                                <info>Preferred widget for its widget type.</info>
+                                                <editable>true</editable>
+                                                <visible>true</visible>
+                                                <min>NaN</min>
+                                                <max>NaN</max>
+                                                <defaultValue class="boolean">false</defaultValue>
+                                                <value class="boolean">false</value>
+                                              </Configuration.InstanceFieldConfig>
+                                              <Configuration.InstanceFieldConfig>
+                                                <gui__name>Slideshow</gui__name>
+                                                <name>slideshow_on</name>
+                                                <group>ImageController</group>
+                                                <info>Turn sldideshow on/off.</info>
+                                                <editable>true</editable>
+                                                <visible>true</visible>
+                                                <min>NaN</min>
+                                                <max>NaN</max>
+                                                <defaultValue class="boolean">true</defaultValue>
+                                                <value class="boolean">true</value>
+                                              </Configuration.InstanceFieldConfig>
+                                              <Configuration.InstanceFieldConfig>
+                                                <gui__name>Slideshow reload time</gui__name>
+                                                <name>slideshow_dur</name>
+                                                <group>ImageController</group>
+                                                <info>Time between picture change.</info>
+                                                <editable>true</editable>
+                                                <visible>true</visible>
+                                                <min>NaN</min>
+                                                <max>NaN</max>
+                                                <defaultValue class="double">15000.0</defaultValue>
+                                                <value class="double">15000.0</value>
+                                              </Configuration.InstanceFieldConfig>
+                                            </configs>
+                                          </child>
+                                        </Layout.UniContainer>
+                                      </entry>
+                                    </children>
+                                  </child>
                                 </Layout.UniContainer>
                               </entry>
                               <entry>
                                 <int>2</int>
                                 <Layout.UniContainer>
-                                  <id>a735c3bd-7bb4-4316-b688-a44dd1cd35fa</id>
+                                  <id>d9d8e338-5bfc-4803-a686-6c034d8de905</id>
                                   <properties>
-                                    <map/>
+                                    <map>
+                                      <entry>
+                                        <string>padding</string>
+                                        <double>0.0</double>
+                                      </entry>
+                                      <entry>
+                                        <string>locked</string>
+                                        <boolean>false</boolean>
+                                      </entry>
+                                    </map>
                                   </properties>
                                   <b>false</b>
+                                  <child class="Layout.Widgets.EmptyWidget">
+                                    <id>6cdb1f12-7871-47f7-b5bf-214900a03c9f</id>
+                                    <name>Empty</name>
+                                    <configs class="empty-list"/>
+                                  </child>
                                 </Layout.UniContainer>
                               </entry>
                             </children>
+                          </child>
+                        </Layout.UniContainer>
+                      </entry>
+                      <entry>
+                        <int>2</int>
+                        <Layout.UniContainer>
+                          <id>6873a5c5-4b3d-4eca-8785-20a7323fd82b</id>
+                          <properties>
+                            <map>
+                              <entry>
+                                <string>padding</string>
+                                <double>0.0</double>
+                              </entry>
+                              <entry>
+                                <string>locked</string>
+                                <boolean>false</boolean>
+                              </entry>
+                            </map>
+                          </properties>
+                          <b>false</b>
+                          <child class="Layout.Widgets.FXMLWidget">
+                            <id>bfa75b56-dcac-44ba-bf7f-64a1ddb6362c</id>
+                            <name>ImageViewer</name>
+                            <configs>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Is preferred</gui__name>
+                                <name>preferred</name>
+                                <group>FXMLWidget</group>
+                                <info>Preferred widget for its widget type.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="boolean">false</defaultValue>
+                                <value class="boolean">false</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Read Mode</gui__name>
+                                <name>readMode</name>
+                                <group>ImageViewerController</group>
+                                <info>Source of data for the widget.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="PseudoObjects.ReadMode">PLAYING</defaultValue>
+                                <value class="PseudoObjects.ReadMode">PLAYING</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Read mode change on drag</gui__name>
+                                <name>changeReadModeOnTransfer</name>
+                                <group>ImageViewerController</group>
+                                <info>Change read mode to CUSTOM when data are arbitrary added to widget.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="boolean">false</defaultValue>
+                                <value class="boolean">false</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Show content when empty</gui__name>
+                                <name>keepContentOnEmpty</name>
+                                <group>ImageViewerController</group>
+                                <info>Keep showing previous content when the widget should be empty.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="boolean">true</defaultValue>
+                                <value class="boolean">true</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Thumbnail size</gui__name>
+                                <name>thumbSize</name>
+                                <group>ImageViewerController</group>
+                                <info>Size of the thumbnails.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="double">70.0</defaultValue>
+                                <value class="double">70.0</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Thumbnail gap</gui__name>
+                                <name>thumbGap</name>
+                                <group>ImageViewerController</group>
+                                <info>Spacing between thumbnails</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="double">2.0</defaultValue>
+                                <value class="double">2.0</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Thumbnail load time</gui__name>
+                                <name>thumbnailReloadTime</name>
+                                <group>ImageViewerController</group>
+                                <info>Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly after each other</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="long">100</defaultValue>
+                                <value class="long">100</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>File search depth</gui__name>
+                                <name>folderTreeDepth</name>
+                                <group>ImageViewerController</group>
+                                <info>Depth to search to for files in folders.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="int">1</defaultValue>
+                                <value class="int">1</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Slideshow reload time</gui__name>
+                                <name>slideshow_dur</name>
+                                <group>ImageViewerController</group>
+                                <info>Time between picture change.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="double">15000.0</defaultValue>
+                                <value class="double">15000.0</value>
+                              </Configuration.InstanceFieldConfig>
+                              <Configuration.InstanceFieldConfig>
+                                <gui__name>Slideshow</gui__name>
+                                <name>slideshow_on</name>
+                                <group>ImageViewerController</group>
+                                <info>Turn sldideshow on/off.</info>
+                                <editable>true</editable>
+                                <visible>true</visible>
+                                <min>NaN</min>
+                                <max>NaN</max>
+                                <defaultValue class="boolean">true</defaultValue>
+                                <value class="boolean">true</value>
+                              </Configuration.InstanceFieldConfig>
+                            </configs>
                           </child>
                         </Layout.UniContainer>
                       </entry>
@@ -318,7 +590,7 @@
                 </entry>
                 <entry>
                   <string>pos</string>
-                  <double>0.5036880927291886</double>
+                  <double>0.5862884160756501</double>
                 </entry>
                 <entry>
                   <string>collap</string>
@@ -363,7 +635,7 @@
                         </entry>
                         <entry>
                           <string>pos</string>
-                          <double>0.310126582278481</double>
+                          <double>0.2793522267206478</double>
                         </entry>
                         <entry>
                           <string>collap</string>
@@ -384,7 +656,7 @@
                       <entry>
                         <int>1</int>
                         <Layout.UniContainer>
-                          <id>a0ea330c-c70b-4677-b3ff-fbc622e6192f</id>
+                          <id>a4dd74b6-da49-45a6-a521-0325a886a9a5</id>
                           <properties>
                             <map>
                               <entry>
@@ -399,7 +671,7 @@
                           </properties>
                           <b>false</b>
                           <child class="Layout.Widgets.FXMLWidget">
-                            <id>726459b1-970a-4179-8cac-dc5f3ae3982b</id>
+                            <id>4488f2f0-6cfd-4955-a285-56c91379b5f2</id>
                             <name>PlayerControls</name>
                             <configs>
                               <Configuration.InstanceFieldConfig>
@@ -588,18 +860,6 @@
                                 <name>hoverRating</name>
                                 <group>FileInfoController</group>
                                 <info>Move rating according to mouse when hovering.</info>
-                                <editable>true</editable>
-                                <visible>true</visible>
-                                <min>NaN</min>
-                                <max>NaN</max>
-                                <defaultValue class="boolean">true</defaultValue>
-                                <value class="boolean">true</value>
-                              </Configuration.InstanceFieldConfig>
-                              <Configuration.InstanceFieldConfig>
-                                <gui__name>Rating zoom on hover</gui__name>
-                                <name>rating_zoom</name>
-                                <group>FileInfoController</group>
-                                <info>Rating zoom on hover.</info>
                                 <editable>true</editable>
                                 <visible>true</visible>
                                 <min>NaN</min>
@@ -930,7 +1190,7 @@
               <entry>
                 <int>2</int>
                 <Layout.UniContainer>
-                  <id>fd099a24-7008-4619-8031-287ed7ce55ac</id>
+                  <id>77efed82-a38b-4c23-9a52-6c9f0a4f6bf9</id>
                   <properties>
                     <map>
                       <entry>
@@ -945,7 +1205,7 @@
                   </properties>
                   <b>false</b>
                   <child class="Layout.Widgets.FXMLWidget">
-                    <id>d1b0b07b-ae24-498a-b642-53a806d2b81f</id>
+                    <id>d1bf0160-4ea4-40e0-a6f1-ff41ca158a49</id>
                     <name>Playlist</name>
                     <configs>
                       <Configuration.InstanceFieldConfig>

@@ -31,7 +31,7 @@ import utilities.Log;
  *
  * @author uranium
  */
-public class Notification extends PopOver{
+public class Notification extends PopOver {
         
     private final AnchorPane songNotif = new AnchorPane();  // song content
     private final AnchorPane textNotif = new AnchorPane();  // text content
@@ -153,7 +153,7 @@ public class Notification extends PopOver{
             // call relayout
             songNotif.applyCss();
             songNotif.layout();
-            songNotif.autosize();
+            songNotif.autosize();songNotif.getStylesheets().forEach(System.out::println);
         } else
         if (type == OTHER) {
             setContentNode((Node)content);

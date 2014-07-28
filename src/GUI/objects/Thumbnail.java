@@ -32,6 +32,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DataFormat;
 import static javafx.scene.input.DataFormat.FILES;
 import javafx.scene.input.Dragboard;
@@ -168,17 +169,21 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         installScaleOnHover();
         
         // change border framing style on mouse middle button click //experimental
-        root.addEventHandler(MOUSE_CLICKED, e -> {
-            if(e.getButton()==MIDDLE) {
-                setBorderToImage(!isBorderToImage());}
+        root.addEventFilter(MOUSE_CLICKED, e -> {System.out.println("bubu");
+            if(e.getButton()==MIDDLE)
+                setBorderToImage(!isBorderToImage());
+            
+            // NOT WORKING !
+            System.out.println(imgCM==null);
+            System.out.println(imgCM!=null&&imgCM.isShowing());
+            System.out.println(fileCM==null);
+            System.out.println(fileCM!=null&&fileCM.isShowing());
+            if(imgCM!=null && imgCM.isShowing()) imgCM.hide();
+            if(fileCM!=null && fileCM.isShowing()) fileCM.hide();
+            
         });
-        // context menu, decide mode, build lazily & show where requested
-        root.setOnContextMenuRequested(e -> {               
-            if (img_file != null)
-                getFileCM().show(root,e.getScreenX(),e.getScreenY());
-            else if (getImage() !=null)
-                getImgCM().show(root,e.getScreenX(),e.getScreenY());
-        });
+        
+        allowContextMenu(true);
         
         size-=borderWidth();
         // set size
@@ -295,6 +300,10 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         borderToImage(val);
     }
     
+    /**
+     * Set visibility of the border. Default true.
+     * @param val 
+     */
     private void borderToImage(boolean val) {
         double b = borderWidth();
         borderToImage = val;
@@ -322,6 +331,16 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         if(val) root.getStyleClass().add(bgr_styleclass);
         else root.getStyleClass().remove(bgr_styleclass);
     }
+
+    public void setBorderVisible(boolean val) {
+        border.setVisible(val);
+        if(val) {
+            borderToImage(borderToImage);
+        } else {
+            root.getStyleClass().remove(border_styleclass);
+            img_border.getStyleClass().remove(border_styleclass);
+        }
+    }
     
     private double borderWidth() {
         return 4;
@@ -341,6 +360,15 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             root.removeEventHandler(DRAG_DETECTED, dragHandler);
             dragHandler = null;
         }
+    }
+    
+    /**
+     * Set whether thumbnail context menu should be used for thumbnail.
+     * Default true.
+     */
+    public void allowContextMenu(boolean val) {
+        if (val) root.setOnContextMenuRequested(contextMenuRequestHandler);
+        else root.setOnContextMenuRequested(null);
     }
     
     private EventHandler<MouseEvent> dragHandler;
@@ -423,6 +451,14 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     private ContextMenu imgCM;
     private ContextMenu fileCM;
     
+    private final EventHandler<ContextMenuEvent> contextMenuRequestHandler = e -> {
+        // decide mode (image vs file), build lazily & show where requested
+        if (img_file != null)
+            getFileCM().show(root,e.getScreenX(),e.getScreenY());
+        else if (getImage() !=null)
+            getImgCM().show(root,e.getScreenX(),e.getScreenY());
+    };
+    
     private ContextMenu getFileCM() {
         if(fileCM==null) fileCM = buildFileCM(this);
         return fileCM;
@@ -437,12 +473,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         final ContextMenu contextMenu = new ContextMenu();
         
 
-        MenuItem item1 = new MenuItem("Edit image");
+        MenuItem item1 = new MenuItem("Save the image as ...");
                  item1.setOnAction(e -> {
-                     System.out.println("About");
-                 });
-        MenuItem item2 = new MenuItem("Save the image as ...");
-                 item2.setOnAction(e -> {
                     Image i = thumb.getImage();
                     FileChooser fc = new FileChooser();
                         fc.getExtensionFilters().addAll(ImageFileFormat.extensions()
@@ -454,8 +486,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     File f = fc.showSaveDialog(App.getWindowOwner().getStage());
                     FileUtil.writeImage(i, f);
                  });
-        MenuItem item3 = new MenuItem("Copy the image to clipboard");
-                 item3.setOnAction(e -> {
+        MenuItem item2 = new MenuItem("Copy the image to clipboard");
+                 item2.setOnAction(e -> {
                     Image i = thumb.getImage();
                     if (i==null) return;
                     Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -464,7 +496,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     clipboard.setContent(content);
                  });
                  
-        contextMenu.getItems().addAll(item1, item2, item3);
+        contextMenu.getItems().addAll(item1, item2);
         contextMenu.setConsumeAutoHidingEvents(true);
         return contextMenu;
     }

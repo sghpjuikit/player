@@ -5,11 +5,13 @@
  */
 package AudioPlayer;
 
+import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.util.Duration;
 import utilities.FxTimer;
 import utilities.Log;
@@ -49,6 +51,9 @@ final class Core {
             // wait 400ms, preload metadata for next item
             FxTimer.run(Duration.millis(400), () -> preloadNextMetadataCache());
         });
+        
+        PlaylistManager.selectedItemProperty().addListener(lastSelectedLoader);
+        
     }
 
 /******************************** current *************************************/
@@ -102,9 +107,9 @@ final class Core {
 
 /******************************** selected ************************************/
     
-    void loadPlaylistSelectedMetadata() {
-        PlaylistItem lastSelected = PlaylistManager.getSelectedItem();
-        
+    ChangeListener<Item> lastSelectedLoader = (o,oldV,newV) -> loadPlaylistSelectedMetadata(newV);
+    
+    void loadPlaylistSelectedMetadata(Item lastSelected) {        
         MetadataReader.create(lastSelected, (success,result) -> {
             if (success) {
                 Log.deb("In playlist last selected item metadata loaded.");

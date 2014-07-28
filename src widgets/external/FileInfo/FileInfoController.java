@@ -14,6 +14,8 @@ import GUI.Panes.ImageFlowPane;
 import GUI.objects.Rater.Rating;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,20 @@ import javafx.scene.layout.GridPane;
  * <p>
  * @author Plutonium_
  */
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "File Info",
+    description = "Displays information about a song and cover. Supports rating change.",
+    howto = "Available actions:\n" +
+            "    Cover click : Toggle cover only mode\n" +
+            "    Rater click : Rate displayed song\n" +
+            "    Drag&Drop audio : Display information for the first item\n",
+    notes = "Plans: Improve layout.\n",
+    version = "0.8",
+    year = "2014",
+    group = Widget.Group.OTHER
+)
 public class FileInfoController extends FXMLController  {
     
     @FXML AnchorPane entireArea;
@@ -63,10 +79,10 @@ public class FileInfoController extends FXMLController  {
     final Rating rater = new Rating();
     GridPane t;
     
-    final List<Label> labels = new ArrayList<>();
-    final List<Label> visible_labels = new ArrayList<>();
+    final List<Label> labels = new ArrayList();
+    final List<Label> visible_labels = new ArrayList();
     
-    final SimpleObjectProperty<Metadata> meta = new SimpleObjectProperty<>();
+    final SimpleObjectProperty<Metadata> meta = new SimpleObjectProperty();
     
     // properties
     @IsConfig(name = "Read mode", info = "Source of data for the widget.")
@@ -85,8 +101,6 @@ public class FileInfoController extends FXMLController  {
     public boolean partialRating = Configuration.partialRating;
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
     public boolean hoverRating = Configuration.hoverRating;
-    @IsConfig(name = "Rating zoom on hover", info = "Rating zoom on hover.")
-    public boolean rating_zoom = true;
     @IsConfig(name = "Rating skin", info = "Rating skin.")
     public String rating_skin = "";
     @IsConfig(name = "Overrun style", info = "Style of clipping fields' text when outside of the area.")
@@ -210,12 +224,11 @@ public class FileInfoController extends FXMLController  {
         entireArea.setOnDragDropped( e -> {
             // get first item
             List<Item> items = DragUtil.getAudioItems(e);
-            Item item = items.isEmpty() ? null : items.get(0);
             // getMetadata, refresh
-            if (item != null) {
+            if (!items.isEmpty()) {
                 if (changeReadModeOnTransfer) readMode = ReadMode.CUSTOM;
                 Player.bindObservedMetadata(meta, readMode);
-                meta.set(item.getMetadata());
+                meta.set(items.get(0).getMetadata());
             }
             // end drag
             e.setDropCompleted(true);
@@ -242,7 +255,6 @@ public class FileInfoController extends FXMLController  {
         rater.setPartialRating(partialRating);
         rater.setUpdateOnHover(hoverRating);
         rater.setEditable(editableRating);
-        rater.setHoverable(rating_zoom);
         if (rating_skin.isEmpty())
             rating_skin = rater.getSkinCurrent();
         else 

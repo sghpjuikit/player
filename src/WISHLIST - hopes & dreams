@@ -1,0 +1,84 @@
+--------------------------------------------------------------------------------
+------------------------- FUNCTIONALITY - what you want ------------------------
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+------------------------- IMPROVEMENTS - what you dont like --------------------
+--------------------------------------------------------------------------------
+
+
+
+--------------------------------------------------------------------------------
+------------------------------- OLD notes, clean up ----------------------------
+--------------------------------------------------------------------------------
+
+- window docking awareness - disable autohiding when not, enable for all Wndws
+- ability to passivate widget - it autocloses after set amount of time. It
+  is within layout but not loaded - Big Layout support
+- full lastFM support
+- support ui autoscroll when near edge while dragging something
+- support middle mouse ui scroll
+- add ability to show floating Node near cursor with an XY offset 
+- make more Actions, make util class for it
+- setings & configurable subcategories through '.' or '/'
+- beautify layout manager widget - add info popup and improve layout and looks
+  involves turning layout info turning into ValueConfigurable
+- layout manager add mockup layout builder to make custom layout without loading
+  the widgets, perhaps also display this mockup instead of thumbnail
+- add URI configField
+- file info handle long comment texts label->Text, add scrollbar ?
+- configurable support sub configurable by default
+- finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
+- seeker option to show chapters as they are passing                            (?)
+- cursor trail effect - 'frozen" effect
+- cursor api clean up, fix appliers, make actually usable
+- TextFlow for smart text tables
+- gradient masks - it IS possible, proved by image on drag&drop, but HOW?       (picture as mask?)
+- widget manager widget
+- cursor effect to popup, get rid of effectPane
+- tagger ability to add or remove from the list by CTRL/SHIFT drag&drop on popup
+- tagger disable unsupported fields for type
+- tagger multithreaded writing to tag                                           (test if needed, ?)
+- playlist tabs
+- import/export some of the most used playlist file formats
+- gestures & touch support
+- tagger filename change                                                        (?)
+- context menus circular labels' position off
+
+FURTHER DOWN THE LIST FUNCTIONALITIES
+- even more flexibly resizable widget areas
+- cover downloading widget
+- general table object - remember 'state':                                      (see BookmarkController)
+    editable/non editable                                                       // done
+    generate from POJO
+    read database records
+    sorting, filtering                                                          // done
+    header                                                                      // done
+    columns visibility - make use of manual factories?
+    columns order                                                               // done        
+    columns relative size                                                       // done
+    columns wider than table - scroll                                           // done
+- color graph of all songs
+- monitor folder content for changes (playlists, layouts, skins, widgets, ...)  (?)
+- finish metadata reading/writing flac, ogg (most are already done)
+- playback ogg, flac
+
+APP
+- tray                                                                          (use awt & swing ?)
+- no taskbar presence option                                                    (impossible)
+- associate with supported files
+
+IMAGE VIEWER
+- show subfolder names and categorize images                                    (?)
+- add multiple sources (tag, cds, folder, 'associated') and separate
+
+GALAXY MAP
+- just about everything
+- enum like every field...
+- map type representants: x, y, z, color, label, shape, ...
+
+DIRS
+- figure out folder monitoring
+- add some fancy stuff
+- implement removing dirs

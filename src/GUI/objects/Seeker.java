@@ -90,8 +90,8 @@ public final class Seeker extends AnchorPane {
         position.setCursor(Cursor.HAND);
         position.getStyleClass().add(STYLECLASS);
         
-        position.valueChangingProperty().addListener((o,oldV,newV) -> {
-            if (oldV && !newV) {
+        position.valueChangingProperty().addListener((o,ov,nv) -> {
+            if (ov && !nv) {
                 double pos = position.getValue();
                 Duration seekTo = totalTime.get().multiply(pos);
                 PLAYBACK.seek(seekTo);                
@@ -222,7 +222,7 @@ public final class Seeker extends AnchorPane {
     // data
     private final SimpleObjectProperty<Duration> totalTime = new SimpleObjectProperty(0);
     private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty(0);
-    private final ChangeListener<Duration> positionUpdater = (o,oldV,newV)-> {
+    private final ChangeListener<Duration> positionUpdater = (o,ov,nv)-> {
         if (!canUpdate) return;
         position.setValue(currentTime.get().toMillis()/totalTime.get().toMillis());
     };
@@ -498,8 +498,8 @@ public final class Seeker extends AnchorPane {
             ta = new TextArea();
             ta.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 // maintain 'sensible' width dynamically by content
-            ChangeListener<String> resizer = (o,oldV,newV) -> {
-                int len = newV==null ? 0 : newV.length();
+            ChangeListener<String> resizer = (o,ov,nv) -> {
+                int len = nv==null ? 0 : nv.length();
                 ta.setPrefWidth(100+len/3);
                 ta.setPrefHeight(ta.getPrefWidth() * 0.8);
             };

@@ -2407,7 +2407,7 @@
     -fx-border-color: null;
     /*-fx-cell-size: 2.0em;  24 */
     -fx-text-fill: -fx-def-font-color;
-    -fx-border-width: 0px;
+    -fx-border-width: 0;
     -fx-padding: 0 2 0 2;
 }
 .table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
@@ -3208,7 +3208,8 @@
    too. Use to set default properties for allblocks and block derived classes.
    One can for example make several GUI layout elements appear the same.
 
-   Subclasses: window > .header, area, area-controls, layouter-element
+   Subclasses: window > .header, area, area-controls, layouter-element,
+               .item-picker-element
    Dev note: assigning a subclass styleclass to a javaFX object does not automatically
             assign it area too. Must be done manually.
     */
@@ -3226,15 +3227,6 @@
     //-fx-background-color: -fx-pane-color;
     -fx-background-color: black; // emulate -fx-pane-color
     -fx-opacity: 0.32;           // emulate -fx-pane-color
-}
-
-/* Default bgr style. Unrelated bgrs might use this class. Each of them
-  should also have its own class defined in addition to this one. */
-.background {
-    -fx-background-color:
-        linear-gradient(#48525b 0%, #2f3439 20%, #191d22 100%),
-        linear-gradient(#30363b, #292d32),
-        radial-gradient(center 50% 0%, radius 100%, rgba(124,141,158,0.9), rgba(255,255,255,0));
 }
 
 .darker {
@@ -3272,7 +3264,8 @@
 // an example would be a slight image overlay over background
 .window > .brg-image {
     -fx-opacity:1;
-    -fx-background-image: url("bgr.jpg");
+    // do not provide any image by default
+    //-fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
 }
 
@@ -3289,19 +3282,26 @@
     -fx-border-insets: -2, -1;
 }
 
-// left, right, bottom borders of the window. There is no top border as there is
-// a header instead. When header collapses it turns into top border
-// Therefore skinning both header and border to the same background is  recommended
+/* left, right, bottom borders of the window. There is no top border as there is
+   a header instead. When header collapses it turns into top border
+   Therefore skinning both header and border to the same background is
+   recommended */
 .window > .w-border {
-    -fx-background-color: -fx-pane-color;
-    // borderless alternative would be below
-    //-fx-background-color: null;
+    // lets leave borders transparent (note that window content is clipped) so
+    // we will simply see window bgr
+    
+    // good alternative below
+    //-fx-background-color: -fx-pane-color;
 }
 
 /****************************************************************************************/
 
 /* Widget area. Inherits .block styleclass */
 .area {
+    // default padding for all widgets
+    // note: widget devs should be aware of this padding and implement their own
+    // for the widget only if they want non-default behavior
+    -fx-padding: 5;
 }
 
 /* Widget area in layout mode. Inherits .block styleclas.
@@ -3366,8 +3366,8 @@
 
 
 
-// small button mostly within custom controls for opening dialogs. For example
-// Font picker from within text area.
+/* Small button mostly within custom controls for opening dialogs. For example
+   Font picker from within text area. */
 .dialog-button {
     // the below is the arrow css used for other components like combo-box
     -fx-background-color: -fx-def-font-color;
@@ -3430,22 +3430,25 @@
     // in general set only non-content properties in row
 }
 
-//****************************************************************************//
+//****************************** ITEM PICKER *********************************//
 
+/** Picker control that provides elements to choose from as a scrollable tile
+    grid.
+    This styleclass extends .block
+    This element is ScrollPane and has all its properties. */
 .item-picker {
-    -fx-background-color: rgba(20,20,30,0.7);
-    -fx-stroke: black;
-    -fx-stroke-width: 2;
 }
-.item-picker-button {
+
+.item-picker-element {
+/*    -fx-background-color: -fx-pane-color;*/
     -fx-background-color: -fx-pane-color;
     -fx-background-radius: 0;
     -fx-pref-height: 2em;
     /*-fx-text-fill: -fx-def-font-color;*/
     //-fx-padding: 0.3em 0.7em 0.3em 0.7em;
 }
-.item-picker-button:hover {
-    -fx-background-color: rgba(20,20,30,0.85);
+.item-picker-element:hover {
+    -fx-background-color: rgba(25,25,35,0.80);
     -fx-background-insets: -0.2em -0.2em -0.2em -0.2em;
 }
 
@@ -3465,7 +3468,6 @@
 .popover > .bgr {
     // the shape representing the whole popup area including the arrow
     // use for basic appearance like border or bgr styling
-
     -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
 
@@ -3526,6 +3528,12 @@
 .popover-closebutton {
     // separate the close button from the rest a bit visually
     //-fx-padding: 0 0 0 5; 
+}
+
+/* Application notification poover. This styleclass styles the content while the
+   underlying popover is styled above.
+   Inherites .block & .anchor-pane */
+.notification {
 }
 
 //****************************** THUMBNAIL ***********************************//
@@ -3644,4 +3652,8 @@
     -icons-color: -fx-def-font-color-hover;
     -fx-text-fill: -fx-def-font-color-hover;
     -fx-effect: dropshadow( gaussian, -fx-def-font-color-hover, 5, 0.0 , 0 , 0 );
+}
+
+.particle {
+    -fx-fill: -fx-font-def-color;
 }

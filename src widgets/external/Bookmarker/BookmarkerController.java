@@ -233,7 +233,7 @@ public class BookmarkerController extends FXMLController {
         
         // keep remembering column widths
         table.getColumns().forEach(col->{            
-            col.widthProperty().addListener((o,oldV,newV) -> {
+            col.widthProperty().addListener((o,ov,nv) -> {
                 if(column_resize_lock) {
                     if(table.getWidth()==0) return; // avoid pre-init input
                     double p_width = col.getWidth()/table.getWidth();           // System.out.println("WRITE " + col.getText() + " " + p_width);
@@ -246,7 +246,7 @@ public class BookmarkerController extends FXMLController {
         
         // keep remembering column visibility
         table.getColumns().forEach(c -> {
-            c.visibleProperty().addListener((o,oldV,newV)-> colVis.put(c.getText(), newV));
+            c.visibleProperty().addListener((o,ov,nv)-> colVis.put(c.getText(),nv));
         });
     }
     
@@ -259,12 +259,12 @@ public class BookmarkerController extends FXMLController {
     
     private boolean column_resize_lock = false; // true - maintenance allowed
     // refresh correct column widths
-    private final  ChangeListener<? super Number> colWidthWriter = (o,oldV,newV) -> {
+    private final  ChangeListener<? super Number> colWidthWriter = (o,ov,nv) -> {
         table.getColumns().forEach(col -> {
             // get width
             Double width = colWid.get(col.getText());                           // System.out.println("READ " + col.getText() + " " + width +" for " + newV);
             if (width != null)
-                col.setPrefWidth(newV.doubleValue()*width);
+                col.setPrefWidth(nv.doubleValue()*width);
             else {      
                 // set width to 1/n if n/a
                 double total = table.getColumns().size();

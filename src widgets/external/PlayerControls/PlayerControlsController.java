@@ -179,8 +179,8 @@ public class PlayerControlsController extends FXMLController implements Playback
         PLAYBACK.currentTimeProperty().addListener(currTimeListener);   // add listener
         currTimeListener.invalidated(null);                             // init value
         
-        ChangeListener<Number> volumeListener = (o,oldV,newV) -> 
-                muteChanged(PLAYBACK.isMute(), newV.doubleValue());
+        ChangeListener<Number> volumeListener = (o,ov,nv) -> 
+                muteChanged(PLAYBACK.isMute(), nv.doubleValue());
         volume.valueProperty().addListener(volumeListener);
         
         // support drag transfer
@@ -276,9 +276,9 @@ public class PlayerControlsController extends FXMLController implements Playback
 /******************************************************************************/
     
     private final ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playingItemChanged(newV);
-    private final ChangeListener<Status> statusListener = (o,oldV,newV)-> statusChanged(newV);
-    private final ChangeListener<LoopMode> loopModeListener = (o,oldV,newV)-> loopModeChanged(newV);
-    private final ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV, volume.getValue());
+    private final ChangeListener<Status> statusListener = (o,ov,nv)-> statusChanged(nv);
+    private final ChangeListener<LoopMode> loopModeListener = (o,ov,nv)-> loopModeChanged(nv);
+    private final ChangeListener<Boolean> muteListener = (o,ov,nv)-> muteChanged(nv, volume.getValue());
     private final InvalidationListener currTimeListener = o -> currentTimeChanged();
     private final InvalidationListener realTimeListener = o -> realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       

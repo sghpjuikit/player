@@ -181,17 +181,21 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     /**
      * Serializes layout into file according to application specifications.
      */
-    public void serialize() {                                                  // Log.deb("serializing"+name);
+    public void serialize() {
        if(!getChildren().isEmpty())
            Serializattion.serialize(this);
+    }
+    public void serialize(File f) {
+       if(!getChildren().isEmpty())
+           Serializattion.serialize(this,f);
     }
     /**
      * Deserializes layout from file according to application specifications.
      */
-    public void deserialize() {                                                // Log.deb("deserializing"+name);
+    public void deserialize() {
         deserialize(getFile());
     }
-    public Layout deserialize(File f) {                                          // Log.deb("deserializing"+name);
+    public Layout deserialize(File f) {
         Layout l = Serializattion.deserializeLayout(f);
         l.properties.getMap().forEach(properties::set);
         child = l.child;

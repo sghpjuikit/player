@@ -126,8 +126,8 @@ public class PopOverSkin implements Skin<PopOver> {
         pinIcon.setTooltip(new Tooltip("Autohide"));
         pinIcon.getStyleClass().add("popover-closebutton");
         // maintain proper pinIcon icon
-        popOver.autoHideProperty().addListener((o,oldV,newV) -> {
-            AwesomeDude.setIcon(pinIcon, newV ? THUMB_TACK : DOT_CIRCLE_ALT, "11");
+        popOver.autoHideProperty().addListener((o,ov,nv) -> {
+            AwesomeDude.setIcon(pinIcon, nv ? THUMB_TACK : DOT_CIRCLE_ALT, "11");
         });
         
         headerControls = new HBox(closeIcon);
@@ -150,9 +150,9 @@ public class PopOverSkin implements Skin<PopOver> {
         // we do this because detached/not d. modes differ in autohide
         // we want to customize autohiding arbitrarily in undetached mode
         // we want to close manually in detached mode with autohide off
-        popOver.detachedProperty().addListener((o,oldV,newV)->{
+        popOver.detachedProperty().addListener((o,ov,nv)->{
             headerControls.getChildren().set(headerControls.getChildren().size()-1,
-                        newV ? closeIcon : pinIcon);
+                        nv ? closeIcon : pinIcon);
         });
         
         header = new BorderPane();
@@ -167,10 +167,10 @@ public class PopOverSkin implements Skin<PopOver> {
         content.getStyleClass().add("content");
         
         // show new content when changes
-        popOver.contentNodeProperty().addListener((o,oldV,newV) -> content.setCenter(newV));
+        popOver.contentNodeProperty().addListener((o,ov,nv) -> content.setCenter(nv));
         
         // show header only if title text not empty
-        popOver.titleProperty().addListener((o,oldV,newV)->
+        popOver.titleProperty().addListener((o,ov,nv)->
                 content.setTop(shouldHeaderBeVisible() ? header : null));
 
         InvalidationListener updatePathListener = o -> updatePath();
@@ -188,10 +188,10 @@ public class PopOverSkin implements Skin<PopOver> {
         updatePath();
         
         // react on detached state change and initialize
-        popOver.detachedProperty().addListener((o,oldV,newV) -> {
+        popOver.detachedProperty().addListener((o,ov,nv) -> {
             updatePath();
-            content.pseudoClassStateChanged(DETACHED, newV);
-            path.pseudoClassStateChanged(DETACHED, newV);
+            content.pseudoClassStateChanged(DETACHED, nv);
+            path.pseudoClassStateChanged(DETACHED, nv);
             content.setTop(header); // always show header in detached mode
         });
         boolean detached = popOver.isDetached();

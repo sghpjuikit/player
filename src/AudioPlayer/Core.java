@@ -107,17 +107,21 @@ final class Core {
 
 /******************************** selected ************************************/
     
-    ChangeListener<Item> lastSelectedLoader = (o,oldV,newV) -> loadPlaylistSelectedMetadata(newV);
+    ChangeListener<Item> lastSelectedLoader = (o,ov,nv) -> loadPlaylistSelectedMetadata(nv);
     
-    void loadPlaylistSelectedMetadata(Item lastSelected) {        
-        MetadataReader.create(lastSelected, (success,result) -> {
-            if (success) {
-                Log.deb("In playlist last selected item metadata loaded.");
-                selectedMetadata.set(result);
-            } else {
-                Log.deb("In playlist last selected item metadata reading failed.");
-                selectedMetadata.set(Metadata.EMPTY());
-            }
-        });
+    void loadPlaylistSelectedMetadata(Item lastSelected) {
+        if(lastSelected==null) {
+            selectedMetadata.set(Metadata.EMPTY());
+        } else {
+            MetadataReader.create(lastSelected, (success,result) -> {
+                if (success) {
+                    Log.deb("In playlist last selected item metadata loaded.");
+                    selectedMetadata.set(result);
+                } else {
+                    Log.deb("In playlist last selected item metadata reading failed.");
+                    selectedMetadata.set(Metadata.EMPTY());
+                }
+            });
+        }
     }
 }

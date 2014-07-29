@@ -635,19 +635,15 @@ public class PopOver<N extends Node> extends PopupControl {
     InvalidationListener deltaXListener = o->{ if(deltaThisLock) deltaThisX=getX(); };
     InvalidationListener deltaYListener = o->{ if(deltaThisLock) deltaThisY=getY(); };
     // hide on scene change
-    ChangeListener<Scene> visibilityListener = (o,oldV,newV) -> { 
-        if(newV != oldV) {
+    ChangeListener<Scene> visibilityListener = (o,ov,nv) -> {
             uninstallMoveWith();
             hideStrong();
-        } 
-    };
+        };
     // hide on node owoner setVisible(false)
-    ChangeListener<Boolean> visibilityListener2 = (o,oldV,newV) -> { 
-        if(!newV) {
+    ChangeListener<Boolean> visibilityListener2 = (o,ov,nv) -> {
             uninstallMoveWith();
             hideStrong();
-        } 
-    };
+        };
     
     private void installMonitoring() {
         // this should have been handled like this:

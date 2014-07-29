@@ -169,15 +169,11 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         installScaleOnHover();
         
         // change border framing style on mouse middle button click //experimental
-        root.addEventFilter(MOUSE_CLICKED, e -> {System.out.println("bubu");
+        root.addEventFilter(MOUSE_CLICKED, e -> {
             if(e.getButton()==MIDDLE)
                 setBorderToImage(!isBorderToImage());
             
-            // NOT WORKING !
-            System.out.println(imgCM==null);
-            System.out.println(imgCM!=null&&imgCM.isShowing());
-            System.out.println(fileCM==null);
-            System.out.println(fileCM!=null&&fileCM.isShowing());
+            // close popup if open
             if(imgCM!=null && imgCM.isShowing()) imgCM.hide();
             if(fileCM!=null && fileCM.isShowing()) fileCM.hide();
             
@@ -198,8 +194,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         
         // update ratios
         ratioALL.bind(root.prefWidthProperty().divide(root.prefHeightProperty()));
-        image.imageProperty().addListener((o,oldV,newV) ->
-            ratioIMG.set( newV==null ? 1 : newV.getWidth()/newV.getHeight())
+        image.imageProperty().addListener((o,ov,nv) ->
+            ratioIMG.set( nv==null ? 1 : nv.getWidth()/nv.getHeight())
         );
         // keep image border size in line with image size bind pref,max size
         ratioIMG.greaterThan(ratioALL).addListener(border_sizer);
@@ -250,6 +246,12 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         return image;
     }
     
+    /**
+     * Note that in order for the image to resize properly prefSize of this pane
+     * must be changed!
+     * {@inheritDoc }
+     * @return 
+     */
     @Override
     public AnchorPane getPane() {
         return root;
@@ -423,8 +425,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         return ratioIMG;
     }
     
-    private final ChangeListener<Boolean> border_sizer = (o,oldV,newV)-> {
-        if(newV) {
+    private final ChangeListener<Boolean> border_sizer = (o,ov,nv)-> {
+        if(nv) {
             img_border.prefHeightProperty().unbind();
             img_border.prefWidthProperty().unbind();
             img_border.prefHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));

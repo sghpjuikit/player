@@ -39,8 +39,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.TilePane;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
 
@@ -58,7 +58,7 @@ public final class AreaControls {
     @FXML public BorderPane header;
     @FXML public Label title;
     public  Button propB;
-    @FXML HBox header_buttons;
+    @FXML TilePane header_buttons;
     
     // animations // dont initialize here or make final
     private final FadeTransition contrAnim;
@@ -79,6 +79,17 @@ public final class AreaControls {
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage());
         }
+        
+        // avoid clashing of title and control buttons for small root size
+        header_buttons.maxWidthProperty()
+                .bind(root.widthProperty().subtract(title.widthProperty())
+                .divide(2).subtract(15));
+        header_buttons.setMinWidth(15);
+        // resize deactivator with header buttons
+        deactivator.prefWidthProperty().bind(header_buttons.widthProperty());
+        deactivator.prefHeightProperty().bind(header_buttons.heightProperty());
+        deactivator.setScaleX(1.1);
+        deactivator.setScaleY(1.1);
         
         // build header buttons
         Button helpB = AwesomeDude.createIconButton(INFO,"","12","12",CENTER);
@@ -278,8 +289,9 @@ public final class AreaControls {
         root.setMouseTransparent(false);
         // make activator accessible when showing
         deactivator.setMouseTransparent(false);
-        deactivator.setScaleX(1.6);
-        deactivator.setScaleY(2);        
+        // enlarge deactivator for more mouse movement freedom
+        deactivator.setScaleX(1.7);
+        deactivator.setScaleY(1.7);        
     }
     
     private void hideWeak() {
@@ -298,8 +310,9 @@ public final class AreaControls {
         // make activator inaccessible when not showing so it doesnt block 
         // controls below it
         deactivator.setMouseTransparent(true);
-        deactivator.setScaleX(1);
-        deactivator.setScaleY(1);
+        // go back to original scale
+        deactivator.setScaleX(1.1);
+        deactivator.setScaleY(1.1);
         // hide help popup if open
         if(helpPopOver!=null && helpPopOver.isShowing()) helpPopOver.hide();        
     }

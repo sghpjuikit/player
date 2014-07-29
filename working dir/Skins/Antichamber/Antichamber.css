@@ -13,6 +13,7 @@
     -fx-sel-font-color: rgb(0,0,0);
     -fx-prompt-font-color: rgb(180,180,180);
     -fx-pane-color: transparent;
+    -fx-popup-def-bgr-color: rgba(255,255,255,0.85);
 
     // this skin specific variables
     -fx-dark-color: rgb(60,60,60);

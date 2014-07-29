@@ -58,12 +58,12 @@ public class Picker<E> {
         tiles.setHgap(EGAP);
         tiles.setVgap(EGAP);
         // set autosizing for tiles to always fill the grid entirely
-        tiles.widthProperty().addListener((o,oldV,newV) -> {
-            int rows = (int) Math.floor((newV.doubleValue())/100);
+        tiles.widthProperty().addListener((o,ov,nv) -> {
+            int rows = (int) Math.floor((nv.doubleValue())/100);
             // set maximum number of columns to 7
                 rows = Math.min(rows, 7);
             // for n elements there is n-1 gaps so we need to add 1 gap width
-            double cell_width = (newV.doubleValue()+EGAP)/rows;
+            double cell_width = (nv.doubleValue()+EGAP)/rows;
             // above cell width includes 1 gap width per element so substract it
             tiles.setPrefTileWidth(cell_width-EGAP);
         });

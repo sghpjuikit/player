@@ -5,14 +5,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="100.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane id="AnchorPane" fx:id="entireArea" prefHeight="80.0" prefWidth="600.0" stylesheets="@skin.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
     <AnchorPane id="AnchorPane" pickOnBounds="false" prefHeight="-1.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <children>
         <BorderPane pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
           <left>
             <BorderPane fx:id="controlPanel" onMouseDragged="#consumeMouseEvent" BorderPane.alignment="CENTER">
-<center><HBox fx:id="playButtons" alignment="CENTER" spacing="5.0" BorderPane.alignment="CENTER" />
+<center><HBox fx:id="playButtons" alignment="CENTER" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER" />
 </center>
 <right><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="0.0" BorderPane.alignment="CENTER">
 <center>

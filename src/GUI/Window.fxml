@@ -15,7 +15,7 @@
 </opaqueInsets>
 <padding>
 <Insets left="5.0" right="5.0" />
-</padding></BorderPane><HBox fx:id="leftHeaderBox" alignment="CENTER" pickOnBounds="false" spacing="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" BorderPane.alignment="CENTER">
+</padding></BorderPane><HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" BorderPane.alignment="CENTER">
 <children>
   <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" /><Label fx:id="titleL" BorderPane.alignment="CENTER">
 <BorderPane.margin>

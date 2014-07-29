@@ -60,6 +60,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -226,8 +227,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         if(gui_overlay_use_song) {
             // lazily create and add listener
             if(colorListener==null) {
-                colorListener = (o,oldV,newV) -> {
-                    Color c = newV.getColor();
+                colorListener = (o,ov,nv) -> {
+                    Color c = nv.getColor();
                     applyColorEffect( c==null ? gui_overlay_color : c);
                 };
                 Player.currentMetadataProperty().addListener(colorListener);
@@ -309,8 +310,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // root is assigned a 'window' styleclass to allow css skinning
         // set 'focused' pseudoclass for window styleclass
         PseudoClass focused = PseudoClass.getPseudoClass("focused");
-        s.focusedProperty().addListener((o,oldV,newV)->{
-            root.pseudoClassStateChanged(focused, newV);
+        s.focusedProperty().addListener((o,ov,nv)->{
+            root.pseudoClassStateChanged(focused,nv);
         });
         // add to list of active windows
         ContextManager.windows.add(this);
@@ -426,6 +427,58 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                        x = Math.abs(x);
                 bgrImgLayer.setTranslateX(dir * space * (1-(1/(1+0.0005*x))));
             });  
+            
+            
+            
+            
+            
+            Platform.runLater(() -> {
+            
+//                for(int i=0; i<1500; i++) {
+//                    double x = Math.random()*overlayPane.getWidth();
+//                    double y = Math.random()*overlayPane.getHeight();
+//                    double dist = Math.random();
+//                    double rCoef = Math.pow(Math.random(), 1.8)+1;
+//                    double r = 0.8 + rCoef*dist;
+//                    Circle c = new Circle(r,Color.AQUA);
+////                           c.getStyleClass().add("particle");
+//    //                if(dist>0.7)
+//                        overlayPane.getChildren().add(c);
+//    //                else bgrImgLayer.getChildren().add(c);
+//
+//                    c.relocate(x, y);
+//                    c.setEffect(new BoxBlur(2*r,2*r, 1));
+//                    c.setOpacity(.7);
+//    //                c.setBlendMode(BlendMode.OVERLAY);
+//                    c.translateXProperty().bind(bgrImgLayer.translateXProperty().multiply(1+dist));
+//
+//                   FadeTransition ft = new FadeTransition(Duration.seconds(2),c);
+//                   ft.setAutoReverse(true);
+//                   ft.setCycleCount(Timeline.INDEFINITE);
+//                   ft.setFromValue(0.7);
+//                   ft.setToValue(0);
+//                   double randSign = Math.random()-0.5;
+//                   ft.setRate((0.2+Math.random()*0.8));
+//                   ft.play();
+//                }
+                
+                
+//                for(int i=0; i<500; i++) {
+//                    double x = Math.random()*overlayPane.getWidth();
+//                    double y = Math.random()*overlayPane.getHeight();
+//                    double dist = Math.random();
+//                    double r = 3*dist;
+//                    Circle c = new Circle(r, Color.AZURE);
+//                    overlayPane.getChildren().add(c);
+//                    c.relocate(x, y);
+//                    c.setEffect(new BoxBlur(r, r, 1));
+//                    c.setOpacity(0.5);
+//                    c.translateXProperty().bind(bgrImgLayer.translateXProperty().multiply(1+dist));
+//                }
+            });
+            
+            
+            
         }
     }
                 

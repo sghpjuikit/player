@@ -121,9 +121,9 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 ft.setMaxWidth(200);
         filterB.setTooltip(ft);
         // monitor value for icon change
-        filter_for_playback.addListener((o,oldV,newV) -> {
-            AwesomeDude.setIcon(filterB, newV ? ERASER : FILTER, "11");
-            ft.setText(newV ? fOn : fOff);
+        filter_for_playback.addListener((o,ov,nv) -> {
+            AwesomeDude.setIcon(filterB, nv ? ERASER : FILTER, "11");
+            ft.setText(nv ? fOn : fOff);
         });
         
         // menubar - change text to icons
@@ -197,9 +197,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
 
         
         // search on text change
-        searchBox.textProperty().addListener((o,oldV,newV)->{
-            filter(newV);
-        });
+        searchBox.textProperty().addListener((o,ov,nv) -> filter(nv));
         
         // consume scroll event to prevent other scroll behavior // optional
         playlist.getTable().setOnScroll(Event::consume);
@@ -230,7 +228,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
 /******************************************************************************/
     
-    ChangeListener<Duration> lengthListener = (o,oldV,newV) -> updateLength(newV);
+    ChangeListener<Duration> lengthListener = (o,ov,nv) -> updateLength(nv);
     
     private void updateLength(Duration d) {
         duration.setText(Util.formatDuration(d));

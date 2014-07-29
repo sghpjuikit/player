@@ -24,6 +24,7 @@ import javafx.animation.Animation;
 import javafx.animation.Transition;
 import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
@@ -62,7 +63,7 @@ public class WindowManager {
             // get window instance by deserializing saved state
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
             miniWindow = Window.deserializeSuppressed(f);
-            // if not available, make new onw, set initial size
+            // if not available, make new one, set initial size
             if(miniWindow == null) {
                 miniWindow = Window.create();
                 miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
@@ -113,21 +114,8 @@ public class WindowManager {
                 }
             };
             
-            miniWindow.s.focusedProperty().addListener( (o,oldV,newV) -> {System.out.println("FOCUS "+newV);
-                if(newV) return;
-                Duration delay = Duration.ZERO;//Duration.seconds(0.8);
-                Duration d = t.getCurrentTime();
-                if(d.equals(Duration.ZERO)) {
-                    d = Duration.millis(300).subtract(d);
-                    delay = Duration.seconds(0.8);
-                }
-                t.stop();
-                t.setDelay(delay);
-                t.setOnFinished(a->miniWindow.setContentMouseTransparent(true));
-                t.setRate(1);
-                t.playFrom(Duration.millis(300).subtract(d));
-            });
-//            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
+//            miniWindow.s.focusedProperty().addListener( (o,ov,nv) -> {
+//                if(nv) return;
 //                Duration delay = Duration.ZERO;//Duration.seconds(0.8);
 //                Duration d = t.getCurrentTime();
 //                if(d.equals(Duration.ZERO)) {
@@ -140,6 +128,19 @@ public class WindowManager {
 //                t.setRate(1);
 //                t.playFrom(Duration.millis(300).subtract(d));
 //            });
+            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
+                Duration delay = Duration.ZERO;//Duration.seconds(0.8);
+                Duration d = t.getCurrentTime();
+                if(d.equals(Duration.ZERO)) {
+                    d = Duration.millis(300).subtract(d);
+                    delay = Duration.seconds(0.8);
+                }
+                t.stop();
+                t.setDelay(delay);
+                t.setOnFinished(a->miniWindow.setContentMouseTransparent(true));
+                t.setRate(1);
+                t.playFrom(Duration.millis(300).subtract(d));
+            });
             
             miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_ENTERED, e -> {
                 Duration d = t.getCurrentTime();
@@ -151,8 +152,8 @@ public class WindowManager {
                 t.setRate(-1);
                 t.playFrom(d);
                 
-                miniWindow.getStage().toFront();miniWindow.focus();
-                miniWindow.getStage().getScene().getRoot().requestFocus();
+//                miniWindow.getStage().toFront();miniWindow.focus();
+//                miniWindow.getStage().getScene().getRoot().requestFocus();
             });
             
             
@@ -178,7 +179,7 @@ public class WindowManager {
     
     public static void serialize() {
         // make sure directory is accessible
-        File dir = App.LAYOUT_FOLDER();
+        File dir = new File(App.LAYOUT_FOLDER(),"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Serialization of windows and layouts failed. " + dir.getPath() +
                     " could not be accessed.");
@@ -190,47 +191,31 @@ public class WindowManager {
                      src.remove(miniWindow);    // manually
         Log.deb("Serializing " + src.size() + " application windows for next session.");
         
-        // remove serialized window files from previous session
-        File[] oldFs = dir.listFiles(f->f.getPath().endsWith(".ws"));
-        for(File f: oldFs) f.delete();
-        Log.deb("Removing " + oldFs.length + " old windows files from previous session.");
-        // remove serialized layout files from previous session
-        File[] oldLsA = dir.listFiles(f->
-            f.getPath().contains("window")&&f.getPath().contains("-layout"));
-        // but we have to delay deleting or we can delete new files (a bug)
-        // if a layout is going to be serialized into one of the to-be-deleted
-        // files it will be deleted for some reason so we need to hold a list
-        // of to-delete files and remove to-be-serialized files from that list
-        List<File> oldLs = new ArrayList();
-        for (File f : oldLsA) oldLs.add(f);
+        // remove serialized files from previous session
+        for(File f: dir.listFiles()) f.delete();
+        Log.deb("Removing all files from previous session.");
         
         // serialize - for now each window to its own file with .ws extension
         int count = 0;
-        for(int i=0; i<src.size(); i++) {
+        for(int wi=0; wi<src.size(); wi++) {
             // ret resources
-            Window w = src.get(i);
-            String name = "window" + i;
-            File f = new File(dir, name + ".ws").getAbsoluteFile();
+            Window w = src.get(wi);
+            String name = "window" + wi;
+            File f = new File(dir, name + ".ws");
             // serialize
             boolean success = w.serializeSupressed(f);
             if (success) count++;
             // serialize contained layouts
             for(Map.Entry<Integer,Layout> e : w.getLayoutAggregator().getLayouts().entrySet()) {
-                int index = e.getKey();
+                int li = e.getKey();
                 Layout l = e.getValue();
                 // dont continue if layout empty
                 if(l.getChild() == null) continue;
                 // associate the layout with the window by name & save
-                l.setName("window" + i + "-layout" + index);
-                l.serialize();
-                // remove file from the list of files from previous session
-                oldLs.remove(l.getFile());
+                l.setName("window" + wi + "-layout" + li);
+                l.serialize(new File(dir,l.getName()+".l"));
             }
         }
-        
-        // remove serialized layout files from previous session - now its safe
-        oldLs.forEach(File::delete);
-        Log.deb("Removing " + oldLs.size() + " old layout files from previous session.");
         
         Log.deb("Serialized " + count + " windows.");
         
@@ -243,7 +228,7 @@ public class WindowManager {
     
     public static void deserialize() {
         // make sure directory is accessible
-        File dir = App.LAYOUT_FOLDER();
+        File dir = new File(App.LAYOUT_FOLDER(),"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Deserialization of windows and layouts failed. " + dir.getPath() +
                     " could not be accessed.");
@@ -330,5 +315,16 @@ public class WindowManager {
             w.update();
         });
         Log.deb("Deserialized " + ws.size() + " windows.");
+        
+        // when deserializating in minimode make sure the windows state gets
+        // updated
+        if(mini) {
+            ws.forEach( w -> w.getStage().setOnShown(e -> {
+                // update window state when it is shown
+                w.update();
+                // remove handler, make this one time only
+                w.getStage().setOnShown(null);
+            }));
+        }
     }
 }

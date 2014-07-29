@@ -628,14 +628,14 @@ public final class PlaylistTable {
 /********************************** SELECTION *********************************/
     
     private boolean movingitems = false;
-    ChangeListener<PlaylistItem> selItemListener = (o,oldV,newV)->{
+    ChangeListener<PlaylistItem> selItemListener = (o,ov,nv)->{
         if(movingitems) return; 
-        PlaylistManager.selectedItemProperty().set(newV);
+        PlaylistManager.selectedItemProperty().set(nv);
     };
     ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {
         if(movingitems) return;
         while(c.next()) {
-            PlaylistManager.getSelectedItems().setAll(c.getList());
+            PlaylistManager.getSelectedItems().setAll(table.getSelectionModel().getSelectedItems());
         }
     };
     

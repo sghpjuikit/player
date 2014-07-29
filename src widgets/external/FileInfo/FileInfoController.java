@@ -161,7 +161,6 @@ public class FileInfoController extends FXMLController  {
                   thumb.setBorderToImage(false);
                   
         layout = new ImageFlowPane(entireArea, thumb);
-        layout.setPadding(5);
         layout.setMinContentWidth(200);
         layout.setMinContentHeight(120);
         

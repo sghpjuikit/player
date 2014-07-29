@@ -157,14 +157,14 @@ public final class Splitter implements AltState {
         
         splitPane.addEventFilter(MOUSE_PRESSED,e-> mouse_mov_divider=true);
         splitPane.addEventFilter(MOUSE_RELEASED,e-> mouse_mov_divider=false);
-        splitPane.getDividers().get(0).positionProperty().addListener( (o,oldV,newV) -> {
+        splitPane.getDividers().get(0).positionProperty().addListener( (o,ov,nv) -> {
             positionControls();
             if(mouse_mov_divider) {
-                prop.set("pos", newV);
+                prop.set("pos", nv);
             } else {
                 if(isCollapsed()) return;
                 double p = prop.getD("pos");
-                if(newV.doubleValue()<p-0.08||newV.doubleValue()>p+0.08) 
+                if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08) 
                     Platform.runLater(()->applyPos());
             }
 

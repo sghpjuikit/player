@@ -1,8 +1,8 @@
 
 package Serialization;
 
-import Configuration.InstanceFieldConfig;
 import Layout.Layout;
+import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
@@ -84,7 +84,7 @@ public final class Serializattion {
             xstream.autodetectAnnotations(true);
             
             // serialize widget properties as well
-            o.getAllWidgets().filter(NotNULL).forEach(w -> w.configs = w.getFields());
+            o.getAllWidgets().filter(NotNULL).forEach(Widget::rememberConfigs);
             xstream.toXML(o, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + o.getName() + "' into the file: " + f.toPath());
@@ -97,13 +97,9 @@ public final class Serializattion {
                     xstream.autodetectAnnotations(true);
             Layout l = (Layout) xstream.fromXML(f);
                    l.setName(FileUtil.getName(f));
-                   l.getAllWidgets()
-                        .filter(NotNULL)
-                        .forEach( w ->{
-                             w.configs.stream().map(c->c).forEach(c->
-                                 ((InstanceFieldConfig)c).applier_object = w
-                             );
-                         });
+//                   l.getAllWidgets()
+//                        .filter(NotNULL)
+//                        .forEach(Widget::restoreConfigs);
             return l;
         } catch (ClassCastException | StreamException ex) {
             Log.err("Unable to load gui layout from the file: " + "Layout.l" +
@@ -117,13 +113,9 @@ public final class Serializattion {
                     xstream.autodetectAnnotations(true);
             Layout l = (Layout) xstream.fromXML(f);
                    l.setName(FileUtil.getName(f));
-                   l.getAllWidgets()
-                        .filter(NotNULL)
-                        .forEach( w ->{
-                             w.configs.stream().map(c->c).forEach(c->
-                                 ((InstanceFieldConfig)c).applier_object = w
-                             );
-                         });
+//                   l.getAllWidgets()
+//                        .filter(NotNULL)
+//                        .forEach(Widget::restoreConfigs);
             return l;
         } catch (ClassCastException | StreamException ex) {
             Log.err("Unable to load gui layout from the file: " + "Layout.l" +
@@ -135,9 +127,22 @@ public final class Serializattion {
     //************************ CONVENIENCE METHODS *****************************
     
     public static void serializeLayout(Layout l) {
-        (new Serializattion()).deserialize(l);
+        (new Serializattion()).serialize(l);
     }
     public static Layout deserializeLayout(File f) {
-        return (Layout) deserializeFrom(Layout.class, f);
+        return (Layout) new Serializattion().deserialize(Layout.class, f);
     }
+    public static void serialize(Layout l, File f) {
+        try {
+            XStream xstream = new XStream(new DomDriver());
+            xstream.autodetectAnnotations(true);
+            
+            // serialize widget properties as well
+            l.getAllWidgets().filter(NotNULL).forEach(Widget::rememberConfigs);
+            xstream.toXML(l, new BufferedWriter(new FileWriter(f)));
+        } catch (IOException ex) {
+            Log.err("Unable to save gui layout '" + l.getName() + "' into the file: " + f.toPath());
+        }
+    }
+    
 }

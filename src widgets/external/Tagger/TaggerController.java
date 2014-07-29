@@ -181,8 +181,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     // listeners
     private final InvalidationListener playlistListener = o -> 
             read(PlaylistManager.getSelectedItems());
-    private final ChangeListener<Metadata> playingListener = (o,oldV,newV) ->
-            read(Collections.singletonList(newV));
+    private final ChangeListener<Metadata> playingListener = (o,ov,nv) ->
+            read(Collections.singletonList(nv));
             
             
     
@@ -276,8 +276,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // associate color picker with custom1 field
         Custom1F.setEditable(false);
         ColorF.disableProperty().bind(Custom1F.disabledProperty());
-        ColorF.valueProperty().addListener( (o,oldV,newV) -> {
-            Custom1F.setText(new ColorParser().toS(newV));
+        ColorF.valueProperty().addListener( (o,ov,nv) -> {
+            Custom1F.setText(new ColorParser().toS(nv));
         });
         
         // validating input
@@ -299,19 +299,19 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             DiscF.setText("");old+="";
             DiscF.setText(old);
         });
-        val.registerValidator(DiscF, (Control c, String newV) -> ValidationResult.fromErrorIf(
+        val.registerValidator(DiscF, (Control c, String nv) -> ValidationResult.fromErrorIf(
             DiscF, "Disc.",
-            !newV.isEmpty() && (!isInt.test(newV) || (isInt.test(newV)&&new Integer(newV)<0) ||
-                    (isInt.test(newV)&&(isInt.test(DiscsTotalF.getText())&& new Integer(newV)>Integer.parseInt(DiscsTotalF.getText())))
+            !nv.isEmpty() && (!isInt.test(nv) || (isInt.test(nv)&&new Integer(nv)<0) ||
+                    (isInt.test(nv)&&(isInt.test(DiscsTotalF.getText())&& new Integer(nv)>Integer.parseInt(DiscsTotalF.getText())))
                     )));
             // rating validation
-        val.registerValidator(RatingF, (Control c, String newV) -> ValidationResult.fromErrorIf(
+        val.registerValidator(RatingF, (Control c, String nv) -> ValidationResult.fromErrorIf(
             RatingF, "Rating must be between 0 and max value.",
-            !newV.isEmpty() && !isPercent.test(RatingPF.getText()))
+            !nv.isEmpty() && !isPercent.test(RatingPF.getText()))
         );
-        val.registerValidator(RatingPF, (Control c, String newV) -> ValidationResult.fromErrorIf(
+        val.registerValidator(RatingPF, (Control c, String nv) -> ValidationResult.fromErrorIf(
             RatingPF, "Rating must be between 0 and 1.",
-            !newV.isEmpty() && !isPercent.test(newV))
+            !nv.isEmpty() && !isPercent.test(nv))
         );
         
         // deselect text fields on click
@@ -1030,12 +1030,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 }
             };    
             // allow user to de/activate item
-            cb.selectedProperty().addListener((o,oldV,newV) -> {
+            cb.selectedProperty().addListener((o,ov,nv) -> {
                 Item item = cell.getItem();
                 // avoid nulls
                 // also respect lock
                 if(item != null && !lock.get()) {
-                    if(newV) items.add(item);
+                    if(nv) items.add(item);
                     else items.remove(item);
                 }
             });

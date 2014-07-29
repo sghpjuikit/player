@@ -1,8 +1,4 @@
-/*
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
-*/
+
 /* 
     Created on : Feb 4, 2014, 7:27:01 PM
     Author     : uranium
@@ -12,7 +8,8 @@ and open the template in the editor.
     -fx-spacing: 1;
 }
 .rating > .container > .button {
-    -fx-background-color: transparent;
+    -fx-background-color: null;
+    -fx-border-color: null;
     -fx-background-image: url("rating_selected-star_(min).png");
     -fx-background-size: 12;
     -fx-padding: 6 6; 

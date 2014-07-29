@@ -197,8 +197,8 @@ public class PlayerControlsTinyController extends FXMLController implements Play
 /******************************************************************************/
     
     private final ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playbackItemChanged(newV);
-    private final ChangeListener<Status> statusListener = (o,oldV,newV)-> statusChanged(newV);
-    private final ChangeListener<Boolean> muteListener = (o,oldV,newV)-> muteChanged(newV);
+    private final ChangeListener<Status> statusListener = (o,ov,nv)-> statusChanged(nv);
+    private final ChangeListener<Boolean> muteListener = (o,ov,nv)-> muteChanged(nv);
     private final InvalidationListener currTimeListener = o -> currentTimeChanged();
     
     

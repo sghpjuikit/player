@@ -51,8 +51,8 @@ public class Text extends javafx.scene.text.Text {
         wrapWidthSetter.changed(null,null,getText());
     }
     
-    ChangeListener<String> wrapWidthSetter = (o,oldV,newV) -> {
-        String s = newV==null ? "" : newV;
+    ChangeListener<String> wrapWidthSetter = (o,ov,nv) -> {
+        String s = nv==null ? "" : nv;
         setWrappingWidth(100+s.length()/4);
     };
     

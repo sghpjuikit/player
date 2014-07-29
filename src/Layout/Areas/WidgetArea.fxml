@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <fx:root id="entireArea" fx:id="root" focusTraversable="true" minHeight="0.0" minWidth="0.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-  <children><AnchorPane id="bgr" mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+  <children>
     <AnchorPane id="contentPane" fx:id="content" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><Region fx:id="activator" prefHeight="25.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
   </children>
 </fx:root>

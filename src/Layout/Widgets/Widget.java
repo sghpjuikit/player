@@ -3,11 +3,12 @@ package Layout.Widgets;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import Configuration.InstanceFieldConfig;
 import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.scene.Node;
 import utilities.Log;
 
@@ -59,7 +60,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     // list of properties of the widget to provide serialisation support since
     // controller doesnt serialise - this is unwanted and should be handled better
-    public List<Config> configs;
+    public Map<String,String> configs;
     
     
     /**
@@ -187,14 +188,17 @@ public abstract class Widget<C extends Controller> extends Component implements 
     }
     
     // the following two methods help with serialising the widget settings
-    protected void rememberConfigs() {
-        if(controller != null) configs = getFields();
+    public void rememberConfigs() {
+        if(controller != null) {
+            configs = new HashMap();
+            getFields().forEach(c -> 
+                configs.put(c.getName(), c.toS())
+            );
+        }
     }
-    protected void restoreConfigs() {
+    public void restoreConfigs() {
         if(configs != null) {
-            configs.forEach(c -> {
-                c.setValue(((InstanceFieldConfig)c).value);
-            });
+            configs.forEach(this::setField);
             configs = null;
         }
     }

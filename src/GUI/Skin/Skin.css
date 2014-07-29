@@ -3298,6 +3298,10 @@
 
 /* Widget area. Inherits .block styleclass */
 .area {
+    // default padding for all widgets
+    // note: widget devs should be aware of this padding and implement their own
+    // for the widget only if they want non-default behavior
+    -fx-padding: 5;
 }
 
 /* Widget area in layout mode. Inherits .block styleclas.
@@ -3464,7 +3468,6 @@
 .popover > .bgr {
     // the shape representing the whole popup area including the arrow
     // use for basic appearance like border or bgr styling
-
     -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
 
@@ -3649,4 +3652,8 @@
     -icons-color: -fx-def-font-color-hover;
     -fx-text-fill: -fx-def-font-color-hover;
     -fx-effect: dropshadow( gaussian, -fx-def-font-color-hover, 5, 0.0 , 0 , 0 );
+}
+
+.particle {
+    -fx-fill: -fx-font-def-color;
 }

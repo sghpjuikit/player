@@ -98,8 +98,10 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         
         // expand     
         for(ConfigGroup g: groups) 
-            if(g.name().equals(expanded))
+            if(g.name().equals(expanded)) {
                 accordion.setExpandedPane(g.pane);
+                break;
+            }
         
     }
     
@@ -152,9 +154,8 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         public ConfigGroup(String name) {
             pane.setText(name);
             pane.setContent(grid);
-            pane.expandedProperty().addListener((o,ov,nv) -> {
-                if(nv) expanded=pane.getText();
-            });
+            pane.expandedProperty().addListener((o,ov,nv) ->
+                expanded = nv ? pane.getText() : "" );
             
             grid.setVgap(3);
             grid.setHgap(10);

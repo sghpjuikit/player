@@ -72,11 +72,9 @@ public class ImageController extends FXMLController {
 //        AnchorPane.setTopAnchor(thumb.getPane(), 0.0);
 //        AnchorPane.setLeftAnchor(thumb.getPane(), 0.0);
 //        AnchorPane.setRightAnchor(thumb.getPane(), 0.0);
-        // bind manually for now
-        thumb.getPane().prefWidthProperty().bind(root.widthProperty().subtract(10));
-        thumb.getPane().prefHeightProperty().bind(root.heightProperty().subtract(10));
-        // add gap (see the -10 above)
-        thumb.getPane().relocate(5, 5);
+        // bind manually for now so image resizes properly
+        thumb.getPane().prefWidthProperty().bind(root.widthProperty());
+        thumb.getPane().prefHeightProperty().bind(root.heightProperty());
     }
 
     @Override

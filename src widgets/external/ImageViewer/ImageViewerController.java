@@ -36,7 +36,6 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import utilities.FileUtil;
 import utilities.FxTimer;
-import utilities.Util;
 import utilities.functional.functor.Procedure;
 
 /**
@@ -93,7 +92,6 @@ public class ImageViewerController extends FXMLController {
         //initialize gui
         Thumbnail thumbnail = new Thumbnail();
         layout = new ImageFlowPane(entireArea,thumbnail);
-        layout.setPadding(5);
         
         entireArea.getChildren().remove(thumb_root);
         layout.setMinContentHeight(150);
@@ -157,25 +155,22 @@ public class ImageViewerController extends FXMLController {
         folder.removeListener(locationChange);
     }
     
-    private final ChangeListener<Metadata> metaChange = (o,oldV,newV) -> {
+    private final ChangeListener<Metadata> metaChange = (o,ov,nv) -> {
             // calculate new location
-            File new_folder = (newV==null || !newV.isFileBased()) 
+            File new_folder = (nv==null || !nv.isFileBased()) 
                     ? null
-                    : newV.getLocation();
+                    : nv.getLocation();
             // prevent refreshing location if shouldnt
             if(keepContentOnEmpty && new_folder==null) return;
             // refresh location
             folder.set(new_folder);
         };
-    private final ChangeListener<File> locationChange = (o,oldV,newV) -> {        
-            boolean folder_changed = !Util.nullEqual(oldV,newV);
-            if(folder_changed) {
-                if(newV==null) {
-                    readThumbnails();
-                    setImage(-1);   // set empty image
-                } else {
-                    readThumbnails();
-                }
+    private final ChangeListener<File> locationChange = (o,ov,nv) -> {
+            if(nv==null) {
+                readThumbnails();
+                setImage(-1);   // set empty image
+            } else {
+                readThumbnails();
             }
         };
     

@@ -30,6 +30,7 @@ public class SimpleWithMenuAgregator implements LayoutAggregator {
          root = new BorderPane();
          menu = new HBox(5);
          menu.setAlignment(Pos.CENTER_RIGHT);
+         menu.setFillHeight(false);
          root.setRight(menu);
          root.setPrefWidth(1920);
     }

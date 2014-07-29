@@ -287,8 +287,8 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 e.consume();
             });
             
-            txtF.focusedProperty().addListener((o,oldV,newV)->{
-                if(newV) {
+            txtF.focusedProperty().addListener((o,ov,nv)->{
+                if(nv) {
                     if (txtF.getText().isEmpty()) 
                         txtF.setText(txtF.getPromptText());
                 } else {
@@ -313,8 +313,8 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                     }
                 });
             // applying value
-            txtF.textProperty().addListener((o,oldV,newV)-> {
-                boolean applicable = !newV.isEmpty() && !newV.equals(txtF.getPromptText());
+            txtF.textProperty().addListener((o,ov,nv)-> {
+                boolean applicable = !nv.isEmpty() && !nv.equals(txtF.getPromptText());
                 showOkButton(applicable);
             });
             okBL.setOnMouseClicked( e -> apply());
@@ -355,7 +355,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             super(c);
             cBox = new CheckBox();
             cBox.setSelected(value);
-            cBox.selectedProperty().addListener((o,oldV,newV)->{
+            cBox.selectedProperty().addListener((o,ov,nv)->{
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
         }
@@ -387,7 +387,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             
             cBox.setItems(constants);
             cBox.getSelectionModel().select(value);
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv)->{
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
         }
@@ -412,7 +412,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             // shouldnt. It appears when mouse clicks NOT on the thumb but on
             // the slider track instead and keeps dragging. valueChanging doesn
             // activate - fill out JIRA bug?
-            slider.valueProperty().addListener((o,oldV,newV)-> {
+            slider.valueProperty().addListener((o,ov,nv)-> {
                 if(isApplyOnChange() && !slider.isValueChanging())
                     applyNsetIfAvailable();
             });
@@ -457,7 +457,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                                    items.setAll(GUI.getSkins());
             cBox.setItems(items);
             cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,oldV,newV)->{
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv)->{
                 if(isApplyOnChange()) {
                     GUI.skin = getItem();
                     GUI.applySkin();
@@ -521,8 +521,8 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             });
             txtF.setEditable(false);
             txtF.setTooltip(new Tooltip(value.info));
-            txtF.focusedProperty().addListener((o,oldV,newV) -> {
-                if(newV) {
+            txtF.focusedProperty().addListener((o,ov,nv) -> {
+                if(nv) {
                     txtF.setText(txtF.getPromptText());
                 } else {
                     // prevent 'deselection' if we txtF lost focus because glob
@@ -535,7 +535,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             glob = new CheckBox();
             glob.setSelected(value.isGlobal());
             glob.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
-            glob.selectedProperty().addListener((o,oldV,newV) -> {
+            glob.selectedProperty().addListener((o,ov,nv) -> {
                 if (isApplyOnChange()) applyNsetIfAvailable();
             });
             group = new HBox(glob,txtF);
@@ -594,7 +594,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         private ColorField(Config c) {
             super(c);
             picker.setValue(value);
-            picker.valueProperty().addListener((o,oldV,newV) -> {
+            picker.valueProperty().addListener((o,ov,nv) -> {
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
         }

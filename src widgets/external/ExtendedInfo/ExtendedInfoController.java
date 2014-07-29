@@ -66,11 +66,11 @@ public class ExtendedInfoController extends FXMLController {
     public boolean includeStartEndChapter = true;
     
     // listeners
-    ChangeListener<PlaylistItem> selItemListener = (o,oldV,newV) -> {
+    ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
         if (readMode == ReadMode.PLAYLIST_SELECTED)
             refresh();
     };
-    ChangeListener<PlaylistItem> plaItemListener = (o,oldV,newV) -> {
+    ChangeListener<PlaylistItem> plaItemListener = (o,ov,nv) -> {
         if (readMode == ReadMode.PLAYING)
             refresh();
     };

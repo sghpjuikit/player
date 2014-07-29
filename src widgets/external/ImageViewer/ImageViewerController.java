@@ -19,12 +19,10 @@ import java.util.List;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
@@ -43,7 +41,6 @@ import utilities.functional.functor.Procedure;
 
 /**
  * 
- * <p>
  * @author Plutonium_
  */
 @WidgetInfo(
@@ -99,8 +96,6 @@ public class ImageViewerController extends FXMLController {
         layout.setPadding(5);
         
         entireArea.getChildren().remove(thumb_root);
-//        layout.minContentHeightProperty().bind(thumb_root.heightProperty());
-//        layout.minContentWidthProperty().bind(thumb_root.widthProperty());
         layout.setMinContentHeight(150);
         layout.setMinContentWidth(170);
         layout.addChild(thumb_root);
@@ -113,25 +108,6 @@ public class ImageViewerController extends FXMLController {
         meta.addListener(metaChange);
         folder.addListener(locationChange);
         
-        // populate thumbnails on list change
-        images.addListener((Change<? extends File> change) -> {
-            while(change.next()){
-                if(change.wasAdded()) {
-                    for(File f: change.getAddedSubList()) {
-                        addThumbnail(f);
-                        if (images.indexOf(f) == 0 || !layout.hasImage())
-                            setImage(0);
-                    }
-                } else {
-                    thumb_pane.getChildren().clear();
-                    for(File f: images) {
-                        addThumbnail(f);
-                        if (images.indexOf(f) == 0 || !layout.hasImage())
-                            setImage(0);
-                    }
-                }
-            }
-        });
         
         // accept drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
@@ -177,8 +153,8 @@ public class ImageViewerController extends FXMLController {
     public void OnClosing() {
         // unbind
         meta.unbind();
-//        meta.removeListener(metaChange);
-//        folder.removeListener(locationChange);
+        meta.removeListener(metaChange);
+        folder.removeListener(locationChange);
     }
     
     private final ChangeListener<Metadata> metaChange = (o,oldV,newV) -> {
@@ -205,25 +181,31 @@ public class ImageViewerController extends FXMLController {
     
 /********************************** THUMBNAILS ********************************/
     
-    private Timeline reading_thumbs = new Timeline();
-    private final Service<Void> reading_thumbs_starter = new Service() {
+    private Timeline thumbTimeline = new Timeline();
+    private final Service<Void> thumbReader = new Service() {
+        // service recreates task so it can be restarted
         @Override protected Task<Void> createTask() {
+            // return newly constructed task
             return new Task<Void>() {
                 @Override protected Void call() throws Exception {
                     final List<File> files = FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth);
-                    Platform.runLater(() -> {
-                        SimpleIntegerProperty line = new SimpleIntegerProperty(0);
-                        List<KeyFrame> frames = new ArrayList();
-                        for(int i=0; i<files.size(); i++) {
-                            final int ind = i;
-                            frames.add(new KeyFrame(Duration.millis(i*thumbnailReloadTime), e -> {
-                                images.add(files.get(ind));
-                            },new KeyValue(line,1)));
-                            
-                        }
-                        reading_thumbs = new Timeline(frames.toArray(new KeyFrame[0]));
-                        reading_thumbs.play();
-                    });
+                    SimpleIntegerProperty line = new SimpleIntegerProperty(0);
+                    List<KeyFrame> frames = new ArrayList();
+                    // create zero frame which will not do anything, otherwise
+                    // first file would be left out
+                    frames.add(new KeyFrame(Duration.ZERO, e -> {}, new KeyValue(line,1)));
+                    // add frame per file - each turning file into thumbnail
+                    for(int i=1; i<files.size()+1; i++) {
+                        final int ind = i;
+                        frames.add(new KeyFrame(Duration.millis(i*thumbnailReloadTime), e -> {
+                            File f = files.get(ind-1);
+                            images.add(f);
+                            addThumbnail(f);
+                            if (ind-1== 0 || !layout.hasImage()) setImage(0);
+                        },new KeyValue(line,1)));
+                    }
+                    thumbTimeline = new Timeline(frames.toArray(new KeyFrame[0]));
+                    thumbTimeline.play();
                     return null;
                 }
             };
@@ -235,12 +217,12 @@ public class ImageViewerController extends FXMLController {
         images.clear();
         thumb_pane.getChildren().clear();   
         // ready reading process
-        reading_thumbs.stop();
-        reading_thumbs_starter.cancel();
-        reading_thumbs_starter.reset();
+        thumbTimeline.stop();
+        thumbReader.cancel();
+        thumbReader.reset();
         // read if available
         if (folder.get() != null)
-            reading_thumbs_starter.start();
+            thumbReader.start();
     }
     
     private void addThumbnail(final File image) {
@@ -274,19 +256,25 @@ public class ImageViewerController extends FXMLController {
 /********************************** SLIDESHOW *********************************/
     
     private int active_image = -1;
-    private final Procedure nextImage = () -> {
-        if (!images.isEmpty()) {
-            int index = (active_image > images.size()-2) ? 0 : active_image+1;
-            setImage(index);
-        }
-    };
-    FxTimer slideshow = FxTimer.createPeriodic(Duration.millis(slideshow_dur),nextImage);
+    FxTimer slideshow;
     
     public void slideshowStart() {
+        // create if needed
+        if(slideshow==null) {
+            Procedure nextImage = () -> {
+                if (images.size()==1) return;
+                if (!images.isEmpty()) {
+                    int index = (active_image > images.size()-2) ? 0 : active_image+1;
+                    setImage(index);
+                }
+            };
+            slideshow = FxTimer.createPeriodic(Duration.ZERO,nextImage);
+        }
+        // start up
         slideshow.restart(Duration.millis(slideshow_dur));
     }
     
     public void slideshowEnd() {
-        slideshow.stop();
+        if (slideshow!=null) slideshow.stop();
     }
 }

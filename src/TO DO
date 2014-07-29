@@ -43,7 +43,7 @@
 - widget configs do not persist (not even widget transfer (if it werent for the
   fact that we cache the root to avoid loading 1+ times))
 - cant open two info popup at once - evolution of singleton = death
-- make loadInitial() in WIdget and guarantee root caching for all widgets
+- create few predefined layouts + picker
 
 --------------------------------------------------------------------------------
 -------------------- FUNCTIONALITY - what is planned ahead, ideas --------------
@@ -51,13 +51,12 @@
 
 - window docking awareness - disable autohiding when not, enable for all Wndws
 - ability to passivate widget - it autocloses after set amount of time. It
-  is within layout but not loaded.
+  is within layout but not loaded - Big Layout support
 - full lastFM support
 - support ui autoscroll when near edge while dragging something
 - support middle mouse ui scroll
-- add ability to show Node near cursor with an XY offset 
+- add ability to show floating Node near cursor with an XY offset 
 - make more Actions, make util class for it
-- use layouter from within Area
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable

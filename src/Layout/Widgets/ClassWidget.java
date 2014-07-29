@@ -4,7 +4,6 @@
  */
 package Layout.Widgets;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import javafx.scene.Node;
 import utilities.Log;
 
@@ -21,8 +20,6 @@ import utilities.Log;
 public class ClassWidget extends Widget<Controller> {
     
     private final Class<? extends Node> class_type;
-    @XStreamOmitField
-    private Node root;  // cache loaded root to avoid loading more than once
     
     ClassWidget(String name, Class<? extends Node> type) {
         super(name);
@@ -30,10 +27,7 @@ public class ClassWidget extends Widget<Controller> {
     }
 
     @Override
-    public Node load() {
-        // return root if already loaded
-        if(root!=null) return root;
-                    
+    public Node loadInitial() {                    
         try {
             Node node = (Node) Class.forName(class_type.getName()).newInstance();
             if (node instanceof Controller) {

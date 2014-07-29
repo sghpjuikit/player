@@ -4,7 +4,6 @@
  */
 package Layout.Widgets;
 
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.File;
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;
@@ -26,37 +25,13 @@ import utilities.Log;
  */
 public final class FXMLWidget extends Widget<FXMLController> {
     
-    @XStreamOmitField
-    private Node root;  // cache loaded root to avoid loading more than once
-    
     FXMLWidget(String name) {
         super(name);
     }
 
     @Override
-    public Node load() {
+    public Node loadInitial() {
         try {
-            // if widget has already loaded once, return
-            // 1 attaching root to the scenegraph will automatically remove it
-            //   from its old location
-            // 2 this guarantees that widget loads only once, which means:
-            //   - graphics will be constructed only once
-            //   - -||- controller, controller will always be in control of
-            //     the correct graphics - normally we would have to load both
-            //     graphics and controller multiple times because we can not
-            //     assign new graphics to old controller
-            // 3 entire state of the widget is intact with the exception of
-            //   initial load at deserialisation.
-            //   This also makes deserialisation the only time when configs
-            //   need to be taken care of manually
-            if(root!=null) return root;
-            
-            // else load initially
-            
-            if(controller!=null) {
-                rememberConfigs();
-                controller.OnClosing();
-            }
             // get controller instance
             controller = getFactory().instantiateController();
             controller.setWidget(this);
@@ -64,13 +39,13 @@ public final class FXMLWidget extends Widget<FXMLController> {
             FXMLLoader loader = new FXMLLoader();
                        loader.setLocation(getFactory().url);
                        loader.setController(controller);
-            root = loader.load();
+            Node n = loader.load();
             
             controller.init();
             restoreConfigs();
             controller.refresh();
             
-            return root;
+            return n;
         } catch (IOException ex) {ex.printStackTrace();
             Log.err("Widget " + name + " failed to load. " + ex.getMessage() );
             // inject empty content to prevent application crash

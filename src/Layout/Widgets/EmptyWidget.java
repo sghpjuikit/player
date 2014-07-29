@@ -48,7 +48,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     }
     
     
-    @Override public Node load() {
+    @Override public Node loadInitial() {
         return new Region();
     }
     

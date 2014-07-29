@@ -1,8 +1,6 @@
 
 package Layout;
 
-import Layout.Widgets.Controller;
-import Layout.Widgets.Widget;
 import Serialization.Serializattion;
 import Serialization.Serializes;
 import Serialization.SerializesFile;
@@ -16,7 +14,6 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import main.App;
 import utilities.FileUtil;
-import static utilities.Util.NotNULL;
 
 /**
  * @author uranium
@@ -174,9 +171,6 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     public Node load(AnchorPane rootPane) {
         Objects.requireNonNull(rootPane);
         
-        // close widgets first to free resources
-        getAllWidgets().map(Widget::getController)
-                .filter(NotNULL).forEach(Controller::OnClosing);
         // load
         Node n = super.load(rootPane);
         initialize();

@@ -16,7 +16,8 @@ Below are screenshots of current looks with different (experimental) skins:
 
 use:
 
-To run the application download the [zip with the executable](/extra/executable.zip), extract to arbitrary location and run the Player.jar file.
+To run the application download the [zip with the executable](/extra/executable.zip), extract to arbitrary location and run the Player.jar file. You will only be able to run the file with latest java installed on your system - Java Runtime Enviroment (JRE) 8u20 [a link](https://jdk8.java.net/download.html).
+
 To customize layout, click on any empty area and chose the container. Placing mouse in the top right corner of the container will display container options. Holding ALT key will display options for all containers and show additional controls for layouting.
 Tip: Most of the controls like buttons have informative tooltips explaining their functionality. Mouse over the controls to display tooltips.
 Tip: Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 

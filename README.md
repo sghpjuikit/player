@@ -22,33 +22,21 @@ To customize layout, click on any empty area and chose the container. Placing mo
 Tip: Most of the controls like buttons have informative tooltips explaining their functionality. Mouse over the controls to display tooltips.
 Tip: Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 
 
-Proper manuals and HOWTOs will be provided later.
-
-
-
-repository: 
-
-At the moment, this repository is for tight circle of people interested in the project's development. It is not
-for sharing so far incomplete code of the application. Please bear this in mind and dont openly distirbute, provide or publicize this project without prior agreement until the project reaches viable state.
-
-
-
 project:
 
 Project is currently under development and being readied for use and collaborative development.
 Know that:
-- its still in early development stages
 - some functionalities are incomplete, bugged, dysfunctional, undocumented or simply not intuitive.
 - some functionalities are experimental or for educational or testing purposes
 
 
 contribution:
 In case you are interested in the development or in contribution, send mail associated with this github account.
-There are several areas that can one can contribute to
+There are several areas that one can contribute to
 - application core - involves java & javaFX code
-- skins - requires knowledge of css
+- skins - requires very basic knowledge of css
 - widgets - involves java & javaFX code
-- testing - simply run he application from IDE and report bugs
+- testing - simply run the application from IDE and report bugs
 
 
 developing:
@@ -60,7 +48,7 @@ The provided files are
 
 In order to successfully build and run the application the working directory should be set up in the project's settings in the IDE to: '/working dir'. The included libraries must be included and linked in the project.
 
-In order to be able to develop and use widgets (even thouse included in this project already) '/src widgets' directory must be included as a source location for source files in project properties.
+In order to be able to develop and use widgets (even those included in this project already) '/src widgets' directory must be included as a source location for source files in project properties.
 
 Proper manuals and HOWTOs will be provided later.
 
@@ -68,7 +56,7 @@ Proper manuals and HOWTOs will be provided later.
 skinning:
 
 A skin is a single css file that works the same way as if you are skinning a html web site. [a link](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
-The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder. For now there are two complete skins Default1 and Default3.
+The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder.
 
 
 dependencies:

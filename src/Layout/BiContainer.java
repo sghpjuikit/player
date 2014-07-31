@@ -93,15 +93,4 @@ abstract public class BiContainer extends Container {
         children.put(2, c1);
         load();
     }
-    
-    @Override
-    public void show() {
-        super.show();
-        if(graphics!=null) graphics.show();
-    }
-    @Override
-    public void hide() {
-        super.hide();
-        if(graphics!=null)  graphics.hide();
-    }
 }

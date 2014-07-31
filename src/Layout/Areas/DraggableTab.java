@@ -1,24 +1,23 @@
 package Layout.Areas;
 
-import GUI.Window;
 import java.util.HashSet;
 import java.util.Set;
-import javafx.collections.ListChangeListener;
 import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import main.App;
+import static javafx.stage.StageStyle.UNDECORATED;
  
 /**
  * A draggable tab that can optionally be detached from its tab pane and shown
@@ -30,10 +29,11 @@ import main.App;
  */
 public class DraggableTab extends Tab {
  
-    private static final Set<TabPane> tabPanes = new HashSet<>();
+    private static final Set<TabPane> tabPanes = new HashSet();
+    private static final Stage markerStage;
+    
     private Label nameLabel;
     private Text dragText;
-    private static final Stage markerStage;
     private Stage dragStage;
     private boolean detachable;
  
@@ -42,7 +42,7 @@ public class DraggableTab extends Tab {
         markerStage.initStyle(StageStyle.UNDECORATED);
         Rectangle dummy = new Rectangle(3, 10, Color.web("#555555"));
         StackPane markerStack = new StackPane();
-        markerStack.getChildren().add(dummy);
+                  markerStack.getChildren().add(dummy);
         markerStage.setScene(new Scene(markerStack));
     }
  
@@ -58,14 +58,18 @@ public class DraggableTab extends Tab {
         setGraphic(nameLabel);
         detachable = true;
         dragStage = new Stage();
-        dragStage.initStyle(StageStyle.UNDECORATED);
+        dragStage.initStyle(UNDECORATED);
         StackPane dragStagePane = new StackPane();
         dragStagePane.setStyle("-fx-background-color:#DDDDDD;");
         dragText = new Text(text);
-        StackPane.setAlignment(dragText, Pos.CENTER);
+        StackPane.setAlignment(dragText, CENTER);
         dragStagePane.getChildren().add(dragText);
         dragStage.setScene(new Scene(dragStagePane));
+        
         nameLabel.setOnMouseDragged( e -> {
+            // support only left mouse drag
+            if(e.getButton()!=PRIMARY) return;
+            
             dragStage.setWidth(nameLabel.getWidth() + 10);
             dragStage.setHeight(nameLabel.getHeight() + 10);
             dragStage.setX(e.getScreenX());
@@ -76,8 +80,7 @@ public class DraggableTab extends Tab {
             InsertData data = getInsertData(screenPoint);
             if(data == null || data.getInsertPane().getTabs().isEmpty()) {
                 markerStage.hide();
-            }
-            else {
+            } else {
                 int index = data.getIndex();
                 boolean end = false;
                 if(index == data.getInsertPane().getTabs().size()) {
@@ -85,17 +88,16 @@ public class DraggableTab extends Tab {
                     index--;
                 }
                 Rectangle2D rect = getAbsoluteRect(data.getInsertPane().getTabs().get(index));
-                if(end) {
-                    markerStage.setX(rect.getMaxX() + 13);
-                }
-                else {
-                    markerStage.setX(rect.getMinX());
-                }
+                markerStage.setX( end ? rect.getMaxX() : rect.getMinX());
                 markerStage.setY(rect.getMaxY() + 10);
                 markerStage.show();
             }
         });
+        
         nameLabel.setOnMouseReleased( e -> {
+            // support only left mouse drag
+            if(e.getButton()!=PRIMARY) return;
+            
             markerStage.hide();
             dragStage.hide();
             if(!e.isStillSincePress()) {
@@ -104,45 +106,44 @@ public class DraggableTab extends Tab {
                 int oldIndex = oldTabPane.getTabs().indexOf(DraggableTab.this);
                 tabPanes.add(oldTabPane);
                 InsertData insertData = getInsertData(screenPoint);
+                
+                // if dropped at table
                 if(insertData != null) {
-                    int addIndex = insertData.getIndex();
-                    if(oldTabPane == insertData.getInsertPane() && oldTabPane.getTabs().size() == 1) {
-                        return;
+                    // id dropped at the same table - reorder
+                    if(oldTabPane == insertData.getInsertPane()) {
+                        // return if nothing to do
+                        if (oldTabPane.getTabs().size() == 1) return;
+                        
+                        // move child at position
+                        int from = oldTabPane.getTabs().indexOf(DraggableTab.this);
+                        int to = Math.min(insertData.getIndex(), oldTabPane.getTabs().size()-1);
+                        ((TabArea)getTabPane().getUserData()).container.moveChild(from, to);
                     }
-                    oldTabPane.getTabs().remove(DraggableTab.this);
-                    if(oldIndex < addIndex && oldTabPane == insertData.getInsertPane()) {
-                        addIndex--;
+                    // if dropped at some other table move over
+                    else {
+                        
                     }
-                    if(addIndex > insertData.getInsertPane().getTabs().size()) {
-                        addIndex = insertData.getInsertPane().getTabs().size();
-                    }
-                    insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
-                    insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
-                    return;
+                    
+//                    old code
+//                    int addIndex = insertData.getIndex();
+//                    oldTabPane.getTabs().remove(DraggableTab.this);
+//                    if(oldIndex < addIndex && oldTabPane == insertData.getInsertPane()) {
+//                        addIndex--;
+//                    }
+//                    if(addIndex > insertData.getInsertPane().getTabs().size()) {
+//                        addIndex = insertData.getInsertPane().getTabs().size();
+//                    }
+//                    insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
+//                    insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
+                    
                 }
-                if(!detachable) {
-                    return;
+                // if not dropped at any table detach to window
+                else {
+                    if(!detachable) return;
+                    // detach component
+                    int index = getTabPane().getTabs().indexOf(this);
+                    ((TabArea)getTabPane().getUserData()).detachComponent(index);
                 }
-                
-                final Window w =  Window.create();
-                w.getStage().initOwner(App.getWindowOwner().getStage());
-                final TabPane pane = new TabPane();
-                tabPanes.add(pane);
-                w.getStage().setOnHiding( h -> {
-                    tabPanes.remove(pane);
-                });
-                getTabPane().getTabs().remove(DraggableTab.this);
-                pane.getTabs().add(DraggableTab.this);
-                pane.getTabs().addListener((ListChangeListener.Change<? extends Tab> change) -> {
-                    if(pane.getTabs().isEmpty())
-                        w.hide();
-                });
-                w.setContent(pane);
-                w.setXY(e.getScreenX(), e.getScreenY());
-                w.show();
-                
-                pane.requestLayout();
-                pane.requestFocus();
             }
         });
     }

@@ -9,6 +9,7 @@ import GUI.Window;
 import Layout.Component;
 import Layout.Container;
 import Layout.PolyContainer;
+import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,6 +26,7 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import static utilities.Util.NotNULL;
 
 /**
  * Implementation of PolyArea.
@@ -43,7 +45,7 @@ public final class TabArea extends PolyArea {
         container.properties.initProperty(Integer.class, "selected", -1);
         
         root.setMinSize(0,0);
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("TabbedWidgetArea.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("TabbedArea.fxml"));
         fxmlLoader.setRoot(root);
         fxmlLoader.setController(this);
         try {
@@ -51,6 +53,9 @@ public final class TabArea extends PolyArea {
         } catch (IOException ex) {
             throw new RuntimeException(ex.getMessage());
         }
+        
+        tabPane.setUserData(this);
+        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         // load controls
         controls = new AreaControls(this);
         root.getChildren().add(controls.root);
@@ -112,51 +117,64 @@ public final class TabArea extends PolyArea {
     public void add(Component c) {
         addComponents(Collections.singleton(c));
     }
+    
     public void addComponents(Collection<Component> cs) {
         if(cs.isEmpty()) return;
+        
         int i = container.properties.getI("selected");
         // process components -> turn into tab, set behavior, load lazily
-        cs.stream().forEach(c->{
+            // somehow null get through here, investigate, fix, document
+        cs.stream().filter(NotNULL).forEach( c -> {
             DraggableTab t = new DraggableTab(c.getName());
-//            t.setDetachable(false);
+            t.setDetachable(true);
             t.setTooltip(new Tooltip(c.getName()));
             t.setUserData(c);
-            t.setOnClosed(e -> removeComponent((Component)t.getUserData()));
-            tabPane.getTabs().add(t);
+            t.setOnClosed(e -> container.removeChild(c));
             t.setOnSelectionChanged( e -> {
+                // prevent loading because of lock
+                if(selectionLock) return;
                 if(tabPane.getTabs().contains(t) && t.isSelected())
                     loadTab(t,(Component)t.getUserData());
             });
-            loadTab(t, c);
+            tabPane.getTabs().add(t);
+            container.getChildren().put(container.getChildren().size(), c);
         });
         
-        
-        
-        // select 1st if none selected
-//        if(tabPane.getTabs().size()==cs.size()) {
-//            int i = container.properties.getI("selected");
+        // select correct tab
+        if(!selectionLock) {
             if(i<0) i = 0;
             if(i==0) {
                 Tab t = tabPane.getTabs().get(i);
                 loadTab(t,(Component)t.getUserData());
             }
             selectComponent(i);
-//        }
+        }
     }
     
     @Override
     public void removeComponent(Component c) {
-        container.removeChild(c);
-        tabPane.getTabs().stream().filter(t->t.getUserData().equals(c)).findAny()
-               .ifPresent(t->tabPane.getTabs().remove(t));
+        tabPane.getTabs().stream()
+                .filter(t->t.getUserData().equals(c))
+                .findAny()
+                .ifPresent(tabPane.getTabs()::remove);
     }
     
-    private void selectComponent(Integer i) {System.out.println("showigng tab "+i);
+/******************************** selection ***********************************/
+    
+    private static boolean selectionLock = false;
+    
+    public void selectComponentPreventLoad(boolean val) {
+        selectionLock = val;
+    }
+    
+    public void selectComponent(Integer i) {
+        // release lock on manual change
+        selectionLock = false;
+        
         int tabs = tabPane.getTabs().size();
         if(i==null) {
             if(tabPane.getSelectionModel().isEmpty())
                 tabPane.getSelectionModel().select(0);
-            System.out.println("selecting 0");
         }
         if(i!=null){
 //            if(tabs>i) i = tabs;    // prevent out of bounds
@@ -194,25 +212,43 @@ public final class TabArea extends PolyArea {
             controls.propB.setDisable(((Configurable)c).getFields().isEmpty());
         
         int ii = tabPane.getTabs().indexOf(t);
-        container.properties.set("selected", ii);
+        if(!selectionLock) container.properties.set("selected", ii);
     }
     
-    /** Refreshes the active widget */
+    /** Refreshes the active component */
     @Override
     public void refresh() {
-        getActiveComponent().load();
+        Component c = getActiveComponent();
+        if(c instanceof Widget) Widget.class.cast(c).getController().refresh();
+        else if (c instanceof Container) Container.class.cast(c).load();
     }
+    
     @Override
     public void detach() {
         // create new window with no content (not even empty widget)
         Window w = ContextManager.showWindow(null);
-               // set size to that of a source (also add jeader & border space)
+               // set size to that of a source (also add header & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
         Container c2 = w.getLayoutAggregator().getActive();
         int i1 = container.getParent().indexOf(container);
         int i2 = c2.indexOf(w.getLayoutAggregator().getActive().getChild());
         container.getParent().swapChildren(c2,i1,i2);
+    }
+
+    public void detachComponent(int i) {
+        // grab component
+        Component c = (Component)tabPane.getTabs().get(i).getUserData();
+        // remove from layout graph
+        container.getChildren().put(i, null);
+        // remove from scene graph (it is done automatically, since at the
+        // moment when the component loads it is removed from old location
+        // but the tab remains and we need to clean it too
+        tabPane.getTabs().remove(i);
+        // create new window with the component as its content
+        Window w = ContextManager.showWindow((Widget)c);
+               // set size to that of a source (also add header & border space)
+               w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
     
     @Override

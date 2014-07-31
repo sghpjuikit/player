@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import utilities.Log;
+import static utilities.Util.NotNULL;
 
 /**
  * @author uranium
@@ -261,7 +262,10 @@ public abstract class Container extends Component implements AltState {
         //    this container to cut off its branch from scene graph and
         //    layout graph.
         //    We want to avoid recursively closing every container by one
-        getAllWidgets().map(Widget::getController).forEach(c->c.OnClosing());
+        getAllWidgets().map(Widget::getController)
+                // there might be passive widgets that were not loaded yet
+                .filter(NotNULL)
+                .forEach(c->c.OnClosing());
         
         if (!isRoot()) {
             // remove from layout graph
@@ -270,7 +274,7 @@ public abstract class Container extends Component implements AltState {
             removeGraphicsFromSceneGraph();
         } else {
             // remove all children 
-             getChildren().keySet().forEach(this::removeChild);
+            getChildren().keySet().forEach(this::removeChild);
         }
     }
     
@@ -369,11 +373,14 @@ public abstract class Container extends Component implements AltState {
     
     @Override
     public void show() {
+        if(getGraphics()!=null) getGraphics().show();
         getChildren().values().stream().filter(child -> child instanceof AltState)
                 .forEach(child -> ((AltState) child).show());
+        
     }
     @Override
     public void hide() {
+        if(getGraphics()!=null) getGraphics().hide();
         getChildren().values().stream().filter(child -> child instanceof AltState)
                 .forEach(child -> ((AltState) child).hide()); 
     }

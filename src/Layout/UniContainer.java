@@ -114,17 +114,5 @@ public class UniContainer extends Container {
     public Integer indexOf(Component c) {
         if (Objects.equals(c, child)) return 1;
         else return null;
-    }
-    
-    @Override
-    public void show() {
-        super.show();
-        if(graphics!=null) graphics.show();
-    }
-    @Override
-    public void hide() {
-        super.hide();
-        if(graphics!=null) graphics.hide();
-    }
-    
+    }    
 }

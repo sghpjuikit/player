@@ -19,7 +19,6 @@ public abstract class PolyArea extends Area<PolyContainer>{
         super(_container);
     }
     
-    abstract public void add(Component c);
     abstract public void removeComponent(Component c);
     abstract public void removeAllComponents();
 }

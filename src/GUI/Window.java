@@ -666,9 +666,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public void close() {
         // serialize windows if this is main app window
         if(main) WindowManager.serialize();
-        // close content- if not main window, it would prevent Layouts form serializing
-        // main window closes the app so closing layouts does not play role
-        if(!main) layout_aggregator.getLayouts().values().forEach(Layout::close);
+        // after serialisation, close content it could prevent app closing
+        // normally if it runs bgr threads
+        layout_aggregator.getLayouts().values().forEach(Layout::close);
         // remove from window list as life time of this ends
         ContextManager.windows.remove(this); 
         if(main) {

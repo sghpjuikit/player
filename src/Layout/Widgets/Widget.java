@@ -110,7 +110,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * yet.
      */
     public C getController() {
-        Log.warn("Possible illegal call. Widget doesnt have a controller before it loads.");
+        if(controller == null)
+            Log.warn("Possible illegal call. Widget doesnt have a controller yet.");
         return controller;
     }
     

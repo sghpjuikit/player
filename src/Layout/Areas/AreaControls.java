@@ -85,11 +85,13 @@ public final class AreaControls {
                 .bind(root.widthProperty().subtract(title.widthProperty())
                 .divide(2).subtract(15));
         header_buttons.setMinWidth(15);
+//        header_buttons.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY))); //debug
         // resize deactivator with header buttons
         deactivator.prefWidthProperty().bind(header_buttons.widthProperty());
         deactivator.prefHeightProperty().bind(header_buttons.heightProperty());
         deactivator.setScaleX(1.1);
         deactivator.setScaleY(1.1);
+//        deactivator.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY))); // debug
         
         // build header buttons
         Button helpB = AwesomeDude.createIconButton(INFO,"","12","12",CENTER);
@@ -251,10 +253,16 @@ public final class AreaControls {
                 p.show(propB);  
     }
 
+    // this method is basiclly the main source of new components
     void choose() {
         WidgetPicker w = new WidgetPicker();
         ContextPopOver pp = new ContextPopOver(w.getNode());
         w.setOnSelect(factory -> {
+            // area has full responsibility over adding the newly created component
+            // to the layout graph, but note that it is role of a container so
+            // each area implementation should delegate to container
+            // NOTE: this should be actually all implemented here like this:
+            // get first empty index for new component -> container.add(...)
             area.add(factory.create());
             pp.hide();
         });

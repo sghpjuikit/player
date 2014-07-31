@@ -15,12 +15,10 @@
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - window apply overlay on new window upon creation
-- windw header visible preference application is weird                          (test)
+- windw header visible preference application is weird                          (?)
 - popover set arrow location automatically based on available screen space
-- tab container not remembering its children - why this again                   (major)
-- tabview tab close button skin
   getWidget - implement Target
-- Player update item not refreshing selected pl item                            ?
+- Player update item not refreshing selected pl item                            (?)
 - splitter absolute size for both children
 - rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
@@ -31,7 +29,7 @@
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
 - picker elements sometimes sometimes off by 1 px and column size ends up wrong
-- closing bookmarker prevents bookmarks being saved sometimes                   (?)
+- bookmark config serialisation - hahsmap not supported
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - cant open two info popup at once - evolution of singleton = death...
 - create few predefined layouts + picker
@@ -40,6 +38,12 @@
 - emty metadata MUST NOT return File("") !
 - Rater make base skin
 - tiny player controls vertically center align
+- layout padding
+- playlist scrollbar hiding content
+- tab area - select tab on mouse release not press or avoid loading content
+  somehow when reordering 
+- support tab drag onto widget area and other tab areas
+- tabPane transfer by dragging only transfers active component 
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

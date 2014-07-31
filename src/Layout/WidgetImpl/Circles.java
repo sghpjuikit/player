@@ -38,6 +38,9 @@ public class Circles extends AnchorPane implements Controller<ClassWidget> {
     public double rate = 1;
     @IsConfig(name="Background color", info="Background color")
     public Color bgr_color = Color.BLACK;
+    @IsConfig(name="Blending mode", info="The blending mode influences how the content is displayed on the screen in ocntext with the background.")
+    public BlendMode blending_mode = BlendMode.SRC_OVER;
+    
     private Timeline animation;
     
     Rectangle all;
@@ -152,6 +155,7 @@ public class Circles extends AnchorPane implements Controller<ClassWidget> {
     @Override public void refresh() {
         animation.setRate(rate);
         all.setFill(bgr_color);
+        setBlendMode(blending_mode);
     }
 
     @Override public void setWidget(ClassWidget w) {

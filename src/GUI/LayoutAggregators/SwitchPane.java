@@ -17,6 +17,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
@@ -99,6 +100,7 @@ public class SwitchPane implements LayoutAggregator {
         
         // initialize ui drag behavior
         root.addEventFilter(MOUSE_PRESSED, e -> {
+            uiDragActiveLock = false;
             // doesnt work because the isStillSincePress is too insensitive
 //            if(!e.isStillSincePress()) {
 //                if(e.getButton()==SECONDARY) {
@@ -114,7 +116,7 @@ public class SwitchPane implements LayoutAggregator {
         });
         
         root.addEventFilter(MOUSE_DRAGGED, e -> {
-            if(e.getButton()==SECONDARY) {
+            if(!uiDragActiveLock && e.getButton()==SECONDARY ) {
                 ui.setMouseTransparent(true);
                 startUiDrag(e);
                 dragUi(e);
@@ -129,6 +131,15 @@ public class SwitchPane implements LayoutAggregator {
                 ui.setMouseTransparent(false);
             }
         });
+        
+        // if mouse exits the root (and quite possibly window) we can not
+        // capture mouse release/click events so lets end the drag right there
+        root.addEventFilter(MOUSE_EXITED, e-> {
+            if (uiDragActive) endUIDrag(e);
+            uiDragActiveLock = true;
+            
+        });
+        
         root.addEventFilter(MOUSE_RELEASED, e-> {
             if(e.getButton()==MIDDLE) {
                 //endScroll(e);
@@ -218,6 +229,7 @@ public class SwitchPane implements LayoutAggregator {
     private double uiTransX;
     private double uiStartX;
     boolean uiDragActive = false;
+    boolean uiDragActiveLock = false;
     
     private double lastX = 0;
     private double nowX = 0;

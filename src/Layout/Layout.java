@@ -176,7 +176,6 @@ public final class Layout extends UniContainer implements Serializes, Serializes
         initialize();
         return n;
     }    
-    
 
     /**
      * Serializes layout into file according to application specifications.

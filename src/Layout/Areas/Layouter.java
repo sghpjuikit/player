@@ -5,7 +5,6 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.WidgetTransfer;
 import GUI.objects.Pickers.WidgetPicker;
-import Layout.AltState;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.PolyContainer;
@@ -20,13 +19,13 @@ import javafx.fxml.FXMLLoader;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
@@ -38,7 +37,7 @@ import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
  * TO Do file API section
  */
 @WidgetInfo
-public final class Layouter implements AltState {
+public final class Layouter implements ContainerNode {
     
     private static final Duration ANIM_DUR = Duration.millis(300);
     private int index;              // hack (see to do API section, layouts)
@@ -71,6 +70,8 @@ public final class Layouter implements AltState {
         animS.setInterpolator(i);
             // initialize state for animations
         content.setOpacity(0);
+        content.setScaleX(0);
+        content.setScaleY(0);
         
         // initialize mode
         setWeakMode(false); // this needs to be called in constructor
@@ -235,8 +236,8 @@ public final class Layouter implements AltState {
         e.consume();
     }
     
-    
-    public Parent getRoot() {
+    @Override
+    public Pane getRoot() {
         return root;
     }
 }

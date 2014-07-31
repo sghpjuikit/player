@@ -30,13 +30,11 @@
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
-- picker elements sometimes sometimes off by 1 px and column size ends up wrong 
-- window serialize header visible state
+- picker elements sometimes sometimes off by 1 px and column size ends up wrong
 - closing bookmarker prevents bookmarks being saved sometimes                   (?)
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
-- cant open two info popup at once - evolution of singleton = death
+- cant open two info popup at once - evolution of singleton = death...
 - create few predefined layouts + picker
-- sparcle effects
 - remove custom context menus as they are now
 - mini mode shortcut
 - emty metadata MUST NOT return File("") !

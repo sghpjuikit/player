@@ -5,7 +5,7 @@ import Action.Action;
 import Configuration.PropertyMap;
 import GUI.GUI;
 import GUI.objects.SimplePositionable;
-import Layout.AltState;
+import Layout.Areas.ContainerNode;
 import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
@@ -29,6 +29,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import utilities.TODO;
 
@@ -37,7 +38,7 @@ import utilities.TODO;
  *
  */
 @TODO("resizing when collapsed slow response & boilerplate code")
-public final class Splitter implements AltState {
+public final class Splitter implements ContainerNode {
     
     AnchorPane root = new AnchorPane();
     @FXML AnchorPane root_child1;
@@ -98,16 +99,16 @@ public final class Splitter implements AltState {
         positionControls();
         
         splitPane.heightProperty().addListener( o -> {
-                if (getCollapsed()<0)
-                    splitPane.setDividerPositions(0);
-                if (getCollapsed()>0)
-                    splitPane.setDividerPositions(1);
+            if (getCollapsed()<0)
+                splitPane.setDividerPositions(0);
+            if (getCollapsed()>0)
+                splitPane.setDividerPositions(1);
         });
         splitPane.widthProperty().addListener( o -> {
-                if (getCollapsed()<0)
-                    splitPane.setDividerPositions(0);
-                if (getCollapsed()>0)
-                    splitPane.setDividerPositions(1);
+            if (getCollapsed()<0)
+                splitPane.setDividerPositions(0);
+            if (getCollapsed()>0)
+                splitPane.setDividerPositions(1);
         });
         
         // build animations
@@ -221,7 +222,9 @@ public final class Splitter implements AltState {
     public AnchorPane getChild2Pane() {
         return root_child2;
     }
-    public AnchorPane getPane() {
+
+    @Override
+    public Pane getRoot() {
         return root;
     }
     

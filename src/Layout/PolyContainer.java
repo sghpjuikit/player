@@ -1,6 +1,7 @@
 
 package Layout;
 
+import Layout.Areas.ContainerNode;
 import Layout.Areas.TabArea;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
@@ -18,6 +19,11 @@ public final class PolyContainer extends Container {
     private final Map<Integer, Component> children = new HashMap<>();
     @XStreamOmitField
     private TabArea gui;
+    
+    @Override
+    public ContainerNode getGraphics() {
+        return gui;
+    }
     
     /** {@inheritDoc} */
     @Override
@@ -40,13 +46,13 @@ public final class PolyContainer extends Container {
     /** {@inheritDoc} */
     @Override
     public void addChild(Integer index, Component c) {System.out.println("adding in poly");
-        super.addChild(index, c);
         if(index==null) return;
         if(c==null) {
             children.remove(index);
             gui.removeComponent(c);
         } else {
-            if ((c instanceof Container)) ((Container)c).parent = this;
+            if ((c instanceof Container))
+                Container.class.cast(c).parent = this;
             children.put(index, c);
             gui.add(c);
         }
@@ -71,4 +77,5 @@ public final class PolyContainer extends Container {
     public Map<Integer, Component> getChildren() {
         return children;
     }
+    
 }

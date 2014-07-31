@@ -1,8 +1,9 @@
 
 package Layout;
 
-import Layout.Areas.WidgetArea;
+import Layout.Areas.ContainerNode;
 import Layout.Areas.Layouter;
+import Layout.Areas.WidgetArea;
 import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.Collections;
@@ -24,14 +25,17 @@ public class UniContainer extends Container {
     
     Component child;
     @XStreamOmitField
-    private WidgetArea gui;
-    @XStreamOmitField
-    private Layouter guiL;
- 
+    ContainerNode graphics;
+    
     public UniContainer() {
     }
     public UniContainer(AnchorPane _parent) {
         root = _parent;
+    }
+
+    @Override
+    public ContainerNode getGraphics() {
+        return graphics;
     }
     
     @Override
@@ -39,20 +43,22 @@ public class UniContainer extends Container {
         Node out;
         
         if (child instanceof Container) {
-            guiL = null;
-            out = ((Container)child).load(root);
+            removeGraphicsFromSceneGraph();
+            graphics = null;
+            out = Container.class.cast(child).load(root);
         } else 
         if (child instanceof Widget) {
-            guiL = null;
-            // lazy load gui
-            if (gui == null) gui = new WidgetArea(this);
-            gui.loadWidget((Widget)child);
-            out = gui.root;
+            if (!(graphics instanceof WidgetArea)) {
+                removeGraphicsFromSceneGraph();
+                graphics = new WidgetArea(this);
+            }
+            WidgetArea.class.cast(graphics).loadWidget((Widget)child);
+            out = graphics.getRoot();
         }
         else {
-            gui = null;
-            if(guiL == null) guiL = new Layouter(this,1);
-            out = guiL.getRoot();
+//            if(!(graphics instanceof Layouter)) 
+                graphics = new Layouter(this,1);
+            out = graphics.getRoot();
         }
         
         root.getChildren().setAll(out);
@@ -86,12 +92,14 @@ public class UniContainer extends Container {
      */
     @Override
     public void addChild(Integer index, Component c) {
-        super.addChild(index, c);
         if(index==null) return;
+        
         if (c instanceof Container)
-            ((Container)c).parent = this;
+            Container.class.cast(c).parent = this;
+        
         child = c;
         load();
+        initialize();
     }
     
     /**
@@ -111,23 +119,12 @@ public class UniContainer extends Container {
     @Override
     public void show() {
         super.show();
-        if(gui!=null) gui.show();
-        if(guiL!=null) guiL.show();
+        if(graphics!=null) graphics.show();
     }
     @Override
     public void hide() {
         super.hide();
-        if(gui!=null) gui.hide();
-        if(guiL!=null) guiL.hide();
-    }
-
-    @Override
-    public void close() {
-        super.close();
-        
-        setChild(null);     // have to call this or the gui change wont
-                            // take effect, now i have to override the method...
-                            // it wouldnt hurt figuring this out
+        if(graphics!=null) graphics.hide();
     }
     
 }

@@ -3,7 +3,6 @@ package Layout.Areas;
 
 import GUI.ContextManager;
 import GUI.Window;
-import Layout.AltState;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
@@ -15,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 
 /**
@@ -28,7 +28,7 @@ import javafx.scene.layout.Region;
  * <p>
  * @author uranium
  */
-public abstract class Area<T extends Container> implements AltState {
+public abstract class Area<T extends Container> implements ContainerNode {
     
     public static final List<String> bgr_STYLECLASS = Arrays.asList("area", "block");
     
@@ -143,6 +143,11 @@ public abstract class Area<T extends Container> implements AltState {
     
     /** Returns the content. */
     abstract public AnchorPane getContent();
+    
+    @Override
+    public Pane getRoot() {
+        return root;
+    }
     
 /******************************************************************************/
     

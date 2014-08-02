@@ -43,14 +43,14 @@ public class SwitchPane implements LayoutAggregator {
     
     @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
             + " Tabs are always aligned. Seamless mode alows any tab position.")
-    public static boolean align_tabs = true;
+    public static boolean align_tabs = false;
     @IsConfig(name = "Switch drag distance (D)", info = "Required length of drag at"
             + " which tab switch animation gets activated. Tab switch activates if"
             + " at least one condition is fulfilled min distance or min fraction.")
-    private static double min_tab_switch_dist = 250;
+    private static double min_tab_switch_dist = 150;
     @IsConfig(name = "Switch drag distance coeficient (D)", info = "Defines distance from edge in "
             + "percent of tab's width in which the tab switches.", min = 0, max = 1)
-    private static double min_tab_switch_coeficient = 0.2;
+    private static double min_tab_switch_coeficient = 0.15;
     @IsConfig(name = "Drag inertia (S)", info = "Inertia of the tab switch animation. "
             + "Defines distance the dragging will travel after input has been stopped. Only when ", min = 0, max = 10)
     private static double DRAG_INERTIA = 1.5;

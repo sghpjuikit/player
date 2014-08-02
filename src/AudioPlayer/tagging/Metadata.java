@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.scene.image.Image;
@@ -690,7 +691,7 @@ public final class Metadata extends MetaItem {
     
     /**
      * @param max_stars
-     * @return the current rating value in 0-$max_stars value system. 0 if not available.
+     * @return the current rating value in 0-max_stars value system. 0 if not available.
      */
     public double getRatingToStars(int max_stars) {
         if (getRating()==null) return 0;
@@ -752,6 +753,8 @@ public final class Metadata extends MetaItem {
          return custom1.isEmpty() ? null : new ColorParser().fromS(custom1);
     }
     
+    
+    
     /** @return the value of custom1 field. "" if empty. */
     public String getCustom1() {
         return custom1;
@@ -809,19 +812,22 @@ public final class Metadata extends MetaItem {
      * information associated with time and the song item. There are usually
      * many chapters per item.
      * <p>
-     * Chapters string is located in the Custom2 tag field.
+     * Chapters are concatenated into string located in the Custom2 tag field.
      * <p>
      * The result is ordered by natural order.
      * @return ordered list of chapters parsed from tag data
      */
     public List<Chapter> getChapters() {
+        String chapterString = getCustom2();
+        if(chapterString.isEmpty()) return EMPTY_LIST;
+        
         List<Chapter> cs = new ArrayList();
         // we have got a regex over here so "||\" is equivalent to '\' character
         for(String c: getCustom2().split("\\|", 0)) {
             try {
                 cs.add(new Chapter(c));
             } catch( IllegalArgumentException e) {
-                Log.err("String '" + c + "' not parsable chapter string. Will be ignored.");
+                Log.err("String '" + c + "' not be parsed as chapter. Will be ignored.");
                 // ignore
             }
         }

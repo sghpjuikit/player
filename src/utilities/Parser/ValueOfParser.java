@@ -18,6 +18,12 @@ public class ValueOfParser implements ObjectStringParser {
 
     @Override
     public boolean supports(Class type) {
+        // hadle enum with class bodies that dont identify as enums
+        // simply fool the parser by changing the class to the enum
+        // note: getDeclaringClass() does not seem to work here though
+        if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
+            type = type.getEnclosingClass();
+        
         try {
             Method m = type.getDeclaredMethod("valueOf", String.class);
 //            if (m.getReturnType().equals(type)) throw new NoSuchMethodException();
@@ -29,14 +35,20 @@ public class ValueOfParser implements ObjectStringParser {
 
     @Override
     public Object fromS(Class type, String source) {
-            //try parsing unknown types with valueOf(String) method if available
-            try {
-                Method m = type.getDeclaredMethod("valueOf", String.class);
-                return m.invoke(null, source);
-            } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-                Log.deb("Unable to parse. Encountered problem during invoking valueOf() method");
-                return null;
-            }
+        // hadle enum with class bodies that dont identify as enums
+        // simply fool the parser by changing the class to the enum
+        // note: getDeclaringClass() does not seem to work here though
+        if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
+            type = type.getEnclosingClass();
+        
+        //try parsing unknown types with valueOf(String) method if available
+        try {
+            Method m = type.getDeclaredMethod("valueOf", String.class);
+            return m.invoke(null, source);
+        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            Log.deb("Unable to parse. Encountered problem during invoking valueOf() method");
+            return null;
+        }
     }
 
     @Override

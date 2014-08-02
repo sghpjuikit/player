@@ -59,7 +59,8 @@ public final class Action {
     public final boolean continuous;
     private boolean global;
     private KeyCombination keys = KeyCombination.NO_MATCH;
-    
+    private final String defaultKeys;
+    private final boolean defaultGlobal;
     
     private Action(IsAction a, Runnable action) {
         this(a.name(),action,a.description(),a.shortcut(),a.global(),a.continuous());
@@ -81,6 +82,8 @@ public final class Action {
         this.info = info;
         this.continuous = continuous;
         this.global = global;
+        this.defaultGlobal = global;
+        this.defaultKeys = keys;
         changeKeys(keys);
     }
     
@@ -165,7 +168,12 @@ public final class Action {
         this.global = global;
         changeKeys(key_combination);
         register();
-    }   
+    }
+    
+    public void setDefault() {
+        set(defaultGlobal, defaultKeys);
+    }
+    
     /** Execute the action. Always executes on application thread. */
     public void run() {
         if(global) Log.deb("Global shortcut event fired. Shortcut: " + name);
@@ -265,8 +273,12 @@ public final class Action {
     public boolean equals(Object o) {
         if(this==o) return true; // this line can make a difference
         
-        if(o==null || !o.getClass().equals(Action.class)) return false;
-        Action a = ((Action)o);
+        if(!(o instanceof Action)) return false;
+        Action a = (Action) o;
+        // we will compare all fields that can change (global & keys)
+        // for all the rest only one (name) is necesary because they go
+        // with each other
+        // name is basically a unique identifier so this should be enough
         return a.name.equals(name) && a.global==global && a.keys.equals(keys);
     }
 
@@ -283,17 +295,27 @@ public final class Action {
     
     
     
+    /**
+     * Returns copy of this action with keys and scope set to default values
+     * of this action.
+     * @param a
+     * @return
+     * @deprecated Internal API, do not use.
+     */
+    @Deprecated()
+    public static Action defaultOf(Action a) {
+        return new Action(a.name, a.action, a.info, a.defaultKeys, a.defaultGlobal, a.continuous);
+    }
     
-    
-    
-    
-    private Action(boolean b, KeyCombination k) {
+    private Action(boolean isGlobal, KeyCombination keys) {
         this.name = null;
         this.action = null;
         this.info = null;
         this.continuous = false;
-        this.global = b;
-        this.keys = k;
+        this.global = isGlobal;
+        this.keys = keys;
+        this.defaultGlobal = isGlobal;
+        this.defaultKeys = getKeys();
     }
     public static Action fromString(String str) {
         int i = str.lastIndexOf(",");

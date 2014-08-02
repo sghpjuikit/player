@@ -175,18 +175,14 @@ public final class TabArea extends PolyArea {
         if(i==null) {
             if(tabPane.getSelectionModel().isEmpty())
                 tabPane.getSelectionModel().select(0);
-        }
-        if(i!=null){
+        } else {
 //            if(tabs>i) i = tabs;    // prevent out of bounds
 //            if(i<1) i = 1;          // prevent no selection
 //            if(tabs>0 && tabPane.getSelectionModel().getSelectedIndex() != i)
                 tabPane.getSelectionModel().select(i);
         }
-//        
-//        // prevent no selection
-//        if(!tabPane.getTabs().isEmpty() && tabPane.getSelectionModel().isEmpty())
-//            tabPane.getSelectionModel().select(0);
         
+        // remember new state
         int ii = tabPane.getSelectionModel().getSelectedIndex();
         container.properties.set("selected", ii);
     }

@@ -1655,6 +1655,7 @@
     -fx-padding: 0.416667em 0.416667em 0.166667em 0.0em; /* 5 5 2 0 */
 }
 /* TODO: scaling the shape seems to make it way too large */
+/* TODO: scaling the shape seems to make it way too large */
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button {
     -fx-background-color: grey;// -fx-mark-color; << this color (original Modena)
                                // produces runtim parsing erors (string cant be parsed into color)
@@ -1662,6 +1663,13 @@
     -fx-shape: "M 0,0 H1 L 4,3 7,0 H8 V1 L 5,4 8,7 V8 H7 L 4,5 1,8 H0 V7 L 3,4 0,1 Z";
     -fx-scale-shape: false;
     -fx-effect: dropshadow(two-pass-box , rgba(255, 255, 255, 0.4), 1, 0 , 0, 1);
+    -fx-opacity: 0.0;
+    -fx-padding: 0 2 0 0;
+}
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container:hover > .tab-close-button,
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-close-button,
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container:hover > .tab-close-button {
+    -fx-opacity: 1;
 }
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-close-button:hover {
     -fx-background-color: derive(grey, -30%); // same story as above
@@ -3343,7 +3351,7 @@
     -fx-border-width: 0;
 }
 
-// HBox containing buttons within a header
+/* HBox containing buttons within a header */
 .header-buttons {
 }
 
@@ -3548,7 +3556,8 @@
 .thumbnail-border {
     -fx-border-color: black;
     -fx-border-width: 2; // this should be set to 2 for now as it depends on java code
-    -fx-border-insets: 0;
+/*    -fx-border-insets: -2;*/
+    /*-fx-background-insets: 2;*/
 }
 
 //****************************** SEEKER ***********************************//
@@ -3656,6 +3665,8 @@
     -fx-effect: dropshadow( gaussian, -fx-def-font-color-hover, 5, 0.0 , 0 , 0 );
 }
 
-.particle {
-    -fx-fill: -fx-font-def-color;
+/* Audio spectrum graph.
+   Extends and has all properties of: chart-bar */
+.audiospectrum {
+    // note: for now not working, use .chart-bar
 }

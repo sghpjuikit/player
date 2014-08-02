@@ -6,6 +6,8 @@
 
 package GUI;
 
+import Action.IsAction;
+import Action.IsActionable;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -37,24 +39,26 @@ import utilities.Log;
  * @author Plutonium_
  */
 @IsConfigurable("Window")
+@IsActionable
 public class WindowManager {
     
     @IsConfig(name="Docked mini mode", info="Whether application layout is in mini - docked mode.")
     public static boolean mini = false;
     
-    @AppliesConfig( "mini")
+    @AppliesConfig("mini")
     private static void applyMini() {
         setMini(mini);
     }
     
     static Window miniWindow;
     
+    @IsAction(name = "Toggle mini mode", description = "Toggle minimal layout docked mode", global = true, shortcut = "F9")    
     public static void toggleMini() {
         setMini(!mini);
     }
     
     private static Animation t;
-    
+
     public static void setMini(boolean val) {
         mini = val;
         if(val) {App.getWindow().hide();

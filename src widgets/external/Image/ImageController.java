@@ -2,20 +2,24 @@
 package Image;
 
 import Configuration.IsConfig;
+import GUI.DragUtil;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
+import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import utilities.FxTimer;
+import utilities.ImageFileFormat;
 import utilities.functional.functor.Procedure;
 
 /**
@@ -30,7 +34,9 @@ import utilities.functional.functor.Procedure;
     description = "Shows an image associaed with the skin.",
     howto = "Available actions:\n" +
             "    Left click : Next image\n" +
-            "    Right click : Previous image\n",
+            "    Right click : Previous image\n" +
+            "    Middle click : Show skin images if custom image\n" +
+            "    Drag & drop image : Show given custom image",
     notes = "Note: Some skins might not have any associated image, while some"
           + "will have many.",
     version = "1.0",
@@ -46,6 +52,11 @@ public class ImageController extends FXMLController {
     public boolean slideshow_on = true;
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
     public double slideshow_dur = 15000l;
+    // invisible for now
+    // 1 - we do not have a good image picker
+    // 2 - we need to make it possible to pick 'empty' image or null
+    @IsConfig(name = "Custom image", info = "Display custom static image file.", visible = false)
+    public File custom_image = new File("");
     
     
     @Override
@@ -63,6 +74,11 @@ public class ImageController extends FXMLController {
             if(e.getButton()==SECONDARY) {
                 prevImage.run();
                 e.consume();
+            } else
+            if(e.getButton()==MIDDLE) {
+                custom_image = new File("");
+                refresh();
+                e.consume();
             }
         });
         root.getChildren().add(thumb.getPane());
@@ -75,15 +91,31 @@ public class ImageController extends FXMLController {
         // bind manually for now so image resizes properly
         thumb.getPane().prefWidthProperty().bind(root.widthProperty());
         thumb.getPane().prefHeightProperty().bind(root.heightProperty());
+        
+        
+        root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
+        root.setOnDragDropped( e -> {
+            List<File> images = DragUtil.getImageItems(e);
+            if(!images.isEmpty()) custom_image = images.get(0);
+            refresh();
+        });
     }
 
     @Override
     public void refresh() {
         // grab fresh images
-        images.setAll(GUI.GUI.getGuiImages());
+        if(ImageFileFormat.isSupported(custom_image)) images.setAll(custom_image);
+        else images.setAll(GUI.GUI.getGuiImages());
         // set slideshow on/off according to state
         if (slideshow_on) slideshowStart();
         else slideshowEnd();
+        setImage(0);
+    }
+
+    @Override
+    public void OnClosing() {
+        slideshow.stop();
+        images.clear();
     }
     
     private void setImage(int index) {
@@ -108,7 +140,7 @@ public class ImageController extends FXMLController {
         if (images.isEmpty()) {
             setImage(-1);
         } else { 
-            int index = (active_image > images.size()-2) ? 0 : active_image+1;
+            int index = (active_image >= images.size()-1) ? 0 : active_image+1;
             setImage(index);
         }
     };

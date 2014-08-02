@@ -27,7 +27,6 @@
 - layout manager add mockup layout builder to make custom layout without loading
   the widgets, perhaps also display this mockup instead of thumbnail
 - add URI configField
-- file info handle long comment texts label->Text, add scrollbar ?
 - configurable support sub configurable by default
 - finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
 - seeker option to show chapters as they are passing                            (?)

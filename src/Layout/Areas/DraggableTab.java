@@ -107,9 +107,9 @@ public class DraggableTab extends Tab {
                 tabPanes.add(oldTabPane);
                 InsertData insertData = getInsertData(screenPoint);
                 
-                // if dropped at table
+                // if dropped at table reorder
                 if(insertData != null) {
-                    // id dropped at the same table - reorder
+                    // id dropped at the same table
                     if(oldTabPane == insertData.getInsertPane()) {
                         // return if nothing to do
                         if (oldTabPane.getTabs().size() == 1) return;

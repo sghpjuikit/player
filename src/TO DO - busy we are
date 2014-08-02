@@ -4,8 +4,6 @@
 --------------------------------------------------------------------------------
 
 - add uri verifier before adding to playlist and get runtime exception
-- LastFM saveLogin return boolean success flag - use in Window LastFmB when
-  saving to turn on Scrobbling on success
 - password config field
 - clean configurable & configuration
 - popover position jumps when drag starts
@@ -23,27 +21,28 @@
 - rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist index column width still not perfect
-- rating star button style remove border
-- Dirs widget prevents app closing normally (again)
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
-- picker elements sometimes sometimes off by 1 px and column size ends up wrong
 - bookmark config serialisation - hahsmap not supported
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - cant open two info popup at once - evolution of singleton = death...
 - create few predefined layouts + picker
 - remove custom context menus as they are now
-- mini mode shortcut
 - emty metadata MUST NOT return File("") !
 - Rater make base skin
-- tiny player controls vertically center align
-- layout padding
-- playlist scrollbar hiding content
 - tab area - select tab on mouse release not press or avoid loading content
   somehow when reordering 
 - support tab drag onto widget area and other tab areas
-- tabPane transfer by dragging only transfers active component 
+- tabPane transfer by dragging only transfers active component
+- configurator empt shortcut not defaulting? fix
+- trail effect disables click effect
+- shortcuts default button not working
+- improve dialog wit hValueConfigurable and remove ContentDialog
+- popups close button always show or sth
+- picker skin make more consistant with overall skin
+- complete Explorer, Image widgets
+- app not closing from taskbar righ close click
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

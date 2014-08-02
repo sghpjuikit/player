@@ -5,8 +5,11 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.playlist.SimplePlaylistItem;
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -18,6 +21,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import utilities.AudioFileFormat;
 import utilities.FileUtil;
+import utilities.ImageFileFormat;
 
 /**
  *
@@ -61,6 +65,20 @@ public final class DragUtil {
                 (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
                 d.hasContent(DragUtil.playlist) ||
                 d.hasContent(DragUtil.items)) {
+            t.acceptTransferModes(TransferMode.ANY);
+            t.consume();
+        }
+    };
+    
+    /**
+     * Accepts and consumes drag over event if contains at least 1 image file.
+     * @see #getImageFiles(javafx.scene.input.DragEvent)
+     */
+    public static final EventHandler<DragEvent> imageFileDragAccepthandler = t -> {
+        Dragboard d = t.getDragboard();
+        // accept if contains at least 1 audio file, audio url, playlist or items
+        if ((d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) ||
+                (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()))) {
             t.acceptTransferModes(TransferMode.ANY);
             t.consume();
         }
@@ -131,5 +149,17 @@ public final class DragUtil {
         }
         
         return out;
+    }
+    
+    public static List<File> getImageItems(DragEvent e) {
+        Dragboard d = e.getDragboard();
+        
+        if (d.hasFiles())
+            return FileUtil.getImageFiles(d.getFiles());
+        else
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()))
+            return Collections.singletonList(new File(d.getUrl()));
+        else 
+            return EMPTY_LIST;
     }
 }

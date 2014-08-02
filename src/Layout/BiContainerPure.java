@@ -41,7 +41,6 @@ public class BiContainerPure extends BiContainer {
 //        super.addChild(index, c);
         
         
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA " + index + " " + c);
         if(index == null) return;
         
         if (index<1 || index>2)
@@ -54,7 +53,6 @@ public class BiContainerPure extends BiContainer {
         load();
         initialize();
                 
-//        System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA " + index + " " + c);
 //        if(index == null) return;
 //        
 //        if (index<1 || index>2)

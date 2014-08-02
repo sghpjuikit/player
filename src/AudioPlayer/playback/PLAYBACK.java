@@ -455,6 +455,9 @@ public final class PLAYBACK implements Configurable {
             return;
         }
         playback = new MediaPlayer(media);
+        playback.setAudioSpectrumInterval(0.1);
+        playback.setAudioSpectrumNumBands(64);
+//        playback.setAudioSpectrumThreshold(i) // ? what val is ok?
 
         // bind (not read only) values: global -> new playback (automatic initialization)
         playback.volumeProperty().bind(state.volumeProperty());

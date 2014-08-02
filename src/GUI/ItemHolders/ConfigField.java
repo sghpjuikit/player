@@ -8,6 +8,7 @@ import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.REPEAT;
 import java.io.File;
 import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
@@ -20,6 +21,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContentDisplay;
+import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -58,30 +60,27 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     private final Label label = new Label();
     private final HBox box = new HBox();
     final T value;
-    final Config config;
+    final Config<T> config;
     private boolean applyOnChange = true;
 
-    private ConfigField(Config c) {
-        value = (T) c.getValue();
+    private ConfigField(Config<T> c) {
+        value = c.getValue();
         config = c;
         label.setText(c.getGuiName());
         
-        Button n = AwesomeDude.createIconButton(AwesomeIcon.REPEAT, "", "11","10",ContentDisplay.GRAPHIC_ONLY);
-               n.setOpacity(0);
-               n.setOnMouseClicked(e-> {
-                  config.setNapplyValue(config.getDefaultValue());
-                  refreshItem();
-               });
-               n.getStyleClass().setAll("congfig-field-default-button");
-        Tooltip.install(n, new Tooltip("Set to default value."));
+        Button defB = AwesomeDude.createIconButton(REPEAT, "", "11","10",GRAPHIC_ONLY);
+               defB.setOpacity(0);
+               defB.setOnMouseClicked(e-> setNapplyDefault());
+               defB.getStyleClass().setAll("congfig-field-default-button");
+        Tooltip.install(defB, new Tooltip("Set to default value."));
              
-        box.getChildren().add(n);
+        box.getChildren().add(defB);
         box.setMinSize(0,0);
         box.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
         box.setSpacing(5);
         box.setAlignment(CENTER_LEFT);
         
-        FadeTransition fa = new FadeTransition(Duration.millis(450), n);
+        FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
         box.addEventFilter(MOUSE_ENTERED, e-> {
             fa.stop();
             fa.setDelay(Duration.millis(270));
@@ -203,6 +202,18 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         } else 
             refreshItem();{
             return false;
+        }
+    }
+    
+    /**
+     * Sets and applies default value of the config if it has different value
+     * set.
+     */
+    public final void setNapplyDefault() {
+        T defVal = config.getDefaultValue();
+        if(!config.getValue().equals(defVal)) {
+            config.setNapplyValue(defVal);
+            refreshItem();
         }
     }
     
@@ -367,7 +378,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return cBox.isSelected();
         }
         @Override public void refreshItem() {
-            cBox.setSelected((Boolean)config.getValue());
+            cBox.setSelected(config.getValue());
         }
     }
     
@@ -441,7 +452,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return slider.getValue();
         }
         @Override public void refreshItem() {
-            slider.setValue(((Number)config.getValue()).doubleValue());
+            slider.setValue((config.getValue()).doubleValue());
         }
     }
     
@@ -547,7 +558,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return group;
         }
         @Override public boolean hasUnappliedValue() {
-            Action a = ((Config<Action>)config).getValue();
+            Action a = config.getValue();
             boolean sameglobal = glob.isSelected()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
@@ -558,7 +569,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             // config.setNapplyValue(getItem()); 
             // rather operate on the Action manually
 
-            Action a = ((Config<Action>)config).getValue();
+            Action a = config.getValue();
             boolean sameglobal = glob.isSelected()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
@@ -581,7 +592,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return value;
         }
         @Override public void refreshItem() {
-            Action a = (Action)config.getValue();
+            Action a = config.getValue();
             txtF.setPromptText(a.getKeys());
             txtF.setText("");
             glob.setSelected(a.isGlobal());
@@ -606,7 +617,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return picker.getValue();
         }
         @Override public void refreshItem() {
-            picker.setValue((Color)config.getValue());
+            picker.setValue(config.getValue());
         }
     }
       
@@ -633,7 +644,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return txtF.getItem();
         }
         @Override public void refreshItem() {
-            txtF.setItem((Font)config.getValue());
+            txtF.setItem(config.getValue());
         }
     }
     
@@ -660,7 +671,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return txtF.getItem();
         }
         @Override public void refreshItem() {
-            txtF.setItem((File)config.getValue());
+            txtF.setItem(config.getValue());
         }
     }
-}
+}  

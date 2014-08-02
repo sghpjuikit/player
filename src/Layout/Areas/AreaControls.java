@@ -30,7 +30,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -57,7 +57,7 @@ public final class AreaControls {
     @FXML public Region deactivator;
     @FXML public BorderPane header;
     @FXML public Label title;
-    public  Button propB;
+    public Label propB;
     @FXML TilePane header_buttons;
     
     // animations // dont initialize here or make final
@@ -94,7 +94,7 @@ public final class AreaControls {
 //        deactivator.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY))); // debug
         
         // build header buttons
-        Button helpB = AwesomeDude.createIconButton(INFO,"","12","12",CENTER);
+        Label helpB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
                helpB.setTooltip(new Tooltip("Help"));
                helpB.setOnMouseClicked( e -> {
                     // create popover lazily if not yet
@@ -124,9 +124,12 @@ public final class AreaControls {
                                  + "    Settings : Opens settings for the widget if available\n"
                                  + "    Refresh : Refreshes the widget\n"
                                  + "    Lock : Forbids entering layout mode on mouse hover\n"
+                                 + "    Press ALT : Toggles layout mode\n"
+                                 + "\n"
+                                 + "Available actions in layout mode:\n"
                                  + "    Drag & Drop : Drags widget to other area\n"
-                                 + "    Sroll : Changes widget size within area\n"
-                                 + "    Middle click : Set widget size to max\n"
+                                 + "    Sroll : Changes widget area size\n"
+                                 + "    Middle click : Set widget area size to max\n"
                                  + info;
                     helpPopOver.getContentNode().setText(text);
                     // for some reason we need to set this every time, which
@@ -135,31 +138,31 @@ public final class AreaControls {
                     helpPopOver.show(helpB);
                     e.consume();
                });
-        Button closeB = AwesomeDude.createIconButton(TIMES,"","12","12",CENTER);
+        Label closeB = AwesomeDude.createIconLabel(TIMES,"","12","12",ContentDisplay.RIGHT);
                closeB.setTooltip(new Tooltip("Close widget"));
                closeB.setOnMouseClicked( e -> {
                    close();
                    e.consume();
                });
-        Button detachB = AwesomeDude.createIconButton(EXTERNAL_LINK,"","12","12",CENTER);
+        Label detachB = AwesomeDude.createIconLabel(EXTERNAL_LINK,"","12","12",ContentDisplay.RIGHT);
                detachB.setTooltip(new Tooltip("Detach widget to own window"));
                detachB.setOnMouseClicked( e -> {
                    detach();
                    e.consume();
                });
-        Button changeB = AwesomeDude.createIconButton(TH_LARGE,"","12","12",CENTER);
+        Label changeB = AwesomeDude.createIconLabel(TH_LARGE,"","12","12",CENTER);
                changeB.setTooltip(new Tooltip("Change widget"));
                changeB.setOnMouseClicked( e -> {
                    choose();
                    e.consume();
                });
-               propB = AwesomeDude.createIconButton(COGS,"","12","12",CENTER);
+               propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
                propB.setTooltip(new Tooltip("Settings"));
                propB.setOnMouseClicked( e -> {
                    settings();
                    e.consume();
                });
-        Button lockB = AwesomeDude.createIconButton(area.isLocked() ? UNLOCK : LOCK,"","12","12",CENTER);
+        Label lockB = AwesomeDude.createIconLabel(area.isLocked() ? UNLOCK : LOCK,"","12","12",CENTER);
                lockB.setTooltip(new Tooltip(area.isLocked() ? "Unlock widget layout" : "Lock widget layout"));
                lockB.setOnMouseClicked( e -> {
                    toggleLocked();
@@ -167,7 +170,7 @@ public final class AreaControls {
                    lockB.getTooltip().setText(area.isLocked() ? "Unlock widget layout" : "Lock widget layout");
                    e.consume();
                });
-        Button refreshB = AwesomeDude.createIconButton(REFRESH,"","12","12",CENTER);
+        Label refreshB = AwesomeDude.createIconLabel(REFRESH,"","12","12",CENTER);
                refreshB.setTooltip(new Tooltip("Refresh widget"));
                refreshB.setOnMouseClicked( e -> {
                    refreshWidget();
@@ -176,13 +179,6 @@ public final class AreaControls {
                
         // build header
         header_buttons.getChildren().addAll(helpB,lockB,refreshB,propB,changeB,detachB,closeB);
-        // set common header button properties all at once...
-        header_buttons.getChildren().stream().map(c->(Button)c).forEach( c -> {
-            c.getStyleClass().add("header-button");
-            c.setPrefSize(15, 15);
-            c.setMinSize(15, 15);
-            c.setMaxSize(15, 15);
-        });
         
         // build animations
         contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), root);

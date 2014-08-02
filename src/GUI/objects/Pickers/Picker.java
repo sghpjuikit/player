@@ -50,6 +50,7 @@ public class Picker<E> {
         Label l = new Label(text);
         StackPane b = new StackPane(l);
         b.getStyleClass().setAll(CELL_STYLE_CLASS);
+        b.setSnapToPixel(true);
         return b;
     };
     
@@ -57,13 +58,16 @@ public class Picker<E> {
         // set spacing
         tiles.setHgap(EGAP);
         tiles.setVgap(EGAP);
+        tiles.setSnapToPixel(true);
         // set autosizing for tiles to always fill the grid entirely
         tiles.widthProperty().addListener((o,ov,nv) -> {
-            int rows = (int) Math.floor((nv.doubleValue())/100);
+            int columns = (int) Math.floor(nv.doubleValue()/100);
             // set maximum number of columns to 7
-                rows = Math.min(rows, 7);
+                columns = Math.min(columns, 7);
             // for n elements there is n-1 gaps so we need to add 1 gap width
-            double cell_width = (nv.doubleValue()+EGAP)/rows;
+            // note: cast to int to avoid non integer values & sum of cells
+            // surpassing that of the pane, causing incorrect columnt count
+            int cell_width = (int) (nv.doubleValue()+EGAP)/columns;
             // above cell width includes 1 gap width per element so substract it
             tiles.setPrefTileWidth(cell_width-EGAP);
         });

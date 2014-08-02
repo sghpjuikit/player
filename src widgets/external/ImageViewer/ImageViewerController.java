@@ -91,7 +91,9 @@ public class ImageViewerController extends FXMLController {
     public void init() {
         //initialize gui
         Thumbnail thumbnail = new Thumbnail();
+                  thumbnail.setBorderToImage(true);
         layout = new ImageFlowPane(entireArea,thumbnail);
+        layout.setGap(5);
         
         entireArea.getChildren().remove(thumb_root);
         layout.setMinContentHeight(150);

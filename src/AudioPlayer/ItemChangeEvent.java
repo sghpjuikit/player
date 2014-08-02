@@ -41,15 +41,12 @@ public class ItemChangeEvent {
     public void fireEvent( boolean type, Metadata oldV, Metadata newV ) {
         if ( type ) {
             Log.deb("PLAYING ITEM CHANGED");
-            handlersC.forEach(l ->
-                    l.accept(oldV, newV));
-            handlersU.forEach(l ->
-                    l.accept(oldV, newV));
+            handlersC.forEach(l -> l.accept(oldV, newV));
+            handlersU.forEach(l -> l.accept(oldV, newV));
         }
         else {
             Log.deb("PLAYING ITEM UPDATED");
-            handlersU.forEach(l ->
-                    l.accept(oldV, newV));
+            handlersU.forEach(l -> l.accept(oldV, newV));
         }
     }
 

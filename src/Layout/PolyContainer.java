@@ -43,18 +43,16 @@ public final class PolyContainer extends Container {
         AnchorPane.setTopAnchor(gui.getRoot(), 0.0);
         
         // we need to initialize the tabs
+        // no need to take car eof selection, since we do not change it
+        // it is restored in gui.addComponents()
             // grab a copy og the children
         Map<Integer,Component> cs = new HashMap();
         cs.putAll(children);
-            // prevent selection change in illegal state
-        gui.selectComponentPreventLoad(true);
             // remove children from layout graph & scene graph
         gui.removeAllComponents();
         children.clear();
             // reinitialize
         gui.addComponents(cs.values());
-            // reload old selection
-        gui.selectComponent(properties.getI("selected"));
         
         return gui.getRoot();
     }
@@ -100,7 +98,7 @@ public final class PolyContainer extends Container {
         // avoid pointless operation
         if(from==to || children.size()<2) return;
         
-        // we will reorder children and then reload similar like in load() method
+        // we will reorder children and then reload similar to as in load() method
             // grab a copy of the children
         List<Component> old =  new ArrayList();
                         old.addAll(children.values());
@@ -120,6 +118,7 @@ public final class PolyContainer extends Container {
             // reinitialize
         gui.addComponents(old);
             // reload old selection
+            // selection did not initialize itself because we locked it
         gui.selectComponent(properties.getI("selected"));
     }
     

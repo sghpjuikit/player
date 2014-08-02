@@ -90,12 +90,12 @@ public class Player {
 /******************************************************************************/
     
     /** Add behavior to playing item updated event. The event is fired every time
-     * playing item changes or some of its metadata is changed such as
-     * rating update.
+     * playing item changes or some of its metadata is changed such artist
+     * or rating.
      * <p>
      * Use in cases requiring constantly updated information about the playing 
      * item. This event guarantees consistency with currently played item 
-     * metadata at all time.
+     * metadata at all times, even during tagging.
      */
     public static void addOnItemUpdate(ItemChangeHandler<Metadata> handler) {
         core.itemChange.addOnUpdateHandler(handler);

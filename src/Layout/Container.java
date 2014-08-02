@@ -263,7 +263,7 @@ public abstract class Container extends Component implements AltState {
         //    layout graph.
         //    We want to avoid recursively closing every container by one
         getAllWidgets().map(Widget::getController)
-                // there might be passive widgets that were not loaded yet
+                // there might be passive widgets that avoided being loaded
                 .filter(NotNULL)
                 .forEach(c->c.OnClosing());
         

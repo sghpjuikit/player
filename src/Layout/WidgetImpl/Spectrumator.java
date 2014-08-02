@@ -9,12 +9,24 @@ package Layout.WidgetImpl;
 import GUI.objects.Spectrum;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import javafx.scene.layout.AnchorPane;
 
 /**
  *
  * @author Plutonium_
  */
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Spectrumator",
+    description = "PDisplays real time audio spectrum of playback",
+    howto = "",
+    notes = "",
+    version = "0.6",
+    year = "2014",
+    group = Widget.Group.VISUALISATION
+)
 public class Spectrumator extends AnchorPane implements Controller<Widget>  {
     private Spectrum spectr = new Spectrum();
     
@@ -36,13 +48,23 @@ public class Spectrumator extends AnchorPane implements Controller<Widget>  {
         AnchorPane.setTopAnchor(spectr,0.0);
         AnchorPane.setRightAnchor(spectr,0.0);
         AnchorPane.setLeftAnchor(spectr,0.0);
+        
+        // we only need to start listening once, so do it here rather than in
+        // refresh(). In fact that would have an effect of multiplying the
+        // listener
+        spectr.startListening();
     }
     
     
     
     private Widget widget;
     
-    @Override public void refresh() {
+    @Override public void refresh() {        
+    }
+
+    @Override
+    public void OnClosing() {
+        spectr.stopListening();
     }
 
     @Override public void setWidget(Widget w) {

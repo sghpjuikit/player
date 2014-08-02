@@ -18,16 +18,22 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
+import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.TOP_LEFT;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.TilePane;
 
 /**
  * 
@@ -43,8 +49,7 @@ import javafx.scene.layout.GridPane;
             "    Cover click : Toggle cover only mode\n" +
             "    Rater click : Rate displayed song\n" +
             "    Drag&Drop audio : Display information for the first item\n",
-    notes = "Plans: Improve layout.\n",
-    version = "0.8",
+    version = "0.9",
     year = "2014",
     group = Widget.Group.OTHER
 )
@@ -52,6 +57,7 @@ public class FileInfoController extends FXMLController  {
     
     @FXML AnchorPane entireArea;
     ImageFlowPane layout;
+    TilePane tiles = new TilePane(VERTICAL,10,0);
     
     Label title = new Label(); 
     Label track = new Label(); 
@@ -77,21 +83,19 @@ public class FileInfoController extends FXMLController  {
     Label encoding = new Label(); 
     Label location = new Label(); 
     final Rating rater = new Rating();
-    GridPane t;
     
-    final List<Label> labels = new ArrayList();
-    final List<Label> visible_labels = new ArrayList();
-    
-    final SimpleObjectProperty<Metadata> meta = new SimpleObjectProperty();
+    private List<Label> labels;
+    private final List<Label> visible_labels = new ArrayList();
+    private final SimpleObjectProperty<Metadata> meta = new SimpleObjectProperty();
     
     // properties
-    @IsConfig(name = "Read mode", info = "Source of data for the widget.")
+    @IsConfig(name = "Item source", info = "Source of data for the widget.")
     public ReadMode readMode = ReadMode.PLAYING;
     @IsConfig(name = "Column min width", info = "Minimal width for field columns. Use -1 for automatic width")
     public Double minColumnWidth = 150.0;
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public CoverSource cover_source = CoverSource.ANY;
-    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
+    @IsConfig(name = "Change item source on drag&drop", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
     public boolean changeReadModeOnTransfer = true;
     @IsConfig(name = "Rating editable", info = "Allow change of rating.")
     public boolean editableRating = Configuration.allowRatingChange;
@@ -111,7 +115,7 @@ public class FileInfoController extends FXMLController  {
     public boolean showFields = true;
     @IsConfig(name = "Display empty fields", info = "Show empty fields.")
     public boolean showEmptyFields = true;
-    @IsConfig(name = "Group fields", info = "Separate fields by gap and group them..")
+    @IsConfig(name = "Separate fields by group", info = "Separate fields by gap and group them..")
     public boolean groupFields = true;
     @IsConfig(name = "Show title", info = "Show this field.")
     public boolean showTitle = true;
@@ -154,68 +158,75 @@ public class FileInfoController extends FXMLController  {
     @IsConfig(name = "Show location", info = "Show this field.")
     public boolean showlocation = true;
     
+    ChangeListener<Number> tileResizer = (o,ov,nv) -> {
+            int columns = (int) Math.floor((nv.doubleValue())/minColumnWidth);
+            double cellW = columns==1 || columns==0 
+                // dont allow 0 columns & set whole width if 1 column
+                // handle 1 column manually - the below caused some problems
+                ? tiles.getWidth()
+                // for n elements there is n-1 gaps so we need to add 1 gap width
+                // above cell width includes 1 gap width per element so substract it
+                : (nv.doubleValue()+tiles.getHgap())/columns - tiles.getHgap();
+            tiles.setPrefTileWidth(cellW);
+        };
+    
     @Override
     public void init() {
         // initialize gui
         Thumbnail thumb = new Thumbnail();
-                  thumb.setBorderToImage(false);
+                  thumb.setBorderToImage(true);
                   
         layout = new ImageFlowPane(entireArea, thumb);
         layout.setMinContentWidth(200);
         layout.setMinContentHeight(120);
+        layout.setGap(5);
+//        tiles.setPrefTileWidth(150);
         
-        // initialize fields
-        labels.clear();
-        labels.add(title);
-        labels.add(track);
-        labels.add(disc);
-        labels.add(gap1);
-        labels.add(artist);
-        labels.add(album);  
-        labels.add(album_artist);
-        labels.add(year);
-        labels.add(genre);
-        labels.add(composer);
-        labels.add(publisher);
-        labels.add(gap2);
-        labels.add(rating);
-        labels.add(playcount);
-        labels.add(comment);
-        labels.add(category); 
-        labels.add(gap3);
-        labels.add(filesize);
-        labels.add(filename);
-        labels.add(format);
-        labels.add(bitrate);
-        labels.add(encoding);
-        labels.add(location);
+        // set autosizing for tiles to always fill the grid entirely
+        tiles.widthProperty().addListener(tileResizer);
+        
+        // alight tiles from left top & tile content to center left
+        tiles.setAlignment(TOP_LEFT);
+        tiles.setTileAlignment(CENTER_LEFT);
+        
+        // add rater stars to rating label as grphics
+        rating.setGraphic(rater);
+        rating.setGraphicTextGap(8);
+        rating.setContentDisplay(ContentDisplay.RIGHT);
+        
+        // grab fields
+        labels = Arrays.asList( title, track, disc, gap1,
+            artist, album, album_artist, year, genre, composer, publisher, gap2,
+            rating, playcount, comment, category, gap3,
+            filesize, filename, format, bitrate, encoding, location);
         
         // add to layout
-        layout.setChildren(labels);
-        layout.addChild(rater);
+        tiles.getChildren().addAll(labels);
+        
+        layout.addChild(tiles);
+        AnchorPane.setBottomAnchor(tiles, 0d);
+        AnchorPane.setRightAnchor(tiles, 0d);
+        AnchorPane.setTopAnchor(tiles, 0d);
+        AnchorPane.setLeftAnchor(tiles, 0d);
         
         // refresh if metadata source data changed
         meta.addListener( o -> refreshNoBinding());
         
-        // bind rater to rating
-        rater.disableProperty().bind(rating.disableProperty());
-        rater.visibleProperty().bind(rating.visibleProperty());
         // write metadata on rating change
         rater.setOnRatingChanged( e -> MetadataWriter.rate(meta.get(),rater.getRatingPercent()));
         // swap skin on right mouse click
         rater.setOnSkinChanged( e -> rating_skin = rater.getSkinCurrent());
-        rater.setOnMouseClicked(e -> { 
+        rater.setOnMouseClicked( e -> { 
             if (e.getButton() == SECONDARY) rater.toggleSkin(); 
         });
+        // hide rating if empty
+        rater.visibleProperty().bind(rating.disabledProperty().not());
         
         // show/hide content on cover mouse click
         thumb.getPane().setOnMouseClicked( e -> {
             if (e.getButton() == PRIMARY) layout.toggleShowContent();
         });
         
-        // redo layout if resized
-        layout.getContentPane().widthProperty().addListener( o -> reposition());
-        layout.getContentPane().heightProperty().addListener( o -> reposition());
         
         // accept drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
@@ -239,11 +250,12 @@ public class FileInfoController extends FXMLController  {
     public void refresh() {
         Player.bindObservedMetadata(meta, readMode);
         refreshNoBinding();
+        // apply min tile width
+        tileResizer.changed(null, null, tiles.getWidth());
     }
 
     @Override
     public void OnClosing() {
-        // unbind
         meta.unbind();
     }
     
@@ -263,7 +275,6 @@ public class FileInfoController extends FXMLController  {
         
         populateGui(meta.get());
         setVisibility();
-        reposition();
     }
     
     private void populateGui(Metadata m) {
@@ -305,32 +316,33 @@ public class FileInfoController extends FXMLController  {
         encoding.setText("encoding: "   + m.getEncoder());
         location.setText("location: "   + m.getPath());
     }
+    
     private void clear() {
-            layout.setImage((Image)null);
-            rater.setRating(0.0);
-            title.setText("title: ");
-            track.setText("track: ");
-            disc.setText("disc: ");
-            gap1.setText(" ");
-            artist.setText("artist: ");
-            album.setText("album: ");
-            album_artist.setText("album artist: ");
-            year.setText("year: ");
-            genre.setText("genre: " );
-            composer.setText("composer: ");
-            publisher.setText("publisher: ");
-            gap2.setText(" ");
-            rating.setText("rating: ");
-            playcount.setText("playcount: ");
-            comment.setText("comment: " );
-            category.setText("category: ");
-            gap3.setText(" ");
-            filesize.setText("filesize: ");
-            filename.setText("filename: ");
-            format.setText("format: ");
-            bitrate.setText("bitrate: ");
-            encoding.setText("encoding: ");
-            location.setText("location: ");
+        layout.setImage((Image)null);
+        rater.setRating(0d);
+        title.setText("title: ");
+        track.setText("track: ");
+        disc.setText("disc: ");
+        gap1.setText(" ");
+        artist.setText("artist: ");
+        album.setText("album: ");
+        album_artist.setText("album artist: ");
+        year.setText("year: ");
+        genre.setText("genre: " );
+        composer.setText("composer: ");
+        publisher.setText("publisher: ");
+        gap2.setText(" ");
+        rating.setText("rating: ");
+        playcount.setText("playcount: ");
+        comment.setText("comment: " );
+        category.setText("category: ");
+        gap3.setText(" ");
+        filesize.setText("filesize: ");
+        filename.setText("filename: ");
+        format.setText("format: ");
+        bitrate.setText("bitrate: ");
+        encoding.setText("encoding: ");
+        location.setText("location: ");
     }
     
     private void setVisibility() {
@@ -348,14 +360,13 @@ public class FileInfoController extends FXMLController  {
 
         // disable empty fields
         if (showEmptyFields) {
-            visible_labels.stream()
-                    .filter(l->{
-                        // filter out nonempty
-                        String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
-                        return content.isEmpty() || content.equalsIgnoreCase("?/?") ||
-                                content.equalsIgnoreCase("n/a") || content.equalsIgnoreCase("unknown");
-                    })
-                    .forEach(l->l.setDisable(true));
+            visible_labels.stream().filter(l->{
+                    // filter out nonempty
+                    String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
+                    return content.isEmpty() || content.equalsIgnoreCase("?/?") ||
+                            content.equalsIgnoreCase("n/a") || content.equalsIgnoreCase("unknown");
+                })
+                .forEach(l->l.setDisable(true));
         } else {
             labels.stream()
                 .filter(ll -> ll.getText().substring(ll.getText().indexOf(": ")+1).equals(" "))
@@ -393,29 +404,8 @@ public class FileInfoController extends FXMLController  {
         
         // show remaining
         visible_labels.forEach(l -> l.setVisible(true));
-                
+        
+        rating.setText("rating: ");
     }
-    private void reposition() {
-        double gapX = 5;
-        double gapY = 3;
-        double itemHeight = location.getFont().getSize() + gapY;                // label height
-        int itemsPerColumn = (int)Math.floor(layout.contentHeight()/itemHeight);
-            itemsPerColumn = (itemsPerColumn==0) ? 1 : itemsPerColumn; // prevent division by zero
-        int columns = 1+(visible_labels.size()/itemsPerColumn);                 // number of columns
-        double columnWidth = layout.contentWidth()/columns;                     // column width
-               columnWidth = columnWidth<minColumnWidth ? minColumnWidth : columnWidth;
-        double itemWidth = columnWidth-gapX;                                    // label width
-        for (Label l : visible_labels) {
-            int index = visible_labels.indexOf(l);
-            int column = (index / itemsPerColumn);
-            int row = (index % itemsPerColumn);
-            l.relocate(column * columnWidth, row * itemHeight);
-            l.setMaxWidth(itemWidth);
-            // rating
-            if (l.getText().startsWith("rating")) {
-                l.setText("rating:");
-                rater.relocate(column * columnWidth + l.getWidth() + 5, row * itemHeight-2);
-            }
-        }
-    }
+
 }

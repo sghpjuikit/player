@@ -51,9 +51,9 @@ public class GUI implements Configurable {
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
     public static boolean blur_layoutMode = false;
     @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
-    public static boolean opacity_layoutMode = false;
+    public static boolean opacity_layoutMode = true;
     @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.", min=0.0, max=1.0)
-    public static double opacity_LM = 0.2;
+    public static double opacity_LM = 0.8;
     @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur efect intensity.", min=0.0, max=20.0)
     public static double blur_LM = 8;
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
@@ -134,29 +134,33 @@ public class GUI implements Configurable {
     /** Loads/refreshes active layout. */
     @IsAction(name = "Reload layout", description = "Reload layout.", shortcut = "F6")
     public static void loadLayout() {
-        LayoutManager.getLayouts().forEach(l-> {
-            l.load();
-        });
+        LayoutManager.getLayouts().forEach(Layout::load);
     }
     
     /** Toggles layout controlling mode. */
-    @IsAction(name = "Manage Layout", description = "Enables layout managment mode.", shortcut = "F7")
+    @IsAction(name = "Reload skin", description = "Reloads skin.", shortcut = "F7")
+    public static void loadSkin() {
+        applySkin();
+    }
+    
+    /** Toggles layout mode. */
+    @IsAction(name = "Manage Layout", description = "Enables layout managment mode.", shortcut = "F8")
     public static void toggleLayoutMode() {
         setLayoutMode(!alt_state);
     }
     
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
-    @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F9")
+    @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F10")
     public static void toggleMinimize() {
         Window.getActive().toggleMinimize();
     }
     
-    @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F10")
+    @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F11")
     public static void toggleMaximize() {
         Window.getActive().toggleMaximize();
     }
     
-    @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F11")
+    @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F12")
     public static void toggleFullscreen() {
         Window.getActive().toggleFullscreen();
     }
@@ -230,7 +234,7 @@ public class GUI implements Configurable {
      * of that method.
      * @param skinname name of the skin to apply.
      */
-    public static void setSkin(String skinname) { System.out.println("setting " + skinname + " "+ skin);
+    public static void setSkin(String skinname) {
         if (skinname == null || skinname.isEmpty() || skinname.equalsIgnoreCase(STYLESHEET_MODENA)) {
             setSkinModena();
         } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {

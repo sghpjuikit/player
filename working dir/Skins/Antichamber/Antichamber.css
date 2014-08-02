@@ -43,7 +43,7 @@
 }
 
 .window > .brg-image {
-    -fx-opacity: 0.15;
+    -fx-opacity: 0.26;
     -fx-background-image: url("bgr.jpg");
     -fx-background-size: stretch;
 }
@@ -58,6 +58,17 @@
 .notification {
     -fx-background-color: white;
 }
+
+// audiospectrum - for now doesnt have its own styleclass
+//.audiospectrum,
+.chart-bar {
+    -fx-background-color: white;
+    -fx-border-color: black;
+    -fx-border-width: 1;
+}
+
+/************** table rows ***************/
+
 /* Selected rows focused control*/
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
@@ -79,4 +90,135 @@
     -fx-background-color: white;
     -fx-border-width: 1;
     -fx-border-color: black;
+}
+
+/************ buttons***************/
+
+/* ====   BUTTON LIKE THINGS   ============================================== */
+
+.button,
+.toggle-button,
+.radio-button > .radio,
+.check-box > .box,
+.color-picker.split-button > .color-picker-label{
+    -fx-background-color: white;
+    -fx-border-color: black;
+    -fx-border-width: 1;
+    -fx-border-insets: 1;
+}
+.button:hover,
+.button:focused:hover,
+.toggle-button:hover,
+.radio-button:hover > .radio,
+.check-box:hover > .box,
+.menu-button:hover,
+.split-menu-button > .label:hover,
+.split-menu-button > .arrow-button:hover,
+.slider .thumb:hover,
+.color-picker.split-button > .arrow-button:hover,
+.color-picker.split-button > .color-picker-label:hover,
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:hover {
+    -fx-background-color: white;
+    -fx-border-color: white;
+    -fx-border-width: 1;
+    -fx-border-insets: 1;
+}
+.button:armed,
+.toggle-button:armed,
+.radio-button:armed > .radio,
+.check-box:armed .box,
+.menu-button:armed,
+.split-menu-button:armed > .label,
+.split-menu-button > .arrow-button:pressed,
+.split-menu-button:showing > .arrow-button,
+.slider .thumb:pressed,
+//.choice-box:showing,
+.tab-pane > .tab-header-area > .control-buttons-tab > .container > .tab-down-button:pressed {
+    -fx-background-color: white;
+    -fx-border-color: black;
+    -fx-border-width: 1;
+    -fx-border-insets: 1;
+}
+.button:focused,
+.toggle-button:focused,
+.radio-button:focused > .radio,
+.menu-button:focused,
+//.choice-box:focused,
+.color-picker.split-button:focused > .color-picker-label{
+    -fx-background-color: white;
+    -fx-border-color: black;
+    -fx-border-width: 1;
+    -fx-border-insets: 1;
+}
+
+.label:disabled,
+.button:disabled,
+.toggle-button:disabled,
+.radio-button:disabled,
+.check-box:disabled,
+.hyperlink:disabled,
+.menu-button:disabled,
+.split-menu-button:disabled,
+.slider:disabled,
+.scroll-bar:disabled,
+.scroll-pane:disabled,
+.progress-bar:disabled,
+.progress-indicator:disabled,
+.text-input:disabled,
+.choice-box:disabled,
+.combo-box-base:disabled,
+.date-cell:disabled > *, /* This is set on children so border is not affected. */
+.list-view:disabled,
+.tree-view:disabled,
+.table-view:disabled,
+.tree-table-view:disabled,
+.tab-pane:disabled,
+.titled-pane:disabled > .title,
+.accordion:disabled > .titled-pane > .title,
+.tab-pane > .tab-header-area > .headers-region > .tab:disabled,
+.menu:disabled,
+.menu-item:disabled > .label,
+.menu-item:disabled,
+.list-cell:filled:selected:focused:disabled,
+.list-cell:filled:selected:disabled,
+.tree-cell:filled:selected:focused:disabled,
+.tree-cell:filled:selected:disabled,
+.tree-cell > .tree-disclosure-node:disabled,
+.tree-table-row-cell > .tree-disclosure-node:disabled,
+.table-row-cell:selected:disabled,
+.tree-table-row-cell:selected:disabled,
+.table-cell:selected:disabled,
+.tree-table-cell:selected:disabled {
+    -fx-opacity: 0.2;
+}
+
+// remove border and set border insets back so button text is not
+// hidden as these buttons are small
+.header-button {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-border: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+.header-button:focused {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-border: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+.header-button:hover {
+    -fx-background-color: rgba(250,250,250,0.25);
+    -fx-background-insets: 0;
+    -fx-border: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
+}
+.header-button:pressed {
+    -fx-background-color: rgba(250,250,250,0.4);
+    -fx-background-insets: 0;
+    -fx-border: null;
+    -fx-border-width: 0;
+    -fx-border-insets: 0;
 }

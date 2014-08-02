@@ -18,10 +18,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javax.imageio.ImageIO;
 import main.App;
+import static utilities.Util.NotNULL;
 
 /**
  * Provides file operations.
@@ -32,6 +34,15 @@ import main.App;
  * 
  */
 public final class FileUtil {
+    
+    /**
+     * Empty file. Use where null is not desired. There is only one instance of
+     * empty file - this one. Do not use equals() for comparing, intead use
+     * == operator.
+     * <p>
+     * Current implementation is file denoting application location directory.
+     */
+    public static final File EMPTY_FILE = new File("");
     
     /**
      * Returns true if for provided File all conditions are met:
@@ -287,6 +298,12 @@ public final class FileUtil {
      */
     public static boolean hasAudioFiles(List<File> files) {
         return files.stream().anyMatch(AudioFileFormat::isSupported);
+    }
+    
+    public static List<File> getImageFiles(List<File> files) {
+        return files.stream().filter(NotNULL)
+                .filter(ImageFileFormat::isSupported)
+                .collect(Collectors.toList());
     }
     
     /**

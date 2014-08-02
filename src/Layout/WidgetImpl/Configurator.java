@@ -113,8 +113,11 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     
     @FXML
     private void defaults() {
+        // use this for now
         Configuration.toDefault();
         refresh();
+        // bug with empty default shortcut?
+//        configFields.forEach(ConfigField::setNapplyDefault);
     }
 
 /******************************************************************************/

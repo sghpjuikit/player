@@ -68,5 +68,13 @@ public class ActionConfig extends Config<Action> {
     public Class<Action> getType() {
         return Action.class;
     }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public Action getDefaultValue() {
+        return Action.defaultOf(a);
+    }
+    
+    
     
 }

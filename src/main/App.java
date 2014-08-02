@@ -92,7 +92,7 @@ public class App extends Application {
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
-            
+          
             windowOwner = Window.create();          // create hidden main window
             windowOwner.getStage().setOpacity(0);
             windowOwner.show();

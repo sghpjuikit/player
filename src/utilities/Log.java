@@ -8,7 +8,7 @@ package utilities;
  * Prints messages.
  */
 public class Log {
-    
+  
     /**
      * Log message.
      * @param message 
@@ -30,7 +30,7 @@ public class Log {
      * @param message 
      */
     public static void err(String message) {
-        System.out.println("Error: " + message);
+        System.err.println("Error: " + message);
     }
     
     /**

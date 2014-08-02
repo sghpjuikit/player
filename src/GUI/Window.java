@@ -9,14 +9,11 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Configuration.ValueConfig;
-import Configuration.ValueConfigurable;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
-import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
 import static GUI.objects.Window.Resize.E;
 import static GUI.objects.Window.Resize.N;
@@ -613,6 +610,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
         
         Label lastFMB = new Label("",lastFMview);
+
         lastFMB.setOnMouseClicked( e -> {
             if(e.getButton() == MouseButton.PRIMARY){
                 if(LastFMManager.getScrobblingEnabled()){
@@ -620,22 +618,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 } else {
                     if(LastFMManager.isLoginSet()){
                         LastFMManager.toggleScrobbling();
-                    } else {
-                        SimpleConfigurator lfm = new SimpleConfigurator(
-                            new ValueConfigurable(
-                                new ValueConfig("Username", LastFMManager.acquireUserName()),
-                                new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
-                            ), vc->{ LastFMManager.saveLogin(
-                                (String)vc.getFields().get(0).getValue(),
-                                (String)vc.getFields().get(1).getValue());                                              
-                        });
-                        new PopOver("LastFM login", lfm).show(lastFMB);
+                    } else {                        
+                        new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);                        
                     }
                 }
+            }else if(e.getButton() == MouseButton.SECONDARY){
+                new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);  
             }
         });
         lastFMB.setTooltip(new Tooltip("LastFM"));
-        lastFMB.setDisable(true);
+//        lastFMB.setDisable(true);
        // help button - show hel information
         Label helpB = AwesomeDude.createIconLabel(INFO,"","15","11",CENTER);
         helpB.setOnMouseClicked( e -> {

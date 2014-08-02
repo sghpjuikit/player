@@ -11,6 +11,7 @@ package AudioPlayer.services.LastFM;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PercentTimeEventHandler;
@@ -18,7 +19,12 @@ import AudioPlayer.playback.TimeEventHandler;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Configuration.ValueConfig;
+import Configuration.ValueConfigurable;
+import GUI.objects.SimpleConfigurator;
 import de.umass.lastfm.Authenticator;
+import de.umass.lastfm.Caller;
+import de.umass.lastfm.Result;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.scrobble.ScrobbleResult;
@@ -47,10 +53,37 @@ public class LastFMManager {
     private static boolean timeSatisfied;
     private boolean durationSatisfied;
     @IsConfig(name = "Scrobbling on")
-    private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false);
+    private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false){
+
+        @Override
+        public void set(boolean newValue) {
+       
+           
+                if(newValue){
+                    if(isLoginSet()){
+                        session = Authenticator.getMobileSession(
+                                acquireUserName(), 
+                                acquirePassword(), 
+                                apiKey, secret);
+                        Result lastResult = Caller.getInstance().getLastResult();                    
+                        if(lastResult.getStatus() != Result.Status.FAILED){                   
+                            LastFMManager.initialize();
+                            super.set(true);
+                        }else super.set(false);
+                    }
+                }
+                else {
+                    LastFMManager.destroy();
+                    super.set(false);
+                }
+            }
+        
+    
+    };
 
  
-
+    
+    
     public static String getHiddenPassword() {
         return "****";
     }
@@ -70,52 +103,57 @@ public class LastFMManager {
     public LastFMManager() {  
     }
 
-    public static void initialize() {
-        if(scrobblingEnabled.get()){
-            acquireUserName();
-            session = Authenticator.getMobileSession(acquireUserName(), acquirePassword() , apiKey, secret);
-
-            Player.addOnItemChange((oldValue, newValue) -> {
-                if ((timeSatisfied || percentSatisfied)
-                        && oldValue.getLength().greaterThan(Duration.seconds(30))) {
-                    scrobble(oldValue);
-    //                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
-                }
-
-                updateNowPlaying();
-                reset();
-            });
+    public static void initialize() {  
+            Player.remOnItemUpdate(itemChange);
+            Player.addOnItemChange(itemChange);   
+            
             PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
             PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
-        }        
+              
     }
-
-
- 
-
+    
+    
     @TODO("Implement")
     public static boolean isLoginSet() {
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        return true;
+        return !"".equals(acquireUserName());
     }
     
     public static void saveLogin(String value, String value0) {
-        saveUserName(value);
-        savePassword(value0);
-        initialize();
+        if(saveUserName(value) && savePassword(value0)){
+            scrobblingEnabled.set(true);
+        }else{
+            scrobblingEnabled.set(false);
+        } 
     }
     
-    public static final void saveUserName(String username) {
-        preferences.put("lastfm_username", username);
+    
+    public static SimpleConfigurator getLastFMconfig(){
+        return new SimpleConfigurator(
+                            new ValueConfigurable(
+                                new ValueConfig("Username", LastFMManager.acquireUserName()),
+                                new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
+                            ), vc->{ LastFMManager.saveLogin(
+                                (String)vc.getFields().get(0).getValue(),
+                                (String)vc.getFields().get(1).getValue());                                              
+                        });    
+
     }
-    public static final void savePassword(String pass) {
+    
+    public static final boolean saveUserName(String username) {
+        preferences.put("lastfm_username", username);        
+        return preferences.get("lastfm_username", "").equals(username);
+        
+    }
+    public static final boolean savePassword(String pass) {
         preferences.put("lastfm_password", pass);
+        return preferences.get("lastfm_password", "").equals(pass);
     }
     public static String acquireUserName() {
-        return preferences.get("lastfm_username", null);        
+        return preferences.get("lastfm_username", "");
     }
     private static String acquirePassword(){
-        return preferences.get("lastfm_password", null);
+        return preferences.get("lastfm_password", "");
     }
     
     /************** Scrobble logic - event handlers etc ***********************/
@@ -130,7 +168,7 @@ public class LastFMManager {
     }
 
     private static void scrobble(Metadata track) {
-        Log.mess("Scrobbling: " + track);
+        Log.mess("Scrobbling: " + track.getArtist() + " - " + track.getTitle());
         int now = (int) (System.currentTimeMillis() / 1000);
         ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
     }
@@ -142,7 +180,7 @@ public class LastFMManager {
     private static final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
             0.5,
             () -> {
-                Log.deb("percent event for scrobbling fired");
+                Log.deb("Percent event for scrobbling fired");
                 setPercentSatisfied(true);
             },
             "LastFM percent event handler.");
@@ -155,6 +193,15 @@ public class LastFMManager {
             },
             "LastFM time event handler");
     
+    private static final ItemChangeHandler<Metadata> itemChange = (oldValue, newValue) -> {
+                if ((timeSatisfied || percentSatisfied)
+                        && oldValue.getLength().greaterThan(Duration.seconds(30))) {
+                    scrobble(oldValue);
+    //                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
+                }
+                updateNowPlaying();
+                reset();
+            };
 /*     *************   GETTERS and SETTERS    ****************************    */
     
     public static boolean getScrobblingEnabled() {
@@ -181,7 +228,8 @@ public class LastFMManager {
     
     
     
-      public void destroy() {
+      public static void destroy() {
+        Player.remOnItemUpdate(itemChange);
         PLAYBACK.realTimeProperty().removeOnTimeAt(percentEvent);
         PLAYBACK.realTimeProperty().removeOnTimeAt(timeEvent);
     }

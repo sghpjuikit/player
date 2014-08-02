@@ -33,6 +33,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
 import utilities.Log;
+import utilities.Password;
 import utilities.TODO;
 
 /**
@@ -51,6 +52,9 @@ public class LastFMManager {
 
     private static boolean percentSatisfied;
     private static boolean timeSatisfied;
+
+    
+    private static boolean loginSuccess;
     private boolean durationSatisfied;
     @IsConfig(name = "Scrobbling on")
     private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false){
@@ -63,13 +67,18 @@ public class LastFMManager {
                     if(isLoginSet()){
                         session = Authenticator.getMobileSession(
                                 acquireUserName(), 
-                                acquirePassword(), 
+                                acquirePassword().get(), 
                                 apiKey, secret);
                         Result lastResult = Caller.getInstance().getLastResult();                    
-                        if(lastResult.getStatus() != Result.Status.FAILED){                   
+                        if(lastResult.getStatus() != Result.Status.FAILED){
+                            LastFMManager.setLoginSuccess(true);
                             LastFMManager.initialize();
                             super.set(true);
-                        }else super.set(false);
+                        }else{
+                            LastFMManager.setLoginSuccess(false);
+                            LastFMManager.destroy();
+                            super.set(false);
+                        }
                     }
                 }
                 else {
@@ -83,7 +92,12 @@ public class LastFMManager {
 
  
     
-    
+    private static void setLoginSuccess(boolean b) {
+       loginSuccess = b; 
+    }
+    public static boolean isLoginSuccess(){
+        return loginSuccess;
+    }
     public static String getHiddenPassword() {
         return "****";
     }
@@ -119,7 +133,7 @@ public class LastFMManager {
         return !"".equals(acquireUserName());
     }
     
-    public static void saveLogin(String value, String value0) {
+    public static void saveLogin(String value, Password value0) {
         if(saveUserName(value) && savePassword(value0)){
             scrobblingEnabled.set(true);
         }else{
@@ -132,28 +146,28 @@ public class LastFMManager {
         return new SimpleConfigurator(
                             new ValueConfigurable(
                                 new ValueConfig("Username", LastFMManager.acquireUserName()),
-                                new ValueConfig("Password", LastFMManager.getHiddenPassword())                                  
+                                new ValueConfig("Password", LastFMManager.acquirePassword())                                  
                             ), vc->{ LastFMManager.saveLogin(
                                 (String)vc.getFields().get(0).getValue(),
-                                (String)vc.getFields().get(1).getValue());                                              
+                                (Password)vc.getFields().get(1).getValue() );                                              
                         });    
 
     }
     
     public static final boolean saveUserName(String username) {
-        preferences.put("lastfm_username", username);        
+        preferences.put("lastfm_username", username);  
         return preferences.get("lastfm_username", "").equals(username);
         
     }
-    public static final boolean savePassword(String pass) {
-        preferences.put("lastfm_password", pass);
-        return preferences.get("lastfm_password", "").equals(pass);
+    public static final boolean savePassword(Password pass) {
+        preferences.put("lastfm_password", pass.get());
+        return preferences.get("lastfm_password", "").equals(pass.get());
     }
     public static String acquireUserName() {
         return preferences.get("lastfm_username", "");
     }
-    private static String acquirePassword(){
-        return preferences.get("lastfm_password", "");
+    private static Password acquirePassword(){
+        return new Password(preferences.get("lastfm_password", ""));
     }
     
     /************** Scrobble logic - event handlers etc ***********************/

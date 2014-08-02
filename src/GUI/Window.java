@@ -616,7 +616,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 if(LastFMManager.getScrobblingEnabled()){
                     LastFMManager.toggleScrobbling();
                 } else {
-                    if(LastFMManager.isLoginSet()){
+                    if(LastFMManager.isLoginSuccess()){
                         LastFMManager.toggleScrobbling();
                     } else {                        
                         new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);                        

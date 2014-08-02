@@ -46,6 +46,7 @@ import org.controlsfx.control.textfield.CustomTextField;
 import utilities.FxTimer;
 import utilities.Parser.FileParser;
 import utilities.Parser.FontParser;
+import utilities.Password;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -234,6 +235,9 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         if (name.equals("skin"))
             cf = new SkinField(f);
         else
+        if (val instanceof Password)
+            cf = new ConfigField.PasswordField(f);
+        else 
         if (val instanceof Boolean)
             cf = new BooleanField(f);
         else 
@@ -272,11 +276,42 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     
 /******************************************************************************/
     
+    private static final class PasswordField extends ConfigField<Password>{
+        
+        javafx.scene.control.PasswordField passF = new javafx.scene.control.PasswordField();
+        
+        public PasswordField(Config<Password> c) {
+            super(c);
+            refreshItem();
+            
+        }
+
+        @Override
+        Node getNode() {
+            return passF;
+        }
+
+        @Override
+        public Password getItem() {
+            return new Password(passF.getText());
+        }
+
+        @Override
+        public void refreshItem() {
+            passF.setText(config.getValue().get());
+        }
+   
+        
+    }
+    
+    
+    
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField txtF = new CustomTextField();
         final boolean allow_empty; // only for string
         Button okBL= AwesomeDude.createIconButton(AwesomeIcon.CHECK, "", "15","15",ContentDisplay.GRAPHIC_ONLY);
         AnchorPane okB = new AnchorPane(okBL);
+   
         
         private GeneralField(Config c) {
             super(c);

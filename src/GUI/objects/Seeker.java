@@ -224,7 +224,17 @@ public final class Seeker extends AnchorPane {
     private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty(0);
     private final ChangeListener<Duration> positionUpdater = (o,ov,nv)-> {
         if (!canUpdate) return;
-        position.setValue(currentTime.get().toMillis()/totalTime.get().toMillis());
+//        position.setValue(currentTime.get().toMillis()/totalTime.get().toMillis());
+        
+        double newPos = currentTime.get().toMillis()/totalTime.get().toMillis();
+        // turn on if you want discrete§ mode 
+//        double unit = 1;
+//        double oldPos = position.getValue();
+//        double dist = position.getWidth() * Math.abs(newPos-oldPos);
+//        if(dist > unit)
+            position.setValue(newPos);
+        
+        
     };
     
     /**

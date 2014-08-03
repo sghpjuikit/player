@@ -35,7 +35,7 @@ public class ActionConfig extends Config<Action> {
      * @param c action to be wrapped. Becomes final as this config is immutable.
      */
     ActionConfig(Action c) {
-        super(c.name,c.name+" Shortcut", c, "Shortcuts", c.info, true, true, NaN, NaN);
+        super(c.name,c.name, c, "Shortcuts", c.info, true, true, NaN, NaN);
         a = c;
     }
     

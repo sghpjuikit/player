@@ -218,7 +218,7 @@ public final class Action {
         try {
             this.keys = KeyCombination.keyCombination(keys);
         } catch (Exception e) {
-            Log.mess("Illegal shortcut keys parameter. Shortcut keys disabled for: "
+            Log.info("Illegal shortcut keys parameter. Shortcut keys disabled for: "
                     + name + " Keys: '" + keys + "'");    
             this.keys = NO_MATCH;   // disable shortcut for wrong keys
         }

@@ -5,37 +5,37 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import utilities.Log;
-import utilities.Parser.Parser;
 
 /**
- * Denotes object that can be configured.
- * Configurable object exports its configuration as {@link Config} fields. This can
- * be very useful example to save a configurable's 'state' or restore it back 
- * as a means to serialize complicated or composite objects. Also Configurable
- * can be used to generate property sheet GUI to set change the state of the object.
+ * Defines object that can be configured.
  * <p>
- * The object denoted by a Configurable can be simple objects with some properties,
+ * Configurable object exports its configuration as {@link Config} fields. This can
+ * be very used to save or restore a configurable's state (in serialization), 
+ * change or manipulate this state or even generate property sheet GUI to change
+ * the state of the object.
+ * <p>
+ * Anything can be configurable (depends on implementation) - an object with 
+ * some state (fields) or properties (for example javaFX {@link Property}), or
  * composite object composed of sub Configurables exposing all its aggregated
  * subparts transparently as one or it could even be a virtual object - simply
- * a collection of objects and values wrapped into a Configurable.
+ * a collection of Configs into a Configurable.
  * <p>
  * This interface already provides default implementations of all its methods.
- * Implementing classes therefore get all the behavior with no additional work.
- * This is because the interface uses default methods and reflection to introspect this
- * object's class and configurations.
- * <p>
  * The default implementation makes use of the {@link Configuration.IsConfig}
- * annotation. Annotating a field will make it compatible with default behavior
- * of this interface and is necessary and only requirement.
- * <pre>
- * It is required for a field to not be final. Final field will be ignored and
- * can not have its value set (practically read-only configuration field).
+ * annotation and discovers all fields of this object by reflection.
+ * See IsConfig's own documentation to learn more about how to use it.
+ * <p>
+ * It is possible to use your own implementation. Such would require to override
+ * getFields and getField methods.
  * 
  * @author uranium
  */
 public interface Configurable {
     
-    /** @return Config Fields of this object */
+    /** 
+     * Get all configs of this configurable.
+     * @return Configs of this configurable
+     */
     default public List<Config> getFields() {
         List<Config> fields = new ArrayList();
         for (Field f: getClass().getFields()) {
@@ -51,41 +51,51 @@ public interface Configurable {
     }
     
     /**
-     * Set configurable field of specified name to specified value.
+     * Get config of this configurable with specified name
      * @param name
-     * @param value 
-     * @return true if field has been set, false otherwise
+     * @return config or null if no available. Note: never check for null, rather
+     * let NullPointerException be thrown if null is returned. Null always
+     * signifies programming error.
      */
-    default public boolean setField(String name, Object value) {
+    default public Config getField(String name) {
         try {
             Field f = getClass().getField(name);
-                  f.set(this, value);
-                  Log.deb("Config field: " + name + " set to: " + value);
-            return true;
+            IsConfig a = f.getAnnotation(IsConfig.class);
+            Object val = f.get(this);
+            String group = getClass().getName();
+            if(a==null)
+                Log.warn("Config '" + name + "' not found. Field exists, but annotation missing");
+            return new InstanceFieldConfig(name,a,val,group,this,f);
         } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
-            if(!name.equals("preferred"))
-            Log.err("Config field: " + name + " failed to set. Reason: " + ex.getMessage());
-            return false;
+            return null;
         }
     }
     
     /**
-     * Set configurable field of specified name to value specified by String. This method
-     * only works for fields of type that can be parsed from String.
+     * Convenience method. Equivalent to: return getField(name).setValue(value);
+     * <p>
+     * Set configurable field of specified name to specified value.
      * @param name
      * @param value 
      * @return true if field has been set, false otherwise
+     * @throws NullPointerException if no field available. Note: never catch
+     * this exception or check for null. It signifies programming error.
+     */
+    default public boolean setField(String name, Object value) {
+        return getField(name).setValue(value);
+    }
+    
+    /**
+     * Convenience method. Equivalent to: return getField(name).setValueFrom(value);
+     * <p>
+     * Set configurable field of specified name to value specified by String.
+     * @param name
+     * @param value 
+     * @return true if field has been set, false otherwise
+     * @throws NullPointerException if no field available. Note: never catch
+     * this exception or check for null. It signifies programming error.
      */
     default public boolean setField(String name, String value) {
-        try {
-            Field f = getClass().getField(name);
-                  f.set(this, Parser.fromS(f.getType(), value));
-                  Log.deb("Config field: " + name + " set to: " + value);
-            return true;
-        } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
-            if(!name.equals("preferred"))
-            Log.err("Config field: " + name + " failed to set. Reason: " + ex.getMessage());
-            return false;
-        }
+        return getField(name).setValueFrom(value);
     }
 }

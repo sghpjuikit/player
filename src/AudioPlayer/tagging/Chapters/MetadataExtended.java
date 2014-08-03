@@ -107,15 +107,15 @@ public final class MetadataExtended {
         File f = new File(metadata.getFile().toString()+".xml");
         
         if (!f.exists()) { 
-            Log.mess("File " + f.toString() + " doesnt exist");
+            Log.info("File " + f.toString() + " doesnt exist");
             return;
         }
         if (!f.canRead()) { 
-            Log.mess("File " + f.toString() + " cannot be read");
+            Log.info("File " + f.toString() + " cannot be read");
             return;
         }
         if (!f.canWrite()) {
-            Log.mess("File " + f.toString() + " cannot be written into");
+            Log.info("File " + f.toString() + " cannot be written into");
             return;
         }
         

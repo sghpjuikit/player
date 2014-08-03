@@ -181,7 +181,7 @@ public class App extends Application {
      */
     public static void close() {
         // close window
-        instance.window.close();
+        instance.windowOwner.close();
         // close app
         Platform.exit();
     }

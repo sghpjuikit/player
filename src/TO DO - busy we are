@@ -4,8 +4,6 @@
 --------------------------------------------------------------------------------
 
 - add uri verifier before adding to playlist and get runtime exception
-- password config field
-- clean configurable & configuration
 - popover position jumps when drag starts
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
@@ -37,12 +35,10 @@
 - tabPane transfer by dragging only transfers active component
 - configurator empt shortcut not defaulting? fix
 - trail effect disables click effect
-- shortcuts default button not working
 - improve dialog wit hValueConfigurable and remove ContentDialog
-- popups close button always show or sth
 - picker skin make more consistant with overall skin
-- complete Explorer, Image widgets
-- app not closing from taskbar righ close click
+- ALT+F4 closes windows separately instead whole app
+- popover show pin icon property
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -52,7 +48,7 @@ GENERAL
 - playlist manual sorting does not work
 - Thumbnail borde rchanges size of the control - not good at all
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
-- little bug with position slider on repositioning                              (minor)
+- little bug with position slider on manual seeking                             (minor)
   cause: it takes a while for seek() to actually seek. During this time the
   seeker jumps back to current position. Its bad because the seeker already was
   at the right position when mouse pressed took place - solution unknown
@@ -63,7 +59,7 @@ GENERAL
   status: currently unsolvable, so far one of its kind
   problem: jintellitype '\' works only for right '\' not left one (yes there are
   two '\' keys on the keyboard).
-- shift scrolling not working anymore for tables (supposed to scroll horizontly)
+- shift scrolling not working anymore for tables (supposed to scroll horizontly)(?)
 - global shortcuts sometimes still fail to register to proper keys and register (medium, investigate cases)
   for ALT instead. It happened only once since last reimplementation and it was
   probabyly a result of messing around with configs. But it can still produce
@@ -82,7 +78,7 @@ SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
   nonempty.
   solution: custom comment reading method filters out CUSTOM fields             (great)
-- split container divider position doesnt load properly (vertical only).        (medium)
+- split container divider position doesnt load properly (vertical only).        (major)
   This has something to do with some other (probably orientation) property
   overriding divider position and consequently changing the "pos" value in the
   very container ultimately losing the original position value
@@ -108,7 +104,7 @@ SOLVED (but the underlying cause still deserves attention)
   code pollution). This is very controversial solution but works great.
 - fullscreen not initializing on window deserialization, update() method bug    (minor)
   cause: unknown                                                                (javafx bug?)
-  problem: fullscreen is set, resizability is set to false, the hint is shown
+  problem: fullscreen is set, resizability is set to false, the fs hint is shown
   but the window does not cover whole screen - maybe its too soon
   and the window is not really fully initialized
   solution: delay execution 100ms (see WindowBase.update())                     (not ideal but no problems)
@@ -132,8 +128,7 @@ PROBLEMS
   properly handle vol scolling and app dragging event consuminf at widget level
 - dynamically create LayoutAggregator depending on size or preferences when
   deserializing and creating windows, or make it into a container?
-- figure out custom context menus - just get rid of them? would be the best
-  as for circle CM - its a waste, but what to do with it?
+- circle context menu find some use for it
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
@@ -178,18 +173,15 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - InstanceFieldConfig and StaticClassConfig unite into FieldConfig +
   config turn into interface
 - make AppConfigurable and make all managers non static
-- Container getAll Children/Containers/Widgets  improve code
+- Container getAll Children/Containers/Widgets improve code
 - Layout & Widget serialization code clean up
+- dragutils make own dragboard, avoid serialisation
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (still an issue ?)
 - onTimeAt events seem to be pretty mem hungry(4x=10MB), implement clock to     (medium)
   cut down number of cycles (200ms should be MORE than enough)
   edit: clock done, reimplement more effectively and clean up
-- played files leak on song change                                              (still an issue ?)
-- test picture loading
-- picker static always in memory - mem leak                                     (not an issue?)
-  problem: how to lazy load it if not as static field?
 - layout reload mem leak - investigate                                          (major)
 - skin refresh memory consumptin investigate                                    (medium)
 
@@ -210,7 +202,7 @@ PERFORMANCE
   hardcoded part in Thumbnail class is resolved
 - instead of javafx.scene.text.Text use Text class provided by the project. It
   is exactly the same but provides css styleclass and support for skinning. Also
-  comes in with a handy method
+  comes in with a handy resize methods
 - real main app window is hidden and owner of the others. this way they share
   some of the state like minimized
 - tooltip font size for AwesomeDude Label is same as icon size - which means

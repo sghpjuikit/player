@@ -68,10 +68,10 @@ public class WindowManager {
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
             miniWindow = Window.deserializeSuppressed(f);
             // if not available, make new one, set initial size
-            if(miniWindow == null) {
-                miniWindow = Window.create();
-                miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 50);
-            }
+            if(miniWindow == null)  miniWindow = Window.create();
+            miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
+            miniWindow.setResizable(false);
+            
             // create content
                 // layout
             Layout l = new Layout();

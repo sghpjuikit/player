@@ -136,14 +136,16 @@ public class PopOverSkin implements Skin<PopOver> {
         headerControls.getStyleClass().add("header-buttons");
         // initialize proper header content
                 headerControls.getChildren().setAll(popOver.getHeaderIcons());
-                headerControls.getChildren().add(headerControls.getChildren().size(),
-                        popOver.isDetached() ? closeIcon : pinIcon);
+//                headerControls.getChildren().add(headerControls.getChildren().size(),
+//                        popOver.isDetached() ? closeIcon : pinIcon);
+                headerControls.getChildren().addAll(pinIcon,closeIcon);
         // maintain proper header content
         popOver.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
             while(e.next()) {
                 headerControls.getChildren().setAll(popOver.getHeaderIcons());
-                headerControls.getChildren().add(headerControls.getChildren().size(),
-                        popOver.isDetached() ? closeIcon : pinIcon);
+//                headerControls.getChildren().add(headerControls.getChildren().size(),
+//                        popOver.isDetached() ? closeIcon : pinIcon);
+                headerControls.getChildren().addAll(pinIcon,closeIcon);
             }
         });
         // switch pin & close icons when on detach change
@@ -151,8 +153,9 @@ public class PopOverSkin implements Skin<PopOver> {
         // we want to customize autohiding arbitrarily in undetached mode
         // we want to close manually in detached mode with autohide off
         popOver.detachedProperty().addListener((o,ov,nv)->{
-            headerControls.getChildren().set(headerControls.getChildren().size()-1,
-                        nv ? closeIcon : pinIcon);
+//            headerControls.getChildren().set(headerControls.getChildren().size()-1,
+//                        nv ? closeIcon : pinIcon);
+            headerControls.getChildren().addAll(pinIcon,closeIcon);
         });
         
         header = new BorderPane();

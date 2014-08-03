@@ -68,6 +68,7 @@ public class GUI implements Configurable {
     
     // other
     public static boolean alt_state = false;
+    public static boolean locked_layout = false;
     private static final List<String> skins = new ArrayList();
     
     // 'singleton' objects and controls for use within app
@@ -121,6 +122,22 @@ public class GUI implements Configurable {
     public static boolean isLayoutMode() {
         return alt_state;
     }
+    
+    /** Set lock to prevent layouting. */
+    public static void setLayoutlocked(boolean val) {
+        locked_layout = val;
+    }
+    
+    /** Return lock to prevent layouting. */
+    public static boolean isLayoutLocked() {
+        return locked_layout;
+    }
+    
+    /** Toggles lock to prevent layouting. */
+    public static void toggleLayoutLocked() {
+        locked_layout=!locked_layout;
+    }
+    
     /** Loads/refreshes whole gui. */
     @IsAction(name = "Reload GUI.", description = "Reload application GUI. Includes skin, font, layout.", shortcut = "F5")
     public static void refresh() {
@@ -180,27 +197,27 @@ public class GUI implements Configurable {
         // find skin directories
         File[] dirs = dir.listFiles(File::isDirectory);
         // find & register skins
-        Log.mess("Registering external skins.");
+        Log.info("Registering external skins.");
         skins.clear();
         for (File d: dirs) {
             String name = d.getName();
             File css = new File(d, name + ".css");
             if(FileUtil.isValidFile(css)) {
                 skins.add(name);
-                Log.mess("    Skin " + name + " registered.");
+                Log.info("    Skin " + name + " registered.");
             }
         }
         
         if (skins.isEmpty())
-            Log.mess("No skins found.");
+            Log.info("No skins found.");
         else
-            Log.mess(skins.size() + " skins found.");
+            Log.info(skins.size() + " skins found.");
         
-        Log.mess("Registering internal skins.");
+        Log.info("Registering internal skins.");
         skins.add(Util.capitalizeStrong(STYLESHEET_CASPIAN));
         skins.add(Util.capitalizeStrong(STYLESHEET_MODENA));
-        Log.mess("    Skin Modena registered.");
-        Log.mess("    Skin Caspian registered.");
+        Log.info("    Skin Modena registered.");
+        Log.info("    Skin Caspian registered.");
     }
     
     public static List<String> getSkins() {

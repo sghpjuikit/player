@@ -28,7 +28,7 @@
             assign it area too. Must be done manually.
     */
 .block {
-    -fx-background-color: rgba(255,255,255,1);
+    -fx-background-color: rgba(255,255,255,0.7);
     -fx-border-color: grey;
     -fx-border-width: 1;
     -fx-border-radius: 1;

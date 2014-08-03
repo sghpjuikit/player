@@ -63,33 +63,26 @@ public class ExplorerController extends FXMLController {
     
     @Override
     public void init() {
-        try {
-            // create LiveDirs to watch a directory
-            liveDirs = new LiveDirs(ChangeSource.EXTERNAL);
-            
-            tree.setShowRoot(false);
-            tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-            
-            // set value factory
-            tree.setCellFactory((TreeView<Path> param) -> {
-                return new TreeCell<Path>(){
-                    @Override
-                    protected void updateItem(Path item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if(empty || item== null) {this.
-                            setText(null);
-                            setGraphic(null);
-                        } else {
-                            setText(item.getFileName().toString()); // show filenames
-                            setGraphic(makeIcon(item));             // denote type by icon
-                        }
+        
+        tree.setShowRoot(false);
+        tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        // set value factory
+        tree.setCellFactory((TreeView<Path> param) -> {
+            return new TreeCell<Path>(){
+                @Override
+                protected void updateItem(Path item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if(empty || item== null) {this.
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        setText(item.getFileName().toString()); // show filenames
+                        setGraphic(makeIcon(item));             // denote type by icon
                     }
-                };
-            });
-            
-        } catch (IOException ex) {
-            Logger.getLogger(ExplorerController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+                }
+            };
+        });
         
         // supprt drag from tree - add selected to clipboard/dragboard
         tree.setOnDragDetected( e -> {
@@ -110,6 +103,15 @@ public class ExplorerController extends FXMLController {
     
     @Override
     public void refresh() {
+        // recreate liveDirs to change root
+        if(liveDirs!=null) liveDirs.dispose();
+        try {
+            // create LiveDirs to watch a directory
+            liveDirs = new LiveDirs(ChangeSource.EXTERNAL);
+        } catch (IOException ex) {
+            Logger.getLogger(ExplorerController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         Path dir = rootDir.getAbsoluteFile().toPath();
         liveDirs.addTopLevelDirectory(dir);
         tree.setRoot(liveDirs.model().getRoot());

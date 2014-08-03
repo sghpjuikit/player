@@ -159,7 +159,7 @@ public final class DragUtil {
         else
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()))
             return Collections.singletonList(new File(d.getUrl()));
-        else 
+        else
             return EMPTY_LIST;
     }
 }

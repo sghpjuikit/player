@@ -39,7 +39,7 @@ public class ClassWidget extends Widget<Controller> {
             }            
             return node;
         } catch (ClassCastException | InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            Log.mess("Widget " + name + " failed to load. "+ex.getMessage());
+            Log.info("Widget " + name + " failed to load. "+ex.getMessage());
             return Widget.EMPTY().load();
         }
     }

@@ -144,13 +144,14 @@ public class LastFMManager {
     
     public static SimpleConfigurator getLastFMconfig(){
         return new SimpleConfigurator(
-                            new ValueConfigurable(
-                                new ValueConfig("Username", LastFMManager.acquireUserName()),
-                                new ValueConfig("Password", LastFMManager.acquirePassword())                                  
-                            ), vc->{ LastFMManager.saveLogin(
-                                (String)vc.getFields().get(0).getValue(),
-                                (Password)vc.getFields().get(1).getValue() );                                              
-                        });    
+            new ValueConfigurable(
+                new ValueConfig("Username", LastFMManager.acquireUserName()),
+                new ValueConfig("Password", LastFMManager.acquirePassword())                                  
+            ), 
+            vc -> LastFMManager.saveLogin(
+               (String)vc.getFields().get(0).getValue(),
+               (Password)vc.getFields().get(1).getValue())                                     
+        );    
 
     }
     
@@ -182,7 +183,7 @@ public class LastFMManager {
     }
 
     private static void scrobble(Metadata track) {
-        Log.mess("Scrobbling: " + track.getArtist() + " - " + track.getTitle());
+        Log.info("Scrobbling: " + track.getArtist() + " - " + track.getTitle());
         int now = (int) (System.currentTimeMillis() / 1000);
         ScrobbleResult result = Track.scrobble(track.getArtist(), track.getTitle(), now, session);
     }

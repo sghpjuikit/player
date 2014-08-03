@@ -120,9 +120,9 @@ public class MetadataWriter extends MetaItem {
                     audioFile.getTag().createField(FieldKey.ARTIST, a);
                     fields_changed++;
                 } catch (KeyNotFoundException ex) {
-                Log.mess("Artist field not found.");
+                Log.info("Artist field not found.");
                 } catch (FieldDataInvalidException ex) {
-                    Log.mess("Invalid artist field data.");
+                    Log.info("Invalid artist field data.");
                 }
             });
     }
@@ -153,11 +153,11 @@ public class MetadataWriter extends MetaItem {
             }
             fields_changed++;
         } catch (KeyNotFoundException ex) {
-            Log.mess("Category field not found.");
+            Log.info("Category field not found.");
         } catch (FieldDataInvalidException ex) {
-            Log.mess("Invalid category field data.");
+            Log.info("Invalid category field data.");
         } catch (IOException ex) {
-            Log.mess("Problem with the file reading when setting cover to tag.");
+            Log.info("Problem with the file reading when setting cover to tag.");
         }
     }
     
@@ -195,7 +195,7 @@ public class MetadataWriter extends MetaItem {
                     throw new IllegalArgumentException("Rating number must not be negative");
                 setRating(val);
             } catch (NumberFormatException ex) {
-                Log.mess("Rating field value not a number");
+                Log.info("Rating field value not a number");
             }
         }
     }
@@ -214,7 +214,7 @@ public class MetadataWriter extends MetaItem {
                 double val = Double.parseDouble(rating);
                 setRatingPercent(val);
             } catch (NumberFormatException ex) {
-                Log.mess("Rating field value not a number");
+                Log.info("Rating field value not a number");
             }
         }
     }
@@ -247,9 +247,9 @@ public class MetadataWriter extends MetaItem {
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   setRatingMP3(val); break;
-            case flac:  Log.mess("Unsupported operation."); break;
-            case ogg:   Log.mess("Unsupported operation."); break;
-            case wav:   Log.mess("Unsupported operation."); break;
+            case flac:  Log.info("Unsupported operation."); break;
+            case ogg:   Log.info("Unsupported operation."); break;
+            case wav:   Log.info("Unsupported operation."); break;
             default: throw new AssertionError(f + " in default switch value.");
         } 
     }
@@ -271,7 +271,7 @@ public class MetadataWriter extends MetaItem {
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
-            Log.mess("Ignoring rating field. Data invalid.");
+            Log.info("Ignoring rating field. Data invalid.");
         }
     }
 
@@ -301,7 +301,7 @@ public class MetadataWriter extends MetaItem {
                     throw new NumberFormatException("Playcount number must not be negative");
                 setPlaycount(val);
             } catch (NumberFormatException ex) {
-                Log.mess("Playcount field value not a number");
+                Log.info("Playcount field value not a number");
             }
         }
     }
@@ -312,9 +312,9 @@ public class MetadataWriter extends MetaItem {
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   setPlaycountMP3(val); break;
-            case flac:  Log.mess("Unsupported operation."); break;
-            case ogg:   Log.mess("Unsupported operation."); break;
-            case wav:   Log.mess("Unsupported operation."); break;
+            case flac:  Log.info("Unsupported operation."); break;
+            case ogg:   Log.info("Unsupported operation."); break;
+            case wav:   Log.info("Unsupported operation."); break;
             default: throw new AssertionError(f + " in default switch value.");
         } 
     }
@@ -336,7 +336,7 @@ public class MetadataWriter extends MetaItem {
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
-            Log.mess("Ignoring playcount field. Data invalid.");
+            Log.info("Ignoring playcount field. Data invalid.");
         }
     }
  
@@ -347,9 +347,9 @@ public class MetadataWriter extends MetaItem {
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   setPublisherMP3(val); break;
-            case flac:  Log.mess("Unsupported operation."); break;
-            case ogg:   Log.mess("Unsupported operation."); break;
-            case wav:   Log.mess("Unsupported operation."); break;
+            case flac:  Log.info("Unsupported operation."); break;
+            case ogg:   Log.info("Unsupported operation."); break;
+            case wav:   Log.info("Unsupported operation."); break;
             default: throw new AssertionError(f + " in default switch value.");
         }        
     }
@@ -370,7 +370,7 @@ public class MetadataWriter extends MetaItem {
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
-            Log.mess("Ignoring publisher field. Data invalid.");
+            Log.info("Ignoring publisher field. Data invalid.");
         }
     }
     
@@ -383,9 +383,9 @@ public class MetadataWriter extends MetaItem {
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   seUserPopmID3(val); break;
-            case flac:  Log.mess("Unsupported operation."); break;
-            case ogg:   Log.mess("Unsupported operation."); break;
-            case wav:   Log.mess("Unsupported operation."); break;
+            case flac:  Log.info("Unsupported operation."); break;
+            case ogg:   Log.info("Unsupported operation."); break;
+            case wav:   Log.info("Unsupported operation."); break;
             default: throw new AssertionError(f + " in default switch value.");
         }
     }
@@ -406,7 +406,7 @@ public class MetadataWriter extends MetaItem {
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
-            Log.mess("Ignoring playcount field. Data invalid.");
+            Log.info("Ignoring playcount field. Data invalid.");
         }
     }
 
@@ -527,11 +527,11 @@ public class MetadataWriter extends MetaItem {
                 audioFile.getTag().setField(field, val);
             fields_changed++;
         } catch (KeyNotFoundException ex) {
-            Log.mess(field.toString() + " field not found.");
+            Log.info(field.toString() + " field not found.");
         } catch (FieldDataInvalidException ex) {
-            Log.mess("Invalid " + field.toString() + " field data.");
+            Log.info("Invalid " + field.toString() + " field data.");
         } catch (UnsupportedOperationException ex) {
-            Log.mess("Unsupported operation.");
+            Log.info("Unsupported operation.");
         }
     }
     

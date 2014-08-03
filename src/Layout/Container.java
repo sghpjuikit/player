@@ -2,6 +2,7 @@
 package Layout;
 
 import Configuration.PropertyMap;
+import GUI.GUI;
 import Layout.Areas.ContainerNode;
 import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -347,11 +348,10 @@ public abstract class Container extends Component implements AltState {
     }
     /**
      * @return true if this container is under locked either its own or one of 
-     * its parents.
+     * its parents or under whole of GUI's.
      */
     public boolean isUnderLock() {
-        boolean locked = isLocked();
-        return locked || (hasParent() && parent.isUnderLock());
+        return isLocked() || (hasParent() && parent.isUnderLock()) || GUI.isLayoutLocked();
     }
 
     @Override

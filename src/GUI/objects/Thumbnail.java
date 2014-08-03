@@ -542,7 +542,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     try {
                         Files.copy(f.toPath(), newff.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException ex) {
-                        Log.mess("File export failed.");
+                        Log.info("File export failed.");
                     }
                  });
                  

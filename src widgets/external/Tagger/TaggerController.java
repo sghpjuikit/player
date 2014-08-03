@@ -231,9 +231,9 @@ public class TaggerController extends FXMLController implements TaggingFeature {
 //                                    + ready.size()
                                     + " " + metas.size());
                             populate(metas);
-                            Log.mess("Tagger: Metadata reading succeeded.");
+                            Log.info("Tagger: Metadata reading succeeded.");
                         } else {
-                            Log.mess("Tagger: Metadata reading failed.");
+                            Log.info("Tagger: Metadata reading failed.");
                         }
                         hideProgress();
                     });

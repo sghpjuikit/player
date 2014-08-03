@@ -106,7 +106,9 @@ public final class WidgetArea extends UniArea {
         Objects.requireNonNull(w,"widget must not be null");
         
         widget = w;
-        
+        // feature awaits decisio - does this make sense? // no // yes
+//        if(w.isEmpty()) content.getStyleClass().clear();
+//        else content.getStyleClass().addAll(Area.bgr_STYLECLASS);
         // load widget
         Node wNode = w.load();
         content.getChildren().clear();

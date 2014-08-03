@@ -197,7 +197,7 @@ public class NamedPlaylist extends Playlist {
             XStream xstream = new XStream(new DomDriver());
             xstream.registerConverter(new PlaylistItemConverter());
             xstream.toXML(this, new BufferedWriter(new FileWriter(save)));
-            Log.mess("Saving playlist '" + getName() + "' into the file.\nSuccess.");
+            Log.info("Saving playlist '" + getName() + "' into the file.\nSuccess.");
         } catch (IOException ex) {
             Log.err("Unable to save playlist '" + getName() + "' into the file.");
         }

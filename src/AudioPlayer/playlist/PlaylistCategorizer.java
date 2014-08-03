@@ -71,7 +71,7 @@ public class PlaylistCategorizer {
      * @TODO Make the performance impact smaller.
      */
     private static void findPlaylists() {
-        Log.mess("Attempting to load playlists...");
+        Log.info("Attempting to load playlists...");
         File dir = App.PLAYLIST_FOLDER();
         if (FileUtil.isValidatedDirectory(dir)) {
             Log.err("Loading playlists failed.");
@@ -81,7 +81,7 @@ public class PlaylistCategorizer {
         files = dir.listFiles((File pathname) -> pathname.getName().endsWith(".pfx"));
 
         if (files.length == 0) {
-            Log.mess("Folder '" + dir.getAbsolutePath() + "' is empty. No playlists loaded.");
+            Log.info("Folder '" + dir.getAbsolutePath() + "' is empty. No playlists loaded.");
             return;
         }
         playlists.clear();
@@ -89,7 +89,7 @@ public class PlaylistCategorizer {
             NamedPlaylist p = NamedPlaylist.deserialize(f);
             if (p != null) {
                 playlists.add(p);
-                Log.mess("Playlist " + p.getName() + " loaded.");
+                Log.info("Playlist " + p.getName() + " loaded.");
             }
         }
     }
@@ -125,7 +125,7 @@ public class PlaylistCategorizer {
         if (playlists == null || playlists.isEmpty()) {
             return new ArrayList<>();
         }
-        Log.mess("Loading playlist categories.");
+        Log.info("Loading playlist categories.");
 
         categories.clear();
         for (NamedPlaylist p : playlists) {

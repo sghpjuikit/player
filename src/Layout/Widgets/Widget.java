@@ -1,49 +1,40 @@
 
 package Layout.Widgets;
 
-import Configuration.Config;
+import Configuration.CompositeConfigurable;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import javafx.scene.Node;
 import utilities.Log;
 
 /**
  * Widget is an abstract representation of graphical component that works like
- * an individual self sufficient package.
- * 
- * Widget allows a way to handle variety of different components in defined
+ * an individual self sufficient modul.
+ * <p>
+ * Widgets allows a way to handle variety of different components in defined
  * way. It provides necessary logic to wrap the component, which includes such
- * things as id, name, controller or properties.
- * 
- * Internal widgets are the default widgets that are irremovable part of the
- * application, while external are loaded from external source.
- * Internal widgets exist as pure design choice to encapsulate application
- * functionalities. They are part of the source code, but its not necessary.
- * External widgets are loaded by the application, either at start or anytime 
- * during runtime.
- * 
+ * things as id, name, controller or properties
+ * <p>
  * Widget is a wrapper of underlying component exhibiting standalone
  * functionality. Its not its role to handle behavior of the component, but it
  * does provide a way to access it by forwarding its controller. Controller is the
  * object responsible for the component's behavior.
  * The controller is instantiated when widget loads. The controller should
- * not be called before that happens and exception will be thrown if in such
- * case.
- * 
+ * not be called before that happens.
+ * <p>
  * The Concrete implementation of Widget should make sure it guarantees the
  * existence of Controller after the widget has been loaded. This should be
  * done inside load() method.
- * 
- * Use EMPTY widget instread null
+ * <p>
+ * Always use EMPTY widget instead null
  * 
  * @author uranium
  */
-public abstract class Widget<C extends Controller> extends Component implements Configurable {
+public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable {
     
     /** Name of the widget. Permanent */
     public final String name;
@@ -75,8 +66,20 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return name;
     }
     
+    /**
+     * Loads this widget's content.
+     * The content is cached and will only be loaded once.
+     * Any subsequent call of this method will simply reattach the content to
+     * new location in the sceneGraph.
+     * <p>
+     * Only if the load is initial, the controller will be refreshed.
+     * <p>
+     * Widget's controller will be null until the first time the widget loads.
+     * {@inheritDoc}
+     * @return 
+     */
     @Override
-    public Node load() {
+    public final Node load() {
         // if widget has already loaded once, return
         // 1 attaching root to the scenegraph will automatically remove it
         //   from its old location
@@ -94,6 +97,12 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return root;
     }
     
+    /**
+     * Loads the widget. Solely used for {@link #load()} method called initially,
+     * before the loaded content is cached. Should be called only once per life
+     * cycle of the widget and internally.
+     * @return 
+     */
     protected abstract Node loadInitial();
     
     /**
@@ -133,59 +142,34 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /** @return factory that produces this widget */
     public WidgetFactory getFactory() {
         WidgetFactory f = WidgetManager.getFactory(name);
-        assert f!=null;
+        assert f!=null; // factory must never be null
         return f;
     }
     
 /******************************************************************************/
-    
-    /**
-     * @return empty widget. Use to inject fake widget instead null value.
-     */
-    public static Widget EMPTY() {
-        return new EmptyWidget();
-    }
+
     
     /**
      * Returns whether this widget is intended to store an actual content or 
-     * serves different purpose. An example of such use can be substitution
-     * for null value. Widgets returning true are not likely to have their
-     * factories registered and be accessible to the user.
+     * serves different purpose such as substitution for null value.
      * <p>
      * The value returned by this method should be hard coded by design per widget
-     * type (by default it returns false). Dont mistake this method for isEmpty() in 
+     * type (by default is false). Dont mistake this method for isEmpty() in 
      * {@link Controller}. Empty widget might require different handling, while 
-     * different controller simply indicates that the widget has no content.
+     * empty controller simply indicates that the widget has currently no content.
      */
     public boolean isEmpty() {
         return this instanceof EmptyWidget;
     }
     
-/******************************************************************************/
-    
+    /**
+     * Returns the controller of this widget
+     * <p>
+     * {@inheritDoc}
+     */
     @Override
-    public List<Config> getFields() {
-        List<Config> l = Configurable.super.getFields();
-                     l.addAll(getController().getFields());
-        return l;
-    }
-    
-    @Override
-    public boolean setField(String name, String value) {
-        boolean set = Configurable.super.setField(name, value) ||
-                      getController().setField(name, value);
-        if (!set)
-            Log.mess("Configuration value couldnt be set for field: " + name + " .");
-        return set;
-    }
-    
-    @Override
-    public boolean setField(String name, Object value) {
-        boolean set = Configurable.super.setField(name, value) ||
-                      getController().setField(name, value);
-        if (!set)
-            Log.mess("Configuration value couldnt be set for field: " + name + " .!");
-        return set;
+    public Configurable getSubConfigurable() {
+        return controller;
     }
     
     // the following two methods help with serialising the widget settings
@@ -208,6 +192,14 @@ public abstract class Widget<C extends Controller> extends Component implements 
     @Override
     public String toString() {
         return name;
+    }
+    
+    
+    /**
+     * @return empty widget. Use to inject fake widget instead null value.
+     */
+    public static Widget EMPTY() {
+        return new EmptyWidget();
     }
     
 /******************************************************************************/

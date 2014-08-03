@@ -44,7 +44,7 @@ public class Scrobbling {
     }
 
     protected void scrobble(Metadata track) {
-        Log.mess("Scrobbling: " + track);
+        Log.info("Scrobbling: " + track);
         int now = (int) (System.currentTimeMillis() / 1000);
         ScrobbleResult result = Track.scrobble(
                 track.getArtist(),

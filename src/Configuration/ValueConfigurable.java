@@ -77,6 +77,16 @@ public class ValueConfigurable implements Configurable {
         return configs;
     }
     
+    /**
+     * Convenience method. Returns config at specific index within the resulting
+     * list of {@link #getFields() } method.
+     * @param at
+     * @return 
+     */
+    public Config getField(int at) {
+        return configs.get(at);
+    }
+    
     
     
 }

@@ -48,6 +48,8 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.GEARS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GITHUB;
 import static de.jensd.fx.fontawesome.AwesomeIcon.IMAGE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
+import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
+import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import de.jensd.fx.fontawesome.test.IconsBrowser;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -627,7 +629,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             }
         });
         lastFMB.setTooltip(new Tooltip("LastFM"));
-//        lastFMB.setDisable(true);
+        // lock layout button
+        Label lockB = AwesomeDude.createIconLabel(GUI.isLayoutLocked() ? UNLOCK : LOCK,"","11","11",CENTER);
+              lockB.setTooltip(new Tooltip(GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout"));
+              lockB.setOnMouseClicked( e -> {
+                  GUI.toggleLayoutLocked();
+                  boolean lck = GUI.isLayoutLocked();
+                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"12");
+                  lockB.getTooltip().setText(lck ? "Unlock widget layout" : "Lock widget layout");
+                  e.consume();
+              });
        // help button - show hel information
         Label helpB = AwesomeDude.createIconLabel(INFO,"","15","11",CENTER);
         helpB.setOnMouseClicked( e -> {
@@ -649,7 +660,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         });
         helpB.setTooltip(new Tooltip("Icon browser (developing tool)"));
               
-        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,helpB);
+        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,lockB,helpB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/
@@ -659,7 +670,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // serialize windows if this is main app window
         if(main) WindowManager.serialize();
         // after serialisation, close content it could prevent app closing
-        // normally if it runs bgr threads
+        // normally if it runs bgr threads + we want to sae it
         layout_aggregator.getLayouts().values().forEach(Layout::close);
         // remove from window list as life time of this ends
         ContextManager.windows.remove(this); 
@@ -673,6 +684,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         }
         // in the end close itself
         super.close();
+        
+        if(main) {
+            App.close();
+        }
     }
 
     

@@ -61,7 +61,7 @@ public final class FileUtil {
             return false;
         }
         if (!dir.exists()) {
-            Log.mess("Directory " + dir.getAbsolutePath() + " doesnt exist");
+            Log.info("Directory " + dir.getAbsolutePath() + " doesnt exist");
             return false;
         }
         if (!dir.isDirectory()) {
@@ -69,11 +69,11 @@ public final class FileUtil {
             return false;
         }
         if (!dir.canRead()) {
-            Log.mess("Directory " + dir.getAbsolutePath() + " is not readable");
+            Log.info("Directory " + dir.getAbsolutePath() + " is not readable");
             return false;            
         }
         if (!dir.canWrite()) {
-            Log.mess("Directory " + dir.getAbsolutePath() + " is not writable");
+            Log.info("Directory " + dir.getAbsolutePath() + " is not writable");
             return false;            
         }
         return true;

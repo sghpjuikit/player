@@ -10,6 +10,7 @@ import Layout.Container;
 import Layout.PolyContainer;
 import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
+import java.util.Objects;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
@@ -45,11 +46,13 @@ public final class Layouter implements ContainerNode {
     private @FXML BorderPane controls;
     private @FXML AnchorPane root = new AnchorPane();
     private @FXML AnchorPane content;
-    private final Container container;
+    private Container container; // why cant this be final??
     private final FadeTransition anim;
     private final ScaleTransition animS;
     
     public Layouter(Container con, int index) {
+        Objects.requireNonNull(con);
+        
         this.index = index;
         this.container = con;
         
@@ -165,6 +168,8 @@ public final class Layouter implements ContainerNode {
     private final EventHandler<MouseEvent> controlsShower =  e -> {
         // avoid right click activation
         if(e.getEventType().equals(MOUSE_CLICKED) && e.getButton()!=PRIMARY) return;
+        // avoid when under lock
+        if(container.isUnderLock()) return;
         // rely on the public show() implementation, not internal one
         show();
         e.consume();

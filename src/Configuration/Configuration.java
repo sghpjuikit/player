@@ -231,7 +231,7 @@ public class Configuration {
      * Loops through Configuration fields and stores them all into file.
      */
     public static void save() {     
-        Log.mess("Saving configuration");
+        Log.info("Saving configuration");
         
         String content="";
                content += "# " + App.getAppName() + " configuration file.\n";
@@ -254,12 +254,12 @@ public class Configuration {
      * If field of given name does not exist it will be ignored as well.
      */
     public static void load() {
-        Log.mess("Loading configuration");
+        Log.info("Loading configuration");
         
         File file= new File("Settings.cfg").getAbsoluteFile();
         Map<String,String> lines = FileUtil.parseFile(file);
         if(lines.isEmpty())
-            Log.mess("Configuration couldnt be loaded. No content found. Using "
+            Log.info("Configuration couldnt be loaded. No content found. Using "
                     + "default settings.");
         
         lines.forEach((name,value) -> {
@@ -267,7 +267,7 @@ public class Configuration {
             if (c!=null)
                 c.setValueFrom(value);
             else
-                Log.mess("Config field " + name + " not available. Possible"
+                Log.info("Config field " + name + " not available. Possible"
                     + " error in the configuration file.");
         });
     }

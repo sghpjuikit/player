@@ -41,7 +41,7 @@ public class PlaycountIncrementer {
         }
         // increment
         MetadataWriter.incrementPlaycount(Player.getCurrentMetadata());
-        Log.mess("Incrementing playount of played item.");
+        Log.info("Incrementing playount of played item.");
     };
     
     public static void initialize() {
@@ -61,7 +61,7 @@ public class PlaycountIncrementer {
     @AppliesConfig( "increment_playcount_min_percent")
     @AppliesConfig( "increment_playcount_min_time")
     public static void configureIncrementation() {
-        Log.mess("Resetting playcount incrementer settings.");
+        Log.info("Resetting playcount incrementer settings.");
         if (increment_playcount == Playcount.IncrStrategy.ON_PERCENT) {
             removeOld();
             rereadSettings();

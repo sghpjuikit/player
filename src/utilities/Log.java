@@ -13,7 +13,7 @@ public class Log {
      * Log message.
      * @param message 
      */
-    public static void mess(String message) {
+    public static void info(String message) {
         System.out.println(message);
     }
     
@@ -38,7 +38,7 @@ public class Log {
      * @param message 
      */
     public static void warn(String message) {
-        System.out.println("Warn: " + message);
+        System.err.println("Warn: " + message);
     }
     
     /**

@@ -71,7 +71,7 @@ public final class LayoutManager implements Configurable {
         // load layouts
         layouts.clear();
         if (files.length == 0) {
-            Log.mess("Layout folder '" + dir.getPath() + "' is empty. An empty layout will be created.");
+            Log.info("Layout folder '" + dir.getPath() + "' is empty. An empty layout will be created.");
             return;
         }
         for (File f : files) {

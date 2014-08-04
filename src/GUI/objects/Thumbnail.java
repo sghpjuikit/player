@@ -264,14 +264,14 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
 /*******************************  properties  *********************************/
     
-    private double maxScaleFactor = 1.5;
+    private double maxScaleFactor = 1.3;
     /**
      * Sets maximum allowed scaling factor for the image. The image within this
      * thumbnail will not be larger than maximuma allowed size calculated from
      * original image size and maximum scale factor.
      * <pre>
      *      maxSize = originalSize * maximumScaleFactor
-     * Default value is 1.5.</pre>
+     * Default value is 1.3.</pre>
      * Note that original size in this context means size (width and height) the
      * image has been loaded with. See {@link #calculateImageLoadSize()}.
      * <p>
@@ -310,14 +310,10 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         double b = borderWidth();
         borderToImage = val;
         if(val) {
-            if(!root.prefHeightProperty().isBound() && !root.prefWidthProperty().isBound())
-                root.setPrefSize(root.getPrefWidth()+b,root.getPrefHeight()+b);
             root.getStyleClass().remove(border_styleclass);
             img_border.getStyleClass().add(border_styleclass);
 
-        }else{
-            if(!root.prefHeightProperty().isBound() && !root.prefWidthProperty().isBound())
-                root.setPrefSize(root.getPrefWidth()-b,root.getPrefHeight()-b);
+        } else {
             img_border.getStyleClass().remove(border_styleclass);
             root.getStyleClass().add(border_styleclass);
         }

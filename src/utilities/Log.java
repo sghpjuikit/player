@@ -22,7 +22,7 @@ public class Log {
      * @param message 
      */
     public static void deb(String message) {
-        System.out.println("Debug: " + message);
+//        System.out.println("Debug: " + message);
     }
     
     /**

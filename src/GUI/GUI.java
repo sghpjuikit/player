@@ -7,6 +7,8 @@ import Configuration.AppliesConfig;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import GUI.LayoutAggregators.LayoutAggregator;
+import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
 import Layout.LayoutManager;
@@ -182,6 +184,24 @@ public class GUI implements Configurable {
         Window.getActive().toggleFullscreen();
     }
 
+    @IsAction(name = "Align tabs", description = "Aligns tabs to the window", shortcut = "SHIFT+UP")
+    public static void tabAlign() {
+        LayoutAggregator la = Window.getActive().getLayoutAggregator();
+        if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignTabs();
+    }
+
+    @IsAction(name = "Align to next tab", description = "Goes to next tab and aligns tabs to the window", shortcut = "SHIFT+RIGHT")
+    public static void tabNext() {
+        LayoutAggregator la = Window.getActive().getLayoutAggregator();
+        if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignRightTab();
+    }
+
+    @IsAction(name = "Align to previous tab", description = "Goes to previous tab and aligns tabs to the window", shortcut = "SHIFT+LEFT")
+    public static void tabPrevious() {
+        LayoutAggregator la = Window.getActive().getLayoutAggregator();
+        if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignLeftTab();
+    }
+    
     
     /**
      * Searches for .css files in skin folder and registers them as available

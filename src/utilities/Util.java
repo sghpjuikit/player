@@ -4,7 +4,9 @@
  */
 package utilities;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 import javafx.scene.image.Image;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import javax.imageio.ImageIO;
 import org.jaudiotagger.tag.images.Artwork;
 import utilities.functional.impl.NotNull;
 
@@ -235,11 +238,20 @@ public interface Util {
      * @return loaded image or null if file null or not a valid image source.
      */
     public static Image loadImage(File file, double size) {
-        if (file == null) { return null; }
-        if (size == 0) {
+        if (file == null) return null;
+        if (size == 0)
             return new Image(file.toURI().toString());
-        } else {
-            return new Image(file.toURI().toString(), size, 0, true, true);
+        else {
+            int w= Integer.MAX_VALUE;
+            try {
+                BufferedImage readImage = ImageIO.read(file);
+//                int h = readImage.getHeight();
+                w = readImage.getWidth();
+            } catch (IOException e) {
+            }
+            
+            int width = Math.min((int)size,w);
+            return new Image(file.toURI().toString(), width, 0, true, true);
         }
     }
     

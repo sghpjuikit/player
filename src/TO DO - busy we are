@@ -36,9 +36,10 @@
 - configurator empt shortcut not defaulting? fix
 - trail effect disables click effect
 - improve dialog wit hValueConfigurable and remove ContentDialog
-- picker skin make more consistant with overall skin
 - ALT+F4 closes windows separately instead whole app
 - popover show pin icon property
+- holding shift while scrolling will scroll horizontally - document in gui
+- press C to collapse layout containers easily - implement properly
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -233,15 +234,3 @@ PERFORMANCE
 
 - writing tag - multiple values
 - Layout loading into Container
-
---------------------------------------------------------------------------------
------------------- HOW TO USE TIPS - what everyone wants from me ---------------
---------------------------------------------------------------------------------
-
-- clicking on table columns sorts ASC/DESC/ORIG, holding SHIFT to sort by
-  multiple columns
-- holding shift while scrolling will scroll horizontally (where implemented)
-- playlist table allows moving of the selected items by dragging
-- doubleclicking on window border - LEFT_B-toggle maximize, RIGHT-on/off header
-- press ALT to show window hidden header
-- press C to collapse layout containers easily

@@ -55,8 +55,10 @@ public class ImageController extends FXMLController {
     // invisible for now
     // 1 - we do not have a good image picker
     // 2 - we need to make it possible to pick 'empty' image or null
-    @IsConfig(name = "Custom image", info = "Display custom static image file.", visible = false)
+    @IsConfig(name = "Custom image", info = "Custom static image file.", visible = false)
     public File custom_image = new File("");
+    @IsConfig(name = "Use custom image", info = "Display custom static image file.", visible = false)
+    public boolean useCustomImage = false;
     
     
     @Override
@@ -76,7 +78,7 @@ public class ImageController extends FXMLController {
                 e.consume();
             } else
             if(e.getButton()==MIDDLE) {
-                custom_image = new File("");
+                useCustomImage = !useCustomImage;
                 refresh();
                 e.consume();
             }
@@ -97,6 +99,7 @@ public class ImageController extends FXMLController {
         root.setOnDragDropped( e -> {
             List<File> images = DragUtil.getImageItems(e);
             if(!images.isEmpty()) custom_image = images.get(0);
+            useCustomImage = true;
             refresh();
         });
     }
@@ -104,8 +107,10 @@ public class ImageController extends FXMLController {
     @Override
     public void refresh() {
         // grab fresh images
-        if(ImageFileFormat.isSupported(custom_image)) images.setAll(custom_image);
+        if(useCustomImage && ImageFileFormat.isSupported(custom_image))
+             images.setAll(custom_image);
         else images.setAll(GUI.GUI.getGuiImages());
+        
         // set slideshow on/off according to state
         if (slideshow_on) slideshowStart();
         else slideshowEnd();

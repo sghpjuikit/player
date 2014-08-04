@@ -150,7 +150,7 @@ public final class PlaylistTable {
             TableCell cell = new TableCell<PlaylistItem, FormattedDuration>() {
                 @Override
                 protected void updateItem(FormattedDuration item, boolean empty) {
-                    super.updateItem(item, empty);getStyleClass().forEach(System.out::println);
+                    super.updateItem(item, empty);
                     setText(empty ? "" : item.toString());
                 }
             };

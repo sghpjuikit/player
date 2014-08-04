@@ -61,7 +61,9 @@ import utilities.Util;
             "    Type : Searches for item - applies filter\n" +
             "    Filter button : Uses filter for playback\n" +
             "    Drag column : Changes column order\n" +
-            "    Click column : Changes sort order\n" +
+            "    Click column : Changes sort order - ascending,\n" +
+            "                   descending, none\n" +
+            "    Click column + SHIFT : Sorts by multiple columns\n" +
             "    Menu bar : Opens additional actions\n",
     notes = "Plans: multiple playlists through tabs.\n" + 
             "Bugs: sorting through menubar broken",

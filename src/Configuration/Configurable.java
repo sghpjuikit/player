@@ -66,7 +66,7 @@ public interface Configurable {
             if(a==null)
                 Log.warn("Config '" + name + "' not found. Field exists, but annotation missing");
             return new InstanceFieldConfig(name,a,val,group,this,f);
-        } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
+        } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {System.out.println(ex.getClass());System.out.println(ex.getMessage());
             return null;
         }
     }

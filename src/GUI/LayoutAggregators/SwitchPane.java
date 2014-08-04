@@ -239,7 +239,7 @@ public class SwitchPane implements LayoutAggregator {
     });
     
     private void startUiDrag(MouseEvent e) {
-        if(uiDragActive) return;System.out.println("start");
+        if(uiDragActive) return;//System.out.println("start");
         uiDrag.stop();
         uiStartX = e.getSceneX();
         uiTransX = ui.getTranslateX();
@@ -248,7 +248,7 @@ public class SwitchPane implements LayoutAggregator {
         e.consume();
     }
     private void endUIDrag(MouseEvent e) {
-        if(!uiDragActive) return;System.out.println("end");
+        if(!uiDragActive) return;//System.out.println("end");
         // stop drag
         uiDragActive = false;
         measurePulser.stop();
@@ -295,10 +295,22 @@ public class SwitchPane implements LayoutAggregator {
      * Use to force-align tabs.
      */
     public void alignTabs() {
+        alignTab(currTab());
+    }
+    
+    public void alignRightTab() {
+        alignTab(currTab()+1);
+    }
+    
+    public void alignLeftTab() {
+        alignTab(currTab()-1);
+    }
+    
+    public void alignTab(int i) {
         int toT = currTab();
         uiDrag.stop();
-        uiDrag.setOnFinished( a -> addTab(toT));
-        uiDrag.setToX(-getTabX(toT));
+        uiDrag.setOnFinished( a -> addTab(i));
+        uiDrag.setToX(-getTabX(i));
         uiDrag.play();
     }
     

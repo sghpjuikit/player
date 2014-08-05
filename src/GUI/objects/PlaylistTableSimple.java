@@ -18,7 +18,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -160,9 +159,7 @@ public class PlaylistTableSimple extends AnchorPane {
         // support dragging from table
         table.setOnDragDetected((MouseEvent event) -> {
             Dragboard db = table.startDragAndDrop(TransferMode.ANY);
-            ClipboardContent content = new ClipboardContent();
-            content.put(DragUtil.playlist, (new Playlist(table.getSelectionModel().getSelectedItems())).toPojoList());
-            db.setContent(content);
+            DragUtil.setPlaylist(new Playlist(table.getSelectionModel().getSelectedItems()), db);
             event.consume();
         });
     }

@@ -44,9 +44,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Duration;
@@ -83,8 +81,8 @@ import utilities.Util;
 public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     // styleclasses
-    private static final String bgr_styleclass = "thumbnail-bgr";
-    private static final String border_styleclass = "thumbnail-border";
+    public static final String bgr_styleclass = "thumbnail-bgr";
+    public static final String border_styleclass = "thumbnail-border";
     
     // global propertiea
     @IsConfig(name="Thumbnail size", info = "Preffered size for thumbnails.")
@@ -95,8 +93,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     private AnchorPane root = new AnchorPane();
     @FXML ImageView image;
-    @FXML Rectangle border;
-    @FXML Region bord;
     @FXML StackPane img_container;
     @FXML Pane img_border;
     
@@ -165,7 +161,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         setDragImage(true);
         
         // animations
-        border.setOpacity(0.3);
         installScaleOnHover();
         
         // change border framing style on mouse middle button click //experimental
@@ -242,7 +237,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         return getImage() == null;
     }
     @Override
-    protected ImageView getImageView() {
+    protected ImageView getView() {
         return image;
     }
     
@@ -257,26 +252,28 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         return root;
     }
     
-    /** @return border */
-    public Rectangle getBorder() {
-        return border;
-    }
-    
 /*******************************  properties  *********************************/
     
     private double maxScaleFactor = 1.3;
+    
     /**
-     * Sets maximum allowed scaling factor for the image. The image within this
-     * thumbnail will not be larger than maximuma allowed size calculated from
-     * original image size and maximum scale factor.
-     * <pre>
-     *      maxSize = originalSize * maximumScaleFactor
-     * Default value is 1.3.</pre>
-     * Note that original size in this context means size (width and height) the
-     * image has been loaded with. See {@link #calculateImageLoadSize()}.
+     * Sets maximum allowed scaling factor for the image. 
      * <p>
+     * The image in the thumbnail scales with it, but only up to its own maximal
+     * size defined by:    imageSize * maximumScaleFactor
+     * <p>
+     * 
+     * Default value is 1.3.
+     * <p>
+     * Note that original size in this context means size (width and height) the
+     * image has been loaded with. The image can be loaded with any size, even
+     * surpassing that of the resolution of the file.
+     * 
+     * @see #calculateImageLoadSize()
+     * @throws IllegalArgumentException if parameter < 1
      */
     public void setMaxScaleFactor(double val) {
+        if(val < 1) throw new IllegalArgumentException("Scale factor < 1 not allowed.");
         maxScaleFactor = val;
     }
     
@@ -331,7 +328,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     }
 
     public void setBorderVisible(boolean val) {
-        border.setVisible(val);
         if(val) {
             borderToImage(borderToImage);
         } else {

@@ -41,9 +41,9 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
-import utilities.MathUtil;
 import utilities.TODO;
 import utilities.TableUtil;
+import utilities.Util;
 
 /**
  * Playlist table GUI component.
@@ -125,7 +125,7 @@ public final class PlaylistTable {
                         int index = show_original_index ? itemsF.getSourceIndex(getIndex()) : getIndex();
                             index++;
                         if (zero_pad)
-                            setText(MathUtil.zeroPad(index, table.getItems().size()) + ".");
+                            setText(Util.zeroPad(index, table.getItems().size()) + ".");
                         else
                             setText(String.valueOf(index) + ".");
                     } 
@@ -231,7 +231,7 @@ public final class PlaylistTable {
                 if(row.isEmpty()) return;
                 if (e.isControlDown() && e.getButton() == PRIMARY) {
                     Dragboard db = table.startDragAndDrop(TransferMode.ANY);
-                    DragUtil.setContent(db, new Playlist(getSelectedItems()));
+                    DragUtil.setPlaylist(new Playlist(getSelectedItems()),db);
                     e.consume();
                 }
             });
@@ -287,7 +287,7 @@ public final class PlaylistTable {
             // column 1
             // need this weird method to get 9s as their are wide 
             // (font isnt always proportional)
-            int i = MathUtil.DecMin1(PlaylistManager.getItems().size());    
+            int i = Util.DecMin1(PlaylistManager.getItems().size());    
             tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
             double W1 = tmp.getWidth()+6;

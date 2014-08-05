@@ -4,7 +4,6 @@ package Layout.Areas;
 import Configuration.Configurable;
 import GUI.ContextManager;
 import GUI.DragUtil;
-import GUI.WidgetTransfer;
 import GUI.Window;
 import Layout.Component;
 import Layout.Container;
@@ -15,13 +14,13 @@ import java.util.Collection;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
+import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
@@ -33,7 +32,7 @@ import static utilities.Util.NotNULL;
  */
 public final class TabArea extends PolyArea {
     
-    @FXML TabPane tabPane;
+    public @FXML TabPane tabPane;
     @FXML AnchorPane content;
     
     private Component widget;  // active component, max one, null if none
@@ -55,7 +54,7 @@ public final class TabArea extends PolyArea {
         }
         
         tabPane.setUserData(this);
-        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
+        content.getStyleClass().setAll(Area.bgr_STYLECLASS);DraggableTab.tabPanes.add(tabPane);
         // load controls
         controls = new AreaControls(this);
         root.getChildren().add(controls.root);
@@ -66,14 +65,10 @@ public final class TabArea extends PolyArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            // disallow in normal mode & primary button drag only
-            if (controls.isShowing() && e.getButton()==PRIMARY) {
-                ClipboardContent c = new ClipboardContent();
-                // use first free index (0) id empty (widget==null)
-                int i = widget==null ? 0 : container.indexOf(widget);
-                c.put(DragUtil.widgetDF, new WidgetTransfer(i, container));
-                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                          db.setContent(c);
+            // disallow in normal mode & primary button drag only & if no content
+            if (widget!= null && controls.isShowingWeak() && e.getButton()==PRIMARY) {
+                Dragboard db = root.startDragAndDrop(TransferMode.MOVE);
+                DragUtil.setComponent(container.getParent(),container,db);
                 e.consume();
             }
         });
@@ -81,17 +76,14 @@ public final class TabArea extends PolyArea {
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
         root.setOnDragDropped( e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDF)) {
-                WidgetTransfer wt = DragUtil.getWidgetTransfer(db);
+            if (DragUtil.hasComponent()) {
                 // use first free index (0) if empty (widget==null)
-                int i1 = widget==null ? 0 : container.indexOf(widget);
-                int i2 = wt.childIndex();
-                container.swapChildren(wt.getContainer(), i1, i2);
+                int i = widget==null ? 0 : container.getParent().indexOf(container);
+                container.swapChildren(i, DragUtil.getComponent());
+                e.setDropCompleted(true);
                 e.consume();
             }
         });
-        
 
         hide();
     }
@@ -124,20 +116,10 @@ public final class TabArea extends PolyArea {
         int i = container.properties.getI("selected");
         // process components -> turn into tab, set behavior, load lazily
             // somehow null get through here, investigate, fix, document
-        cs.stream().filter(NotNULL).forEach( c -> {
-            DraggableTab t = new DraggableTab(c.getName());
-            t.setDetachable(true);
-            t.setTooltip(new Tooltip(c.getName()));
-            t.setUserData(c);
-            t.setOnClosed(e -> container.removeChild(c));
-            t.setOnSelectionChanged( e -> {
-                // prevent loading because of lock
-                if(selectionLock) return;
-                if(tabPane.getTabs().contains(t) && t.isSelected())
-                    loadTab(t,(Component)t.getUserData());
-            });
-            tabPane.getTabs().add(t);
+        cs.stream().filter(NotNULL).forEach(c -> {
+            Tab t = buildTab(c,tabPane.getTabs().size());
             container.getChildren().put(container.getChildren().size(), c);
+            tabPane.getTabs().add(t);
         });
         
         // select correct tab
@@ -153,10 +135,14 @@ public final class TabArea extends PolyArea {
     
     @Override
     public void removeComponent(Component c) {
+        Objects.requireNonNull(c);
         tabPane.getTabs().stream()
-                .filter(t->t.getUserData().equals(c))
+                .filter(t -> t.getUserData() == c)
                 .findAny()
-                .ifPresent(tabPane.getTabs()::remove);
+                .ifPresent( t -> {
+                    t.setUserData(null);
+                    tabPane.getTabs().remove(t);
+                });
     }
     
 /******************************** selection ***********************************/
@@ -170,18 +156,8 @@ public final class TabArea extends PolyArea {
     public void selectComponent(Integer i) {
         // release lock on manual change
         selectionLock = false;
-        
-        int tabs = tabPane.getTabs().size();
-        if(i==null) {
-            if(tabPane.getSelectionModel().isEmpty())
-                tabPane.getSelectionModel().select(0);
-        } else {
-//            if(tabs>i) i = tabs;    // prevent out of bounds
-//            if(i<1) i = 1;          // prevent no selection
-//            if(tabs>0 && tabPane.getSelectionModel().getSelectedIndex() != i)
-                tabPane.getSelectionModel().select(i);
-        }
-        
+        // select
+        tabPane.getSelectionModel().select(i==null ? 0 : i);
         // remember new state
         int ii = tabPane.getSelectionModel().getSelectedIndex();
         container.properties.set("selected", ii);
@@ -227,9 +203,9 @@ public final class TabArea extends PolyArea {
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
         Container c2 = w.getLayoutAggregator().getActive();
+        Component w2 = w.getLayoutAggregator().getActive().getChild();
         int i1 = container.getParent().indexOf(container);
-        int i2 = c2.indexOf(w.getLayoutAggregator().getActive().getChild());
-        container.getParent().swapChildren(c2,i1,i2);
+        container.getParent().swapChildren(c2,i1,w2);
     }
 
     public void detachComponent(int i) {
@@ -247,9 +223,53 @@ public final class TabArea extends PolyArea {
                w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
     
+    public void moveTab(int from, int to) {System.out.println("moving "+from + " " + + to);
+        // prevent selection change
+        selectComponentPreventLoad(true);
+        
+        // pointless, order would remain the same, return
+        if(from==to || from+1==to) return;
+        
+        Tab t = tabPane.getTabs().get(from);
+        
+        Tab newT = buildTab((Component) t.getUserData(), to);
+        tabPane.getTabs().add(to,newT);
+        tabPane.getTabs().remove(t);
+        
+        // because there are two indexes per child (left & right) if we move
+        // to the right we must decrement by one
+        // for n tabs there is n+1 positions between them.
+        // this miraculously fixes the resulting problem of selection
+        if(from<to) to--;
+        // synchronize selection
+        int oldSel = container.properties.getI("selected");
+        int newSel;
+        if (oldSel==from) newSel = to;
+        else if (oldSel>from && oldSel<=to) newSel =  oldSel+1;
+        else if (to>oldSel && oldSel<=from) newSel =  oldSel-1;
+        else newSel = oldSel;
+        selectComponent(newSel);
+    }
+    
     @Override
     public AnchorPane getContent() {
         return content;
+    }
+    
+    
+    private DraggableTab buildTab(Component c, int to) {
+            DraggableTab t = new DraggableTab(c.getName());
+            t.setDetachable(true);
+            t.setTooltip(new Tooltip(c.getName()));
+            t.setUserData(c);
+            t.setOnClosed(e -> container.removeChild(c));
+            t.setOnSelectionChanged( e -> {
+                // prevent loading because of lock
+                if(selectionLock) return;
+                if(tabPane.getTabs().contains(t) && t.isSelected())
+                    loadTab(t,(Component)t.getUserData());
+            });
+            return t;
     }
     
 }

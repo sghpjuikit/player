@@ -85,39 +85,8 @@ public class Playlist extends AbstractPlaylist {
     public Duration getLength() {
         return calculateLength();
     }
-    
-/******************************************************************************/
-    
-    /**
-     * Converts the playlist into simple list of simplied PlaylistItem objects
-     * to get Serializable functionality.
-     * <p>
-     * @return
-     */
-    public List<SimplePlaylistItem> toPojoList() {
-        List<SimplePlaylistItem> out = new ArrayList<>();
-        for (PlaylistItem i : list()) {
-            out.add(new SimplePlaylistItem(i));
-        }
-        return out;
-    }
-    
-    /**
-     * Creates playlist from list of simplified PlaylistItems. Use for
-     * deserialization from DragBoard.
-     * @param items
-     * @return
-     */
-    public static Playlist fromPojoList(List<SimplePlaylistItem> items) {
-        List<PlaylistItem> l = new ArrayList<>();
-        for (SimplePlaylistItem i : items) {
-            l.add(i.toPlaylistItem());
-        }
-        return new Playlist(l);
-    }
-    
-/******************************************************************************/
 
+    
     @Override
     public String toString() {
         return "Playlist of " + list().size() + " items.";

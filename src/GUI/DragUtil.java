@@ -4,7 +4,8 @@ package GUI;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
-import AudioPlayer.playlist.SimplePlaylistItem;
+import Layout.Component;
+import Layout.Container;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -12,9 +13,7 @@ import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javafx.event.EventHandler;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -29,22 +28,31 @@ import utilities.ImageFileFormat;
  */
 public final class DragUtil {
     
-    /** Data Format for Playlist. Use Playlist as wrapper for List<PlaylistItem> */
-    public static final DataFormat playlist = new DataFormat("playlist");
+/******************************* data formats *********************************/
+    
+    /** Data Format for Playlist. A;ways use Playlist as wrapper for List<PlaylistItem> */
+    public static final DataFormat playlistDF = new DataFormat("playlist");
     /** Data Format for List<Item>. */
-    public static final DataFormat items = new DataFormat("items");
+    public static final DataFormat itemsDF = new DataFormat("items");
     /** Data Format for WidgetTransfer. */
     public static final DataFormat widgetDF = new DataFormat("widget");
+    /** Data Format for Component. */
+    public static final DataFormat componentDF = new DataFormat("component");
     
+/********************************* dragboard **********************************/
+    
+    private static Object data;
+    private static DataFormat dataFormat;
+    
+/******************************** handlers ************************************/
+
     /**
-     * Accepts and consumes drag over event if contains {@link #widgetDF} Data 
-     * format.
+     * Accepts and consumes drag over event if contains Component
      * <p>
      * Reuse this handler spares code duplication and multiple object instances.
      */
     public static final EventHandler<DragEvent> componentDragAcceptHandler = e -> {
-        Dragboard db = e.getDragboard();
-        if (db.hasContent(DragUtil.widgetDF)) {
+        if (hasComponent()) {
             e.acceptTransferModes(TransferMode.ANY);
             e.consume();
         }
@@ -58,15 +66,14 @@ public final class DragUtil {
      * 
      * @see #getAudioItems(javafx.scene.input.DragEvent)
      */
-    public static final EventHandler<DragEvent> audioDragAccepthandler = t -> {
-        Dragboard d = t.getDragboard();
+    public static final EventHandler<DragEvent> audioDragAccepthandler = e -> {
+        Dragboard d = e.getDragboard();
         // accept if contains at least 1 audio file, audio url, playlist or items
         if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
                 (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
-                d.hasContent(DragUtil.playlist) ||
-                d.hasContent(DragUtil.items)) {
-            t.acceptTransferModes(TransferMode.ANY);
-            t.consume();
+                    hasPlaylist() || hasItemList()) {
+            e.acceptTransferModes(TransferMode.ANY);
+            e.consume();
         }
     };
     
@@ -74,45 +81,61 @@ public final class DragUtil {
      * Accepts and consumes drag over event if contains at least 1 image file.
      * @see #getImageFiles(javafx.scene.input.DragEvent)
      */
-    public static final EventHandler<DragEvent> imageFileDragAccepthandler = t -> {
-        Dragboard d = t.getDragboard();
+    public static final EventHandler<DragEvent> imageFileDragAccepthandler = e -> {
+        Dragboard d = e.getDragboard();
         // accept if contains at least 1 audio file, audio url, playlist or items
         if ((d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) ||
                 (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()))) {
-            t.acceptTransferModes(TransferMode.ANY);
-            t.consume();
+            e.acceptTransferModes(TransferMode.ANY);
+            e.consume();
         }
     };
     
 /******************************************************************************/
 
     
-    public static void setContent(Dragboard db, Playlist p) {
-        ClipboardContent content = new ClipboardContent();
-        content.put(DragUtil.playlist, p.toPojoList());
-        db.setContent(content);
+    public static void setPlaylist(Playlist p, Dragboard db) {
+        // put fake data into dragboard
+        db.setContent(Collections.singletonMap(playlistDF, ""));
+        data = p;
+        dataFormat = playlistDF;
+    }
+    public static Playlist getPlaylist() {
+        if(dataFormat != playlistDF) throw new RuntimeException("No playlist in data available.");
+        return (Playlist) data;
+    }
+    public static boolean hasPlaylist() {
+        return dataFormat == playlistDF;
     }
     
-     public static void setContent(Dragboard db, List<? extends Item> items) {
-        ClipboardContent content = new ClipboardContent();
-        List<SimpleItem> i = new ArrayList<>();
-        items.stream().map(SimpleItem::new).forEach(i::add);
-        content.put(DragUtil.items, i);
-        db.setContent(content);
+    
+    public static void setItemList(List<? extends Item> itemList, Dragboard db) {
+        // put fake data into dragboard
+        db.setContent(Collections.singletonMap(itemsDF, ""));
+        data = itemList;
+        dataFormat = itemsDF;
+    }
+    public static List<Item> getItemsList() {
+        if(dataFormat != itemsDF) throw new RuntimeException("No item list in data available.");
+        return (List<Item>) data;
+    }
+    public static boolean hasItemList() {
+        return dataFormat == itemsDF;
     }
     
-    public static Playlist getPlaylist(Dragboard db) {
-        return Playlist.fromPojoList((List<SimplePlaylistItem>) db.getContent(DragUtil.playlist));
-    }
     
-    public static List<Item> getItems(Dragboard db) {
-        return ((List<SimpleItem>) db.getContent(DragUtil.items))
-                .stream()
-                .collect(Collectors.toList());
+    public static void setComponent(Container parent, Component child, Dragboard db) {
+        // put fake data into dragboard
+        db.setContent(Collections.singletonMap(componentDF, ""));
+        data = new WidgetTransfer(parent, child);
+        dataFormat = componentDF;
     }
-    
-    public static WidgetTransfer getWidgetTransfer(Dragboard db) {
-        return (WidgetTransfer) db.getContent(DragUtil.widgetDF);
+    public static WidgetTransfer getComponent() {
+        if(dataFormat != componentDF) throw new RuntimeException("No component in data available.");
+        return (WidgetTransfer) data;
+    }
+    public static boolean hasComponent() {
+        return dataFormat == componentDF;
     }
     
     /**
@@ -141,11 +164,11 @@ public final class DragUtil {
                         .filter(AudioFileFormat::isSupported) // isnt this pointless?
                         .ifPresent(out::add);
         } else
-        if (d.hasContent(DragUtil.playlist)) {
-            out.addAll(DragUtil.getPlaylist(d).getItems());
+        if (hasPlaylist()) {
+            out.addAll(getPlaylist().getItems());
         } else 
-        if (d.hasContent(DragUtil.items)) {
-            out.addAll(DragUtil.getItems(d));
+        if (hasItemList()) {
+            out.addAll(getItemsList());
         }
         
         return out;
@@ -161,5 +184,29 @@ public final class DragUtil {
             return Collections.singletonList(new File(d.getUrl()));
         else
             return EMPTY_LIST;
+    }
+
+    
+    
+    /**
+     * Used for drag transfer of components. When drag starts the component and
+     * its parent are wrapped into this object and when drag ends the component
+     * is switched with the other one in the second parent.
+     * <p>
+     * This makes for one portion of the component swap. The one that initializes
+     * the transfer.
+     *
+     * @author uranium
+     */
+    public static class WidgetTransfer {
+
+        public final Container container;
+        public final Component child;
+
+        public WidgetTransfer(Container container, Component child) {
+            super();
+            this.child = child;
+            this.container = container;
+        }
     }
 }

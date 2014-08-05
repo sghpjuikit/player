@@ -85,13 +85,9 @@ public final class AreaControls {
                 .bind(root.widthProperty().subtract(title.widthProperty())
                 .divide(2).subtract(15));
         header_buttons.setMinWidth(15);
-//        header_buttons.setBackground(new Background(new BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY))); //debug
-        // resize deactivator with header buttons
-        deactivator.prefWidthProperty().bind(header_buttons.widthProperty());
+        // resize deactivator height with header buttons (let width == area.width)
         deactivator.prefHeightProperty().bind(header_buttons.heightProperty());
-        deactivator.setScaleX(1.1);
         deactivator.setScaleY(1.1);
-//        deactivator.setBackground(new Background(new BackgroundFill(Color.YELLOW, CornerRadii.EMPTY, Insets.EMPTY))); // debug
         
         // build header buttons
         Label helpB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
@@ -226,6 +222,10 @@ public final class AreaControls {
             if(isShowingWeak && !isShowingStrong && (helpPopOver==null || !helpPopOver.isShowing()))
                 hide();
         });
+        
+        header.setOnDragDetected( e -> {
+            e.copyFor(area.root, null);
+        });
     }
 
     void refreshWidget() {
@@ -337,6 +337,9 @@ public final class AreaControls {
     private boolean isShowingWeak = false;
     public boolean isShowing() {
         return isShowingStrong;
+    }
+    public boolean isShowingWeak() {
+        return isShowingWeak;
     }
     
 }

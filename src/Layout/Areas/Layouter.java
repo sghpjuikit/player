@@ -3,7 +3,6 @@ package Layout.Areas;
 
 import GUI.DragUtil;
 import GUI.GUI;
-import GUI.WidgetTransfer;
 import GUI.objects.Pickers.WidgetPicker;
 import Layout.BiContainerPure;
 import Layout.Container;
@@ -20,7 +19,6 @@ import javafx.fxml.FXMLLoader;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
-import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -87,11 +85,9 @@ public final class Layouter implements ContainerNode {
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
         root.setOnDragDropped( e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDF)) {
-                WidgetTransfer wt = DragUtil.getWidgetTransfer(db);
-                int i1 = index;
-                container.swapChildren(wt.getContainer(),i1,wt.childIndex());
+            if (DragUtil.hasComponent()) {
+                container.swapChildren(index,DragUtil.getComponent());
+                e.setDropCompleted(true);
                 e.consume();
             }
         });

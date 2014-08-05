@@ -13,7 +13,13 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import javafx.geometry.Insets;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
@@ -77,6 +83,17 @@ public interface Util {
     public static boolean nullEqual(Object o1, Object o2) {
         return (o1==null && o2==null) ||
                (o1!=null && o1.equals(o2));
+    }
+    
+/******************************** GRAPHICS ************************************/
+    
+    /**
+     * Simple black background with no insets or radius. use for debugging (to
+     * see pane layout);
+     * @return 
+     */
+    public static Background SIMPLE_BGR() {
+        return new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));
     }
     
     /**
@@ -181,15 +198,15 @@ public interface Util {
      */
     public static String filenamizeString(String str) {
         String out = str;
-        out = out.replace(" ", "_");
-        out = out.replace("/", "_");
-        out = out.replace("\\", "_");
-        out = out.replace(":", "_");
-        out = out.replace("*", "_");
-        out = out.replace("?", "_");
-        out = out.replace("<", "_");
-        out = out.replace(">", "_");
-        out = out.replace("|", "_");
+               out = out.replace(" ", "_");
+               out = out.replace("/", "_");
+               out = out.replace("\\", "_");
+               out = out.replace(":", "_");
+               out = out.replace("*", "_");
+               out = out.replace("?", "_");
+               out = out.replace("<", "_");
+               out = out.replace(">", "_");
+               out = out.replace("|", "_");
         return out;
     }
     
@@ -200,6 +217,7 @@ public interface Util {
     public static String capitalize(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
+    
     public static String capitalizeStrong(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
@@ -225,16 +243,17 @@ public interface Util {
     }
     
     /**
-     * Loads image file.
-     * Loads File object into Image object. Resizes the image to desired size
-     * (aspect ratio remains) to reduce memory consumption. It is recommended
-     * to use smaller size when possible, for example for thumbnails. For big
-     * images, this can also make a difference. Loading picture into bigger res
-     * as screen is pointless. It is possible to use Screen class to find out
-     * screen properties to dynamically set optimal resolution.
+     * Loads image file. with requested size.
+     * <p>
+     * Loads File object into Image object of desired size
+     * (aspect ratio remains unaffected) to reduce memory consumption.
+     * For example it is possible to use {@link Screen} class to find out
+     * screen properties to dynamically set optimal resolution or limit it even
+     * further for small thumbnails, where intended size is known.
+     * 
      * @param file file to load.
-     * @param size to resize image's width to. Retains ratio. Set to 0 to
-     * prevent resizing and load full image. Smaller size reduces memory.
+     * @param size to resize image's width to. Use 0 to use original image size.
+     * The size will be clipped to original if it is greater.
      * @return loaded image or null if file null or not a valid image source.
      */
     public static Image loadImage(File file, double size) {
@@ -242,6 +261,7 @@ public interface Util {
         if (size == 0)
             return new Image(file.toURI().toString());
         else {
+            // find out real image file resolution
             int w= Integer.MAX_VALUE;
             try {
                 BufferedImage readImage = ImageIO.read(file);
@@ -250,6 +270,7 @@ public interface Util {
             } catch (IOException e) {
             }
             
+            // lets not get over real size
             int width = Math.min((int)size,w);
             return new Image(file.toURI().toString(), width, 0, true, true);
         }
@@ -260,7 +281,7 @@ public interface Util {
      * Artwork's equals() method doesnt return true properly. Use this method
      * instead.
      * <p>
-     * Method is deprecated as it Artwork should not be used anyway. The method
+     * Method is deprecated as Artwork should not be used anyway. The method
      * works well though.
      * @param art1
      * @param art2
@@ -271,5 +292,58 @@ public interface Util {
         if (art1 == null && art2 == null) { return true; }
         if (art1 == null || art2 == null) { return false; }
         return Arrays.equals(art1.getBinaryData(), art2.getBinaryData());
+    }
+
+    
+    
+    /**
+     * Logarithm
+     * @param base of the log
+     * @param i number to calculate log for
+     * @return base specified logarithm of the number
+     */
+    static int log(int base, int i) {
+        short p = 0;
+        while(Math.pow(base, p) <= i)
+            p++;
+        return p;
+    }
+    
+    /**
+     * @param number
+     * @return number of digits of a number
+     */
+    public static int digits(int number) {
+        int x = number;
+        int cifres = 0;
+        while (x > 0) {
+            x /= 10;
+            cifres++;
+        }
+        return cifres;
+    }
+    
+    /**
+     * Creates zeropadded string - string of a number with '0' added in to
+     * maintain consistency in number of length.
+     * @param a - to turn onto zeropadded string
+     * @param b - number to zeropad into
+     * @return 
+     */
+    public static String zeroPad(int a, int b) {
+        int diff = digits(b) - digits(a);
+        String out = "";
+        for (int i=1; i<=diff; i++)
+            out += "0";
+        return out + String.valueOf(a);
+    }
+    
+    /**
+     * @return highest possible number of the same decadic length as specified
+     * number.
+     * Examples:  9 for 1-10, 99 for 10-99, 999 for nubmers 100-999, etc...
+     */
+    public static int DecMin1(int number) {
+        return (int) (Math.pow(10, 1+digits(number))-1);
     }
 }

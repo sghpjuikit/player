@@ -2,6 +2,7 @@
 package Layout;
 
 import Configuration.PropertyMap;
+import GUI.DragUtil.WidgetTransfer;
 import GUI.GUI;
 import Layout.Areas.ContainerNode;
 import Layout.Widgets.Widget;
@@ -96,7 +97,7 @@ public abstract class Container extends Component implements AltState {
     }
     
     /** @return the children */
-    public abstract Map<Integer, ? extends Component> getChildren();
+    public abstract Map<Integer, Component> getChildren();
     boolean b = false;
     
     /**
@@ -129,12 +130,13 @@ public abstract class Container extends Component implements AltState {
     
     /**
      * Swaps children in the layout.
-     * @param w1 child of this widget to swap.
-     * @param c2 child to swap with
-     * @param w2 container containing the child to swap with
+     * @param w1 child of this container to swap.
+     * @param toParent container containing the child to swap with
+     * @param toChild child to swap with
      */
-    public void swapChildren(Container c2, int i1, int i2) {
+    public void swapChildren(Container toParent, int i1, Component toChild) {
         Container c1 = this;
+        Container c2 = toParent;
         // avoid pointless operation but dont rely on equals
         // subclass can overide it and cause problems
         // note: we can rely on this check only because we 
@@ -144,18 +146,40 @@ public abstract class Container extends Component implements AltState {
         if (c1==c2) return;
         
         Component w1 = c1.getChildren().get(i1);
-        Component w2 = c2.getChildren().get(i2);
+        Component w2 = toChild;
+        int i2 = c2.indexOf(w2);
         
         String w1n = w1==null ? "null" : w1.getName();
         String w2n = w2==null ? "null" : w2.getName();
         Log.deb("Swapping widgets " + w1n + " and " + w2n);
         
         // remove old
-        c1.addChild(i1, null);
-        c2.addChild(i2, null);
+//        c1.addChild(i1, null);
+//        c2.addChild(i2, null);
         // add new
-        if (w2!=null) c1.addChild(i1, w2);
-        if (w1!=null) c2.addChild(i2, w1);
+//        if (w2!=null) 
+            c1.addChild(i1, w2);
+//        if (w1!=null) 
+            c2.addChild(i2, w1);
+//        try {
+//        if(w2==null) c1.getChildren().remove(i1); 
+//        else c1.getChildren().put(i1, w2);
+//        if(w1==null) c2.getChildren().remove(i2);
+//        else c2.getChildren().put(i2, w1);
+//        c1.load();
+//        c2.load();
+//        }catch(Exception e) {
+//            System.out.println(e.getClass() + " " + e.getStackTrace());
+//        }
+    }
+    
+    /**
+     * Convenience method.
+     * @see #swapChildren(Layout.Container, int, Layout.Component)
+     * @see WidgetTransfer
+     */
+    public void swapChildren(int i1, WidgetTransfer wt) {
+        swapChildren(wt.container, i1, wt.child);
     }
     
     /**

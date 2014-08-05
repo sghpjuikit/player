@@ -2,7 +2,6 @@
 package Layout.Areas;
 
 import GUI.DragUtil;
-import GUI.WidgetTransfer;
 import Layout.Component;
 import Layout.UniContainer;
 import Layout.Widgets.Widget;
@@ -13,7 +12,6 @@ import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
@@ -54,11 +52,9 @@ public final class WidgetArea extends UniArea {
         // support drag from
         root.setOnDragDetected( e -> {
             // disallow in normal mode & primary button drag only
-            if (controls.isShowing() && e.getButton()==PRIMARY) {
-                ClipboardContent c = new ClipboardContent();
-                c.put(DragUtil.widgetDF, new WidgetTransfer(container.indexOf(widget), container));
+            if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                          db.setContent(c);
+                DragUtil.setComponent(container,widget,db);
                 e.consume();
             }
         });
@@ -66,13 +62,9 @@ public final class WidgetArea extends UniArea {
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
         root.setOnDragDropped( e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasContent(DragUtil.widgetDF)) {
-                WidgetTransfer wt = DragUtil.getWidgetTransfer(db);
-                // use first free index (0) if empty (widget==null)
-                int i1 = widget==null ? 0 : container.indexOf(widget);
-                int i2 = wt.childIndex();
-                container.swapChildren(wt.getContainer(),i1,i2);
+            if (DragUtil.hasComponent()) {
+                container.swapChildren(1,DragUtil.getComponent());
+                e.setDropCompleted(true);
                 e.consume();
             }
         });

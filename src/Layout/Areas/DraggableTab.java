@@ -1,9 +1,10 @@
 package Layout.Areas;
 
+import GUI.objects.Text;
+import Layout.Component;
 import java.util.HashSet;
 import java.util.Set;
 import javafx.geometry.Point2D;
-import static javafx.geometry.Pos.CENTER;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Control;
@@ -14,10 +15,9 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import static javafx.stage.StageStyle.UNDECORATED;
+import static javafx.stage.StageStyle.TRANSPARENT;
  
 /**
  * A draggable tab that can optionally be detached from its tab pane and shown
@@ -29,7 +29,7 @@ import static javafx.stage.StageStyle.UNDECORATED;
  */
 public class DraggableTab extends Tab {
  
-    private static final Set<TabPane> tabPanes = new HashSet();
+    static final Set<TabPane> tabPanes = new HashSet();
     private static final Stage markerStage;
     
     private Label nameLabel;
@@ -57,13 +57,13 @@ public class DraggableTab extends Tab {
         nameLabel = new Label(text);
         setGraphic(nameLabel);
         detachable = true;
-        dragStage = new Stage();
-        dragStage.initStyle(UNDECORATED);
-        StackPane dragStagePane = new StackPane();
-        dragStagePane.setStyle("-fx-background-color:#DDDDDD;");
+        
         dragText = new Text(text);
-        StackPane.setAlignment(dragText, CENTER);
-        dragStagePane.getChildren().add(dragText);
+        StackPane dragStagePane = new StackPane(dragText);
+                  dragStagePane.getStyleClass().add("tooltip");
+                  
+        dragStage = new Stage();
+        dragStage.initStyle(TRANSPARENT);
         dragStage.setScene(new Scene(dragStagePane));
         
         nameLabel.setOnMouseDragged( e -> {
@@ -94,6 +94,21 @@ public class DraggableTab extends Tab {
             }
         });
         
+        
+//        nameLabel.setOnDragDetected( e -> {System.out.println("drag started " + e.getSource());
+//            Dragboard db = getTabPane().startDragAndDrop(TransferMode.MOVE);
+//            Component component = (Component)getUserData();
+//            DragUtil.setComponent(getTabArea().container,component, db);
+//            db.setDragView(null);
+//            
+//            
+//            getTabPane().setOnDragDone( ee -> {
+//                dragStage.hide();
+//                markerStage.hide();
+//            });
+//        });
+
+        
         nameLabel.setOnMouseReleased( e -> {
             // support only left mouse drag
             if(e.getButton()!=PRIMARY) return;
@@ -102,52 +117,45 @@ public class DraggableTab extends Tab {
             dragStage.hide();
             if(!e.isStillSincePress()) {
                 Point2D screenPoint = new Point2D(e.getScreenX(), e.getScreenY());
-                TabPane oldTabPane = getTabPane();
-                int oldIndex = oldTabPane.getTabs().indexOf(DraggableTab.this);
-                tabPanes.add(oldTabPane);
-                InsertData insertData = getInsertData(screenPoint);
+                InsertData insertData = getInsertData(screenPoint);                
                 
-                // if dropped at table reorder
+                // if dropped at table
                 if(insertData != null) {
-                    // id dropped at the same table
-                    if(oldTabPane == insertData.getInsertPane()) {
+                    TabPane fromPane = getTabPane();
+                    TabPane toPane = insertData.getInsertPane();
+                    int from = fromPane.getTabs().indexOf(DraggableTab.this);
+                    int to = Math.min(insertData.getIndex(), fromPane.getTabs().size());
+                    
+                    // if dropped at the same table reorder
+                    if(fromPane == toPane) {
                         // return if nothing to do
-                        if (oldTabPane.getTabs().size() == 1) return;
-                        
+                        if (fromPane.getTabs().size() == 1) return;System.out.println("MMMMMMMMOving " + from + " " + to);
                         // move child at position
-                        int from = oldTabPane.getTabs().indexOf(DraggableTab.this);
-                        int to = Math.min(insertData.getIndex(), oldTabPane.getTabs().size()-1);
-                        ((TabArea)getTabPane().getUserData()).container.moveChild(from, to);
+                        getTabArea().container.moveChild(from, to);
                     }
                     // if dropped at some other table move over
-                    else {
-                        
+                    else {                   
+                        // remove from source
+                        TabArea c1 = getTabArea();
+                        Component comp = c1.container.getChildren().get(from);
+                        c1.container.getChildren().remove(from);
+                        c1.container.load();
+                        // add to target
+                        TabArea c2 = (TabArea) toPane.getUserData();
+                        c2.container.addChild(to, comp);
                     }
-                    
-//                    old code
-//                    int addIndex = insertData.getIndex();
-//                    oldTabPane.getTabs().remove(DraggableTab.this);
-//                    if(oldIndex < addIndex && oldTabPane == insertData.getInsertPane()) {
-//                        addIndex--;
-//                    }
-//                    if(addIndex > insertData.getInsertPane().getTabs().size()) {
-//                        addIndex = insertData.getInsertPane().getTabs().size();
-//                    }
-//                    insertData.getInsertPane().getTabs().add(addIndex, DraggableTab.this);
-//                    insertData.getInsertPane().selectionModelProperty().get().select(addIndex);
-                    
                 }
                 // if not dropped at any table detach to window
                 else {
                     if(!detachable) return;
                     // detach component
                     int index = getTabPane().getTabs().indexOf(this);
-                    ((TabArea)getTabPane().getUserData()).detachComponent(index);
+                    getTabArea().detachComponent(index);
                 }
             }
         });
     }
- 
+
     /**
      * Set whether it's possible to detach the tab from its pane and move it to
      * another pane or another window. Defaults to true.
@@ -167,6 +175,10 @@ public class DraggableTab extends Tab {
     public void setLabelText(String text) {
         nameLabel.setText(text);
         dragText.setText(text);
+    }
+    
+    public final TabArea getTabArea() {
+        return ((TabArea)getTabPane().getUserData());
     }
  
     private InsertData getInsertData(Point2D screenPoint) {

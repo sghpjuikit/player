@@ -21,9 +21,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import utilities.Log;
@@ -109,14 +107,10 @@ public class PlaylistManagerComponent extends AnchorPane {
                         setTable(t, p);
                 });
                 // allow dragging of the playlist from TitledPane object
-                t.setOnDragDetected((MouseEvent event) -> {
-                    ClipboardContent content;
-                    content = new ClipboardContent();
-                    content.put(DragUtil.playlist, p.toPojoList());
-                    Dragboard db;
-                    db = t.startDragAndDrop(TransferMode.ANY);
-                    db.setContent(content);
-                    event.consume();
+                t.setOnDragDetected(e -> {
+                    Dragboard db = t.startDragAndDrop(TransferMode.ANY);
+                    DragUtil.setPlaylist(p, db);
+                    e.consume();
                 });
                 // add to accordion tables
                 tables.getPanes().add(t);

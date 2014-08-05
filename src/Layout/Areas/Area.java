@@ -5,6 +5,7 @@ import GUI.ContextManager;
 import GUI.Window;
 import Layout.Component;
 import Layout.Container;
+import Layout.Layout;
 import Layout.Widgets.Widget;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,11 +129,11 @@ public abstract class Area<T extends Container> implements ContainerNode {
                // set size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
-        Container c2 = w.getLayoutAggregator().getActive();
-        // watch out indexOf returns null if param null, but that will not happen here
+        Layout c2 = w.getLayoutAggregator().getActive();
+        Component w2 = c2.getChild();
+            // watch out indexOf returns null if param null, but that will not happen here
         int i1 = container.indexOf(c);
-        int i2 = c2.indexOf(w.getLayoutAggregator().getActive().getChild());
-        container.swapChildren(c2,i1,i2);
+        container.swapChildren(c2,i1,w2);
     }
     
     public void close() {

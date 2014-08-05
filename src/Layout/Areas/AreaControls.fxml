@@ -6,7 +6,7 @@
 
 <fx:root id="AnchorPane" fx:id="root" pickOnBounds="false" prefHeight="300.0" prefWidth="300.0" styleClass="block,area-control" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
       <children>
-        <Region fx:id="deactivator" prefHeight="25.0" prefWidth="130.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+        <Region fx:id="deactivator" prefHeight="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
         <BorderPane fx:id="header" mouseTransparent="true" pickOnBounds="false" prefHeight="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
           <center>
             <Label fx:id="title" text="Widget Name" BorderPane.alignment="CENTER" />

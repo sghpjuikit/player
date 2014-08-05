@@ -3,8 +3,6 @@ package Layout;
 
 import Layout.Areas.ContainerNode;
 import Layout.Areas.TabArea;
-import Layout.Widgets.Controller;
-import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,11 +46,14 @@ public final class PolyContainer extends Container {
             // grab a copy og the children
         Map<Integer,Component> cs = new HashMap();
         cs.putAll(children);
+        
+//        gui.selectComponentPreventLoad(true);
             // remove children from layout graph & scene graph
         gui.removeAllComponents();
         children.clear();
             // reinitialize
         gui.addComponents(cs.values());
+//        gui.selectComponent(properties.getI("selected"));
         
         return gui.getRoot();
     }
@@ -65,15 +66,15 @@ public final class PolyContainer extends Container {
         if(c==null) {
             Component rem = children.get(index);
             // close child
-            if(rem instanceof Widget) {
-                Controller con = Widget.class.cast(rem).getController();System.out.println("closing previous " + index + " " + con);
-                if(con!=null) con.OnClosing();
-            }
+//            if(rem instanceof Widget) {
+//                Controller con = Widget.class.cast(rem).getController();
+//                if(con!=null) con.OnClosing();
+//            }
             // remove from layout graph
             children.remove(index);
-            if(c instanceof Container)
+//            if(c instanceof Container)
             // remove from scene graph
-            gui.removeComponent(c);
+            gui.removeComponent(rem);
         // add child at new at index
         } else {
             if (c instanceof Container) Container.class.cast(c).parent = this;
@@ -91,35 +92,34 @@ public final class PolyContainer extends Container {
     /**
      * Change index of the child at specified index to some other index. This 
      * will reposition the child within the area.
-     * @param from
-     * @param to 
+     * @param from old index
+     * @param to new index
      */
     public void moveChild(int from, int to) {
         // avoid pointless operation
-        if(from==to || children.size()<2) return;
+        // there are actually two positions that imply no change
+        // each tab has two such indexes - to the left and to the right
+        // they are: old_index and old_index+1
+        if(from==to || from+1==to || children.size()<1) return;
         
-        // we will reorder children and then reload similar to as in load() method
-            // grab a copy of the children
-        List<Component> old =  new ArrayList();
-                        old.addAll(children.values());
-            // get component to move return if nothing to do
-        Component c = old.get(from);
+        // get component to move return if nothing to do
+        Component c = children.get(from);
         if (c==null) return;
+        
+        // we will reorder children and reflect in gui without loading
+            // make sure there are no index gaps by turning children to list 
+        List<Component> newOrder =  new ArrayList();
+                        newOrder.addAll(children.values());
             // reorder
-        old.remove(c);
-        old.add(to, c);
-            // change selection if selected child is moving
-        if(from==properties.getI("selected")) properties.set("selected", to);
-            // prevent selection change in illegal state
-        gui.selectComponentPreventLoad(true);
-            // remove children from layout graph & scene graph
-        gui.removeAllComponents();
+        newOrder.remove(c);
+            // the removal might change the index, calculate new one
+        int i = to<=from ? to : to-1;
+        newOrder.add(i, c);
+            // reflect new order in children
         children.clear();
-            // reinitialize
-        gui.addComponents(old);
-            // reload old selection
-            // selection did not initialize itself because we locked it
-        gui.selectComponent(properties.getI("selected"));
+        for(int j=0; j<newOrder.size(); j++) children.put(j, newOrder.get(j));
+            // reflect in gui
+        gui.moveTab(from, to);
     }
     
 }

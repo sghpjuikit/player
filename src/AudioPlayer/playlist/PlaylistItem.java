@@ -229,13 +229,6 @@ public final class PlaylistItem extends Item {
 /******************************************************************************/
     
     /**
-     * @return SimplePlaylistItem representation of this item.
-     */
-    public SimplePlaylistItem toSimple() {
-        return new SimplePlaylistItem(this);
-    }
-    
-    /**
      * {@inheritDoc}
      * <p>
      * This implementation returns metadata with artist, length and title fields

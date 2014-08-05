@@ -184,7 +184,7 @@ public class BookmarkerController extends FXMLController {
             row.setOnDragDetected( e -> {
                 if (e.getButton()==PRIMARY) {
                     Dragboard db = table.startDragAndDrop(TransferMode.ANY);
-                    DragUtil.setContent(db ,table.getSelectionModel().getSelectedItems());
+                    DragUtil.setItemList(table.getSelectionModel().getSelectedItems(), db);
                     e.consume();
                 }
             });

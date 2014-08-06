@@ -19,8 +19,8 @@ import AudioPlayer.playback.TimeEventHandler;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import Configuration.ValueConfigurable;
 import GUI.objects.SimpleConfigurator;
 import de.umass.lastfm.Authenticator;
 import de.umass.lastfm.Caller;
@@ -144,13 +144,13 @@ public class LastFMManager {
     
     public static SimpleConfigurator getLastFMconfig(){
         return new SimpleConfigurator(
-            new ValueConfigurable(
+            new MapConfigurable(
                 new ValueConfig("Username", LastFMManager.acquireUserName()),
                 new ValueConfig("Password", LastFMManager.acquirePassword())                                  
             ), 
             vc -> LastFMManager.saveLogin(
-               (String)vc.getFields().get(0).getValue(),
-               (Password)vc.getFields().get(1).getValue())                                     
+               (String)vc.getField("Username").getValue(),
+               (Password)vc.getField("Password").getValue())                                     
         );    
 
     }

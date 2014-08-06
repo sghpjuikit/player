@@ -62,17 +62,13 @@ public class Configuration {
     }
     
     private static void discover(){
-        Map<String,Config> list = new HashMap();
-        
         // add class fields
         for (Class c : classes) discoverConfigFieldsOf(c);
-        
         // add action fields
-        Action.getActions().values().stream().map(ActionConfig::new).forEach(f->configs.put(f.getName(), f));
-        
+        Action.getActions().values().stream().map(ActionConfig::new)
+                .forEach(f->configs.put(f.getName(), f));
         // add methods in the end to avoid incorrect initialization
        for (Class c : classes) discoverMethodsOf(c);
-       
     }
     
     private static void discoverConfigFieldsOf(Class clazz) {
@@ -224,14 +220,6 @@ public class Configuration {
 //                .forEach(Config::applyValue);
 //    }
     
-    public static void applyFieldsByName(List<String> fields_to_apply) {
-        fields_to_apply.forEach(Configuration::applyField);
-    }
-    
-    public static void applyFields(List<Config> fields_to_apply) {
-        fields_to_apply.forEach(Config::applyValue);
-    }
-    
 /******************************* public api ***********************************/
     
     /**
@@ -256,7 +244,7 @@ public class Configuration {
      * Changes all config fields to their default value and applies them
      */
     public static void toDefault() {
-        configs.values().forEach(c -> c.setNapplyValue(c.getDefaultValue()));
+        configs.values().forEach(Config::setNapplyDefaultValue);
     }
     
     /**

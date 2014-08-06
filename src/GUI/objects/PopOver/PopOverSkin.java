@@ -77,8 +77,8 @@ public class PopOverSkin implements Skin<PopOver> {
     private BorderPane content;
     
     private final Label title;
-    private final Label closeIcon;
-    private final Label pinIcon;
+    private final Label closeB;
+    private final Label pinB;
     private BorderPane header;
     private HBox headerControls;
 
@@ -113,24 +113,24 @@ public class PopOverSkin implements Skin<PopOver> {
         title.textProperty().bind(popOver.titleProperty());
         title.getStyleClass().add("title");
 
-        closeIcon = AwesomeDude.createIconLabel(AwesomeIcon.TIMES_CIRCLE, "11");
-        closeIcon.setOnMouseClicked( e -> popOver.hideStrong());
-        closeIcon.setTooltip(new Tooltip("Close"));
-        closeIcon.getStyleClass().add("popover-closebutton");
+        closeB = AwesomeDude.createIconLabel(AwesomeIcon.TIMES_CIRCLE, "11");
+        closeB.setOnMouseClicked( e -> popOver.hideStrong());
+        closeB.setTooltip(new Tooltip("Close"));
+        closeB.getStyleClass().add("popover-closebutton");
         
-        pinIcon = AwesomeDude.createIconLabel(popOver.isAutoHide() ? THUMB_TACK : DOT_CIRCLE_ALT, "","11","11",CENTER);
-        pinIcon.setOnMouseClicked( e -> {
+        pinB = AwesomeDude.createIconLabel(popOver.isAutoHide() ? THUMB_TACK : DOT_CIRCLE_ALT, "","11","11",CENTER);
+        pinB.setOnMouseClicked( e -> {
             popOver.setAutoHide(!popOver.isAutoHide());
             e.consume();
         });
-        pinIcon.setTooltip(new Tooltip("Autohide"));
-        pinIcon.getStyleClass().add("popover-closebutton");
+        pinB.setTooltip(new Tooltip("Autohide"));
+        pinB.getStyleClass().add("popover-closebutton");
         // maintain proper pinIcon icon
         popOver.autoHideProperty().addListener((o,ov,nv) -> {
-            AwesomeDude.setIcon(pinIcon, nv ? THUMB_TACK : DOT_CIRCLE_ALT, "11");
+            AwesomeDude.setIcon(pinB, nv ? THUMB_TACK : DOT_CIRCLE_ALT, "11");
         });
         
-        headerControls = new HBox(closeIcon);
+        headerControls = new HBox(closeB);
         headerControls.setSpacing(5);
         headerControls.setAlignment(Pos.CENTER_RIGHT);
         headerControls.getStyleClass().add("header-buttons");
@@ -138,24 +138,26 @@ public class PopOverSkin implements Skin<PopOver> {
                 headerControls.getChildren().setAll(popOver.getHeaderIcons());
 //                headerControls.getChildren().add(headerControls.getChildren().size(),
 //                        popOver.isDetached() ? closeIcon : pinIcon);
-                headerControls.getChildren().addAll(pinIcon,closeIcon);
+                headerControls.getChildren().addAll(pinB,closeB);
         // maintain proper header content
         popOver.getHeaderIcons().addListener((ListChangeListener.Change<? extends Node> e) -> {
             while(e.next()) {
                 headerControls.getChildren().setAll(popOver.getHeaderIcons());
 //                headerControls.getChildren().add(headerControls.getChildren().size(),
 //                        popOver.isDetached() ? closeIcon : pinIcon);
-                headerControls.getChildren().addAll(pinIcon,closeIcon);
+            headerControls.getChildren().add(pinB);
+            headerControls.getChildren().add(closeB);
             }
         });
         // switch pin & close icons when on detach change
         // we do this because detached/not d. modes differ in autohide
         // we want to customize autohiding arbitrarily in undetached mode
         // we want to close manually in detached mode with autohide off
-        popOver.detachedProperty().addListener((o,ov,nv)->{
+        popOver.detachedProperty().addListener( (o,ov,nv) -> {
 //            headerControls.getChildren().set(headerControls.getChildren().size()-1,
 //                        nv ? closeIcon : pinIcon);
-            headerControls.getChildren().addAll(pinIcon,closeIcon);
+            headerControls.getChildren().add(pinB);
+            headerControls.getChildren().add(closeB);
         });
         
         header = new BorderPane();

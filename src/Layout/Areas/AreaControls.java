@@ -28,6 +28,7 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ContentDisplay;
@@ -35,7 +36,7 @@ import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BoxBlur;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -55,6 +56,7 @@ public final class AreaControls {
     
     @FXML public AnchorPane root = new AnchorPane();
     @FXML public Region deactivator;
+    @FXML public Region deactivator2;
     @FXML public BorderPane header;
     @FXML public Label title;
     public Label propB;
@@ -85,11 +87,7 @@ public final class AreaControls {
                 .bind(root.widthProperty().subtract(title.widthProperty())
                 .divide(2).subtract(15));
         header_buttons.setMinWidth(15);
-        // resize deactivator height with header buttons
-        // as for width - it always extends to whole area width (like header)
-        deactivator.prefHeightProperty().bind(header_buttons.heightProperty());
-        deactivator.setScaleY(1.1);
-        
+
         // build header buttons
         Label helpB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
                helpB.setTooltip(new Tooltip("Help"));
@@ -191,7 +189,7 @@ public final class AreaControls {
         // - the weak behavior must not work in strong mode
         
         // show when area is hovered and in weak mode
-        area.activator.addEventFilter(MOUSE_ENTERED, e -> {
+        area.activator.addEventFilter(MouseEvent.MOUSE_ENTERED, e -> {
             // avoid when locked and in strong mode
             if (!area.isUnderLock() && !isShowingStrong && 
                     // avoid pointless operation
@@ -199,7 +197,7 @@ public final class AreaControls {
                 showWeak();
         });
         // hide when no longer hovered and in weak mode
-        deactivator.addEventFilter(MOUSE_EXITED, e -> {
+        EventHandler<MouseEvent> closer = e -> {
             // avoid when locked and in strong mode
             if(!area.isUnderLock() && !isShowingStrong && 
                 // avoid pointless operation
@@ -209,11 +207,16 @@ public final class AreaControls {
                     // to avoid
                     // now we need to handle hiding when popup closes
                     (helpPopOver==null || !helpPopOver.isShowing())
-                        // if we hover on a child of deactivator it 
-                        // receives mouse exit, make sure the event is legit
-                        && !deactivator.contains(e.getX(), e.getY()))
+                        // hide when none of the deactivators are hovered
+                        // need to translate the coordinates to scene-relative
+                        && !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
+                            && !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()))
                 hideWeak();
-        });
+            
+        };
+        deactivator.setOnMouseExited(closer);
+        deactivator2.setOnMouseExited(closer);
+        
         // hide on mouse exit from area
         // same thing as above - need to take care of popup
         // theoretically not needed but sometimes mouse exited deactivator does
@@ -224,9 +227,11 @@ public final class AreaControls {
                 hide();
         });
         
-        // mirror header drag event to make header have area.root drag functionality
-        // support drag widget from area byheader drag in weak mode
-        header.setOnDragDetected( e -> e.copyFor(area.root, null));
+        // enlarge deactivator that resizes with control buttons to give more
+        // room for mouse movement
+        deactivator.setScaleX(1.2);
+        deactivator.setScaleY(1.2);
+        
     }
 
     void refreshWidget() {
@@ -271,7 +276,7 @@ public final class AreaControls {
     }
     
     void close() {
-        area.close();
+        area.container.close();
     }
     
     private void showWeak() {
@@ -294,9 +299,10 @@ public final class AreaControls {
         root.setMouseTransparent(false);
         // make activator accessible when showing
         deactivator.setMouseTransparent(false);
-        // enlarge deactivator for more mouse movement freedom
-        deactivator.setScaleX(1.7);
-        deactivator.setScaleY(1.7);        
+        deactivator2.setMouseTransparent(false);
+//        // enlarge deactivator for more mouse movement freedom
+//        deactivator.setScaleX(1.7);
+//        deactivator.setScaleY(1.7);        
     }
     
     private void hideWeak() {
@@ -315,9 +321,10 @@ public final class AreaControls {
         // make activator inaccessible when not showing so it doesnt block 
         // controls below it
         deactivator.setMouseTransparent(true);
-        // go back to original scale
-        deactivator.setScaleX(1.1);
-        deactivator.setScaleY(1.1);
+        deactivator2.setMouseTransparent(true);
+//        // go back to original scale
+//        deactivator.setScaleX(1.1);
+//        deactivator.setScaleY(1.1);
         // hide help popup if open
         if(helpPopOver!=null && helpPopOver.isShowing()) helpPopOver.hide();        
     }

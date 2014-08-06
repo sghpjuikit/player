@@ -372,6 +372,8 @@ public class FileInfoController extends FXMLController  {
                 .filter(ll -> ll.getText().substring(ll.getText().indexOf(": ")+1).equals(" "))
                 .forEach(visible_labels::remove);
         }
+        // never disable rating, we want to be able to set the value
+        rating.setDisable(false);
         
         // hide individual fields
         if (!showTitle)         visible_labels.remove(title);

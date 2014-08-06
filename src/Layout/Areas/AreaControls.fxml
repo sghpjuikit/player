@@ -6,11 +6,13 @@
 
 <fx:root id="AnchorPane" fx:id="root" pickOnBounds="false" prefHeight="300.0" prefWidth="300.0" styleClass="block,area-control" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
       <children>
-        <Region fx:id="deactivator" prefHeight="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
         <BorderPane fx:id="header" mouseTransparent="true" pickOnBounds="false" prefHeight="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
           <center>
             <Label fx:id="title" text="Widget Name" BorderPane.alignment="CENTER" />
           </center>
-        </BorderPane><TilePane fx:id="header_buttons" alignment="TOP_RIGHT" hgap="5.0" prefColumns="7" prefRows="1" vgap="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+        </BorderPane><Region fx:id="deactivator2" prefHeight="35.0" prefWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><StackPane AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+<children>
+        <Region fx:id="deactivator" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" /><TilePane fx:id="header_buttons" alignment="TOP_RIGHT" hgap="5.0" prefColumns="7" prefRows="1" vgap="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+</children></StackPane>
       </children>
     </fx:root>

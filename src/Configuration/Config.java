@@ -234,4 +234,12 @@ public abstract class Config<T> {
         return setValue(fromS(str));
     }
     
+    public boolean setDefaultValue() {
+        return setValue(getDefaultValue());
+    }
+    
+    public void setNapplyDefaultValue() {
+        setNapplyValue(getDefaultValue());
+    }
+    
 }

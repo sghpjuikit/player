@@ -72,7 +72,8 @@
     /* when changing this value be aware that .header class emulates it manually
        be sure to change it there too*/
     -fx-pane-color: rgba(0,0,0,0.32);
-
+    /* Darker version of pane color. By default used for :dragged pseudoclass */
+    -fx-pane-color-dragged: rgba(0,0,0,0.5);
     /* Default bgr color for tooltips and popups. */
     -fx-popup-def-bgr-color: rgba(28,42,45,0.70);
     
@@ -3220,11 +3221,19 @@
 
    Subclasses: window > .header, area, area-controls, layouter-element,
                .item-picker-element
+   Pseudocalsees: dragged (all subclasses inherit those)
    Dev note: assigning a subclass styleclass to a javaFX object does not automatically
             assign it area too. Must be done manually.
     */
 .block {
     -fx-background-color: -fx-pane-color;
+}
+
+/** State when dragged. Only few subclasses actually use this. An example is
+    .area 
+    Note: i was not able to override this in custom skins. Investigate. */
+.block:dragged {
+    -fx-background-color: -fx-pane-color-dragged;
 }
 
 /* Default headers style. Unrelated headers might use this class. Each of them

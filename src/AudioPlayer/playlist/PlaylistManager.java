@@ -9,8 +9,8 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import Configuration.ValueConfigurable;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
@@ -646,9 +646,9 @@ public class PlaylistManager implements Configurable {
         // build content
         String title = add ? "Add url item." : "Play url item.";
         SimpleConfigurator content = new SimpleConfigurator(
-            new ValueConfigurable(new ValueConfig("Url", "url", title)),
+            new MapConfigurable(new ValueConfig("Url", "url", title)),
             c -> {
-                String url = (String) c.getFields().get(0).getValue();
+                String url = (String) c.getField("Url").getValue();
                 if(add) {
                     addUrl(url);
                 } else {

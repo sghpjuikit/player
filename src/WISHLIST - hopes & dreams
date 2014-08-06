@@ -16,18 +16,15 @@
 - window docking awareness - disable autohiding when not, enable for all Wndws
 - ability to passivate widget - it autocloses after set amount of time. It
   is within layout but not loaded - Big Layout support
-- full lastFM support
 - support ui autoscroll when near edge while dragging something
 - support middle mouse ui scroll
-- add ability to show floating Node near cursor with an XY offset 
-- make more Actions, make util class for it
+- add ability to show floating Node near cursor with an XY offset
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable
 - layout manager add mockup layout builder to make custom layout without loading
   the widgets, perhaps also display this mockup instead of thumbnail
 - add URI configField
-- configurable support sub configurable by default
 - finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
 - seeker option to show chapters as they are passing                            (?)
 - cursor trail effect - 'frozen" effect

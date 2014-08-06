@@ -50,14 +50,18 @@ public final class WidgetArea extends UniArea {
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
         // support drag from
-        root.setOnDragDetected( e -> {
+        root.setOnDragDetected( e -> {System.out.println("drag");
             // disallow in normal mode & primary button drag only
             if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(container,widget,db);
+                // signal dragging graphically with css
+                content.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
                 e.consume();
             }
         });
+        // return graphics to normal
+        root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         // accept drag onto
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
@@ -132,5 +136,10 @@ public final class WidgetArea extends UniArea {
     @Override
     public AnchorPane getContent() {
         return content;
+    }
+
+    @Override
+    public void close() {
+        // nothing to do
     }
 }

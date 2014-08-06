@@ -475,6 +475,7 @@ public class PopOver<N extends Node> extends PopupControl {
     
     /** Display at specified designated screen position */
     public void show(ScreenCentricPos pos) {
+        setArrowSize(0); // disable arrow
         showThis(null, GUI.Window.getActive().getStage());
         position(pos.calcX(this), pos.calcY(this));
         

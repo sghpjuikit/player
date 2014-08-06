@@ -11,7 +11,7 @@
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - window apply overlay on new window upon creation
-- windw header visible preference application is weird 4                         (?)
+- windw header visible preference application is weird 4                        (?)
 - popover set arrow location automatically based on available screen space
   getWidget - implement Target
 - Player update item not refreshing selected pl item                            (?)
@@ -34,12 +34,11 @@
 - tab drag areas vs tabs implement both at once
 - configurator empt shortcut not defaulting? fix
 - trail effect disables click effect
-- improve dialog with ValueConfigurable and remove ContentDialog
 - ALT+F4 closes windows separately instead whole app
 - popover show pin icon property implement
 - holding shift while scrolling will scroll horizontally - document in gui
 - press C to collapse layout containers easily - implement properly
-- configurable api improve javadoc
+- generify COnfigurable and SimpleOCnfigurator
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

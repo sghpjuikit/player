@@ -5,8 +5,11 @@ import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
-import GUI.Dialogs.ContentDialog;
+import Configuration.MapConfigurable;
+import Configuration.ValueConfig;
 import GUI.objects.PlaylistTable;
+import GUI.objects.PopOver.PopOver;
+import GUI.objects.SimpleConfigurator;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -315,43 +318,38 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML
     public void savePlaylist() {
         if(playlist.getItemsF().isEmpty()) return;
-        // build content
-        TextField f = new TextField();
-                  f.setText("ListeningTo " + new Date(System.currentTimeMillis()));
-                  f.setPromptText("Playlist name");
-        // build dialog
-        ContentDialog<TextField> dialog = new ContentDialog();
-        dialog.setContent(f);
-        dialog.setTitle("Save as...");
-        dialog.setOnOk( c -> {
-            String name = c.getText();
+        
+        String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
+        MapConfigurable cs = new MapConfigurable(
+                new ValueConfig("Name", initialName),
+                new ValueConfig("Category", "Listening to..."));
+        SimpleConfigurator sc = new SimpleConfigurator(cs, c -> {
+            String name = (String) c.getField("Name").getValue();
             NamedPlaylist p = new NamedPlaylist(name, playlist.getItemsF());
                           p.addCategory("Listening to...");
                           p.serialize();
-            return true;
         });
-        f.textProperty().addListener(text -> dialog.setMessagee(""));
-        dialog.show();
+        PopOver p = new PopOver(sc);
+                p.setTitle("Save playlist as...");
+                p.show(PopOver.ScreenCentricPos.AppCenter);
     }
     @FXML
     public void saveSelectedAsPlaylist() {
         if(playlist.getSelectedItems().isEmpty()) return;
-        // build content
-        TextField f = new TextField();
-                  f.setPromptText("Playlist name");
-        // build dialog
-        ContentDialog<TextField> dialog = new ContentDialog();
-        dialog.setContent(f);
-        dialog.setTitle("Save as...");
-        dialog.setOnOk( c -> {
-            String name = c.getText();
-            NamedPlaylist p = new NamedPlaylist(name, playlist.getSelectedItems());
-                          p.addCategory("Listening to...");
+        
+        MapConfigurable cs = new MapConfigurable(
+                new ValueConfig("Name", "My Playlist"),
+                new ValueConfig("Category", "Custom"));
+        SimpleConfigurator sc = new SimpleConfigurator(cs, c -> {
+            String name = (String) c.getField("Name").getValue();
+            String category = (String) c.getField("Category").getValue();
+            NamedPlaylist p = new NamedPlaylist(name, playlist.getItemsF());
+                          p.addCategory(category);
                           p.serialize();
-            return true;
         });
-        f.textProperty().addListener(text -> dialog.setMessagee(""));
-        dialog.show();
+        PopOver p = new PopOver(sc);
+                p.setTitle("Save selected items as...");
+                p.show(PopOver.ScreenCentricPos.AppCenter);
     }
     
 /******************************* SEARCHING ************************************/

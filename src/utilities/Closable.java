@@ -4,17 +4,16 @@
  * and open the template in the editor.
  */
 
-package Layout.Areas;
-
-import Layout.AltState;
-import utilities.Closable;
+package utilities;
 
 /**
+ * Object that closes.
+ * <p>
+ * Close operation is mostly to free resources and stop thebehavior of the
+ * object.
  *
  * @author Plutonium_
  */
-public interface ContainerNode extends SceneGraphNode, AltState, Closable {
-    
-    @Override 
-    public default void close() {}
+public interface Closable {
+    public void close();
 }

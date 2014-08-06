@@ -9,24 +9,42 @@ import utilities.Util;
 /**
  * Defines object that can be configured.
  * <p>
- * Configurable object exports its configuration as {@link Config} fields. This can
- * be very used to save or restore a configurable's state (in serialization), 
- * change or manipulate this state or even generate property sheet GUI to change
- * the state of the object.
+ * Configurable object exports its configurable state as {@link Config} fields that
+ * encapsulate the configurable values and abstract away from the implementation.
+ * This can be used to save or restore a configurable's state (in serialization), 
+ * change or manipulate this state or even generate GUI to change for it.
  * <p>
- * Anything can be configurable (depends on implementation) - an object with 
+ * Any object can be configurable - an object with 
  * some state (fields) or properties (for example javaFX {@link Property}), or
  * composite object composed of sub Configurables exposing all its aggregated
  * subparts transparently as one or it could even be a virtual object - simply
- * a collection of Configs into a Configurable.
+ * a collection of unrelated Configs aggregated under a Configurable.
  * <p>
- * This interface already provides default implementations of all its methods.
- * The default implementation makes use of the {@link Configuration.IsConfig}
- * annotation and discovers all fields of this object by reflection.
- * See IsConfig's own documentation to learn more about how to use it.
+ * This interface already provides complete default implementation. It makes use
+ * of the {@link Configuration.IsConfig} annotation and reflection to discover
+ * these fields.
+ * See {@link IsConfig} own documentation to learn more about how to use it.
  * <p>
- * It is possible to use your own implementation. Such would require to override
- * getFields and getField methods.
+ * It is possible to use your own implementation. It requires to override only
+ * getFields and getField methods - the way how the configs are derived).
+ * Then one could combine the provided implementation
+ * by calling super(), but adding custom Configs or manipulate the result in
+ * some way or simply use different way of obtaining the configs.
+ * <pre>
+ * The following are some possible implementations for a Configurable:
+ *    - reflection: default implementation relying on annotation
+ *    - collection: impl. relying on collection storing the Configs
+ *    - mix: combination of the above
+ * </pre>
+ * <p>
+ * Default implementation has the advantage of not storing the configs in memory.
+ * The fields can be accessed individually (unless all are requested) and created
+ * temporarily for one-time use.
+ * <p>
+ * Collection impl. would store the configs in a collection.
+ * 
+ * @see MapConfigurable
+ * @see ListConfigurable
  * 
  * @author uranium
  */
@@ -34,6 +52,23 @@ public interface Configurable {
     
     /** 
      * Get all configs of this configurable.
+     * <p>
+     * Use to get Configs and access their values. Config can provide
+     * its value type, but that is helpful only when using the values dynamically.
+     * Because the collection does not know about the type of the Config and its
+     * value type - casting is necessary when accessing config's value directly.
+     * <p>
+     * There are two possible ways:<br>
+     * <t>Casting to Config with the correct generic parameter and then calling
+     * the getValue() like this:
+     * <p>
+     * String val = ((Config<String>) c.getFields().get(0)).getValue();
+     * <p>
+     *     Or obtaining the value and then casting it to the correct type. This 
+     * should be the preferred way of doing this. Like this:
+     * <p>
+     * String val = (String) c.getFields().get(0).getValue();
+     * 
      * @return Configs of this configurable
      */
     default public List<Config> getFields() {
@@ -42,6 +77,10 @@ public interface Configurable {
     
     /**
      * Get config of this configurable with specified name
+     * <p>
+     * Because name is a unique identifier, we know the correct value type of
+     * the config.
+     * 
      * @param name
      * @return config or null if no available. Note: never check for null, rather
      * let NullPointerException be thrown if null is returned. Null always

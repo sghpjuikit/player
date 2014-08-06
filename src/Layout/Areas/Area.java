@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import utilities.Closable;
 
 /**
  * Graphical part of the container within layout.
@@ -29,8 +31,9 @@ import javafx.scene.layout.Region;
  * <p>
  * @author uranium
  */
-public abstract class Area<T extends Container> implements ContainerNode {
+public abstract class Area<T extends Container> implements ContainerNode, Closable {
     
+    public static final PseudoClass draggedPSEUDOCLASS = PseudoClass.getPseudoClass("dragged");
     public static final List<String> bgr_STYLECLASS = Arrays.asList("area", "block");
     
     /**
@@ -134,10 +137,6 @@ public abstract class Area<T extends Container> implements ContainerNode {
             // watch out indexOf returns null if param null, but that will not happen here
         int i1 = container.indexOf(c);
         container.swapChildren(c2,i1,w2);
-    }
-    
-    public void close() {
-        container.close();
     }
     
 /******************************************************************************/

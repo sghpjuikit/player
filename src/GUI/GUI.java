@@ -4,7 +4,6 @@ package GUI;
 import Action.IsAction;
 import Action.IsActionable;
 import Configuration.AppliesConfig;
-import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.LayoutAggregators.LayoutAggregator;
@@ -40,7 +39,7 @@ import utilities.Util;
  */
 @IsActionable
 @IsConfigurable
-public class GUI implements Configurable {
+public class GUI {
     
     // properties
     @IsConfig(name = "Font", info = "Application font.")

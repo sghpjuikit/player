@@ -25,6 +25,7 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import utilities.Log;
 import static utilities.Util.NotNULL;
 
 /**
@@ -52,7 +53,10 @@ public final class TabArea extends PolyArea {
         }
         
         tabPane.setUserData(this);
-        content.getStyleClass().setAll(Area.bgr_STYLECLASS);DraggableTab.tabPanes.add(tabPane);
+        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
+        
+        register();
+        
         // load controls
         controls = new AreaControls(this);
         root.getChildren().add(controls.root);
@@ -67,6 +71,8 @@ public final class TabArea extends PolyArea {
             if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
                 Dragboard db = root.startDragAndDrop(TransferMode.MOVE);
                 DragUtil.setComponent(container.getParent(),container,db);
+                // signal dragging graphically with css
+                content.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
                 e.consume();
             }
         });
@@ -81,7 +87,9 @@ public final class TabArea extends PolyArea {
                 e.consume();
             }
         });
-
+        // return graphics to normal
+        root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        
         hide();
     }
     
@@ -168,7 +176,6 @@ public final class TabArea extends PolyArea {
     
     private void loadTab(Tab t, Component c) {
         if (c == null || t == null) return;
-        widget = c;
         Node w = c.load();
         t.setContent(w);
         t.getContent().setLayoutX(0);
@@ -220,7 +227,9 @@ public final class TabArea extends PolyArea {
                w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
     
-    public void moveTab(int from, int to) {System.out.println("moving "+from + " " + + to);
+    public void moveTab(int from, int to) {
+        Log.deb("Moving component tab " + from + " " + to);
+        
         // prevent selection change
         selectComponentPreventLoad(true);
         
@@ -242,8 +251,8 @@ public final class TabArea extends PolyArea {
         int oldSel = container.properties.getI("selected");
         int newSel;
         if (oldSel==from) newSel = to;
-        else if (oldSel>from && oldSel<=to) newSel =  oldSel+1;
-        else if (to>oldSel && oldSel<=from) newSel =  oldSel-1;
+        else if (oldSel>from && oldSel<=to) newSel = oldSel+1;
+        else if (to>oldSel && oldSel<=from) newSel = oldSel-1;
         else newSel = oldSel;
         selectComponent(newSel);
     }
@@ -254,19 +263,32 @@ public final class TabArea extends PolyArea {
     }
     
     
+    // the tab must be added to tabPane after this
     private DraggableTab buildTab(Component c, int to) {
-            DraggableTab t = new DraggableTab(c.getName());
-            t.setDetachable(true);
-            t.setTooltip(new Tooltip(c.getName()));
-            t.setUserData(c);
-            t.setOnClosed(e -> container.removeChild(c));
-            t.setOnSelectionChanged( e -> {
-                // prevent loading because of lock
-                if(selectionLock) return;
-                if(tabPane.getTabs().contains(t) && t.isSelected())
-                    loadTab(t,(Component)t.getUserData());
-            });
-            return t;
+        DraggableTab t = new DraggableTab(c.getName());
+        t.setDetachable(true);
+        t.setTooltip(new Tooltip(c.getName()));
+        t.setUserData(c);
+        t.setOnClosed(e -> container.removeChild(c));
+        t.setOnSelectionChanged( e -> {
+            // prevent loading because of lock
+            if(selectionLock) return;
+            if(tabPane.getTabs().contains(t) && t.isSelected())
+                loadTab(t,(Component)t.getUserData());
+        });
+        return t;
+    }
+    
+/******************************************************************************/
+    
+    public void register() {
+        DraggableTab.tabPanes.add(tabPane); // register to support drag
+    }
+    
+    @Override
+    public void close() {
+        tabPane.getTabs().forEach(t -> t.setUserData(null));
+        DraggableTab.tabPanes.remove(tabPane); // unregister from drag
     }
     
 }

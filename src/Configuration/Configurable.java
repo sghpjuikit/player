@@ -4,7 +4,7 @@ package Configuration;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import utilities.Log;
+import utilities.Util;
 
 /**
  * Defines object that can be configured.
@@ -37,17 +37,7 @@ public interface Configurable {
      * @return Configs of this configurable
      */
     default public List<Config> getFields() {
-        List<Config> fields = new ArrayList();
-        for (Field f: getClass().getFields()) {
-            try {
-                IsConfig c = f.getAnnotation(IsConfig.class);
-                if (c != null)
-                    fields.add(new InstanceFieldConfig(f.getName(),c, f.get(this), getClass().getSimpleName(), this, f));
-            } catch (IllegalAccessException ex) {
-                Log.err(ex.getMessage());
-            }
-        }
-        return fields;
+        return new ArrayList(Configuration.getConfigsOf(getClass(), this, false, true).values());
     }
     
     /**
@@ -59,15 +49,10 @@ public interface Configurable {
      */
     default public Config getField(String name) {
         try {
-            Field f = getClass().getField(name);
-            IsConfig a = f.getAnnotation(IsConfig.class);
-            Object val = f.get(this);
-            String group = getClass().getName();
-            if(a==null)
-                Log.warn("Config '" + name + "' not found. Field exists, but annotation missing");
-            return new InstanceFieldConfig(name,a,val,group,this,f);
-        } catch (NoSuchFieldException | SecurityException | IllegalAccessException ex) {
-            System.out.println(ex.getClass());System.out.println(ex.getMessage());
+            Class c = getClass();
+            Field f = Util.getField(c,name);
+            return Configuration.createConfig(c, f, this, false, true);
+        } catch (NoSuchFieldException | SecurityException ex) {
             return null;
         }
     }

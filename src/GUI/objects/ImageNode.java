@@ -6,6 +6,7 @@
 package GUI.objects;
 
 import java.io.File;
+import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -69,10 +70,12 @@ public abstract class ImageNode {
      * @param from component to use to calculate the size based on
      * @return recommended size of the image
      */
-    public double calculateImageLoadSize(Region from) {
-        double size1 = Math.min(from.getWidth(), from.getHeight());
-        double size2 = Math.min(from.getPrefHeight(), from.getPrefWidth());
-        return LOAD_COEFICIENT * Math.max(size1,size2);
+    public Point2D calculateImageLoadSize(Region from) {
+        // sample both height and prefHeight to avoid getting 0 when source not
+        // yet initialized (part of scene graph)
+        double w = Math.max(from.getWidth(),from.getPrefWidth());
+        double h = Math.max(from.getHeight(),from.getPrefHeight());
+        return new Point2D(w,h).multiply(LOAD_COEFICIENT);
     }
     
     public abstract AnchorPane getPane();

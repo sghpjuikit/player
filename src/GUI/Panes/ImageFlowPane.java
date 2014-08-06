@@ -9,6 +9,7 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -111,7 +112,8 @@ public final class ImageFlowPane {
     }
     public void setImage(File img) {// System.out.println(Runtime.getRuntime().totalMemory());
         if (img != null) {
-            Image tmp = Util.loadImage(img, image.calculateImageLoadSize(THIS));
+            Point2D size = image.calculateImageLoadSize(THIS);
+            Image tmp = Util.loadImage(img, size.getX(), size.getY());
             image.loadImage(tmp);
             image.setFile(img);
             imageRatio.set(tmp.getWidth()/tmp.getHeight());

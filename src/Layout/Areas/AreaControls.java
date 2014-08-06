@@ -85,7 +85,8 @@ public final class AreaControls {
                 .bind(root.widthProperty().subtract(title.widthProperty())
                 .divide(2).subtract(15));
         header_buttons.setMinWidth(15);
-        // resize deactivator height with header buttons (let width == area.width)
+        // resize deactivator height with header buttons
+        // as for width - it always extends to whole area width (like header)
         deactivator.prefHeightProperty().bind(header_buttons.heightProperty());
         deactivator.setScaleY(1.1);
         
@@ -223,9 +224,9 @@ public final class AreaControls {
                 hide();
         });
         
-        header.setOnDragDetected( e -> {
-            e.copyFor(area.root, null);
-        });
+        // mirror header drag event to make header have area.root drag functionality
+        // support drag widget from area byheader drag in weak mode
+        header.setOnDragDetected( e -> e.copyFor(area.root, null));
     }
 
     void refreshWidget() {

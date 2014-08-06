@@ -25,6 +25,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -211,7 +212,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     @Override
     public void loadImage(File img) {
         img_file = img;
-        Image i = Util.loadImage(img, calculateImageLoadSize(root));
+        Point2D size = calculateImageLoadSize(root);
+        Image i = Util.loadImage(img_file, size.getX(), size.getY());
         image.setImage(i);
         border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
         if(i!=null) {

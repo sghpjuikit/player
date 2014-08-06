@@ -37,7 +37,6 @@ import utilities.Log;
 public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
     
     URL url;
-    private Class<? extends Controller> controlelr_type;
     
     /**
      * @param _name
@@ -71,7 +70,6 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
                       urls[0] = dir;
                 URLClassLoader controllerLoader = new URLClassLoader(urls);
                 Class cn;
-                Object cntrl = null;
                 
                 // widget name eg.: "Tagger"
                 String wname = FileUtil.getName(url.toURI());

@@ -153,28 +153,12 @@ public abstract class Container extends Component implements AltState {
         String w2n = w2==null ? "null" : w2.getName();
         Log.deb("Swapping widgets " + w1n + " and " + w2n);
         
-        // remove old
-//        c1.addChild(i1, null);
-//        c2.addChild(i2, null);
-        // add new
-//        if (w2!=null) 
-            c1.addChild(i1, w2);
-//        if (w1!=null) 
-            c2.addChild(i2, w1);
-//        try {
-//        if(w2==null) c1.getChildren().remove(i1); 
-//        else c1.getChildren().put(i1, w2);
-//        if(w1==null) c2.getChildren().remove(i2);
-//        else c2.getChildren().put(i2, w1);
-//        c1.load();
-//        c2.load();
-//        }catch(Exception e) {
-//            System.out.println(e.getClass() + " " + e.getStackTrace());
-//        }
+        c1.addChild(i1, w2);
+        c2.addChild(i2, w1);
     }
     
     /**
-     * Convenience method.
+     * Convenience method. Equivalent to: swapChildren(wt.container, i1, wt.child)
      * @see #swapChildren(Layout.Container, int, Layout.Component)
      * @see WidgetTransfer
      */

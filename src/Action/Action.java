@@ -351,8 +351,7 @@ public final class Action {
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts", editable = false)
     public static String Shortcut_ALTERNATE = "Alt";
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
-    
-    public static String Shortcut_COLAPSE = "Ctrl+C";
+    public static String Shortcut_COLAPSE = "Shift+C";
     
     @AppliesConfig( "global_media_shortcuts")
     private static void applyAllowMediaShortcuts() {

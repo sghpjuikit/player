@@ -21,6 +21,8 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
 
     @Override
     public void setWidget(FXMLWidget w) {
+        assert widget==null : "Controller already has assigned widget. The relationship"
+                + "should be final.";
         widget = w;
     }
     /**

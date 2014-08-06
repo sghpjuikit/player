@@ -370,7 +370,7 @@ public class FileInfoController extends FXMLController  {
         } else {
             labels.stream()
                 .filter(ll -> ll.getText().substring(ll.getText().indexOf(": ")+1).equals(" "))
-                .forEach((ll) -> visible_labels.remove(ll));
+                .forEach(visible_labels::remove);
         }
         
         // hide individual fields

@@ -39,8 +39,7 @@
 - popover show pin icon property implement
 - holding shift while scrolling will scroll horizontally - document in gui
 - press C to collapse layout containers easily - implement properly
-- Configurable private fields too setAccessible  getDeclaredFields
-- image size loading use height too
+- configurable api improve javadoc
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -141,28 +140,16 @@ CLEANUP
   set proper padding for table rows and get away with fixedRowSize in playlist
   table FRS doesnt solve this problem as it breaks skins
 - Thumbnail get border width param from css
-- clean ExtendedInfo widget - its completely fubar
 - Serializator and serialization code clean up
 - widget info and bridge widget factory and widget a bit more elegantly that this
-- centralize window management
-
-API
-Layouts---------
-- BiContainer nonpure version works only as pure. Its abstract to avoid misuse
-- add parametrization and decoupling of gui-type from containers. Generics will
-  not help here unfortunately. With type erasure its looking poorly.
-- Layouter not part of Layout map. The reason is simple - if it would be, it
-  would get wrapped in widgetarea. But other than that, its proving more trouble
-  than its worth. Particularly because the Container.indexOf(Layouter) doesnt
-  work as it returns null (since its not part of the layout map). Maybe widgets
-  could have inherent property of needing Area wrapper, val for Layouter false.
-  UniContainer needs to be reworked then.
+- clean window code and centralize it un one place
 - separate and implement Pure vs Leaf Containers better
+- use assertions more, in FieldConfig too
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - playing item, metadata, ... in Playbackmanager, clear Player class
   also involves Playback/Player/Playlist state and suspending/restoring them
-- file format discovery. Unite Image and Audio types add category               (minor, although much needed for robustness)
+- file format discovery. Unite Image and Audio types add category               (not needed for now)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - playlist table drag code duplication                                          (technicality, minor code pollution)
 - playlist table refresh currupted/playing row pseudoclass css code duplication (technicality, minor code pollution)
@@ -172,15 +159,12 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
-- InstanceFieldConfig and StaticClassConfig unite into FieldConfig +
-  config turn into interface
 - make AppConfigurable and make all managers non static
-- Container getAll Children/Containers/Widgets improve code
+- Container getAll Children/Containers/Widgets improve code & performance
 - Layout & Widget serialization code clean up
-- dragutils make own dragboard, avoid serialisation
 
 PERFORMANCE
-- closing widgets not releasing memory                                          (still an issue ?)
+- closing widgets not releasing memory                                          (?)
 - onTimeAt events seem to be pretty mem hungry(4x=10MB), implement clock to     (medium)
   cut down number of cycles (200ms should be MORE than enough)
   edit: clock done, reimplement more effectively and clean up

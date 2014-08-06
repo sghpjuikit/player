@@ -17,6 +17,7 @@ import main.App;
 import org.atteo.classindex.ClassIndex;
 import utilities.FileUtil;
 import utilities.Log;
+import utilities.Util;
 
 /**
  * Provides methods to access configs of the application.
@@ -75,43 +76,7 @@ public class Configuration {
     }
     
     private static void discoverConfigFieldsOf(Class clazz) {
-        String _group = getGroup(clazz);
-        for (Field f : clazz.getDeclaredFields()) {
-            if (Modifier.isStatic(f.getModifiers())) {
-                IsConfig a = f.getAnnotation(IsConfig.class);
-                if (a != null) {
-                    String group = a.group().isEmpty() ? _group : a.group();
-                    String name = f.getName();
-
-                    // create  appropriate Config
-                    Config c;
-                    if(Property.class.isAssignableFrom(f.getType())) {
-                        try {
-                            // make sure the field is final
-                            if(!Modifier.isFinal(f.getModifiers())) 
-                                // if not -> runtime exception, dev needs to fix his code
-                                throw new IllegalStateException("Property config must be final.");
-                            // make sur the field is accessible
-                            f.setAccessible(true);
-                            // get the property
-                            Property val = (Property)f.get(null);
-                            // make property config based on the property
-                            c = new PropertyConfig(name, a, val, group);
-                        } catch (IllegalAccessException | SecurityException ex) {
-                            throw new RuntimeException("Can not access field: " + f.getName()
-                                    + " for class: " + f.getDeclaringClass());
-                        } finally {
-                            // allways set accessible back
-                            f.setAccessible(false);
-                        }
-                    } else {
-                        // make statif field config based on the field
-                        c = new StaticFieldConfig(name, a, group, f);
-                    }
-                    configs.put(c.getName(), c);
-                }
-            }
-        }
+        configs.putAll(getConfigsOf(clazz, null, true, false));
     }
     private static void discoverMethodsOf(Class cls) {
         for (Method m : cls.getDeclaredMethods()) {
@@ -121,8 +86,8 @@ public class Configuration {
                         String name = a.value();
                         if(!name.isEmpty() && configs.containsKey(name)) {
                             Config c = configs.get(name);
-                            if(c instanceof StaticFieldConfig) {
-                                ((StaticFieldConfig)c).applierMethod = m;
+                            if(c instanceof FieldConfig) {
+                                ((FieldConfig)c).applierMethod = m;
                                 Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
                             }
                         }
@@ -136,6 +101,75 @@ public class Configuration {
         IsConfigurable a = c.getAnnotation(IsConfigurable.class);
         return a==null || a.value().isEmpty() ? c.getSimpleName() : a.value();
     }
+    
+    static Map<String,Config> getConfigsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
+        // check arguments
+        if(include_instance && instnc==null)
+            throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
+        
+        Map<String,Config> out = new HashMap();
+        
+        for (Field f : Util.getAllFields(clazz)) {
+            Config c = createConfig(clazz, f, instnc, include_static, include_instance);
+            if(c!=null) out.put(c.getName(), c);
+        }
+        return out;
+    }
+    
+    static Config createConfig(Class cl, Field f, Object instnc, boolean include_static, boolean include_instance) {
+            // that are annotated
+            Config c = null;
+            IsConfig a = f.getAnnotation(IsConfig.class);
+            if (a != null) {
+                
+                String group = a.group().isEmpty() ? getGroup(cl) : a.group();
+                String name = f.getName();
+                
+                if (include_static && Modifier.isStatic(f.getModifiers())) {
+                    if(Property.class.isAssignableFrom(f.getType()))
+                        c = createPropertyConfig(f, null, name, a, group);
+                    else {
+                        if(Modifier.isFinal(f.getModifiers()))
+                            // if final -> runtime exception, dev needs to fix his code
+                            throw new IllegalStateException("Field config must not be final.");
+                        // make statif field config based on the field
+                        c = new FieldConfig(name, a, null, group, f);
+                    }
+                }
+                if (include_instance && !Modifier.isStatic(f.getModifiers())) {
+                    if(Property.class.isAssignableFrom(f.getType()))
+                        c = createPropertyConfig(f, instnc, name, a, group);
+                    else {
+                        if(Modifier.isFinal(f.getModifiers()))
+                            // if final -> runtime exception, dev needs to fix his code
+                            throw new IllegalStateException("Field config must not be final.");
+                        // make statif field config based on the field
+                        c = new FieldConfig(name, a, instnc, group, f);
+                    }
+                }
+            }
+            return c;
+    }
+    
+    private static PropertyConfig createPropertyConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
+        try {
+            // make sure the field is final
+            if(!Modifier.isFinal(f.getModifiers())) 
+                // if not -> runtime exception, dev needs to fix his code
+                throw new IllegalStateException("Property config must be final.");
+            // make sure the field is accessible
+            f.setAccessible(true);
+            // get the property
+            Property val = (Property)f.get(instance);
+            // make property config based on the property
+            return new PropertyConfig(name, anotation, val, group);
+        } catch (IllegalAccessException | SecurityException ex) {
+            throw new RuntimeException("Can not access field: " + f.getName()
+                    + " for class: " + f.getDeclaringClass());
+        }
+    }
+    
+    
     
 /******************************** setting fields ******************************/
 

@@ -7,8 +7,11 @@ package utilities;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
@@ -95,6 +98,8 @@ public interface Util {
     public static Background SIMPLE_BGR() {
         return new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));
     }
+    
+/********************************** STRING ************************************/
     
     /**
      * Prints out the value of Duration - string representation of the duration
@@ -243,6 +248,16 @@ public interface Util {
     }
     
     /**
+     * Convenience method. Equivalent to: loadImage(file, size, size);
+     * @param file
+     * @param size
+     * @return 
+     */
+    public static Image loadImage(File file, double size) {
+        return loadImage(file, size, size);
+    }
+    
+    /**
      * Loads image file. with requested size.
      * <p>
      * Loads File object into Image object of desired size
@@ -256,23 +271,26 @@ public interface Util {
      * The size will be clipped to original if it is greater.
      * @return loaded image or null if file null or not a valid image source.
      */
-    public static Image loadImage(File file, double size) {
+    public static Image loadImage(File file, double width, double height) {
         if (file == null) return null;
-        if (size == 0)
+        if (width == 0 && height == 0)
             return new Image(file.toURI().toString());
         else {
             // find out real image file resolution
             int w= Integer.MAX_VALUE;
+            int h= Integer.MAX_VALUE;
             try {
                 BufferedImage readImage = ImageIO.read(file);
-//                int h = readImage.getHeight();
+                h = readImage.getHeight();
                 w = readImage.getWidth();
             } catch (IOException e) {
+                // ignore
             }
             
             // lets not get over real size
-            int width = Math.min((int)size,w);
-            return new Image(file.toURI().toString(), width, 0, true, true);
+            int fin_width = Math.min((int)width,w);
+            int fin_height = Math.min((int)height,h);
+            return new Image(file.toURI().toString(), fin_width, fin_height, true, true);
         }
     }
     
@@ -345,5 +363,41 @@ public interface Util {
      */
     public static int DecMin1(int number) {
         return (int) (Math.pow(10, 1+digits(number))-1);
+    }
+    
+/***************************** REFLECTION *************************************/
+    
+    /**
+     * Returns all declared fields of the class including inherited ones.
+     * Equivalent to union of declared fields of the class and all its
+     * superclasses.
+     */
+    public static List<Field> getAllFields(Class clazz) {
+       List<Field> fields = new ArrayList();
+       // get all fields of the class (but not inherited fields)
+       fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+
+       Class superClazz = clazz.getSuperclass();
+       // get super class' fields recursively
+       if(superClazz != null) fields.addAll(getAllFields(superClazz));
+
+       return fields;
+   }
+    
+    public static Field getField(Class clazz, String name) throws NoSuchFieldException {
+       // get all fields of the class (but not inherited fields)
+       Field f = null;
+        try {
+            f = clazz.getDeclaredField(name);
+        } catch (NoSuchFieldException | SecurityException ex) {
+            // ignore
+        }
+       
+       if (f!=null) return f;
+       
+       Class superClazz = clazz.getSuperclass();
+       // get super class' fields recursively
+       if (superClazz != null) return getField(superClazz, name);
+       else throw new NoSuchFieldException();
     }
 }

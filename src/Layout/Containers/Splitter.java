@@ -1,7 +1,6 @@
 
 package Layout.Containers;
 
-import Action.Action;
 import Configuration.PropertyMap;
 import GUI.GUI;
 import GUI.objects.SimplePositionable;
@@ -20,8 +19,6 @@ import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
-import javafx.scene.input.KeyCode;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
@@ -144,12 +141,13 @@ public final class Splitter implements ContainerNode {
                 hideControls();
         });
         // collapse on shortcut
-        splitPane.addEventHandler(KEY_PRESSED, e -> {
-            if(e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_COLAPSE))){
-                toggleCollapsed();
-                e.consume();
-            }
-        });
+//        splitPane.addEventHandler(KEY_PRESSED, e -> {
+////            if(e.getText().equalsIgnoreCase(Action.Shortcut_COLAPSE)){
+//            if(e.getCode().equals(KeyCode.C)){
+//                toggleCollapsed();
+//                e.consume();
+//            }
+//        });
         
         // maintain controls orientation 
         splitPane.orientationProperty().addListener(o->refreshControlsOrientation());

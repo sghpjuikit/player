@@ -32,10 +32,8 @@ import static utilities.Util.NotNULL;
  */
 public final class TabArea extends PolyArea {
     
-    public @FXML TabPane tabPane;
-    @FXML AnchorPane content;
-    
-    private Component widget;  // active component, max one, null if none
+    private @FXML TabPane tabPane;
+    private @FXML AnchorPane content;
     
     public TabArea(PolyContainer _container) {
         super(_container);
@@ -65,8 +63,8 @@ public final class TabArea extends PolyArea {
         
         // support drag from
         root.setOnDragDetected( e -> {
-            // disallow in normal mode & primary button drag only & if no content
-            if (widget!= null && controls.isShowingWeak() && e.getButton()==PRIMARY) {
+            // disallow in normal mode & primary button drag only
+            if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
                 Dragboard db = root.startDragAndDrop(TransferMode.MOVE);
                 DragUtil.setComponent(container.getParent(),container,db);
                 e.consume();
@@ -77,8 +75,7 @@ public final class TabArea extends PolyArea {
         // handle drag onto
         root.setOnDragDropped( e -> {
             if (DragUtil.hasComponent()) {
-                // use first free index (0) if empty (widget==null)
-                int i = widget==null ? 0 : container.getParent().indexOf(container);
+                int i = container.getParent().indexOf(container);
                 container.swapChildren(i, DragUtil.getComponent());
                 e.setDropCompleted(true);
                 e.consume();

@@ -47,7 +47,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     @XStreamOmitField
     @IsConfig(name = "Is preferred", info = "Preferred widget for its widget type.")
-    public boolean preferred = false;
+    private boolean preferred = false;
     
     // list of properties of the widget to provide serialisation support since
     // controller doesnt serialise - this is unwanted and should be handled better
@@ -183,7 +183,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
     }
     public void restoreConfigs() {
         if(configs != null) {
-            configs.forEach(this::setField);
+            configs.forEach((nam,value) -> this.setField(nam, value));
+//            configs.forEach(this::setField);
             configs = null;
         }
     }

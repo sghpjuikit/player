@@ -1,22 +1,28 @@
 
 package Configuration;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import utilities.Parser.Parser;
 
 /**
- * Object representation of a configurable value - possibly field annotated 
- * with {@link IsConfig} annotation. 
- * Config wraps a value of that field or the field itself or an object (depending
- * on the implementation) and provides a means to set or get the object or its
- * value and also associated meta information.
+ * Object representation of a configurable value.
  * <p>
- * Useful for creating {@link Configurable} objects or exporting values in a
- * standardized way.
+ * Config encapsulates access to a value. It allows to obtain the value or
+ * change it and also provides additional information associated with it.
+ * <p>
+ * Useful for creating {@link Configurable} objects or exporting values from
+ * objects in a standardized way.
+ * <p>
+ * An aggregation of configs is {@link Configurable}. Note that, technically,
+ * config is a singleton configurable. Therefore config actually extends
+ * configurable and can be used as non aggregate type.
  * 
+ * @see Configurable
  * @author uranium
  */
-public abstract class Config<T> {
+public abstract class Config<T> implements Configurable<T> {
     
     private final String gui_name;
     private final String name;
@@ -241,5 +247,41 @@ public abstract class Config<T> {
     public void setNapplyDefaultValue() {
         setNapplyValue(getDefaultValue());
     }
+    
+    // configurable methods
+
+    /**
+     * This method is inherited from Configurable and is not intended to be used
+     * manually on objects of this class, rather, in situations this config
+     * acts as singleton {@link Configurable}.
+     * <p>
+     * {@inheritDoc }
+     * <p>
+     * Implementation details: returns self if name equals with parameter or null
+     * otherwise
+     * @param name
+     */
+    @Override
+    public Config<T> getField(String name) {
+        return name.equals(this.name) ? this : null;
+    }
+
+    /**
+     * This method is inherited from Configurable and is not intended to be used
+     * manually on objects of this class, rather, in situations this config
+     * acts as singleton {@link Configurable}.
+     * <p>
+     * {@inheritDoc }
+     * <p>
+     * Implementation details: returns singleton list of self.
+     * @return 
+     */
+    @Override
+    public List<Config<T>> getFields() {
+        return Collections.singletonList(this);
+    }
+    
+    
+    
     
 }

@@ -14,9 +14,9 @@ import java.util.List;
  * 
  * @author Plutonium_
  */
-public class ListConfigurable implements Configurable {
+public class ListConfigurable<T> implements Configurable<T> {
     
-    List<Config> configs;
+    List<Config<T>> configs;
     
     public ListConfigurable(Config... configs) {
         this.configs = new ArrayList();
@@ -39,7 +39,7 @@ public class ListConfigurable implements Configurable {
      * @return 
      */
     @Override
-    public List<Config> getFields() {
+    public List<Config<T>> getFields() {
         return configs;
     }
     
@@ -51,7 +51,7 @@ public class ListConfigurable implements Configurable {
      * @param at
      * @return 
      */
-    public Config getField(int at) {
+    public Config<T> getField(int at) {
         return configs.get(at);
     }
     
@@ -71,7 +71,7 @@ public class ListConfigurable implements Configurable {
      * Runs in O(n).
      */
     @Override
-    public Config getField(String name) {
+    public Config<T> getField(String name) {
         return configs.stream().filter(c -> name.equals(c.getName())).findAny().get();
     }
 }

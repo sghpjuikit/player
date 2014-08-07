@@ -16,9 +16,9 @@ import java.util.Map;
  * 
  * @author Plutonium_
  */
-public class MapConfigurable implements Configurable {
+public class MapConfigurable<T> implements Configurable<T> {
     
-    Map<String,Config> configs;
+    Map<String,Config<T>> configs;
     
     public MapConfigurable(Config... configs) {
         this.configs = new HashMap();
@@ -36,11 +36,9 @@ public class MapConfigurable implements Configurable {
      * Implementation details:
      * <p>
      * The configs do not retain their position.
-     * 
-     * @return 
      */
     @Override
-    public List<Config> getFields() {
+    public List<Config<T>> getFields() {
         return new ArrayList(configs.values());
     }
 
@@ -51,7 +49,15 @@ public class MapConfigurable implements Configurable {
      * Runs in O(1).
      */
     @Override
-    public Config getField(String name) {
+    public Config<T> getField(String name) {
         return configs.get(name);
+    }
+    
+    /**
+     * Add given config to this configurable. For retrieval use config's name.
+     * @param config 
+     */
+    public void addField(Config<T> config) {
+        configs.put(config.getName(), config);
     }
 }

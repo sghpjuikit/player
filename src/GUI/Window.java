@@ -605,41 +605,42 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   lastFMview.setFitWidth(15);         
                   lastFMview.setPreserveRatio(true);
             // maintain proper icon
-        ChangeListener<Boolean> fmlistener = (o, oldV, newV)->
-              lastFMview.setImage(newV ? lastFMon : lastFMoff);
+        ChangeListener<Boolean> fmlistener = (o,ov,nv) ->
+              lastFMview.setImage(nv ? lastFMon : lastFMoff);
         LastFMManager.scrobblingEnabledProperty().addListener(fmlistener);
             // initialize proper icon
         fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
         
         Label lastFMB = new Label("",lastFMview);
-
-        lastFMB.setOnMouseClicked( e -> {
-            if(e.getButton() == MouseButton.PRIMARY){
-                if(LastFMManager.getScrobblingEnabled()){
-                    LastFMManager.toggleScrobbling();
-                } else {
-                    if(LastFMManager.isLoginSuccess()){
-                        LastFMManager.toggleScrobbling();
-                    } else {                        
-                        new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);                        
-                    }
-                }
-            }else if(e.getButton() == MouseButton.SECONDARY){
-                new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);  
-            }
-        });
-        lastFMB.setTooltip(new Tooltip("LastFM"));
+              lastFMB.setTooltip(new Tooltip("LastFM"));
+              lastFMB.setOnMouseClicked( e -> {
+                  if(e.getButton() == MouseButton.PRIMARY){
+                      if(LastFMManager.getScrobblingEnabled()){
+                          LastFMManager.toggleScrobbling();
+                      } else {
+                          if(LastFMManager.isLoginSuccess()){
+                              LastFMManager.toggleScrobbling();
+                          } else {                        
+                              new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);                        
+                          }
+                      }
+                  }else if(e.getButton() == MouseButton.SECONDARY){
+                      new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);  
+                  }
+              });
         // lock layout button
         Label lockB = AwesomeDude.createIconLabel(GUI.isLayoutLocked() ? UNLOCK : LOCK,"","11","11",CENTER);
               lockB.setTooltip(new Tooltip(GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout"));
               lockB.setOnMouseClicked( e -> {
                   GUI.toggleLayoutLocked();
                   boolean lck = GUI.isLayoutLocked();
-                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"12");
+                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"11");
                   lockB.getTooltip().setText(lck ? "Unlock widget layout" : "Lock widget layout");
                   e.consume();
               });
-       // help button - show hel information
+            // initialize proper icon
+        GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? UNLOCK : LOCK, "11"));
+        // help button - show hel information
         Label helpB = AwesomeDude.createIconLabel(INFO,"","15","11",CENTER);
         helpB.setOnMouseClicked( e -> {
             PopOver<Text> helpP = PopOver.createHelpPopOver(

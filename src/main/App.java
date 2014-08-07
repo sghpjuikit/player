@@ -122,11 +122,6 @@ public class App extends Application {
         Configuration.applyFieldsAll();         // apply all (and gui) settings
         
         
-        
-//        FxTimer.runPeriodic(Duration.seconds(10), () -> {
-//            PlatformImpl.setTaskbarApplication(!PlatformImpl.isTaskbarApplication());
-//        });
-        
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         
 //        List<String> s = new ArrayList<>();

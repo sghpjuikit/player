@@ -25,6 +25,10 @@ import utilities.Util;
  * these fields.
  * See {@link IsConfig} own documentation to learn more about how to use it.
  * <p>
+ * Note, that every Config is already a Configurable acting as a singleton, it
+ * is therefore not required to wrap one config in a configurable, rather, use
+ * it directly.
+ * <p>
  * It is possible to use your own implementation. It requires to override only
  * getFields and getField methods - the way how the configs are derived).
  * Then one could combine the provided implementation
@@ -43,12 +47,22 @@ import utilities.Util;
  * <p>
  * Collection impl. would store the configs in a collection.
  * 
+ * @param <T> parameter specifying generic parameter of the Configs that can be
+ * contained or obtained from this Configurable. The parameter specifies type
+ * of value of the Configs.
+ * In most use cases it is not needed or possible to use generic Configurable.
+ * This parameter becomes useful for singleton Configurables and Configurables
+ * with all Configs of the same type.
+ * <p>
+ * If all configs of this configurable contain the same type of value,
+ * use this generic parameter.
+ * 
  * @see MapConfigurable
  * @see ListConfigurable
  * 
  * @author uranium
  */
-public interface Configurable {
+public interface Configurable<T> {
     
     /** 
      * Get all configs of this configurable.
@@ -68,10 +82,13 @@ public interface Configurable {
      * should be the preferred way of doing this. Like this:
      * <p>
      * String val = (String) c.getFields().get(0).getValue();
+     * <p>
+     * Note: if all configs of this configurable contain the same type of value,
+     * use generic configurable to avoid the need to cast.
      * 
      * @return Configs of this configurable
      */
-    default public List<Config> getFields() {
+    default public List<Config<T>> getFields() {
         return new ArrayList(Configuration.getConfigsOf(getClass(), this, false, true).values());
     }
     
@@ -80,13 +97,16 @@ public interface Configurable {
      * <p>
      * Because name is a unique identifier, we know the correct value type of
      * the config.
+     * <p>
+     * Note: if all configs of this configurable contain the same type of value,
+     * use generic configurable to avoid the need to cast.
      * 
      * @param name
      * @return config or null if no available. Note: never check for null, rather
      * let NullPointerException be thrown if null is returned. Null always
      * signifies programming error.
      */
-    default public Config getField(String name) {
+    default public Config<T> getField(String name) {
         try {
             Class c = getClass();
             Field f = Util.getField(c,name);
@@ -106,7 +126,7 @@ public interface Configurable {
      * @throws NullPointerException if no field available. Note: never catch
      * this exception or check for null. It signifies programming error.
      */
-    default public boolean setField(String name, Object value) {
+    default public boolean setField(String name, T value) {
         return getField(name).setValue(value);
     }
     

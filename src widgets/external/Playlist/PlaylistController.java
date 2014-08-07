@@ -323,8 +323,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         MapConfigurable cs = new MapConfigurable(
                 new ValueConfig("Name", initialName),
                 new ValueConfig("Category", "Listening to..."));
-        SimpleConfigurator sc = new SimpleConfigurator(cs, c -> {
-            String name = (String) c.getField("Name").getValue();
+        SimpleConfigurator sc = new SimpleConfigurator<String>(cs, c -> {
+            String name = c.getField("Name").getValue();
             NamedPlaylist p = new NamedPlaylist(name, playlist.getItemsF());
                           p.addCategory("Listening to...");
                           p.serialize();
@@ -337,12 +337,12 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public void saveSelectedAsPlaylist() {
         if(playlist.getSelectedItems().isEmpty()) return;
         
-        MapConfigurable cs = new MapConfigurable(
-                new ValueConfig("Name", "My Playlist"),
-                new ValueConfig("Category", "Custom"));
-        SimpleConfigurator sc = new SimpleConfigurator(cs, c -> {
-            String name = (String) c.getField("Name").getValue();
-            String category = (String) c.getField("Category").getValue();
+        MapConfigurable mc = new MapConfigurable();
+                        mc.addField(new ValueConfig("Name", "My Playlist"));
+                        mc.addField(new ValueConfig("Category", "Custom"));
+        SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
+            String name = c.getField("Name").getValue();
+            String category = c.getField("Category").getValue();
             NamedPlaylist p = new NamedPlaylist(name, playlist.getItemsF());
                           p.addCategory(category);
                           p.serialize();

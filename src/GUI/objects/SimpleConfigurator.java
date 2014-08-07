@@ -16,32 +16,41 @@ import utilities.Log;
 import utilities.functional.functor.UnProcedure;
 
 /**
- * Graphical control that configures {@link Configurable} and display an OK
+ * Configurable state transformer graphical control.
+ * <p>
+ * Generates fields to configure {@link Configurable} and displays an OK
  * button with customizable action.
  * <p>
  * When OK button is clicked all changed {@ConfigField}s with unapplied values
  * will be set and applied. Then the specified behavior is executed.
  * 
+ * @param <T> Specifies generic type of Configurable for this component. Only
+ * use it for singleton configurables or configurables which contain configs with
+ * the same value type.
+ * 
+ * The advantage of using generic version is in accessing the values in the
+ * OK button callback. The configurable is provided as a parameter and if this
+ * object is generic it will provide correct configurable returning correct
+ * values without casting. 
+ * 
+ * @see Configurable  
  * @author uranium
  */
-public class SimpleConfigurator extends AnchorPane {
+public class SimpleConfigurator<T> extends AnchorPane {
     
     @FXML private GridPane fields;
-    private final List<ConfigField> configFields = new ArrayList<>();
-    private final Configurable configurable;
-    private final UnProcedure<Configurable>  onOK;
+    private final List<ConfigField<T>> configFields = new ArrayList();
+    private final Configurable<T> configurable;
+    private final UnProcedure<Configurable<T>>  onOK;
 
     /**
      * Constructor.
      * @param configurable configurable object
-     * @param on_OK behavior executed when OK button is clicked, null if none
-     * The procedure provides the Configurable of this configurator as a parameter.
-     * It can be used to retrieve its {@link Config}s and their values.
-     * When OK button is clicked all changed {@link ConfigField}s rendering
-     * the Configs will have their Configs set and applied if they contain
-     * unapplied values. After that this specified behavior is executed.
+     * @param on_OK behavior executed when OK button is clicked, null if none.
+     * The procedure provides the Configurable of this configurator as a 
+     * parameter to access the configs.
      */
-    public SimpleConfigurator(Configurable configurable, UnProcedure<Configurable> on_OK) {
+    public SimpleConfigurator(Configurable<T> configurable, UnProcedure<Configurable<T>> on_OK) {
         Objects.requireNonNull(configurable);
         
         this.configurable = configurable;
@@ -62,7 +71,7 @@ public class SimpleConfigurator extends AnchorPane {
         configFields.clear();
         fields.getChildren().clear();
         
-        for(Config f: configurable.getFields()) {
+        for(Config<T> f: configurable.getFields()) {
             ConfigField cf = ConfigField.create(f);                 // create
             
             if (cf == null)// || (!showNonEdit() && !f.editable))

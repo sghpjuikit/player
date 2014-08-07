@@ -38,13 +38,15 @@
 - popover show pin icon property implement
 - holding shift while scrolling will scroll horizontally - document in gui
 - press C to collapse layout containers easily - implement properly
-- generify COnfigurable and SimpleOCnfigurator
+- app configuration dont store configs - major memory consumption culprit
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
 --------------------------------------------------------------------------------
 
 GENERAL
+- deactivator position | size a bit off when loading first time & into small
+  area. It requires area resize call to initialize correct height/y-ccord
 - playlist manual sorting does not work
 - Thumbnail borde rchanges size of the control - not good at all
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
@@ -160,7 +162,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static
 - Container getAll Children/Containers/Widgets improve code & performance
-- Layout & Widget serialization code clean up
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (?)

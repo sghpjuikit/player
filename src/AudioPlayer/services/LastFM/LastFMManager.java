@@ -143,7 +143,7 @@ public class LastFMManager {
     
     
     public static SimpleConfigurator getLastFMconfig(){
-        return new SimpleConfigurator(
+        return new SimpleConfigurator<>(
             new MapConfigurable(
                 new ValueConfig("Username", LastFMManager.acquireUserName()),
                 new ValueConfig("Password", LastFMManager.acquirePassword())                                  

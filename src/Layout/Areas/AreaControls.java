@@ -90,49 +90,49 @@ public final class AreaControls {
 
         // build header buttons
         Label helpB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
-               helpB.setTooltip(new Tooltip("Help"));
-               helpB.setOnMouseClicked( e -> {
-                    // create popover lazily if not yet
-                    if(helpPopOver==null) {
-                        helpPopOver = PopOver.createHelpPopOver("");
-                        // we need to handle hiding this AreaControls when popup
-                        // closes and 
-                        // we are outside of the area (not implemented yet)
-                        helpPopOver.addEventHandler(WINDOW_HIDDEN, we -> {
-                            if(isShowingWeak) hide();
-                        });
-                    }
-                    // update text
-                    Component c = area.getActiveComponent();
-                    String info = "";
-                    if (c!=null && c instanceof Widget) {
-                        WidgetInfo i = ((Widget)c).getInfo();
-                        info = "\n\nWidget: " + i.name();
-                        if(!i.description().isEmpty()) info += "\n\n" + i.description();
-                        if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
-                        if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
-                    }
-                    String text = "Available actions:\n"
-                                 + "    Close : Closes the widget\n"
-                                 + "    Detach : Opens the widget in new window\n"
-                                 + "    Change : Opens widget chooser to pick new widget\n"
-                                 + "    Settings : Opens settings for the widget if available\n"
-                                 + "    Refresh : Refreshes the widget\n"
-                                 + "    Lock : Forbids entering layout mode on mouse hover\n"
-                                 + "    Press ALT : Toggles layout mode\n"
-                                 + "\n"
-                                 + "Available actions in layout mode:\n"
-                                 + "    Drag & Drop : Drags widget to other area\n"
-                                 + "    Sroll : Changes widget area size\n"
-                                 + "    Middle click : Set widget area size to max\n"
-                                 + info;
-                    helpPopOver.getContentNode().setText(text);
-                    // for some reason we need to set this every time, which
-                    // should not be the case, investigate
-                    helpPopOver.getContentNode().setWrappingWidth(400);
-                    helpPopOver.show(helpB);
-                    e.consume();
-               });
+              helpB.setTooltip(new Tooltip("Help"));
+              helpB.setOnMouseClicked( e -> {
+                   // create popover lazily if not yet
+                   if(helpPopOver==null) {
+                       helpPopOver = PopOver.createHelpPopOver("");
+                       // we need to handle hiding this AreaControls when popup
+                       // closes and 
+                       // we are outside of the area (not implemented yet)
+                       helpPopOver.addEventHandler(WINDOW_HIDDEN, we -> {
+                           if(isShowingWeak) hide();
+                       });
+                   }
+                   // update text
+                   Component c = area.getActiveComponent();
+                   String info = "";
+                   if (c!=null && c instanceof Widget) {
+                       WidgetInfo i = ((Widget)c).getInfo();
+                       info = "\n\nWidget: " + i.name();
+                       if(!i.description().isEmpty()) info += "\n\n" + i.description();
+                       if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
+                       if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
+                   }
+                   String text = "Available actions:\n"
+                                + "    Close : Closes the widget\n"
+                                + "    Detach : Opens the widget in new window\n"
+                                + "    Change : Opens widget chooser to pick new widget\n"
+                                + "    Settings : Opens settings for the widget if available\n"
+                                + "    Refresh : Refreshes the widget\n"
+                                + "    Lock : Forbids entering layout mode on mouse hover\n"
+                                + "    Press ALT : Toggles layout mode\n"
+                                + "\n"
+                                + "Available actions in layout mode:\n"
+                                + "    Drag & Drop : Drags widget to other area\n"
+                                + "    Sroll : Changes widget area size\n"
+                                + "    Middle click : Set widget area size to max\n"
+                                + info;
+                   helpPopOver.getContentNode().setText(text);
+                   // for some reason we need to set this every time, which
+                   // should not be the case, investigate
+                   helpPopOver.getContentNode().setWrappingWidth(400);
+                   helpPopOver.show(helpB);
+                   e.consume();
+              });
         Label closeB = AwesomeDude.createIconLabel(TIMES,"","12","12",ContentDisplay.RIGHT);
                closeB.setTooltip(new Tooltip("Close widget"));
                closeB.setOnMouseClicked( e -> {
@@ -231,7 +231,6 @@ public final class AreaControls {
         // room for mouse movement
         deactivator.setScaleX(1.2);
         deactivator.setScaleY(1.2);
-        
     }
 
     void refreshWidget() {
@@ -296,13 +295,7 @@ public final class AreaControls {
         if(GUI.blur_layoutMode) blurAnim.play();
         // handle graphics
         area.disableContent();
-        root.setMouseTransparent(false);
-        // make activator accessible when showing
-        deactivator.setMouseTransparent(false);
-        deactivator2.setMouseTransparent(false);
-//        // enlarge deactivator for more mouse movement freedom
-//        deactivator.setScaleX(1.7);
-//        deactivator.setScaleY(1.7);        
+        root.setMouseTransparent(false); 
     }
     
     private void hideWeak() {
@@ -318,13 +311,6 @@ public final class AreaControls {
         if(GUI.blur_layoutMode) blurAnim.play();
         area.enableContent();
         root.setMouseTransparent(true);
-        // make activator inaccessible when not showing so it doesnt block 
-        // controls below it
-        deactivator.setMouseTransparent(true);
-        deactivator2.setMouseTransparent(true);
-//        // go back to original scale
-//        deactivator.setScaleX(1.1);
-//        deactivator.setScaleY(1.1);
         // hide help popup if open
         if(helpPopOver!=null && helpPopOver.isShowing()) helpPopOver.hide();        
     }

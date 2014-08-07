@@ -15,7 +15,7 @@ package utilities;
  * 
  * @param <E> {@link Enum} type. It must be the same type as the extended enum. 
  * For example: {@code enum MyEnum implements CyclicEnum<MyEnum>}
- * <p>
+ * 
  * @author Plutonium_
  */
 public interface CyclicEnum<E extends Enum> {
@@ -42,7 +42,9 @@ public interface CyclicEnum<E extends Enum> {
      * @return next cyclical enum constant according to its ordinal number.
      */
     public static <E> E next(E val) {
-        E vals[] = (E[]) val.getClass().getEnclosingClass().getEnumConstants();
+        Class c = val.getClass();
+        E vals[] = (E[])( c.isEnum() ?  c.getEnumConstants()
+                                     :  c.getEnclosingClass().getEnumConstants());
         int index = (((Enum)val).ordinal()+1) % vals.length;
         return vals[index];
     }
@@ -53,7 +55,9 @@ public interface CyclicEnum<E extends Enum> {
      * @return previous cyclical enum constant according to its ordinal number.
      */
     public static <E> E previous(E val) {
-        E vals[] = (E[]) val.getClass().getEnclosingClass().getEnumConstants();
+        Class c = val.getClass();
+        E vals[] = (E[])( c.isEnum() ?  c.getEnumConstants()
+                                     :  c.getEnclosingClass().getEnumConstants());
         int ord = ((Enum)val).ordinal();
         int index = ord==0 ? vals.length-1 : ord-1;
         return vals[index];

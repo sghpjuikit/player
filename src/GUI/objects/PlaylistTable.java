@@ -109,7 +109,8 @@ public final class PlaylistTable {
         AnchorPane.setLeftAnchor(table, 0.0);
         AnchorPane.setRightAnchor(table, 0.0);
         AnchorPane.setTopAnchor(table, 0.0);
-        parent.getChildren().add(tmp);parent.getChildren().add(tmp2);
+        parent.getChildren().add(tmp);
+        parent.getChildren().add(tmp2);
         
         // initialize table gui
         table.setTableMenuButtonVisible(true);

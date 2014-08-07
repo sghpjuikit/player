@@ -44,17 +44,12 @@ public class PlaylistTableSimple extends AnchorPane {
     
     private void initialize() {        
         // initialize table gui
-        table = new TableView<>();
-        table.setVisible(true);
-        table.setLayoutX(0);
-        table.setLayoutY(0);
-        table.minWidthProperty().bind(widthProperty()); 
-        table.minHeightProperty().bind(heightProperty());
-        table.maxWidthProperty().bind(widthProperty());
-        table.maxHeightProperty().bind(heightProperty());
-        table.prefHeightProperty().bind(widthProperty());
-        table.prefWidthProperty().bind(heightProperty());
+        table = new TableView();
         getChildren().add(table);
+        AnchorPane.setTopAnchor(table,0d);
+        AnchorPane.setRightAnchor(table,0d);
+        AnchorPane.setBottomAnchor(table,0d);
+        AnchorPane.setLeftAnchor(table,0d);
         
         //initiaize table columns
         final TableColumn<PlaylistItem, String> columnIndex = new TableColumn<>("item");

@@ -12,6 +12,8 @@ import Layout.Widgets.Widget;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
@@ -20,11 +22,9 @@ import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
@@ -50,7 +50,6 @@ public final class Splitter implements ContainerNode {
     
     //tmp variables
     private final PropertyMap prop;         // for easy access to container's props
-    private static boolean mouse_mov_divider = false;
     private final FadeTransition fadeIn;
     private final FadeTransition fadeOut;
 
@@ -92,54 +91,59 @@ public final class Splitter implements ContainerNode {
         // controls behavior
         controls = new SimplePositionable(controlsRoot, root);
 
-        root.heightProperty().addListener( o -> positionControls());
-        positionControls();
+        // maintain controls position
+        ChangeListener<Number> repositioner = (o,ov,nv) -> {
+            if(controls.getPane().getOpacity() != 0) positionControls();
+        };
+        root.widthProperty().addListener(repositioner);
+        root.heightProperty().addListener(repositioner);
+        controls.getPane().opacityProperty().addListener(repositioner);
         
-        splitPane.heightProperty().addListener( o -> {
-            if (getCollapsed()<0)
-                splitPane.setDividerPositions(0);
-            if (getCollapsed()>0)
-                splitPane.setDividerPositions(1);
-        });
-        splitPane.widthProperty().addListener( o -> {
-            if (getCollapsed()<0)
-                splitPane.setDividerPositions(0);
-            if (getCollapsed()>0)
-                splitPane.setDividerPositions(1);
-        });
+        // maintain collapsed state (or resizing could move the divider)
+        InvalidationListener collapseMaintainer = o -> {
+            if (getCollapsed()<0) splitPane.setDividerPositions(0);
+            if (getCollapsed()>0) splitPane.setDividerPositions(1);
+        };
+        splitPane.heightProperty().addListener(collapseMaintainer);
+        splitPane.widthProperty().addListener(collapseMaintainer);
+        splitPane.getDividers().get(0).positionProperty().addListener(collapseMaintainer);
         
         // build animations
         fadeIn = new FadeTransition(TIME, controlsRoot);
         fadeIn.setToValue(1);
         fadeOut = new FadeTransition(TIME, controlsRoot);
         fadeOut.setToValue(0);
-        fadeOut.setOnFinished(e->controls.getPane().setMouseTransparent(true));
+        fadeOut.setOnFinished(e -> controls.getPane().setMouseTransparent(true));
 
         // activate animation if mouse close to divider
-        final double limit = 10; // distance for activation of the animation
-        splitPane.addEventFilter(MOUSE_MOVED, t -> {
+        final double limit = 20; // distance for activation of the animation
+        splitPane.addEventFilter(MOUSE_MOVED, e -> {
+            if(!GUI.isLayoutMode()) return;
+            
             if (splitPane.getOrientation() == HORIZONTAL) {
                 double X = splitPane.getDividerPositions()[0] * root.widthProperty().get();
-                if (Math.abs(t.getX() - X) < limit)
+                if (Math.abs(e.getX() - X) < limit)
                     showControls();
                 else
-                if (Math.abs(t.getX() - X) > limit)
+                if (Math.abs(e.getX() - X) > limit)
                     hideControls();
             } else {
                 double Y = splitPane.getDividerPositions()[0] * root.heightProperty().get();
-                if (Math.abs(t.getY() - Y) < limit)
+                if (Math.abs(e.getY() - Y) < limit)
                     showControls();
                 else
-                if (Math.abs(t.getY() - Y) > limit)
+                if (Math.abs(e.getY() - Y) > limit)
                     hideControls();
             }
         });
         
         // activate animation if mouse if leaving area
-        splitPane.addEventFilter(MOUSE_EXITED, t -> {
-            if (!splitPane.contains(t.getX(), t.getY())) // the contains check is necessary to avoid mouse over button = splitPane pane mouse exit
+        splitPane.addEventFilter(MouseEvent.MOUSE_EXITED, e -> {
+            if (!splitPane.contains(e.getX(), e.getY())) // the contains check is necessary to avoid mouse over button = splitPane pane mouse exit
                 hideControls();
+            e.consume();
         });
+        
         // collapse on shortcut
 //        splitPane.addEventHandler(KEY_PRESSED, e -> {
 ////            if(e.getText().equalsIgnoreCase(Action.Shortcut_COLAPSE)){
@@ -154,30 +158,28 @@ public final class Splitter implements ContainerNode {
         // init controls orientation
         refreshControlsOrientation();
         
-        splitPane.addEventFilter(MOUSE_PRESSED,e-> mouse_mov_divider=true);
-        splitPane.addEventFilter(MOUSE_RELEASED,e-> mouse_mov_divider=false);
         splitPane.getDividers().get(0).positionProperty().addListener( (o,ov,nv) -> {
-            positionControls();
-            if(mouse_mov_divider) {
+            if(splitPane.isPressed()) {
+                // if the change is manual, remember
+                // stores value lazily + avoids accidental values & prevents bugs
                 prop.set("pos", nv);
             } else {
                 if(isCollapsed()) return;
                 double p = prop.getD("pos");
                 if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08) 
-                    Platform.runLater(()->applyPos());
+                    Platform.runLater(this::applyPos);
             }
-
         });
         
-        // close container if empty on right click
+        // close container if on right click it is empty
         splitPane.addEventFilter(MOUSE_CLICKED, e -> {
             if(e.getButton()==SECONDARY) {
                 if (con.getAllWidgets().count()==0)
                     con.close();
+                e.consume();
             }
         });
         
-        positionControls();
         hideControls();
     }
 
@@ -187,7 +189,6 @@ public final class Splitter implements ContainerNode {
         if (w instanceof Widget) {
             Node child = w.load();
             root_child1.getChildren().setAll(child);
-            // bind child to the area
             AnchorPane.setBottomAnchor(child, 0.0);
             AnchorPane.setLeftAnchor(child, 0.0);
             AnchorPane.setTopAnchor(child, 0.0);
@@ -203,7 +204,6 @@ public final class Splitter implements ContainerNode {
             // repopulate
             Node child = w.load();
             root_child2.getChildren().setAll(child);
-            // bind child to the area
             AnchorPane.setBottomAnchor(child, 0.0);
             AnchorPane.setLeftAnchor(child, 0.0);
             AnchorPane.setTopAnchor(child, 0.0);
@@ -321,7 +321,7 @@ public final class Splitter implements ContainerNode {
     
     
     public void showControls() {
-        if (!GUI.alt_state) return;
+        if (!GUI.isLayoutMode()) return;
         fadeIn.play();
         controls.getPane().setMouseTransparent(false);
     }

@@ -9,7 +9,6 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
@@ -645,10 +644,10 @@ public class PlaylistManager implements Configurable {
     private static void addOrEnqueueUrl(boolean add) {
         // build content
         String title = add ? "Add url item." : "Play url item.";
-        SimpleConfigurator content = new SimpleConfigurator(
-            new MapConfigurable(new ValueConfig("Url", "url", title)),
+        SimpleConfigurator content = new SimpleConfigurator<String>(
+            new ValueConfig("Url", "url", title),
             c -> {
-                String url = (String) c.getField("Url").getValue();
+                String url = c.getField("Url").getValue();
                 if(add) {
                     addUrl(url);
                 } else {

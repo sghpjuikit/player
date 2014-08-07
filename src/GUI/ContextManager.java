@@ -120,7 +120,7 @@ public final class ContextManager {
         Label propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
               propB.setTooltip(new Tooltip("Settings"));
               propB.setOnMouseClicked( e -> {
-                  SimpleConfigurator c = new SimpleConfigurator(w,con->w.getController().refresh());
+                  SimpleConfigurator c = new SimpleConfigurator(w, con -> w.getController().refresh());
                   PopOver ph = new PopOver();
                           ph.setContentNode(c);
                           ph.setTitle(w.getName() + " Settings");

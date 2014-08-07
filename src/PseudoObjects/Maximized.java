@@ -4,11 +4,13 @@
  */
 package PseudoObjects;
 
+import utilities.CyclicEnum;
+
 /**
  * Enum class for application maximized states.
  * States: ALL, LEFT, RIGHT, NONE
  */
-public enum Maximized {
+public enum Maximized implements CyclicEnum<Maximized>{
     ALL,
     LEFT,
     RIGHT,

@@ -21,6 +21,8 @@ import java.util.List;
 import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import static javafx.scene.text.FontPosture.ITALIC;
@@ -66,10 +68,10 @@ public class GUI {
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     public static double snapDistance = 7;
 
+    private static boolean alt_state = false;
+    @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
+    private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false);
     
-    // other
-    public static boolean alt_state = false;
-    public static boolean locked_layout = false;
     private static final List<String> skins = new ArrayList();
     
     // 'singleton' objects and controls for use within app
@@ -124,19 +126,24 @@ public class GUI {
         return alt_state;
     }
     
+    public static BooleanProperty layoutLockedProperty() {
+        return locked_layout;
+    }
+    
     /** Set lock to prevent layouting. */
     public static void setLayoutlocked(boolean val) {
-        locked_layout = val;
+        locked_layout.set(val);
     }
     
     /** Return lock to prevent layouting. */
     public static boolean isLayoutLocked() {
-        return locked_layout;
+        return locked_layout.get();
     }
     
+    @IsAction(name = "Toggle layout lock.", description = "Lock/unlock layout.", shortcut = "F4")
     /** Toggles lock to prevent layouting. */
     public static void toggleLayoutLocked() {
-        locked_layout=!locked_layout;
+        locked_layout.set(!locked_layout.get());
     }
     
     /** Loads/refreshes whole gui. */
@@ -176,6 +183,12 @@ public class GUI {
     @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F11")
     public static void toggleMaximize() {
         Window.getActive().toggleMaximize();
+    }
+    
+    @IsAction(name = "Loop maximized state", description = "Switch to different maximized window states.", shortcut = "F3")
+    public static void toggleMaximizedState() {
+        Window w = Window.getActive();
+        w.setMaximized(w.isMaximised().next());
     }
     
     @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F12")

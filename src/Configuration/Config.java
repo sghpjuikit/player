@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import utilities.Parser.Parser;
+import utilities.Parser.StringParser;
+import utilities.Util;
 
 /**
  * Object representation of a configurable value.
@@ -16,76 +18,18 @@ import utilities.Parser.Parser;
  * objects in a standardized way.
  * <p>
  * An aggregation of configs is {@link Configurable}. Note that, technically,
- * config is a singleton configurable. Therefore config actually extends
- * configurable and can be used as non aggregate type.
+ * config is a singleton configurable. Therefore config actually implements
+ * it and can be used as non aggregate configurable type.
+ * <p>
+ * Because config is convertible from String and back it also provides convert
+ * methods and implements {@link StrinParser}.
  * 
- * @see Configurable
+ * @param <T> type of value of this config
+ * 
  * @author uranium
  */
-public abstract class Config<T> implements Configurable<T> {
-    
-    private final String gui_name;
-    private final String name;
-    private final String group;
-    private final String info;
-    private final boolean editable;
-    private final boolean visible;
-    private final double min;
-    private final double max;
-    private final T defaultValue;
-    
-    
-    /**
-     * 
-     * @param name
-     * @param gui_name
-     * @param val
-     * @param category
-     * @param info
-     * @param editable
-     * @param visible
-     * @param min
-     * @param max 
-     * 
-     * @throws NullPointerException if val parameter null. The wrapped value must
-     * no be null.
-     */
-    Config(String name, String gui_name, T val, String category, String info, boolean editable, boolean visible, double min, double max) {
-        Objects.requireNonNull(val);
-        this.gui_name = gui_name;
-        this.name = name;
-        this.defaultValue = val;
-        this.group = category;
-        this.info = info;
-        this.editable = editable;
-        this.visible = visible;
-        this.min = min;
-        this.max = max;
-    }
-    
-    /**
-     * 
-     * @param _name
-     * @param c
-     * @param val
-     * @param category 
-     * 
-     * @throws NullPointerException if val parameter null. The wrapped value must
-     * no be null.
-     */
-    Config(String _name, IsConfig c, T val, String category) {
-        Objects.requireNonNull(val);
-        gui_name = c.name().isEmpty() ? _name : c.name();
-        name = _name;
-        defaultValue = val;
-        group = category;
-        info = c.info();
-        editable = c.editable();
-        visible = c.visible();
-        min = c.min();
-        max = c.max();
-    }
-    
+public abstract class Config<T> implements Configurable<T>, StringParser<T> {
+
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
      * wrapped automatically.
@@ -103,27 +47,18 @@ public abstract class Config<T> implements Configurable<T> {
      * </pre>
      */
     public abstract T getValue();
-    
-    /**
-     * Get default value for this config. It is the first value this config
-     * contained.
-     * @return default value. Never null.
-     */
-    public T getDefaultValue() {
-        return defaultValue;
-    }
-    
+
     public abstract boolean setValue(T val);
-    
+
     public abstract boolean applyValue();
-    
-    public void setNapplyValue(T val) {
+
+    public final void setNapplyValue(T val) {
         // set new config value
         boolean was_set = setValue(val);
         // apply new field value on success
         if(was_set) applyValue();
     }
-    
+
     /**
      * Returns class type of the value. The value and default value can only
      * be safely cast into the this class.
@@ -131,20 +66,7 @@ public abstract class Config<T> implements Configurable<T> {
      * Semantically equivalent to getValue().getClass() but will never fail to
      * return proper class even if the value is null.
      */
-    public abstract Class<T> getType();
-    
-    /**
-     * Use to determine whether min and max fields dont dontain illegal value.
-     * If they dont, they can be used to query minimal and maximal number value.
-     * Otherwise Double not a number is returned and should not be used.
-     * @return true if and only if value is a number and both min and max value 
-     * are specified. 
-     */
-    public boolean isMinMax() {
-        return getValue() instanceof Number &&
-                !(Double.compare(min, Double.NaN)==0 ||
-                    Double.compare(max, Double.NaN)==0);
-    }
+    abstract public Class<T> getType();
 
     /**
      * Alternative name of this config. Intended to be human readable and
@@ -153,81 +75,74 @@ public abstract class Config<T> implements Configurable<T> {
      * Default value is set to be equivalent to name, but can be specified to
      * differ. Always use for gui building instead of {@link #getName()}.
      */
-    public String getGuiName() {
-        return gui_name;
-    }
+   abstract public String getGuiName();
 
     /**
      * Name of this config.
      */
-    public String getName() {
-        return name;
-    }
+    abstract public String getName();
 
     /**
      * Category or group this config belongs to. Use arbitrarily to group
      * multiple configs together - mostly semantically or by intention.
      */
-    public String getGroup() {
-        return group;
-    }
+    abstract public String getGroup();
 
     /**
      * Description of this config
      */
-    public String getInfo() {
-        return info;
-    }
+    abstract public String getInfo();
 
     /**
      * Indicates editability. Use arbitrarily. Most often sets whether this
      * config should be editable by user via graphical user interface.
      */
-    public boolean isEditable() {
-        return editable;
-    }
-
-    /**
-     * Indicates visibility. Use arbitrarily. Most often sets whether this
-     * config should be displayed in the graphical user interface.
-     */
-    public boolean isVisible() {
-        return visible;
-    }
+    abstract public boolean isEditable();
 
     /**
      * Minimum allowable value. Applicable only for numbers. In double.
      */
-    public double getMin() {
-        return min;
-    }
+    abstract public double getMin();
 
     /**
      * Maximum allowable value. Applicable only for numbers. In double.
      */
-    public double getMax() {
-        return max;
-    }
+    abstract public double getMax();
     
+    /**
+     * Use to determine whether min and max fields dont dontain illegal value.
+     * If they dont, they can be used to query minimal and maximal number value.
+     * Otherwise Double not a number is returned and should not be used.
+     * @return true if and only if value is a number and both min and max value 
+     * are specified. 
+     */
+    abstract public boolean isMinMax();
+    
+/******************************* default value ********************************/
+
+    /**
+     * Get default value for this config. It is the first value this config
+     * contained.
+     * @return default value. Never null.
+     */
+    abstract public T getDefaultValue();
+
+    public final boolean setDefaultValue() {
+        return setValue(getDefaultValue());
+    }
+
+    public final void setNapplyDefaultValue() {
+        setNapplyValue(getDefaultValue());
+    }
+        
+/******************************** converting **********************************/    
     
     /**
      * Converts the value to String utilizing generic {@link Parser}.
      * Use for serialization or filling out guis.
      */
-    public String toS() {
+    public final String getValueS() {
         return Parser.toS(getValue());
-    }
-    
-    /**
-     * Converts the string to a valid value for this config utilizing generic 
-     * {@link Parser}.
-     * Use for serialization or filling out guis.
-     * <p>
-     * Note: the value of this config is not changed.
-     * @see #setValueFrom(java.lang.String)
-     */
-    public T fromS(String str) {
-        return (T) Parser.fromS(getType(), str);
     }
     
     /**
@@ -236,19 +151,43 @@ public abstract class Config<T> implements Configurable<T> {
      * @param str
      * @return 
      */
-    public boolean setValueFrom(String str) {
+    public final boolean setValueS(String str) {
         return setValue(fromS(str));
     }
-    
-    public boolean setDefaultValue() {
-        return setValue(getDefaultValue());
+
+    /**
+     * Inherited method from {@link StringParser}
+     * Note: this config remains intact.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public final boolean supports(Class<?> type) {
+        return getType().isAssignableFrom(type);
+    }
+    /**
+     * Inherited method from {@link StringParser}
+     * Note: this config remains intact.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public final String toS(T val) {
+        return Parser.toS(val);
     }
     
-    public void setNapplyDefaultValue() {
-        setNapplyValue(getDefaultValue());
+    /**
+     * Inherited method from {@link StringParser}
+     * Note: this config remains intact.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public final T fromS(String str) {
+        return (T) Parser.fromS(getType(), str);
     }
     
-    // configurable methods
+/*************************** configurable methods *****************************/
 
     /**
      * This method is inherited from Configurable and is not intended to be used
@@ -262,8 +201,8 @@ public abstract class Config<T> implements Configurable<T> {
      * @param name
      */
     @Override
-    public Config<T> getField(String name) {
-        return name.equals(this.name) ? this : null;
+    public final Config<T> getField(String name) {
+        return name.equals(getName()) ? this : null;
     }
 
     /**
@@ -277,11 +216,127 @@ public abstract class Config<T> implements Configurable<T> {
      * @return 
      */
     @Override
-    public List<Config<T>> getFields() {
+    public final List<Config<T>> getFields() {
         return Collections.singletonList(this);
     }
     
     
     
     
+    public static abstract class ConfigBase<T> extends Config<T> {
+    
+        private final String gui_name;
+        private final String name;
+        private final String group;
+        private final String info;
+        private final boolean editable;
+        private final double min;
+        private final double max;
+        private final String defaultValue;
+
+        /**
+         * 
+         * @param name
+         * @param gui_name
+         * @param val
+         * @param category
+         * @param info
+         * @param editable
+         * @param visible
+         * @param min
+         * @param max 
+         * 
+         * @throws NullPointerException if val parameter null. The wrapped value must
+         * no be null.
+         */
+        ConfigBase(String name, String gui_name, T val, String category, String info, boolean editable, double min, double max) {
+            Objects.requireNonNull(val);
+            this.gui_name = gui_name;
+            this.name = name;
+            this.defaultValue = toS(val);
+            this.group = category;
+            this.info = info;
+            this.editable = editable;
+            this.min = min;
+            this.max = max;
+        }
+
+        /**
+         * 
+         * @param _name
+         * @param c
+         * @param val
+         * @param category 
+         * 
+         * @throws NullPointerException if val parameter null. The wrapped value must
+         * no be null.
+         */
+        ConfigBase(String _name, IsConfig c, T val, String category) {
+            Objects.requireNonNull(val);
+            gui_name = c.name().isEmpty() ? _name : c.name();
+            name = _name;
+            defaultValue = toS(val);
+            group = category;
+            info = c.info();
+            editable = c.editable();
+            min = c.min();
+            max = c.max();
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final String getGuiName() {
+            return gui_name;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final String getName() {
+            return name;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final String getGroup() {
+            return group;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final String getInfo() {
+            return info;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final boolean isEditable() {
+            return editable;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final double getMin() {
+            return min;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public final double getMax() {
+            return max;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean isMinMax() {
+            return Number.class.isAssignableFrom(Util.unPrimitivize(getType())) &&
+                    !(Double.compare(min, Double.NaN)==0 ||
+                        Double.compare(max, Double.NaN)==0);
+        }
+        
+        /** {@inheritDoc} */
+        @Override
+        public T getDefaultValue() {
+            return fromS(defaultValue);
+        }
+    }
 }

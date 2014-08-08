@@ -6,6 +6,7 @@
 
 package Configuration;
 
+import Configuration.Config.ConfigBase;
 import java.util.Objects;
 import javafx.beans.property.Property;
 
@@ -25,7 +26,7 @@ import javafx.beans.property.Property;
  * 
  * @author Plutonium_
  */
-public class PropertyConfig<T> extends Config<T> {
+public class PropertyConfig<T> extends ConfigBase<T> {
     
     Property<T> property;
 
@@ -44,15 +45,15 @@ public class PropertyConfig<T> extends Config<T> {
     }
     
     public PropertyConfig(String name, Property<T> property) {
-        this(name, name, property, "", "", true, true, Double.NaN, Double.NaN);
+        this(name, name, property, "", "", true, Double.NaN, Double.NaN);
     }
     
     public PropertyConfig(String name, Property<T> property, String info) {
-        this(name, name, property, "", info, true, true, Double.NaN, Double.NaN);
+        this(name, name, property, "", info, true, Double.NaN, Double.NaN);
     }
     
-    public PropertyConfig(String name, String gui_name, Property<T> property, String category, String info, boolean editable, boolean visible, double min, double max) {
-        super(name, gui_name, property.getValue(), category, info, editable, visible, min, max);
+    public PropertyConfig(String name, String gui_name, Property<T> property, String category, String info, boolean editable, double min, double max) {
+        super(name, gui_name, property.getValue(), category, info, editable, min, max);
         this.property = property;
     }
 
@@ -73,8 +74,8 @@ public class PropertyConfig<T> extends Config<T> {
     }
 
     @Override
-    public Class<T> getType() {
-        return (Class<T>)getValue().getClass();
+    public Class getType() {
+        return getValue().getClass();
     }
 
     /**

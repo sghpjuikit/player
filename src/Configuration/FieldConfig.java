@@ -6,6 +6,7 @@
 
 package Configuration;
 
+import Configuration.Config.ConfigBase;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,7 +23,7 @@ import utilities.Log;
  * 
  * @author Plutonium_
  */
-public final class FieldConfig<T> extends Config<T> {
+public final class FieldConfig<T> extends ConfigBase<T> {
     
     private final Field field;
     Method applierMethod;
@@ -109,8 +110,8 @@ public final class FieldConfig<T> extends Config<T> {
      * {@inheritDoc}
      */
     @Override
-    public Class<T> getType() {
-        return (Class<T>) field.getType();
+    public Class getType() {
+        return field.getType();
     }
     
     /** 

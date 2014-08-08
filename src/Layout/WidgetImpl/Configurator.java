@@ -53,7 +53,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     public HPos alignemnt = HPos.RIGHT;
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
     public Pos title_align = Pos.CENTER;
-    @IsConfig(visible = false)
+    @IsConfig(editable = false)
     public String expanded = "";
     
     public Configurator() {

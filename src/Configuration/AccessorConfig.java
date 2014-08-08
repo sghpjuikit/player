@@ -6,6 +6,7 @@
 
 package Configuration;
 
+import Configuration.Config.ConfigBase;
 import java.util.function.Supplier;
 import javafx.util.Callback;
 
@@ -20,7 +21,7 @@ import javafx.util.Callback;
  *
  * @author Plutonium_
  */
-public class AccessorConfig<T> extends Config<T> implements Accessor<T> {
+public class AccessorConfig<T> extends ConfigBase<T> implements Accessor<T> {
     
     private final Callback<T,Boolean> setter;
     private final Supplier<T> getter;
@@ -30,8 +31,8 @@ public class AccessorConfig<T> extends Config<T> implements Accessor<T> {
      * @param getter defines how the value will be accessed
      */
     public AccessorConfig(String name, String gui_name, Callback<T,Boolean> setter,
-            Supplier<T> getter, String category, String info, boolean editable, boolean visible, double min, double max) {
-        super(name, gui_name, getter.get(), name, info, editable, visible, min, max);
+            Supplier<T> getter, String category, String info, boolean editable, double min, double max) {
+        super(name, gui_name, getter.get(), name, info, editable, min, max);
         this.getter = getter;
         this.setter = setter;
     }
@@ -41,7 +42,7 @@ public class AccessorConfig<T> extends Config<T> implements Accessor<T> {
      * @param getter defines how the value will be accessed
      */
     public AccessorConfig(String name, Callback<T,Boolean> setter, Supplier<T> getter) {
-        super(name, name, getter.get(), "", "", true, true, Double.NaN, Double.NaN);
+        super(name, name, getter.get(), "", "", true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
     }
@@ -51,7 +52,7 @@ public class AccessorConfig<T> extends Config<T> implements Accessor<T> {
      * @param getter defines how the value will be accessed
      */
     public AccessorConfig(String name, Callback<T,Boolean> setter, Supplier<T> getter, String info) {
-        super(name, name, getter.get(), "", info, true, true, Double.NaN, Double.NaN);
+        super(name, name, getter.get(), "", info, true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
     }
@@ -90,16 +91,8 @@ public class AccessorConfig<T> extends Config<T> implements Accessor<T> {
     
     /** {@inheritDoc} */
     @Override
-    public Class<T> getType() {
-        return (Class<T>) getValue().getClass();
-    }
-
-    /** 
-     * This Implementation returns current value.
-     * {@inheritDoc} */
-    @Override
-    public T getDefaultValue() {
-        return getValue();
+    public Class getType() {
+        return getValue().getClass();
     }
     
 }

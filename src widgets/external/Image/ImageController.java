@@ -55,9 +55,9 @@ public class ImageController extends FXMLController {
     // invisible for now
     // 1 - we do not have a good image picker
     // 2 - we need to make it possible to pick 'empty' image or null
-    @IsConfig(name = "Custom image", info = "Custom static image file.", visible = false)
+    @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
     public File custom_image = new File("");
-    @IsConfig(name = "Use custom image", info = "Display custom static image file.", visible = false)
+    @IsConfig(name = "Use custom image", info = "Display custom static image file.", editable = false)
     public boolean useCustomImage = false;
     
     

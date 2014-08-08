@@ -1,7 +1,6 @@
 
 package GUI.objects;
 
-import Configuration.Configuration;
 import GUI.ContextManager;
 import javafx.animation.ScaleTransition;
 import javafx.scene.control.Label;
@@ -31,20 +30,20 @@ public class ContextCircleElement extends ContextElement{
         label.setMinSize(Label.USE_COMPUTED_SIZE,Label.USE_COMPUTED_SIZE);
         label.setPrefSize(Label.USE_COMPUTED_SIZE,Label.USE_COMPUTED_SIZE);
             
-        final double SF = Configuration.scaleFactor;
+        final double scaleFactor = 0.1;
         e.setOnMousePressed( t -> {
             behavior.run();
             if(ContextManager.closeMenuOnAction)
                 parent.close();
         });
         e.setOnMouseEntered( t -> {
-            label.setScaleX(1+SF);
-            label.setScaleY(1+SF);
+            label.setScaleX(1+scaleFactor);
+            label.setScaleY(1+scaleFactor);
             e.toFront(); // in case the elements overlap/nearby
             if (!allowAnimation) return;
             scale.stop();
-            scale.setToX(1+SF);
-            scale.setToY(1+SF);
+            scale.setToX(1+scaleFactor);
+            scale.setToY(1+scaleFactor);
             scale.play();
         });
         e.setOnMouseExited( t -> {

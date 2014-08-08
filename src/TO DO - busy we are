@@ -25,7 +25,6 @@
 - bookmark config serialisation - hahsmap not supported
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - cant open two info popup at once - evolution of singleton = death...
-- create few predefined layouts + picker
 - remove custom context menus as they are now
 - emty metadata MUST NOT return File("") !
 - Rater make base skin
@@ -36,9 +35,8 @@
 - trail effect disables click effect
 - ALT+F4 closes windows separately instead whole app
 - popover show pin icon property implement
-- holding shift while scrolling will scroll horizontally - document in gui
 - press C to collapse layout containers easily - implement properly
-- app configuration dont store configs - major memory consumption culprit
+- NOTIFICATION PADDING WRONG (AGAIN)
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -170,6 +168,7 @@ PERFORMANCE
   edit: clock done, reimplement more effectively and clean up
 - layout reload mem leak - investigate                                          (major)
 - skin refresh memory consumptin investigate                                    (medium)
+- app configuration dont store configs 
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------

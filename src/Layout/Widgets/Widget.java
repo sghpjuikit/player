@@ -177,7 +177,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         if(controller != null) {
             configs = new HashMap();
             getFields().forEach(c -> 
-                configs.put(c.getName(), c.toS())
+                configs.put(c.getName(), c.getValueS())
             );
         }
     }

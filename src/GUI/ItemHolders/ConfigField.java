@@ -47,6 +47,7 @@ import utilities.FxTimer;
 import utilities.Parser.FileParser;
 import utilities.Parser.FontParser;
 import utilities.Password;
+import utilities.Util;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -57,38 +58,54 @@ import utilities.Password;
  *
  * @author uranium
  */
-abstract public class ConfigField<T> implements ItemHolder<T>{
+abstract public class ConfigField<T> implements ItemHolder<T> {
     private final Label label = new Label();
     private final HBox box = new HBox();
-    final T value;
     final Config<T> config;
     private boolean applyOnChange = true;
-
+    Button defB;
+    
     private ConfigField(Config<T> c) {
-        value = c.getValue();
         config = c;
         label.setText(c.getGuiName());
         
-        Button defB = AwesomeDude.createIconButton(REPEAT, "", "11","10",GRAPHIC_ONLY);
-               defB.setOpacity(0);
-               defB.setOnMouseClicked(e-> setNapplyDefault());
-               defB.getStyleClass().setAll("congfig-field-default-button");
-        Tooltip.install(defB, new Tooltip("Set to default value."));
-             
-        box.getChildren().add(defB);
         box.setMinSize(0,0);
         box.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
         box.setSpacing(5);
         box.setAlignment(CENTER_LEFT);
+        box.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
         
-        FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
-        box.addEventFilter(MOUSE_ENTERED, e-> {
-            fa.stop();
-            fa.setDelay(Duration.millis(270));
-            fa.setToValue(1);
-            fa.play();
+        // display default button when hovered for certain time
+        box.addEventFilter(MOUSE_ENTERED, e -> {
+            // wait delay
+            FxTimer.run(Duration.millis(270), () -> {
+                // no need to do anything if hover ended
+                if(box.isHover()) {
+                    // lazily build the button when requested
+                    // we dont want hundreds of buttons we will never use anyway
+                    if(defB==null) {
+                        defB = AwesomeDude.createIconButton(REPEAT, "", "11","10",GRAPHIC_ONLY);
+                        defB.setOpacity(0);
+                        defB.setOnMouseClicked( ee -> setNapplyDefault());
+                        defB.getStyleClass().setAll("congfig-field-default-button");
+                        Tooltip.install(defB, new Tooltip("Set to default value."));
+                        box.getChildren().add(defB);
+                        box.setPadding(Insets.EMPTY);
+                    }
+                    // show it
+                    FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
+                    fa.stop();
+                    fa.setToValue(1);
+                    fa.play();
+                }
+            });
         });
+        // hide default button
         box.addEventFilter(MOUSE_EXITED, e-> {
+            // return if nothing to hide
+            if(defB == null) return;
+            // hide it
+            FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
             fa.stop();
             fa.setDelay(Duration.ZERO);
             fa.setToValue(0);
@@ -225,42 +242,42 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
      * @param f field for which the GUI will be created
      * @return null if errors out
      */
-    public static ConfigField create(Config f) {
-        if (!f.isVisible()) return null;
-        
+    public static ConfigField create(Config f) {        
         String name  = f.getName();
-        Object val = f.getValue();
+        Class type = f.getType();
         
         ConfigField cf;
         if (name.equals("skin"))
             cf = new SkinField(f);
         else
-        if (val instanceof Password)
-            cf = new ConfigField.PasswordField(f);
-        else 
-        if (val instanceof Boolean)
+        if (Boolean.class.equals(Util.unPrimitivize(type)))
             cf = new BooleanField(f);
         else 
-        if (val instanceof Enum)
+        if (String.class.equals(Util.unPrimitivize(type)))
+            cf = new GeneralField(f);
+        else 
+        if (type.isEnum())
             cf = new EnumField(f);
         else
-        if (val instanceof Action)
+        if (Action.class.equals(Util.unPrimitivize(type)))
             cf = new ShortcutField(f);
-        else
-        if (val instanceof Color)
-            cf = new ColorField(f);
-        else
-        if (val instanceof File)
-            cf = new FileField(f);
-        else
-        if (val instanceof Font)
-            cf = new FontField(f);
         else
         if (f.isMinMax())
             cf = new SliderField(f);
         else
+        if (Color.class.equals(Util.unPrimitivize(type)))
+            cf = new ColorField(f);
+        else
+        if (File.class.equals(Util.unPrimitivize(type)))
+            cf = new FileField(f);
+        else
+        if (Font.class.equals(Util.unPrimitivize(type)))
+            cf = new FontField(f);
+        else
+        if (Password.class.equals(Util.unPrimitivize(type)))
+            cf = new PasswordField(f);
+        else
             cf = new GeneralField(f);
-
         
         cf.setEditable(!f.isEditable());
         if(!f.getInfo().isEmpty()) {
@@ -274,7 +291,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         return cf;
     }
     
-/******************************************************************************/
+/***************************** IMPLEMENTATIONS ********************************/
     
     private static final class PasswordField extends ConfigField<Password>{
         
@@ -283,7 +300,6 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         public PasswordField(Config<Password> c) {
             super(c);
             refreshItem();
-            
         }
 
         @Override
@@ -300,11 +316,8 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         public void refreshItem() {
             passF.setText(config.getValue().get());
         }
-   
         
-    }
-    
-    
+    }    
     
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField txtF = new CustomTextField();
@@ -325,7 +338,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             
             txtF.setContextMenu(null);
             txtF.getStyleClass().setAll("text-field","text-input");
-            txtF.setPromptText(value.toString());
+            txtF.setPromptText(c.getValueS());
             // start edit
             txtF.setOnMouseClicked( e -> {
                 if (txtF.getText().isEmpty())
@@ -333,14 +346,14 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 e.consume();
             });
             
-            txtF.focusedProperty().addListener((o,ov,nv)->{
+            txtF.focusedProperty().addListener((o,ov,nv) -> {
                 if(nv) {
                     if (txtF.getText().isEmpty()) 
                         txtF.setText(txtF.getPromptText());
                 } else {
                     // the timer solves a little bug where the focus shift from
                     // txtF to okB has a delay which we need to jump over
-                    FxTimer.run(Duration.millis(80), ()->{
+                    FxTimer.run(Duration.millis(80), () -> {
                         if(!okBL.isFocused() && !okB.isFocused()) {
                             txtF.setText("");
                             showOkButton(false);
@@ -353,7 +366,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 txtF.addEventHandler(KEY_RELEASED, e -> {
                     if (e.getCode()==BACK_SPACE || e.getCode()==DELETE) {
                         if (txtF.getPromptText().isEmpty())
-                            txtF.setPromptText(config.toS());
+                            txtF.setPromptText(config.getValueS());
                         else
                             txtF.setPromptText("");
                     }
@@ -379,7 +392,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             }
         }
         @Override public void refreshItem() {
-            txtF.setPromptText(config.toS());
+            txtF.setPromptText(config.getValueS());
             txtF.setText("");
             showOkButton(false);
         }
@@ -394,13 +407,13 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         
     }
     
-    private static class BooleanField extends ConfigField<Boolean> {
+    private static final class BooleanField extends ConfigField<Boolean> {
         CheckBox cBox;
         
-        private BooleanField(Config c) {
+        private BooleanField(Config<Boolean> c) {
             super(c);
             cBox = new CheckBox();
-            cBox.setSelected(value);
+            refreshItem();
             cBox.selectedProperty().addListener((o,ov,nv)->{
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
@@ -417,7 +430,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         }
     }
     
-    private static class EnumField extends ConfigField<Object> {
+    private static final class EnumField extends ConfigField<Object> {
         ChoiceBox<Object> cBox;
         
         private EnumField(Config c) {
@@ -426,13 +439,14 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             ObservableList<Object> constants = FXCollections.observableArrayList();
             // get enum constants
             //      of enums with class method bodies
-            if(value.getClass().getEnclosingClass()!=null && value.getClass().getEnclosingClass().isEnum())
-                constants.setAll(value.getClass().getEnclosingClass().getEnumConstants());
+            Class clazz = c.getType();
+            if(clazz.getEnclosingClass()!=null && clazz.getEnclosingClass().isEnum())
+                constants.setAll(clazz.getEnclosingClass().getEnumConstants());
             //      of normal enums
-            else constants.setAll(value.getClass().getEnumConstants());
+            else constants.setAll(clazz.getEnumConstants());
             
             cBox.setItems(constants);
-            cBox.getSelectionModel().select(value);
+            cBox.setValue(config.getValue());
             cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv)->{
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
@@ -449,20 +463,20 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         }
     }
     
-    private static class SliderField extends ConfigField<Number> {
+    private static final class SliderField extends ConfigField<Number> {
         Slider slider;
-        private SliderField(Config c) {
+        private SliderField(Config<Number> c) {
             super(c);
-            slider = new Slider(c.getMin(),c.getMax(),value.doubleValue());
+            slider = new Slider(c.getMin(),c.getMax(),c.getValue().doubleValue());
             // there is a slight bug where isValueChanging is false even it if 
             // shouldnt. It appears when mouse clicks NOT on the thumb but on
             // the slider track instead and keeps dragging. valueChanging doesn
             // activate - fill out JIRA bug?
-            slider.valueProperty().addListener((o,ov,nv)-> {
+            slider.valueProperty().addListener( (o,ov,nv) -> {
                 if(isApplyOnChange() && !slider.isValueChanging())
                     applyNsetIfAvailable();
             });
-            slider.setOnMouseReleased(e-> {
+            slider.setOnMouseReleased( e -> {
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
             
@@ -487,13 +501,13 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return slider.getValue();
         }
         @Override public void refreshItem() {
-            slider.setValue((config.getValue()).doubleValue());
+            slider.setValue(config.getValue().doubleValue());
         }
     }
     
     
     /** Specifically for listing out available skins. */
-    private static class SkinField extends ConfigField<String> {
+    private static final class SkinField extends ConfigField<String> {
         ChoiceBox<String> cBox;
         
         private SkinField(Config c) {
@@ -503,7 +517,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                                    items.setAll(GUI.getSkins());
             cBox.setItems(items);
             cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv)->{
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
                 if(isApplyOnChange()) {
                     GUI.skin = getItem();
                     GUI.applySkin();
@@ -529,27 +543,28 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
         }
     }
     
-    private static class ShortcutField extends ConfigField<Action> {
+    private static final class ShortcutField extends ConfigField<Action> {
         TextField txtF;
         CheckBox glob;
         HBox group;
         String t="";
+        Action a;
         
-        private ShortcutField(Config con) {
+        private ShortcutField(Config<Action> con) {
             super(con);
-            
+            a = con.getValue();
             txtF = new TextField();
-            txtF.setPromptText(value.getKeys());
+            txtF.setPromptText(a.getKeys());
             txtF.setOnKeyReleased( e -> {
                 KeyCode c = e.getCode();
                 // handle substraction
                 if (c==BACK_SPACE || c==DELETE) {
                     txtF.setPromptText("");
-                    if (!txtF.getText().isEmpty()) txtF.setPromptText(value.getKeys());
+                    if (!txtF.getText().isEmpty()) txtF.setPromptText(a.getKeys());
                     
                     
                     if (t.isEmpty()) {  // set back to empty
-                        txtF.setPromptText(value.getKeys());
+                        txtF.setPromptText(a.getKeys());
                     } else {            // substract one key
                         if (t.indexOf('+') == -1) t="";
                         else t=t.substring(0,t.lastIndexOf('+'));
@@ -566,8 +581,8 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 }
             });
             txtF.setEditable(false);
-            txtF.setTooltip(new Tooltip(value.info));
-            txtF.focusedProperty().addListener((o,ov,nv) -> {
+            txtF.setTooltip(new Tooltip(a.getInfo()));
+            txtF.focusedProperty().addListener( (o,ov,nv) -> {
                 if(nv) {
                     txtF.setText(txtF.getPromptText());
                 } else {
@@ -579,7 +594,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             });
             
             glob = new CheckBox();
-            glob.setSelected(value.isGlobal());
+            glob.setSelected(a.isGlobal());
             glob.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
             glob.selectedProperty().addListener((o,ov,nv) -> {
                 if (isApplyOnChange()) applyNsetIfAvailable();
@@ -624,7 +639,7 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
             return true;
         }
         @Override public Action getItem() {
-            return value;
+            return a;
         }
         @Override public void refreshItem() {
             Action a = config.getValue();
@@ -637,10 +652,10 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     private static final class ColorField extends ConfigField<Color> {
         ColorPicker picker = new ColorPicker();
         
-        private ColorField(Config c) {
+        private ColorField(Config<Color> c) {
             super(c);
-            picker.setValue(value);
-            picker.valueProperty().addListener((o,ov,nv) -> {
+            refreshItem();
+            picker.valueProperty().addListener( (o,ov,nv) -> {
                 if(isApplyOnChange()) applyNsetIfAvailable();
             });
         }
@@ -659,9 +674,9 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     private static final class FontField extends ConfigField<Font> {
         FontTextField txtF = new FontTextField();
         
-        private FontField(Config c) {
+        private FontField(Config<Font> c) {
             super(c);
-            
+            refreshItem();
             txtF.setOnItemChange((oldFont,newFont) -> {
                 if(!newFont.equals(oldFont)) {  // we shouldnt rely on Font.equals here
                     applyNsetIfAvailable();
@@ -669,7 +684,6 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 }
                 txtF.setText(""); // always stay in prompt text more
             });
-            txtF.setItem(value);
         }
         
         @Override public Control getNode() {
@@ -686,9 +700,9 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
     private static final class FileField extends ConfigField<File> {
         FileTextField txtF = new FileTextField();
         
-        public FileField(Config c) {
+        public FileField(Config<File> c) {
             super(c);
-            
+            refreshItem();
             txtF.setOnItemChange((oldFile,newFile) -> {
                 if(!newFile.equals(oldFile)) {
                     applyNsetIfAvailable();
@@ -696,7 +710,6 @@ abstract public class ConfigField<T> implements ItemHolder<T>{
                 }
                 txtF.setText(""); // always stay in prompt text more
             });
-            txtF.setItem(super.value);
         }
         
         @Override public Control getNode() {

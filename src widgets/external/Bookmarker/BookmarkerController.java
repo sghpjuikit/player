@@ -250,11 +250,11 @@ public class BookmarkerController extends FXMLController {
         });
     }
     
-    @IsConfig(visible = false)
+    @IsConfig(editable = false)
     public HashMap<String,Boolean> colVis = new HashMap();
-    @IsConfig(visible = false)
+    @IsConfig(editable = false)
     public HashMap<String,Double> colWid = new HashMap();
-    @IsConfig(visible = false)
+    @IsConfig(editable = false)
     public HashMap<String,Integer> colPos = new HashMap();
     
     private boolean column_resize_lock = false; // true - maintenance allowed

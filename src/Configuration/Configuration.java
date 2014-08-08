@@ -28,8 +28,6 @@ import utilities.Util;
 public class Configuration {
     
     // preffered gui settings
-    @IsConfig(info = "Turn animations on/off (if they suport disability.")
-    public static boolean allowAnimation = true;
     @IsConfig(info = "Preffered editability of rating controls. This value is overridable.")
     public static boolean allowRatingChange = true;
     @IsConfig(info = "Preffered number of elements in rating control. This value is overridable.")
@@ -38,13 +36,7 @@ public class Configuration {
     public static boolean partialRating = true;
     @IsConfig(info = "Preffered hoverability of rating controls. This value is overridable.")
     public static boolean hoverRating = true;
-    @IsConfig(info = "Preffered factor to scale by on hover operations")
-    public static double scaleFactor = 0.1;
-    
-    // skining
-    @IsConfig(visible = false, editable = false)
-    public static double TABLE_ROW_HEIGHT = 14;                    //get rid of this
-    
+        
     //tagging
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public static String TAG_NO_VALUE = "-- no assigned value --";
@@ -52,23 +44,16 @@ public class Configuration {
     public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
     public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
     
-    private static final List<Class> classes = new ArrayList();
     private static final Map<String,Config> configs = new HashMap();
     
-    
-    static {        
-        ClassIndex.getAnnotated(IsConfigurable.class).forEach(classes::add);
-        discover();
-    }
-    
-    private static void discover(){
-        // add class fields
-        for (Class c : classes) discoverConfigFieldsOf(c);
-        // add action fields
-        Action.getActions().values().stream().map(ActionConfig::new)
-                .forEach(f->configs.put(f.getName(), f));
-        // add methods in the end to avoid incorrect initialization
-       for (Class c : classes) discoverMethodsOf(c);
+    static {
+        // for all discovered classes
+        ClassIndex.getAnnotated(IsConfigurable.class).forEach( c -> {
+            // add class fields
+            discoverConfigFieldsOf(c);
+            // add methods in the end to avoid incorrect initialization
+            discoverMethodsOf(c);        
+        });
     }
     
     private static void discoverConfigFieldsOf(Class clazz) {
@@ -113,38 +98,38 @@ public class Configuration {
     }
     
     static Config createConfig(Class cl, Field f, Object instnc, boolean include_static, boolean include_instance) {
-            // that are annotated
-            Config c = null;
-            IsConfig a = f.getAnnotation(IsConfig.class);
-            if (a != null) {
-                
-                String group = a.group().isEmpty() ? getGroup(cl) : a.group();
-                String name = f.getName();
-                
-                if (include_static && Modifier.isStatic(f.getModifiers())) {
-                    if(Property.class.isAssignableFrom(f.getType()))
-                        c = createPropertyConfig(f, null, name, a, group);
-                    else {
-                        if(Modifier.isFinal(f.getModifiers()))
-                            // if final -> runtime exception, dev needs to fix his code
-                            throw new IllegalStateException("Field config must not be final.");
-                        // make statif field config based on the field
-                        c = new FieldConfig(name, a, null, group, f);
-                    }
-                }
-                if (include_instance && !Modifier.isStatic(f.getModifiers())) {
-                    if(Property.class.isAssignableFrom(f.getType()))
-                        c = createPropertyConfig(f, instnc, name, a, group);
-                    else {
-                        if(Modifier.isFinal(f.getModifiers()))
-                            // if final -> runtime exception, dev needs to fix his code
-                            throw new IllegalStateException("Field config must not be final.");
-                        // make statif field config based on the field
-                        c = new FieldConfig(name, a, instnc, group, f);
-                    }
+        // that are annotated
+        Config c = null;
+        IsConfig a = f.getAnnotation(IsConfig.class);
+        if (a != null) {
+
+            String group = a.group().isEmpty() ? getGroup(cl) : a.group();
+            String name = f.getName();
+
+            if (include_static && Modifier.isStatic(f.getModifiers())) {
+                if(Property.class.isAssignableFrom(f.getType()))
+                    c = createPropertyConfig(f, null, name, a, group);
+                else {
+                    if(Modifier.isFinal(f.getModifiers()))
+                        // if final -> runtime exception, dev needs to fix his code
+                        throw new IllegalStateException("Field config must not be final.");
+                    // make statif field config based on the field
+                    c = new FieldConfig(name, a, null, group, f);
                 }
             }
-            return c;
+            if (include_instance && !Modifier.isStatic(f.getModifiers())) {
+                if(Property.class.isAssignableFrom(f.getType()))
+                    c = createPropertyConfig(f, instnc, name, a, group);
+                else {
+                    if(Modifier.isFinal(f.getModifiers()))
+                        // if final -> runtime exception, dev needs to fix his code
+                        throw new IllegalStateException("Field config must not be final.");
+                    // make statif field config based on the field
+                    c = new FieldConfig(name, a, instnc, group, f);
+                }
+            }
+        }
+        return c;
     }
     
     private static PropertyConfig createPropertyConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
@@ -178,7 +163,7 @@ public class Configuration {
      */
     public static void setNapplyField(String name, Object value) {
         Log.deb("Attempting to set and apply config field " + name + " to " + value);
-        Config c = configs.get(name);
+        Config c = getField(name);
         Objects.requireNonNull(c,"Failed to set and apply config field: " + name + " . Reason: Does not exist.");
         c.setNapplyValue(value);
     }
@@ -192,7 +177,7 @@ public class Configuration {
      */
     public static void setField(String name, Object value) {
         Log.deb("Attempting to set config field value of: " + name + " to: " + value);
-        Config c = configs.get(name);
+        Config c = getField(name);
         Objects.requireNonNull(c,"Failed to set config field: " + name + " . Reason: Does not exist.");
         c.setValue(value);
     }
@@ -205,20 +190,14 @@ public class Configuration {
      */
     public static void applyField(String name) {
         Log.deb("Attempting to apply config field " + name);
-        Config c = configs.get(name);
+        Config c = getField(name);
         Objects.requireNonNull(c,"Failed to apply config field: " + name + " . Reason: Does not exist.");
         c.applyValue();
     }
     
     public static void applyFieldsAll() {
-        configs.values().forEach(Config::applyValue);
+        getFields().forEach(Config::applyValue);
     }
-    
-//    public static void applyFieldsOfClass(Class<?> clazz) {
-//        configs.values().stream()
-//                .filter(c->c.getDefaultValue().getClass().equals(clazz)) // this is broken
-//                .forEach(Config::applyValue);
-//    }
     
 /******************************* public api ***********************************/
     
@@ -227,11 +206,15 @@ public class Configuration {
      * @return config with given name or null if such config does not exists
      */
     public static Config getField(String name) {
-        return configs.get(name);
+        Config c = configs.get(name);
+        if (c==null) c = Action.getActions().get(name);
+        return c;
     }
     
     public static List<Config> getFields() {
-        return new ArrayList(configs.values());
+        List<Config> cs = new ArrayList(configs.values());
+                     cs.addAll(Action.getActions().values());
+        return cs;
     }
     
     public static List<Config> getFields(Predicate<Config> condition) {
@@ -244,7 +227,7 @@ public class Configuration {
      * Changes all config fields to their default value and applies them
      */
     public static void toDefault() {
-        configs.values().forEach(Config::setNapplyDefaultValue);
+        getFields().forEach(Config::setNapplyDefaultValue);
     }
     
     /**
@@ -260,7 +243,7 @@ public class Configuration {
                content += "# " + java.time.LocalTime.now() + "\n";
         
         for (Config f: getFields())
-            content += f.getName() + " : " + f.toS() + "\n";
+            content += f.getName() + " : " + f.getValueS() + "\n";
         
         FileUtil.writeFile("Settings.cfg", content);
     }
@@ -284,16 +267,15 @@ public class Configuration {
             Log.info("Configuration couldnt be loaded. No content found. Using "
                     + "default settings.");
         
+        
         lines.forEach((name,value) -> {
             Config c = getField(name);
             if (c!=null)
-                c.setValueFrom(value);
+                c.setValueS(value);
             else
                 Log.info("Config field " + name + " not available. Possible"
                     + " error in the configuration file.");
         });
     }
-    
-    
     
 }

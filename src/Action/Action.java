@@ -4,6 +4,7 @@ package Action;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.AppliesConfig;
+import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.ContextManager;
@@ -48,15 +49,12 @@ import utilities.functional.functor.Procedure;
  * @author uranium
  */
 @IsConfigurable
-public final class Action {
+public final class Action extends Config<Action> {
     
-    /** Name of the action. Must be unique. */
-    public final String name;
+    private final String name;
     private final Runnable action;
-    /** Description of the action's functionality. Useful for generating tooltips. */
-    public final String info;
-    /** Whether the action should be run constantly while the hotkey is pressed */
-    public final boolean continuous;
+    private final String info;
+    private final boolean continuous;
     private boolean global;
     private KeyCombination keys = KeyCombination.NO_MATCH;
     private final String defaultKeys;
@@ -96,6 +94,15 @@ public final class Action {
      */
     public boolean isGlobal() {
         return global;
+    }
+
+    /**
+     * Whether the action should be run constantly while the hotkey is pressed
+     * or once.
+     * @return 
+     */
+    public boolean isContinuous() {
+        return continuous;
     }
     
     /** 
@@ -269,6 +276,76 @@ public final class Action {
         return -1;
     }
     
+/********************************** AS CONFIG *********************************/
+    
+    @Override
+    public Action getValue() {
+        return this;
+    }
+
+    @Override
+    public boolean setValue(Action val) {
+        set(val.isGlobal(), val.getKeys());
+        return true;
+    }
+
+    @Override
+    public boolean applyValue() {
+        return true;
+    }
+
+    @Override
+    public Class<Action> getType() {
+        return Action.class;
+    }
+
+    @Override
+    public Action getDefaultValue() {
+        return new Action(name,action,info,defaultKeys,defaultGlobal,continuous);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getGuiName() {
+        return name;
+    }    
+    
+    @Override
+    public String getInfo() {
+        return info;
+    }
+
+    @Override
+    public String getGroup() {
+        return "Shortcuts";
+    }
+    
+    @Override
+    public boolean isEditable() {
+        return true;
+    }
+    
+    @Override
+    public boolean isMinMax() {
+        return false;
+    }
+
+    @Override
+    public double getMin() {
+        return Double.NaN;
+    }
+
+    @Override
+    public double getMax() {
+        return Double.NaN;
+    }
+    
+/********************************** AS OBJECT *********************************/
+    
     @Override
     public boolean equals(Object o) {
         if(this==o) return true; // this line can make a difference
@@ -295,17 +372,7 @@ public final class Action {
     
     
     
-    /**
-     * Returns copy of this action with keys and scope set to default values
-     * of this action.
-     * @param a
-     * @return
-     * @deprecated Internal API, do not use.
-     */
-    @Deprecated()
-    public static Action defaultOf(Action a) {
-        return new Action(a.name, a.action, a.info, a.defaultKeys, a.defaultGlobal, a.continuous);
-    }
+    
     
     private Action(boolean isGlobal, KeyCombination keys) {
         this.name = null;

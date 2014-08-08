@@ -141,6 +141,6 @@ public interface Configurable<T> {
      * this exception or check for null. It signifies programming error.
      */
     default public boolean setField(String name, String value) {
-        return getField(name).setValueFrom(value);
+        return getField(name).setValueS(value);
     }
 }

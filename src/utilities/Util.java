@@ -400,4 +400,18 @@ public interface Util {
        if (superClazz != null) return getField(superClazz, name);
        else throw new NoSuchFieldException();
     }
+        
+    public static Class unPrimitivize(Class c) {
+        if(c.isPrimitive()) {
+            if(c.equals(boolean.class)) return Boolean.class;
+            if(c.equals(int.class)) return Integer.class;
+            if(c.equals(float.class)) return Float.class;
+            if(c.equals(double.class)) return Double.class;
+            if(c.equals(long.class)) return Long.class;
+            if(c.equals(byte.class)) return Byte.class;
+            if(c.equals(short.class)) return Short.class;
+            if(c.equals(char.class)) return Character.class;
+        }
+        return c;
+    }
 }

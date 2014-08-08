@@ -72,17 +72,9 @@ public @interface IsConfig {
     String group() default "";
     /** 
      * @return the intended editability of the configuration field by the user.
-      * Should be adhered to by the graphical user interface. Set to false for
-      * 'private' fields intended for testing or debugging purposes accessible
-      * only for the developer. Default true.*/
+      * Should be adhered to by the graphical user interface for example by not
+      * displaying this config. Default true.*/
     boolean editable() default true;
-    /** 
-     * @return the intended visibility of the configuration field. Similar to
-      * {@link #editable()} with slightly different intention. For example a
-      * field could be set to non-editable but visible or the opposite. Default
-      * true.
-      */
-    boolean visible() default true;
     /** 
      * Applicable only for numbers. Returns double.
      * @return the minimum allowable value

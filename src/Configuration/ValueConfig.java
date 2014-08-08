@@ -6,6 +6,7 @@
 
 package Configuration;
 
+import Configuration.Config.ConfigBase;
 import java.util.Objects;
 import javafx.util.Callback;
 
@@ -42,35 +43,35 @@ import javafx.util.Callback;
  *
  * @author Plutonium_
  */
-public final class ValueConfig<V> extends Config<V> {
+public final class ValueConfig<V> extends ConfigBase<V> {
     
     private V value;
     private Callback<V,Boolean> applier;
     
-    public ValueConfig(String name, String gui_name, V value, String category, String info, boolean editable, boolean visible, double min, double max, Callback<V,Boolean> applier) {
-        super(name, gui_name, value, name, info, editable, visible, min, max);
+    public ValueConfig(String name, String gui_name, V value, String category, String info, boolean editable, double min, double max, Callback<V,Boolean> applier) {
+        super(name, gui_name, value, name, info, editable, min, max);
         this.value = value;
         this.applier = applier;
     }
     
     public ValueConfig(String name, V value) {
-        super(name, name, value, "", "", true, true, Double.NaN, Double.NaN);
+        super(name, name, value, "", "", true, Double.NaN, Double.NaN);
         this.value = value;
     }
     
     public ValueConfig(String name, V value, Callback<V,Boolean> applier) {
-        super(name, name, value, "", "", true, true, Double.NaN, Double.NaN);
+        super(name, name, value, "", "", true, Double.NaN, Double.NaN);
         this.value = value;
         this.applier = applier;
     }
     
     public ValueConfig(String name, V value, String info) {
-        super(name, name, value, "", info, true, true, Double.NaN, Double.NaN);
+        super(name, name, value, "", info, true, Double.NaN, Double.NaN);
         this.value = value;
     }
     
     public ValueConfig(String name, V value, String info, Callback<V,Boolean> applier) {
-        super(name, name, value, "", info, true, true, Double.NaN, Double.NaN);
+        super(name, name, value, "", info, true, Double.NaN, Double.NaN);
         this.value = value;
         this.applier = applier;
     }
@@ -134,8 +135,8 @@ public final class ValueConfig<V> extends Config<V> {
     
     /** {@inheritDoc} */
     @Override
-    public Class<V> getType() {
-        return (Class<V>) value.getClass();
+    public Class getType() {
+        return value.getClass();
     }
 
     /**

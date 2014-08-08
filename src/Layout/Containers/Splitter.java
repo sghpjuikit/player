@@ -98,6 +98,7 @@ public final class Splitter implements ContainerNode {
         root.widthProperty().addListener(repositioner);
         root.heightProperty().addListener(repositioner);
         controls.getPane().opacityProperty().addListener(repositioner);
+        splitPane.getDividers().get(0).positionProperty().addListener(repositioner);
         
         // maintain collapsed state (or resizing could move the divider)
         InvalidationListener collapseMaintainer = o -> {

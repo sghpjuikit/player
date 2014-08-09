@@ -23,6 +23,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -137,7 +138,7 @@ public final class Action extends Config<Action> {
      * value and can be registered.
      */
     public boolean hasKeysAssigned() {
-        return keys.equals(NO_MATCH);
+        return !keys.equals(NO_MATCH);
     }
     
     
@@ -199,10 +200,14 @@ public final class Action extends Config<Action> {
      * For local action this method will succeed only after {@link Scene} is 
      * already initialized.
      * For global, platform support is required. If it isnt, shortcut will
-     * be registered locally, but the action will remain global.
+     * be registered locally, although the action will remain global.
+     * <p>
+     * Note that shortcut can be registered globally multiple times even with
+     * the same keys and locally with different keys. Make sure the action is
+     * unregistered before registering it.
      */
     public void register() {                                                    // Log.deb("Attempting to register shortcut " + name);
-        if(hasKeysAssigned()) return;
+        if(!hasKeysAssigned()) return;
         
         if (global && global_shortcuts && isGlobalShortcutsSupported())
             registerGlobal();
@@ -232,7 +237,6 @@ public final class Action extends Config<Action> {
     }   
     
     private void registerInApp() {                                              // Log.deb("Registering in-app shortcut "+name);
-        
         // fix local shortcut problem - keyCodes not registering, needs raw characters instead
         // TODO resolve or include all characters' conversions
         final KeyCombination k;
@@ -244,36 +248,52 @@ public final class Action extends Config<Action> {
         if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
         // register for each window separately
         ContextManager.windows.forEach( w -> 
-            w.getStage().getScene().getAccelerators().put(k,action)
-        );
+            w.getStage().getScene().getAccelerators().put(k,action));
     }
+
     private void unregisterInApp() {                                            // Log.deb("Unregistering in-app shortcut "+name);
-        
         // fix local shortcut problem - keyCodes not registering, needs raw characters instead
         // TODO resolve or include all characters' conversions
-        final KeyCombination k;
-        String s = getKeys();
-        if(s.contains("Back_Slash")) k = KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
-        else if(s.contains("Back_Quote"))k = KeyCombination.keyCombination(s.replace("Back_Quote","`"));
-        else k = keys;
+        final KeyCombination k = getKeysForLocalRegistering(this);
         
         if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
         // unregister for each window separately
         ContextManager.windows.forEach( w -> 
-            w.getStage().getScene().getAccelerators().remove(k)
-        );
+            w.getStage().getScene().getAccelerators().remove(k));
     }
+    public void unregisterInScene(Scene s) {
+        s.getAccelerators().remove(getKeysForLocalRegistering(this),action);
+    }
+    
     private void registerGlobal() {                                             //  Log.deb("Registering global shortcut "+name);
         JIntellitype.getInstance().registerHotKey(getID(), getKeys());
+    }
+    
+    public void registerInScene(Scene s) {
+        s.getAccelerators().put(getKeysForLocalRegistering(this),action);
     }
     private void unregisterGlobal() {                                           //  Log.deb("Unregistering global shortcut "+name);
         JIntellitype.getInstance().unregisterHotKey(getID());
     }
+    
     private int getID() {
         Action[] as = shortcuts();
         for(int i=0; i<as.length; i++)
             if (as[i].equals(this)) return i;
         return -1;
+    }
+    
+    private static KeyCombination getKeysForLocalRegistering(Action a) {
+        // fix local shortcut problem - keyCodes not registering, needs raw characters instead
+        // TODO resolve or include all characters' conversions
+        final KeyCombination k;
+        String s = a.getKeys();
+        if(s.contains("Back_Slash")) 
+            return KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
+        else if(s.contains("Back_Quote"))
+            return KeyCombination.keyCombination(s.replace("Back_Quote","`"));
+        else 
+            return a.keys;
     }
     
 /********************************** AS CONFIG *********************************/
@@ -420,7 +440,7 @@ public final class Action extends Config<Action> {
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";
     
-    @AppliesConfig( "global_media_shortcuts")
+    @AppliesConfig("global_media_shortcuts")
     private static void applyAllowMediaShortcuts() {
         if(isGlobalShortcutsSupported()) {
             if(global_media_shortcuts) {
@@ -433,7 +453,7 @@ public final class Action extends Config<Action> {
         }
     }
     
-    @AppliesConfig( "global_shortcuts")
+    @AppliesConfig("global_shortcuts")
     private static void applyAllowGlobalShortcuts() {
         if(isGlobalShortcutsSupported()) {
             if(global_shortcuts){
@@ -475,12 +495,13 @@ public final class Action extends Config<Action> {
      * Deactivates listening process for global hotkeys. Frees resources. This
      * method should should always be ran at the end of application's life cycle
      * if {@link #stopGlobalListening()} was invoked at least once.
-     * Not doing so might prevent from the application to close successfully.
+     * Not doing so might prevent from the application to close successfully,
+     * because bgr listening thread will not close.
      */
     public static void stopGlobalListening() {
         JIntellitype.getInstance().cleanUp();
     }
-    
+
     /** 
      * Returns true if global shortcuts are supported at running platform.
      * Otherwise false. In such case, global shortcuts will run as local and
@@ -488,27 +509,21 @@ public final class Action extends Config<Action> {
      * have no effect.
      */
     public static boolean isGlobalShortcutsSupported() {
-        return JIntellitype.isJIntellitypeSupported();
+        return isGlobalShortcutsSupported;
     }
     
     /** 
-     * Returns map of actions mapped by their name.
+     * Returns modifiable collection of actions mapped by their name. Actions
+     * can be added and removed.
      * @return map of all action_name - action pairs.
      */
     public static Map<String,Action> getActions(){
         return actions;
     }
     
-    /**
-     * Adds action to the maintained collection of actions.
-     * @param action 
-     */
-    public static void addAction(Action action) {
-        actions.put(action.name, action);
-    }
-    
 /************************ action helper methods *******************************/
     
+    private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
     private static final Map<String,Action> actions = gatherActions();
 
     private static Action[] shortcuts(){
@@ -554,14 +569,13 @@ public final class Action extends Config<Action> {
     private static final HotkeyListener global_listener = i -> {
         Log.deb("Global shortcut " + i + " captured.");
         try {
-//            System.out.println("running " + i);
             runShortcut(i);
         } catch(IndexOutOfBoundsException e) {
             
         }
     };
     private static final IntellitypeListener media_listener = i -> {
-        if(!global_media_shortcuts) return;
+        // run on appFX thread
         Platform.runLater(() -> {
             if     (i==JIntellitype.APPCOMMAND_MEDIA_PREVIOUSTRACK) PlaylistManager.playPreviousItem();
             else if(i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
@@ -570,6 +584,7 @@ public final class Action extends Config<Action> {
             else if(i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.decVolume();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.incVolume();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
+            else if(i==JIntellitype.APPCOMMAND_CLOSE) App.close();
         });
     };
     

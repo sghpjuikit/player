@@ -1,7 +1,6 @@
 
 package Layout;
 
-import Layout.Areas.ContainerNode;
 import Layout.Areas.TabArea;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ public final class PolyContainer extends Container {
     private TabArea gui;
     
     @Override
-    public ContainerNode getGraphics() {
+    public TabArea getGraphics() {
         return gui;
     }
     

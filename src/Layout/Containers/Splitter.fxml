@@ -22,7 +22,7 @@
         <BorderPane id="controls" pickOnBounds="false" prefHeight="-1.0" prefWidth="-1.0" visible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <center><TilePane fx:id="controlsBox" alignment="CENTER" hgap="5.0" prefColumns="6" prefRows="6" vgap="5.0" BorderPane.alignment="CENTER">
 <children>
-                <Button mnemonicParsing="false" onMouseClicked="#close" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="✕">
+                <Button mnemonicParsing="false" onMouseClicked="#closeContainer" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="✕">
 <tooltip><Tooltip text="close" />
 </tooltip></Button><Button mnemonicParsing="false" onMouseClicked="#toggleLocked" prefHeight="25.0" prefWidth="25.0" styleClass="header-button" text="l">
 <tooltip><Tooltip text="Lock container" />

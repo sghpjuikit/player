@@ -74,13 +74,13 @@ public final class Splitter implements ContainerNode {
         // initialize properties
         prop.initProperty(Double.class, "pos", 0.5d);
         prop.initProperty(Orientation.class, "orient", VERTICAL);
-        prop.initProperty(Boolean.class, "abs_size", false); //true=not locked size
+        prop.initProperty(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
         prop.initProperty(Double.class, "collap", 0d);
         prop.initProperty(Integer.class, "col", 0);
        
         // set properties
         splitPane.setOrientation(prop.getOriet("orient"));
-        SplitPane.setResizableWithParent(root_child2, prop.getB("abs_size"));
+        setAbsoluteSize(prop.getI("abs_size"));
         applyPos();
         
         if (getCollapsed()<0)
@@ -145,34 +145,25 @@ public final class Splitter implements ContainerNode {
             e.consume();
         });
         
-        // collapse on shortcut
-//        splitPane.addEventHandler(KEY_PRESSED, e -> {
-////            if(e.getText().equalsIgnoreCase(Action.Shortcut_COLAPSE)){
-//            if(e.getCode().equals(KeyCode.C)){
-//                toggleCollapsed();
-//                e.consume();
-//            }
-//        });
-        
         // maintain controls orientation 
         splitPane.orientationProperty().addListener(o->refreshControlsOrientation());
         // init controls orientation
         refreshControlsOrientation();
         
-        splitPane.getDividers().get(0).positionProperty().addListener( (o,ov,nv) -> {
+        splitPane.getDividers().get(0).positionProperty().addListener((o,ov,nv) -> {
             if(splitPane.isPressed()) {
                 // if the change is manual, remember
                 // stores value lazily + avoids accidental values & prevents bugs
                 prop.set("pos", nv);
             } else {
-                if(isCollapsed()) return;
+                if (isCollapsed()) return;
                 double p = prop.getD("pos");
                 if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08) 
                     Platform.runLater(this::applyPos);
             }
         });
-        
-        // close container if on right click it is empty
+
+            // close container if on right click it is empty
         splitPane.addEventFilter(MOUSE_CLICKED, e -> {
             if(e.getButton()==SECONDARY) {
                 if (con.getAllWidgets().count()==0)
@@ -183,36 +174,33 @@ public final class Splitter implements ContainerNode {
         
         hideControls();
     }
-
+    
+    public void setComponent(int i, Component c) {
+        if(i!=1 && i!=2) throw new IllegalArgumentException("Only 1 or 2 supported as index.");
+        
+        AnchorPane r = i==1 ? root_child1 : root_child2;
+        
+        if (c == null) {
+            r.getChildren().clear();
+            return;
+        }
+        Node content = null;
+        if (c instanceof Widget) content = c.load();
+        else if (c instanceof Container) content = ((Container)c).load(r);
+            
+            
+        r.getChildren().setAll(content);
+        AnchorPane.setBottomAnchor(content, 0.0);
+        AnchorPane.setLeftAnchor(content, 0.0);
+        AnchorPane.setTopAnchor(content, 0.0);
+        AnchorPane.setRightAnchor(content, 0.0);
+    }
+    
     public void setChild1(Component w) {
-        if (w == null) return;
-        // repopulate
-        if (w instanceof Widget) {
-            Node child = w.load();
-            root_child1.getChildren().setAll(child);
-            AnchorPane.setBottomAnchor(child, 0.0);
-            AnchorPane.setLeftAnchor(child, 0.0);
-            AnchorPane.setTopAnchor(child, 0.0);
-            AnchorPane.setRightAnchor(child, 0.0);
-        }
-        if (w instanceof Container) {
-            Node child = ((Container)w).load(root_child1);
-        }
+        setComponent(1, w);
     }
     public void setChild2(Component w) {
-        if (w == null) return;
-        if (w instanceof Widget) {
-            // repopulate
-            Node child = w.load();
-            root_child2.getChildren().setAll(child);
-            AnchorPane.setBottomAnchor(child, 0.0);
-            AnchorPane.setLeftAnchor(child, 0.0);
-            AnchorPane.setTopAnchor(child, 0.0);
-            AnchorPane.setRightAnchor(child, 0.0);
-        }
-        if (w instanceof Container) {
-            Node child = ((Container)w).load(root_child2);
-        }
+        setComponent(2, w);
     }
 
     public AnchorPane getChild1Pane() {
@@ -249,14 +237,28 @@ public final class Splitter implements ContainerNode {
      */
     @FXML
     public void toggleAbsoluteSize() {
-        if (SplitPane.isResizableWithParent(root_child2)) {
-            prop.set("abs_size", false);
-            SplitPane.setResizableWithParent(root_child2, false);
-        } else {
-            prop.set("abs_size", true);
-            SplitPane.setResizableWithParent(root_child2, true);
-        }  
+        int i = prop.getI("abs_size");
+            i = i==2 ? 0 : i+1;
+        setAbsoluteSize(i);
     }
+    public void setAbsoluteSize(int i) {
+        if(i==0) {
+            SplitPane.setResizableWithParent(root_child1, true);
+            SplitPane.setResizableWithParent(root_child2, true);
+        } else
+        if(i==1) {
+            SplitPane.setResizableWithParent(root_child1, false);
+            SplitPane.setResizableWithParent(root_child2, true);
+        } else
+        if(i==2) {
+            SplitPane.setResizableWithParent(root_child1, true);
+            SplitPane.setResizableWithParent(root_child2, false);
+        } else
+            throw new IllegalArgumentException("Only valiues 0,1,2 allowed here.");
+        
+        prop.set("abs_size", i);
+    }
+    
     @FXML
     public void toggleLocked() {
         container.toggleLock();
@@ -316,7 +318,7 @@ public final class Splitter implements ContainerNode {
     }
     
     @FXML
-    public void close() {
+    public void closeContainer() {
         container.close();
     }
     

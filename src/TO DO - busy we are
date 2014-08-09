@@ -14,8 +14,6 @@
 - windw header visible preference application is weird 4                        (?)
 - popover set arrow location automatically based on available screen space
   getWidget - implement Target
-- Player update item not refreshing selected pl item                            (?)
-- splitter absolute size for both children
 - rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
 - playlist index column width still not perfect
@@ -29,10 +27,9 @@
 - emty metadata MUST NOT return File("") !
 - Rater make base skin
 - tab area - select tab on mouse release not press or avoid loading content
-  somehow when reordering 
+  somehow when reordering
 - tab drag areas vs tabs implement both at once
 - configurator empt shortcut not defaulting? fix
-- trail effect disables click effect
 - ALT+F4 closes windows separately instead whole app
 - popover show pin icon property implement
 - press C to collapse layout containers easily - implement properly
@@ -82,17 +79,12 @@ SOLVED (but the underlying cause still deserves attention)
   This has something to do with some other (probably orientation) property
   overriding divider position and consequently changing the "pos" value in the
   very container ultimately losing the original position value
-  solution: change container "pos" value only when divider position changes as  (bad)
-  a result of mouse dragging.
   problem: performance aspect. There is possibility of infinite recursive call
   for setting divider position. Plus the setPosition is now called multiple
   times depending on depth within layout map possibly with O(n) or worse. This
   is because of the recursive nature of layout map loading where children are
   loaded before parent, causing additional resize pass for every depth iteration
   when the parent loads. This is possibly worse than O(3^x)!
-  solution: the layout map shouldnt load recursively. This has potential to
-  get rid of major resizing bugs on layout init (like thumbnails and custom
-  layouts).
 - javafx.scene.text.Text doesnt have css style class and as such doesn allow
   default values and skinning
   solution: Text class extending javafx.scene.text.Text and adding custom 
@@ -109,11 +101,12 @@ SOLVED (but the underlying cause still deserves attention)
   and the window is not really fully initialized
   solution: delay execution 100ms (see WindowBase.update())                     (not ideal but no problems)
 - app not closing propery on ALT+F4                                             (medium-major)
-  cause: ALT+F4 closes focused window not application. It somehow closes windows(problematic)
+  cause: ALT+F4 and closing app from taskbar calling window.closeRequst
+  closes focused window not application. It somehow closes windows
   without closing them (close() does not get invoked). Because of this closing
   main window this way doesnt execute the necessary actions. Also, with the
   hidden owner window app wont close as one window remains open
-  solution: have onCloseRequest event execute close()                           (great so far)
+  solution: have onCloseRequest event execute close()
 - bgr artefacts for window header buttons and icons
   cause: rgba (-fx-panel-color) for .header styleclass                          
   solution: use rgb color and apply -fx-opacity instead of alpha channel
@@ -135,11 +128,7 @@ PROBLEMS
 --------------------------------------------------------------------------------
 
 CLEANUP
-- get rid of ROW_HEIGHT and find out how to get row heigh dynamically, also
-  set proper padding for table rows and get away with fixedRowSize in playlist
-  table FRS doesnt solve this problem as it breaks skins
-- Thumbnail get border width param from css
-- Serializator and serialization code clean up
+- Serializator and serialization classes clean up
 - widget info and bridge widget factory and widget a bit more elegantly that this
 - clean window code and centralize it un one place
 - separate and implement Pure vs Leaf Containers better
@@ -151,7 +140,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - file format discovery. Unite Image and Audio types add category               (not needed for now)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - playlist table drag code duplication                                          (technicality, minor code pollution)
-- playlist table refresh currupted/playing row pseudoclass css code duplication (technicality, minor code pollution)
 - Notification class unite contents, remove enum                                (lot of code + fxml duplicity)
 - metadata xml chapter reading class redo - its not good design. But it works   (not needed)
   and is considered legacy code now anyway
@@ -159,7 +147,7 @@ UNIFICATIONS, OVERHAULS, REDESIGN
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static
-- Container getAll Children/Containers/Widgets improve code & performance
+
 
 PERFORMANCE
 - closing widgets not releasing memory                                          (?)
@@ -167,8 +155,9 @@ PERFORMANCE
   cut down number of cycles (200ms should be MORE than enough)
   edit: clock done, reimplement more effectively and clean up
 - layout reload mem leak - investigate                                          (major)
-- skin refresh memory consumptin investigate                                    (medium)
-- app configuration dont store configs 
+- skin memory consumptin investigate                                            (medium)
+- Layout.Container.Splitter improve applyPos() to fire once only
+- Container getAll Children/Containers/Widgets improve performance
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
@@ -208,9 +197,8 @@ PERFORMANCE
 --------------------------------------------------------------------------------
 
 - need to run code after specific delay? use utilities.FxTimer. By far the most
-  simple asynchronous code execution you will have ever used. Plus (or minus
-  depending on your 'belief') its all running on appFX thread - no bgr threads,
-  no concurrency problems
+  simple asynchronous code execution you will have ever used.
+  Its also running on appFX thread - no bgr threads, no concurrency problems.
 
 --------------------------------------------------------------------------------
 ---------------------- TESTING - what nobody wants to do -----------------------

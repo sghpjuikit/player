@@ -13,11 +13,14 @@ import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
+import Layout.BiContainer;
 import Layout.Component;
+import Layout.Container;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
+import static de.jensd.fx.fontawesome.AwesomeIcon.COLUMNS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
@@ -89,9 +92,9 @@ public final class AreaControls {
         header_buttons.setMinWidth(15);
 
         // build header buttons
-        Label helpB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
-              helpB.setTooltip(new Tooltip("Help"));
-              helpB.setOnMouseClicked( e -> {
+        Label infoB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
+              infoB.setTooltip(new Tooltip("Help"));
+              infoB.setOnMouseClicked( e -> {
                    // create popover lazily if not yet
                    if(helpPopOver==null) {
                        helpPopOver = PopOver.createHelpPopOver("");
@@ -130,7 +133,7 @@ public final class AreaControls {
                    // for some reason we need to set this every time, which
                    // should not be the case, investigate
                    helpPopOver.getContentNode().setWrappingWidth(400);
-                   helpPopOver.show(helpB);
+                   helpPopOver.show(infoB);
                    e.consume();
               });
         Label closeB = AwesomeDude.createIconLabel(TIMES,"","12","12",ContentDisplay.RIGHT);
@@ -171,9 +174,15 @@ public final class AreaControls {
                    refreshWidget();
                    e.consume();
                });
-               
+        Label absB = AwesomeDude.createIconLabel(COLUMNS,"","12","12",CENTER);
+              absB.setTooltip(new Tooltip("Toggle absolute size"));
+              absB.setOnMouseClicked( e -> {
+                  toggleAbsSize();
+                  e.consume();
+              });
+        
         // build header
-        header_buttons.getChildren().addAll(helpB,lockB,refreshB,propB,changeB,detachB,closeB);
+        header_buttons.getChildren().addAll(closeB,detachB,changeB,propB,refreshB,lockB,absB,infoB);
         
         // build animations
         contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), root);
@@ -276,6 +285,12 @@ public final class AreaControls {
     
     void close() {
         area.container.close();
+    }
+    
+    private void toggleAbsSize() {
+        Container c = area.container.getParent();
+        if(c!=null && c instanceof BiContainer)
+            BiContainer.class.cast(c).getGraphics().toggleAbsoluteSize();
     }
     
     private void showWeak() {

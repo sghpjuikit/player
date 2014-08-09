@@ -10,8 +10,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import main.App;
 import utilities.FileUtil;
 import utilities.Log;
@@ -40,42 +38,7 @@ import static utilities.Util.NotNULL;
  * @author uranium
  */
 public final class Serializattion {
-    
-    /**
-     * Serializes this object into file according to application design. 
-     * @param o 
-     */
-    public static void serialize(Serializes o) {
-        try {
-            Method m = Serializattion.class.getDeclaredMethod("serialize", o.getClass());
-            m.invoke(new Serializattion(), o);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Log.err(ex.getMessage());
-        }
-    }
-    /**
-     * Deserializes this object from file according to application design.
-     * @param o
-     * @return deserialized object. 
-     */
-    public static Object deserialize(Serializes o) {
-        try {
-            Method m = Serializattion.class.getDeclaredMethod("deserialize", o.getClass());
-            return m.invoke(new Serializattion(), o);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Log.err(ex.getMessage());
-            return null;
-        }
-    }
-    public static Object deserializeFrom(Class<? extends SerializesFile> type, File f) {
-        try {
-            Method m = Serializattion.class.getDeclaredMethod("deserialize", type.getClass(), File.class);
-            return m.invoke(new Serializattion(), type, f);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Log.err(ex.getMessage());
-            return null;
-        }
-    }
+
     
     private void serialize(Layout o) {
         File f = new File(App.LAYOUT_FOLDER(), o.getName() + ".l");
@@ -90,32 +53,12 @@ public final class Serializattion {
             Log.err("Unable to save gui layout '" + o.getName() + "' into the file: " + f.toPath());
         }
     }
-    private Object deserialize(Layout o) {
-        File f = new File(App.LAYOUT_FOLDER(), o.getName() + ".l").getAbsoluteFile();
-        try {
-            XStream xstream = new XStream(new DomDriver());
-                    xstream.autodetectAnnotations(true);
-            Layout l = (Layout) xstream.fromXML(f);
-                   l.setName(FileUtil.getName(f));
-//                   l.getAllWidgets()
-//                        .filter(NotNULL)
-//                        .forEach(Widget::restoreConfigs);
-            return l;
-        } catch (ClassCastException | StreamException ex) {
-            Log.err("Unable to load gui layout from the file: " + "Layout.l" +
-                    ". The file not found or content corrupted. ");
-            return null;
-        }
-    }
     private Object deserialize(Class<Layout> type, File f) {
         try {
             XStream xstream = new XStream(new DomDriver());
                     xstream.autodetectAnnotations(true);
             Layout l = (Layout) xstream.fromXML(f);
                    l.setName(FileUtil.getName(f));
-//                   l.getAllWidgets()
-//                        .filter(NotNULL)
-//                        .forEach(Widget::restoreConfigs);
             return l;
         } catch (ClassCastException | StreamException ex) {
             Log.err("Unable to load gui layout from the file: " + "Layout.l" +

@@ -160,49 +160,37 @@ public final class PlaylistTable {
         });
         rowFactory = p_table -> {
             TableRow<PlaylistItem> row = new TableRow<PlaylistItem>() {
+                private void updatePseudoclassState(PlaylistItem item, boolean empty) {
+                    if (empty) return;
+                    // set pseudoclass
+                    // normal pseudoClassStateChanged(playingRowCSS, false); doesnt work here faithfully
+                    // since the content is within cells themselves - the pseudoclass has to be passed down
+                    // if we want the content (like text, not just the cell) to be styled correctly
+                    if (PlaylistManager.isItemPlaying(item))
+                        getChildrenUnmodifiable().forEach(
+                                c->c.pseudoClassStateChanged(playingRowCSS, true));
+                    else 
+                        getChildrenUnmodifiable().forEach(
+                                c->c.pseudoClassStateChanged(playingRowCSS, false));
+
+                    if (item.markedAsCorrupted())
+                         getChildrenUnmodifiable().forEach(
+                                 c->c.pseudoClassStateChanged(corruptRowCSS, true));
+                    else 
+                        getChildrenUnmodifiable().forEach(
+                                c->c.pseudoClassStateChanged(corruptRowCSS, false));
+                }
                 @Override 
                 protected void updateItem(PlaylistItem item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (!empty) {
-                        // set pseudoclass
-                        // normal pseudoClassStateChanged(playingRowCSS, false); doesnt work here faithfully
-                        // since the content is within cells themselves - the pseudoclass has to be passed down
-                        // if we want the content (like text, not just the cell) to be styled correctly
-                        if (PlaylistManager.isItemPlaying(item))
-                            getChildrenUnmodifiable().forEach(
-                                    c->c.pseudoClassStateChanged(playingRowCSS, true));
-                        else 
-                            getChildrenUnmodifiable().forEach(
-                                    c->c.pseudoClassStateChanged(playingRowCSS, false));
-
-                        if (item.markedAsCorrupted())
-                             getChildrenUnmodifiable().forEach(
-                                     c->c.pseudoClassStateChanged(corruptRowCSS, true));
-                        else 
-                            getChildrenUnmodifiable().forEach(
-                                    c->c.pseudoClassStateChanged(corruptRowCSS, false));
-                    }
+                    if (!empty) updatePseudoclassState(item, empty);
                 }
                 // this method is workaround for initialisation bug where the
                 // pseudoclasses dont initialize properly
                 // it should be handled better but this is good enough for now
                 @Override protected void layoutChildren() {
                     super.layoutChildren();
-                    if(getItem()!=null){
-                        if (PlaylistManager.isItemPlaying(getItem()))
-                            getChildrenUnmodifiable().forEach(
-                                    c->c.pseudoClassStateChanged(playingRowCSS, true));
-                        else 
-                            getChildrenUnmodifiable().forEach(
-                                    c->c.pseudoClassStateChanged(playingRowCSS, false));
-
-                        if (getItem().markedAsCorrupted())
-                             getChildrenUnmodifiable().forEach(
-                                     c->c.pseudoClassStateChanged(corruptRowCSS, true));
-                        else 
-                            getChildrenUnmodifiable().forEach(
-                                    c->c.pseudoClassStateChanged(corruptRowCSS, false));
-                    }
+                    updatePseudoclassState(getItem(), isEmpty());
                 }
             };
             

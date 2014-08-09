@@ -95,7 +95,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
         String old = name;
         name = new_name;
         // save new
-        Serializattion.serialize(this);
+        Serializattion.serializeLayout(this);
         // delete old file
         FileUtil.deleteFile(new File(App.LAYOUT_FOLDER(), old + ".l"));
         // rename thumb
@@ -182,7 +182,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      */
     public void serialize() {
        if(!getChildren().isEmpty())
-           Serializattion.serialize(this);
+           Serializattion.serializeLayout(this);
     }
     public void serialize(File f) {
        if(!getChildren().isEmpty())

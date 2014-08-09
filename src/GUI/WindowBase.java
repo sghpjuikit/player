@@ -5,7 +5,6 @@ import GUI.objects.Window.Resize;
 import PseudoObjects.Maximized;
 import static PseudoObjects.Maximized.ALL;
 import static PseudoObjects.Maximized.NONE;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -472,10 +471,7 @@ public class WindowBase {
     /** Sets the window visible and focuses it. */
     public void show() {
         s.show();
-        // we need to focus the window
-        // we need to defer the focusing for later or we risk setting setOnTop
-        // to true permanently
-        Platform.runLater(()->focus());     // cannot be done better? investigate
+        focus();
     }
     
     public void hide() {

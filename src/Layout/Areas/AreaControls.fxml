@@ -12,7 +12,7 @@
           </center>
         </BorderPane><Region fx:id="deactivator2" prefHeight="35.0" prefWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><StackPane AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
 <children>
-        <Region fx:id="deactivator" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" /><TilePane fx:id="header_buttons" alignment="TOP_RIGHT" hgap="5.0" prefColumns="7" prefRows="1" vgap="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+        <Region fx:id="deactivator" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" /><TilePane fx:id="header_buttons" hgap="5.0" nodeOrientation="RIGHT_TO_LEFT" prefColumns="10" prefRows="1" vgap="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
 </children></StackPane>
       </children>
     </fx:root>

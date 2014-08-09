@@ -145,6 +145,7 @@ public class PopOverSkin implements Skin<PopOver> {
                 headerControls.getChildren().setAll(popOver.getHeaderIcons());
 //                headerControls.getChildren().add(headerControls.getChildren().size(),
 //                        popOver.isDetached() ? closeIcon : pinIcon);
+            headerControls.getChildren().removeAll(pinB,closeB);
             headerControls.getChildren().add(pinB);
             headerControls.getChildren().add(closeB);
             }
@@ -156,6 +157,7 @@ public class PopOverSkin implements Skin<PopOver> {
         popOver.detachedProperty().addListener( (o,ov,nv) -> {
 //            headerControls.getChildren().set(headerControls.getChildren().size()-1,
 //                        nv ? closeIcon : pinIcon);
+            headerControls.getChildren().removeAll(pinB,closeB);
             headerControls.getChildren().add(pinB);
             headerControls.getChildren().add(closeB);
         });

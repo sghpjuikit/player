@@ -12,7 +12,6 @@ import Configuration.IsConfigurable;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Text;
 import static GUI.objects.Window.Resize.E;
@@ -80,8 +79,8 @@ import static javafx.scene.input.KeyCode.ALT;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
@@ -120,6 +119,8 @@ import utilities.Util;
  */
 @IsConfigurable
 public class Window extends WindowBase implements SelfSerializator<Window> {
+    
+    private static PseudoClass focusedPseudoClass = PseudoClass.getPseudoClass("focused");
     
     /**
      * Get focused window. There is only one at most focused window in the application
@@ -301,47 +302,33 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         contentMask.heightProperty().bind(content.heightProperty());
         content.setClip(contentMask);
         
-        bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
+//        bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
         
         // avoid some instances of not closing properly
         s.setOnCloseRequest(e -> close());
         
-        // root is assigned a 'window' styleclass to allow css skinning
-        // set 'focused' pseudoclass for window styleclass
-        PseudoClass focused = PseudoClass.getPseudoClass("focused");
-        s.focusedProperty().addListener((o,ov,nv)->{
-            root.pseudoClassStateChanged(focused,nv);
-        });
+        // root is also assigned a .window styleclass to allow css skinning
+        // maintain :focused pseudoclass for .window styleclass
+        s.focusedProperty().addListener( (o,ov,nv) ->
+            root.pseudoClassStateChanged(focusedPseudoClass,nv));
+        
         // add to list of active windows
         ContextManager.windows.add(this);
         // set shortcuts
         Action.getActions().values().stream().filter(a->!a.isGlobal())
                 .forEach(Action::register);
         
-        root.addEventFilter(MOUSE_MOVED, e -> {
-            if (ClickEffect.trail_effect) 
-                ClickEffect.run(e.getSceneX(), e.getSceneY());
-        });
         root.addEventFilter(MOUSE_PRESSED,  e -> {
             // update coordinates for context manager
             ContextManager.setX(e.getSceneX());
             ContextManager.setY(e.getSceneY());
-            if (!ClickEffect.trail_effect) 
-                ClickEffect.run(e.getSceneX(), e.getSceneY());
             ContextManager.closeMenus();
-            appDragStart(e);
         });
         
-        root.addEventFilter(MOUSE_RELEASED, e -> app_drag = false );
-        
-        root.addEventHandler(MOUSE_DRAGGED,e -> {
-            if (e.getButton()==MouseButton.PRIMARY) {
-                if(app_drag)
-                    appDragDo(e);
-                else
-                    appDragStart(e);
-            }
-        });
+        // initialize app dragging
+        root.addEventHandler(DRAG_DETECTED, this::appDragStart);
+        root.addEventHandler(MOUSE_DRAGGED, this::appDragDo);
+        root.addEventHandler(MOUSE_RELEASED, this::appDragEnd);
         
         // header double click maximize, show header on/off
         header.setOnMouseClicked( e -> {
@@ -715,12 +702,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private boolean app_drag = false;
     
     private void appDragStart(MouseEvent e) {
-        app_drag = true;
-        appX = e.getSceneX();
-        appY = e.getSceneY();
+        if (e.getButton()!=MouseButton.PRIMARY) return;
+            app_drag = true;
+            appX = e.getSceneX();
+            appY = e.getSceneY();
     }
     private void appDragDo(MouseEvent e) {
-        if(!app_drag)return;
+        if(!app_drag || e.getButton()!=MouseButton.PRIMARY) return;
         
         double SW = Screen.getPrimary().getBounds().getWidth(); //screen_width
         double SH = Screen.getPrimary().getBounds().getHeight(); //screen_height
@@ -759,7 +747,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 
         if(isMaximised() != to) setMaximized(to);
     }
-    private void appDragEnd() {
+    private void appDragEnd(MouseEvent e) {
         app_drag = false;
     }
 

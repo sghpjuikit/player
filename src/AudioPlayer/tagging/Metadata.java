@@ -655,9 +655,8 @@ public final class Metadata extends MetaItem {
             return (ImageFileFormat.isSupported(f.toURI()) && (
                         name.equalsIgnoreCase("cover") ||
                         name.equalsIgnoreCase("folder") ||
-                        (isFileBased() && (
-                            name.equalsIgnoreCase(getFilenameFull()) ||
-                            name.equalsIgnoreCase(getFilename()))) ||
+                        name.equalsIgnoreCase(getFilenameFull()) ||
+                        name.equalsIgnoreCase(getFilename()) ||
                         name.equalsIgnoreCase(getTitle()) ||
                         name.equalsIgnoreCase(getAlbum())
                 ));

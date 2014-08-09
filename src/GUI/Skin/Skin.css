@@ -75,7 +75,7 @@
     /* Darker version of pane color. By default used for :dragged pseudoclass */
     -fx-pane-color-dragged: rgba(0,0,0,0.5);
     /* Default bgr color for tooltips and popups. */
-    -fx-popup-def-bgr-color: rgba(28,42,45,0.70);
+    -fx-popup-def-bgr-color: rgba(28,42,45,0.8);
     
     /***************************************************************************
      *                                                                         *
@@ -2595,7 +2595,7 @@
 
 .tooltip {
     -fx-background-color: -fx-popup-def-bgr-color;
-    -fx-opacity: 0.85;
+    //-fx-opacity: 0.85;
     -fx-background-radius: 1;
     -fx-border-width:2;
     -fx-border-color: black;

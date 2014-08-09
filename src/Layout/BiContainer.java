@@ -1,7 +1,6 @@
 
 package Layout;
 
-import Layout.Areas.ContainerNode;
 import Layout.Containers.Splitter;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
@@ -30,7 +29,7 @@ abstract public class BiContainer extends Container {
     }
     
     @Override
-    public ContainerNode getGraphics() {
+    public Splitter getGraphics() {
         return graphics;
     }
     

@@ -702,7 +702,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private boolean app_drag = false;
     
     private void appDragStart(MouseEvent e) {
-        if (e.getButton()!=MouseButton.PRIMARY) return;
+        // also disable when being resized, resize starts at mouse pressed so
+        // it can not consume drag detected event and prevent dragging
+        // should be fixed
+        if (e.getButton()!=MouseButton.PRIMARY || isResizing()) return;
             app_drag = true;
             appX = e.getSceneX();
             appY = e.getSceneY();

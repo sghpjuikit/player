@@ -16,17 +16,20 @@ import GUI.objects.Text;
 import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
+import Layout.Containers.Splitter;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
-import static de.jensd.fx.fontawesome.AwesomeIcon.COLUMNS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK;
+import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK_SQUARE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
+import static de.jensd.fx.fontawesome.AwesomeIcon.LINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.REFRESH;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TH_LARGE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TIMES;
+import static de.jensd.fx.fontawesome.AwesomeIcon.UNLINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
@@ -64,6 +67,7 @@ public final class AreaControls {
     @FXML public Label title;
     public Label propB;
     @FXML TilePane header_buttons;
+    Label absB;
     
     // animations // dont initialize here or make final
     private final FadeTransition contrAnim;
@@ -143,11 +147,13 @@ public final class AreaControls {
                    e.consume();
                });
         Label detachB = AwesomeDude.createIconLabel(EXTERNAL_LINK,"","12","12",ContentDisplay.RIGHT);
-               detachB.setTooltip(new Tooltip("Detach widget to own window"));
-               detachB.setOnMouseClicked( e -> {
-                   detach();
-                   e.consume();
-               });
+              detachB.setTooltip(new Tooltip("Detach widget to own window"));
+              detachB.setOnMouseClicked( e -> {
+                  detach();
+                  e.consume();
+              });
+              detachB.setOnMouseEntered( e -> AwesomeDude.setIcon(detachB,EXTERNAL_LINK_SQUARE, "12"));
+              detachB.setOnMouseEntered( e -> AwesomeDude.setIcon(detachB,EXTERNAL_LINK, "12"));
         Label changeB = AwesomeDude.createIconLabel(TH_LARGE,"","12","12",CENTER);
                changeB.setTooltip(new Tooltip("Change widget"));
                changeB.setOnMouseClicked( e -> {
@@ -174,12 +180,13 @@ public final class AreaControls {
                    refreshWidget();
                    e.consume();
                });
-        Label absB = AwesomeDude.createIconLabel(COLUMNS,"","12","12",CENTER);
-              absB.setTooltip(new Tooltip("Toggle absolute size"));
-              absB.setOnMouseClicked( e -> {
-                  toggleAbsSize();
-                  e.consume();
-              });
+        absB = AwesomeDude.createIconLabel(LINK,"","12","12",CENTER);
+        absB.setTooltip(new Tooltip("Toggle absolute size"));
+        absB.setOnMouseClicked( e -> {
+            toggleAbsSize();
+            updateAbsB();
+            e.consume();
+        });
         
         // build header
         header_buttons.getChildren().addAll(closeB,detachB,changeB,propB,refreshB,lockB,absB,infoB);
@@ -289,8 +296,21 @@ public final class AreaControls {
     
     private void toggleAbsSize() {
         Container c = area.container.getParent();
-        if(c!=null && c instanceof BiContainer)
-            BiContainer.class.cast(c).getGraphics().toggleAbsoluteSize();
+        if(c!=null && c instanceof BiContainer) {
+            Splitter s = BiContainer.class.cast(c).getGraphics();
+            s.toggleAbsoluteSizeFor(area.container.indexInParent());
+        }
+    }
+    private void updateAbsB() {
+        Container c = area.container.getParent();
+        if(c!=null && c instanceof BiContainer) {
+            boolean l = c.properties.getI("abs_size")==area.container.indexInParent();
+            AwesomeDude.setIcon(absB, l ? UNLINK : LINK, "12");
+            if(!header_buttons.getChildren().contains(absB))
+                header_buttons.getChildren().add(6,absB);
+        } else {
+            header_buttons.getChildren().remove(absB);
+        }
     }
     
     private void showWeak() {
@@ -310,7 +330,8 @@ public final class AreaControls {
         if(GUI.blur_layoutMode) blurAnim.play();
         // handle graphics
         area.disableContent();
-        root.setMouseTransparent(false); 
+        root.setMouseTransparent(false);
+        updateAbsB();
     }
     
     private void hideWeak() {

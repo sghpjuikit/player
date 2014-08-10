@@ -33,7 +33,7 @@
 - ALT+F4 closes windows separately instead whole app
 - popover show pin icon property implement
 - press C to collapse layout containers easily - implement properly
-- NOTIFICATION PADDING WRONG (AGAIN)
+- NOTIFICATION PADDING WRONG (AGAIN) - sometimes
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -75,25 +75,24 @@ SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
   nonempty.
   solution: custom comment reading method filters out CUSTOM fields             (great)
-- split container divider position doesnt load properly (vertical only).        (major)
-  This has something to do with some other (probably orientation) property
-  overriding divider position and consequently changing the "pos" value in the
-  very container ultimately losing the original position value
-  problem: performance aspect. There is possibility of infinite recursive call
-  for setting divider position. Plus the setPosition is now called multiple
-  times depending on depth within layout map possibly with O(n) or worse. This
-  is because of the recursive nature of layout map loading where children are
-  loaded before parent, causing additional resize pass for every depth iteration
-  when the parent loads. This is possibly worse than O(3^x)!
+- split container divider position not applied properly (vertical only).        (medium)
+  note: how does orientation come into this: unknown
+  solution: have each splitter wait 2 seconds and apply the position again
+  problem: arbitrary waiting value might not work in all cases + puttin the
+  divider near edge (1 or 0 value) by resizing the Pane will deform the value
+  and it doesn retain correct position. Re-applying it doesnt work because of
+  this bug. Platform.runLater is the only workaround and it can not be used here
+  See the Splitter class for more information
 - javafx.scene.text.Text doesnt have css style class and as such doesn allow
   default values and skinning
   solution: Text class extending javafx.scene.text.Text and adding custom 
   styleclass. Use instead of the original if default behavior (skin) is expected
   Also got a nice additional method.
+  note: there actually is a styleclass for the Text: .Text
 - open PopOvers prevent app to close normally.                                  (medium-major)
-  cause: java or controlsFX bug                                                 (unsolvable)
-  solution: manually close them all when main window closes (introduces some    (ideal)
-  code pollution). This is very controversial solution but works great.
+  cause: javaFX bug
+  solution: Manually close them all when main window closes (introduces some    (ideal)
+  code pollution). Requires static list.
 - fullscreen not initializing on window deserialization, update() method bug    (minor)
   cause: unknown                                                                (javafx bug?)
   problem: fullscreen is set, resizability is set to false, the fs hint is shown

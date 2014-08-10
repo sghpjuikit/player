@@ -183,6 +183,15 @@ public abstract class Container extends Component implements AltState {
     }
     
     /**
+     * Equivalent to: parent.indexOf(this)
+     * @throws NullPointerException when this container is root
+     * @return 
+     */
+    public final int indexInParent() {
+        return parent.indexOf(this);
+    }
+    
+    /**
      * Returns all components in layout map of which this is the root. In other 
      * words all children recursively. The root (this) is included in the list.
      * @return 

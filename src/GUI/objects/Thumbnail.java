@@ -468,7 +468,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     private static ContextMenu buildImageCM(Thumbnail thumb) {
         final ContextMenu contextMenu = new ContextMenu();
         
-
         MenuItem item1 = new MenuItem("Save the image as ...");
                  item1.setOnAction(e -> {
                     Image i = thumb.getImage();

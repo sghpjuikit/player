@@ -20,15 +20,15 @@ import Layout.Containers.Splitter;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeDude;
+import static de.jensd.fx.fontawesome.AwesomeIcon.COG;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
-import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK_SQUARE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.REFRESH;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TH_LARGE;
-import static de.jensd.fx.fontawesome.AwesomeIcon.TIMES;
+import static de.jensd.fx.fontawesome.AwesomeIcon.TIMES_CIRCLE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.UNLINK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import java.io.IOException;
@@ -37,7 +37,6 @@ import javafx.animation.TranslateTransition;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.ContentDisplay;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -96,7 +95,7 @@ public final class AreaControls {
         header_buttons.setMinWidth(15);
 
         // build header buttons
-        Label infoB = AwesomeDude.createIconLabel(INFO,"","12","12",ContentDisplay.RIGHT);
+        Label infoB = AwesomeDude.createIconLabel(INFO,"","12","12",CENTER);
               infoB.setTooltip(new Tooltip("Help"));
               infoB.setOnMouseClicked( e -> {
                    // create popover lazily if not yet
@@ -140,20 +139,18 @@ public final class AreaControls {
                    helpPopOver.show(infoB);
                    e.consume();
               });
-        Label closeB = AwesomeDude.createIconLabel(TIMES,"","12","12",ContentDisplay.RIGHT);
-               closeB.setTooltip(new Tooltip("Close widget"));
-               closeB.setOnMouseClicked( e -> {
-                   close();
-                   e.consume();
-               });
-        Label detachB = AwesomeDude.createIconLabel(EXTERNAL_LINK,"","12","12",ContentDisplay.RIGHT);
+        Label closeB = AwesomeDude.createIconLabel(TIMES_CIRCLE,"","12","12",CENTER);
+              closeB.setTooltip(new Tooltip("Close widget"));
+              closeB.setOnMouseClicked( e -> {
+                  close();
+                  e.consume();
+              });
+        Label detachB = AwesomeDude.createIconLabel(EXTERNAL_LINK_SQUARE,"","12","12",CENTER);
               detachB.setTooltip(new Tooltip("Detach widget to own window"));
               detachB.setOnMouseClicked( e -> {
                   detach();
                   e.consume();
               });
-              detachB.setOnMouseEntered( e -> AwesomeDude.setIcon(detachB,EXTERNAL_LINK_SQUARE, "12"));
-              detachB.setOnMouseEntered( e -> AwesomeDude.setIcon(detachB,EXTERNAL_LINK, "12"));
         Label changeB = AwesomeDude.createIconLabel(TH_LARGE,"","12","12",CENTER);
                changeB.setTooltip(new Tooltip("Change widget"));
                changeB.setOnMouseClicked( e -> {
@@ -162,6 +159,8 @@ public final class AreaControls {
                });
                propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
                propB.setTooltip(new Tooltip("Settings"));
+               propB.setOnMouseEntered( e -> AwesomeDude.setIcon(propB,COG, "12"));
+               propB.setOnMouseExited( e -> AwesomeDude.setIcon(propB,COGS, "12"));
                propB.setOnMouseClicked( e -> {
                    settings();
                    e.consume();
@@ -175,11 +174,11 @@ public final class AreaControls {
                    e.consume();
                });
         Label refreshB = AwesomeDude.createIconLabel(REFRESH,"","12","12",CENTER);
-               refreshB.setTooltip(new Tooltip("Refresh widget"));
-               refreshB.setOnMouseClicked( e -> {
-                   refreshWidget();
-                   e.consume();
-               });
+              refreshB.setTooltip(new Tooltip("Refresh widget"));
+              refreshB.setOnMouseClicked( e -> {
+                  refreshWidget();
+                  e.consume();
+              });
         absB = AwesomeDude.createIconLabel(LINK,"","12","12",CENTER);
         absB.setTooltip(new Tooltip("Toggle absolute size"));
         absB.setOnMouseClicked( e -> {
@@ -190,6 +189,14 @@ public final class AreaControls {
         
         // build header
         header_buttons.getChildren().addAll(closeB,detachB,changeB,propB,refreshB,lockB,absB,infoB);
+        header_buttons.getChildren().forEach(c->{
+            ((Label)c).setMaxWidth(13);
+            ((Label)c).setPrefWidth(13);
+            ((Label)c).setMinWidth(13);
+            ((Label)c).setMaxHeight(13);
+            ((Label)c).setPrefHeight(13);
+            ((Label)c).setMinHeight(13);
+        });
         
         // build animations
         contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), root);

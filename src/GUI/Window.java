@@ -215,9 +215,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
         } else {
             // disable effect
-            ContextManager.windows.forEach( w -> {
-                w.colorEffectPane.setVisible(false);
-            });
+            ContextManager.windows.forEach( w ->
+                w.colorEffectPane.setVisible(false));
         }
     }
     
@@ -253,8 +252,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static Window create() {
         try {
             Window w = new Window();
-            if(App.getWindowOwner()!=null)
-                w.getStage().initOwner(App.getWindowOwner().getStage());
+                   w.getStage().initOwner(App.getWindowOwner().getStage());
             URL fxml = Window.class.getResource("Window.fxml");
             FXMLLoader l = new FXMLLoader(fxml);
                        l.setRoot(w.root);
@@ -268,6 +266,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             Log.err("Couldnt create Window. " + ex.getMessage());
             return null;
         }   
+    }
+    public static Window createWindowOwner() {
+        Window w = new Window();
+               w.s.setOpacity(0);
+               w.s.setScene(new Scene(new Region()));
+        return w;
     }
     
 /******************************************************************************/
@@ -296,7 +300,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         getStage().setScene(new Scene(root));
         getStage().setOpacity(windowOpacity);
         
-        // clip the content to its bounds to prevent leeking out
+        // clip the content to its bounds to prevent leaking out
         Rectangle contentMask = new Rectangle(1, 1, Color.BLACK);
         contentMask.widthProperty().bind(content.widthProperty());
         contentMask.heightProperty().bind(content.heightProperty());
@@ -322,7 +326,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             // update coordinates for context manager
             ContextManager.setX(e.getSceneX());
             ContextManager.setY(e.getSceneY());
-            ContextManager.closeMenus();
         });
         
         // initialize app dragging
@@ -361,7 +364,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         setTitlePosition(Pos.CENTER_LEFT);
         miniB.setVisible(true);
         minimizeB.setVisible(true);
-        new ContextManager(overlayPane,contextPane);
         App.window = this;
     }
     

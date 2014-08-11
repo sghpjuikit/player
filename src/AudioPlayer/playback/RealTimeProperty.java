@@ -7,6 +7,9 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
+import static javafx.util.Duration.ZERO;
+import utilities.FxTimer;
+import utilities.functional.functor.Procedure;
 
 /**
  *
@@ -16,12 +19,12 @@ public final class RealTimeProperty {
     
     final ObjectProperty<Duration> totalTime;
     final ObjectProperty<Duration> currentTime;
-    final ObjectProperty<Duration> realTime = new SimpleObjectProperty<>(Duration.ZERO);
+    final ObjectProperty<Duration> realTime = new SimpleObjectProperty(ZERO);
     int count = 0;
     
     // temp
-    public Duration curr_sek = Duration.ZERO;
-    public Duration real_seek = Duration.ZERO;
+    public Duration curr_sek = ZERO;
+    public Duration real_seek = ZERO;
     boolean eventT_fired = false; // prevention so event fires only once
     boolean eventP_fired = false; // prevention so event fires only once
     
@@ -36,22 +39,30 @@ public final class RealTimeProperty {
             Duration d = real_seek.add(currentTime.get().subtract(curr_sek));
             realTime.set(d);
         });
+        
         // update count
         setOnTimeAt(new PercentTimeEventHandler(1, () -> count++, "RealTimeProperty count"));
-        //
-//        locker.scheduleAtFixedRate(unlock,0,250);
+
+        eventDistributorPulse.restart();
+        // make sure time ZERO and TOTAL execute (outside of pulse)
+        PLAYBACK.addOnPlaybackEnd(eventExecutor);
+        PLAYBACK.addOnPlaybackStart(eventExecutor);
     }
     
     void synchroRealTime_onPlayed() {
-        real_seek = Duration.ZERO;
-        curr_sek = Duration.ZERO;
+        real_seek = ZERO;
+        curr_sek = ZERO;
         count = 0;
+        eventExecutor.run();
+        eventDistributorPulse.restart();
     }
     
     void synchroRealTime_onStopped() {
         real_seek = Duration.ZERO;
         curr_sek = Duration.ZERO;
         count = 0;
+        eventDistributorPulse.stop();
+        eventExecutor.run();
     }
     
     void synchroRealTime_onPreSeeked() {
@@ -60,6 +71,7 @@ public final class RealTimeProperty {
     
     void synchroRealTime_onPostSeeked(Duration duration) {
         curr_sek = duration;
+        eventExecutor.run();
     }
     
 /******************************************************************************/
@@ -91,10 +103,10 @@ public final class RealTimeProperty {
      * @param h
      */
     public void setOnTimeAt(PercentTimeEventHandler h) {
-        if (percentHandlers.isEmpty()) {
-            realTime.addListener(percentEventDistributor);
-        }
-        percentHandlers.add(h);
+        if (handlers.isEmpty())
+            realTime.addListener(eventInvalidator);
+        
+        handlers.add(h);
     }
     
     /**
@@ -102,12 +114,11 @@ public final class RealTimeProperty {
      * @param h
      */
     public void removeOnTimeAt(PercentTimeEventHandler h) {
-        if (h != null) {
-            percentHandlers.remove(h);
-        }
-        if (percentHandlers.isEmpty()) {
-            realTimeProperty().removeListener(percentEventDistributor);
-        }
+        if (h != null)
+            handlers.remove(h);
+        
+        if (handlers.isEmpty())
+            realTimeProperty().removeListener(eventInvalidator);
     }
     
     /**
@@ -117,12 +128,10 @@ public final class RealTimeProperty {
      * @param h
      */
     public void setOnTimeAt(TimeEventHandler h) {
-        System.out.println("1. Run setOnTimeAt " + timeHandlers.size());
-        if (timeHandlers.isEmpty()) {
-            realTime.addListener(timeEventDistributor);
-        }
-        timeHandlers.add(h);
-        System.out.println("2. Run setOnTimeAt " + timeHandlers.size());
+        if (handlers.isEmpty())
+            realTime.addListener(eventInvalidator);
+        
+        handlers.add(h);
     }
     
     /**
@@ -130,48 +139,23 @@ public final class RealTimeProperty {
      * @param h
      */
     public void removeOnTimeAt(TimeEventHandler h) {
-        if (h != null) {
-            timeHandlers.remove(h);
-        }
-        if (timeHandlers.isEmpty()) {
-            realTimeProperty().removeListener(timeEventDistributor);
-        }
+        if (h != null)
+            handlers.remove(h);
+            
+        if (handlers.isEmpty())
+            realTimeProperty().removeListener(eventInvalidator);
     }
 //*****************************************************************************/
     
-    private final List<PercentTimeEventHandler> percentHandlers = new ArrayList<>();
-    private final List<TimeEventHandler> timeHandlers = new ArrayList<>();
+    private final List<DurationHandler> handlers = new ArrayList();
     
-    private boolean changed = false;
-    private boolean lock = false;
-//    private final Timer locker = new Timer();
-//    private final TimerTask unlock = new TimerTask(){
-//        @Override public void run() {
-//            lock = false;
-//        }
-//    };
+    private boolean invalidated = false;
+    private final InvalidationListener eventInvalidator = o -> invalidated = true;
+    private final Procedure eventExecutor = () -> handlers.forEach(DurationHandler::handle);
+    private final FxTimer eventDistributorPulse = FxTimer.createPeriodic(Duration.millis(500), () -> {
+        if (invalidated) eventExecutor.run();
+        invalidated = false;
+    });
     
-    private final InvalidationListener percentEventDistributor = o -> {
-//        changed = true;
-//        if (!lock && changed) {
-        
-//        System.out.println(this.getClass().getName() + " percent events " + percentHandlers.size());  // DEBUG
-//        percentHandlers.forEach(System.out::println);
-        percentHandlers.stream().forEach(PercentTimeEventHandler::handle);
-        
-//            lock = true;
-//        }
-    };
-    
-    private final InvalidationListener timeEventDistributor = o -> {
-//        changed = true;
-//        if (!lock && changed) {
-        
-//        System.out.println(this.getClass().getName() + " time event " + percentHandlers.size());  // DEBUG
-//        timeHandlers.forEach(System.out::println);
-        
-        timeHandlers.forEach(TimeEventHandler::handle);
-//            lock = true;
-//        }
-    };
+
 }

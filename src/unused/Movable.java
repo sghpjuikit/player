@@ -5,7 +5,6 @@
  */
 package unused;
 
-import GUI.objects.Positionable;
 import javafx.geometry.Point2D;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;

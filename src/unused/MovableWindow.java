@@ -5,7 +5,6 @@
  */
 package unused;
 
-import GUI.ContextManager;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +63,6 @@ public class MovableWindow extends Movable {
     public void close() {
         THIS.setVisible(false);
         getDisplay().getChildren().remove(THIS);
-        ContextManager.windows.remove(this);
     }
     
     public boolean isPinned() {

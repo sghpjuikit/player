@@ -9,7 +9,7 @@ import utilities.functional.functor.Procedure;
  *
  * @author uranium
  */
-public class TimeEventHandler {
+public class TimeEventHandler implements DurationHandler {
     
     private final String name;
     Duration atTime;
@@ -38,7 +38,8 @@ public class TimeEventHandler {
         this.name = name;
     }
     
-    void handle() {
+    @Override
+    public void handle() {
         RealTimeProperty parent = PLAYBACK.realTimeProperty();
         // precalculate values
         double total = parent.totalTime.get().toMillis();

@@ -77,7 +77,6 @@ public final class PLAYBACK implements Configurable {
             state.setStatus(Status.PAUSED);
         
         // create playback
-//        realTime
         createPlayback(PlaylistManager.getPlayingItem().getURI().toString());
         if (state.getStatus() == PAUSED || state.getStatus() == PLAYING) {
             seek(state.getCurrentTime());

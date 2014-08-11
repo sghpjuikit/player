@@ -5,13 +5,19 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import GUI.ContextManager;
 import GUI.DragUtil;
 import GUI.GUI;
+import GUI.objects.ContextMenu.ContentContextMenu;
+import Layout.Widgets.Features.TaggingFeature;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetManager;
+import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import PseudoObjects.FormattedDuration;
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.beans.InvalidationListener;
 import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
@@ -26,6 +32,7 @@ import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -41,6 +48,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
+import utilities.Enviroment;
 import utilities.TODO;
 import utilities.TableUtil;
 import utilities.Util;
@@ -234,16 +242,17 @@ public final class PlaylistTable {
             // handle click
             row.setOnMouseClicked( e -> {
                 if(row.isEmpty()) return;
-                if (e.getButton() ==  PRIMARY) {    // play item on doubleclick
+                if (e.getButton() == PRIMARY) {     // play item on doubleclick
                     if (e.getClickCount() == 2) {
                         PlaylistManager.playItem(row.getItem());
-                    }
-                    e.consume();            
+                        e.consume();
+                    }           
                 } else
-                if (e.getButton() == SECONDARY) {  // show contextmenu
-                    if (!PlaylistManager.isEmpty())
-                        ContextManager.showMenu(ContextManager.playlistMenu, getSelectedItems());
-                }
+                if (e.getButton() == SECONDARY)     // show contextmenu
+                    if (!PlaylistManager.isEmpty()) {
+                        getCM(table).show(row, e.getScreenX(), e.getScreenY());
+                        e.consume();
+                    }
             });
             return row;
         };
@@ -617,7 +626,7 @@ public final class PlaylistTable {
 /********************************** SELECTION *********************************/
     
     private boolean movingitems = false;
-    ChangeListener<PlaylistItem> selItemListener = (o,ov,nv)->{
+    ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
         if(movingitems) return; 
         PlaylistManager.selectedItemProperty().set(nv);
     };
@@ -708,4 +717,66 @@ public final class PlaylistTable {
         e.consume();
     }
     
+/****************************** CONTEXT MENU **********************************/
+    
+    private static ContentContextMenu<List<PlaylistItem>> cm;
+    
+    private static ContentContextMenu getCM(TableView<PlaylistItem> t) {
+        if(cm==null) cm = buildCM();
+        // note: we need to create a copy of the list to avoid modification
+        cm.setItem(new ArrayList(t.getSelectionModel().getSelectedItems()));
+        return cm;
+    }
+    
+    private static ContentContextMenu buildCM() {
+        final ContentContextMenu<List<PlaylistItem>> contextMenu = new ContentContextMenu();
+        
+        MenuItem item1 = new MenuItem("Play items");        
+                 item1.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     PlaylistManager.playItem(items.get(0));
+                 });
+        MenuItem item2 = new MenuItem("Remove items");        
+                 item2.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     PlaylistManager.removeItems(items);
+                 });
+        MenuItem item3 = new MenuItem("Edit the item/s in tag editor");        
+                 item3.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
+                     if (w!=null) {
+                         TaggingFeature t = (TaggingFeature) w.getController();
+                                        t.read(items);
+                     }
+                 });
+        MenuItem item4 = new MenuItem("Crop items");        
+                 item4.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     PlaylistManager.retainItems(items);
+                 });
+        MenuItem item5 = new MenuItem("Duplicate items as group");        
+                 item5.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     PlaylistManager.duplicateItemsAsGroup(items);
+                 });
+        MenuItem item6 = new MenuItem("Duplicate items individually");        
+                 item6.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     PlaylistManager.duplicateItemsByOne(items);
+                 });
+        MenuItem item7 = new MenuItem("Explore items's directory");        
+                 item7.setOnAction(e -> {
+                     List<PlaylistItem> items = contextMenu.getItem();
+                     List<File> files = items.stream()
+                             .filter(PlaylistItem::isFileBased)
+                             .map(PlaylistItem::getLocation)
+                             .collect(Collectors.toList());
+                     Enviroment.browse(files,true);
+                 });
+                 
+        contextMenu.getItems().addAll(item1, item2, item3, item4, item5, item6, item7);
+        contextMenu.setConsumeAutoHidingEvents(false);
+        return contextMenu;
+    }
 }

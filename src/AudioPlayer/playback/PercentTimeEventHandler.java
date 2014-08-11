@@ -9,7 +9,7 @@ import utilities.functional.functor.Procedure;
  *
  * @author uranium
  */
-public class PercentTimeEventHandler {
+public class PercentTimeEventHandler implements DurationHandler {
     
     private final String name;
     RealTimeProperty parent;
@@ -41,7 +41,8 @@ public class PercentTimeEventHandler {
         this.name = name;
     }
     
-    void handle() {
+    @Override
+    public void handle() {
         // precalculate values
         double total = parent.totalTime.get().toMillis();
         double real = parent.realTime.get().toMillis();

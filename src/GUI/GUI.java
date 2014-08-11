@@ -8,7 +8,6 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.Pickers.MoodPicker;
 import Layout.Layout;
 import Layout.LayoutManager;
 import com.sun.javafx.css.StyleManager;
@@ -73,11 +72,7 @@ public class GUI {
     private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false);
     
     private static final List<String> skins = new ArrayList();
-    
-    // 'singleton' objects and controls for use within app
-    // TO DO: get rid of this
-    public static final MoodPicker MOOD_PICKER = new MoodPicker();
-    
+        
 /******************************************************************************/
     
     public static void initialize(){
@@ -310,7 +305,7 @@ public class GUI {
                 String url = file.toURI().toURL().toExternalForm();
                 // remove old skin
                 StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-                // set core skin
+//                // set core skin
                 StyleManager.getInstance().setDefaultUserAgentStylesheet(DEF_SKIN);
                 // add new skin
                 StyleManager.getInstance().addUserAgentStylesheet(url);
@@ -372,8 +367,7 @@ public class GUI {
         // apply only if application initialized correctly
         if (App.isInitialized()) {
             // we need to apply to each window separately
-            List<Window> ws = new ArrayList<>(ContextManager.windows);
-            ws.forEach(w ->{
+            ContextManager.windows.forEach(w ->{
                 String tmp = font.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;

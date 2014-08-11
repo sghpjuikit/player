@@ -34,6 +34,7 @@
 - popover show pin icon property implement
 - press C to collapse layout containers easily - implement properly
 - NOTIFICATION PADDING WRONG (AGAIN) - sometimes
+- header buttons size + hover icon
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -147,16 +148,12 @@ UNIFICATIONS, OVERHAULS, REDESIGN
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static
 
-
 PERFORMANCE
-- closing widgets not releasing memory                                          (?)
-- onTimeAt events seem to be pretty mem hungry(4x=10MB), implement clock to     (medium)
-  cut down number of cycles (200ms should be MORE than enough)
-  edit: clock done, reimplement more effectively and clean up
 - layout reload mem leak - investigate                                          (major)
-- skin memory consumptin investigate                                            (medium)
-- Layout.Container.Splitter improve applyPos() to fire once only
+- skin memory consumptin investigate                                            (major)
+  it appears that the skin eats 40MB more of memory compared to Modena
 - Container getAll Children/Containers/Widgets improve performance
+- configs memory - for example COnfigurator widget consumes about 50MB
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
@@ -205,3 +202,4 @@ PERFORMANCE
 
 - writing tag - multiple values
 - Layout loading into Container
+- onTime events, make sur ethey fire correctly and dont degrade performance

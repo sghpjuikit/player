@@ -2,6 +2,7 @@
 ------------------------- FUNCTIONALITY - what you want ------------------------
 --------------------------------------------------------------------------------
 
+- mockup layout - layout loading without widgets
 
 --------------------------------------------------------------------------------
 ------------------------- IMPROVEMENTS - what you dont like --------------------
@@ -22,8 +23,6 @@
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable
-- layout manager add mockup layout builder to make custom layout without loading
-  the widgets, perhaps also display this mockup instead of thumbnail
 - add URI configField
 - finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
 - seeker option to show chapters as they are passing                            (?)
@@ -32,15 +31,12 @@
 - TextFlow for smart text tables
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?       (picture as mask?)
 - widget manager widget
-- cursor effect to popup, get rid of effectPane
-- tagger ability to add or remove from the list by CTRL/SHIFT drag&drop on popup
 - tagger disable unsupported fields for type
 - tagger multithreaded writing to tag                                           (test if needed, ?)
 - playlist tabs
 - import/export some of the most used playlist file formats
 - gestures & touch support
 - tagger filename change                                                        (?)
-- context menus circular labels' position off
 
 FURTHER DOWN THE LIST FUNCTIONALITIES
 - even more flexibly resizable widget areas

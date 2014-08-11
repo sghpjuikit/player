@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.objects;
+package unused;
 
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;

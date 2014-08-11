@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package unused;
 
 import javafx.scene.layout.AnchorPane;
 
@@ -20,7 +20,7 @@ abstract public class Positionable {
      * method. This value simply creates standard, so this value can be ignored,
      * if desired so.
      */
-    static final double offScreenFixOFFSET = 10;
+    public static final double offScreenFixOFFSET = 10;
     
     /**
      * @return X coordinate.

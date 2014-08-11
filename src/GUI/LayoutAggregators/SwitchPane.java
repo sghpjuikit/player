@@ -135,9 +135,8 @@ public class SwitchPane implements LayoutAggregator {
         // if mouse exits the root (and quite possibly window) we can not
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, e-> {
-            if (uiDragActive) endUIDrag(e);
+            endUIDrag(e);
             uiDragActiveLock = true;
-            
         });
         
         root.addEventFilter(MOUSE_RELEASED, e-> {

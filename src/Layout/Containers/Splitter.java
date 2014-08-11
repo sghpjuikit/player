@@ -3,7 +3,7 @@ package Layout.Containers;
 
 import Configuration.PropertyMap;
 import GUI.GUI;
-import GUI.objects.SimplePositionable;
+import unused.SimplePositionable;
 import Layout.Areas.ContainerNode;
 import Layout.BiContainer;
 import Layout.Component;
@@ -13,6 +13,7 @@ import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
@@ -21,7 +22,7 @@ import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import javafx.scene.layout.AnchorPane;
@@ -54,6 +55,7 @@ public final class Splitter implements ContainerNode {
     private final FadeTransition fadeOut;
 
     private boolean initialized = false;
+    private EventHandler<MouseEvent> aaa;
     
     private void applyPos() {
         splitPane.getDividers().get(0).setPosition(prop.getD("pos"));
@@ -106,12 +108,11 @@ public final class Splitter implements ContainerNode {
         fadeOut = new FadeTransition(TIME, controlsRoot);
         fadeOut.setToValue(0);
         fadeOut.setOnFinished(e -> controls.getPane().setMouseTransparent(true));
-
-        // activate animation if mouse close to divider
+        
+        // maintain controls position show if mouse close to divider
+        // activate the handler only if this visible
         final double limit = 15; // distance for activation of the animation
-        splitPane.addEventFilter(MOUSE_MOVED, e -> {
-            if(!GUI.isLayoutMode()) return;
-            
+        aaa = e -> {
             if (splitPane.getOrientation() == HORIZONTAL) {
                 double X = splitPane.getDividerPositions()[0] * root.widthProperty().get();
                 if (Math.abs(e.getX() - X) < limit)
@@ -127,7 +128,7 @@ public final class Splitter implements ContainerNode {
                 if (Math.abs(e.getY() - Y) > limit)
                     hideControls();
             }
-        });
+        };
         
         // activate animation if mouse if leaving area
         splitPane.addEventFilter(MOUSE_EXITED, e -> {
@@ -187,7 +188,7 @@ public final class Splitter implements ContainerNode {
         });
 
             // close container if on right click it is empty
-        splitPane.addEventFilter(MOUSE_CLICKED, e -> {
+        splitPane.setOnMouseClicked( e -> {
             if(e.getButton()==SECONDARY) {
                 if (con.getAllWidgets().count()==0)
                     con.close();
@@ -396,11 +397,13 @@ public final class Splitter implements ContainerNode {
     @Override
     public void show() {
         showControls();
+        splitPane.addEventFilter(MOUSE_MOVED,aaa);
     }
 
     @Override
     public void hide() {
         hideControls();
+        splitPane.removeEventFilter(MOUSE_MOVED,aaa);
     }
     
     

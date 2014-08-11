@@ -53,9 +53,8 @@ public final class PlaybackCore {
 
     private final List<Procedure> onStartHandlers = new ArrayList<>();
     
-    final Procedure playbackStartDistributor = () -> {
-        onStartHandlers.forEach(Procedure::run);
-    };
+    final Procedure playbackStartDistributor = () -> onStartHandlers.forEach(Procedure::run);
+    
     void addOnPlaybackStart(Procedure b) {
         onStartHandlers.add(b);
     }
@@ -67,9 +66,7 @@ public final class PlaybackCore {
 
     private final List<Procedure> onEndHandlers = new ArrayList<>();
     
-    final Runnable playbackEndDistributor = () -> { 
-        onEndHandlers.forEach(Procedure::run);
-    };
+    final Runnable playbackEndDistributor = () -> onEndHandlers.forEach(Procedure::run);
     
     void addOnPlaybackEnd(Procedure b) {
         onEndHandlers.add(b);

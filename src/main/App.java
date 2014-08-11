@@ -6,7 +6,6 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.Configuration;
-import GUI.ContextManager;
 import GUI.GUI;
 import GUI.NotifierManager;
 import GUI.Window;
@@ -93,10 +92,9 @@ public class App extends Application {
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
           
-            windowOwner = Window.create();          // create hidden main window
-            windowOwner.getStage().setOpacity(0);
+            // create hidden main window
+            windowOwner = Window.createWindowOwner();
             windowOwner.show();
-            ContextManager.windows.remove(windowOwner);
             
             // we need to initialize skin before windows do
             Configuration.applyField("skin");

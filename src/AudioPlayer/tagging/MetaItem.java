@@ -15,7 +15,9 @@ import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
-import utilities.AudioFileFormat;
+import static utilities.AudioFileFormat.flac;
+import static utilities.AudioFileFormat.mp3;
+import static utilities.AudioFileFormat.ogg;
 import utilities.Log;
 
 /**
@@ -26,9 +28,9 @@ public abstract class MetaItem extends Item {
 
     /** @return maximal value of the rating. */
     public double getRatingMax() {
-        if (getFormat() == AudioFileFormat.mp3)
+        if (getFormat() == mp3)
             return 255;
-        else if (getFormat() == AudioFileFormat.flac || getFormat() == AudioFileFormat.ogg)
+        else if (getFormat() == flac || getFormat() == ogg)
             return 100;
         else
             return 100; // this case should never happen!

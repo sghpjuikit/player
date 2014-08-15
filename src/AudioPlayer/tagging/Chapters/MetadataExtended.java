@@ -31,13 +31,13 @@ public final class MetadataExtended {
      * @return the comments
      */
     public List<CommentExtended> getComments() {
-        return Collections.unmodifiableList(comments);
+        return new ArrayList(comments);
     }
     /**
      * @return the chapters
      */
     public List<Chapter> getChapters() {
-        return Collections.unmodifiableList(chapters);
+        return new ArrayList(chapters);
     }
     
     public void addChapter(Duration time, String info) {
@@ -104,6 +104,8 @@ public final class MetadataExtended {
      */
     public void readFromFile() {
         // check validity and open file
+        if(!metadata.isFileBased()) return;
+        
         File f = new File(metadata.getFile().toString()+".xml");
         
         if (!f.exists()) { 

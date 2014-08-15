@@ -24,17 +24,17 @@
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - cant open two info popup at once - evolution of singleton = death...
 - remove custom context menus as they are now
-- emty metadata MUST NOT return File("") !
+- emty metadata MUST NOT return File("") ! - EMPTY_FILE instance? with custom 
+  URI scheme for example?
 - Rater make base skin
 - tab area - select tab on mouse release not press or avoid loading content
   somehow when reordering
 - tab drag areas vs tabs implement both at once
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
-- popover show pin icon property implement
 - press C to collapse layout containers easily - implement properly
 - NOTIFICATION PADDING WRONG (AGAIN) - sometimes
-- header buttons size + hover icon
+- '/n' character expands table row height, figure out how to disable that...
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -57,7 +57,6 @@ GENERAL
   status: currently unsolvable, so far one of its kind
   problem: jintellitype '\' works only for right '\' not left one (yes there are
   two '\' keys on the keyboard).
-- shift scrolling not working anymore for tables (supposed to scroll horizontly)(?)
 - global shortcuts sometimes still fail to register to proper keys and register (medium, investigate cases)
   for ALT instead. It happened only once since last reimplementation and it was
   probabyly a result of messing around with configs. But it can still produce
@@ -92,7 +91,7 @@ SOLVED (but the underlying cause still deserves attention)
   note: there actually is a styleclass for the Text: .Text
 - open PopOvers prevent app to close normally.                                  (medium-major)
   cause: javaFX bug
-  solution: Manually close them all when main window closes (introduces some    (ideal)
+  solution: Manually close them all when main window closes (introduces some    (good)
   code pollution). Requires static list.
 - fullscreen not initializing on window deserialization, update() method bug    (minor)
   cause: unknown                                                                (javafx bug?)
@@ -139,7 +138,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN
   also involves Playback/Player/Playlist state and suspending/restoring them
 - file format discovery. Unite Image and Audio types add category               (not needed for now)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
-- playlist table drag code duplication                                          (technicality, minor code pollution)
 - Notification class unite contents, remove enum                                (lot of code + fxml duplicity)
 - metadata xml chapter reading class redo - its not good design. But it works   (not needed)
   and is considered legacy code now anyway
@@ -154,6 +152,10 @@ PERFORMANCE
   it appears that the skin eats 40MB more of memory compared to Modena
 - Container getAll Children/Containers/Widgets improve performance
 - configs memory - for example COnfigurator widget consumes about 50MB
+- scanning files & adding to library sometimes causes massive memory overhead
+  (1,5GB for 8GB of audio files)
+  cause: unknown, possible corrupted tag, messing up jAudotagger library
+  note: happenns only for my XRay Dog album collection. The cause will be local.
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
@@ -183,11 +185,17 @@ PERFORMANCE
   be a bad thing. It can only help.
 - when implementing DragEvent make sure to properly accept the incoming drag
   only when all necessary onditions are met, not always. For example if we
-  accept onl certain type of files we need to query the dragboard files and
-  whether we should accept or not. The accpting has a visual effect and indicates
+  accept only certain type of files we need to query the dragboard files and see
+  whether we should accept or not. The accepting has a visual effect and indicates
   to the user whether the drag can be dropped on the specific Node or now with
-  an icon.
-
+  an icon - so it should work reflect the reality.
+  Also: try to set the correct TransferMode (COPY | MOVE | ANY) to indicate
+  transfer (both accepting and firing event)
+  Also: always use setCompleted(true) when drag drops and is handled
+- always consume events by calling Event.consume(). But only if it was handled.
+  For example if we handle only left button mouse clicks, do not consume also
+  right button clicks, instead let them propagate below. Goes for drag events
+  as well.
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------
 --------------------------------------------------------------------------------
@@ -200,6 +208,5 @@ PERFORMANCE
 ---------------------- TESTING - what nobody wants to do -----------------------
 --------------------------------------------------------------------------------
 
-- writing tag - multiple values
 - Layout loading into Container
 - onTime events, make sur ethey fire correctly and dont degrade performance

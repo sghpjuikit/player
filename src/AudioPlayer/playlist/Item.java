@@ -246,14 +246,16 @@ public abstract class Item implements Comparable<Item> {
     }
     
     /**
-     * Converts this item to {@link PlaylistItem}. 
-     * <pre>
-     *      Equivalent to :  new PlaylistItem(this);
-     * </pre>
+     * Converts this item to {@link PlaylistItem}.
+     * <p>
+     * Subclases that contain values for fields contained in PlaylistItem should
+     * override this method.
+     * Default implementation is equivalent to: new PlaylistItem(getURI())
+     * 
      * @return playlistItem that tests true for {@link #same()} with this item.
      */
     public PlaylistItem toPlaylistItem() {
-         return new PlaylistItem(this);
+         return new PlaylistItem(getURI());
     }
     
 /******************************************************************************/

@@ -558,29 +558,29 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
        
        // github button - show all available FontAwesome icons in a popup
-        Label gitB = AwesomeDude.createIconLabel(GITHUB,"","15","11",CENTER);
+        Label gitB = AwesomeDude.createIconLabel(GITHUB,"","13","11",CENTER);
               gitB.setOnMouseClicked( e -> Enviroment.browse(App.getGithubLink()));
               gitB.setTooltip(new Tooltip("Open github project page for this application"));
        // github button - show all available FontAwesome icons in a popup
-        Label dirB = AwesomeDude.createIconLabel(CSS3,"","15","11",CENTER);
+        Label dirB = AwesomeDude.createIconLabel(CSS3,"","13","11",CENTER);
               dirB.setOnMouseClicked( e -> Enviroment.browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
               dirB.setTooltip(new Tooltip("Open application location (fevelopment tool)"));
        // css button - show all available FontAwesome icons in a popup
-        Label cssB = AwesomeDude.createIconLabel(FOLDER,"","15","11",CENTER);
+        Label cssB = AwesomeDude.createIconLabel(FOLDER,"","13","11",CENTER);
               cssB.setOnMouseClicked( e -> Enviroment.browse(App.getLocation().toURI()));
               cssB.setTooltip(new Tooltip("Open css guide"));
        // icon button - show all available FontAwesome icons in a popup
-        Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","15","11",CENTER);
+        Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","13","11",CENTER);
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
               iconsB.setTooltip(new Tooltip("Icon browser (development tool)"));
         // settings button - show application settings in a popup
-        Label propB = AwesomeDude.createIconLabel(GEARS,"","15","11",CENTER);
+        Label propB = AwesomeDude.createIconLabel(GEARS,"","13","11",CENTER);
               propB.setOnMouseClicked( e ->
                   WidgetManager.getWidget(ConfiguringFeature.class,Widget_Source.FACTORY)
               );
               propB.setTooltip(new Tooltip("Application settings"));
         // manage layout button - sho layout manager in a popp
-        Label layB = AwesomeDude.createIconLabel(COLUMNS,"","15","11",CENTER);
+        Label layB = AwesomeDude.createIconLabel(COLUMNS,"","13","11",CENTER);
               layB.setOnMouseClicked( e ->
                   ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager")
               );
@@ -618,19 +618,19 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   }
               });
         // lock layout button
-        Label lockB = AwesomeDude.createIconLabel(GUI.isLayoutLocked() ? UNLOCK : LOCK,"","11","11",CENTER);
+        Label lockB = AwesomeDude.createIconLabel(GUI.isLayoutLocked() ? UNLOCK : LOCK,"","13","11",CENTER);
               lockB.setTooltip(new Tooltip(GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout"));
               lockB.setOnMouseClicked( e -> {
                   GUI.toggleLayoutLocked();
                   boolean lck = GUI.isLayoutLocked();
-                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"11");
+                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"13");
                   lockB.getTooltip().setText(lck ? "Unlock widget layout" : "Lock widget layout");
                   e.consume();
               });
             // initialize proper icon
         GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? UNLOCK : LOCK, "11"));
         // help button - show hel information
-        Label helpB = AwesomeDude.createIconLabel(INFO,"","15","11",CENTER);
+        Label helpB = AwesomeDude.createIconLabel(INFO,"","13","11",CENTER);
         helpB.setOnMouseClicked( e -> {
             PopOver<Text> helpP = PopOver.createHelpPopOver(
                 "Available actions:\n" +

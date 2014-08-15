@@ -28,7 +28,7 @@ import utilities.FileUtil;
 import utilities.Log;
 
 /**
- * Playlist item implementation. Defines item in playlist.
+ * Defines item in playlist.
  * <p>
  * As a playlist item this object carries three pieces of information: artist,
  * title and time duration, besides URI as an Item object.
@@ -49,7 +49,7 @@ import utilities.Log;
  * SERIALIZATION
  * - this class is serializable by XStream using PlaylistItemConverter.
  * <p>
- * @implementation note
+ * Note:
  * Dont try to change property implementations SimpleObjectProperty
  * into more generic ObjectProperty. It will cause XStream serializing
  * to malperform (java7)(needs more testing).
@@ -66,6 +66,7 @@ public final class PlaylistItem extends Item {
      * URI Constructor.
      * Use when only uri is known. Item is initialized to updated = false. Use
      * update() method to get other fields - update the item.
+     * 
      * @param _uri 
      */
     public PlaylistItem(URI _uri) {
@@ -73,21 +74,15 @@ public final class PlaylistItem extends Item {
         name = new SimpleStringProperty(getInitialName());
         time = new SimpleObjectProperty<>(new FormattedDuration(0));
     }
-    /**
-     * Item Constructor.
-     * Use to convert Item to PlaylistItem. PlaylistItem is initialized to
-     * updated = false. Use update() method to get other fields - update the item.
-     * @param item
-     */
-    public PlaylistItem(Item item) {
-        uri = new SimpleObjectProperty<>(item.getURI());
-        name = new SimpleStringProperty(getInitialName());
-        time = new SimpleObjectProperty<>(new FormattedDuration(0));
-    }
+    
     /**
      * Full Constructor.
      * Use when all info is available. Item is initialized to updated state,
      * which avoids updating it and consequent I/O operation.
+     * <p>
+     * When the parameter values are still intended to be updated, do not use
+     * this constructor.
+     * 
      * @param new_uri
      * @param new_name
      * @param length of the item in miliseconds.
@@ -265,7 +260,8 @@ public final class PlaylistItem extends Item {
     
     /**
      * Two playlistItems are equal if and only if they are the same object. Equivalent
-     * to this == item.
+     * to this == item, which can be used instead.
+     * 
      * @param item
      * @return 
      */
@@ -326,17 +322,18 @@ public final class PlaylistItem extends Item {
     
     /**
      * Clones the item.
+     * 
      * @param item
      * @return clone of the item or null if parameter null.
      */
-    public static PlaylistItem clone(PlaylistItem item) {
-        if (item==null) return null;
+    public PlaylistItem clone() {
         
-        URI uri = item.getURI();
-        String name = item.getName();
-        double length = item.getTime().toMillis();
-        PlaylistItem i = new PlaylistItem(uri, name, length);
-                     i.updated = item.updated; 
+        URI _uri = getURI();
+        String _name = getName();
+        double _length = getTime().toMillis();
+        PlaylistItem i = new PlaylistItem(_uri, _name, _length);
+                     i.updated = updated; // also clone updated state
+                     i.corrupted = corrupted; // also clone corrupted state
         return i;
     }
 

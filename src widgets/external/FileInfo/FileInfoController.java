@@ -311,7 +311,7 @@ public class FileInfoController extends FXMLController  {
         gap3.setText(" ");
         filesize.setText("filesize: "   + m.getFilesize().toString());
         filename.setText("filename: "   + m.getFilenameFull());
-        format.setText("format: "       + m.getFormatFromTag());
+        format.setText("format: "       + m.getFormat());
         bitrate.setText("bitrate: "     + m.getBitrate().toString());
         encoding.setText("encoding: "   + m.getEncoder());
         location.setText("location: "   + m.getPath());

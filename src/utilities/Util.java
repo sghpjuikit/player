@@ -216,13 +216,16 @@ public interface Util {
     }
     
     /** 
-     * Converts first letter of the string to upper case and all others into
-     * lower case.
+     * Converts first letter of the string to upper case.
      */
     public static String capitalize(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1);
     }
     
+    /** 
+     * Converts first letter of the string to upper case and all others into
+     * lower case.
+     */
     public static String capitalizeStrong(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
@@ -346,13 +349,14 @@ public interface Util {
      * maintain consistency in number of length.
      * @param a - to turn onto zeropadded string
      * @param b - number to zeropad into
+     * @param ch - character to use. Notable characters are: ' ' or '0'
      * @return 
      */
-    public static String zeroPad(int a, int b) {
+    public static String zeroPad(int a, int b, char ch) {
         int diff = digits(b) - digits(a);
         String out = "";
         for (int i=1; i<=diff; i++)
-            out += "0";
+            out += ch;
         return out + String.valueOf(a);
     }
     

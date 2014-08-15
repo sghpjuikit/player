@@ -100,6 +100,7 @@ public class ImageController extends FXMLController {
             List<File> images = DragUtil.getImageItems(e);
             if(!images.isEmpty()) custom_image = images.get(0);
             useCustomImage = true;
+            e.setDropCompleted(true);
             refresh();
         });
     }

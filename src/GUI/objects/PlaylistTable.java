@@ -5,6 +5,8 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.Metadata;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
@@ -97,7 +99,7 @@ public final class PlaylistTable {
     int clicked_row = -1;
     
     // playing item observation listeners
-    private final InvalidationListener pIL = (o) -> refresh();
+    private final InvalidationListener pIL = o -> refresh();
     private final WeakInvalidationListener playingListener = new WeakInvalidationListener(pIL);
     
     // invisible controls helping with resizing columns
@@ -122,50 +124,47 @@ public final class PlaylistTable {
         
         // initialize table gui
         table.setTableMenuButtonVisible(true);
-        table.setFixedCellSize(GUI.font.getSize() + 4);
+        table.setFixedCellSize(GUI.font.getSize() + 5);
         
         // initialize table factories
-        indexCellFactory = ( column -> {
-            TableCell cell = new TableCell<PlaylistItem, String>() {
+        indexCellFactory = ( column -> new TableCell<PlaylistItem, String>() {
+                {
+                    setAlignment(reverse(cell_align));
+                }
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                     if (!empty) {
                         int index = show_original_index ? itemsF.getSourceIndex(getIndex()) : getIndex();
                             index++;
-                        if (zero_pad)
-                            setText(Util.zeroPad(index, table.getItems().size()) + ".");
-                        else
-                            setText(String.valueOf(index) + ".");
+                        setText(Util.zeroPad(index, table.getItems().size(), zero_pad ? '0' : ' ') + ".");
                     } 
                     else setText("");
                 }
-            };
-            cell.setAlignment(reverse(cell_align));
-            return cell;
-        });
-        nameCellFactory = ( column -> {
-            final TableCell cell = new TableCell<PlaylistItem,String>() {
+            }
+        );
+        nameCellFactory = ( column -> new TableCell<PlaylistItem,String>() {
+                {
+                    setAlignment(cell_align);
+                }
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty ? "" : item);
                 }
-            };
-            cell.setAlignment(cell_align);
-            return cell;
-        });
-        timeCellFactory = ( column -> {
-            TableCell cell = new TableCell<PlaylistItem, FormattedDuration>() {
+            }
+        );
+        timeCellFactory = ( column -> new TableCell<PlaylistItem, FormattedDuration>() {
+                {
+                    setAlignment(cell_align);
+                }
                 @Override
                 protected void updateItem(FormattedDuration item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty ? "" : item.toString());
                 }
-            };
-            cell.setAlignment(reverse(cell_align));
-            return cell;
-        });
+            }
+        );
         rowFactory = p_table -> {
             TableRow<PlaylistItem> row = new TableRow<PlaylistItem>() {
                 private void updatePseudoclassState(PlaylistItem item, boolean empty) {
@@ -221,39 +220,10 @@ public final class PlaylistTable {
                 if (row.getItem() == null)
                     selectNone();
             });
-            
-            // handle drag from
-            row.setOnDragDetected( e -> {
-            if (e.getButton()!=PRIMARY) return;
-                if(row.isEmpty()) return;
-                if (e.isControlDown() && e.getButton() == PRIMARY) {
-                    Dragboard db = table.startDragAndDrop(TransferMode.ANY);
-                    DragUtil.setPlaylist(new Playlist(getSelectedItems()),db);
-                    e.consume();
-                }
-            });
-            //support drag over transfer
-            row.setOnDragOver(dragOverHandler);
             // handle drag transfer
-            row.setOnDragDropped( e -> {
-                int index = row.isEmpty() ? table.getItems().size() : row.getIndex();
-                onDragDropped(e, index);
-            });
-            // handle click
-            row.setOnMouseClicked( e -> {
-                if(row.isEmpty()) return;
-                if (e.getButton() == PRIMARY) {     // play item on doubleclick
-                    if (e.getClickCount() == 2) {
-                        PlaylistManager.playItem(row.getItem());
-                        e.consume();
-                    }           
-                } else
-                if (e.getButton() == SECONDARY)     // show contextmenu
-                    if (!PlaylistManager.isEmpty()) {
-                        getCM(table).show(row, e.getScreenX(), e.getScreenY());
-                        e.consume();
-                    }
-            });
+            row.setOnDragDropped( e -> 
+                onDragDropped(e, row.isEmpty() ? table.getItems().size() : row.getIndex())
+            );
             return row;
         };
         
@@ -288,7 +258,7 @@ public final class PlaylistTable {
             int i = Util.DecMin1(PlaylistManager.getItems().size());    
             tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
-            double W1 = tmp.getWidth()+6;
+            double W1 = tmp.getWidth();
             
             // column 3
             tmp2.setText("");
@@ -339,6 +309,20 @@ public final class PlaylistTable {
             }
             e.consume();
         });
+        // handle click
+        table.setOnMouseClicked( e -> {
+            if (e.getButton() == PRIMARY) {     // play item on doubleclick
+                if (e.getClickCount() == 2) {
+                    PlaylistManager.playItem(table.getSelectionModel().getSelectedIndex());
+                    e.consume();
+                }           
+            } else
+            if (e.getButton() == SECONDARY)     // show contextmenu
+                if (!PlaylistManager.isEmpty()) {
+                    getCM(table).show(table, e.getScreenX(), e.getScreenY());
+                    e.consume();
+                }
+        });
         
         // move items on drag
         table.setOnMouseDragged( e -> {
@@ -366,12 +350,6 @@ public final class PlaylistTable {
             } else
             if (e.getCode() == KeyCode.ESCAPE) {    // deselect
                 table.getSelectionModel().clearSelection();
-            } else
-            if (e.getCode() == KeyCode.UP) {
-//                moveSelectedItems(-1);
-            } else
-            if (e.getCode() == KeyCode.DOWN) {
-//                moveSelectedItems(1);
             }
         });
         table.setOnKeyPressed( e -> {
@@ -386,12 +364,20 @@ public final class PlaylistTable {
                 }
             }
         });
-        
-        // dragging behavior (for empty table - it does not have any rows so
-        // drag event handlers registered on rows in row factory will not work)
+        // handle drag from - copy selected items
+        table.setOnDragDetected( e -> {
+        if (e.getButton()!=PRIMARY) return;
+            if (e.isControlDown() && e.getButton() == PRIMARY) {
+                Dragboard db = table.startDragAndDrop(TransferMode.COPY);
+                DragUtil.setPlaylist(new Playlist(getSelectedItems()),db);
+                e.consume();
+            }
+        });
+        //support drag over transfer - paste items
         table.setOnDragOver(dragOverHandler);
         // handle drag (for empty table - it does not have any rows so
         // drag event handlers registered on rows in row factory will not work)
+        // in case table is not empty. row's respective handler will handle this
         table.setOnDragDropped( e -> {
             if (table.getItems().isEmpty())
                 onDragDropped(e, 0);
@@ -412,7 +398,6 @@ public final class PlaylistTable {
 //        columnIndex.s
         
         refresh();
-        
     }
     
     public TableView<PlaylistItem> getTable() {
@@ -494,6 +479,7 @@ public final class PlaylistTable {
         // force 'refresh'
         table.setRowFactory(null);
         table.setRowFactory(rowFactory);
+        table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0.0));
     }
     
     /** Clears resources like listeners for this table object. */
@@ -769,13 +755,20 @@ public final class PlaylistTable {
                  item7.setOnAction(e -> {
                      List<PlaylistItem> items = contextMenu.getItem();
                      List<File> files = items.stream()
-                             .filter(PlaylistItem::isFileBased)
-                             .map(PlaylistItem::getLocation)
+                             .filter(Item::isFileBased)
+                             .map(Item::getLocation)
                              .collect(Collectors.toList());
                      Enviroment.browse(files,true);
                  });
+        MenuItem item8 = new MenuItem("Add items to library");        
+                 item8.setOnAction(e -> {
+                     List<Metadata> items = contextMenu.getItem().stream()
+                             .map(Item::toMetadata)
+                             .collect(Collectors.toList());
+                     DB.addItems(items);
+                 });
                  
-        contextMenu.getItems().addAll(item1, item2, item3, item4, item5, item6, item7);
+        contextMenu.getItems().addAll(item1, item2, item3, item4, item5, item6, item7, item8);
         contextMenu.setConsumeAutoHidingEvents(false);
         return contextMenu;
     }

@@ -174,7 +174,7 @@ public final class Seeker extends AnchorPane {
         if(m==null || m.isEmpty()) return;
         
         // populate
-        for (Chapter ch: m.getChapters()) {            
+        for (Chapter ch: m.getChaptersFromAny()) {            
             Chap c = new Chap(ch, m.getLength());
             getChildren().add(c);
             chapters.add(c);

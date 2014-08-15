@@ -3,14 +3,15 @@ package AudioPlayer.tagging;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
+import static AudioPlayer.services.Database.DB.emf;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.media.Media;
+import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
 import utilities.Log;
 import utilities.functional.functor.BiProcedure;
@@ -53,47 +54,73 @@ public class MetadataReader{
      * completion or all successfully obtained metadata when any error occurs.
      * @throws NullPointerException if any parameter null
      */
-    public static Task<List<Metadata>> readMetadata(List<? extends Item> items,
-            BiProcedure<Boolean, List<Metadata>> onFinish){
+    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiProcedure<Boolean, List<Metadata>> onFinish){
         // perform check
         Objects.requireNonNull(items);
         Objects.requireNonNull(onFinish);
-        // filter out unreadable items
-        items.removeIf(Item::isCorrupt);
+                
         // create task
         final Task<List<Metadata>> task = new Task<List<Metadata>>(){
-            @Override protected List<Metadata> call() throws Exception {
+            private final int all = items.size();
+            private int completed = 0;
+            private int skipped = 0;
+            @Override 
+            protected List<Metadata> call() throws Exception {
+                updateTitle("Reading metadata for items.");
                 List<Metadata> metadatas = new ArrayList();
+                
                 for (Item item: items){
+                    
                     if (isCancelled()){
-                        updateMessage("Cancelled");
                         return metadatas;
                     }
-
+                    
+                    // create metadata
                     Metadata m = create(item);
-                    if (!m.isEmpty()){
-                        metadatas.add(m);
-                    }
+                    // on fail
+                    if (m.isEmpty()) skipped++;
+                    // on success
+                    else metadatas.add(m);
+                    
+                    // update state
+                    completed++;
+                    updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+                    updateProgress(completed, all);
                 }
+                
                 return metadatas;
             }
-        };
-        task.setOnFailed((WorkerStateEvent e) -> {
-            Platform.runLater(() -> {
+            @Override protected void succeeded() {
+                super.succeeded();
+                updateMessage("Reading metadata finished succeeded!");
+                onFinish.accept(true, getValue());
+            }
+
+            @Override protected void cancelled() {
+                super.cancelled();
+                updateMessage("Reading metadata cancelled!");
                 onFinish.accept(false, null);
-                Log.err("Reading metadata failed for items.");
-            });
-        });
-        task.setOnSucceeded((WorkerStateEvent e) -> {
-            Platform.runLater(() -> {
-                try {
-                    onFinish.accept(true, task.get());
-                } catch (InterruptedException | ExecutionException ex){
-                    onFinish.accept(false, null);
-                    Log.err("Reading metadata failed for items due to " + "interrupted execution.");
-                }
-            });
-        });
+            }
+
+            @Override protected void failed() {
+                super.failed();
+                updateMessage("Reading metadata failed!");
+                onFinish.accept(false, null);
+            }
+
+            @Override
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
+                System.out.println(message);
+            }
+
+            @Override
+            protected void updateProgress(long workDone, long max) {
+                super.updateProgress(workDone, max);
+                System.out.println("Completed " + workDone + "/" + max + ".");
+            }
+            
+        };
         // execute
         Thread thread = new Thread(task);
         thread.setDaemon(true);
@@ -114,9 +141,9 @@ public class MetadataReader{
      * Never null.
      */
     public static Metadata create(Item item){
-        // handle corrupt item
+//        // handle corrupt item
         if (item.isCorrupt()){
-            return Metadata.EMPTY();        // is this good way to handle corrupt item? //no.
+            return Metadata.EMPTY;        // is this good way to handle corrupt item? //no.
         }
         // handle items with no file representation
         if (!item.isFileBased()){
@@ -124,10 +151,12 @@ public class MetadataReader{
         }
         // handle normal item
         else {
-            AudioFile afile = MetaItem.readAudioFile(item.getFile());
-            return (afile == null) ? Metadata.EMPTY() : new Metadata(afile);
+            afile = MetaItem.readAudioFile(item.getFile());
+            return (afile == null) ? Metadata.EMPTY : new Metadata(afile);
         }
     }
+    
+    private static AudioFile afile;
 
     /**
      * Reads {@link Metadata} for specified item. Runs on background thread.
@@ -158,7 +187,7 @@ public class MetadataReader{
                 return create(item);
             }
         };
-        task.setOnSucceeded((WorkerStateEvent e) -> {
+        task.setOnSucceeded( e -> {
             Platform.runLater(() -> {
                 try {
                     onFinish.accept(true, task.get());
@@ -168,7 +197,7 @@ public class MetadataReader{
                 }
             });
         });
-        task.setOnFailed((WorkerStateEvent e) -> {
+        task.setOnFailed( e -> {
             Platform.runLater(() -> {
                 Log.err("Reading metadata failed for : " + item.getURI() + ".");
                 onFinish.accept(false, null);
@@ -194,9 +223,144 @@ public class MetadataReader{
             // make a playlistItem and covert to metadata
             return new PlaylistItem(item.getURI(), name, time).toMetadata();
         } catch (IllegalArgumentException | UnsupportedOperationException e){
-            Log.err("Error during creating metadat afor non file based item: " + item);
+            Log.err("Error during creating metadata for non file based item: " + item);
             return item.toMetadata();
         }
     }
 
+    
+    
+    public static Task<Void> readAaddMetadata(List<? extends Item> items){
+        // perform check
+        Objects.requireNonNull(items);
+                
+        // create task
+        final Task<Void> task = new Task<Void>(){
+            private final int all = items.size();
+            private int completed = 0;
+            private int skipped = 0;
+            @Override 
+            protected Void call() throws Exception {
+//                updateTitle("Reading metadata and adding items to library.");
+//                
+//                Metadata m;
+//                for (int i=0; i<items.size(); i++){
+//                    
+//                    if (isCancelled()) break;
+//                    
+//                    // create metadata
+//                    m = create(items.get(i));
+//                    // on fail
+//                    if (m.isEmpty()) skipped++;
+//                    // on success
+//                    else {
+////                        DB.addItems(Collections.singletonList(m));
+//                        System.out.println("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+//                    }
+//                    // update state
+//                    completed++;
+//                    updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+//                    updateProgress(completed, all);
+//                }
+//                return null;
+                
+                
+                updateTitle("Reading metadata and adding items to library.");
+                Metadata m;
+                
+                EntityManager em = emf.createEntityManager();
+                              em.getTransaction().begin();
+                try {
+                    for (Item i : items){
+                        completed++;
+                        if (isCancelled()) break;
+
+                        // create metadata
+                        m = create(i);
+                        // on fail
+                        if (m.isEmpty()) skipped++;
+                        // on success
+                        else {
+                            if(em.find(Metadata.class, m.getId()) == null)
+                                em.persist(m);
+                            updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+                            updateProgress(completed, all);
+                        }
+                    }
+                    em.getTransaction().commit();
+                } finally {
+                    em.close();
+                }
+                        
+                // update state
+                updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+                updateProgress(completed, all);
+                
+//                DB.addItems(Arrays.asList(ms));
+                
+//                updateTitle("Reading metadata and adding items to library.");
+//                List<Metadata> metadatas = new ArrayList(100);
+//                Metadata[] ms = new Metadata[2];
+//                
+//                for (int i=0; i<items.size(); i++){
+//                    int j= i%2;
+//                    if (isCancelled()) break;
+//                    
+//                    // create metadata
+//                    Metadata m = create(items.get(i));
+//                    // on fail
+//                    if (m.isEmpty()) skipped++;
+//                    // on success
+//                    else ms[j] = m;
+//                    
+//                    // batch
+//                    if(j==1) {
+//                        DB.addItems(Arrays.asList(ms));
+////                        metadatas.clear();
+//                        System.out.println("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+//                    }
+//                    
+//                    // update state
+//                    completed++;
+//                    updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+//                    updateProgress(completed, all);
+//                }
+//                DB.addItems(Arrays.asList(ms));
+                return null;
+            }
+            @Override protected void succeeded() {
+                super.succeeded();
+                updateMessage("Reading metadata finished succeeded!");
+            }
+
+            @Override protected void cancelled() {
+                super.cancelled();
+                updateMessage("Reading metadata cancelled!");
+            }
+
+            @Override protected void failed() {
+                super.failed();
+                updateMessage("Reading metadata failed!");
+            }
+
+            @Override
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
+                System.out.println(message);
+            }
+
+            @Override
+            protected void updateProgress(long workDone, long max) {
+                super.updateProgress(workDone, max);
+                System.out.println("Completed " + workDone + "/" + max + ".");
+            }
+            
+        };
+        // execute
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+        return task;
+    }
+    
 }

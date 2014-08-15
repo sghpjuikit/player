@@ -4,6 +4,7 @@ package main;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.Configuration;
 import GUI.GUI;
@@ -99,6 +100,8 @@ public class App extends Application {
             // we need to initialize skin before windows do
             Configuration.applyField("skin");
             
+            DB.start();
+            
             // initialize windows from previous session
             WindowManager.deserialize();
             
@@ -117,6 +120,7 @@ public class App extends Application {
         Action.getActions().values().forEach(Action::register);        
 
         Configuration.applyFieldsAll();         // apply all (and gui) settings
+        
         
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
@@ -147,7 +151,9 @@ public class App extends Application {
             Configuration.save();
             BookmarkManager.saveBookmarks();
             NotifierManager.free();
+            
         }
+        DB.stop();
     }
     
     public static boolean isInitialized() {
@@ -226,6 +232,10 @@ public class App extends Application {
     /** @return absolute file of Location of data. */
     public static File DATA_FOLDER() {
         return new File("UserData").getAbsoluteFile();
+    }
+    /** @return absolute file of Location of data. */
+    public static File LIBRARY_FOLDER() {
+        return new File(DATA_FOLDER(), "Library");
     }
 
     /** @return absolute file of Location of saved playlists. */

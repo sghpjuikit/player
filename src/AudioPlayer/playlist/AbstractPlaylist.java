@@ -172,6 +172,9 @@ abstract public class AbstractPlaylist {
         
         addPlaylist(p, _at);
     }
+    public void addItem(Item item) {
+        addItems(Collections.singletonList(item), list().size());
+    }
     /**
      * Adds all specified items to end of this playlist.
      * @param items
@@ -195,7 +198,7 @@ abstract public class AbstractPlaylist {
         if (_at > list().size()) _at = list().size();
         
         Playlist p = new Playlist();
-        items.forEach(i->p.list().add(new PlaylistItem(i)));
+        items.stream().map(Item::toPlaylistItem).forEach(p.list()::add);
         
         addPlaylist(p, _at);
     }
@@ -378,7 +381,7 @@ abstract public class AbstractPlaylist {
      */
     public void duplicateItem(PlaylistItem item) {
         if (!list().contains(item)) return;
-        list().add(list().indexOf(item)+1, PlaylistItem.clone(item));
+        list().add(list().indexOf(item)+1, item.clone());
         updateDuration();
     }
     
@@ -395,7 +398,7 @@ abstract public class AbstractPlaylist {
         for (PlaylistItem item: items) {
             int i = list().indexOf(item); 
             if (i > 0) { // if contains
-                to_dup.add(PlaylistItem.clone(item));   // item must be cloned
+                to_dup.add(item.clone());   // item must be cloned
                 index = i+1;
             }
         }

@@ -16,6 +16,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.net.URI;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
@@ -24,7 +28,9 @@ import java.util.stream.Collectors;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
-import jdk.nashorn.internal.ir.annotations.Immutable;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Transient;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
@@ -35,6 +41,8 @@ import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
+import utilities.AudioFileFormat;
+import static utilities.AudioFileFormat.UNKNOWN;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
 import utilities.Log;
@@ -43,84 +51,40 @@ import utilities.Util;
 
 /**
  * Information about audio file.
- * Provided by reading tag and audio header. Plus some additional sources.
- * Everything that is possible to know about the audio file is virtually grouped
- * in this class. Virtually, because not everything accessible through this
- * object is in the tag.
+ * Provided by reading tag and audio file header (mostly).
+ * Everything that is possible to know about the audio file is accessible through
+ * this class. This class also provides some non-tag, application specific
+ * or external information associated with this song, like cover files.
  * <p>
- * The class is immutable.
+ * The class is practically immutable and does not provide any setters, nor
+ * allows updating of its state or any of its values.
  * <p>
- * Metadata can be empty. All string fields will be empty and object fields
- * null. The {@link #getFile()}, {@link #getURI()} and {@link #getPath()} of the
- * item will not point to any existing file.
- * Empty metadata should always be used instead of null value. See {@link #EMPTY()}
- * and {@link #isEmpty()}.
- * ------------- NON TAG INFO ---------------
- * Non-tag information possible to gain from metadata object includes:
- * -- Cover --
- * getCoverFromLocation()
- * getCoverFromAnySource()
- * -- Playlist specific information --
- * getPlaylistOrder()
- * getExtended()
- * 
- * ------------- GETTERS ---------------
+ * Metadata can be empty. See {@link #EMPTY}
+ * <p>
  * The getters of this class return mostly string. For empty fields the output
  * is "" (empty string) and for non-string getters it is null.
  * 
  * 
- * To find out more specific details, it is advised to check methods' documentation.
- * 
- * Supported fields:
- *    format
- *    bitrate;
- *    sample rate;
- *    channels;
- *    encoder;
- *    encoder type
- *    length;
- *    title;
- *    album;
- *    artist;
- *    artists;
- *    album_artist;
- *    composer;
- *    publisher;
- *    track;
- *    tracks_total;
- *    disc;
- *    discs_total;
- *    genre;
- *    year;
- *    cover;
- *    rating;
- *    playcount;
- *    category;
- *    comment;
- *    lyrics;
- *    mood;
- *    custom 1-5
- * 
  * @author uranium
  */
-@Immutable
+@Entity(name = "Item")
 public final class Metadata extends MetaItem {
-    private final URI uri;
-    
+    // identification fields
+    @Id
+    private String uri;
     // header fields
-    private String format = "";
+    private AudioFileFormat format = UNKNOWN;
     private String encoding_type = "";
-    private Bitrate bitrate = Bitrate.create(-1);
+    private int bitrate = -1;
     private String encoder = "";
     private String channels = "";
     private String sample_rate = "";
     private double length = 0;
-    
     // tag fields
     private String title = "";
     private String album = "";
     private String artist = "";
-    private List<String> artists = new ArrayList<>();
+    private List<String> artists = null;
     private String album_artist = "";
     private String composer = "";
     private String publisher = "";
@@ -130,9 +94,10 @@ public final class Metadata extends MetaItem {
     private String discs_total = "";
     private String genre = "";
     private String year = "";
-    private Artwork cover;
-    private Long rating = null;
-    private Long playcount = null;
+    @Transient
+    private Artwork cover = null;
+    private int rating = -1;
+    private int playcount = -1;
     private String category = "";
     private String comment = "";
     private String lyrics = "";
@@ -144,13 +109,19 @@ public final class Metadata extends MetaItem {
     private String custom5 = "";
     
     /** 
-     * Creates empty metadata. All string fields will be empty and object fields
-     * null. The File, URI and path of the item will not point to any existing file.
-     * Empty metadata should always be used instead of null value.
+     * Empty metadata. Substitute for null. Always use instead of null. Also
+     * corrupted items should transform into EMPTY metadata.
+     * <p>
+     * All string fields are empty and object fields null.
+     * <p>
+     * There are two ways to check whether Metadata object is empty. Either use
+     * reference operator this == Metadata.EMPTY or call {@link #isEmpty()}.
+     * <p>
+     * Note: The reference operator works, because there is always only one
+     * instance of EMPTY metadata.
      */
-    public static Metadata EMPTY() {
-        return new Metadata();
-    }
+    public static final Metadata EMPTY = new Metadata();
+    
     
     /**
      * Creates metadata from specified item. Attempts to fill as many metadata 
@@ -158,7 +129,7 @@ public final class Metadata extends MetaItem {
      * For example, if the item is playlist item, sets artist, length and title fields.
      */
     public Metadata(Item item) {
-        uri = item.getURI();
+        uri = item.getURI().toString();
         if(item instanceof PlaylistItem) {
             PlaylistItem pitem = (PlaylistItem)item;
             artist = pitem.getArtist();
@@ -168,7 +139,7 @@ public final class Metadata extends MetaItem {
     }
     
     private Metadata() {
-        uri = new File("").toURI();
+        uri = new File("").toURI().toString();
     }
     
     /**
@@ -178,19 +149,17 @@ public final class Metadata extends MetaItem {
      * 
      */
     Metadata(AudioFile audiofile) {
-        uri = audiofile.getFile().getAbsoluteFile().toURI();
-        AudioFile audioFile = audiofile;
+        uri = audiofile.getFile().getAbsoluteFile().toURI().toString();
         
-        loadGeneralFields(audioFile);
+        loadGeneralFields(audiofile);
         switch (getFormat()) {
-            case mp3:   MP3File mp3 = (MP3File)audioFile;
-                        loadSpecificFieldsMP3(mp3);
+            case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);
                         break;
             case flac:  //FLACFile flac = (MP3File)audioFile;
-                        //loadSpecificFieldsFlac(flac);
+                        loadSpecificFieldsFLAC();
                         break;
             case ogg:   //MP3File ogg = (MP3File)audioFile;
-                        //loadSpecificFieldsOGG(ogg);
+                        loadSpecificFieldsOGG();
                         break;
             case wav:   //MP3File ogg = (MP3File)audioFile;
                         loadSpecificFieldsWAV();
@@ -205,8 +174,9 @@ public final class Metadata extends MetaItem {
         AudioHeader header = aFile.getAudioHeader();
         
         // format and encoding type are switched in jaudiotagger library...
-        format = Util.emptifyString(header.getEncodingType());
-        bitrate = Bitrate.create(header.getBitRateAsNumber());
+        format = AudioFileFormat.of(getURI());
+        if (format==UNKNOWN) format = super.getFormat();
+        bitrate = Bitrate.create(header.getBitRateAsNumber()).getValue();
         length = 1000 * header.getTrackLength();
         encoding_type = Util.emptifyString(header.getFormat());
         channels = Util.emptifyString(header.getChannels());
@@ -216,7 +186,7 @@ public final class Metadata extends MetaItem {
         
         title = getGeneral(tag,FieldKey.TITLE);
         album = getGeneral(tag,FieldKey.ALBUM);
-        artists = getGenerals(tag,FieldKey.ARTIST);
+//        artists = getGenerals(tag,FieldKey.ARTIST);
         artist = getGeneral(tag,FieldKey.ARTIST);
         album_artist = getGeneral(tag,FieldKey.ALBUM_ARTIST);
         composer = getGeneral(tag,FieldKey.COMPOSER);
@@ -290,56 +260,64 @@ public final class Metadata extends MetaItem {
             body1 = (FrameBodyPOPM) frame1.getBody();
         }
         if (body1 != null) {
-            rat = body1.getRating();
-            cou = body1.getCounter();
+            rat = body1.getRating();//returns null if empty
+            cou = body1.getCounter();//returns null if empty
         }
         
-        rating = rat; //returns null if empty
-        playcount = cou; // returns null if empty
+        rating = rat==null ? -1 : Math.toIntExact(rat);
+        playcount = cou==null ? -1 : Math.toIntExact(cou);
         publisher = Util.emptifyString(mp3.getID3v2TagAsv24().getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
     private void loadSpecificFieldsWAV() {
-        rating = null;
-        playcount = null;
+        rating = -1;
+        playcount = -1;
         publisher = "";
     }
     private void loadSpecificFieldsOGG() {
-        rating = null;
-        playcount = null;
+        rating = -1;
+        playcount = -1;
         publisher = "";
     }
     private void loadSpecificFieldsFLAC() {
-        rating = null;
-        playcount = null;
+        rating = -1;
+        playcount = -1;
         publisher = "";
     }
 
 /******************************************************************************/  
 
-    @Override 
-    public URI getURI() {
-        return uri;
+    public String getId() {
+       return uri;
+    }
+    public void setId(String id) {
+        this.uri = id;
     }
     
-    /** 
-     * Empty metadata should always be used instead of null value.
-     * @{@inheritDoc}
+    @Override 
+    public URI getURI() {
+        return URI.create(uri.replace(" ","%20"));
+    }
+    
+    /**
+     * @see #EMPTY
      * @return true if this metadata is empty.
      */
     public boolean isEmpty() {
-        return new File("").toURI().equals(getURI());
+        return this == EMPTY;
     }
     
     // because of the above we need to override the following two methods:
     
     /** @{@inheritDoc} */
     @Override
+    @MetadataFieldMethod(MetadataField.PATH)
     public String getPath() {
         if (isEmpty()) return "";
         else return super.getPath();
     }
     
     /** @{@inheritDoc} */
+    @MetadataFieldMethod(MetadataField.FILESIZE)
     @Override
     public FileSize getFilesize() {
         if (isEmpty()) return new FileSize(0);
@@ -349,27 +327,24 @@ public final class Metadata extends MetaItem {
     
     
     
-    /**
-     * 
-     * String returning alternative to {@link #getSuffix} and {@link #getFormat}.
-     * These methods are not equivalent as this method returns information from tag.
-     * <p>
-     * For example: mp3.
-     * @return format
-     */
-    public String getFormatFromTag() {
+    /**  {@inheritDoc } */
+    @Override
+    @MetadataFieldMethod(MetadataField.FORMAT)
+    public AudioFileFormat getFormat() {
         return format;
     }
 
     /** @return the bitrate */
+    @MetadataFieldMethod(MetadataField.BITRATE)
     public Bitrate getBitrate() {
-        return bitrate;
+        return new Bitrate(bitrate);
     }
     
     /**
      * For example: Stereo.
-     * @return 
+     * @return channels as String
      */
+    @MetadataFieldMethod(MetadataField.CHANNELS)
     public String getChannels() {
         return channels;
     }
@@ -378,6 +353,7 @@ public final class Metadata extends MetaItem {
      * For example: 44100
      * @return 
      */
+    @MetadataFieldMethod(MetadataField.SAMPLE_RATE)
     public String getSampleRate() {
         return sample_rate;
     }
@@ -386,35 +362,34 @@ public final class Metadata extends MetaItem {
      * For example: MPEG-1 Layer 3.
      * @return encoding type
      */
+    @MetadataFieldMethod(MetadataField.ENCODING)
     public String getEncodingType() {
         // format and encoding type are switched in jaudiotagger library...
         return encoding_type;
     }
     
     /** @return the encoder or empty String if not available. */
+    @MetadataFieldMethod(MetadataField.ENCODER)
     public String getEncoder() {
         return encoder;
     }
     
     /** @return the length in milliseconds */
+    @MetadataFieldMethod(MetadataField.LENGTH)
     public FormattedDuration getLength() {
         return new FormattedDuration(length);
     }
     
 /******************************************************************************/    
     
-    /**
-     * @return the title
-     * "" if empty.
-     */
+    /** @return the title "" if empty. */
+    @MetadataFieldMethod(MetadataField.TITLE)
     public String getTitle() {
         return title;
     }
     
-    /**
-     * @return the album
-     * "" if empty.
-     */
+    /** @return the album "" if empty. */
+    @MetadataFieldMethod(MetadataField.ALBUM)
     public String getAlbum() {
         return album;
     }
@@ -446,62 +421,38 @@ public final class Metadata extends MetaItem {
      * If you want to get all artists dont use this method.
      * @return the first artist
      * "" if empty.
-     */    
-    public String getArtist() {
-        return artist;
-    }
-    
-    /**
-     * Returns first artist found in tag. If no artist is found, album artist
-     * will be used, but only if this option is enabled in application configurations.
-     * If 'album artist when no artist' is not enabled, this method is effectively
-     * same as getArtist().
-     * If you want to get all artists dont use this method.
-     * @return the first artist or album artist
-     * "" if both sources are empty.
-     */    
-    public String getArtistOrAlbumArist() {
-        if (!artist.isEmpty()) return artist;
-        if (Configuration.ALBUM_ARTIST_WHEN_NO_ARTIST) return album_artist;
-        return "";
-    }
-    
-    /**
-     * @return the album_artist
-     * "" if empty.
      */
+    @MetadataFieldMethod(MetadataField.ARTIST)
+    public String getArtist() {
+        return Configuration.ALBUM_ARTIST_WHEN_NO_ARTIST && artist.isEmpty() ? album_artist : artist;
+    }
+    
+    /** @return the album_artist, "" if empty. */
+    @MetadataFieldMethod(MetadataField.ALBUM_ARTIST)
     public String getAlbumArtist() {
         return album_artist;
     }
 
-    /**
-     * @return the composer
-     * "" if empty.
-     */
+    /** @return the composer, "" if empty. */
+    @MetadataFieldMethod(MetadataField.COMPOSER)
     public String getComposer() {
         return composer;
     }
 
-    /**
-     * @return the publisher
-     * "" if empty.
-     */
+    /** @return the publisher, "" if empty. */
+    @MetadataFieldMethod(MetadataField.PUBLISHER)
     public String getPublisher() {
         return publisher;
     }
 
-    /**
-     * @return the track
-     * "" if empty.
-     */
+    /** @return the track, "" if empty. */
+    @MetadataFieldMethod(MetadataField.TRACK)
     public String getTrack() {
         return track;
     }
     
-    /**
-     * @return the tracks total
-     * "" if empty.
-     */
+    /** @return the tracks total, "" if empty. */
+    @MetadataFieldMethod(MetadataField.TRACKS_TOTAL)
     public String getTracksTotal() {
         return tracks_total;
     }
@@ -517,6 +468,7 @@ public final class Metadata extends MetaItem {
      * Example: 1/1, 4/23, ?/?, ...
      * @return track album order information.
      */
+    @MetadataFieldMethod(MetadataField.TRACK_INFO)
     public String getTrackInfo() {
         if (!track.isEmpty() && !tracks_total.isEmpty()) {
             return track+"/"+tracks_total;
@@ -532,18 +484,14 @@ public final class Metadata extends MetaItem {
         }
     }
     
-    /**
-     * @return the disc
-     * "" if empty.
-     */
+    /** @return the disc, "" if empty. */
+    @MetadataFieldMethod(MetadataField.DISC)
     public String getDisc() {
         return disc;
     }
     
-    /**
-     * @return the discs total
-     * "" if empty.
-     */
+    /** @return the discs total, "" if empty. */
+    @MetadataFieldMethod(MetadataField.DISCS_TOTAL)
     public String getDiscsTotal() {
         return discs_total;
     }
@@ -559,6 +507,7 @@ public final class Metadata extends MetaItem {
      * Example: 1/1, ?/?, 5/?, ...
      * @return disc information.
      */
+    @MetadataFieldMethod(MetadataField.DISCS_INFO)
     public String getDiscInfo() {
         if (!disc.isEmpty() && !discs_total.isEmpty()) {
             return disc+"/"+discs_total;
@@ -574,24 +523,16 @@ public final class Metadata extends MetaItem {
         }
     }
     
-    /**
-     * @return the genre
-     */
+    /** @return the genre, "" if empty. */
+    @MetadataFieldMethod(MetadataField.GENRE)
     public String getGenre() {
         return genre;
     }
 
-    /**  @return the year. "" if empty. */
+    /** @return the year, "" if empty. */
+    @MetadataFieldMethod(MetadataField.YEAR)
     public String getYear() {
         return year;
-    }
-
-    /**
-     * Do not use. Will be removed.
-     * @return the cover image. Null if doesn't exist */
-    @Deprecated
-    public Artwork getCoverAsArtwork() {
-        return cover;
     }
     
     /**
@@ -612,6 +553,7 @@ public final class Metadata extends MetaItem {
         }
     }
     
+    @MetadataFieldMethod(MetadataField.COVER)
     private Cover getCover() {
         try {
             if(cover==null) return new ImageCover((Image)null, getCoverInfo());
@@ -621,6 +563,7 @@ public final class Metadata extends MetaItem {
         }
     }
     
+    @MetadataFieldMethod(MetadataField.COVER_INFO)
     private String getCoverInfo() {
         try {
             return cover.getDescription() + " " + cover.getMimeType() + " "
@@ -666,25 +609,28 @@ public final class Metadata extends MetaItem {
         else return files[0];
     }
     
-    /** @return the rating null if empty. */
-    public Long getRating() {
-        return rating;
+    /** @return the rating or 0 if empty. */
+    public int getRating() {
+        return rating==-1 ? 0 : rating;
     }
     
-    /** @return the rating in 0-1 percent range */
+    /** 
+     * Recommended method to use to obtain rating.
+     * @return the rating in 0-1 percent range */
+    @MetadataFieldMethod(MetadataField.RATING)
     public double getRatingPercent() {
-        return rating/getRatingMax();
+        return getRating()/getRatingMax();
     }
     
-    /** @return the rating "" if empty. */
+    /** @return the rating value (can for file type) or "" if empty. */
     public String getRatingAsString() {
-        if (rating == null)  return ""; 
-        return String.valueOf(rating.intValue());
+        if (rating == -1)  return ""; 
+        return String.valueOf(getRating());
     }
     
     /** @return the rating in 0-1 percent range or "" if empty. */
     public String getRatingPercentAsString() {
-        if (rating == null)  return ""; 
+        if (rating == -1)  return ""; 
         return String.valueOf(getRatingPercent());
     }
     
@@ -693,17 +639,13 @@ public final class Metadata extends MetaItem {
      * @return the current rating value in 0-max_stars value system. 0 if not available.
      */
     public double getRatingToStars(int max_stars) {
-        if (getRating()==null) return 0;
         return getRatingPercent()*max_stars;
     }
     
-    /**
-     * @return the playcount
-     * 0 if empty.
-     */
+    /** @return the playcount, 0 if empty. */
+    @MetadataFieldMethod(MetadataField.PLAYCOUNT)
     public int getPlaycount() {
-        if (playcount == null) return 0;
-        else return playcount.intValue();
+        return playcount == -1 ? 0 : playcount;
     }
     
     /**
@@ -711,34 +653,34 @@ public final class Metadata extends MetaItem {
      * "" if empty.
      */
     public String getPlaycountAsString() {
-        return (playcount == null) ? "" : String.valueOf(playcount.intValue());
+        return (playcount == -1) ? "" : String.valueOf(playcount);
     }
     
     /** 
      * tag field: grouping
-     * @return the category
-     * "" if empty.
+     * @return the category "" if empty.
      */
+    @MetadataFieldMethod(MetadataField.CATEGORY)
     public String getCategory() {
         return category;
     }
     
-    /**
-     * @return the comment
-     * "" if empty.
-     */
+    /** @return the comment, "" if empty. */
+    @MetadataFieldMethod(MetadataField.COMMENT)
     public String getComment() {
         return comment;
     }
 
     /**
-     * @return the lyrics or "" if empty.
+     * @return the lyrics, "" if empty.
      */
+    @MetadataFieldMethod(MetadataField.LYRICS)
     public String getLyrics() {
         return lyrics;
     }
 
-    /**  @return the mood or "" if empty. */
+    /**  @return the mood, "" if empty. */
+    @MetadataFieldMethod(MetadataField.MOOD)
     public String getMood() {
         return mood;
     }
@@ -748,29 +690,33 @@ public final class Metadata extends MetaItem {
      * @return the color value associated with the song from tag or null if
      * none.
      */
+    @MetadataFieldMethod(MetadataField.COLOR)
     public Color getColor() {
          return custom1.isEmpty() ? null : new ColorParser().fromS(custom1);
     }
     
-    
-    
     /** @return the value of custom1 field. "" if empty. */
+    @MetadataFieldMethod(MetadataField.CUSTOM1)
     public String getCustom1() {
         return custom1;
     }
     /** @return the value of custom2 field. "" if empty. */
+    @MetadataFieldMethod(MetadataField.CUSTOM2)
     public String getCustom2() {
         return custom2;
     }
     /** @return the value of custom3 field. "" if empty. */
+    @MetadataFieldMethod(MetadataField.CUSTOM3)
     public String getCustom3() {
         return custom3;
     }
     /** @return the value of custom4 field. "" if empty. */
+    @MetadataFieldMethod(MetadataField.CUSTOM4)
     public String getCustom4() {
         return custom4;
     }
     /** @return the value of custom5 field. "" if empty. */
+    @MetadataFieldMethod(MetadataField.CUSTOM5)
     public String getCustom5() {
         return custom5;
     }
@@ -863,6 +809,7 @@ public final class Metadata extends MetaItem {
      * The result is ordered by natural order.
      * @return ordered list of chapters parsed from all available sources
      */
+    @MetadataFieldMethod(MetadataField.CHAPTERS)
     public List<Chapter> getChaptersFromAny() {
         List<Chapter> cs = getChapters();
                       cs.addAll(getChaptersFromXML());
@@ -872,6 +819,63 @@ public final class Metadata extends MetaItem {
     
     public boolean containsChapterAt(Duration at) {
         return getChapters().stream().anyMatch(ch->ch.getTime().equals(at));
+    }
+    
+/******************************************************************************/
+    
+    public Object getField(MetadataField fieldType) {
+//        for(Method m : Metadata.class.getDeclaredMethods()) {
+//            MetadataFieldMethod a = m.getAnnotation(MetadataFieldMethod.class);
+//            if(a!=null && a.value()==fieldType) {
+//                try {
+//                    return m.invoke(this);
+//                } catch (InvocationTargetException | IllegalArgumentException | IllegalAccessException e) {
+//                    throw new RuntimeException("Method for metadata field " + fieldType + " invocation failed.");
+//                }
+//            }
+//        }
+//        throw new RuntimeException("Method for metadata field " + fieldType + " not found.");
+        switch(fieldType) {
+            case PATH :  return getPath();
+            case FORMAT :  return getFormat();
+            case FILESIZE : return getFilesize();
+            case ENCODING : return getEncodingType();
+            case BITRATE : return getBitrate();
+            case ENCODER : return getEncoder();
+            case CHANNELS : return getChannels();
+            case SAMPLE_RATE : return getSampleRate();
+            case LENGTH : return getLength();
+            case TITLE : return getTitle();
+            case ALBUM : return getAlbum();
+            case ARTIST : return getArtist();
+            case ALBUM_ARTIST : return getAlbumArtist();
+            case COMPOSER : return getComposer();
+            case PUBLISHER : return getPublisher();
+            case TRACK : return getTrack();
+            case TRACKS_TOTAL : return getTracksTotal();
+            case TRACK_INFO : return getTrackInfo();
+            case DISC : return getDisc();
+            case DISCS_TOTAL : return getDiscsTotal();
+            case DISCS_INFO : return getDiscInfo();
+            case GENRE : return getGenre();
+            case YEAR : return getYear();
+            case COVER : return getCover();
+            case COVER_INFO : return getCoverInfo();
+            case RATING : return getRatingPercent();
+            case PLAYCOUNT : return getPlaycount();
+            case CATEGORY : return getCategory();
+            case COMMENT : return getComment();
+            case LYRICS : return getLyrics();
+            case MOOD : return getMood();
+            case COLOR : return getColor();
+            case CHAPTERS : return getChapters();
+            case CUSTOM1 : return getCustom1();
+            case CUSTOM2 : return getCustom2();
+            case CUSTOM3 : return getCustom3();
+            case CUSTOM4 : return getCustom4();
+            case CUSTOM5 : return getCustom5();
+            default : throw new RuntimeException("ddd");
+        }
     }
     
 /******************************************************************************/
@@ -914,6 +918,9 @@ public final class Metadata extends MetaItem {
                + "comment: " + comment + "\n"
                + "lyrics: " + lyrics + "\n"
                + "mood: " + mood + "\n"
+               + "color: " + getColor() + "\n"
+               + "chapters: " + mood + "\n"
+               + getChaptersFromAny().stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
                + "custom1: " + custom1 + "\n"
                + "custom2: " + custom2 + "\n"
                + "custom3: " + custom3 + "\n"
@@ -923,4 +930,78 @@ public final class Metadata extends MetaItem {
         return output;
     }
     
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (uri != null ? uri.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(this==o) return true;
+        
+        if (!(o instanceof Metadata))
+            return false;
+          
+        Metadata m = (Metadata) o;
+        return uri != null && m.uri != null && uri.equals(m.uri);
+    }
+    
+    public static enum MetadataField {
+        PATH,
+        FORMAT,
+        FILESIZE,
+        ENCODING,
+        BITRATE,
+        ENCODER,
+        CHANNELS,
+        SAMPLE_RATE,
+        LENGTH,
+        TITLE,
+        ALBUM,
+        ARTIST,
+        ALBUM_ARTIST,
+        COMPOSER,
+        PUBLISHER,
+        TRACK,
+        TRACKS_TOTAL,
+        TRACK_INFO,
+        DISC,
+        DISCS_TOTAL,
+        DISCS_INFO,
+        GENRE,
+        YEAR,
+        COVER,
+        COVER_INFO,
+        RATING,
+        PLAYCOUNT,
+        CATEGORY,
+        COMMENT,
+        LYRICS,
+        MOOD,
+        COLOR,
+        CHAPTERS,
+        CUSTOM1,
+        CUSTOM2,
+        CUSTOM3,
+        CUSTOM4,
+        CUSTOM5;
+        
+        public boolean isStringRepresentable() {
+            return this != COVER;
+        }
+
+        @Override
+        public String toString() {
+            return Util.capitalizeStrong(name());
+        }
+        
+    }
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD) 
+    public static @interface MetadataFieldMethod {
+        MetadataField value();
+    }
 }

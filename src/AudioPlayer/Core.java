@@ -22,8 +22,8 @@ import utilities.Log;
  */
 final class Core {
     
-    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty(Metadata.EMPTY());
-    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty(Metadata.EMPTY());
+    final SimpleObjectProperty<Metadata> currentMetadataCache = new SimpleObjectProperty(Metadata.EMPTY);
+    final SimpleObjectProperty<Metadata> nextMetadataCache = new SimpleObjectProperty(Metadata.EMPTY);
 
     final SimpleObjectProperty<Metadata> selectedMetadata = new SimpleObjectProperty();
 
@@ -111,7 +111,7 @@ final class Core {
     
     void loadPlaylistSelectedMetadata(Item lastSelected) {
         if(lastSelected==null) {
-            selectedMetadata.set(Metadata.EMPTY());
+            selectedMetadata.set(Metadata.EMPTY);
         } else {
             MetadataReader.create(lastSelected, (success,result) -> {
                 if (success) {
@@ -119,7 +119,7 @@ final class Core {
                     selectedMetadata.set(result);
                 } else {
                     Log.deb("In playlist last selected item metadata reading failed.");
-                    selectedMetadata.set(Metadata.EMPTY());
+                    selectedMetadata.set(Metadata.EMPTY);
                 }
             });
         }

@@ -453,7 +453,7 @@ public class MetadataWriter extends MetaItem {
      */
     public void setChapter(Chapter chapter, Metadata metadata) {
         // get latest chapters
-        List<Chapter> chaps = metadata.getChapters();
+        List<Chapter> chaps = metadata.getChaptersFromAny();
         // look up whether chapter exists
         int ind = chaps.indexOf(chapter);
         // replace if exists, add otherwise
@@ -478,7 +478,7 @@ public class MetadataWriter extends MetaItem {
      */
     public void removeChapter(Chapter chapter, Metadata metadata) {
         // get latest chapters
-        List<Chapter> chaps = metadata.getChapters();
+        List<Chapter> chaps = metadata.getChaptersFromAny();
         chaps.remove(chapter);
         setChapters(chaps);
     }

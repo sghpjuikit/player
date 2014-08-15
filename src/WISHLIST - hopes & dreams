@@ -3,6 +3,8 @@
 --------------------------------------------------------------------------------
 
 - mockup layout - layout loading without widgets
+- multiple values in tag - investigate tag support, deimiter char and how
+  to support this in database.
 
 --------------------------------------------------------------------------------
 ------------------------- IMPROVEMENTS - what you dont like --------------------
@@ -28,7 +30,6 @@
 - seeker option to show chapters as they are passing                            (?)
 - cursor trail effect - 'frozen" effect
 - cursor api clean up, fix appliers, make actually usable
-- TextFlow for smart text tables
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?       (picture as mask?)
 - widget manager widget
 - tagger disable unsupported fields for type
@@ -52,7 +53,6 @@ FURTHER DOWN THE LIST FUNCTIONALITIES
     columns relative size                                                       // done
     columns wider than table - scroll                                           // done
 - color graph of all songs
-- monitor folder content for changes (playlists, layouts, skins, widgets, ...)  (?)
 - finish metadata reading/writing flac, ogg (most are already done)
 - playback ogg, flac
 

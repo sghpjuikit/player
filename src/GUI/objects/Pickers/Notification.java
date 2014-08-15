@@ -146,7 +146,7 @@ public class Notification extends PopOver {
                 thumb.setFile(c.getFile());
                 indexL.setText(m.getPlaylistIndexInfo());
                 songL.setText(m.getTitle());
-                artistL.setText(m.getArtistOrAlbumArist());
+                artistL.setText(m.getArtist());
                 albumL.setText(m.getAlbum());
             }
             setContentNode(songNotif);

@@ -43,7 +43,7 @@ public final class FileSize {
     /**
      * @return file size in bytes or 0L if unknown
      */
-    public long getValue() {
+    public long inBytes() {
         return size;
     }
     

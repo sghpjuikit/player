@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import main.App;
 import static utilities.Util.NotNULL;
@@ -42,7 +43,9 @@ public final class FileUtil {
      * <p>
      * Current implementation is file denoting application location directory.
      */
-    public static final File EMPTY_FILE = new File("");
+    public static final URI EMPTY_URI = URI.create("empty://empty");
+    
+    public static final Color EMPTY_COLOR = new Color(0, 0, 0, 0);
     
     /**
      * Returns true if for provided File all conditions are met:

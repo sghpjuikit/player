@@ -12,6 +12,7 @@ import utilities.Util;
  * minutes:seconds format.* Example: 00:00.
  */
 public class FormattedDuration extends Duration {
+    private static final long serialVersionUID = 11L;
     
     /* Constructor. Initializes to 0.  */
     public FormattedDuration() {

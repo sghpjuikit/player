@@ -5,9 +5,7 @@
  */
 package utilities;
 
-import java.util.ArrayList;
 import java.util.List;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 
 /**
@@ -15,23 +13,6 @@ import javafx.scene.control.TableView.TableViewSelectionModel;
  * @author uranium
  */
 public final class TableUtil {
-
-    /**
-     * Removes all selected items from TableView's table. Does nothing if table
-     * is null, empty or nothing is selected.
-     * @param t TableView to remove from.
-     */
-    public static void removeSelectedItems(TableView<?> t) {
-        if (t == null || t.getItems().isEmpty() || t.getSelectionModel().getSelectedIndices().isEmpty()) {
-            return;
-        }
-        List<Integer> items = new ArrayList<>();
-        items.addAll(t.getSelectionModel().getSelectedIndices());
-        t.getSelectionModel().clearSelection();
-        for (int i = items.size() - 1; i >= 0; i--) {
-            t.getItems().remove(items.get(i).intValue());
-        }
-    }
 
     /**
      * Removes all items with any index from specified index list. Does nothing 

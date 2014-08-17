@@ -7,13 +7,16 @@
 package AudioPlayer.services.Database;
 
 import AudioPlayer.playlist.Item;
+import AudioPlayer.services.Database.POJO.MetadataGroup;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import main.App;
 import org.reactfx.EventSource;
@@ -66,13 +69,48 @@ public class DB {
         }
         return result;
     }
-    public static List<String> getAllArtists() {
+    public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
         EntityManager em = emf.createEntityManager();
         List result;
         try {
-            TypedQuery<String> query = em.createQuery("SELECT DISTINCT p.artist FROM Item p", String.class);
+            
+            String q = (value instanceof String)
+                    ? "SELECT p FROM Item p WHERE p."+field.name().toLowerCase()+" LIKE '" + value.toString() + "'"
+                    : "SELECT p FROM Item p WHERE p."+field.name().toLowerCase()+" IS " + value.toString();
+            TypedQuery<Metadata> query = em.createQuery(q, Metadata.class);
+            result = query.getResultList();
+        }
+        finally {
+            em.close();
+        }
+        return result;
+    }
+    public static List<Object[]> getAllArtists() {
+        EntityManager em = emf.createEntityManager();
+        List result;
+        try {
+            TypedQuery<String> query = em.createQuery("SELECT p.artist, count(p) FROM Item p GROUP BY p.artist", String.class);
             result = query.getResultList();
             result.forEach(System.out::println);
+        }
+        finally {
+            em.close();
+        }
+        return result;
+    }
+    
+    public static List<MetadataGroup> getAllGroups(Metadata.Field metadata_field) {
+        EntityManager em = emf.createEntityManager();
+        List<MetadataGroup> result = new ArrayList();
+        try {
+            String f = "p." + metadata_field.toString().toLowerCase();
+            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM Item p GROUP BY " + f;
+//            query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM Item p GROUP BY p.FIELD");
+            Query query = em.createQuery(q);
+            List<Object[]> q_res = query.getResultList();
+                           q_res.stream()
+                                .map(r->new MetadataGroup(metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]))
+                                .forEach(result::add);
         }
         finally {
             em.close();
@@ -119,6 +157,21 @@ public class DB {
     }
     
     
-    
+    /**
+     * Fires on every remove, update, insert operation on the database.
+     */
     public static final EventSource<Void> librarychange = new EventSource();
+    
+    public static class MetadataFieldSelection {
+        public final Metadata.Field field;
+        public final Object value;
+        
+        public MetadataFieldSelection(Metadata.Field field, Object value) {
+            this.field = field;
+            this.value = value;
+        }
+    }
+    public static final EventSource<MetadataFieldSelection> fieldSelectionChange = new EventSource();
+            
+   
 }

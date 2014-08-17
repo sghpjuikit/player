@@ -20,7 +20,6 @@ import Layout.Containers.Splitter;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeIcon.COG;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK_SQUARE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
@@ -42,6 +41,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -49,6 +49,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
+import utilities.SingleInstance;
 
 /**
  * FXML Controller class
@@ -57,7 +58,45 @@ import javafx.util.Duration;
  */
 public final class AreaControls {
     
-    private static PopOver<Text> helpPopOver; // we only need one instance for all areas
+    // we only need one instance for all areas
+    private static final SingleInstance<PopOver<Text>,AreaControls> helpP = new SingleInstance<>(
+        () -> PopOver.createHelpPopOver(""),
+        (p,ac) -> {
+            Component c = ac.area.getActiveComponent();
+            String info = "";
+            if (c!=null && c instanceof Widget) {
+                WidgetInfo i = ((Widget)c).getInfo();
+                info = "\n\nWidget: " + i.name();
+                if(!i.description().isEmpty()) info += "\n\n" + i.description();
+                if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
+                if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
+            }
+            String text = "Available actions:\n"
+                         + "    Close : Closes the widget\n"
+                         + "    Detach : Opens the widget in new window\n"
+                         + "    Change : Opens widget chooser to pick new widget\n"
+                         + "    Settings : Opens settings for the widget if available\n"
+                         + "    Refresh : Refreshes the widget\n"
+                         + "    Lock : Forbids entering layout mode on mouse hover\n"
+                         + "    Press ALT : Toggles layout mode\n"
+                         + "    Drag & Drop header : Drags widget to other area\n"
+                         + "\n"
+                         + "Available actions in layout mode:\n"
+                         + "    Drag & Drop : Drags widget to other area\n"
+                         + "    Sroll : Changes widget area size\n"
+                         + "    Middle click : Set widget area size to max\n"
+                         + info;
+            p.getContentNode().setText(text);
+            // for some reason we need to set this every time, which
+            // should not be the case, investigate
+            p.getContentNode().setWrappingWidth(400);
+            // we need to handle hiding this AreaControls when popup
+            // closes and 
+            // we are outside of the area (not implemented yet)
+            p.addEventHandler(WINDOW_HIDDEN, we -> {
+                if(ac.isShowingWeak) ac.hide();
+            });
+        });
     
     @FXML public AnchorPane root = new AnchorPane();
     @FXML public Region deactivator;
@@ -98,45 +137,7 @@ public final class AreaControls {
         Label infoB = AwesomeDude.createIconLabel(INFO,"","12","12",CENTER);
               infoB.setTooltip(new Tooltip("Help"));
               infoB.setOnMouseClicked( e -> {
-                   // create popover lazily if not yet
-                   if(helpPopOver==null) {
-                       helpPopOver = PopOver.createHelpPopOver("");
-                       // we need to handle hiding this AreaControls when popup
-                       // closes and 
-                       // we are outside of the area (not implemented yet)
-                       helpPopOver.addEventHandler(WINDOW_HIDDEN, we -> {
-                           if(isShowingWeak) hide();
-                       });
-                   }
-                   // update text
-                   Component c = area.getActiveComponent();
-                   String info = "";
-                   if (c!=null && c instanceof Widget) {
-                       WidgetInfo i = ((Widget)c).getInfo();
-                       info = "\n\nWidget: " + i.name();
-                       if(!i.description().isEmpty()) info += "\n\n" + i.description();
-                       if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
-                       if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
-                   }
-                   String text = "Available actions:\n"
-                                + "    Close : Closes the widget\n"
-                                + "    Detach : Opens the widget in new window\n"
-                                + "    Change : Opens widget chooser to pick new widget\n"
-                                + "    Settings : Opens settings for the widget if available\n"
-                                + "    Refresh : Refreshes the widget\n"
-                                + "    Lock : Forbids entering layout mode on mouse hover\n"
-                                + "    Press ALT : Toggles layout mode\n"
-                                + "\n"
-                                + "Available actions in layout mode:\n"
-                                + "    Drag & Drop : Drags widget to other area\n"
-                                + "    Sroll : Changes widget area size\n"
-                                + "    Middle click : Set widget area size to max\n"
-                                + info;
-                   helpPopOver.getContentNode().setText(text);
-                   // for some reason we need to set this every time, which
-                   // should not be the case, investigate
-                   helpPopOver.getContentNode().setWrappingWidth(400);
-                   helpPopOver.show(infoB);
+                   helpP.get(this).show(infoB);
                    e.consume();
               });
         Label closeB = AwesomeDude.createIconLabel(TIMES_CIRCLE,"","12","12",CENTER);
@@ -159,8 +160,6 @@ public final class AreaControls {
                });
                propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
                propB.setTooltip(new Tooltip("Settings"));
-               propB.setOnMouseEntered( e -> AwesomeDude.setIcon(propB,COG, "12"));
-               propB.setOnMouseExited( e -> AwesomeDude.setIcon(propB,COGS, "12"));
                propB.setOnMouseClicked( e -> {
                    settings();
                    e.consume();
@@ -212,7 +211,7 @@ public final class AreaControls {
         // - the weak behavior must not work in strong mode
         
         // show when area is hovered and in weak mode
-        area.activator.addEventFilter(MouseEvent.MOUSE_ENTERED, e -> {
+        area.activator.addEventFilter(MOUSE_ENTERED, e -> {
             // avoid when locked and in strong mode
             if (!area.isUnderLock() && !isShowingStrong && 
                     // avoid pointless operation
@@ -229,7 +228,7 @@ public final class AreaControls {
                     // mouse entering the popup qualifies as root.mouseExited which we need
                     // to avoid
                     // now we need to handle hiding when popup closes
-                    (helpPopOver==null || !helpPopOver.isShowing())
+                    (helpP.isNull() || !helpP.get().isShowing())
                         // hide when none of the deactivators are hovered
                         // need to translate the coordinates to scene-relative
                         && !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
@@ -246,7 +245,7 @@ public final class AreaControls {
         // not get captured in fast movement. This additional handler fixes
         // the issue
         area.root.addEventFilter(MOUSE_EXITED, e -> {
-            if(isShowingWeak && !isShowingStrong && (helpPopOver==null || !helpPopOver.isShowing()))
+            if(isShowingWeak && !isShowingStrong && (helpP.isNull() || !helpP.get().isShowing()))
                 hide();
         });
         
@@ -355,7 +354,7 @@ public final class AreaControls {
         area.enableContent();
         root.setMouseTransparent(true);
         // hide help popup if open
-        if(helpPopOver!=null && helpPopOver.isShowing()) helpPopOver.hide();        
+        if(!helpP.isNull() && helpP.get().isShowing()) helpP.get().hide();        
     }
     
     public void show() {

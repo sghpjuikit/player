@@ -17,6 +17,12 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -367,6 +373,78 @@ public interface Util {
      */
     public static int DecMin1(int number) {
         return (int) (Math.pow(10, 1+digits(number))-1);
+    }
+    
+/******************************** GRAPHICS ************************************/
+    
+    /**
+     * Returns copy of the selected items of the table. Because the original list
+     * is observable, changes would show up if it was used as a parameter. Often,
+     * we need a 'snapshot' of the selected items list at the moment and we dont
+     * want that snapshot to mutate.
+     * @param <T> type of element in the list
+     * @param table_source
+     * @return 
+     */
+    public static<T> List<T> copySelectedItems(TableView<T> table_source) {
+        return new ArrayList(table_source.getSelectionModel().getSelectedItems());
+    }
+    
+    /**
+     * Creates column that indexes rows from 1 and is right aligned. The column 
+     * is general and doesnt need to know what kind of data is in the table.
+     * @param name name of the column. For example "#"
+     * @return the column
+     */
+    public static<T,R> TableColumn<T,R> createIndexColumn(String name) {
+        TableColumn indexColumn = new TableColumn(name);
+        indexColumn.setCellFactory( column -> 
+            new TableCell(){
+                {
+                    // we want to align the index to the right, not left
+                    setAlignment(CENTER_RIGHT);
+                }
+                @Override
+                protected void updateItem(Object item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) setText("");
+                    else setText(String.valueOf(getIndex()+1)+ ".");
+                }
+            }
+        );
+        return indexColumn;
+    }
+    
+    /**
+     * Same as {@link #DEFAULT_ALIGNED_CELL_FACTORY(javafx.geometry.Pos)}, but
+     * the alignment is inferred from the type of element in the cell (not table
+     * or column, because we are aligning cell content) in the following way: 
+     * String content is aligned to CENTER_LEFT and the rest CENTER_RIGHT.
+     * 
+     * @param type for cell content.
+     */
+    public static<T> Callback<TableColumn<T,Object>,TableCell<T,Object>> DEFAULT_ALIGNED_CELL_FACTORY(Class type) {
+        Pos al = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+        return column -> {
+            TableCell cell = TableColumn.DEFAULT_CELL_FACTORY.call(column);
+                      cell.setAlignment(al);
+            return cell;
+        };
+    }
+    
+    /**
+     * Returns {@link TableColumn.DEFAULT_CELL_FACTORY} (the default factory used
+     * when no factory is specified), aligning the cell content to specified value.
+     * 
+     * @param cell_alignment
+     * @return 
+     */
+    public static<T> Callback<TableColumn<T,Object>,TableCell<T,Object>> DEFAULT_ALIGNED_CELL_FACTORY(Pos cell_alignment) {
+        return column -> {
+            TableCell cell = TableColumn.DEFAULT_CELL_FACTORY.call(column);
+                      cell.setAlignment(cell_alignment);
+            return cell;
+        };
     }
     
 /***************************** REFLECTION *************************************/

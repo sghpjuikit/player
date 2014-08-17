@@ -236,7 +236,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     ChangeListener<Duration> lengthListener = (o,ov,nv) -> updateLength(nv);
     
     private void updateLength(Duration d) {
-        duration.setText(Util.formatDuration(d));
+        duration.setText(PlaylistManager.getSize() + " items: " + Util.formatDuration(d));
     }
     
 /******************************************************************************/   

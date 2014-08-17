@@ -51,6 +51,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 import utilities.Enviroment;
+import utilities.SingleInstance;
 import utilities.TODO;
 import utilities.TableUtil;
 import utilities.Util;
@@ -294,7 +295,6 @@ public final class PlaylistTable {
             if (selected_temp.contains(clicked_row)) {
                 TableUtil.selectRows(selected_temp, table.getSelectionModel());
             }
-            
             e.consume();
         });
         // handle selection
@@ -319,7 +319,7 @@ public final class PlaylistTable {
             } else
             if (e.getButton() == SECONDARY)     // show contextmenu
                 if (!PlaylistManager.isEmpty()) {
-                    getCM(table).show(table, e.getScreenX(), e.getScreenY());
+                    contxt_menu.get(table).show(table, e.getScreenX(), e.getScreenY());
                     e.consume();
                 }
         });
@@ -366,7 +366,6 @@ public final class PlaylistTable {
         });
         // handle drag from - copy selected items
         table.setOnDragDetected( e -> {
-        if (e.getButton()!=PRIMARY) return;
             if (e.isControlDown() && e.getButton() == PRIMARY) {
                 Dragboard db = table.startDragAndDrop(TransferMode.COPY);
                 DragUtil.setPlaylist(new Playlist(getSelectedItems()),db);
@@ -704,72 +703,66 @@ public final class PlaylistTable {
     }
     
 /****************************** CONTEXT MENU **********************************/
-    
-    private static ContentContextMenu<List<PlaylistItem>> cm;
-    
-    private static ContentContextMenu getCM(TableView<PlaylistItem> t) {
-        if(cm==null) cm = buildCM();
-        // note: we need to create a copy of the list to avoid modification
-        cm.setItem(new ArrayList(t.getSelectionModel().getSelectedItems()));
-        return cm;
-    }
-    
-    private static ContentContextMenu buildCM() {
-        final ContentContextMenu<List<PlaylistItem>> contextMenu = new ContentContextMenu();
-        
-        MenuItem item1 = new MenuItem("Play items");        
-                 item1.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     PlaylistManager.playItem(items.get(0));
-                 });
-        MenuItem item2 = new MenuItem("Remove items");        
-                 item2.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     PlaylistManager.removeItems(items);
-                 });
-        MenuItem item3 = new MenuItem("Edit the item/s in tag editor");        
-                 item3.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
-                     if (w!=null) {
-                         TaggingFeature t = (TaggingFeature) w.getController();
-                                        t.read(items);
-                     }
-                 });
-        MenuItem item4 = new MenuItem("Crop items");        
-                 item4.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     PlaylistManager.retainItems(items);
-                 });
-        MenuItem item5 = new MenuItem("Duplicate items as group");        
-                 item5.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     PlaylistManager.duplicateItemsAsGroup(items);
-                 });
-        MenuItem item6 = new MenuItem("Duplicate items individually");        
-                 item6.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     PlaylistManager.duplicateItemsByOne(items);
-                 });
-        MenuItem item7 = new MenuItem("Explore items's directory");        
-                 item7.setOnAction(e -> {
-                     List<PlaylistItem> items = contextMenu.getItem();
-                     List<File> files = items.stream()
-                             .filter(Item::isFileBased)
-                             .map(Item::getLocation)
-                             .collect(Collectors.toList());
-                     Enviroment.browse(files,true);
-                 });
-        MenuItem item8 = new MenuItem("Add items to library");        
-                 item8.setOnAction(e -> {
-                     List<Metadata> items = contextMenu.getItem().stream()
-                             .map(Item::toMetadata)
-                             .collect(Collectors.toList());
-                     DB.addItems(items);
-                 });
-                 
-        contextMenu.getItems().addAll(item1, item2, item3, item4, item5, item6, item7, item8);
-        contextMenu.setConsumeAutoHidingEvents(false);
-        return contextMenu;
-    }
+
+    private static final SingleInstance<ContentContextMenu<List<PlaylistItem>>,TableView<PlaylistItem>> contxt_menu = new SingleInstance<>(
+        () -> {
+            ContentContextMenu<List<PlaylistItem>> contextMenu = new ContentContextMenu();
+
+            MenuItem item1 = new MenuItem("Play items");        
+                     item1.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         PlaylistManager.playItem(items.get(0));
+                     });
+            MenuItem item2 = new MenuItem("Remove items");        
+                     item2.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         PlaylistManager.removeItems(items);
+                     });
+            MenuItem item3 = new MenuItem("Edit the item/s in tag editor");        
+                     item3.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
+                         if (w!=null) {
+                             TaggingFeature t = (TaggingFeature) w.getController();
+                                            t.read(items);
+                         }
+                     });
+            MenuItem item4 = new MenuItem("Crop items");        
+                     item4.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         PlaylistManager.retainItems(items);
+                     });
+            MenuItem item5 = new MenuItem("Duplicate items as group");        
+                     item5.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         PlaylistManager.duplicateItemsAsGroup(items);
+                     });
+            MenuItem item6 = new MenuItem("Duplicate items individually");        
+                     item6.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         PlaylistManager.duplicateItemsByOne(items);
+                     });
+            MenuItem item7 = new MenuItem("Explore items's directory");        
+                     item7.setOnAction(e -> {
+                         List<PlaylistItem> items = contextMenu.getItem();
+                         List<File> files = items.stream()
+                                 .filter(Item::isFileBased)
+                                 .map(Item::getLocation)
+                                 .collect(Collectors.toList());
+                         Enviroment.browse(files,true);
+                     });
+            MenuItem item8 = new MenuItem("Add items to library");        
+                     item8.setOnAction(e -> {
+                         List<Metadata> items = contextMenu.getItem().stream()
+                                 .map(Item::toMetadata)
+                                 .collect(Collectors.toList());
+                         DB.addItems(items);
+                     });
+
+            contextMenu.getItems().addAll(item1, item2, item3, item4, item5, item6, item7, item8);
+            contextMenu.setConsumeAutoHidingEvents(false);
+            return contextMenu;
+        },
+        (menu,table) -> menu.setItem(Util.copySelectedItems(table))
+    );
 }

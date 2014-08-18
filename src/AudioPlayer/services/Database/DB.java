@@ -107,10 +107,15 @@ public class DB {
             String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM Item p GROUP BY " + f;
 //            query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM Item p GROUP BY p.FIELD");
             Query query = em.createQuery(q);
-            List<Object[]> q_res = query.getResultList();
-                           q_res.stream()
-                                .map(r->new MetadataGroup(metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]))
-                                .forEach(result::add);
+            List<Object[]> rs = query.getResultList();
+                            rs.stream()
+                            .map(r->
+                                // or some strange reason sum(length) returns long! not double below is the original line
+                                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
+                                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
+                                new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
+                            )
+                            .forEach(result::add);
         }
         finally {
             em.close();
@@ -150,9 +155,9 @@ public class DB {
         }
         librarychange.push(null);
     }
-    public static void updateItemsFromFile(List<? extends Item> items) {System.out.println("UP START");
-        MetadataReader.readMetadata(items, (success,result) -> {System.out.println("UP R DONE");
-            if(success) updateItems(result);System.out.println("U DONE");
+    public static void updateItemsFromFile(List<? extends Item> items) {
+        MetadataReader.readMetadata(items, (success,result) -> {
+            if(success) updateItems(result);
         });
     }
     

@@ -3,6 +3,7 @@ package AudioPlayer.tagging;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
+import AudioPlayer.services.Database.DB;
 import static AudioPlayer.services.Database.DB.emf;
 import java.util.ArrayList;
 import java.util.List;
@@ -288,6 +289,7 @@ public class MetadataReader{
                         }
                     }
                     em.getTransaction().commit();
+                    Platform.runLater(() -> DB.librarychange.push(null));
                 } finally {
                     em.close();
                 }

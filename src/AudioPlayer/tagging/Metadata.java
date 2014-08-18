@@ -272,10 +272,8 @@ public final class Metadata extends MetaItem {
 //        }
         for (String val: tag.getAll(f))
             out.add(Util.emptifyString(val));
-        
-        
-        }catch(Exception w) { 
-            // contrary to what compiler is sayingL no exception is not too broad
+        } catch(Exception w) { 
+            // contrary to what compiler is saying, no, exception is not too broad
             // do not change the exception or some weird stuff will be happening
             // jaudiotagger throws some additional exceptions here and there...
             w.printStackTrace();
@@ -296,8 +294,26 @@ public final class Metadata extends MetaItem {
             cou = body1.getCounter();//returns null if empty
         }
         
-        rating = rat==null ? -1 : Math.toIntExact(rat);
-        playcount = cou==null ? -1 : Math.toIntExact(cou);
+        // i do not know why the values themselves are Long, but we only need int
+        // both for rating and playcount.
+        // all is good until the tag is actually damaged and the int can really
+        // overflow during conversion and we get ArithmeticException
+        // so we catch it and ignore the value (personally id throw custom
+        // exception anf handled in in upper layers eventually showing a dialog
+        // asking the user to fix the tags by rewriting it - but this is good
+        // enough - plus, both rating & playcount are likely to be changed soon
+        try {
+            rating = rat==null ? -1 : Math.toIntExact(rat);
+        } catch (ArithmeticException e) {
+            rating = -1;
+        }
+        
+        try {
+            playcount = cou==null ? -1 : Math.toIntExact(cou);
+        } catch (ArithmeticException e) {
+            playcount = -1;
+        }
+        
         publisher = Util.emptifyString(mp3.getID3v2TagAsv24().getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
     private void loadSpecificFieldsWAV() {

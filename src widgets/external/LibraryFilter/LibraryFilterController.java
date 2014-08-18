@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
@@ -78,7 +79,7 @@ public class LibraryFilterController extends FXMLController {
         
         AnchorPane.setTopAnchor(table, 0d);
         AnchorPane.setRightAnchor(table, 0d);
-        AnchorPane.setBottomAnchor(table, 30d);
+        AnchorPane.setBottomAnchor(table, 0d);
         AnchorPane.setLeftAnchor(table, 0d);
         
 //        table.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -124,7 +125,9 @@ public class LibraryFilterController extends FXMLController {
             if(nv!=null)
                 DB.fieldSelectionChange.push(new DB.MetadataFieldSelection(fieldFilter,nv.getValue()));
         });
-        DB.fieldSelectionChange.subscribe( ms -> System.out.println(ms.value));
+        
+        // prevent scrol event to propagate up
+        root.setOnScroll(Event::consume);
     }
 
     @Override

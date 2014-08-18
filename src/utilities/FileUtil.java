@@ -45,6 +45,10 @@ public final class FileUtil {
      */
     public static final URI EMPTY_URI = URI.create("empty://empty");
     
+    /**
+     * Empty color. Fully transparent black. Substitute for null in some
+     * situations.
+     */
     public static final Color EMPTY_COLOR = new Color(0, 0, 0, 0);
     
     /**

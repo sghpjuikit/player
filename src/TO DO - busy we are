@@ -35,6 +35,14 @@
 - press C to collapse layout containers easily - implement properly
 - NOTIFICATION PADDING WRONG (AGAIN) - sometimes
 - '/n' character expands table row height, figure out how to disable that...
+- allow multiselection in library metadata group -> support multiple values in
+  AND filtering for query
+- library refresh cells
+- adding to library reeading gradually slows down a lot + RAm goes up, batch it
+  try adding items in count of 100-500 each batch within its own transaction &
+  entity manager. I think having 10+k managed items is not healthy...
+  if we maintain the initial speed the whole time ill be very happy with the
+  result
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

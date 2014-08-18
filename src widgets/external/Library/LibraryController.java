@@ -10,6 +10,7 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataReader;
+import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.FadeButton;
@@ -23,12 +24,13 @@ import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import static de.jensd.fx.fontawesome.AwesomeIcon.PLUS;
 import java.io.File;
 import java.util.ArrayList;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -38,11 +40,13 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
@@ -54,6 +58,7 @@ import utilities.FileUtil;
 import utilities.FxTimer;
 import utilities.SingleInstance;
 import utilities.Util;
+import utilities.functional.functor.UnProcedure;
 
 /**
  *
@@ -67,12 +72,10 @@ import utilities.Util;
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +
             "    Item right click : Opens context menu\n" +
-            // not yet implemented
-//            "    Item double click : Plays item\n" +
+            "    Item double click : Plays item\n" +
 //            "    Item drag : Moves item within playlist\n" +
-//            "    Item drag + CTRL : Activates Drag&Drop\n" +
 //            "    Press ENTER : Plays item\n" +
-//            "    Press ESC : Clear selection & filter\n" +
+            "    Press ESC : Clear selection & filter\n" +
 //            "    Type : Searches for item - applies filter\n" +
             "    Scroll : Scroll table vertically\n" +
             "    Scroll + SHIFT : Scroll table horizontally\n" +
@@ -171,17 +174,29 @@ public class LibraryController extends FXMLController {
             }
         });
         
+        // handle drag from - copy selected items
+        table.setOnDragDetected( e -> {
+            if (e.getButton() == PRIMARY && e.getY()>table.getFixedCellSize()) {
+                Dragboard db = table.startDragAndDrop(TransferMode.COPY);
+                DragUtil.setItemList(Util.copySelectedItems(table),db);
+                e.consume();
+            }
+        });
+        
+        // prevent scrol event to propagate up
+        root.setOnScroll(Event::consume);
+        
         Label progressL = new Label();
               progressL.setVisible(false);
         root.getChildren().add(progressL);
         AnchorPane.setBottomAnchor(progressL, 0d);
         AnchorPane.setRightAnchor(progressL, 0d);
         
+        // add items to library button
         FadeButton b1 = new FadeButton(PLUS, 13);
                    b1.setOnMouseClicked( e -> {
                         DirectoryChooser fc = new DirectoryChooser();
                         File f = fc.showDialog(root.getScene().getWindow());
-                        System.out.println("START");
                         List<Metadata> metas = FileUtil.getAudioFiles(f,111).stream()
                                 .map(SimpleItem::new)
                                 .map(SimpleItem::toMetadata)
@@ -200,18 +215,22 @@ public class LibraryController extends FXMLController {
                         
                        e.consume();
                    });
+        // information label
         Label infoL  = new Label();
-        ListChangeListener<Metadata> infoUpdater = c -> {
-//            while(c.next()) {
-                List<? extends Metadata> content = c.getList().isEmpty() ? table.getItems() : c.getList();
-                Duration du = content.stream().map(m -> (Duration)m.getLength()).reduce(ZERO, Duration::add);
-                String prefix = c.getList().isEmpty() ? "All:" : "Selected:";
-                       prefix += content.size()==1 ? " item " : " items ";
-                infoL.setText(prefix + content.size() + " - " + Util.formatDuration(du));
-//            }
+            // updates info label
+        UnProcedure<List<? extends Metadata>> infoUpdate = list -> {
+            List<? extends Metadata> content = list.isEmpty() ? table.getItems() : list;
+            Duration du = content.stream().map(m -> (Duration)m.getLength()).reduce(ZERO, Duration::add);
+            String prefix = list.isEmpty() ? "All:" : "Selected:";
+                   prefix += content.size()==1 ? " item " : " items ";
+            infoL.setText(prefix + content.size() + " - " + Util.formatDuration(du));
         };
+            // calls info label update on selection change
+        ListChangeListener<Metadata> infoUpdater = c -> infoUpdate.accept(c.getList());
         table.getSelectionModel().getSelectedItems().addListener(infoUpdater);
         table.getItems().addListener(infoUpdater);
+            // initialize info label
+        infoUpdate.accept(EMPTY_LIST);
         
         HBox controls = new HBox(b1, infoL);
              controls.setSpacing(8);
@@ -234,7 +253,7 @@ public class LibraryController extends FXMLController {
     public void refresh() {
         table.getSelectionModel().clearSelection();
         if(change!=null)
-        table.setItems(FXCollections.observableArrayList(DB.getAllItemsWhere(change.field, change.value)));
+        table.getItems().setAll(DB.getAllItemsWhere(change.field, change.value));
     }
 
     @Override

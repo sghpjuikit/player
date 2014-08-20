@@ -43,7 +43,7 @@ final class Core {
         Metadata nextMetadataCache = EMPTY;
         BiEventSource<Metadata,Metadata> itemPlayedES = new BiEventSource();
         BiEventSource<Metadata,Metadata> itemUpdatedES = new BiEventSource();
-        private final FxTimer nextCachePreloader = FxTimer.createPeriodic(Duration.millis(400), () -> preloadNext());
+        private final FxTimer nextCachePreloader = FxTimer.create(Duration.millis(400), () -> preloadNext());
         
         /**
          * Returns the playing item and all its information.
@@ -116,7 +116,7 @@ final class Core {
                 Log.deb("Current item metadata copied from next item metadata cache.");
             // else load
             } else {
-                Log.deb("Next item metadata cache copy failed - content doesnt correspond to correct item. Loading now.");
+                Log.deb("Next item metadata cache copy failed - content doesnt correspond to correct item. Loading now...");
                 load(true, item);
             }
             
@@ -138,9 +138,10 @@ final class Core {
         }
         
         private void preloadNext(){
+            Log.deb("Preloading metadata for next item to play.");
             PlaylistItem next = PlaylistManager.playingItemSelector.getNextPlaying();
             if (next == null){
-                Log.deb("Next item metadata cache preloading aborted. No next playing item.");
+                Log.deb("Preloading aborted. No next playing item.");
             } else {
                 MetadataReader.create(next,(success, result) -> {
                     if (success){

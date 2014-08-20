@@ -26,6 +26,7 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -41,6 +42,7 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
+import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import utilities.AudioFileFormat;
@@ -303,45 +305,49 @@ public final class Metadata extends MetaItem {
     }
     
     private void loadSpecificFieldsMP3(MP3File mp3) {
-        try {
+        Objects.requireNonNull(mp3);
         
-        AbstractID3v2Frame frame1 = mp3.getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
-        FrameBodyPOPM body1 = null;
-        Long rat = null;
-        Long cou = null;
+        // we obtain the tag
+        ID3v24Tag tag = mp3.getID3v2TagAsv24();
+        // if no tag is present we get null, nothing to read -> leave default values
+        if(tag==null) {
+            Log.warn("MP3 file is missing tag: " + getURI() + ". Some values will be left empty.");
+            return;
+        }
+        
+        // we obtain the POPM field (rating + counter + mail/user)
+        AbstractID3v2Frame frame1 = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+        // if not present we get null and leave default values
         if (frame1 != null) {
-            body1 = (FrameBodyPOPM) frame1.getBody();
-        }
-        if (body1 != null) {
-            rat = body1.getRating();//returns null if empty
-            cou = body1.getCounter();//returns null if empty
+            // we obtain body for the field
+            FrameBodyPOPM body1 = (FrameBodyPOPM) frame1.getBody();
+            // once again the body of the field might not be there
+            if (body1 != null) {
+                long rat = body1.getRating(); //returns null if empty
+                long cou = body1.getCounter(); //returns null if empty
+                
+                // i do not know why the values themselves are Long, but we only need int
+                // both for rating and playcount.
+                // all is good until the tag is actually damaged and the int can really
+                // overflow during conversion and we get ArithmeticException
+                // so we catch it and ignore the value (personally id throw custom
+                // exception anf handled in in upper layers eventually showing a dialog
+                // asking the user to fix the tags by rewriting it - but this is good
+                // enough - plus, both rating & playcount are likely to be changed soon
+                try {
+                    rating = Math.toIntExact(rat);
+                } catch (ArithmeticException e)
+                    {}
+
+                try {
+                    playcount = Math.toIntExact(cou);
+                } catch (ArithmeticException e) 
+                    {}
+            }
         }
         
-        // i do not know why the values themselves are Long, but we only need int
-        // both for rating and playcount.
-        // all is good until the tag is actually damaged and the int can really
-        // overflow during conversion and we get ArithmeticException
-        // so we catch it and ignore the value (personally id throw custom
-        // exception anf handled in in upper layers eventually showing a dialog
-        // asking the user to fix the tags by rewriting it - but this is good
-        // enough - plus, both rating & playcount are likely to be changed soon
-        try {
-            rating = rat==null ? -1 : Math.toIntExact(rat);
-        } catch (ArithmeticException e) {
-            rating = -1;
-        }
-        
-        try {
-            playcount = cou==null ? -1 : Math.toIntExact(cou);
-        } catch (ArithmeticException e) {
-            playcount = -1;
-        }
-        
-        publisher = Util.emptifyString(mp3.getID3v2TagAsv24().getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
-        
-        } catch(Exception e) {
-            System.out.println("Mp3 tag reading error during: " + getURI() + " " + e.getMessage() + e.getStackTrace());
-        }
+        // we obtain publisher
+        publisher = Util.emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
     private void loadSpecificFieldsWAV() {
         rating = -1;

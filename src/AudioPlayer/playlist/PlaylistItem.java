@@ -163,7 +163,7 @@ public final class PlaylistItem extends Item {
      * <p>
      * Dont use this method for lots of items at once on application thread!
      */
-    public void update() {
+    public void update() {System.out.println("updating " + getURI());
         if (isCorrupt()) return;
         
         if(isFileBased()) {

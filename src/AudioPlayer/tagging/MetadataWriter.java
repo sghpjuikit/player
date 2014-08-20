@@ -25,6 +25,7 @@ import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
+import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
@@ -254,8 +255,18 @@ public class MetadataWriter extends MetaItem {
         } 
     }
     
+    private void validateMp3Tag(MP3File file) {
+        ID3v24Tag tag = file.getID3v2TagAsv24();
+//        if (tag==null) file.
+        file.getTagOrCreateDefault();
+    }
+    
     private void setRatingMP3(double val) {
-        AbstractID3v2Frame f = ((MP3File)audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+        MP3File mp3File = ((MP3File)audioFile);
+                mp3File.getTagOrCreateAndSetDefault();
+        ID3v24Tag tag = mp3File.getID3v2TagAsv24();
+//                  tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
+        AbstractID3v2Frame f = mp3File.getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         if ( f == null) { 
              f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER); 
              f.setBody(new FrameBodyPOPM());

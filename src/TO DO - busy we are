@@ -49,7 +49,8 @@
 - library remember value is Object field turn into Config with overriden getType
   that gets the type from the field type config, or unify the two into one
   double value config
-
+- writing to tag for files without tag fails sometimes (jaudiotagger cant rename
+  file, it looks like it is locked)
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
 --------------------------------------------------------------------------------
@@ -84,6 +85,8 @@ GENERAL
 - tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug)
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bu)
 - Configurator group title alignment doesnt get applied on refresh
+- context menu position sometimes off (even default ones). The cause must be
+  its parent Node not initializing size correctly
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)

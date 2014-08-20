@@ -103,21 +103,28 @@ public final class PlaylistTable {
     private Label tmp = new Label();
     private Label tmp2 = new Label();
     
+    public PlaylistTable (AnchorPane parent) {
+        this();
+        setRoot(parent);
+    }
+    
+    public void setRoot(AnchorPane parent) {
+        parent.getChildren().add(table);
+        AnchorPane.setBottomAnchor(table, 0d);
+        AnchorPane.setLeftAnchor(table, 0d);
+        AnchorPane.setRightAnchor(table, 0d);
+        AnchorPane.setTopAnchor(table, 0d);
+        parent.getChildren().add(tmp);
+        parent.getChildren().add(tmp2);        
+    }
+    
     /**
      * Constructor.
      * Creates the table and fits it to specified parent.
      * Initializes everything needed to fully function.
      * @param parent AnchorPane container wrapping this table. Anchors will be set to 0.
      */
-    public PlaylistTable (AnchorPane parent) {
-        
-        parent.getChildren().add(table);
-        AnchorPane.setBottomAnchor(table, 0.0);
-        AnchorPane.setLeftAnchor(table, 0.0);
-        AnchorPane.setRightAnchor(table, 0.0);
-        AnchorPane.setTopAnchor(table, 0.0);
-        parent.getChildren().add(tmp);
-        parent.getChildren().add(tmp2);
+    public PlaylistTable () {
         
         // initialize table gui
         table.setTableMenuButtonVisible(true);
@@ -414,6 +421,7 @@ public final class PlaylistTable {
      */
     public void zeropadIndex(boolean val) {
         zero_pad = val;
+        refresh(); // in order to apply change
     }
     
 /******************************************************************************/     
@@ -497,6 +505,7 @@ public final class PlaylistTable {
      */
     public void setShowOriginalIndex(boolean val) {
         show_original_index = val;
+        refresh(); // in order to apply value
     }
     
     public boolean isShowOriginalIndex() {

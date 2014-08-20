@@ -122,12 +122,11 @@ public interface Configurable<T> {
      * Set configurable field of specified name to specified value.
      * @param name
      * @param value 
-     * @return true if field has been set, false otherwise
      * @throws NullPointerException if no field available. Note: never catch
      * this exception or check for null. It signifies programming error.
      */
-    default public boolean setField(String name, T value) {
-        return getField(name).setValue(value);
+    default public void setField(String name, T value) {
+        getField(name).setValue(value);
     }
     
     /**
@@ -136,11 +135,10 @@ public interface Configurable<T> {
      * Set configurable field of specified name to value specified by String.
      * @param name
      * @param value 
-     * @return true if field has been set, false otherwise
      * @throws NullPointerException if no field available. Note: never catch
      * this exception or check for null. It signifies programming error.
      */
-    default public boolean setField(String name, String value) {
-        return getField(name).setValueS(value);
+    default public void setField(String name, String value) {
+        getField(name).setValueS(value);
     }
 }

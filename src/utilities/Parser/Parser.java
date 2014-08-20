@@ -49,11 +49,11 @@ public class Parser {
      * @throws UnsupportedOperationException if class type not supported.
      */
     public static Object fromS(Class type, String value) {
-        if(type.equals(File.class))        return new FileParser().fromS(value);
-        if(prim_parser.supports(type)) return prim_parser.fromS(type, value);
-        if(font_parser.supports(type)) return font_parser.fromS(value);
-        if(fromStrParser.supports(type)) return fromStrParser.fromS(type, value);
-        if(valOfParser.supports(type)) return valOfParser.fromS(type, value);
+        if(type.equals(File.class))         return new FileParser().fromS(value);
+        if(prim_parser.supports(type))      return prim_parser.fromS(type, value);
+        if(font_parser.supports(type))      return font_parser.fromS(value);
+        if(fromStrParser.supports(type))    return fromStrParser.fromS(type, value);
+        if(valOfParser.supports(type))      return valOfParser.fromS(type, value);
         
         throw new UnsupportedOperationException("Class type not supported" + type + ".");
     }

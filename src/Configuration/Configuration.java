@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import javafx.beans.property.Property;
+import javafx.beans.value.WritableValue;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import utilities.FileUtil;
@@ -106,30 +106,29 @@ public class Configuration {
             String group = a.group().isEmpty() ? getGroup(cl) : a.group();
             String name = f.getName();
 
-            if (include_static && Modifier.isStatic(f.getModifiers())) {
-                if(Property.class.isAssignableFrom(f.getType()))
-                    c = createPropertyConfig(f, null, name, a, group);
-                else {
-                    if(Modifier.isFinal(f.getModifiers()))
-                        // if final -> runtime exception, dev needs to fix his code
-                        throw new IllegalStateException("Field config must not be final.");
-                    // make statif field config based on the field
-                    c = new FieldConfig(name, a, null, group, f);
-                }
-            }
-            if (include_instance && !Modifier.isStatic(f.getModifiers())) {
-                if(Property.class.isAssignableFrom(f.getType()))
-                    c = createPropertyConfig(f, instnc, name, a, group);
-                else {
-                    if(Modifier.isFinal(f.getModifiers()))
-                        // if final -> runtime exception, dev needs to fix his code
-                        throw new IllegalStateException("Field config must not be final.");
-                    // make statif field config based on the field
-                    c = new FieldConfig(name, a, instnc, group, f);
-                }
-            }
+            if (include_static && Modifier.isStatic(f.getModifiers()))
+                c = createConfig(f, instnc, name, a, group);
+            
+            if (include_instance && !Modifier.isStatic(f.getModifiers()))
+                c = createConfig(f, instnc, name, a, group);
+            
         }
         return c;
+    }
+    
+    private static Config createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
+        if(Config.class.isAssignableFrom(f.getType())) {
+            return extractConfig(f, instance);
+        }
+        else if(WritableValue.class.isAssignableFrom(f.getType()))
+            return createPropertyConfig(f, instance, name, anotation, group);
+        else {
+            if(Modifier.isFinal(f.getModifiers()))
+                // if final -> runtime exception, dev needs to fix his code
+                throw new IllegalStateException("Field config must not be final.");
+            // make statif field config based on the field
+            return new FieldConfig(name, anotation, instance, group, f);
+        }
     }
     
     private static PropertyConfig createPropertyConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
@@ -141,12 +140,25 @@ public class Configuration {
             // make sure the field is accessible
             f.setAccessible(true);
             // get the property
-            Property val = (Property)f.get(instance);
+            WritableValue val = (WritableValue)f.get(instance);
             // make property config based on the property
             return new PropertyConfig(name, anotation, val, group);
         } catch (IllegalAccessException | SecurityException ex) {
-            throw new RuntimeException("Can not access field: " + f.getName()
-                    + " for class: " + f.getDeclaringClass());
+            throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
+        }
+    }
+    private static Config extractConfig(Field f, Object instance) {
+        try {
+            // make sure the field is final
+            if(!Modifier.isFinal(f.getModifiers())) 
+                // if not -> runtime exception, dev needs to fix his code
+                throw new IllegalStateException("Field of type Config must be final to be able to be extracted.");
+            // make sure the field is accessible
+            f.setAccessible(true);
+            // get the property
+            return (Config)f.get(instance);
+        } catch (IllegalAccessException | SecurityException ex) {
+            throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
     }
     

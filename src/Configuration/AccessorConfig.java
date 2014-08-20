@@ -7,30 +7,32 @@
 package Configuration;
 
 import Configuration.Config.ConfigBase;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-import javafx.util.Callback;
+import utilities.access.FunctAccessibleValue;
+import utilities.access.FunctAccessor;
 
 /**
  * Functional implementation of {@link Config} that doesnt store nor wrap the
  * value, instead contains the getter and setter which call the code that
  * provides the actual value. This can be thought of some kind of intermediary.
- * See {@link Accessor} which this config implements.
+ * See {@link FunctAccessor} which this config implements.
  * <p>
  * Use when wrapping the value is not desired, rather it is defined by a means
  * of accessing it.
  *
  * @author Plutonium_
  */
-public class AccessorConfig<T> extends ConfigBase<T> implements Accessor<T> {
+public class AccessorConfig<T> extends ConfigBase<T> implements FunctAccessibleValue<T> {
     
-    private final Callback<T,Boolean> setter;
+    private final Consumer<T> setter;
     private final Supplier<T> getter;
     
     /**
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(String name, String gui_name, Callback<T,Boolean> setter,
+    public AccessorConfig(String name, String gui_name, Consumer<T> setter,
             Supplier<T> getter, String category, String info, boolean editable, double min, double max) {
         super(name, gui_name, getter.get(), name, info, editable, min, max);
         this.getter = getter;
@@ -41,7 +43,7 @@ public class AccessorConfig<T> extends ConfigBase<T> implements Accessor<T> {
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(String name, Callback<T,Boolean> setter, Supplier<T> getter) {
+    public AccessorConfig(String name, Consumer<T> setter, Supplier<T> getter) {
         super(name, name, getter.get(), "", "", true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
@@ -51,7 +53,7 @@ public class AccessorConfig<T> extends ConfigBase<T> implements Accessor<T> {
      * @param setter defines how the value will be set
      * @param getter defines how the value will be accessed
      */
-    public AccessorConfig(String name, Callback<T,Boolean> setter, Supplier<T> getter, String info) {
+    public AccessorConfig(String name, Consumer<T> setter, Supplier<T> getter, String info) {
         super(name, name, getter.get(), "", info, true, Double.NaN, Double.NaN);
         this.getter = getter;
         this.setter = setter;
@@ -60,7 +62,7 @@ public class AccessorConfig<T> extends ConfigBase<T> implements Accessor<T> {
     
     /** {@inheritDoc} */
     @Override
-    public Callback<T, Boolean> getSetter() {
+    public Consumer<T> getSetter() {
         return setter;
     }
     
@@ -79,14 +81,14 @@ public class AccessorConfig<T> extends ConfigBase<T> implements Accessor<T> {
     
     /** {@inheritDoc} */
     @Override
-    public boolean setValue(T val) {
-        return setter.call(val);
+    public void setValue(T val) {
+        setter.accept(val);
     }
     
     /** {@inheritDoc} */
     @Override
-    public boolean applyValue() {
-        return true;
+    public void applyValue() {
+        // do nothing
     }
     
     /** {@inheritDoc} */

@@ -97,8 +97,8 @@ public class ImageController extends FXMLController {
         
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
-            List<File> images = DragUtil.getImageItems(e);
-            if(!images.isEmpty()) custom_image = images.get(0);
+            List<File> imgs = DragUtil.getImageItems(e);
+            if(!imgs.isEmpty()) custom_image = imgs.get(0);
             useCustomImage = true;
             e.setDropCompleted(true);
             refresh();

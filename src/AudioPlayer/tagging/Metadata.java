@@ -208,7 +208,8 @@ public final class Metadata extends MetaItem {
     }
     /** loads all generally supported fields  */
     private void loadGeneralFields(AudioFile aFile) {
-        Tag tag = aFile.getTag();
+        try {
+        
         AudioHeader header = aFile.getAudioHeader();
         
         // format and encoding type are switched in jaudiotagger library...
@@ -219,6 +220,12 @@ public final class Metadata extends MetaItem {
         encoding_type = Util.emptifyString(header.getFormat());
         channels = Util.emptifyString(header.getChannels());
         sample_rate = Util.emptifyString(header.getSampleRate());
+        
+        Tag tag = aFile.getTag();
+        if(tag==null) {
+            Log.warn("Tag unsupported in item being read: " + getURI());
+            return;
+        }
         
         encoder = getGeneral(tag,FieldKey.ENCODER);
         
@@ -246,6 +253,10 @@ public final class Metadata extends MetaItem {
         custom3 = getGeneral(tag,FieldKey.CUSTOM3);
         custom4 = getGeneral(tag,FieldKey.CUSTOM4);
         custom5 = getGeneral(tag,FieldKey.CUSTOM5);
+        
+        } catch(Exception e) {
+            System.out.println("Tag (gen.field) reading error during: " + getURI() + " " + e.getMessage() + e.getStackTrace());
+        }
     }
     private String getGeneral(Tag tag, FieldKey f) {
         if (!tag.hasField(f)) return "";
@@ -285,12 +296,15 @@ public final class Metadata extends MetaItem {
             // contrary to what compiler is saying, no, exception is not too broad
             // do not change the exception or some weird stuff will be happening
             // jaudiotagger throws some additional exceptions here and there...
+            // needs to be nvestigated
             w.printStackTrace();
         }
         return out;
     }
     
     private void loadSpecificFieldsMP3(MP3File mp3) {
+        try {
+        
         AbstractID3v2Frame frame1 = mp3.getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         FrameBodyPOPM body1 = null;
         Long rat = null;
@@ -324,6 +338,10 @@ public final class Metadata extends MetaItem {
         }
         
         publisher = Util.emptifyString(mp3.getID3v2TagAsv24().getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
+        
+        } catch(Exception e) {
+            System.out.println("Mp3 tag reading error during: " + getURI() + " " + e.getMessage() + e.getStackTrace());
+        }
     }
     private void loadSpecificFieldsWAV() {
         rating = -1;

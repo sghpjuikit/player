@@ -10,6 +10,7 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataReader;
+import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
@@ -55,6 +56,7 @@ import utilities.FileUtil;
 import utilities.FxTimer;
 import utilities.SingleInstance;
 import utilities.Util;
+import utilities.access.Accessor;
 import utilities.functional.functor.UnProcedure;
 
 /**
@@ -179,8 +181,9 @@ public class LibraryController extends FXMLController {
         FadeButton b1 = new FadeButton(PLUS, 13);
                    b1.setOnMouseClicked( e -> {
                         DirectoryChooser fc = new DirectoryChooser();
-                        File f = fc.showDialog(root.getScene().getWindow());
-                        List<Metadata> metas = FileUtil.getAudioFiles(f,111).stream()
+                        last_file = fc.showDialog(root.getScene().getWindow());
+                        
+                        List<Metadata> metas = FileUtil.getAudioFiles(last_file,111).stream()
                                 .map(SimpleItem::new)
                                 .map(SimpleItem::toMetadata)
                                 .collect(Collectors.toList());
@@ -224,20 +227,28 @@ public class LibraryController extends FXMLController {
         
         // listen for database changes to refresh library
         dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
-            changeField = field;
-            changeValue = value;
-            refresh();
+            changeValue = value; // needs to be ready before the next line
+            changeField.setValue(field); // this causes reloading of the data
         });
     }
     
-    Metadata.Field changeField;
-    Object changeValue;
+    @IsConfig(editable = false)
+    private Object changeValue = "";
+    
+    @IsConfig(editable = false)
+    private final Accessor<Metadata.Field> changeField = new Accessor<>(Metadata.Field.ARTIST, v -> {
+        table.getSelectionModel().clearSelection();
+        table.getItems().setAll(DB.getAllItemsWhere(v, changeValue));
+    });
+    
+    @IsConfig(editable = false)
+    private File last_file = new File("");
+    
 
     @Override
-    public void refresh() {
+    public void refresh() {System.out.println("refreshing " + changeField.getValue() + " " + changeValue);
         table.getSelectionModel().clearSelection();
-        if(changeField!=null)
-        table.getItems().setAll(DB.getAllItemsWhere(changeField, changeValue));
+        table.getItems().setAll(DB.getAllItemsWhere(changeField.getValue(), changeValue));
     }
 
     @Override

@@ -9,50 +9,70 @@ package Configuration;
 import Configuration.Config.ConfigBase;
 import java.util.Objects;
 import javafx.beans.property.Property;
+import javafx.beans.value.WritableValue;
 
 /**
- * {@Config} wrapping a {@Property}.
+ * {@link Config} wrapping a {@link WritableValue}, most often {@link Property}.
  * <p>
- * Property Config wraps a Property and acts as a Config, but as opposed to
- * other Config implementations, its getter and setter directly sets and gets the
- * value from the property acting as if the PropertyConfig were the Property
+ * Property Config wraps a Property and acts as a Config.
+ * The getter and setter directly sets and gets the
+ * value from the property as if the PropertyConfig were the Property
  * itself. The result is clean reflection free Config implementation.
  * <p>
- * Note that the wrapped property should be defined as final or be effectively
- * final, otherwise it could be changed to different one and this config would 
- * no longer be accessing the same property, leading to bugs.
- *
+ * Note that the wrapped property must be defined as final, otherwise it could
+ * lead to problems if the property would be set to different one.
+ * <p>
+ * Bindable Properties are the most interesting, but if not needed simpler
+ * WritableValue object can be used too.
+ * 
  * @param <T> generic type of the property.
  * 
  * @author Plutonium_
  */
 public class PropertyConfig<T> extends ConfigBase<T> {
     
-    Property<T> property;
+    WritableValue<T> property;
 
     /**
-     * 
+     * Constructor to be used with framework
      * @param _name
-     * @param c
-     * @param property Property to wrap. 
+     * @param c the annotation
+     * @param property WritableValue to wrap. Mostly a {@link Property}.
      * @param category
-     * @param field Field of the property to wrap.
      * @throws IllegalStateException if the property field is not final
      */
-    PropertyConfig(String _name, IsConfig c, Property<T> property, String category) {
+    PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
         super(_name, c, property.getValue(), category);
         this.property = property;
     }
-    
-    public PropertyConfig(String name, Property<T> property) {
+    /**
+     * @param _name
+     * @param property WritableValue to wrap. Mostly a {@link Property}.
+     * @throws IllegalStateException if the property field is not final
+     */
+    public PropertyConfig(String name, WritableValue<T> property) {
         this(name, name, property, "", "", true, Double.NaN, Double.NaN);
     }
-    
-    public PropertyConfig(String name, Property<T> property, String info) {
+     /**
+     * @param _name
+     * @param property WritableValue to wrap. Mostly a {@link Property}.
+     * @param info description, for tooltip for example
+     * @throws IllegalStateException if the property field is not final
+     */
+    public PropertyConfig(String name, WritableValue<T> property, String info) {
         this(name, name, property, "", info, true, Double.NaN, Double.NaN);
     }
-    
-    public PropertyConfig(String name, String gui_name, Property<T> property, String category, String info, boolean editable, double min, double max) {
+    /**
+     * @param _name
+     * @param property WritableValue to wrap. Mostly a {@link Property}.
+     * @param category category, for generating config groups
+     * @param info description, for tooltip for example
+     * @param editable 
+     * @param min use in combination with max if value is Number
+     * @param max use in combination with min if value is Number
+     * @throws IllegalStateException if the property field is not final
+     */
+    public PropertyConfig(String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
         super(name, gui_name, property.getValue(), category, info, editable, min, max);
         this.property = property;
     }
@@ -63,19 +83,22 @@ public class PropertyConfig<T> extends ConfigBase<T> {
     }
 
     @Override
-    public boolean setValue(T val) {
+    public void setValue(T val) {
         property.setValue(val);
-        return true;
     }
     
     @Override
-    public boolean applyValue() {
-        return true;
+    public void applyValue() {
+        // do nothing
     }
 
     @Override
     public Class getType() {
         return getValue().getClass();
+    }
+    
+    public WritableValue<T> getProperty() {
+        return property;
     }
 
     /**
@@ -92,9 +115,7 @@ public class PropertyConfig<T> extends ConfigBase<T> {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 43 * hash + Objects.hashCode(this.property);
-        return hash;
+        return 43 * 7 + Objects.hashCode(this.property);
     }
     
     

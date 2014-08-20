@@ -4,26 +4,28 @@
  * and open the template in the editor.
  */
 
-package Configuration;
+package utilities.access;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-import javafx.util.Callback;
 
 /**
  *
  * @author Plutonium_
  */
-public interface Accessor<T> {
+public interface FunctAccessibleValue<T> extends AccessibleValue<T> {
     
+    @Override
     default T getValue() {
         return getGetter().get();
     }
 
-    default boolean setValue(T val) {
-        return getSetter().call(val);
+    @Override
+    default void setValue(T val) {
+        getSetter().accept(val);
     }
     
-    Callback<T,Boolean> getSetter();
+    Consumer<T> getSetter();
 
     Supplier<T> getGetter();
 

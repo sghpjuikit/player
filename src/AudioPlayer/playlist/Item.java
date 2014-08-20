@@ -2,6 +2,7 @@
 package AudioPlayer.playlist;
 
 import AudioPlayer.Player;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.FileSize;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
@@ -229,16 +230,18 @@ public abstract class Item implements Comparable<Item> {
     /**
      * Converts this item to metadata. This method doesnt read metadata on this
      * item, rather it converts this item into a Metadata object filling all
-     * fields that are available from given implementation of this class. Use when
+     * fields that are derivable from this item. Use when
      * Metadata is expected instead of Item and additional information is not
-     * required.
+     * required or can not be obtained.
      * <p>
-     * Developer note: include proper javadoc to inform which fields will be
-     * initialized.
+     * Developer note: Always include proper javadoc for subclasses to inform 
+     * which fields will be initialized.
+     * <p>
      * Developer note: the responsibility for creating correctly filled
-     * Metadata object lies within Metadata's constructor. Use reflection to
-     * inspect the Item parameter. Subclassing this class should include
+     * Metadata object lies within Metadata's constructor which uses reflection to
+     * inspect the Item type. Subclassing this class should include
      * adding the class' support in that constructor.
+     * 
      * @return metadata that tests true for {@link #same()} with this item.
      */
     public Metadata toMetadata() {
@@ -250,6 +253,7 @@ public abstract class Item implements Comparable<Item> {
      * <p>
      * Subclases that contain values for fields contained in PlaylistItem should
      * override this method.
+     * <p>
      * Default implementation is equivalent to: new PlaylistItem(getURI())
      * 
      * @return playlistItem that tests true for {@link #same()} with this item.
@@ -261,20 +265,40 @@ public abstract class Item implements Comparable<Item> {
 /******************************************************************************/
     
     /**
-     * Reads and returns metadata of the file of this item.
+     * Returns metadata for this item.
+     * <p>
+     * It is first checked if the item is playing. Playing item already has
+     * metadata available. If the metadata is cached, it is returned. Else:
+     * <p>
+     * If there is library available, the metadata item is looked up and returned
+     * if available. Else:
+     * <p>
+     * Item will be read for metadata. This includes I/O operation.
+     * <p>
+     * If the reading fails, the item will be converted using {@link #toMetadata()}.
+     * <p>
+     * If the item is corrupt and the previous methods fail (it is possible the 
+     * cache or library still contains the item) EMPRTY metadata will be returned.
      * <p>
      * WARNING. This method uses application thread and as such is prone to
-     * cause performance problems if misused. Its fine to use this method for
-     * single item, but it is recommended to avoid this method in loops.
-     * If this item is being played, metadata are fetched from cache, which means
-     * immediate response and no performance throwback.
+     * cause performance problems if misused.
+     * <p>
+     * Its fine to use this method for single or very few items, played item and
+     * items that are guaranteed to be in a library
      * 
-     * @return metadata for this item. Empty metadata, if this item is corrupt
-     * or result of {@link #toMetadata()} when error during the loading.
+     * @return metadata for this item. Never null or EMPTY Metadata.
      */
     public final Metadata getMetadata() {
-        return same(Player.getCurrent().get()) ? Player.getCurrent().get()
-                                               : MetadataReader.create(this);
+        // try playing item
+        if (same(Player.getCurrent().get())) return Player.getCurrent().get();
+        // try library
+        Metadata m = DB.getItem(this);
+        if (m!=null) return m;
+        // try reading
+        m = MetadataReader.create(this);
+        if(!m.isEmpty()) return m;
+        // try convert
+        return toMetadata();
     }
 
     

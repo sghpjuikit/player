@@ -43,9 +43,12 @@
   entity manager. I think having 10+k managed items is not healthy...
   if we maintain the initial speed the whole time ill be very happy with the
   result
-- playlist widget hide bottom header
-- add empty layout on ui drag animation ends not good enough, needs be more eager
 - library shortcuts
+- table node orientation neends recreation of the whole table to take effect
+  improve playlistTable to take effect immediatelly in Playlist widget
+- library remember value is Object field turn into Config with overriden getType
+  that gets the type from the field type config, or unify the two into one
+  double value config
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

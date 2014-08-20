@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -513,7 +514,12 @@ public interface Util {
        if (superClazz != null) return getField(superClazz, name);
        else throw new NoSuchFieldException();
     }
-        
+    
+    /**
+     * Converts primitive to wrappers, otherwise does nothing. 
+     * @param c
+     * @return Object class of given class or class itself if not primitive.
+     */
     public static Class unPrimitivize(Class c) {
         if(c.isPrimitive()) {
             if(c.equals(boolean.class)) return Boolean.class;
@@ -526,5 +532,29 @@ public interface Util {
             if(c.equals(char.class)) return Character.class;
         }
         return c;
+    }
+    
+    /**
+     * Returns i-th generic parameter of the field. Integer for List<Integer>.
+     * @param f
+     * @return 
+     */
+    public static Class getGenericType(Field f, int i) {
+            ParameterizedType pType = (ParameterizedType) f.getGenericType();
+            Class<?> genericType = (Class<?>) pType.getActualTypeArguments()[i];
+            return genericType;
+    }
+    
+    /**
+     * Returns i-th generic parameter of the class.
+     * For example Integer for IntegerList extends List<Integer>
+     * <p>
+     * Will NOT work on variables, using getClass() method on them.
+     * 
+     * @param c
+     * @return 
+     */
+    public static Class getGenericClass(Class c, int i) {
+        return (Class) ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()[i];
     }
 }

@@ -7,6 +7,7 @@ import java.util.Objects;
 import utilities.Parser.Parser;
 import utilities.Parser.StringParser;
 import utilities.Util;
+import utilities.access.AccessibleValue;
 
 /**
  * Object representation of a configurable value.
@@ -28,7 +29,7 @@ import utilities.Util;
  * 
  * @author uranium
  */
-public abstract class Config<T> implements Configurable<T>, StringParser<T> {
+public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, StringParser<T> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -46,17 +47,17 @@ public abstract class Config<T> implements Configurable<T>, StringParser<T> {
      *     value instance of Enum
      * </pre>
      */
+    @Override
     public abstract T getValue();
 
-    public abstract boolean setValue(T val);
+    @Override
+    public abstract void setValue(T val);
 
-    public abstract boolean applyValue();
+    public abstract void applyValue();
 
     public final void setNapplyValue(T val) {
-        // set new config value
-        boolean was_set = setValue(val);
-        // apply new field value on success
-        if(was_set) applyValue();
+        setValue(val);
+        applyValue();
     }
 
     /**
@@ -127,8 +128,8 @@ public abstract class Config<T> implements Configurable<T>, StringParser<T> {
      */
     abstract public T getDefaultValue();
 
-    public final boolean setDefaultValue() {
-        return setValue(getDefaultValue());
+    public final void setDefaultValue() {
+        setValue(getDefaultValue());
     }
 
     public final void setNapplyDefaultValue() {
@@ -149,10 +150,9 @@ public abstract class Config<T> implements Configurable<T>, StringParser<T> {
      * Sets value converted from string.
      * Equivalent to: return setValue(fromS(str));
      * @param str
-     * @return 
      */
-    public final boolean setValueS(String str) {
-        return setValue(fromS(str));
+    public final void setValueS(String str) {
+        setValue(fromS(str));
     }
 
     /**

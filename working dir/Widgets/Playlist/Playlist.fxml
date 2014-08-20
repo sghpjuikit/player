@@ -18,13 +18,14 @@
 <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
 </padding>
     </AnchorPane>
+    <AnchorPane fx:id="tablePane" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="28.0">
+<padding>
+<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+</padding></AnchorPane>
     <AnchorPane fx:id="optionPane" prefHeight="28.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-      <children>
-        <BorderPane prefHeight="28.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-          <center>
-            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" />
-          </center>
-        </BorderPane><MenuBar layoutX="45.0" layoutY="164.5" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+      <children><StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<children>
+            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" StackPane.alignment="CENTER" /><MenuBar maxWidth="50.0" prefWidth="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" StackPane.alignment="CENTER_LEFT">
   <menus>
     <Menu fx:id="addMenu" mnemonicParsing="false" text="+">
 <items>
@@ -54,11 +55,8 @@
 </Menu>
   </menus>
 </MenuBar>
+</children></StackPane>
       </children>
     </AnchorPane>
-    <AnchorPane fx:id="tablePane" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="28.0">
-<padding>
-<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-</padding></AnchorPane>
   </children>
 </AnchorPane>

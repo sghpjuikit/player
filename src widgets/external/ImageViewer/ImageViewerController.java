@@ -36,6 +36,7 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import utilities.FileUtil;
 import utilities.FxTimer;
+import utilities.access.Accessor;
 import utilities.functional.functor.Procedure;
 
 /**
@@ -70,22 +71,35 @@ public class ImageViewerController extends FXMLController {
     // properties
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
     public ReadMode readMode = ReadMode.PLAYING;
+    
     @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
     public Boolean changeReadModeOnTransfer = false;
+    
     @IsConfig(name = "Show content when empty", info = "Keep showing previous content when the widget should be empty.")
     public Boolean keepContentOnEmpty = true;
+    
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public double thumbSize = 70.0;
+    
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
-    public double thumbGap = 2.0;
+    public final Accessor<Double> thumbGap = new Accessor<>(2d, v -> {
+        thumb_pane.setHgap(v);
+        thumb_pane.setVgap(v);
+    });
+    
     @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly after each other")
     public long thumbnailReloadTime = 100l;
+    
     @IsConfig(name = "File search depth", info = "Depth to search to for files in folders.")
     public int folderTreeDepth = 1;
+    
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
     public double slideshow_dur = 15000l;
+    
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
-    public boolean slideshow_on = true;
+    public final Accessor<Boolean> slideshow_on = new Accessor<>(true, v -> {
+        if (v) slideshowStart(); else slideshowEnd();
+    });
     
     @Override
     public void init() {
@@ -140,13 +154,7 @@ public class ImageViewerController extends FXMLController {
     
     @Override
     public void refresh() {
-        Player.bindObservedMetadata(meta, readMode);        
-        
-        thumb_pane.setHgap(thumbGap);
-        thumb_pane.setVgap(thumbGap);
-        
-        if (slideshow_on) slideshowStart();
-        else slideshowEnd();
+        Player.bindObservedMetadata(meta, readMode); 
     }
 
     @Override

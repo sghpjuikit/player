@@ -304,14 +304,13 @@ public final class Action extends Config<Action> {
     }
 
     @Override
-    public boolean setValue(Action val) {
+    public void setValue(Action val) {
         set(val.isGlobal(), val.getKeys());
-        return true;
     }
 
     @Override
-    public boolean applyValue() {
-        return true;
+    public void applyValue() {
+        // do nothing
     }
 
     @Override

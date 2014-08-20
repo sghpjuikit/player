@@ -40,6 +40,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import utilities.Util;
+import utilities.access.Accessor;
 
 
 /**
@@ -69,7 +70,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML GridPane soundGrid;
     @FXML Slider volume;
     @FXML Balancer balance;
-    Seeker seeker;
+    Seeker seeker = new Seeker();
     @FXML Label currTime;
     @FXML Label totTime;
     @FXML Label realTime;
@@ -96,14 +97,13 @@ public class PlayerControlsController extends FXMLController implements Playback
     
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
-    public boolean showChapters = true;
+    public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
-    public boolean popupChapters = true;
+    public final Accessor<Boolean> popupChapters = new Accessor<>(true, seeker::setChaptersShowPopUp);
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
-    
     
     @Override
     public void init() {
@@ -121,7 +121,6 @@ public class PlayerControlsController extends FXMLController implements Playback
         volume.setValue(PLAYBACK.getVolume());
         volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
         
-        seeker = new Seeker();
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
         entireArea.getChildren().add(seeker);
         AnchorPane.setBottomAnchor(seeker, 0.0);
@@ -205,10 +204,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     }
     
     @Override
-    public void refresh() {
-        seeker.setChaptersShowPopUp(popupChapters);
-        seeker.setChaptersVisible(showChapters);
-    }
+    public void refresh() { }
 
     @Override
     public void OnClosing() {

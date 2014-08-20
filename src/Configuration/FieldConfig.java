@@ -68,15 +68,13 @@ public final class FieldConfig<T> extends ConfigBase<T> {
      * {@inheritDoc}
      */
     @Override
-    public boolean setValue(T val) { 
+    public void setValue(T val) { 
         try {
             field.setAccessible(true);
             field.set(instance, val);
             Log.deb("Config field: " + getName() + " set to: " + val);
-            return true;
         } catch (SecurityException | IllegalAccessException ex) {
             Log.err("Config field: " + getName() + " failed to set. Reason: " + ex.getMessage());
-            return false;
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Config value wrong object type. Cant set "
                     + getName() + " to: " + val + ".");
@@ -87,22 +85,25 @@ public final class FieldConfig<T> extends ConfigBase<T> {
      * {@inheritDoc}
      */
     @Override
-    public boolean applyValue() {
+    public void applyValue() {
         Log.deb("Applying config: " + getName());
         if(applierMethod != null) {
             
             try {
                 applierMethod.setAccessible(true);
-                applierMethod.invoke(instance, new Object[0]);
+                
+                // create parameters
+                int i = applierMethod.getParameterCount();
+                Object[] params = new Object[i];
+                if(i==1) params[1] = getValue();
+                
+                applierMethod.invoke(instance, params);
                 Log.deb("    Success.");
-                return true;
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
                 Log.err("    Failed to apply config field: " + getName() + ". Reason: " + e.getMessage());
-                return false;
             }
         } else {
             Log.deb("    Nothing to apply: no applier method.");
-            return true;
         }
     }
     
@@ -111,7 +112,10 @@ public final class FieldConfig<T> extends ConfigBase<T> {
      */
     @Override
     public Class getType() {
-        return field.getType();
+        return getValue().getClass(); // unfortunately the only working solution
+        // field.getType() wil not work if we pass subcasses into the field
+        // like Object field; field = "some string".  We ned to get the runtime
+        // tpe of z
     }
     
     /** 

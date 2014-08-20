@@ -290,6 +290,8 @@ public class MetadataReader{
                     }
                     em.getTransaction().commit();
                     Platform.runLater(() -> DB.librarychange.push(null));
+                } catch (Exception e ) {
+                    e.printStackTrace();
                 } finally {
                     em.close();
                 }

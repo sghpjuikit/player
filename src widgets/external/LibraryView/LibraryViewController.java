@@ -74,7 +74,6 @@ public class LibraryViewController extends FXMLController {
         TableColumn indexColumn = Util.createIndexColumn("#");
         table.getColumns().add(indexColumn);
         
-        
 //        // context menu hide/show
 //        table.setOnMouseClicked( e -> {
 //            if(e.getButton()==PRIMARY) {

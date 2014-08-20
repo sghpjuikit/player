@@ -5,10 +5,13 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import PseudoObjects.ReadMode;
+import java.util.Collections;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import utilities.TODO;
 
 /**
  *
@@ -42,6 +45,7 @@ public class Player {
         return core.selectedMetadata;
     }
     
+    @TODO("toBinding is a memleak, change whole method to EventStream implementation")
     public static void bindObservedMetadata(ObjectProperty<Metadata> observer,
 //            Optional<Subscription> subscriptionWrapper,
             ReadMode mode) {
@@ -85,7 +89,8 @@ public class Player {
         PlaylistManager.updateItemsOf(item);
         
         // update library
-        
+        if (DB.exists(item))
+            DB.updateItemsFromFile(Collections.singletonList(item));
 
         // reload metadata if played right now
         if (core.cI.get().same(item))

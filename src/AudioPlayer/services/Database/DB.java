@@ -11,6 +11,7 @@ import AudioPlayer.services.Database.POJO.MetadataGroup;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
@@ -39,6 +40,39 @@ public class DB {
         }
     }
     
+/******************************** OBTAINING ***********************************/
+    
+    public static boolean exists(Item item) {
+        return exists(item.getURI());
+    }
+    
+    public static boolean exists(URI uri) {
+        EntityManager em = emf.createEntityManager();
+        return null != em.find(Metadata.class, uri.toString());
+    }
+    
+    /**
+     * Returns item from library.
+     * <p>
+     * Never pass the returned item into the application before making sure it
+     * is not null.
+     * @return item from library with the URI of the specified item or null if not found.
+     */
+    public static Metadata getItem(Item item) {
+        return getItem(item.getURI());
+    }
+    
+    /**
+     * Returns item from library.
+     * <p>
+     * Never pass the returned item into the application before making sure it
+     * is not null.
+     * @return item from library with the specified URI or null if not found.
+     */
+    public static Metadata getItem(URI uri) {
+        EntityManager em = emf.createEntityManager();
+        return em.find(Metadata.class, uri.toString());
+    }
     
     
     public static void addItems(List<Metadata> items) {
@@ -122,7 +156,7 @@ public class DB {
         return result;
     }
     
-    public static void updateItems(List<Metadata> items) {
+    private static void updateItems(List<Metadata> items) {
         EntityManager em = emf.createEntityManager();
         try {
             em.getTransaction().begin();

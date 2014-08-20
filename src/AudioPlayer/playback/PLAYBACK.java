@@ -179,15 +179,19 @@ public final class PLAYBACK implements Configurable {
     /** Seek forward by specified duration */
     @IsAction(name = "Seek forward", description = "Seek forward playback.", shortcut = "ALT+D", continuous = true, global = true)
     public static void seekForward() {
-        Duration currTime = getCurrentTime();
-        seek(currTime.add(Duration.seconds(1)));
+        seek(getCurrentTime().add(Duration.seconds(4)));
     }
     
     /** Seek backward by specified duration */
     @IsAction(name = "Seek backward", description = "Seek backward playback.", shortcut = "ALT+A", continuous = true, global = true)
     public static void seekBackward() {
-        Duration  currTime = getCurrentTime();
-        seek(currTime.subtract(Duration.seconds(1)));
+        seek(getCurrentTime().subtract(Duration.seconds(4)));
+    }
+    
+    /** Seek forward by specified duration */
+    @IsAction(name = "Seek to end", description = "Seek playback to end.", shortcut = "", global = true)
+    public static void seekEnd() {
+        seek(getTotalTime());
     }
     
 /******************************************************************************/

@@ -267,7 +267,14 @@ public class SwitchPane implements LayoutAggregator {
 //                }
 //            });
             // snap at the end of animation 
-            uiDrag.setOnFinished( a -> snapTabs());
+            uiDrag.setOnFinished( a -> {
+                int i = snapTabs();
+                // add layouts to left & right
+                // otherwise the layouds are added only if we activate the snapping
+                // which for non-discrete mode is a problem
+                addTab(i-1);
+                addTab(i+1);
+            });
             uiDrag.play();
         }
         // reset
@@ -293,24 +300,24 @@ public class SwitchPane implements LayoutAggregator {
      * <p>
      * Use to force-align tabs.
      */
-    public void alignTabs() {
-        alignTab(currTab());
+    public int alignTabs() {
+        return alignTab(currTab());
     }
     
-    public void alignRightTab() {
-        alignTab(currTab()+1);
+    public int alignRightTab() {
+        return alignTab(currTab()+1);
     }
     
-    public void alignLeftTab() {
-        alignTab(currTab()-1);
+    public int alignLeftTab() {
+        return alignTab(currTab()-1);
     }
     
-    public void alignTab(int i) {
-        int toT = currTab();
+    public int alignTab(int i) {
         uiDrag.stop();
         uiDrag.setOnFinished( a -> addTab(i));
         uiDrag.setToX(-getTabX(i));
         uiDrag.play();
+        return i;
     }
     
     /**
@@ -319,15 +326,19 @@ public class SwitchPane implements LayoutAggregator {
      * <p>
      * Use to align tabs while adhering to user settings.
      */
-    public void snapTabs() {
-        if(!snap_tabs) return;
+    public int snapTabs() {
+        int i = currTab();
+        if(!snap_tabs) return i;
+        
         double is = ui.getTranslateX();
         double should_be = -getTabX(currTab());
         double dist = Math.abs(is-should_be);
         double treshold1 = ui.getWidth()*SNAP_TRESHOLD_COEFICIENT;
         double treshold2 = SNAP_TRESHOLD_DIST;
         if(dist < Math.max(treshold1, treshold2))  
-            alignTabs();
+            return alignTabs();
+        else
+            return i;
     }
     
 

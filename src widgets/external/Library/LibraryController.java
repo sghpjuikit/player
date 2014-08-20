@@ -33,11 +33,8 @@ import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import static javafx.geometry.Pos.CENTER_RIGHT;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.input.Dragboard;
@@ -73,10 +70,10 @@ import utilities.functional.functor.UnProcedure;
             "    Item left click : Selects item\n" +
             "    Item right click : Opens context menu\n" +
             "    Item double click : Plays item\n" +
-//            "    Item drag : Moves item within playlist\n" +
-//            "    Press ENTER : Plays item\n" +
+            "    Item drag : Starts drag & drop\n" +
+            "    Press ENTER : Plays item\n" +
+            "    Press DELETE : Removes items from library\n" +
             "    Press ESC : Clear selection & filter\n" +
-//            "    Type : Searches for item - applies filter\n" +
             "    Scroll : Scroll table vertically\n" +
             "    Scroll + SHIFT : Scroll table horizontally\n" +
             "    Drag column : Changes column order\n" +
@@ -108,21 +105,7 @@ public class LibraryController extends FXMLController {
         table.setFixedCellSize(GUI.font.getSize() + 5);
         
         // add index column
-        TableColumn indexColumn = new TableColumn("#");
-        indexColumn.setCellFactory( column -> 
-            new TableCell() {
-                {
-                    // we want to align the index to the right, not left
-                    setAlignment(CENTER_RIGHT);
-                }
-                @Override
-                protected void updateItem(Object item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty) setText("");
-                    else setText(String.valueOf(getIndex()+1)+ ".");
-                }
-            }
-        );
+        TableColumn indexColumn = Util.createIndexColumn("#");
         table.getColumns().add(indexColumn);
         
         // add data columns
@@ -240,25 +223,26 @@ public class LibraryController extends FXMLController {
         AnchorPane.setLeftAnchor(controls, 0d);
         
         // listen for database changes to refresh library
-//        dbMonitor = DB.librarychange.subscribe( nothing -> refresh());
-        dbMonitor = DB.fieldSelectionChange.subscribe( c -> {
-            change = c;
+        dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
+            changeField = field;
+            changeValue = value;
             refresh();
         });
     }
     
-    DB.MetadataFieldSelection change;
+    Metadata.Field changeField;
+    Object changeValue;
 
     @Override
     public void refresh() {
         table.getSelectionModel().clearSelection();
-        if(change!=null)
-        table.getItems().setAll(DB.getAllItemsWhere(change.field, change.value));
+        if(changeField!=null)
+        table.getItems().setAll(DB.getAllItemsWhere(changeField, changeValue));
     }
 
     @Override
     public void OnClosing() {
-        // stop listening for db changes
+        // stop listening
         dbMonitor.unsubscribe();
     }
     
@@ -267,47 +251,41 @@ public class LibraryController extends FXMLController {
     private static final SingleInstance<ContentContextMenu<List<Metadata>>,TableView<Metadata>> contxt_menu = new SingleInstance<>(
         () -> {
             ContentContextMenu<List<Metadata>> contextMenu = new ContentContextMenu();
-            MenuItem item00 = new MenuItem("Play items");        
-                     item00.setOnAction(e -> {                     
-                        List<PlaylistItem> to_play = new ArrayList();
-                        contextMenu.getItem().stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
-                        PlaylistManager.playPlaylist(new Playlist(to_play));
-                     });
-            MenuItem item0 = new MenuItem("Enqueue items");        
-                     item0.setOnAction(e -> {
-                         List<Metadata> items = contextMenu.getItem();
-                         PlaylistManager.addItems(items);
-                     });
-            MenuItem item1 = new MenuItem("Update from file");        
-                     item1.setOnAction(e -> {
-                         List<Metadata> items = contextMenu.getItem();
-                         DB.updateItemsFromFile(items);
-                     });
-            MenuItem item2 = new MenuItem("Remove from library");        
-                     item2.setOnAction(e -> {
-                         List<Metadata> items = contextMenu.getItem();
-                         DB.removeItems(items);
-                     });
-            MenuItem item3 = new MenuItem("Edit the item/s in tag editor");        
-                     item3.setOnAction(e -> {
-                         List<Metadata> items = contextMenu.getItem();
-                         Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
-                         if (w!=null) {
-                             TaggingFeature t = (TaggingFeature) w.getController();
-                                            t.read(items);
-                         }
-                     });
-            MenuItem item4 = new MenuItem("Explore items's directory");        
-                     item4.setOnAction(e -> {
-                         List<Metadata> items = contextMenu.getItem();
-                         List<File> files = items.stream()
-                                 .filter(Item::isFileBased)
-                                 .map(Item::getLocation)
-                                 .collect(Collectors.toList());
-                         Enviroment.browse(files,true);
-                     });
-
-            contextMenu.getItems().addAll(item00, item0, item1, item2, item3, item4);
+            contextMenu.getItems().addAll(
+                Util.createmenuItem("Play items", e -> {                     
+                    List<PlaylistItem> to_play = new ArrayList();
+                    contextMenu.getItem().stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
+                    PlaylistManager.playPlaylist(new Playlist(to_play));
+                }),
+                Util.createmenuItem("Enqueue items", e -> {
+                    List<Metadata> items = contextMenu.getItem();
+                    PlaylistManager.addItems(items);
+                }),
+                Util.createmenuItem("Update from file", e -> {
+                    List<Metadata> items = contextMenu.getItem();
+                    DB.updateItemsFromFile(items);
+                }),
+                Util.createmenuItem("Remove from library", e -> {
+                    List<Metadata> items = contextMenu.getItem();
+                    DB.removeItems(items);
+                }),
+                Util.createmenuItem("Edit the item/s in tag editor", e -> {
+                    List<Metadata> items = contextMenu.getItem();
+                    Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
+                    if (w!=null) {
+                        TaggingFeature t = (TaggingFeature) w.getController();
+                                       t.read(items);
+                    }
+                }),
+                Util.createmenuItem("Explore items's directory", e -> {
+                    List<Metadata> items = contextMenu.getItem();
+                    List<File> files = items.stream()
+                            .filter(Item::isFileBased)
+                            .map(Item::getLocation)
+                            .collect(Collectors.toList());
+                    Enviroment.browse(files,true);
+                })
+               );
             contextMenu.setConsumeAutoHidingEvents(false);
             return contextMenu;
         },

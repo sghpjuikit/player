@@ -22,6 +22,9 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
+import static PseudoObjects.ReadMode.LIBRARY_SELECTED;
+import static PseudoObjects.ReadMode.PLAYING;
+import static PseudoObjects.ReadMode.PLAYLIST_SELECTED;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
@@ -34,7 +37,6 @@ import java.util.stream.Collectors;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -79,9 +81,11 @@ import javafx.util.Callback;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
+import org.reactfx.Subscription;
 import utilities.ImageFileFormat;
 import utilities.Log;
 import utilities.Parser.ColorParser;
+import utilities.functional.functor.ChangeConsumer;
 import utilities.functional.impl.Validators.IsBetween0And1;
 import utilities.functional.impl.Validators.Validator;
 import utilities.functional.impl.Validators.isIntString;
@@ -181,7 +185,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     // listeners
     private final InvalidationListener playlistListener = o -> 
             read(PlaylistManager.getSelectedItems());
-    private final ChangeListener<Metadata> playingListener = (o,ov,nv) ->
+    private final ChangeConsumer<Metadata> playingListener = (ov,nv) ->
             read(Collections.singletonList(nv));
             
             
@@ -455,18 +459,18 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void refresh() {
         PlaylistManager.getSelectedItems().removeListener(playlistListener);
-        Player.currentMetadataProperty().removeListener(playingListener);
+        if(playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
         
         // rebind
-        if (readMode==ReadMode.PLAYLIST_SELECTED) {
+        if (readMode == PLAYLIST_SELECTED) {
             PlaylistManager.getSelectedItems().addListener(playlistListener);
             playlistListener.invalidated(null);
         }
-        else if (readMode==ReadMode.PLAYING){
-            Player.currentMetadataProperty().addListener(playingListener);
-            playingListener.changed(null,null,Player.getCurrentMetadata());
+        else if (readMode == PLAYING){
+            playingItemMonitoring = Player.getCurrent().subscribeToUpdates(playingListener);
+            playingListener.accept(null,Player.getCurrent().get());
         }
-        else if (readMode==ReadMode.LIBRARY_SELECTED){
+        else if (readMode==LIBRARY_SELECTED){
             // to implement
         }
 //        else if (readMode==ReadMode.CUSTOM)
@@ -475,6 +479,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         fields.forEach(f->f.setVerticalAlignment(field_text_alignment));
         MoodF.setPos(popupPos);
     }
+    
+    private Subscription playingItemMonitoring;
     
     public void setReadMode(ReadMode val) {
         readMode = val;
@@ -499,7 +505,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     public void OnClosing() {
         // remove listeners
         PlaylistManager.getSelectedItems().removeListener(playlistListener);
-        Player.currentMetadataProperty().removeListener(playingListener);
+        playingItemMonitoring.unsubscribe();
     }
     
     

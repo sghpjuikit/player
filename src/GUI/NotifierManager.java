@@ -19,6 +19,7 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
+import org.reactfx.Subscription;
 
 /**
  * 
@@ -51,11 +52,11 @@ public final class NotifierManager {
 /******************************************************************************/
     
     private static Notification n;
+    private static Subscription playingItemMonitoring;
+    private static boolean initialized = false;
 
-    /**
-     * Sets up application notification behavior.
-     */
-    public static void initialize() {
+    /** Sets up application notification behavior. */
+    public static void start() {
         // create notification
         n = new Notification();
         
@@ -66,7 +67,9 @@ public final class NotifierManager {
         });
         
         // show notification on song change
-        Player.addOnItemChange(NotifierManager::songChange);
+        playingItemMonitoring = Player.getCurrent().subscribeToChanges(NotifierManager::songChange);
+        
+        initialized = true;
     }
     
     /** Show notification for custom content. */
@@ -88,7 +91,7 @@ public final class NotifierManager {
     private static void playbackStatusChange(Status oldS, Status newS) {
         if (!showStatusNotification || newS == null) return;
         
-        Metadata m = Player.getCurrentMetadata();
+        Metadata m = Player.getCurrent().get();
         String text = "Playback change : " + PLAYBACK.getStatus().toString();
         NotifierManager.showNotification(m, text, PLAYBACK_STATUS);
     }
@@ -113,10 +116,18 @@ public final class NotifierManager {
         }
     }
     
-    public static void free() {
-        if(n!=null) {
-            n.hideImmediatelly();
-            n = null;
+    /** Stops application notification behavior. */
+    public static void stop() {
+        if(initialized) {
+            // free listening to playing item
+            playingItemMonitoring.unsubscribe();
+            // free notification
+            if(n!=null) {
+                n.hideImmediatelly();
+                n = null;
+            }
+        } else {
+            throw new IllegalStateException("Cant dispose of not initialized notifier manager.");
         }
     }
 }

@@ -153,7 +153,7 @@ public class MetadataReader{
         // handle normal item
         else {
             afile = MetaItem.readAudioFile(item.getFile());
-            return (afile == null) ? Metadata.EMPTY : new Metadata(afile);
+            return (afile == null) ? item.toMetadata() : new Metadata(afile);
         }
     }
     

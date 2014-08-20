@@ -1,6 +1,5 @@
 package PlayerControls;
 
-import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
@@ -8,6 +7,7 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.EMPTY;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
@@ -38,6 +38,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+import org.reactfx.Subscription;
 import utilities.Util;
 
 
@@ -161,8 +162,8 @@ public class PlayerControlsController extends FXMLController implements Playback
      
         
         // set updating + initialize manually
-        Player.addOnItemUpdate(playbackItemChanged);                    // add listener
-        playingItemChanged(Player.getCurrentMetadata());                // init value
+        playingItemMonitoring = Player.getCurrent().subscribeToUpdates(this::playingItemChanged);  // add listener
+        playingItemChanged(EMPTY,Player.getCurrent().get());            // init value
         
         PLAYBACK.statusProperty().addListener(statusListener);          // add listener
         statusChanged(PLAYBACK.getStatus());                            // init value
@@ -212,7 +213,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     @Override
     public void OnClosing() {
         // remove listeners
-        Player.remOnItemUpdate(playbackItemChanged);                    
+        playingItemMonitoring.unsubscribe();
         PLAYBACK.statusProperty().removeListener(statusListener);       
         PLAYBACK.loopModeProperty().removeListener(loopModeListener);   
         PLAYBACK.muteProperty().removeListener(muteListener);           
@@ -275,7 +276,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     
 /******************************************************************************/
     
-    private final ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playingItemChanged(newV);
+    Subscription playingItemMonitoring;
     private final ChangeListener<Status> statusListener = (o,ov,nv)-> statusChanged(nv);
     private final ChangeListener<LoopMode> loopModeListener = (o,ov,nv)-> loopModeChanged(nv);
     private final ChangeListener<Boolean> muteListener = (o,ov,nv)-> muteChanged(nv, volume.getValue());
@@ -283,15 +284,15 @@ public class PlayerControlsController extends FXMLController implements Playback
     private final InvalidationListener realTimeListener = o -> realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       
     
-    private void playingItemChanged(Metadata m) {
-        if(m!=null){
-            titleL.setText(m.getTitle());
-            artistL.setText(m.getArtist());
-            bitrateL.setText(m.getBitrate().toString());
-            sampleRateL.setText(m.getSampleRate());
-            channelsL.setText(m.getChannels());
+    private void playingItemChanged(Metadata ov, Metadata nv) {
+        if(nv!=null){
+            titleL.setText(nv.getTitle());
+            artistL.setText(nv.getArtist());
+            bitrateL.setText(nv.getBitrate().toString());
+            sampleRateL.setText(nv.getSampleRate());
+            channelsL.setText(nv.getChannels());
         }
-        seeker.reloadChapters(m);
+        seeker.reloadChapters(nv);
     }
     private void statusChanged(Status newStatus) {
         if (newStatus == null || newStatus == Status.UNKNOWN ) {
@@ -327,7 +328,6 @@ public class PlayerControlsController extends FXMLController implements Playback
         }
     }
     private void muteChanged(boolean mute, double valume) {
-        
         if (mute) {
             muteB.setIcon(VOLUME_OFF);
         } else {

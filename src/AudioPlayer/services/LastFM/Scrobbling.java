@@ -5,6 +5,7 @@
  */
 package AudioPlayer.services.LastFM;
 
+import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
@@ -33,7 +34,7 @@ public class Scrobbling {
     }
 
     protected void updateNowPlaying() {
-        Metadata currentMetadata = AudioPlayer.Player.getCurrentMetadata();
+        Metadata currentMetadata = Player.getCurrent().get();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),
                 currentMetadata.getTitle(),

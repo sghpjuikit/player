@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -16,10 +17,13 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -398,6 +402,7 @@ public interface Util {
      */
     public static<T,R> TableColumn<T,R> createIndexColumn(String name) {
         TableColumn indexColumn = new TableColumn(name);
+        indexColumn.setSortable(false);
         indexColumn.setCellFactory( column -> 
             new TableCell(){
                 {
@@ -420,10 +425,12 @@ public interface Util {
      * the alignment is inferred from the type of element in the cell (not table
      * or column, because we are aligning cell content) in the following way: 
      * String content is aligned to CENTER_LEFT and the rest CENTER_RIGHT.
+     * <p>
+     * The factory will need to be cast if it its generic types are declared.
      * 
      * @param type for cell content.
      */
-    public static<T> Callback<TableColumn<T,Object>,TableCell<T,Object>> DEFAULT_ALIGNED_CELL_FACTORY(Class type) {
+    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Class<O> type) {
         Pos al = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
         return column -> {
             TableCell cell = TableColumn.DEFAULT_CELL_FACTORY.call(column);
@@ -435,16 +442,23 @@ public interface Util {
     /**
      * Returns {@link TableColumn.DEFAULT_CELL_FACTORY} (the default factory used
      * when no factory is specified), aligning the cell content to specified value.
-     * 
+     * <p>
+     * The factory will need to be cast if it its generic types are declared.
      * @param cell_alignment
      * @return 
      */
-    public static<T> Callback<TableColumn<T,Object>,TableCell<T,Object>> DEFAULT_ALIGNED_CELL_FACTORY(Pos cell_alignment) {
+    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Pos cell_alignment) {
         return column -> {
             TableCell cell = TableColumn.DEFAULT_CELL_FACTORY.call(column);
                       cell.setAlignment(cell_alignment);
             return cell;
         };
+    }
+    
+    public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> actionHandler) {
+        MenuItem i = new MenuItem(text);
+                 i.setOnAction(actionHandler);
+        return i;
     }
     
 /***************************** REFLECTION *************************************/
@@ -464,6 +478,23 @@ public interface Util {
        if(superClazz != null) fields.addAll(getAllFields(superClazz));
 
        return fields;
+    }
+    
+    /**
+     * Returns all declared methods of the class including inherited ones.
+     * Equivalent to union of declared fields of the class and all its
+     * superclasses.
+     */
+    public static List<Method> getAllMethods(Class clazz) {
+       List<Method> methods = new ArrayList();
+       // get all fields of the class (but not inherited fields)
+       methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+
+       Class superClazz = clazz.getSuperclass();
+       // get super class' fields recursively
+       if(superClazz != null) methods.addAll(getAllMethods(superClazz));
+
+       return methods;
    }
     
     public static Field getField(Class clazz, String name) throws NoSuchFieldException {

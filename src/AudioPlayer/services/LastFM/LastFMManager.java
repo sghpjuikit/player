@@ -6,12 +6,6 @@ package AudioPlayer.services.LastFM;
  * and open the template in the editor.
  */
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PercentTimeEventHandler;
@@ -32,9 +26,11 @@ import java.util.prefs.Preferences;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
+import org.reactfx.Subscription;
 import utilities.Log;
 import utilities.Password;
 import utilities.TODO;
+import utilities.functional.functor.ChangeConsumer;
 
 /**
  *
@@ -58,36 +54,30 @@ public class LastFMManager {
     private boolean durationSatisfied;
     @IsConfig(name = "Scrobbling on")
     private static final BooleanProperty scrobblingEnabled = new SimpleBooleanProperty(false){
-
         @Override
-        public void set(boolean newValue) {
-       
-           
-                if(newValue){
-                    if(isLoginSet()){
-                        session = Authenticator.getMobileSession(
-                                acquireUserName(), 
-                                acquirePassword().get(), 
-                                apiKey, secret);
-                        Result lastResult = Caller.getInstance().getLastResult();                    
-                        if(lastResult.getStatus() != Result.Status.FAILED){
-                            LastFMManager.setLoginSuccess(true);
-                            LastFMManager.initialize();
-                            super.set(true);
-                        }else{
-                            LastFMManager.setLoginSuccess(false);
-                            LastFMManager.destroy();
-                            super.set(false);
-                        }
+        public void set(boolean nv) {         
+            if (nv){
+                if(isLoginSet()){
+                    session = Authenticator.getMobileSession(
+                            acquireUserName(), 
+                            acquirePassword().get(), 
+                            apiKey, secret);
+                    Result lastResult = Caller.getInstance().getLastResult();                    
+                    if(lastResult.getStatus() != Result.Status.FAILED){
+                        LastFMManager.setLoginSuccess(true);
+                        LastFMManager.start();
+                        super.set(true);
+                    }else{
+                        LastFMManager.setLoginSuccess(false);
+                        LastFMManager.stop();
+                        super.set(false);
                     }
                 }
-                else {
-                    LastFMManager.destroy();
-                    super.set(false);
-                }
+            } else {
+                LastFMManager.stop();
+                super.set(false);
             }
-        
-    
+        }
     };
 
  
@@ -102,8 +92,6 @@ public class LastFMManager {
         return "****";
     }
 
-    
-
 
 
     public static void toggleScrobbling() {
@@ -111,19 +99,13 @@ public class LastFMManager {
     }
 
 
-    /**
-     *
-     */
-    public LastFMManager() {  
-    }
+    public LastFMManager() { }
 
-    public static void initialize() {  
-            Player.remOnItemUpdate(itemChange);
-            Player.addOnItemChange(itemChange);   
-            
-            PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
-            PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
-              
+    public static void start() {
+        playingItemMonitoring = Player.getCurrent().subscribeToChanges(itemChangeHandler);
+
+        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
+        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
     }
     
     
@@ -174,7 +156,7 @@ public class LastFMManager {
     /************** Scrobble logic - event handlers etc ***********************/
      
     public static final void updateNowPlaying() {
-        Metadata currentMetadata = AudioPlayer.Player.getCurrentMetadata();
+        Metadata currentMetadata = AudioPlayer.Player.getCurrent().get();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),
                 currentMetadata.getTitle(),
@@ -191,6 +173,8 @@ public class LastFMManager {
     private static void reset() {
         timeSatisfied = percentSatisfied = false;
     }
+    
+    private static Subscription playingItemMonitoring;
        
     private static final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
             0.5,
@@ -208,16 +192,17 @@ public class LastFMManager {
             },
             "LastFM time event handler");
     
-    private static final ItemChangeHandler<Metadata> itemChange = (oldValue, newValue) -> {
-                if ((timeSatisfied || percentSatisfied)
-                        && oldValue.getLength().greaterThan(Duration.seconds(30))) {
-                    scrobble(oldValue);
-    //                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
-                }
-                updateNowPlaying();
-                reset();
-            };
-/*     *************   GETTERS and SETTERS    ****************************    */
+    private static final ChangeConsumer<Metadata> itemChangeHandler = (ov,nv) -> {
+            if ((timeSatisfied || percentSatisfied)
+                    && ov.getLength().greaterThan(Duration.seconds(30))) {
+                scrobble(ov);
+//                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
+            }
+            updateNowPlaying();
+            reset();
+        };
+    
+/***************************   GETTERS and SETTERS    *************************/
     
     public static boolean getScrobblingEnabled() {
         return scrobblingEnabled.get();
@@ -243,8 +228,8 @@ public class LastFMManager {
     
     
     
-      public static void destroy() {
-        Player.remOnItemUpdate(itemChange);
+      public static void stop() {
+        if (playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
         PLAYBACK.realTimeProperty().removeOnTimeAt(percentEvent);
         PLAYBACK.realTimeProperty().removeOnTimeAt(timeEvent);
     }

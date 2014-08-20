@@ -34,7 +34,6 @@ import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -81,8 +80,6 @@ public final class PlaylistTable {
     private final TableColumn<PlaylistItem, FormattedDuration> columnTime = new TableColumn<>("time");
     
     private final Callback<TableColumn<PlaylistItem,String>, TableCell<PlaylistItem,String>> indexCellFactory;
-    private final Callback<TableColumn<PlaylistItem,String>, TableCell<PlaylistItem,String>> nameCellFactory;
-    private final Callback<TableColumn<PlaylistItem,FormattedDuration>, TableCell<PlaylistItem,FormattedDuration>> timeCellFactory;
     private final Callback<TableView<PlaylistItem>,TableRow<PlaylistItem>> rowFactory;
     
     private FilteredList<PlaylistItem> itemsF = new FilteredList(FXCollections.emptyObservableList());
@@ -92,7 +89,6 @@ public final class PlaylistTable {
     // properties
     boolean zero_pad = true;
     private boolean show_original_index; // when filter in effect
-    Pos cell_align = Pos.CENTER_LEFT;
     
     // selection helper variables
     double last;
@@ -129,43 +125,21 @@ public final class PlaylistTable {
         
         // initialize table factories
         indexCellFactory = ( column -> new TableCell<PlaylistItem, String>() {
-                {
-                    setAlignment(reverse(cell_align));
-                }
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (!empty) {
-                        int index = show_original_index ? itemsF.getSourceIndex(getIndex()) : getIndex();
-                            index++;
-                        setText(Util.zeroPad(index, table.getItems().size(), zero_pad ? '0' : ' ') + ".");
-                    } 
-                    else setText("");
-                }
+            {
+                setAlignment(Pos.CENTER_RIGHT);
             }
-        );
-        nameCellFactory = ( column -> new TableCell<PlaylistItem,String>() {
-                {
-                    setAlignment(cell_align);
-                }
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? "" : item);
-                }
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (!empty) {
+                    int index = show_original_index ? itemsF.getSourceIndex(getIndex()) : getIndex();
+                        index++;
+                    setText(Util.zeroPad(index, table.getItems().size(), zero_pad ? '0' : ' ') + ".");
+                } 
+                else setText("");
             }
-        );
-        timeCellFactory = ( column -> new TableCell<PlaylistItem, FormattedDuration>() {
-                {
-                    setAlignment(cell_align);
-                }
-                @Override
-                protected void updateItem(FormattedDuration item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? "" : item.toString());
-                }
-            }
-        );
+        });
+        
         rowFactory = p_table -> {
             TableRow<PlaylistItem> row = new TableRow<PlaylistItem>() {
                 private void updatePseudoclassState(PlaylistItem item, boolean empty) {
@@ -230,15 +204,9 @@ public final class PlaylistTable {
         
          // set table factories
         columnIndex.setSortable(false);
-        columnIndex.setCellValueFactory(new PropertyValueFactory<>("name"));
         columnIndex.setCellFactory(indexCellFactory);
-        
-        columnName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        columnName.setCellFactory(nameCellFactory);
-        
-        columnTime.setCellValueFactory(new PropertyValueFactory<>("time"));
-//        columnTime.setCellFactory(timeCellFactory);
-        
+        columnName.setCellValueFactory(new PropertyValueFactory("name"));
+        columnTime.setCellValueFactory(new PropertyValueFactory("time"));
         table.setRowFactory(rowFactory);
         
         // initialize table data
@@ -313,7 +281,9 @@ public final class PlaylistTable {
         table.setOnMouseClicked( e -> {
             if (e.getButton() == PRIMARY) {     // play item on doubleclick
                 if (e.getClickCount() == 2) {
-                    PlaylistManager.playItem(table.getSelectionModel().getSelectedIndex());
+                    int i = table.getSelectionModel().getSelectedIndex();
+                    int real_i = itemsF.getSourceIndex(i);
+                    PlaylistManager.playItem(real_i);
                     e.consume();
                 }           
             } else
@@ -426,15 +396,7 @@ public final class PlaylistTable {
     public void setNodeOrientation(NodeOrientation orient) {
         table.setNodeOrientation(orient);
     }
-    /**
-     * Sets alignment of content within cells
-     * Default CENTER_LEFT.
-     * @param val 
-     */
-    public void setCellAlign(Pos val) {
-        cell_align = val;
-        refresh();
-    }
+    
     /**
      * @param placeholder This Node is shown to the user when the table has no
      * content to show. This may be the case because the table model has no data
@@ -487,25 +449,6 @@ public final class PlaylistTable {
         unbindSelection();
     }
     
-    private Pos reverse(Pos val) {
-        switch(val) {
-            case BASELINE_LEFT: return Pos.BASELINE_RIGHT;
-            case BOTTOM_LEFT: return Pos.BOTTOM_RIGHT;
-            case CENTER_LEFT: return Pos.CENTER_RIGHT;
-            case TOP_LEFT: return Pos.TOP_RIGHT;
-
-            case BASELINE_RIGHT: return Pos.BASELINE_LEFT;
-            case BOTTOM_RIGHT: return Pos.BOTTOM_LEFT;
-            case CENTER_RIGHT: return Pos.CENTER_LEFT;
-            case TOP_RIGHT: return Pos.TOP_LEFT;
-                
-            case BASELINE_CENTER:
-            case BOTTOM_CENTER:
-            case CENTER:
-            case TOP_CENTER: return val;
-            default: throw new AssertionError(val + " in default switch value.");
-        }
-    }
 /************************************* DATA ***********************************/
     
     /**
@@ -570,7 +513,7 @@ public final class PlaylistTable {
 //        
 //        table.setItems(itemsS);
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        columnName.setComparator((String o1, String o2) -> 
+        columnName.setComparator((o1,o2) -> 
                 PlaylistItem.getComparatorArtist().compare(
                         new PlaylistItem(null, o1, last), 
                         new PlaylistItem(null, o2, last)));
@@ -707,59 +650,50 @@ public final class PlaylistTable {
     private static final SingleInstance<ContentContextMenu<List<PlaylistItem>>,TableView<PlaylistItem>> contxt_menu = new SingleInstance<>(
         () -> {
             ContentContextMenu<List<PlaylistItem>> contextMenu = new ContentContextMenu();
-
-            MenuItem item1 = new MenuItem("Play items");        
-                     item1.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         PlaylistManager.playItem(items.get(0));
-                     });
-            MenuItem item2 = new MenuItem("Remove items");        
-                     item2.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         PlaylistManager.removeItems(items);
-                     });
-            MenuItem item3 = new MenuItem("Edit the item/s in tag editor");        
-                     item3.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
-                         if (w!=null) {
-                             TaggingFeature t = (TaggingFeature) w.getController();
-                                            t.read(items);
-                         }
-                     });
-            MenuItem item4 = new MenuItem("Crop items");        
-                     item4.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         PlaylistManager.retainItems(items);
-                     });
-            MenuItem item5 = new MenuItem("Duplicate items as group");        
-                     item5.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         PlaylistManager.duplicateItemsAsGroup(items);
-                     });
-            MenuItem item6 = new MenuItem("Duplicate items individually");        
-                     item6.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         PlaylistManager.duplicateItemsByOne(items);
-                     });
-            MenuItem item7 = new MenuItem("Explore items's directory");        
-                     item7.setOnAction(e -> {
-                         List<PlaylistItem> items = contextMenu.getItem();
-                         List<File> files = items.stream()
-                                 .filter(Item::isFileBased)
-                                 .map(Item::getLocation)
-                                 .collect(Collectors.toList());
-                         Enviroment.browse(files,true);
-                     });
-            MenuItem item8 = new MenuItem("Add items to library");        
-                     item8.setOnAction(e -> {
-                         List<Metadata> items = contextMenu.getItem().stream()
-                                 .map(Item::toMetadata)
-                                 .collect(Collectors.toList());
-                         DB.addItems(items);
-                     });
-
-            contextMenu.getItems().addAll(item1, item2, item3, item4, item5, item6, item7, item8);
+            contextMenu.getItems().addAll(
+                Util.createmenuItem("Play items", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    PlaylistManager.playItem(items.get(0));
+                }),
+                Util.createmenuItem("Remove items", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    PlaylistManager.removeItems(items);
+                }),
+                Util.createmenuItem("Edit the item/s in tag editor", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
+                    if (w!=null) {
+                        TaggingFeature t = (TaggingFeature) w.getController();
+                                       t.read(items);
+                    }
+                }),
+                Util.createmenuItem("Crop items", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    PlaylistManager.retainItems(items);
+                }),
+                Util.createmenuItem("Duplicate items as group", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    PlaylistManager.duplicateItemsAsGroup(items);
+                }),
+                Util.createmenuItem("Duplicate items individually", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    PlaylistManager.duplicateItemsByOne(items);
+                }),
+                Util.createmenuItem("Explore items's directory", e -> {
+                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<File> files = items.stream()
+                            .filter(Item::isFileBased)
+                            .map(Item::getLocation)
+                            .collect(Collectors.toList());
+                    Enviroment.browse(files,true);
+                }),
+                Util.createmenuItem("Add items to library", e -> {
+                    List<Metadata> items = contextMenu.getItem().stream()
+                            .map(Item::toMetadata)
+                            .collect(Collectors.toList());
+                    DB.addItems(items);
+                })
+            );
             contextMenu.setConsumeAutoHidingEvents(false);
             return contextMenu;
         },

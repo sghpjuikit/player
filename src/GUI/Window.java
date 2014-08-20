@@ -95,6 +95,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import main.App;
+import org.reactfx.Subscription;
 import utilities.Enviroment;
 import utilities.Log;
 import utilities.Util;
@@ -220,6 +221,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         }
     }
     
+    //TODO: this is too much for sch simple task, simplify the colorizing
+    private static Subscription playingItemMonitoring;
     private static ChangeListener<Metadata> colorListener;
     
     private static void applyOverlayUseSongColor() {
@@ -230,17 +233,17 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                     Color c = nv.getColor();
                     applyColorEffect( c==null ? gui_overlay_color : c);
                 };
-                Player.currentMetadataProperty().addListener(colorListener);
+                playingItemMonitoring = Player.getCurrent().subscribeToUpdates((ov,nv)->colorListener.changed(null,null,nv));
                 // fire upon binding to create immediate response
-                colorListener.changed(null, null, Player.getCurrentMetadata());
+                colorListener.changed(null, null, Player.getCurrent().get());
             } else {
-                colorListener.changed(null, null, Player.getCurrentMetadata());
+                colorListener.changed(null, null, Player.getCurrent().get());
             }            
         }
         else {
             // remove and destroy listener
             if(colorListener!=null)
-                Player.currentMetadataProperty().removeListener(colorListener);
+                playingItemMonitoring.unsubscribe();
             colorListener=null;
             applyColorOverlay();
         }

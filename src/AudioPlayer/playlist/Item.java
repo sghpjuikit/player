@@ -265,16 +265,16 @@ public abstract class Item implements Comparable<Item> {
      * <p>
      * WARNING. This method uses application thread and as such is prone to
      * cause performance problems if misused. Its fine to use this method for
-     * single item. Its recommended to avoid this method in loops.
+     * single item, but it is recommended to avoid this method in loops.
      * If this item is being played, metadata are fetched from cache, which means
      * immediate response and no performance throwback.
+     * 
      * @return metadata for this item. Empty metadata, if this item is corrupt
-     * or on error.
+     * or result of {@link #toMetadata()} when error during the loading.
      */
     public final Metadata getMetadata() {
-        return same(Player.getCurrentMetadata()) 
-                ? Player.getCurrentMetadata()
-                : MetadataReader.create(this);
+        return same(Player.getCurrent().get()) ? Player.getCurrent().get()
+                                               : MetadataReader.create(this);
     }
 
     

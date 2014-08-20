@@ -16,9 +16,9 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import main.App;
+import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
 
 /**
@@ -61,7 +61,7 @@ public class DB {
         EntityManager em = emf.createEntityManager();
         List result;
         try {
-            TypedQuery<Metadata> query = em.createQuery("SELECT p FROM Item p", Metadata.class);
+            TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p", Metadata.class);
             result = query.getResultList();
         }
         finally {
@@ -75,8 +75,8 @@ public class DB {
         try {
             
             String q = (value instanceof String)
-                    ? "SELECT p FROM Item p WHERE p."+field.name().toLowerCase()+" LIKE '" + value.toString() + "'"
-                    : "SELECT p FROM Item p WHERE p."+field.name().toLowerCase()+" IS " + value.toString();
+                    ? "SELECT p FROM MetadataItem p WHERE p."+field.name().toLowerCase()+" LIKE '" + value.toString() + "'"
+                    : "SELECT p FROM MetadataItem p WHERE p."+field.name().toLowerCase()+" IS " + value.toString();
             TypedQuery<Metadata> query = em.createQuery(q, Metadata.class);
             result = query.getResultList();
         }
@@ -89,9 +89,8 @@ public class DB {
         EntityManager em = emf.createEntityManager();
         List result;
         try {
-            TypedQuery<String> query = em.createQuery("SELECT p.artist, count(p) FROM Item p GROUP BY p.artist", String.class);
+            TypedQuery<String> query = em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class);
             result = query.getResultList();
-            result.forEach(System.out::println);
         }
         finally {
             em.close();
@@ -104,18 +103,18 @@ public class DB {
         List<MetadataGroup> result = new ArrayList();
         try {
             String f = "p." + metadata_field.toString().toLowerCase();
-            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM Item p GROUP BY " + f;
-//            query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM Item p GROUP BY p.FIELD");
-            Query query = em.createQuery(q);
+            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p GROUP BY " + f;
+            //query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM MetadataItem p GROUP BY p.FIELD");
+            TypedQuery query = em.createQuery(q,Metadata.class);
             List<Object[]> rs = query.getResultList();
-                            rs.stream()
-                            .map(r->
-                                // or some strange reason sum(length) returns long! not double below is the original line
-                                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
-                                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
-                                new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
-                            )
-                            .forEach(result::add);
+            rs.stream()
+            .map(r->
+                // or some strange reason sum(length) returns long! not double below is the original line
+                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
+                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
+                new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
+            )
+            .forEach(result::add);
         }
         finally {
             em.close();
@@ -167,16 +166,16 @@ public class DB {
      */
     public static final EventSource<Void> librarychange = new EventSource();
     
-    public static class MetadataFieldSelection {
-        public final Metadata.Field field;
-        public final Object value;
-        
-        public MetadataFieldSelection(Metadata.Field field, Object value) {
-            this.field = field;
-            this.value = value;
-        }
-    }
-    public static final EventSource<MetadataFieldSelection> fieldSelectionChange = new EventSource();
+    /**
+    * Fires on every library view field change. The event indicates for library to
+    * refresh items it displays according to the new field as a filter.
+    * <p>
+    * A widget serving a role of a library view can push new value into this
+    * event source to emit new event.
+    * <p>
+    * A library widget can monitor this stream instead of {@link #librarychange}
+    */
+    public static final BiEventSource<Metadata.Field,Object> fieldSelectionChange = new BiEventSource();
             
    
 }

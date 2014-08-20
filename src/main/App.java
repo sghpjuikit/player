@@ -84,6 +84,7 @@ public class App extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+            
         
         Configuration.load();           // must initialize first
         
@@ -114,7 +115,7 @@ public class App extends Application {
         // initialize non critical parts
         Player.loadLast();                      // should load in the end
 
-        NotifierManager.initialize();           // after window is shown (and css aplied)
+        NotifierManager.start();           // after window is shown (and css aplied)
         PlaycountIncrementer.initialize();
         MoodManager.initialize();
         Action.getActions().values().forEach(Action::register);        
@@ -150,7 +151,7 @@ public class App extends Application {
             Player.state.serialize();            
             Configuration.save();
             BookmarkManager.saveBookmarks();
-            NotifierManager.free();
+            NotifierManager.stop();
             
         }
         DB.stop();

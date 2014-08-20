@@ -29,7 +29,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -93,8 +92,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     // properties
     @IsConfig(name = "Table orientation", info = "Orientation of table.")
     public NodeOrientation table_orient = NodeOrientation.INHERIT;
-    @IsConfig(name = "Table text orientation", info = "Orientation of text within table cells.")
-    public Pos cell_align = Pos.CENTER_LEFT;
     @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
     public boolean zeropad = false;
     @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
@@ -107,7 +104,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public boolean always_hide_search = false;
     @IsConfig(name = "Search ignore case", info = "Ignore case when comparing for search results.")
     public boolean ignoreCase = true;
-    @IsConfig(name = "Search show original index", info = "Show index of the itme as it was in the unfiltered playlisteven when filter applied.")
+    @IsConfig(name = "Search show original index", info = "Show index of the itme as it was in the unfiltered playlist when filter applied.")
     public boolean orig_index = true;
     
     @Override
@@ -216,7 +213,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         playlist.setShowOriginalIndex(orig_index);
         playlist.zeropadIndex(zeropad);
         playlist.setNodeOrientation(table_orient);
-        playlist.setCellAlign(cell_align);
         playlist.setMenuButtonVisible(show_menu_button);
         playlist.setHeaderVisible(show_header);
         playlist.refresh();

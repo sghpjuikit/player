@@ -1,13 +1,13 @@
 package PlayerControlsTiny;
 
 
-import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.EMPTY;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
@@ -31,6 +31,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
+import org.reactfx.Subscription;
 import utilities.Util;
 
 /**
@@ -98,8 +99,8 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         
         
         // set updating + initialize manually
-        Player.addOnItemUpdate(playbackItemChanged);                    // add listener
-        playbackItemChanged(Player.getCurrentMetadata());               // init value
+        playingItemMonitoring = Player.getCurrent().subscribeToUpdates(this::playbackItemChanged);  // add listener
+        playbackItemChanged(EMPTY,Player.getCurrent().get());            // init value
         
         PLAYBACK.statusProperty().addListener(statusListener);          // add listener
         statusChanged(PLAYBACK.getStatus());                            // init value
@@ -138,7 +139,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     @Override
     public void OnClosing() {
         // remove listeners
-        Player.remOnItemUpdate(playbackItemChanged);
+        playingItemMonitoring.unsubscribe();
         PLAYBACK.statusProperty().removeListener(statusListener);       
         PLAYBACK.muteProperty().removeListener(muteListener);
         PLAYBACK.currentTimeProperty().removeListener(currTimeListener);
@@ -196,18 +197,18 @@ public class PlayerControlsTinyController extends FXMLController implements Play
 
 /******************************************************************************/
     
-    private final ItemChangeHandler<Metadata> playbackItemChanged = (oldV,newV)-> playbackItemChanged(newV);
+    Subscription playingItemMonitoring;
     private final ChangeListener<Status> statusListener = (o,ov,nv)-> statusChanged(nv);
     private final ChangeListener<Boolean> muteListener = (o,ov,nv)-> muteChanged(nv);
     private final InvalidationListener currTimeListener = o -> currentTimeChanged();
     
     
-    private void playbackItemChanged(Metadata m) {
-        if(m!=null) {
-            titleL.setText(m.getTitle());
-            artistL.setText(m.getArtist());
+    private void playbackItemChanged(Metadata ov, Metadata nv) {
+        if(nv!=null) {
+            titleL.setText(nv.getTitle());
+            artistL.setText(nv.getArtist());
         }
-        seeker.reloadChapters(m);
+        seeker.reloadChapters(nv);
     }
     private void statusChanged(Status status) {
         if (status == null || status == UNKNOWN ) {

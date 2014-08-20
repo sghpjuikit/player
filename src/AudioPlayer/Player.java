@@ -1,15 +1,14 @@
 
 package AudioPlayer;
 
-import AudioPlayer.ItemChangeEvent.ItemChangeHandler;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import PseudoObjects.ReadMode;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.util.Duration;
 
 /**
  *
@@ -31,12 +30,8 @@ public class Player {
     }
     
     /** @return Metadata representing currently played item. Never null. */
-    public static Metadata getCurrentMetadata() {
-        return core.currentMetadataCache.get();
-    }
-
-    public static SimpleObjectProperty<Metadata> currentMetadataProperty() {
-        return core.currentMetadataCache;
+    public static Core.CurrentItem getCurrent() {
+        return core.cI;
     }
     
     public static Metadata getPlaylistLastSelectedMetadata() {
@@ -47,12 +42,14 @@ public class Player {
         return core.selectedMetadata;
     }
     
-    public static void bindObservedMetadata(SimpleObjectProperty<Metadata> observer, ReadMode mode) {
-        observer.unbind();
+    public static void bindObservedMetadata(ObjectProperty<Metadata> observer,
+//            Optional<Subscription> subscriptionWrapper,
+            ReadMode mode) {
+//        if (subscriptionWrapper.isPresent()) subscriptionWrapper.get().unsubscribe();
         switch (mode) {
             case PLAYLIST_SELECTED: observer.bind(core.selectedMetadata);
                                     break;
-            case PLAYING:           observer.bind(core.currentMetadataCache);
+            case PLAYING:           observer.bind(core.cI.itemUpdatedES.map((ov,nv)->nv).toBinding(core.cI.get()));
                                     break;
             case LIBRARY_SELECTED:  //not yet implemented
                                     break;
@@ -61,7 +58,7 @@ public class Player {
             default:
         }
     }
-    public static void bindObservedItem(SimpleObjectProperty<PlaylistItem> observer, ReadMode mode) {
+    public static void bindObservedItem(ObjectProperty<PlaylistItem> observer, ReadMode mode) {
         observer.unbind();
         switch (mode) {
             case PLAYLIST_SELECTED: observer.bind(PlaylistManager.selectedItemProperty());
@@ -75,54 +72,24 @@ public class Player {
             default:
         }
     }
-    public static void bindPlayingItem(SimpleObjectProperty<PlaylistItem> observer) {
-        observer.bind(PlaylistManager.playingItemProperty());
-    }
-    public static void bindSelectedItem(SimpleObjectProperty<PlaylistItem> observer) {
-        observer.bind(PlaylistManager.selectedItemProperty());
-    }
-    public static void bindPlaylistDuration(SimpleObjectProperty<Duration> observer) {
-        observer.bind(PlaylistManager.lengthProperty());
-    }
-    
-
     
 /******************************************************************************/
     
-    /** Add behavior to playing item updated event. The event is fired every time
-     * playing item changes or some of its metadata is changed such artist
-     * or rating.
-     * <p>
-     * Use in cases requiring constantly updated information about the playing 
-     * item. This event guarantees consistency with currently played item 
-     * metadata at all times, even during tagging.
+    /** 
+     * Refreshes the given item for the whole application. Use when metadata of
+     * the item changed.
      */
-    public static void addOnItemUpdate(ItemChangeHandler<Metadata> handler) {
-        core.itemChange.addOnUpdateHandler(handler);
-    }
-    /** Add behavior to playing item changed event. The event is fired every time
-     * playing item changes. Playing the same item again will fire the event too.
-     * <p>
-     * Use when only momentary information about the playing item are required.
-     */
-    public static void addOnItemChange(ItemChangeHandler<Metadata> handler) {
-        core.itemChange.addOnChangeHandler(handler);
-    }
-    /** Remove behavior from playing item event.*/
-    public static void remOnItemUpdate(ItemChangeHandler<Metadata>handler) {
-        core.itemChange.remHandler(handler);
-    }
-    
-    /** For internal use only. */
     public static void refreshItem(Item item) {
 
         // update all playlist items referring to this updated metadata
-        PlaylistManager.updateItemsOf(item);                                    // what is this wasteful metadata loading!?!?
+        PlaylistManager.updateItemsOf(item);
+        
+        // update library
+        
 
         // reload metadata if played right now
-        if (item.same(PlaylistManager.getPlayingItem())) {
-            core.updateCurrent();
-        }
+        if (core.cI.get().same(item))
+            core.cI.update();
         
         // reload selected playlist
         if (item.same(PlaylistManager.getSelectedItem()))

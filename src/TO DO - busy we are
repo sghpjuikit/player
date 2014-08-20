@@ -45,6 +45,7 @@
   result
 - playlist widget hide bottom header
 - add empty layout on ui drag animation ends not good enough, needs be more eager
+- library shortcuts
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

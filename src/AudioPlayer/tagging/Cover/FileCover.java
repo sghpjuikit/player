@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import utilities.Util;
 
 /**
  * Denotes Cover represented by a {@link File}.
@@ -36,6 +37,12 @@ public class FileCover implements Cover {
     @Override
     public Image getImage() {
         return image==null ? null : new Image(image.toURI().toString());
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public Image getImage(double width, double height) {
+        return image==null ? null : Util.loadImage(image, width, height);
     }
 
     /** {@inheritDoc} */

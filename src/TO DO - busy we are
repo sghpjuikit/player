@@ -44,13 +44,14 @@
   if we maintain the initial speed the whole time ill be very happy with the
   result
 - library shortcuts
-- table node orientation neends recreation of the whole table to take effect
-  improve playlistTable to take effect immediatelly in Playlist widget
 - library remember value is Object field turn into Config with overriden getType
   that gets the type from the field type config, or unify the two into one
   double value config
 - writing to tag for files without tag fails sometimes (jaudiotagger cant rename
-  file, it looks like it is locked)
+  file, it looks like it is locked) - perhaps generalizes to any change of tag
+  that enlarges the file (and thusrequires tmp file)
+- file info show individual field configs should remove labels from pane too
+
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
 --------------------------------------------------------------------------------

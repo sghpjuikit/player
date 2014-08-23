@@ -960,7 +960,7 @@ public final class Metadata extends MetaItem {
             case CUSTOM3 : return getCustom3();
             case CUSTOM4 : return getCustom4();
             case CUSTOM5 : return getCustom5();
-            default : throw new RuntimeException("ddd");
+            default : throw new AssertionError("Default case should never execute");
         }
     }
     

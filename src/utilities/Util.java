@@ -38,7 +38,6 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
 import org.jaudiotagger.tag.images.Artwork;
-import utilities.functional.impl.NotNull;
 
 /**
  * Provides static utility methods for various purposes.
@@ -81,7 +80,7 @@ public interface Util {
     }
     
     /** Simple Predicate returning true if object is not null. Use in lambda. */
-    public static Predicate<Object> NotNULL = new NotNull();
+    public static Predicate<Object> NotNULL = Objects::nonNull;
     
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      * by delimiter ", ".  Use in lambda. */
@@ -535,7 +534,7 @@ public interface Util {
     }
     
     /**
-     * Returns i-th generic parameter of the field. Integer for List<Integer>.
+     * Returns i-th generic parameter of the field. {@code Integer for List<Integer>}
      * @param f
      * @return 
      */
@@ -547,7 +546,7 @@ public interface Util {
     
     /**
      * Returns i-th generic parameter of the class.
-     * For example Integer for IntegerList extends List<Integer>
+     * For example Integer for {@code IntegerList extends List<Integer>}
      * <p>
      * Will NOT work on variables, using getClass() method on them.
      * 

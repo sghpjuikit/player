@@ -6,13 +6,11 @@
 
 package utilities.collections;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Plutonium_
  */
-public class IntegerList extends ArrayList<Integer> {
+public class IntegerList extends PrimitiveList<Integer> {
     private static final long serialVersionUID = 21L;
     
 }

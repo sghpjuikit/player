@@ -1,4 +1,3 @@
-
 package Image;
 
 import Configuration.IsConfig;
@@ -15,12 +14,11 @@ import javafx.fxml.FXML;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import utilities.FxTimer;
 import utilities.ImageFileFormat;
-import utilities.functional.functor.Procedure;
+import utilities.access.Accessor;
 
 /**
  * FXML Controller class
@@ -33,53 +31,54 @@ import utilities.functional.functor.Procedure;
     name = "Image",
     description = "Shows an image associaed with the skin.",
     howto = "Available actions:\n" +
-            "    Left click : Next image\n" +
-            "    Right click : Previous image\n" +
-            "    Middle click : Show skin images if custom image\n" +
-            "    Drag & drop image : Show given custom image",
-    notes = "Note: Some skins might not have any associated image, while some"
-          + "will have many.",
+            "    Left click left side: Previous image\n" +
+            "    Left click right side : Next image\n" +
+            "    Middle click : Toggle image source - custom/skin\n" +
+            "    Drag & drop image : Set custom image",
+    notes = "Note: Some skins may have no associated image, while some"
+          + "may have many.",
     version = "1.0",
     year = "2014",
     group = Widget.Group.OTHER
 )
 public class ImageController extends FXMLController {
-    @FXML AnchorPane root;
-    Thumbnail thumb;
-    final ObservableList<File> images = FXCollections.observableArrayList();
     
+    // auto applied configurables
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
-    public boolean slideshow_on = true;
+    public final Accessor<Boolean> slideshow_on = new Accessor<>(true, this::slideShowOn);
+    @IsConfig(name = "Use custom image", info = "Display custom static image file.")
+    public final Accessor<Boolean> useCustomImage = new Accessor<>(false, this::useCustomImage);
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public double slideshow_dur = 15000l;
-    // invisible for now
-    // 1 - we do not have a good image picker
-    // 2 - we need to make it possible to pick 'empty' image or null
+    public final Accessor<Double> slideshow_dur = new Accessor<>(15000d, this::slideshowDur);   
+    
+    // manually applied configurables
+    
+    // non applied configurables
     @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
     public File custom_image = new File("");
-    @IsConfig(name = "Use custom image", info = "Display custom static image file.", editable = false)
-    public boolean useCustomImage = false;
+
+    
+    // non configurables
+    @FXML AnchorPane root;
+    private final Thumbnail thumb = new Thumbnail();
+    private final ObservableList<File> images = FXCollections.observableArrayList();
+    private int active_image = -1;
+    private final FxTimer slideshow = FxTimer.createPeriodic(Duration.millis(slideshow_dur.getValue()), this::nextImage);
     
     
     @Override
     public void init() {
-        thumb = new Thumbnail();
         thumb.setBackgroundVisible(false);
         thumb.setBorderVisible(false);
         thumb.setDragImage(false);
-        thumb.allowContextMenu(false);
         thumb.getPane().setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
-                nextImage.run();
-                e.consume();
-            } else
-            if(e.getButton()==SECONDARY) {
-                prevImage.run();
+                if(e.getX() < thumb.getPane().getWidth()/2) prevImage();
+                else nextImage();
                 e.consume();
             } else
             if(e.getButton()==MIDDLE) {
-                useCustomImage = !useCustomImage;
-                refresh();
+                useCustomImage.toggleNapplyValue();
                 e.consume();
             }
         });
@@ -98,24 +97,18 @@ public class ImageController extends FXMLController {
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
             List<File> imgs = DragUtil.getImageItems(e);
+            // set custom image to first available
             if(!imgs.isEmpty()) custom_image = imgs.get(0);
-            useCustomImage = true;
+            // use custom image
+            useCustomImage.setNapplyValue(true);
             e.setDropCompleted(true);
-            refresh();
         });
     }
 
     @Override
     public void refresh() {
-        // grab fresh images
-        if(useCustomImage && ImageFileFormat.isSupported(custom_image))
-             images.setAll(custom_image);
-        else images.setAll(GUI.GUI.getGuiImages());
-        
-        // set slideshow on/off according to state
-        if (slideshow_on) slideshowStart();
-        else slideshowEnd();
-        setImage(0);
+        useCustomImage.applyValue();
+        slideshow_on.applyValue();
     }
 
     @Override
@@ -123,6 +116,30 @@ public class ImageController extends FXMLController {
         slideshow.stop();
         images.clear();
     }
+    
+/******************************** PUBLIC API **********************************/
+    
+    public void nextImage() {
+        if (images.size()==1) return;
+        if (images.isEmpty()) {
+            setImage(-1);
+        } else { 
+            int index = (active_image >= images.size()-1) ? 0 : active_image+1;
+            setImage(index);
+        }
+    }
+    
+    public void prevImage() {
+        if (images.size()==1) return;
+        if (images.isEmpty()) {
+            setImage(-1);
+        } else {
+            int index = (active_image < 1) ? images.size()-1 : active_image-1;
+            setImage(index);
+        }
+    }
+    
+/******************************* HELPER METHODS *******************************/
     
     private void setImage(int index) {
         if (images.isEmpty()) index = -1;
@@ -138,37 +155,32 @@ public class ImageController extends FXMLController {
         }
     }
     
-/********************************** SLIDESHOW *********************************/
-    
-    private int active_image = -1;
-    private final Procedure nextImage = () -> {
-        if (images.size()==1) return;
-        if (images.isEmpty()) {
-            setImage(-1);
-        } else { 
-            int index = (active_image >= images.size()-1) ? 0 : active_image+1;
-            setImage(index);
-        }
-    };
-    private final Procedure prevImage = () -> {
-        if (images.size()==1) return;
-        if (images.isEmpty()) {
-            setImage(-1);
-        } else {
-            int index = (active_image < 1) ? images.size()-1 : active_image-1;
-            setImage(index);
-        }
-    };
-    FxTimer slideshow = FxTimer.createPeriodic(Duration.millis(slideshow_dur),nextImage);
-    
-    public void slideshowStart() {
-        nextImage.run();
-        slideshow.restart(Duration.millis(slideshow_dur));
+    private void useCustomImage(boolean val) {
+        // change data
+        if(val && ImageFileFormat.isSupported(custom_image))
+            images.setAll(custom_image);
+        else 
+            images.setAll(GUI.GUI.getGuiImages());
+        // reload image
+        setImage(0);
+    }
+
+    private void slideShowOn(boolean v) {
+        if (v) slideshowStart(); 
+        else slideshowEnd();
     }
     
-    public void slideshowEnd() {
+    private void slideshowDur(double v) {
+        if(slideshow_on.getValue()) slideshow.restart(Duration.millis(v));
+    }
+    
+    private void slideshowStart() {
+        nextImage();
+        slideshow.restart(Duration.millis(slideshow_dur.getValue()));
+    }
+    
+    private void slideshowEnd() {
         slideshow.stop();
     }
-    
     
 }

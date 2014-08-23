@@ -13,7 +13,10 @@ import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -21,6 +24,8 @@ import javax.persistence.TypedQuery;
 import main.App;
 import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
+import org.reactfx.EventStream;
+import utilities.access.Accessor;
 
 /**
  *
@@ -104,19 +109,28 @@ public class DB {
         return result;
     }
     public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
+        return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
+    }
+    public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
         EntityManager em = emf.createEntityManager();
         List result;
-        try {
+        
+            Accessor<String> filter = new Accessor("");
             
-            String q = (value instanceof String)
-                    ? "SELECT p FROM MetadataItem p WHERE p."+field.name().toLowerCase()+" LIKE '" + value.toString() + "'"
-                    : "SELECT p FROM MetadataItem p WHERE p."+field.name().toLowerCase()+" IS " + value.toString();
-            TypedQuery<Metadata> query = em.createQuery(q, Metadata.class);
-            result = query.getResultList();
-        }
-        finally {
-            em.close();
-        }
+            filters.forEach((field,values) -> {
+
+                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
+
+                String f = (values.get(0) instanceof String)
+                    ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'"
+                    : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString();
+                filter.setValue(filter.getValue() + f);
+            });
+            
+        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p" + filter.getValue(), Metadata.class);
+        result = query.getResultList();
+
+        em.close();
         return result;
     }
     public static List<Object[]> getAllArtists() {
@@ -133,27 +147,69 @@ public class DB {
     }
     
     public static List<MetadataGroup> getAllGroups(Metadata.Field metadata_field) {
+        return getAllGroups(metadata_field, new HashMap<>());
+    } 
+    public static List<MetadataGroup> getAllGroups(Metadata.Field groupByField, Map<Metadata.Field,List<Object>> filters) {
         EntityManager em = emf.createEntityManager();
         List<MetadataGroup> result = new ArrayList();
         try {
-            String f = "p." + metadata_field.toString().toLowerCase();
-            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p GROUP BY " + f;
-            //query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM MetadataItem p GROUP BY p.FIELD");
-            TypedQuery query = em.createQuery(q,Metadata.class);
-            List<Object[]> rs = query.getResultList();
-            rs.stream()
-            .map(r->
-                // or some strange reason sum(length) returns long! not double below is the original line
-                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
-                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
-                new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
-            )
-            .forEach(result::add);
+            
+//            filters.put(Metadata.Field.PUBLISHER, Collections.singletonList("Import"));
+            
+            Accessor<String> filter = new Accessor("");
+            
+            filters.forEach((field,values) -> {
+
+                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
+
+                String f = (values.get(0) instanceof String)
+                    ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'"
+                    : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString();
+                filter.setValue(filter.getValue() + f);
+            });
+            
+            String f = "p." + groupByField.toString().toLowerCase();
+            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p " + filter.getValue() + " GROUP BY " + f;
+            System.out.println(q);
+            TypedQuery<Object[]> query = em.createQuery(q,Object[].class);
+            query.getResultList().stream().map(r->
+                    // or some strange reason sum(length) returns long! not double below is the original line
+                    //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
+                    //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
+                    new MetadataGroup( groupByField, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
+                )
+                .forEach(result::add);
         }
         finally {
             em.close();
         }
+        
+//        Query qq = em.createQuery("SELECT p.album, COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p "
+//                + "WHERE p.artist = aa OR p.filesize >0"
+//                + "GROUP BY p.album");
+        
         return result;
+//        EntityManager em = emf.createEntityManager();
+//        List<MetadataGroup> result = new ArrayList();
+//        try {
+//            String f = "p." + groupByField.toString().toLowerCase();
+//            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p GROUP BY " + f;
+//            //query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM MetadataItem p GROUP BY p.FIELD");
+//            TypedQuery query = em.createQuery(q,Metadata.class);
+//            List<Object[]> rs = query.getResultList();
+//            rs.stream()
+//            .map(r->
+//                // or some strange reason sum(length) returns long! not double below is the original line
+//                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
+//                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
+//                new MetadataGroup( groupByField, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
+//            )
+//            .forEach(result::add);
+//        }
+//        finally {
+//            em.close();
+//        }
+//        return result;
     }
     
     private static void updateItems(List<Metadata> items) {
@@ -212,4 +268,9 @@ public class DB {
     public static final BiEventSource<Metadata.Field,Object> fieldSelectionChange = new BiEventSource();
             
    
+    
+    public static final EventStream<List<Metadata>> filteredItemsEvent = 
+            fieldSelectionChange.map((metaField,value) -> getAllItemsWhere(metaField, value));
+    
+    public static Map<Integer,String> filterFields = new HashMap();
 }

@@ -19,7 +19,14 @@ import javafx.scene.image.Image;
       */
     public Image getImage();
     /**
-     * Accessory method.
+     * Returns the cover image as is if available or loads it from file into
+     * specified size. Doesnt guarantee the resulting size will match the specified.
+     * @param width
+     * @param height
+     * @return 
+     */
+    public Image getImage(double width, double height);
+    /**
      * Returns file denoting the image. Only some implementations of Cover will
      * return non null value. For example cover image obtained from tag will not
      * have fle available.
@@ -27,7 +34,6 @@ import javafx.scene.image.Image;
      */
     public File getFile();
     /**
-     * Accessory method.
      * Human readable information about the cover. No guarantees about the
      * format of the output. Do not parse.
      * Example: "jpg 500x500"

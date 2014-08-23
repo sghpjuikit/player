@@ -80,11 +80,10 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         groups.forEach(g->g.grid.getRowConstraints().clear());
         
         // sort & populate fields
-        Configuration.getFields().stream()
-        .sorted(Util.cmpareNoCase(o->o.getGuiName())).forEach(f-> {
+        Configuration.getFields().stream().sorted(Util.cmpareNoCase(o->o.getGuiName())).forEach(f-> {
             ConfigGroup g = getGroup(f.getGroup());                             // find group
             ConfigField cf = ConfigField.create(f);                             // create
-            if (cf != null && !(!show_noneditable && !f.isEditable())) {        // ignore on fail || noneditabe
+            if (show_noneditable || f.isEditable()) {        // ignore noneditabe
                 configFields.add(cf);
                 g.grid.getRowConstraints().add(new RowConstraints());
                 g.grid.add(cf.getLabel(), 1, g.grid.getRowConstraints().size());  
@@ -93,7 +92,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         });
         
         // sort & populate groups
-        groups.stream().sorted(Util.cmpareNoCase(e->e.name()))
+        groups.stream().sorted(Util.cmpareNoCase(g -> g.name()))
                        .forEach(g -> accordion.getPanes().add(g.pane));
         
         // expand     

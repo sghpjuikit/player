@@ -238,9 +238,8 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
 /******************************************************************************/
     
     /**
-     * Creates config field best suited for the specified Field.
+     * Creates ConfigFfield best suited for the specified Field.
      * @param f field for which the GUI will be created
-     * @return null if errors out
      */
     public static ConfigField create(Config f) {        
         String name  = f.getName();

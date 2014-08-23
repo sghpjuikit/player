@@ -1,7 +1,6 @@
 
 package GUI.objects;
 
-import Configuration.Config;
 import Configuration.Configurable;
 import GUI.ItemHolders.ConfigField;
 import java.io.IOException;
@@ -13,6 +12,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import utilities.Log;
+import utilities.Util;
 import utilities.functional.functor.UnProcedure;
 
 /**
@@ -71,15 +71,15 @@ public class SimpleConfigurator<T> extends AnchorPane {
         configFields.clear();
         fields.getChildren().clear();
         
-        for(Config<T> f: configurable.getFields()) {
+        configurable.getFields().stream().sorted(Util.cmpareNoCase( f -> f.getGuiName())).forEach( f -> {
             ConfigField cf = ConfigField.create(f);                 // create
             
-            if (cf == null)// || (!showNonEdit() && !f.editable))
-                continue;                                           // ignore on fail || noneditabe
-            configFields.add(cf);                                   // add
-            fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
-            fields.add(cf.getControl(), 1, configFields.size()-1);
-        }
+            if (f.isEditable()) {                   // ignore noneditabe                    
+                configFields.add(cf);                                   // add
+                fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
+                fields.add(cf.getControl(), 1, configFields.size()-1);
+            }
+        });
     }
     
     @FXML

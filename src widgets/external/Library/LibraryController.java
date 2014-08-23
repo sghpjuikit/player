@@ -229,6 +229,7 @@ public class LibraryController extends FXMLController {
         dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
             changeValue = value; // needs to be ready before the next line
             changeField.setValue(field); // this causes reloading of the data
+            refresh();
         });
     }
     
@@ -246,7 +247,7 @@ public class LibraryController extends FXMLController {
     
 
     @Override
-    public void refresh() {System.out.println("refreshing " + changeField.getValue() + " " + changeValue);
+    public void refresh() {
         table.getSelectionModel().clearSelection();
         table.getItems().setAll(DB.getAllItemsWhere(changeField.getValue(), changeValue));
     }

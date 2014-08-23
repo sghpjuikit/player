@@ -7,7 +7,7 @@ import java.util.Objects;
 import utilities.Parser.Parser;
 import utilities.Parser.StringParser;
 import utilities.Util;
-import utilities.access.AccessibleValue;
+import utilities.access.ApplicableValue;
 
 /**
  * Object representation of a configurable value.
@@ -29,7 +29,7 @@ import utilities.access.AccessibleValue;
  * 
  * @author uranium
  */
-public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, StringParser<T> {
+public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringParser<T> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -49,16 +49,10 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
      */
     @Override
     public abstract T getValue();
-
+    
+    /** {@inheritDoc} */
     @Override
     public abstract void setValue(T val);
-
-    public abstract void applyValue();
-
-    public final void setNapplyValue(T val) {
-        setValue(val);
-        applyValue();
-    }
 
     /**
      * Returns class type of the value. The value and default value can only
@@ -173,7 +167,10 @@ public abstract class Config<T> implements AccessibleValue<T>, Configurable<T>, 
      */
     @Override
     public final String toS(T val) {
-        return Parser.toS(val);
+//        if(val instanceof PrimitiveList) {
+//            PrimitiveList.class..stream().map(e -> Parser.toS(e)).collect(Collectors.joining("|"));
+//        } else
+            return Parser.toS(val);
     }
     
     /**

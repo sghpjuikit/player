@@ -6,13 +6,11 @@
 
 package utilities.collections;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author Plutonium_
  */
-public class DoubleList extends ArrayList<Double> {
+public class DoubleList extends PrimitiveList<Double> {
     private static final long serialVersionUID = 22L;
     
 }

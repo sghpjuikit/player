@@ -29,14 +29,16 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.OverrunStyle;
+import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
+import utilities.access.Accessor;
 
 /**
- * 
+ * File info widget controller.
  * <p>
  * @author Plutonium_
  */
@@ -46,8 +48,9 @@ import javafx.scene.layout.TilePane;
     name = "File Info",
     description = "Displays information about a song and cover. Supports rating change.",
     howto = "Available actions:\n" +
-            "    Cover click : Toggle cover only mode\n" +
-            "    Rater click : Rate displayed song\n" +
+            "    Cover click : Toggle show fields\n" +
+            "    Rater left click : Rate displayed song\n" +
+            "    Rater right click : Toggle rater skin\n" +
             "    Drag&Drop audio : Display information for the first item\n",
     version = "0.9",
     year = "2014",
@@ -59,116 +62,110 @@ public class FileInfoController extends FXMLController  {
     ImageFlowPane layout;
     TilePane tiles = new TilePane(VERTICAL,10,0);
     
-    Label title = new Label(); 
-    Label track = new Label(); 
-    Label disc = new Label(); 
-    Label gap1 = new Label(); 
-    Label artist = new Label(); 
-    Label album = new Label();    
-    Label album_artist = new Label(); 
-    Label year = new Label(); 
-    Label genre = new Label(); 
-    Label composer = new Label(); 
-    Label publisher = new Label(); 
-    Label gap2 = new Label(); 
-    Label rating = new Label(); 
-    Label playcount = new Label(); 
-    Label comment = new Label(); 
-    Label category = new Label(); 
-    Label gap3 = new Label(); 
-    Label filesize = new Label(); 
-    Label filename = new Label(); 
-    Label format = new Label(); 
-    Label bitrate = new Label(); 
-    Label encoding = new Label(); 
-    Label location = new Label(); 
-    final Rating rater = new Rating();
+    private final Label title = new Label(); 
+    private final Label track = new Label(); 
+    private final Label disc = new Label(); 
+    private final Label gap1 = new Label(); 
+    private final Label artist = new Label(); 
+    private final Label album = new Label();    
+    private final Label album_artist = new Label(); 
+    private final Label year = new Label(); 
+    private final Label genre = new Label(); 
+    private final Label composer = new Label(); 
+    private final Label publisher = new Label(); 
+    private final Label gap2 = new Label(); 
+    private final Label rating = new Label(); 
+    private final Label playcount = new Label(); 
+    private final Label comment = new Label(); 
+    private final Label category = new Label(); 
+    private final Label gap3 = new Label(); 
+    private final Label filesize = new Label(); 
+    private final Label filename = new Label(); 
+    private final Label format = new Label(); 
+    private final Label bitrate = new Label(); 
+    private final Label encoding = new Label(); 
+    private final Label location = new Label(); 
+    private final Rating rater = new Rating();
     
     private List<Label> labels;
     private final List<Label> visible_labels = new ArrayList();
-    private final SimpleObjectProperty<Metadata> meta = new SimpleObjectProperty();
+    private final SimpleObjectProperty<Metadata> data = new SimpleObjectProperty();
+    private final ChangeListener<Number> tileResizer = (o,ov,nv) -> resize(nv.doubleValue());
     
-    // properties
-    @IsConfig(name = "Item source", info = "Source of data for the widget.")
-    public ReadMode readMode = ReadMode.PLAYING;
-    @IsConfig(name = "Column min width", info = "Minimal width for field columns. Use -1 for automatic width")
-    public Double minColumnWidth = 150.0;
+    // auto applied configurable values    
+    @IsConfig(name = "Column width", info = "Minimal width for field columns.")
+    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth()));
     @IsConfig(name = "Cover source", info = "Source for cover image.")
-    public CoverSource cover_source = CoverSource.ANY;
-    @IsConfig(name = "Change item source on drag&drop", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
-    public boolean changeReadModeOnTransfer = true;
-    @IsConfig(name = "Rating editable", info = "Allow change of rating.")
-    public boolean editableRating = Configuration.allowRatingChange;
-    @IsConfig(name = "Rating stars", info = "Number of stars for rating. Rating value is recalculated accordingly.")
-    public int maxRating = Configuration.maxRating;
-    @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
-    public boolean partialRating = Configuration.partialRating;
-    @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
-    public boolean hoverRating = Configuration.hoverRating;
+    public final Accessor<CoverSource> cover_source = new Accessor<>(CoverSource.ANY, this::setCover);
+    @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
+    public final Accessor<Boolean> editableRating = new Accessor<>(Configuration.allowRatingChange, rater::setEditable);
+    @IsConfig(name = "Rating stars number", info = "Number of stars for rating. Rating value is recalculated accordingly. Defaults to application settings")
+    public final Accessor<Integer> maxRating = new Accessor<>(Configuration.maxRating, rater::setMax);
+    @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating. Defaults to application settings")
+    public final Accessor<Boolean> partialRating = new Accessor<>(Configuration.partialRating, rater::setPartialRating);
+    @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering. Defaults to application settings")
+    public final Accessor<Boolean> hoverRating = new Accessor<>(Configuration.hoverRating, rater::setUpdateOnHover);
     @IsConfig(name = "Rating skin", info = "Rating skin.")
-    public String rating_skin = "";
+    public final Accessor<String> rating_skin = new Accessor<>("",rater::setSkinCurrent);
     @IsConfig(name = "Overrun style", info = "Style of clipping fields' text when outside of the area.")
-    public OverrunStyle overrun_style = OverrunStyle.ELLIPSIS;
+    public final Accessor<OverrunStyle> overrun_style = new Accessor<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
     @IsConfig(name = "Display cover", info = "Show cover.")
-    public boolean showCover = true;
+    public final Accessor<Boolean> showCover = new Accessor<>(true, this::setCoverVisible);
     @IsConfig(name = "Display fields", info = "Show fields.")
-    public boolean showFields = true;
+    public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setShowContent(v));
+    @IsConfig(name = "Item source", info = "Source of data for the widget.")
+    public final Accessor<ReadMode> readMode = new Accessor<>(ReadMode.PLAYING, v -> Player.bindObservedMetadata(data,v));
     @IsConfig(name = "Display empty fields", info = "Show empty fields.")
-    public boolean showEmptyFields = true;
-    @IsConfig(name = "Separate fields by group", info = "Separate fields by gap and group them..")
-    public boolean groupFields = true;
+    public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
+    @IsConfig(name = "Separate fields by group", info = "Separate fields by gap to group them.")
+    public final Accessor<Boolean> groupFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show title", info = "Show this field.")
-    public boolean showTitle = true;
+    public final Accessor<Boolean> showTitle = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show track", info = "Show this field.")
-    public boolean showtrack = true;
+    public final Accessor<Boolean> showtrack = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show disc", info = "Show this field.")
-    public boolean showdisc = true;
+    public final Accessor<Boolean> showdisc = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show artist", info = "Show this field.")
-    public boolean showartist = true;
+    public final Accessor<Boolean> showartist = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show album artist", info = "Show this field.")
-    public boolean showalbum_artist = true;
+    public final Accessor<Boolean> showalbum_artist = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show album", info = "Show this field.")
-    public boolean showalbum = true;
+    public final Accessor<Boolean> showalbum = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show year", info = "Show this field.")
-    public boolean showyear = true;
+    public final Accessor<Boolean> showyear = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show genre", info = "Show this field.")
-    public boolean showgenre = true;
+    public final Accessor<Boolean> showgenre = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show composer", info = "Show this field.")
-    public boolean showcomposer = true;
+    public final Accessor<Boolean> showcomposer = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show publisher", info = "Show this field.")
-    public boolean showpublisher = true;
+    public final Accessor<Boolean> showpublisher = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show rating", info = "Show this field.")
-    public boolean showrating = true;
+    public final Accessor<Boolean> showrating = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show playcount", info = "Show this field.")
-    public boolean showplaycount = true;
+    public final Accessor<Boolean> showplaycount = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show comment", info = "Show this field.")
-    public boolean showcomment = true;
+    public final Accessor<Boolean> showcomment = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show category", info = "Show this field.")
-    public boolean showcategory = true;
+    public final Accessor<Boolean> showcategory = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show filesize", info = "Show this field.")
-    public boolean showfilesize = true;
+    public final Accessor<Boolean> showfilesize = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show filename", info = "Show this field.")
-    public boolean showfilename = true;
+    public final Accessor<Boolean> showfilename = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show format", info = "Show this field.")
-    public boolean showformat = true;
+    public final Accessor<Boolean> showformat = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show bitrate", info = "Show this field.")
-    public boolean showbitrate = true;
+    public final Accessor<Boolean> showbitrate = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show encoding", info = "Show this field.")
-    public boolean showencoding = true;
+    public final Accessor<Boolean> showencoding = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show location", info = "Show this field.")
-    public boolean showlocation = true;
+    public final Accessor<Boolean> showlocation = new Accessor<>(true, v -> setVisibility());
     
-    ChangeListener<Number> tileResizer = (o,ov,nv) -> {
-            int columns = (int) Math.floor((nv.doubleValue())/minColumnWidth);
-            double cellW = columns==1 || columns==0 
-                // dont allow 0 columns & set whole width if 1 column
-                // handle 1 column manually - the below caused some problems
-                ? tiles.getWidth()
-                // for n elements there is n-1 gaps so we need to add 1 gap width
-                // above cell width includes 1 gap width per element so substract it
-                : (nv.doubleValue()+tiles.getHgap())/columns - tiles.getHgap();
-            tiles.setPrefTileWidth(cellW);
-        };
+    // manually applied configurable values
+    
+    // non appliable configurable values
+    @IsConfig(name = "Set custom item source on drag&drop", info = "Change read mode to CUSTOM when data are dragged to widget.")
+    public boolean changeReadModeOnTransfer = true;
+    
     
     @Override
     public void init() {
@@ -180,7 +177,6 @@ public class FileInfoController extends FXMLController  {
         layout.setMinContentWidth(200);
         layout.setMinContentHeight(120);
         layout.setGap(5);
-//        tiles.setPrefTileWidth(150);
         
         // set autosizing for tiles to always fill the grid entirely
         tiles.widthProperty().addListener(tileResizer);
@@ -210,21 +206,26 @@ public class FileInfoController extends FXMLController  {
         AnchorPane.setLeftAnchor(tiles, 0d);
         
         // refresh if metadata source data changed
-        meta.addListener( o -> refreshNoBinding());
+        data.addListener( o -> refreshNoBinding(data.get()));
         
         // write metadata on rating change
-        rater.setOnRatingChanged( e -> MetadataWriter.rate(meta.get(),rater.getRatingPercent()));
+        rater.setOnRatingChanged( e -> MetadataWriter.rate(data.get(), rater.getRatingPercent()));
+        
         // swap skin on right mouse click
-        rater.setOnSkinChanged( e -> rating_skin = rater.getSkinCurrent());
         rater.setOnMouseClicked( e -> { 
             if (e.getButton() == SECONDARY) rater.toggleSkin(); 
         });
+        // remember changed rating
+        rater.setOnSkinChanged( e -> rating_skin.setValue(rater.getSkinCurrent()));
         // hide rating if empty
         rater.visibleProperty().bind(rating.disabledProperty().not());
         
         // show/hide content on cover mouse click
         thumb.getPane().setOnMouseClicked( e -> {
-            if (e.getButton() == PRIMARY) layout.toggleShowContent();
+            if (e.getButton() == PRIMARY) {
+                layout.toggleShowContent();
+                showFields.setValue(layout.isShowContent());
+            }
         });
         
         
@@ -236,9 +237,10 @@ public class FileInfoController extends FXMLController  {
             List<Item> items = DragUtil.getAudioItems(e);
             // getMetadata, refresh
             if (!items.isEmpty()) {
-                if (changeReadModeOnTransfer) readMode = ReadMode.CUSTOM;
-                Player.bindObservedMetadata(meta, readMode);
-                meta.set(items.get(0).getMetadata());
+                // change mode if desired
+                if (changeReadModeOnTransfer) readMode.setNapplyValue(ReadMode.CUSTOM);
+                // set data
+                data.set(items.get(0).getMetadata());
             }
             // end drag
             e.setDropCompleted(true);
@@ -248,77 +250,77 @@ public class FileInfoController extends FXMLController  {
     
     @Override
     public void refresh() {
-        Player.bindObservedMetadata(meta, readMode);
-        refreshNoBinding();
-        // apply min tile width
-        tileResizer.changed(null, null, tiles.getWidth());
+        // data
+        readMode.applyValue();
+        refreshNoBinding(data.get());
     }
 
     @Override
     public void OnClosing() {
-        meta.unbind();
+        data.unbind();
     }
     
-/******************************************************************************/
+/********************************* PUBLIC API *********************************/
+ 
+    // none, public configurables make up the entirety of the state
     
-    private void refreshNoBinding() {
-        rater.setMax(maxRating);
-        rater.setPartialRating(partialRating);
-        rater.setUpdateOnHover(hoverRating);
-        rater.setEditable(editableRating);
-        if (rating_skin.isEmpty())
-            rating_skin = rater.getSkinCurrent();
-        else 
-            rater.setSkinCurrent(rating_skin);
+/****************************** HELPER METHODS ********************************/
+    
+    private void refreshNoBinding(Metadata m) {
         
-        labels.forEach(l->l.setTextOverrun(overrun_style));
+        // auto applied c. v.
+        minColumnWidth.applyValue();
+        cover_source.applyValue();
+        editableRating.applyValue();
+        maxRating.applyValue();
+        partialRating.applyValue();
+        hoverRating.applyValue();
+        rating_skin.applyValue();
+        overrun_style.applyValue();
+        showCover.applyValue();
+        showFields.applyValue();
         
-        populateGui(meta.get());
+        // gui (fill out data)
+        if (m == null) {
+            clear();
+        } else {
+            // set image
+            setCover(cover_source.getValue());
+
+            // set rating
+            rater.setRating(m.getRatingToStars(rater.getMax()));
+
+            // set other fields
+            title.setText("title: "         + m.getTitle());
+            track.setText("track: "         + m.getTrackInfo());
+            disc.setText("disc: "           + m.getDiscInfo());
+            gap1.setText(" ");
+            artist.setText("artist: "       + m.getArtist());
+            album.setText("album: "         + m.getAlbum());
+            album_artist.setText("album artist: " + m.getAlbumArtist());
+            year.setText("year: "           + m.getYear());
+            genre.setText("genre: "         + m.getGenre());
+            composer.setText("composer: "   + m.getComposer());
+            publisher.setText("publisher: " + m.getPublisher());
+            gap2.setText(" ");
+            rating.setText("rating: "       + m.getRatingAsString());
+            playcount.setText("playcount: " + m.getPlaycountAsString());
+            comment.setText("comment: "     + m.getComment());
+            category.setText("category: "   + m.getCategory());
+            gap3.setText(" ");
+            filesize.setText("filesize: "   + m.getFilesize().toString());
+            filename.setText("filename: "   + m.getFilenameFull());
+            format.setText("format: "       + m.getFormat());
+            bitrate.setText("bitrate: "     + m.getBitrate().toString());
+            encoding.setText("encoding: "   + m.getEncoder());
+            location.setText("location: "   + m.getPath());
+        } 
+        
+        // manually applied c.v.
         setVisibility();
     }
     
-    private void populateGui(Metadata m) {
-        if (m == null) {
-            clear();
-            return;
-        }
-        
-        // set image
-        Cover c = m.getCover(CoverSource.ANY);
-        if(c.getFile()!=null) layout.setImage(c.getFile());
-        else layout.setImage(c.getImage());
-        
-        // set rating
-        rater.setRating(m.getRatingToStars(rater.getMax()));
-        
-        // set other fields
-        title.setText("title: "         + m.getTitle());
-        track.setText("track: "         + m.getTrackInfo());
-        disc.setText("disc: "           + m.getDiscInfo());
-        gap1.setText(" ");
-        artist.setText("artist: "       + m.getArtist());
-        album.setText("album: "         + m.getAlbum());
-        album_artist.setText("album artist: " + m.getAlbumArtist());
-        year.setText("year: "           + m.getYear());
-        genre.setText("genre: "         + m.getGenre());
-        composer.setText("composer: "   + m.getComposer());
-        publisher.setText("publisher: " + m.getPublisher());
-        gap2.setText(" ");
-        rating.setText("rating: "       + m.getRatingAsString());
-        playcount.setText("playcount: " + m.getPlaycountAsString());
-        comment.setText("comment: "     + m.getComment());
-        category.setText("category: "   + m.getCategory());
-        gap3.setText(" ");
-        filesize.setText("filesize: "   + m.getFilesize().toString());
-        filename.setText("filename: "   + m.getFilenameFull());
-        format.setText("format: "       + m.getFormat());
-        bitrate.setText("bitrate: "     + m.getBitrate().toString());
-        encoding.setText("encoding: "   + m.getEncoder());
-        location.setText("location: "   + m.getPath());
-    }
-    
     private void clear() {
-        layout.setImage((Image)null);
         rater.setRating(0d);
         title.setText("title: ");
         track.setText("track: ");
@@ -345,13 +347,7 @@ public class FileInfoController extends FXMLController  {
         location.setText("location: ");
     }
     
-    private void setVisibility() {
-        // image visibility
-        layout.setShowImage(layout.hasImage() ? showCover : false);
-        
-        // hide all fields
-        layout.setShowContent(showFields);
-        
+    private void setVisibility() {        
         // initialize
         visible_labels.clear();
         visible_labels.addAll(labels);
@@ -359,7 +355,7 @@ public class FileInfoController extends FXMLController  {
         visible_labels.forEach(l -> l.setDisable(false));
 
         // disable empty fields
-        if (showEmptyFields) {
+        if (showEmptyFields.getValue()) {
             visible_labels.stream().filter(l->{
                     // filter out nonempty
                     String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
@@ -376,29 +372,29 @@ public class FileInfoController extends FXMLController  {
         rating.setDisable(false);
         
         // hide individual fields
-        if (!showTitle)         visible_labels.remove(title);
-        if (!showtrack)         visible_labels.remove(track);
-        if (!showdisc)          visible_labels.remove(disc);
-        if (!showartist)        visible_labels.remove(artist);
-        if (!showalbum_artist)  visible_labels.remove(album_artist);
-        if (!showalbum)         visible_labels.remove(album);
-        if (!showyear)          visible_labels.remove(year);
-        if (!showgenre)         visible_labels.remove(genre);
-        if (!showcomposer)      visible_labels.remove(composer);
-        if (!showpublisher)     visible_labels.remove(publisher);
-        if (!showrating)        visible_labels.remove(rating);
-        if (!showplaycount)     visible_labels.remove(playcount);
-        if (!showcomment)       visible_labels.remove(comment);
-        if (!showcategory)      visible_labels.remove(category);
-        if (!showfilesize)      visible_labels.remove(filesize);
-        if (!showformat)        visible_labels.remove(format);
-        if (!showfilename)      visible_labels.remove(filename);
-        if (!showbitrate)       visible_labels.remove(bitrate);
-        if (!showencoding)      visible_labels.remove(encoding);
-        if (!showlocation)      visible_labels.remove(location);
+        if (!showTitle.getValue())         visible_labels.remove(title);
+        if (!showtrack.getValue())         visible_labels.remove(track);
+        if (!showdisc.getValue())          visible_labels.remove(disc);
+        if (!showartist.getValue())        visible_labels.remove(artist);
+        if (!showalbum_artist.getValue())  visible_labels.remove(album_artist);
+        if (!showalbum.getValue())         visible_labels.remove(album);
+        if (!showyear.getValue())          visible_labels.remove(year);
+        if (!showgenre.getValue())         visible_labels.remove(genre);
+        if (!showcomposer.getValue())      visible_labels.remove(composer);
+        if (!showpublisher.getValue())     visible_labels.remove(publisher);
+        if (!showrating.getValue())        visible_labels.remove(rating);
+        if (!showplaycount.getValue())     visible_labels.remove(playcount);
+        if (!showcomment.getValue())       visible_labels.remove(comment);
+        if (!showcategory.getValue())      visible_labels.remove(category);
+        if (!showfilesize.getValue())      visible_labels.remove(filesize);
+        if (!showformat.getValue())        visible_labels.remove(format);
+        if (!showfilename.getValue())      visible_labels.remove(filename);
+        if (!showbitrate.getValue())       visible_labels.remove(bitrate);
+        if (!showencoding.getValue())      visible_labels.remove(encoding);
+        if (!showlocation.getValue())      visible_labels.remove(location);
         
         // hide separators
-        if (!groupFields) {
+        if (!groupFields.getValue()) {
             visible_labels.remove(gap1);
             visible_labels.remove(gap2);
             visible_labels.remove(gap3);
@@ -407,7 +403,37 @@ public class FileInfoController extends FXMLController  {
         // show remaining
         visible_labels.forEach(l -> l.setVisible(true));
         
+        // fix rating value (we have to set text anyway to be able to tell, if
+        // rating is empty (same way the other labels)
+        // in the end we must remove the text because we use stars instead
         rating.setText("rating: ");
+    }
+    
+    private void setCover(CoverSource source) {
+        // get image
+        if (data.get() == null) {
+            layout.setImage((Image)null); // clear
+        } else {
+            Cover c = data.get().getCover(source);
+            if(c.getFile()!=null) layout.setImage(c.getFile());
+            else layout.setImage(c.getImage());
+        }
+    }
+    
+    private void setCoverVisible(boolean v) {
+        layout.setShowImage(v);        
+    }
+    
+    private void resize(double width) {
+        int columns = (int) Math.floor(width/minColumnWidth.getValue());
+        double cellW = columns==1 || columns==0 
+            // dont allow 0 columns & set whole width if 1 column
+            // handle 1 column manually - the below caused some problems
+            ? tiles.getWidth()
+            // for n elements there is n-1 gaps so we need to add 1 gap width
+            // above cell width includes 1 gap width per element so substract it
+            : (width + tiles.getHgap())/columns - tiles.getHgap();
+        tiles.setPrefTileWidth(cellW);
     }
 
 }

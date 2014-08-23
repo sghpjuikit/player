@@ -142,4 +142,9 @@ public class LibraryViewController extends FXMLController {
         dbMonitor.unsubscribe();
     }
     
+    
+/******************************** PUBLIC API **********************************/
+    
+    int id = 1;
+    int listening_to = 0;
 }

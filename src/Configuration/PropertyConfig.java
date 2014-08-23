@@ -10,9 +10,11 @@ import Configuration.Config.ConfigBase;
 import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.beans.value.WritableValue;
+import utilities.access.ApplicableValue;
 
 /**
  * {@link Config} wrapping a {@link WritableValue}, most often {@link Property}.
+ * or {@link utilities.access.Accessor}
  * <p>
  * Property Config wraps a Property and acts as a Config.
  * The getter and setter directly sets and gets the
@@ -31,7 +33,7 @@ import javafx.beans.value.WritableValue;
  */
 public class PropertyConfig<T> extends ConfigBase<T> {
     
-    WritableValue<T> property;
+    WritableValue<T> value;
 
     /**
      * Constructor to be used with framework
@@ -43,7 +45,7 @@ public class PropertyConfig<T> extends ConfigBase<T> {
      */
     PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
         super(_name, c, property.getValue(), category);
-        this.property = property;
+        value = property;
     }
     /**
      * @param _name
@@ -74,22 +76,24 @@ public class PropertyConfig<T> extends ConfigBase<T> {
      */
     public PropertyConfig(String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
         super(name, gui_name, property.getValue(), category, info, editable, min, max);
-        this.property = property;
+        value = property;
     }
 
     @Override
     public T getValue() {
-        return property.getValue();
+        return value.getValue();
     }
 
     @Override
     public void setValue(T val) {
-        property.setValue(val);
+        value.setValue(val);
     }
     
     @Override
     public void applyValue() {
-        // do nothing
+        // apply if value applicable
+        if (value instanceof ApplicableValue)
+            ApplicableValue.class.cast(value).applyValue();
     }
 
     @Override
@@ -98,7 +102,7 @@ public class PropertyConfig<T> extends ConfigBase<T> {
     }
     
     public WritableValue<T> getProperty() {
-        return property;
+        return value;
     }
 
     /**
@@ -110,12 +114,12 @@ public class PropertyConfig<T> extends ConfigBase<T> {
     @Override
     public boolean equals(Object o) {
         if(o==this) return true;
-        return (o instanceof PropertyConfig && property==((PropertyConfig)o).property);
+        return (o instanceof PropertyConfig && value==((PropertyConfig)o).value);
     }
 
     @Override
     public int hashCode() {
-        return 43 * 7 + Objects.hashCode(this.property);
+        return 43 * 7 + Objects.hashCode(this.value);
     }
     
     

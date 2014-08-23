@@ -49,6 +49,12 @@ public class ImageCover implements Cover {
     public Image getImage() {
         return imageB==null ? imageI : SwingFXUtils.toFXImage(imageB, null);
     }
+    
+    /** {@inheritDoc} */
+    @Override
+    public Image getImage(double width, double height) {
+        return getImage();
+    }
 
     /** {@inheritDoc} */
     @Override

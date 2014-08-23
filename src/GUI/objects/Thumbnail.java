@@ -4,6 +4,7 @@
  */
 package GUI.objects;
 
+import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Traits.ScaleOnHoverTrait;
@@ -114,7 +115,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     }
     
     /**
-     * Constructor.
      * Use when you want to use default sized thumbnail no post-initial changes
      * of the image are expected. In other words situations, where thumbnail object
      * is viewed as immutable create-destroy type.
@@ -126,7 +126,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     }
     
     /**
-     * Constructor.
      * Use if you need different size than default thumbnail size and the image
      * is expected to change during life cycle.
      * @param _size 
@@ -143,9 +142,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         }        
     }    
     
-    /**
-     * Constructor.
-     * Use to create more specific thumbnail object from the get go. */
+    /** Use to create more specific thumbnail object from the get go. */
     public Thumbnail (Image img, double size) {
         this(size);
         loadImage(img);
@@ -201,19 +198,23 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     @Override
     public void loadImage(Image img) {
-        img_file = null;    // removing this could produce nasty bug
-        image.setImage(img);
-        border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
-        if(img!=null) {
-            maxIMGH.set(img.getHeight()*maxScaleFactor);
-            maxIMGW.set(img.getWidth()*maxScaleFactor);
-        }
+        load(img, null);
     }
     @Override
     public void loadImage(File img) {
         img_file = img;
         Point2D size = calculateImageLoadSize(root);
         Image i = Util.loadImage(img_file, size.getX(), size.getY());
+        
+        load(i, img);
+    }
+    public void loadImage(Cover img) {
+        Point2D size = calculateImageLoadSize(root);
+        load(img.getImage(size.getX(), size.getY()), img.getFile());
+    }
+    
+    private void load(Image i, File f) {        
+        img_file = f;
         image.setImage(i);
         border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
         if(i!=null) {
@@ -221,6 +222,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             maxIMGW.set(i.getWidth()*maxScaleFactor);
         }
     }
+    
     @Override
     public void setFile(File img) {
         img_file = img;

@@ -15,6 +15,12 @@ import java.util.function.Predicate;
  * @author Plutonium_
  */
 public class NotNull implements Predicate<Object> {
+    
+    /**
+     * Returning true if and only if the object is not null
+     * @param t
+     * @return true if and only if the object is not null
+     */
     @Override
     public boolean test(Object t) {
         return t!=null;

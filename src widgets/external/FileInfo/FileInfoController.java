@@ -5,6 +5,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
+import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configuration;
@@ -17,6 +18,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
+import static PseudoObjects.ReadMode.PLAYING;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,10 +50,11 @@ import utilities.access.Accessor;
     name = "File Info",
     description = "Displays information about a song and cover. Supports rating change.",
     howto = "Available actions:\n" +
-            "    Cover click : Toggle show fields\n" +
-            "    Rater left click : Rate displayed song\n" +
-            "    Rater right click : Toggle rater skin\n" +
-            "    Drag&Drop audio : Display information for the first item\n",
+            "    Cover left click : Toggles show fields\n" +
+            "    Cover left click : Opens over context menu\n" +
+            "    Rater left click : Rates displayed song\n" +
+            "    Rater right click : Toggles rater skin\n" +
+            "    Drag&Drop audio : Displays information for the first dropped item\n",
     version = "0.9",
     year = "2014",
     group = Widget.Group.OTHER
@@ -96,7 +99,7 @@ public class FileInfoController extends FXMLController  {
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth()));
     @IsConfig(name = "Cover source", info = "Source for cover image.")
-    public final Accessor<CoverSource> cover_source = new Accessor<>(CoverSource.ANY, this::setCover);
+    public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
     @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
     public final Accessor<Boolean> editableRating = new Accessor<>(Configuration.allowRatingChange, rater::setEditable);
     @IsConfig(name = "Rating stars number", info = "Number of stars for rating. Rating value is recalculated accordingly. Defaults to application settings")
@@ -105,7 +108,7 @@ public class FileInfoController extends FXMLController  {
     public final Accessor<Boolean> partialRating = new Accessor<>(Configuration.partialRating, rater::setPartialRating);
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering. Defaults to application settings")
     public final Accessor<Boolean> hoverRating = new Accessor<>(Configuration.hoverRating, rater::setUpdateOnHover);
-    @IsConfig(name = "Rating skin", info = "Rating skin.")
+    @IsConfig(name = "Rating skin", info = "Rating skin.", editable = false)
     public final Accessor<String> rating_skin = new Accessor<>("",rater::setSkinCurrent);
     @IsConfig(name = "Overrun style", info = "Style of clipping fields' text when outside of the area.")
     public final Accessor<OverrunStyle> overrun_style = new Accessor<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
@@ -113,8 +116,8 @@ public class FileInfoController extends FXMLController  {
     public final Accessor<Boolean> showCover = new Accessor<>(true, this::setCoverVisible);
     @IsConfig(name = "Display fields", info = "Show fields.")
     public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setShowContent(v));
-    @IsConfig(name = "Item source", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(ReadMode.PLAYING, v -> Player.bindObservedMetadata(data,v));
+    @IsConfig(name = "Item source", info = "Source of data for the widget.") // notice that we need to update the value for new binding manually
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> Player.bindObservedMetadata(data,v));
     @IsConfig(name = "Display empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Separate fields by group", info = "Separate fields by gap to group them.")
@@ -249,20 +252,23 @@ public class FileInfoController extends FXMLController  {
     }
     
     @Override
-    public void refresh() {
-        // data
-        readMode.applyValue();
-        refreshNoBinding(data.get());
-    }
-
-    @Override
     public void OnClosing() {
         data.unbind();
     }
     
 /********************************* PUBLIC API *********************************/
  
-    // none, public configurables make up the entirety of the state
+    @Override
+    public void refresh() {
+        // data
+        readMode.applyValue();
+        refreshNoBinding(data.get());
+    }
+    
+    @Override
+    public boolean isEmpty() {
+        return data.get() == null;
+    }
     
 /****************************** HELPER METHODS ********************************/
     

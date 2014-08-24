@@ -22,6 +22,7 @@ public enum ImageFileFormat {
     jpg,
     bmp,
     png,
+    gif,
     UNKNOWN;
     
     public boolean isSupported() {

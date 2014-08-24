@@ -60,13 +60,13 @@ import utilities.access.Accessor;
             "    Press ESC : Clear selection & filter\n" +
             "    Type : Searches for item - applies filter\n" +
             "    Filter button : Uses filter for playback\n" +
-            "    Drag column : Changes column order\n" +
             "    Click column : Changes sort order - ascending,\n" +
             "                   descending, none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n" +
+            "    Drag column : Changes column order\n" +
             "    Menu bar : Opens additional actions\n",
     notes = "Plans: multiple playlists through tabs.\n" + 
-            "Bugs: sorting through menubar broken",
+            "Bugs: sorting through menubar buttons is broken",
     version = "0.9",
     year = "2014",
     group = Widget.Group.PLAYLIST
@@ -87,28 +87,24 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML Menu orderMenu;
     @FXML Button filterB;
     
-    // configuration properties
+    ChangeListener<Duration> lengthListener = (o,ov,nv) -> updateLength(nv);
+    
+    // auto applied configurables
     @IsConfig(name = "Table orientation", info = "Orientation of table.")
     public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, playlist::setNodeOrientation);
-    
     @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
     public final Accessor<Boolean> zeropad = new Accessor<>(true, playlist::zeropadIndex);
-    
     @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, playlist::setMenuButtonVisible);
-    
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Accessor<Boolean> show_header = new Accessor<>(true, playlist::setHeaderVisible);
-    
     @IsConfig(name = "Show bottom header", info = "Show contorls pane at the bottom.")
     public final Accessor<Boolean> show_bottom_header = new Accessor<>(true, v -> {
         optionPane.setVisible(v);
         AnchorPane.setBottomAnchor(tablePane, v ? 28d : 0d);
     });
-    
     @IsConfig(name = "Search show original index", info = "Show index of the itme as it was in the unfiltered playlist when filter applied.")
     public final Accessor<Boolean> orig_index = new Accessor<>(true, playlist::setShowOriginalIndex);
-    
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
         AwesomeDude.setIcon(filterB, v ? ERASER : FILTER, "11");
@@ -119,12 +115,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         filterB.getTooltip().setText(v ? fOn : fOff);
     });
     
+    // non applied configurables
     @IsConfig(name = "Search show always", info = "Forbid hiding of the search paneat all times. It will always be displayed.")
     public boolean always_show_search = false;
-    
     @IsConfig(name = "Search hide always", info = "Allows hiding search pane even if in effect.")
     public boolean always_hide_search = false;
-    
     @IsConfig(name = "Search ignore case", info = "Ignore case when comparing for search results.")
     public boolean ignoreCase = true;
     
@@ -210,17 +205,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             }
         });
 
-        
         // search on text change
         searchBox.textProperty().addListener((o,ov,nv) -> filter(nv));
         
         // consume scroll event to prevent other scroll behavior // optional
         playlist.getTable().setOnScroll(Event::consume);        
-    }
-    
-    @Override
-    public void refresh() {
-        cancelFilter();
     }
 
     @Override
@@ -232,15 +221,20 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         
     }
     
-/******************************************************************************/
+/******************************** PUBLIC API **********************************/
     
-    ChangeListener<Duration> lengthListener = (o,ov,nv) -> updateLength(nv);
-    
-    private void updateLength(Duration d) {
-        duration.setText(PlaylistManager.getSize() + " items: " + Util.formatDuration(d));
+    @Override
+    public void refresh() {
+        cancelFilter();
+        table_orient.applyValue();
+        zeropad.applyValue();
+        show_menu_button.applyValue();
+        show_header.applyValue();
+        show_bottom_header.applyValue();
+        orig_index.applyValue();
+        filter_for_playback.applyValue();
     }
     
-/******************************************************************************/   
     @FXML public void chooseFiles() {
         PlaylistManager.chooseFilestoAdd();
     }
@@ -353,7 +347,12 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 p.show(PopOver.ScreenCentricPos.AppCenter);
     }
     
-/******************************* SEARCHING ************************************/
+/***************************** HELPER METHODS *********************************/
+    
+    private void updateLength(Duration d) {
+        duration.setText(PlaylistManager.getSize() + " items: " + Util.formatDuration(d));
+    }
+    
         
     private void showFilter() {
         searchPane.setVisible(true);

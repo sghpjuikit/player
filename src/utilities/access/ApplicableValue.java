@@ -43,7 +43,7 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
     }
     
     /**
-     * Equivalent to calling {@link #toggleValue()} and {@link #applyValue()}.
+     * Equivalent to calling {@link #toggleValue()} and then {@link #applyValue()}.
      */
     public default void toggleNapplyValue() {
         toggleValue();

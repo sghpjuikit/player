@@ -1,6 +1,7 @@
 
 package Library;
 
+import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
@@ -217,6 +218,9 @@ public class LibraryController extends FXMLController {
         table.getItems().addListener(infoUpdater);
             // initialize info label
         infoUpdate.accept(EMPTY_LIST);
+        
+        // update selected library item for app
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> Player.librarySelectedItem.set(nv));
         
         HBox controls = new HBox(b1, infoL);
              controls.setSpacing(8);

@@ -46,24 +46,6 @@ public class Accessor<T> implements ApplicableValue<T> {
         if (applier != null)  applier.accept(value);
     }
     
-    /**
-     * Same as {@link #setValue()}, but (if and only) if value changed and applier is 
-     * available, executes the applier.
-     * <p>
-     * Always use {@link #setValue()} instead of this method inside applier to 
-     * prevent infinite recursion.
-     */
-    @Override
-    public void setNapplyValue(T val) {
-        if (applier == null) {
-            value = val;
-        } else {
-            boolean changed = value.equals(val);
-            value = val;
-            if (changed) applier.accept(val);
-        }
-    }
-    
     /** Sets applier. Applier is a code that applies the value in any way. */
     public void setApplier(Consumer<T> applier) {
         this.applier = applier;

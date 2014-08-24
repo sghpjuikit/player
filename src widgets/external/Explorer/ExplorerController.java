@@ -11,16 +11,18 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeCell;
+import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -33,7 +35,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
-import org.fxmisc.livedirs.LiveDirs;
+import utilities.access.Accessor;
 
 /**
  * FXML Controller class
@@ -41,47 +43,55 @@ import org.fxmisc.livedirs.LiveDirs;
  * @author Plutonium_
  */
 @WidgetInfo (
-author = "Martin Polakovic",
-description = "Simple file system browser with drag and copy support.",
-howto = "Available actions:\n" +
-        "    Drag file from list : Starts drag & drop or copy\n" +
-        "    Drag file from list + SHIFT : Starts drag & drop or move\n",
-notes = "",
-version = "0.5",
-year = "2014",
-group = Widget.Group.OTHER
+    author = "Martin Polakovic",
+    description = "Simple file system browser with drag and copy support.",
+    howto = "Available actions:\n" +
+            "    Drag file from list : Starts drag & drop or copy\n" +
+            "    Drag file from list + SHIFT : Starts drag & drop or move\n",
+    notes = "",
+    version = "0.6",
+    year = "2014",
+    group = Widget.Group.OTHER
 )
 public class ExplorerController extends FXMLController {
     
+    // gui
     @FXML AnchorPane root;
-    @FXML TreeView<Path> tree;
+    @FXML TreeView<File> tree;
+    private TreeItem<File> customLocationItem = createNode(App.getLocation());
     
-    @IsConfig(name = "Root directory", info = "Root directory path for the directory tree to display.")
-    public File rootDir = App.getLocation();
-    
-    LiveDirs<ChangeSource> liveDirs;
+    // auto applied configurables
+    @IsConfig(name = "Custom location", info = "Custom location for the directory tree to display.")
+    public final Accessor<File> rootDir = new Accessor<>(App.getLocation(), v -> {
+        // remove old
+        tree.getRoot().getChildren().remove(customLocationItem);
+        customLocationItem.getChildren().clear();
+        // create new
+        customLocationItem = createNode(v.getAbsoluteFile());
+        tree.getRoot().getChildren().add(customLocationItem);
+    });
+
     
     @Override
     public void init() {
         
-        tree.setShowRoot(false);
         tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         // set value factory
-        tree.setCellFactory((TreeView<Path> param) -> {
-            return new TreeCell<Path>(){
-                @Override
-                protected void updateItem(Path item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if(empty || item== null) {this.
-                        setText(null);
-                        setGraphic(null);
-                    } else {
-                        setText(item.getFileName().toString()); // show filenames
-                        setGraphic(makeIcon(item));             // denote type by icon
-                    }
+        tree.setCellFactory( treeView -> new TreeCell<File>(){
+            @Override
+            protected void updateItem(File item, boolean empty) {
+                super.updateItem(item, empty);
+                if(empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    Path p = item.toPath().getFileName();
+                    String s = p==null ? item.toPath().toString() : p.toString();
+                    setText(s);                        // show filenames
+                    setGraphic(makeIcon(item.toPath()));         // denote type by icon
                 }
-            };
+            }
         });
         
         // supprt drag from tree - add selected to clipboard/dragboard
@@ -92,45 +102,111 @@ public class ExplorerController extends FXMLController {
             TransferMode tm = e.isShiftDown() ? MOVE : COPY;
             Dragboard db = tree.startDragAndDrop(tm);
             List<File> files = tree.getSelectionModel().getSelectedItems().stream()
-                                            .map(tc->tc.getValue().toFile())
+                                            .map(tc->tc.getValue())
                                             .collect(Collectors.toList());
             ClipboardContent cont = new ClipboardContent();
                              cont.putFiles(files);
             db.setContent(cont);
             e.consume();
         });
-    }
-    
-    @Override
-    public void refresh() {
-        // recreate liveDirs to change root
-        if(liveDirs!=null) liveDirs.dispose();
-        try {
-            // create LiveDirs to watch a directory
-            liveDirs = new LiveDirs(ChangeSource.EXTERNAL);
-        } catch (IOException ex) {
-            Logger.getLogger(ExplorerController.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
-        Path dir = rootDir.getAbsoluteFile().toPath();
-        liveDirs.addTopLevelDirectory(dir);
-        tree.setRoot(liveDirs.model().getRoot());
+        // create invisible root
+        tree.setShowRoot(false);
+        tree.setRoot(new TreeItem<>(new File("")));
+        
+        // discover and set particions as roots
+        File[] drives = File.listRoots();
+        for(int i=0; i<drives.length; i++)
+            tree.getRoot().getChildren().add(createNode(drives[i]));
+        
+        // add custom location
+        tree.getRoot().getChildren().add(customLocationItem);
+        
+        // prevent scrolling event from propagating
+        root.setOnScroll(Event::consume);
     }
     
     @Override
     public void OnClosing() {
-        // note: because we run bgr thread, it is really important we clean up
-        // or we risk application not closing properly
-        liveDirs.dispose();
+        tree.getRoot().getChildren().clear();
+        tree.setRoot(null);
+        customLocationItem.getChildren().clear();
     }
+    
+/******************************** PUBLIC API **********************************/
+    
+    @Override
+    public void refresh() {
+        rootDir.applyValue();
+    }
+     
+/******************************* HELPER METHODS *******************************/
     
     private static Node makeIcon(Path p) {
         if(p.toFile().isFile()) return new Circle(2.5, Color.CADETBLUE);
         else return new Rectangle(5, 5, Color.CADETBLUE);
     }
     
-    private static enum ChangeSource {
-        INTERNAL, // indicates a change made by this application
-        EXTERNAL  // indicates an external change
-    }    
+    // This method creates a TreeItem to represent the given File. It does this
+    // by overriding the TreeItem.getChildren() and TreeItem.isLeaf() methods 
+    // anonymously, but this could be better abstracted by creating a 
+    // 'FileTreeItem' subclass of TreeItem. However, this is left as an exercise
+    // for the reader.
+    private TreeItem<File> createNode(final File f) {
+        return new TreeItem<File>(f) {
+            // We cache whether the File is a leaf or not. A File is a leaf if
+            // it is not a directory and does not have any files contained within
+            // it. We cache this as isLeaf() is called often, and doing the 
+            // actual check on File is expensive.
+            private boolean isLeaf;
+            // We do the children and leaf testing only once, and then set these
+            // booleans to false so that we do not check again during this
+            // run. A more complete implementation may need to handle more 
+            // dynamic file system situations (such as where a folder has files
+            // added after the TreeView is shown). Again, this is left as an
+            // exercise for the reader.
+            public boolean isFirstTimeChildren = true;
+            private boolean isFirstTimeLeaf = true;
+
+            @Override public ObservableList<TreeItem<File>> getChildren() {
+                if (isFirstTimeChildren) {
+                    isFirstTimeChildren = false;
+
+                    // First getChildren() call, so we actually go off and 
+                    // determine the children of the File contained in this TreeItem.
+                    super.getChildren().setAll(buildChildren(this));
+                }
+                return super.getChildren();
+            }
+
+            @Override public boolean isLeaf() {
+                if (isFirstTimeLeaf) {
+                    isFirstTimeLeaf = false;
+                    isLeaf = getValue().isFile();
+                }
+
+                return isLeaf;
+            }
+
+            private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> TreeItem) {
+                File value = TreeItem.getValue();
+                if (value != null && value.isDirectory()) {
+                    File[] all = value.listFiles();
+                    if (all != null) {
+                        ObservableList<TreeItem<File>> directories = FXCollections.observableArrayList();
+                        List<TreeItem<File>> files = new ArrayList();
+                        for (File f : all) {
+                            if(f.isFile()) files.add(createNode(f));
+                            else directories.add(createNode(f));
+                        }
+                        directories.addAll(files);
+                        return directories;
+                    }
+                }
+
+                return FXCollections.emptyObservableList();
+            }
+        };
+    }
+
 }

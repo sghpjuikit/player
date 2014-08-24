@@ -14,9 +14,7 @@
 - windw header visible preference application is weird 4                        (?)
 - popover set arrow location automatically based on available screen space
   getWidget - implement Target
-- rater controls not resizing graphics
 - playlist table header button implement properly column hiding (nasty bug)
-- playlist index column width still not perfect
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
@@ -37,7 +35,7 @@
 - '/n' character expands table row height, figure out how to disable that...
 - allow multiselection in library metadata group -> support multiple values in
   AND filtering for query
-- library refresh cells
+- library table cells sometimes invisible - not updated
 - adding to library reeading gradually slows down a lot + RAm goes up, batch it
   try adding items in count of 100-500 each batch within its own transaction &
   entity manager. I think having 10+k managed items is not healthy...
@@ -50,7 +48,15 @@
 - writing to tag for files without tag fails sometimes (jaudiotagger cant rename
   file, it looks like it is locked) - perhaps generalizes to any change of tag
   that enlarges the file (and thusrequires tmp file)
+- external playlist (m3u, etc) support + dragging too
+
+--------------------------------------------------------------------------------
+------------------------ PERFECTION - the pain - perfection & OCD --------------
+--------------------------------------------------------------------------------
+
+- file info keep content when new is empty, like ImageViewer widget, add option
 - file info show individual field configs should remove labels from pane too
+- exporer widget - support skin loading by opening the fie
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------

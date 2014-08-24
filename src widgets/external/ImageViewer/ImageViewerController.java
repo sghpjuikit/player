@@ -13,6 +13,8 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
+import static PseudoObjects.ReadMode.CUSTOM;
+import static PseudoObjects.ReadMode.PLAYING;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +34,12 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import utilities.FileUtil;
 import utilities.FxTimer;
 import utilities.access.Accessor;
-import utilities.functional.functor.Procedure;
 
 /**
  * 
@@ -49,63 +51,73 @@ import utilities.functional.functor.Procedure;
     name = "Image Viewer",
     description = "Displays images.",
     howto = "Available actions:\n" +
-            "    Thumbnail click : Select image\n" +
-            "    Image click : Toggle no thumbnails mode on/off\n",
+            "    Image left click : Toggles show thumbnails\n" +
+            "    Image left click : Opens image context menu\n" +
+            "    Thumbnail left click : Show as image\n" +
+            "    Thumbnail right click : Opens thumbnail ontext menu\n" +
+            "    Drag&Drop audio : Displays images for the first dropped item\n",
     notes = "",
-    version = "0.8",
+    version = "1.0",
     year = "2014",
     group = Widget.Group.OTHER
 )
 public class ImageViewerController extends FXMLController {
+    
+    // gui
     @FXML AnchorPane entireArea;
     @FXML private ScrollPane thumb_root;
     @FXML private TilePane thumb_pane;
+    private final Thumbnail thumbnail = new Thumbnail();
+    private ImageFlowPane layout;
 
-    //global variables
-    final SimpleObjectProperty<Metadata> meta = new SimpleObjectProperty();   // current metadata source
+    // non configurables
+    final SimpleObjectProperty<Metadata> data = new SimpleObjectProperty();   // current metadata source
     final SimpleObjectProperty<File> folder = new SimpleObjectProperty(null); // current location source (derived from metadata source)
     final ObservableList<File> images = FXCollections.observableArrayList();
-    ImageFlowPane layout;
-    Thread image_reader;
+    private boolean image_reading_lock = false;
+    private int active_image = -1;
+    private FxTimer slideshow;
     
-    // properties
+    // auto applied cnfigurables
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public ReadMode readMode = ReadMode.PLAYING;
-    
-    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
-    public Boolean changeReadModeOnTransfer = false;
-    
-    @IsConfig(name = "Show content when empty", info = "Keep showing previous content when the widget should be empty.")
-    public Boolean keepContentOnEmpty = true;
-    
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> Player.bindObservedMetadata(data,v));
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
-    public double thumbSize = 70.0;
-    
+    public final Accessor<Double> thumbSize = new Accessor<>(70d, v -> {
+        thumb_pane.getChildren().forEach(c -> {
+            if(c instanceof Pane)
+                Pane.class.cast(c).setPrefSize(v,v);
+                });
+    });
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
     public final Accessor<Double> thumbGap = new Accessor<>(2d, v -> {
         thumb_pane.setHgap(v);
         thumb_pane.setVgap(v);
     });
-    
-    @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly after each other")
-    public long thumbnailReloadTime = 100l;
-    
-    @IsConfig(name = "File search depth", info = "Depth to search to for files in folders.")
-    public int folderTreeDepth = 1;
-    
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public double slideshow_dur = 15000l;
-    
+    public final Accessor<Double> slideshow_dur = new Accessor<>(15000d, this::slideshowDur);
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
     public final Accessor<Boolean> slideshow_on = new Accessor<>(true, v -> {
         if (v) slideshowStart(); else slideshowEnd();
     });
+    @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
+    public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::setImageVisible);
+    
+    // manually applied configurables
+    
+    // non applied configurables
+    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
+    public Boolean changeReadModeOnTransfer = false;
+    @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly after each other")
+    public long thumbnailReloadTime = 100l;
+    @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
+    public boolean keepContentOnEmpty = true;
+    @IsConfig(name = "File search depth", info = "Depth to search to for files in folders.")
+    public int folderTreeDepth = 1;
     
     @Override
     public void init() {
         //initialize gui
-        Thumbnail thumbnail = new Thumbnail();
-                  thumbnail.setBorderToImage(true);
+        thumbnail.setBorderToImage(true);
         layout = new ImageFlowPane(entireArea,thumbnail);
         layout.setGap(5);
         
@@ -119,7 +131,7 @@ public class ImageViewerController extends FXMLController {
         AnchorPane.setRightAnchor(thumb_root, 0.0);
         
         // refresh if source data changed
-        meta.addListener(metaChange);
+        data.addListener(metaChange);
         folder.addListener(locationChange);
         
         
@@ -129,14 +141,12 @@ public class ImageViewerController extends FXMLController {
         entireArea.setOnDragDropped( e -> {
             // get first item
             List<Item> items = DragUtil.getAudioItems(e);
-            Item item = items.isEmpty() ? null : items.get(0);
             // getMetadata, refresh
-            if (item != null) {
-                if (changeReadModeOnTransfer) {
-                    readMode = ReadMode.CUSTOM;
-                    refresh();  // rebinds read mode, doesnt refresh content in this case
-                }
-                meta.set(item.toMetadata()); // refresh
+            if (!items.isEmpty()) {
+                // change mode if desired
+                if (changeReadModeOnTransfer) readMode.setNapplyValue(CUSTOM);
+                // set data
+                data.set(items.get(0).getMetadata());
             }
             // end drag
             e.setDropCompleted(true);
@@ -148,22 +158,42 @@ public class ImageViewerController extends FXMLController {
         
         // show/hide content on cover mouse click
         thumbnail.getPane().setOnMouseClicked( e -> {
-            if (e.getButton() == PRIMARY) layout.toggleShowContent();
+            if (e.getButton() == PRIMARY) showThumbnails.toggleNapplyValue();
         });
-    }
-    
-    @Override
-    public void refresh() {
-        Player.bindObservedMetadata(meta, readMode); 
     }
 
     @Override
     public void OnClosing() {
         // unbind
-        meta.unbind();
-        meta.removeListener(metaChange);
+        data.unbind();
+        data.removeListener(metaChange);
         folder.removeListener(locationChange);
     }
+    
+/********************************* PUBLIC API *********************************/
+ 
+    @Override
+    public void refresh() {
+        image_reading_lock = true; // prevent reading thumbnails twice (see below)
+        readMode.applyValue();
+        thumbSize.applyValue();
+        thumbGap.applyValue();
+        slideshow_dur.applyValue();
+        slideshow_on.applyValue();
+        showThumbnails.applyValue();
+        // we need to fire this too, althout at first sight not necessary, it is
+        // the location content might change, we must guarantee that the only
+        // means to display the change, user refreshing widget manually' works
+        image_reading_lock = false; // unlock
+        readThumbnails(); // make sure
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return data.get() == null;
+    }
+    
+/****************************** HELPER METHODS ********************************/
     
     private final ChangeListener<Metadata> metaChange = (o,ov,nv) -> {
             // calculate new location
@@ -176,15 +206,9 @@ public class ImageViewerController extends FXMLController {
             folder.set(new_folder);
         };
     private final ChangeListener<File> locationChange = (o,ov,nv) -> {
-            if(nv==null) {
-                readThumbnails();
-                setImage(-1);   // set empty image
-            } else {
-                readThumbnails();
-            }
+            setImage(-1);   // set empty image
+            readThumbnails();
         };
-    
-/********************************** THUMBNAILS ********************************/
     
     private Timeline thumbTimeline = new Timeline();
     private final Service<Void> thumbReader = new Service() {
@@ -218,6 +242,7 @@ public class ImageViewerController extends FXMLController {
     };
     
     private void readThumbnails() {
+        if (image_reading_lock) return; 
          // clear old content before adding new
         images.clear();
         thumb_pane.getChildren().clear();   
@@ -231,14 +256,14 @@ public class ImageViewerController extends FXMLController {
     }
     
     private void addThumbnail(final File image) {
-        Thumbnail t = new Thumbnail(thumbSize);
+        Thumbnail t = new Thumbnail(thumbSize.getValue());
                   t.setBorderToImage(false);
                   t.setHoverable(true);
                   t.loadImage(image);
                   t.getPane().setOnMouseClicked( e -> {
                       if (e.getButton() == PRIMARY) {
                           setImage(images.indexOf(image));
-                          slideshowStart();
+                          e.consume();
                       }
                   });
         thumb_pane.getChildren().add(t.getPane());
@@ -258,28 +283,35 @@ public class ImageViewerController extends FXMLController {
         }
     }
     
-/********************************** SLIDESHOW *********************************/
-    
-    private int active_image = -1;
-    FxTimer slideshow;
-    
-    public void slideshowStart() {
-        // create if needed
-        if(slideshow==null) {
-            Procedure nextImage = () -> {
-                if (images.size()==1) return;
-                if (!images.isEmpty()) {
-                    int index = (active_image > images.size()-2) ? 0 : active_image+1;
-                    setImage(index);
-                }
-            };
-            slideshow = FxTimer.createPeriodic(Duration.ZERO,nextImage);
+    private void nextImage() {
+        if (images.size()==1) return;
+        if (images.isEmpty()) {
+            setImage(-1);
+        } else {
+            int index = (active_image > images.size()-2) ? 0 : active_image+1;
+            setImage(index);
         }
-        // start up
-        slideshow.restart(Duration.millis(slideshow_dur));
     }
     
-    public void slideshowEnd() {
+    private void slideshowStart() {
+        nextImage();
+        // create if needed
+        if(slideshow==null)
+            slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
+        // start up
+        slideshow.restart(Duration.millis(slideshow_dur.getValue()));
+    }
+    
+    private void slideshowEnd() {
         if (slideshow!=null) slideshow.stop();
+    }
+    
+    private void slideshowDur(double v) {
+        if(slideshow != null && slideshow_on.getValue())
+            slideshow.restart(Duration.millis(v));
+    }
+    
+    private void setImageVisible(boolean v) {
+        layout.setShowImage(v);        
     }
 }

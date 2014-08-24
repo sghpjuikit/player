@@ -45,7 +45,9 @@ public class ImageController extends FXMLController {
     
     // auto applied configurables
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
-    public final Accessor<Boolean> slideshow_on = new Accessor<>(true, this::slideShowOn);
+    public final Accessor<Boolean> slideshow_on = new Accessor<>(true,  v -> {
+        if (v) slideshowStart(); else slideshowEnd();
+    });
     @IsConfig(name = "Use custom image", info = "Display custom static image file.")
     public final Accessor<Boolean> useCustomImage = new Accessor<>(false, this::useCustomImage);
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
@@ -63,7 +65,7 @@ public class ImageController extends FXMLController {
     private final Thumbnail thumb = new Thumbnail();
     private final ObservableList<File> images = FXCollections.observableArrayList();
     private int active_image = -1;
-    private final FxTimer slideshow = FxTimer.createPeriodic(Duration.millis(slideshow_dur.getValue()), this::nextImage);
+    private FxTimer slideshow;
     
     
     @Override
@@ -106,18 +108,18 @@ public class ImageController extends FXMLController {
     }
 
     @Override
-    public void refresh() {
-        useCustomImage.applyValue();
-        slideshow_on.applyValue();
-    }
-
-    @Override
     public void OnClosing() {
         slideshow.stop();
         images.clear();
     }
     
 /******************************** PUBLIC API **********************************/
+    
+    @Override
+    public void refresh() {
+        useCustomImage.applyValue();
+        slideshow_on.applyValue();
+    }
     
     public void nextImage() {
         if (images.size()==1) return;
@@ -164,23 +166,23 @@ public class ImageController extends FXMLController {
         // reload image
         setImage(0);
     }
-
-    private void slideShowOn(boolean v) {
-        if (v) slideshowStart(); 
-        else slideshowEnd();
-    }
     
     private void slideshowDur(double v) {
-        if(slideshow_on.getValue()) slideshow.restart(Duration.millis(v));
+        if(slideshow != null && slideshow_on.getValue())
+            slideshow.restart(Duration.millis(v));
     }
     
     private void slideshowStart() {
         nextImage();
+        // create if needed
+        if(slideshow==null)
+            slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
+        // start up
         slideshow.restart(Duration.millis(slideshow_dur.getValue()));
     }
     
     private void slideshowEnd() {
-        slideshow.stop();
+        if (slideshow!=null) slideshow.stop();
     }
     
 }

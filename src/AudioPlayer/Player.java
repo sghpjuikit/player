@@ -3,10 +3,10 @@ package AudioPlayer;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.EMPTY;
 import PseudoObjects.ReadMode;
 import java.util.Collections;
 import javafx.beans.property.ObjectProperty;
@@ -37,13 +37,11 @@ public class Player {
         return core.cI;
     }
     
-    public static Metadata getPlaylistLastSelectedMetadata() {
-        return core.selectedMetadata.get();
-    }
-    
     static SimpleObjectProperty<Metadata> playlistLastSelectedMetadataProperty() {
         return core.selectedMetadata;
     }
+    
+    public static final ObjectProperty<Metadata> librarySelectedItem = new SimpleObjectProperty<>(EMPTY);
     
     @TODO("toBinding is a memleak, change whole method to EventStream implementation")
     public static void bindObservedMetadata(ObjectProperty<Metadata> observer,
@@ -55,21 +53,7 @@ public class Player {
                                     break;
             case PLAYING:           observer.bind(core.cI.itemUpdatedES.map((ov,nv)->nv).toBinding(core.cI.get()));
                                     break;
-            case LIBRARY_SELECTED:  //not yet implemented
-                                    break;
-            case CUSTOM:            observer.unbind();
-                                    break;
-            default:
-        }
-    }
-    public static void bindObservedItem(ObjectProperty<PlaylistItem> observer, ReadMode mode) {
-        observer.unbind();
-        switch (mode) {
-            case PLAYLIST_SELECTED: observer.bind(PlaylistManager.selectedItemProperty());
-                                    break;
-            case PLAYING:           observer.bind(PlaylistManager.playingItemProperty());
-                                    break;
-            case LIBRARY_SELECTED:  //not yet implemented
+            case LIBRARY_SELECTED:  observer.bind(librarySelectedItem);
                                     break;
             case CUSTOM:            observer.unbind();
                                     break;

@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Objects;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import utilities.Log;
 import utilities.Util;
 import utilities.functional.functor.UnProcedure;
 
@@ -39,14 +40,18 @@ import utilities.functional.functor.UnProcedure;
 public class SimpleConfigurator<T> extends AnchorPane {
     
     @FXML private GridPane fields;
+    @FXML private BorderPane buttonPane;
+    @FXML private ScrollPane fieldsPane;
+    private final double anchor;
     private final List<ConfigField<T>> configFields = new ArrayList();
     private final Configurable<T> configurable;
     private final UnProcedure<Configurable<T>>  onOK;
 
     /**
-     * Constructor.
      * @param configurable configurable object
-     * @param on_OK behavior executed when OK button is clicked, null if none.
+     * @param on_OK OK button click action. Set null if none. This
+     * parameter also affects visibility of the OK button. It is only visible if
+     * there is an action to execute.
      * The procedure provides the Configurable of this configurator as a 
      * parameter to access the configs.
      */
@@ -55,6 +60,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
         
         this.configurable = configurable;
         this.onOK = on_OK;
+        setOkbVisible(on_OK!=null);
         
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleConfigurator.class.getResource("SimpleConfigurator.fxml"));
         fxmlLoader.setRoot(this);
@@ -62,19 +68,17 @@ public class SimpleConfigurator<T> extends AnchorPane {
         try {
             fxmlLoader.load();
         } catch (IOException ex) {
-            Log.err("SimpleConfiguratorComponent source data coudlnt be read.");
+            throw new RuntimeException("SimpleConfiguratorComponent source data coudlnt be read.");
         }
-        initialize();
-    }
-    
-    private void initialize() {
+        
+        anchor = AnchorPane.getBottomAnchor(fields);
+        
+        // set configs
         configFields.clear();
         fields.getChildren().clear();
-        
         configurable.getFields().stream().sorted(Util.cmpareNoCase( f -> f.getGuiName())).forEach( f -> {
-            ConfigField cf = ConfigField.create(f);                 // create
-            
-            if (f.isEditable()) {                   // ignore noneditabe                    
+            if (f.isEditable()) {                   // ignore noneditabe    
+                ConfigField cf = ConfigField.create(f);                 // create
                 configFields.add(cf);                                   // add
                 fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
                 fields.add(cf.getControl(), 1, configFields.size()-1);
@@ -82,8 +86,14 @@ public class SimpleConfigurator<T> extends AnchorPane {
         });
     }
     
+    public SimpleConfigurator(Configurable<T> configurable) {
+        this(configurable, null);
+    }
+
+/******************************** PUBLIC API **********************************/
+    
     @FXML
-    private void ok() {
+    public void ok() {
         // set and apply values and refresh if needed
         configFields.forEach(ConfigField::applyNsetIfAvailable);
         // always run the onOk procedure 
@@ -92,5 +102,12 @@ public class SimpleConfigurator<T> extends AnchorPane {
     
     public Configurable getConfigurable() {
         return configurable;
+    }
+    
+/******************************* HELPER METHODS *******************************/
+    
+    private void setOkbVisible(boolean val) {
+        buttonPane.setVisible(val);
+        AnchorPane.setBottomAnchor(fieldsPane, val ? anchor : 0d);
     }
 }

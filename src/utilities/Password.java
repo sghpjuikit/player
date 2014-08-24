@@ -10,7 +10,7 @@ package utilities;
  * @author Michal
  */
 public final class Password {
-    String value;
+    private String value;
 
     public Password(String text) {
         set(text);
@@ -23,4 +23,15 @@ public final class Password {
     public void set(String in){
         value = in;
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
+    
+    public static Password valueOf(String s) {
+        return new Password(s);
+    }
+    
+    
 }

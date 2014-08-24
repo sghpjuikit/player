@@ -25,8 +25,7 @@
 - setings & configurable subcategories through '.' or '/'
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable
-- add URI configField
-- finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
+- add URI configField + validator?
 - seeker option to show chapters as they are passing                            (?)
 - cursor trail effect - 'frozen" effect
 - cursor api clean up, fix appliers, make actually usable
@@ -69,8 +68,3 @@ GALAXY MAP
 - just about everything
 - enum like every field...
 - map type representants: x, y, z, color, label, shape, ...
-
-DIRS
-- figure out folder monitoring
-- add some fancy stuff
-- implement removing dirs

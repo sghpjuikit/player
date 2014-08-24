@@ -58,7 +58,7 @@ public class ExplorerController extends FXMLController {
     // gui
     @FXML AnchorPane root;
     @FXML TreeView<File> tree;
-    private TreeItem<File> customLocationItem = createNode(App.getLocation());
+    private TreeItem<File> customLocationItem = createTreeItem(App.getLocation());
     
     // auto applied configurables
     @IsConfig(name = "Custom location", info = "Custom location for the directory tree to display.")
@@ -67,7 +67,7 @@ public class ExplorerController extends FXMLController {
         tree.getRoot().getChildren().remove(customLocationItem);
         customLocationItem.getChildren().clear();
         // create new
-        customLocationItem = createNode(v.getAbsoluteFile());
+        customLocationItem = createTreeItem(v.getAbsoluteFile());
         tree.getRoot().getChildren().add(customLocationItem);
     });
 
@@ -117,7 +117,7 @@ public class ExplorerController extends FXMLController {
         // discover and set particions as roots
         File[] drives = File.listRoots();
         for(int i=0; i<drives.length; i++)
-            tree.getRoot().getChildren().add(createNode(drives[i]));
+            tree.getRoot().getChildren().add(createTreeItem(drives[i]));
         
         // add custom location
         tree.getRoot().getChildren().add(customLocationItem);
@@ -152,7 +152,7 @@ public class ExplorerController extends FXMLController {
     // anonymously, but this could be better abstracted by creating a 
     // 'FileTreeItem' subclass of TreeItem. However, this is left as an exercise
     // for the reader.
-    private TreeItem<File> createNode(final File f) {
+    private TreeItem<File> createTreeItem(final File f) {
         return new TreeItem<File>(f) {
             // We cache whether the File is a leaf or not. A File is a leaf if
             // it is not a directory and does not have any files contained within
@@ -165,7 +165,7 @@ public class ExplorerController extends FXMLController {
             // dynamic file system situations (such as where a folder has files
             // added after the TreeView is shown). Again, this is left as an
             // exercise for the reader.
-            public boolean isFirstTimeChildren = true;
+            private boolean isFirstTimeChildren = true;
             private boolean isFirstTimeLeaf = true;
 
             @Override public ObservableList<TreeItem<File>> getChildren() {
@@ -193,11 +193,12 @@ public class ExplorerController extends FXMLController {
                 if (value != null && value.isDirectory()) {
                     File[] all = value.listFiles();
                     if (all != null) {
+                        // we want to sort the items : directories first
                         ObservableList<TreeItem<File>> directories = FXCollections.observableArrayList();
                         List<TreeItem<File>> files = new ArrayList();
                         for (File f : all) {
-                            if(f.isFile()) files.add(createNode(f));
-                            else directories.add(createNode(f));
+                            if(f.isFile()) files.add(createTreeItem(f));
+                            else directories.add(createTreeItem(f));
                         }
                         directories.addAll(files);
                         return directories;

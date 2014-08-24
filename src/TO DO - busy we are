@@ -3,7 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- add uri verifier before adding to playlist and get runtime exception
 - popover position jumps when drag starts
 - tagger use trash big icon or sth when removing cover by drag and add icon
   for the reverse operation
@@ -49,14 +48,17 @@
   file, it looks like it is locked) - perhaps generalizes to any change of tag
   that enlarges the file (and thusrequires tmp file)
 - external playlist (m3u, etc) support + dragging too
+- unite selected library & selected playlist item source
 
 --------------------------------------------------------------------------------
------------------------- PERFECTION - the pain - perfection & OCD --------------
+------------------------ PERFECTION - the pain & OCD ---------------------------
 --------------------------------------------------------------------------------
 
 - file info keep content when new is empty, like ImageViewer widget, add option
 - file info show individual field configs should remove labels from pane too
-- exporer widget - support skin loading by opening the fie
+- explorer widget - support skin loading by opening the fie
+- explorer graphics support css skinning
+- ConfigField (General) disable ok button for manually applied configs
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -90,10 +92,14 @@ GENERAL
   shortcut registering, but thats only partial and incomplete workaround
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 - tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug)
-- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bu)
-- Configurator group title alignment doesnt get applied on refresh
+- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug)
+- Configurator group title alignment doesnt get applied on refresh              (javaFX bug)
 - context menu position sometimes off (even default ones). The cause must be
   its parent Node not initializing size correctly
+- some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug)
+  length as half of the real one (very irritating bug)
+- when app starts with paused song, playing some other songs starts from that
+  point rather than the beginning
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
@@ -134,14 +140,14 @@ SOLVED (but the underlying cause still deserves attention)
   cause: rgba (-fx-panel-color) for .header styleclass                          
   solution: use rgb color and apply -fx-opacity instead of alpha channel
   problem: css polution, dev might overlook header if he changes -fx-panel-color
+- playlist table index column resizing doesnt apply correct value, the method   (passable)
+  needs to be delayed. reason: unknown. solution: delayed execution
 
 
 PROBLEMS
 - fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but invasive misbehavior)
   factory available - also instantiatingController should never return null in
   fxmlFactory
-- windows hard to drag, especially in headerless mode, uidrag consume event, 
-  properly handle vol scolling and app dragging event consuminf at widget level
 - dynamically create LayoutAggregator depending on size or preferences when
   deserializing and creating windows, or make it into a container?
 - circle context menu find some use for it
@@ -152,23 +158,20 @@ PROBLEMS
 
 CLEANUP
 - Serializator and serialization classes clean up
-- widget info and bridge widget factory and widget a bit more elegantly that this
-- clean window code and centralize it un one place
+- widget info and bridge widget factory and widget a bit more elegantly
+- clean window code and centralize it in one place
 - separate and implement Pure vs Leaf Containers better
-- use assertions more, in FieldConfig too
 
 UNIFICATIONS, OVERHAULS, REDESIGN
-- playing item, metadata, ... in Playbackmanager, clear Player class
-  also involves Playback/Player/Playlist state and suspending/restoring them
+- Playback/Player/Playlist state and suspending/restoring them
 - file format discovery. Unite Image and Audio types add category               (not needed for now)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - Notification class unite contents, remove enum                                (lot of code + fxml duplicity)
-- metadata xml chapter reading class redo - its not good design. But it works   (not needed)
-  and is considered legacy code now anyway
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static
+- finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
 
 PERFORMANCE
 - layout reload mem leak - investigate                                          (major)
@@ -179,7 +182,9 @@ PERFORMANCE
 - scanning files & adding to library sometimes causes massive memory overhead
   (1,5GB for 8GB of audio files)
   cause: unknown, possible corrupted tag, messing up jAudotagger library
-  note: happenns only for my XRay Dog album collection. The cause will be local.
+  note: happenns only for my XRay Dog album collection.
+  note: but scanning looks to slow down gradually and noticable for large
+  amount of items
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
@@ -216,7 +221,7 @@ PERFORMANCE
   Also: try to set the correct TransferMode (COPY | MOVE | ANY) to indicate
   transfer (both accepting and firing event)
   Also: always use setCompleted(true) when drag drops and is handled
-- always consume events by calling Event.consume(). But only if it was handled.
+- always consume event by calling consume() if it was handled.
   For example if we handle only left button mouse clicks, do not consume also
   right button clicks, instead let them propagate below. Goes for drag events
   as well.

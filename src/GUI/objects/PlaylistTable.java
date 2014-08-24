@@ -49,7 +49,9 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import utilities.Enviroment;
+import utilities.FxTimer;
 import utilities.SingleInstance;
 import utilities.TODO;
 import utilities.TableUtil;
@@ -231,13 +233,14 @@ public final class PlaylistTable {
             // column 1
             // need this weird method to get 9s as their are wide 
             // (font isnt always proportional)
-            int i = Util.DecMin1(PlaylistManager.getItems().size());    
-            tmp.setText(""); // set empty to make sure the label resizes
+            int i = Util.DecMin1(table.getItems().size());    
+//            tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
+            tmp.setVisible(true);
             double W1 = tmp.getWidth();
-            
+            tmp.setVisible(false);
             // column 3
-            tmp2.setText("");
+//            tmp2.setText("");
             tmp2.setText("00:00");
             double W3 = tmp2.getWidth()+6;
             
@@ -252,13 +255,6 @@ public final class PlaylistTable {
             columnName.setPrefWidth(W-W1-W3-W4-G);
             columnTime.setPrefWidth(W3);
             return true;
-        });
-        // resize index column on items.size change, use weak listener
-        table.getItems().addListener( (ListChangeListener.Change<? extends PlaylistItem> change) -> {
-            while(change.next()) {
-                if(change.wasAdded() || change.wasRemoved())
-                    table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0.0));
-            }
         });
         
         // handle selection
@@ -459,6 +455,14 @@ public final class PlaylistTable {
     
 /************************************* DATA ***********************************/
     
+     // we will set this to table.getItems, but since the list can change, we
+    // have to carry it over to the new list
+    ListChangeListener<PlaylistItem> resizer = o -> {table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
+        FxTimer.run(Duration.millis(100), () -> {
+                table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
+        });
+    };
+    
     /**
      * Sets items for this table. The list will be observed and its changes 
      * reflected.
@@ -475,15 +479,16 @@ public final class PlaylistTable {
     public void setItems(ObservableList<PlaylistItem> items) {
         if(items instanceof SortedList) {
             itemsS = (SortedList<PlaylistItem>)items;
-        }
-        else {
+        } else {
             if(items instanceof FilteredList) {
                 itemsF = (FilteredList<PlaylistItem>) items;
             }
             else itemsF = new FilteredList(items);
             itemsS = new SortedList<>(itemsF);
         }
+        if (table.getItems() != null) table.getItems().removeListener(resizer); // remove listener
         table.setItems(itemsS);
+        table.getItems().addListener(resizer);  // add listener
         itemsS.comparatorProperty().bind(table.comparatorProperty());
         refresh();
     }

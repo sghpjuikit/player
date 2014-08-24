@@ -7,7 +7,7 @@
 
 <fx:root id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" snapToPixel="true" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <ScrollPane fx:id="fieldsPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <content>
         <AnchorPane id="Content" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
           <children>
@@ -29,7 +29,7 @@
           </padding>
         </AnchorPane>
       </content>
-    </ScrollPane><BorderPane prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+    </ScrollPane><BorderPane fx:id="buttonPane" prefHeight="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
 <center>
     <Button id="okB" defaultButton="true" minHeight="-1.0" mnemonicParsing="false" onMouseClicked="#ok" prefWidth="70.0" text="OK" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER">
       <tooltip>

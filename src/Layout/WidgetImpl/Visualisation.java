@@ -4,6 +4,8 @@ package Layout.WidgetImpl;
 import Configuration.IsConfig;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetInfo;
 import static java.lang.Math.random;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,27 +27,37 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import javafx.util.Duration;
+import utilities.access.Accessor;
 
 /**
  *
  * @author Plutonium_
  */
-public class Circles extends AnchorPane implements Controller<ClassWidget> {
+@WidgetInfo(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Visualisation",
+    description = "Provides simple visualisation.",
+    howto = "",
+    notes = "",
+    version = "0.2",
+    year = "2014",
+    group = Widget.Group.VISUALISATION
+)
+public class Visualisation extends AnchorPane implements Controller<ClassWidget> {
 
-    
+    private final Rectangle all = new Rectangle(100, 100);
+    private final Timeline animation = new Timeline();
     private static final double WIDTH = 500, HEIGHT = 500;
+    
     @IsConfig(name="Rate", info="Speed of the animation.",min=0,max=8)
-    public double rate = 1;
+    public final Accessor<Double> rate = new Accessor<>(1d, animation::setRate);
     @IsConfig(name="Background color", info="Background color")
-    public Color bgr_color = Color.BLACK;
+    public final Accessor<Color> bgr_color = new Accessor<>(Color.BLACK, all::setFill);
     @IsConfig(name="Blending mode", info="The blending mode influences how the content is displayed on the screen in ocntext with the background.")
-    public BlendMode blending_mode = BlendMode.SRC_OVER;
+    public final Accessor<BlendMode> blending_mode = new Accessor<>(BlendMode.SRC_OVER, this::setBlendMode);
     
-    private Timeline animation;
-    
-    Rectangle all;
-    
-    public Circles() {
+    public Visualisation() {
         initialize();
         play();
     }
@@ -99,9 +111,8 @@ public class Circles extends AnchorPane implements Controller<ClassWidget> {
         colors.widthProperty().bind(widthProperty());
         colors.heightProperty().bind(heightProperty());
         // create main content
-                  all = new Rectangle(100, 100, bgr_color);
-                  all.widthProperty().bind(widthProperty());
-                  all.heightProperty().bind(heightProperty());
+        all.widthProperty().bind(widthProperty());
+        all.heightProperty().bind(heightProperty());
         Rectangle clip = new Rectangle();
                   clip.widthProperty().bind(widthProperty());
                   clip.heightProperty().bind(heightProperty());
@@ -121,7 +132,6 @@ public class Circles extends AnchorPane implements Controller<ClassWidget> {
                    allCircles.addAll(layer2.getChildren());
                    allCircles.addAll(layer3.getChildren());
         // Create a animation to randomly move every circle in allCircles
-        animation = new Timeline();
         for(Node circle: allCircles) {
             animation.getKeyFrames().addAll(
                 new KeyFrame(Duration.ZERO, // set start position at 0s
@@ -153,9 +163,9 @@ public class Circles extends AnchorPane implements Controller<ClassWidget> {
     private ClassWidget widget;
     
     @Override public void refresh() {
-        animation.setRate(rate);
-        all.setFill(bgr_color);
-        setBlendMode(blending_mode);
+        rate.applyValue();
+        bgr_color.applyValue();
+        blending_mode.applyValue();
     }
 
     @Override public void setWidget(ClassWidget w) {

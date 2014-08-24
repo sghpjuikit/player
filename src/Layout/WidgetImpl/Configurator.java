@@ -10,7 +10,9 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -25,6 +27,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import utilities.Log;
 import utilities.Util;
+import utilities.access.Accessor;
 
 @WidgetInfo(
     author = "Martin Polakovic",
@@ -37,26 +40,30 @@ import utilities.Util;
             "    OK : Applies any unapplied change\n" +
             "    Default : Set default value for this setting\n",
     notes = "To do: generate active widget settings, allow subcategories.",
-    version = "0.8",
+    version = "0.9",
     year = "2014",
     group = Widget.Group.APP
 )
 public final class Configurator extends AnchorPane implements Controller<ClassWidget>, ConfiguringFeature {
-        
-    @FXML Accordion accordion;
-    List<ConfigGroup> groups = new ArrayList();
-    List<ConfigField> configFields = new ArrayList();
     
-    @IsConfig(name = "Show non editable fields", info = "Include non read-only fields.")
-    public boolean show_noneditable = false;
+    // gui & state
+    @FXML Accordion accordion;
+    private final Map<String,ConfigGroup> groups = new HashMap();
+    private final List<ConfigField> configFields = new ArrayList();
+    
+    // auto applied configurables
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public HPos alignemnt = HPos.RIGHT;
+    public final Accessor<HPos> alignemnt = new Accessor<>(HPos.RIGHT, v -> groups.forEach((n,g) -> g.grid.getColumnConstraints().get(1).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
-    public Pos title_align = Pos.CENTER;
+    public final Accessor<Pos> title_align = new Accessor<>(Pos.CENTER, v -> groups.forEach((n,g) -> g.pane.setAlignment(v)));
     @IsConfig(editable = false)
-    public String expanded = "";
+    public final Accessor<String> expanded = new Accessor<>("", v -> {
+        if(groups.containsKey(v))
+            accordion.setExpandedPane(groups.get(v).pane);
+    });
     
     public Configurator() {
+        super();
         FXMLLoader fxmlLoader = new FXMLLoader(Configurator.class.getResource("Configurator.fxml"));
         fxmlLoader.setRoot(this);
         fxmlLoader.setController(this);
@@ -66,25 +73,24 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
             Log.err("ConfiguratorComponent source data coudlnt be read.");
         }
         
-        // consume scroll event to prevent other scroll behavior // optional
-        setOnScroll(Event::consume);
-    }
-    
-    @FXML
-    public void initialize() {
-        
         // clear previous fields
         configFields.clear();
         accordion.getPanes().clear();
-        groups.forEach(g->g.grid.getChildren().clear());
-        groups.forEach(g->g.grid.getRowConstraints().clear());
+        groups.forEach((n,g) -> g.grid.getChildren().clear());
+        groups.forEach((n,g) -> g.grid.getRowConstraints().clear());
         
         // sort & populate fields
         Configuration.getFields().stream().sorted(Util.cmpareNoCase(o->o.getGuiName())).forEach(f-> {
-            ConfigGroup g = getGroup(f.getGroup());                             // find group
-            ConfigField cf = ConfigField.create(f);                             // create
-            if (show_noneditable || f.isEditable()) {        // ignore noneditabe
+            if (f.isEditable()) {        // ignore noneditabe
+                // create graphics
+                ConfigField cf = ConfigField.create(f);
                 configFields.add(cf);
+                
+                // get group
+                String cat = f.getGroup();
+                ConfigGroup g = groups.containsKey(cat) ? groups.get(cat) : new ConfigGroup(cat);
+                
+                // add to grid
                 g.grid.getRowConstraints().add(new RowConstraints());
                 g.grid.add(cf.getLabel(), 1, g.grid.getRowConstraints().size());  
                 g.grid.add(cf.getControl(), 2, g.grid.getRowConstraints().size());
@@ -92,52 +98,46 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         });
         
         // sort & populate groups
-        groups.stream().sorted(Util.cmpareNoCase(g -> g.name()))
-                       .forEach(g -> accordion.getPanes().add(g.pane));
+        groups.values().stream()
+                .sorted(Util.cmpareNoCase(g -> g.name()))
+                .forEach(g -> accordion.getPanes().add(g.pane));
         
-        // expand     
-        for(ConfigGroup g: groups) 
-            if(g.name().equals(expanded)) {
-                accordion.setExpandedPane(g.pane);
-                break;
-            }
-        
+        // consume scroll event to prevent other scroll behavior // optional
+        setOnScroll(Event::consume);
     }
     
-    @FXML
-    private void ok() {
-        // set and apply values and refresh if needed (no need for hard refresh)
+    public void initialize() {
+        // do nothing here, we simply follow the contract - fxmlLoader needs this method
+    }
+
+/****************************** PUBLIC API ************************************/
+    
+    /** Set and apply values and refresh if needed (no need for hard refresh) */
+    @FXML public void ok() {
         configFields.forEach(ConfigField::applyNsetIfAvailable);
     }
     
-    @FXML
-    private void defaults() {
+    /** Set default app settings. */
+    @FXML public void defaults() {
         // use this for now
         Configuration.toDefault();
         refresh();
         // bug with empty default shortcut?
 //        configFields.forEach(ConfigField::setNapplyDefault);
     }
-
+    
+    @Override
+    public void refresh() {
+        alignemnt.applyValue();
+        title_align.applyValue();
+        expanded.applyValue();
+        // refresh values
+        configFields.forEach(ConfigField::refreshItem);
+    }
+    
 /******************************************************************************/
     
     private ClassWidget w;
-    
-    @Override public void refresh() {
-        // refresh values
-        configFields.forEach(ConfigField::refreshItem);
-        
-        // relayout layout
-        groups.forEach(g -> g.grid.getColumnConstraints().get(1).setHalignment(alignemnt));
-        groups.forEach(g -> g.pane.setAlignment(title_align));
-        
-        // expand remembered
-        for(ConfigGroup g: groups) 
-            if(g.name().equals(expanded)) {
-                accordion.setExpandedPane(g.pane);
-                break;
-            }
-    }
 
     @Override public void setWidget(ClassWidget w) {
         this.w = w;
@@ -147,8 +147,8 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         return w;
     }
 
-/******************************************************************************/
-    
+/****************************** HELPER METHODS ********************************/
+        
     private final class ConfigGroup {
         final TitledPane pane = new TitledPane();
         final GridPane grid = new GridPane();
@@ -157,7 +157,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
             pane.setText(name);
             pane.setContent(grid);
             pane.expandedProperty().addListener((o,ov,nv) ->
-                expanded = nv ? pane.getText() : "" );
+                expanded.setValue(nv ? pane.getText() : ""));
             
             grid.setVgap(3);
             grid.setHgap(10);
@@ -177,20 +177,12 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
                               c2.setFillWidth(true);
             grid.getColumnConstraints().addAll(gap,c1,c2);
             
-            groups.add(this);
+            groups.put(name, this);
         } 
         
         public String name() {
             return pane.getText();
         }
-    }
-    
-    private ConfigGroup getGroup(String category) {
-        for (ConfigGroup g: groups) {
-            if(g.name().equals(category))
-                return g;
-        }
-        return new ConfigGroup(category);
     }
     
 }

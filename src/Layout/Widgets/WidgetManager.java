@@ -3,7 +3,7 @@ package Layout.Widgets;
 
 import GUI.ContextManager;
 import Layout.LayoutManager;
-import Layout.WidgetImpl.Circles;
+import Layout.WidgetImpl.Visualisation;
 import Layout.WidgetImpl.Configurator;
 import Layout.WidgetImpl.HtmlEditor;
 import Layout.WidgetImpl.Spectrumator;
@@ -59,7 +59,7 @@ public final class WidgetManager {
     private static void registerInternalWidgetFactories() {
         new ClassWidgetFactory("Settings", Configurator.class).register();
         //new ClassWidgetFactory("Playlist Manager", PlaylistManagerComponent.class).register();
-        new ClassWidgetFactory("Circles", Circles.class).register();
+        new ClassWidgetFactory("Circles", Visualisation.class).register();
         //new ClassWidgetFactory("Graphs", Graphs.class).register();
         new ClassWidgetFactory("HTMLEditor", HtmlEditor.class).register();
         new ClassWidgetFactory("Spectrumator", Spectrumator.class).register();

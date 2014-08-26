@@ -33,6 +33,7 @@ import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
+import static javafx.scene.input.KeyEvent.KEY_TYPED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
@@ -44,6 +45,7 @@ import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
 import utilities.FxTimer;
+import utilities.InputConstraints;
 import utilities.Parser.FileParser;
 import utilities.Parser.FontParser;
 import utilities.Password;
@@ -334,6 +336,10 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
             // unfortunately the icon buttonis not aligned well, need to fix that
             AnchorPane.setBottomAnchor(okBL, 3d);
             AnchorPane.setLeftAnchor(okBL, 8d);
+            
+            Class type = c.getType();
+            if (Number.class.isAssignableFrom(type))
+                txtF.addEventFilter(KEY_TYPED, InputConstraints.createNumbersOnlyInputHandler(Integer.MAX_VALUE));
             
             txtF.setContextMenu(null);
             txtF.getStyleClass().setAll("text-field","text-input");

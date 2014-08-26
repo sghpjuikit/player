@@ -37,6 +37,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
+import org.reactfx.Subscription;
 import utilities.FileUtil;
 import utilities.FxTimer;
 import utilities.access.Accessor;
@@ -71,16 +72,17 @@ public class ImageViewerController extends FXMLController {
     private ImageFlowPane layout;
 
     // non configurables
-    final SimpleObjectProperty<Metadata> data = new SimpleObjectProperty();   // current metadata source
     final SimpleObjectProperty<File> folder = new SimpleObjectProperty(null); // current location source (derived from metadata source)
     final ObservableList<File> images = FXCollections.observableArrayList();
     private boolean image_reading_lock = false;
     private int active_image = -1;
     private FxTimer slideshow;
+    private Subscription dataMonitoring;
+    private Metadata data;
     
     // auto applied cnfigurables
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> Player.bindObservedMetadata(data,v));
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.bindObservedMetadata(v,dataMonitoring,this::dataChanged));
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final Accessor<Double> thumbSize = new Accessor<>(70d, v -> {
         thumb_pane.getChildren().forEach(c -> {
@@ -99,8 +101,10 @@ public class ImageViewerController extends FXMLController {
     public final Accessor<Boolean> slideshow_on = new Accessor<>(true, v -> {
         if (v) slideshowStart(); else slideshowEnd();
     });
+    @IsConfig(name = "Show big image", info = "Show thumbnails.")
+    public final Accessor<Boolean> showImage = new Accessor<>(true, this::setImageVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::setImageVisible);
+    public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::setThumbnailsVisible);
     
     // manually applied configurables
     
@@ -131,26 +135,26 @@ public class ImageViewerController extends FXMLController {
         AnchorPane.setRightAnchor(thumb_root, 0.0);
         
         // refresh if source data changed
-        data.addListener(metaChange);
         folder.addListener(locationChange);
-        
         
         // accept drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped( e -> {
-            // get first item
-            List<Item> items = DragUtil.getAudioItems(e);
-            // getMetadata, refresh
-            if (!items.isEmpty()) {
-                // change mode if desired
-                if (changeReadModeOnTransfer) readMode.setNapplyValue(CUSTOM);
-                // set data
-                data.set(items.get(0).getMetadata());
+            if(DragUtil.hasAudio(e.getDragboard())) {
+                // get first item
+                List<Item> items = DragUtil.getAudioItems(e);
+                // getMetadata, refresh
+                if (!items.isEmpty()) {
+                    // change mode if desired
+                    if (changeReadModeOnTransfer) readMode.setNapplyValue(CUSTOM);
+                    // set data
+                    dataChanged(items.get(0).getMetadata());
+                }
+                // end drag
+                e.setDropCompleted(true);
+                e.consume();
             }
-            // end drag
-            e.setDropCompleted(true);
-            e.consume();
         });
         
         // consume scroll event to prevent app scroll behavior // optional
@@ -165,8 +169,7 @@ public class ImageViewerController extends FXMLController {
     @Override
     public void OnClosing() {
         // unbind
-        data.unbind();
-        data.removeListener(metaChange);
+        if (dataMonitoring!=null) dataMonitoring.unsubscribe();
         folder.removeListener(locationChange);
     }
     
@@ -176,35 +179,35 @@ public class ImageViewerController extends FXMLController {
     public void refresh() {
         image_reading_lock = true; // prevent reading thumbnails twice (see below)
         readMode.applyValue();
+        // we need to fire this too, althout at first sight not necessary, it is
+        // the location content might change, we must guarantee that the only
+        // means to display the change, user refreshing widget manually' works
+        image_reading_lock = false; // unlock
         thumbSize.applyValue();
         thumbGap.applyValue();
         slideshow_dur.applyValue();
         slideshow_on.applyValue();
         showThumbnails.applyValue();
-        // we need to fire this too, althout at first sight not necessary, it is
-        // the location content might change, we must guarantee that the only
-        // means to display the change, user refreshing widget manually' works
-        image_reading_lock = false; // unlock
-        readThumbnails(); // make sure
+        dataChanged(data);
     }
 
     @Override
     public boolean isEmpty() {
-        return data.get() == null;
+        return folder.get() == null;
     }
     
 /****************************** HELPER METHODS ********************************/
     
-    private final ChangeListener<Metadata> metaChange = (o,ov,nv) -> {
-            // calculate new location
-            File new_folder = (nv==null || !nv.isFileBased()) 
-                    ? null
-                    : nv.getLocation();
-            // prevent refreshing location if shouldnt
-            if(keepContentOnEmpty && new_folder==null) return;
-            // refresh location
-            folder.set(new_folder);
-        };
+    private void dataChanged(Metadata m) {
+        // remember data
+        data = m;
+        // calculate new location
+        File new_folder = (m==null || !m.isFileBased()) ? null : m.getLocation();
+        // prevent refreshing location if shouldnt
+        if(keepContentOnEmpty && new_folder==null) return;
+        // refresh location
+        folder.set(new_folder);
+     }
     private final ChangeListener<File> locationChange = (o,ov,nv) -> {
             setImage(-1);   // set empty image
             readThumbnails();
@@ -313,5 +316,9 @@ public class ImageViewerController extends FXMLController {
     
     private void setImageVisible(boolean v) {
         layout.setShowImage(v);        
+    }
+    
+    private void setThumbnailsVisible(boolean v) {
+        layout.setShowContent(v);        
     }
 }

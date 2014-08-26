@@ -65,7 +65,7 @@ public final class Graphs extends AnchorPane implements Controller<Widget>  {
         AnchorPane.setLeftAnchor(chart,0.0);
         
         Button b = new Button("bgbg");
-        b.setOnMouseClicked(e-> {System.out.println("BHJBHH");readData(PlaylistManager.getSelectedItems());});
+        b.setOnMouseClicked(e-> readData(PlaylistManager.selectedItemsES.getValue()));
         
         this.getChildren().add(b);
         

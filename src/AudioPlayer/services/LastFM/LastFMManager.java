@@ -22,6 +22,7 @@ import de.umass.lastfm.Result;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.scrobble.ScrobbleResult;
+import java.util.function.Consumer;
 import java.util.prefs.Preferences;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -30,7 +31,6 @@ import org.reactfx.Subscription;
 import utilities.Log;
 import utilities.Password;
 import utilities.TODO;
-import utilities.functional.functor.ChangeConsumer;
 
 /**
  *
@@ -102,7 +102,7 @@ public class LastFMManager {
     public LastFMManager() { }
 
     public static void start() {
-        playingItemMonitoring = Player.getCurrent().subscribeToChanges(itemChangeHandler);
+        playingItemMonitoring = Player.playingtem.subscribeToChanges(itemChangeHandler);
 
         PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
         PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
@@ -156,7 +156,7 @@ public class LastFMManager {
     /************** Scrobble logic - event handlers etc ***********************/
      
     public static final void updateNowPlaying() {
-        Metadata currentMetadata = AudioPlayer.Player.getCurrent().get();
+        Metadata currentMetadata = AudioPlayer.Player.playingtem.get();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),
                 currentMetadata.getTitle(),
@@ -192,10 +192,10 @@ public class LastFMManager {
             },
             "LastFM time event handler");
     
-    private static final ChangeConsumer<Metadata> itemChangeHandler = (ov,nv) -> {
+    private static final Consumer<Metadata> itemChangeHandler = item -> {
             if ((timeSatisfied || percentSatisfied)
-                    && ov.getLength().greaterThan(Duration.seconds(30))) {
-                scrobble(ov);
+                    && item.getLength().greaterThan(Duration.seconds(30))) {
+                scrobble(item);
 //                System.out.println("Conditions for scrobling satisfied. Track should scrobble now.");
             }
             updateNowPlaying();

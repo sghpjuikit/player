@@ -211,10 +211,12 @@ public class BookmarkerController extends FXMLController {
         table.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag drop
         table.setOnDragDropped( e -> {
-            List<Item> items = DragUtil.getAudioItems(e);
-            BookmarkManager.addBookmarks(items);
-            e.setDropCompleted(true);
-            e.consume();
+            if(DragUtil.hasAudio(e.getDragboard())) {
+                List<Item> items = DragUtil.getAudioItems(e);
+                BookmarkManager.addBookmarks(items);
+                e.setDropCompleted(true);
+                e.consume();
+            }
         });
         
         // scroll vertically when holding shift

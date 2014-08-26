@@ -59,6 +59,7 @@ import Configuration.IsConfig;
 import GUI.Traits.EditableTrait;
 import GUI.Traits.ScaleOnHoverTrait;
 import GUI.Traits.SkinTrait;
+import java.util.function.Consumer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -67,15 +68,11 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
-import javafx.scene.control.SkinBase;
-import javafx.scene.input.MouseButton;
 import javafx.util.Duration;
 
 /**
@@ -212,7 +209,8 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
 
     /** {@inheritDoc} */
     @Override protected String getUserAgentStylesheet() {
-        return getSkins().get(skinIndex());
+        if (skinIndexProperty().get()==-1) return super.getUserAgentStylesheet();
+        else return getSkins().get(skinIndexProperty().get());
     }    
        
     /***************************************************************************
@@ -398,27 +396,23 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     }
     
  
-    IntegerProperty skinIndex = new SimpleIntegerProperty(0);
-    @Override
-    public IntegerProperty skinIndexProperty() {
-        return skinIndex;
-    }
+    IntegerProperty skinIndex = new SimpleIntegerProperty(-1);
+    protected Consumer<String> skinChanged;
     
-   protected EventHandler<Event> skinChanged;
+    @Override
+    public IntegerProperty skinIndexProperty() { return skinIndex; }
+    
     /* @return Handler used when skin changes. Default null. */
      @Override
-    public EventHandler<Event> getOnSkinChanged() {
-        return skinChanged;
-    }    
+    public Consumer<String> getOnSkinChanged() { return skinChanged; }
+    
     /**
      * Fired when skin of this control changes - more specifically on right
      * mouse click (after new skin value is set).
      * @param handler 
      */
     @Override
-    public void setOnSkinChanged(EventHandler<Event> handler) {
-        skinChanged = handler;
-    }
+    public void setOnSkinChanged(Consumer<String> handler) { skinChanged = handler; }
     
     /***************************************************************************
      * 
@@ -426,14 +420,14 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
      * 
      **************************************************************************/
     
-    protected EventHandler<Event> ratingChanged;
+    protected Consumer<Double> ratingChanged;
     
     /**
      * Fired when rating value of this control changes - more specifically on
      * mouse click (after new rating value is set).
      * @param handler 
      */
-    public void setOnRatingChanged(EventHandler<Event> handler) {
+    public void setOnRatingChanged(Consumer<Double> handler) {
         ratingChanged = handler;
     }
 

@@ -1,17 +1,20 @@
 
 package AudioPlayer;
 
+import AudioPlayer.Core.CurrentItem;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.EMPTY;
 import PseudoObjects.ReadMode;
 import java.util.Collections;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import utilities.TODO;
+import static java.util.Collections.EMPTY_LIST;
+import java.util.List;
+import java.util.function.Consumer;
+import org.reactfx.EventStreams;
+import org.reactfx.Subscription;
+import utilities.access.AccessibleStream;
 
 /**
  *
@@ -32,36 +35,53 @@ public class Player {
         PLAYBACK.loadLastState();
     }
     
-    /** @return Metadata representing currently played item. Never null. */
-    public static Core.CurrentItem getCurrent() {
-        return core.cI;
-    }
-    
-    static SimpleObjectProperty<Metadata> playlistLastSelectedMetadataProperty() {
-        return core.selectedMetadata;
-    }
-    
-    public static final ObjectProperty<Metadata> librarySelectedItem = new SimpleObjectProperty<>(EMPTY);
-    
-    @TODO("toBinding is a memleak, change whole method to EventStream implementation")
-    public static void bindObservedMetadata(ObjectProperty<Metadata> observer,
-//            Optional<Subscription> subscriptionWrapper,
-            ReadMode mode) {
-//        if (subscriptionWrapper.isPresent()) subscriptionWrapper.get().unsubscribe();
-        switch (mode) {
-            case PLAYLIST_SELECTED: observer.bind(core.selectedMetadata);
+    @SuppressWarnings("UnusedAssignment")
+    public static Subscription bindObservedMetadata(ReadMode source, Subscription subscription, Consumer<Metadata> action) {
+        if (subscription != null) subscription.unsubscribe();
+        
+        switch (source) {
+            case SELECTED_PLAYLIST: subscription = playlistSelectedItemES.subscribe(action);
+                                    action.accept(playlistSelectedItemES.getValue());
                                     break;
-            case PLAYING:           observer.bind(core.cI.itemUpdatedES.map((ov,nv)->nv).toBinding(core.cI.get()));
+            case PLAYING:           subscription = playingtem.itemUpdatedES.subscribe(action);
+                                    action.accept(playingtem.itemUpdatedES.getValue());
                                     break;
-            case LIBRARY_SELECTED:  observer.bind(librarySelectedItem);
+            case SELECTED_LIBRARY:  subscription = librarySelectedItemES.subscribe(action);
+                                    action.accept(librarySelectedItemES.getValue());
                                     break;
-            case CUSTOM:            observer.unbind();
+            case SELECTED_ANY:      subscription = selectedItemES.subscribe(action);
+                                    action.accept(selectedItemES.getValue());
                                     break;
-            default:
+            case CUSTOM:            subscription = null;
+                                    break;
+            default: throw new AssertionError("Illegal switch value: " + source);
         }
+        return subscription;
     }
     
 /******************************************************************************/
+    
+    /**
+     * Prvides access to Metadata representing currently played item or empty
+     * metadata if none. Never null.
+     */
+    public static final CurrentItem playingtem = new CurrentItem();
+    public static final AccessibleStream<Metadata> librarySelectedItemES = new AccessibleStream<Metadata>(null){
+        @Override public void push(Metadata value) {
+            super.push(value);
+            selectedItemES.setValue(value);
+        }
+    };
+    public static final AccessibleStream<List<Metadata>> librarySelectedItemsES = new AccessibleStream(EMPTY_LIST);
+    public static final AccessibleStream<Metadata> playlistSelectedItemES = new AccessibleStream<Metadata>(null){
+        @Override public void push(Metadata value) {
+            super.push(value);
+            selectedItemES.setValue(value);
+        }
+    };
+    public static final AccessibleStream<List<Metadata>> playlistSelectedItemsES = new AccessibleStream(EMPTY_LIST);
+    public static final AccessibleStream<Metadata> selectedItemES = new AccessibleStream(null, EventStreams.merge(librarySelectedItemES,playlistSelectedItemES));
+    public static final AccessibleStream<List<Metadata>> selectedItemsES = new AccessibleStream(EMPTY_LIST, EventStreams.merge(librarySelectedItemsES,playlistSelectedItemsES));
     
     /** 
      * Refreshes the given item for the whole application. Use when metadata of
@@ -77,11 +97,11 @@ public class Player {
             DB.updateItemsFromFile(Collections.singletonList(item));
 
         // reload metadata if played right now
-        if (core.cI.get().same(item))
-            core.cI.update();
+        if (playingtem.get().same(item))
+            playingtem.update();
         
         // reload selected playlist
-        if (item.same(PlaylistManager.getSelectedItem()))
-            core.loadPlaylistSelectedMetadata(item);
+        if (item.same(PlaylistManager.selectedItemES.getValue()))
+            core.selectedItemToMetadata(PlaylistManager.selectedItemES.getValue());
     }
 }

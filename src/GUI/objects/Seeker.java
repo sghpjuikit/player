@@ -141,7 +141,7 @@ public final class Seeker extends AnchorPane {
             addB.show();
             addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
             addB.p.setY(position.localToScreen(0,0).getY()+13);
-            addB.l.setDisable(!Player.getCurrent().get().isFileBased());
+            addB.l.setDisable(!Player.playingtem.get().isFileBased());
         });
         position.addEventFilter(MOUSE_EXITED, e -> 
             FxTimer.run(Duration.millis(300), () -> {
@@ -407,7 +407,7 @@ public final class Seeker extends AnchorPane {
                 commitB.setTooltip(new Tooltip("Confirm changes"));
                 delB = AwesomeDude.createIconLabel(AwesomeIcon.TRASH_ALT,"11");                     
                 delB.setOnMouseClicked( e -> {
-                     Metadata m = Player.getCurrent().get();
+                     Metadata m = Player.playingtem.get();
 //                     // avoid removing chapter that does not exist
 //                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
 //                         return;
@@ -531,7 +531,7 @@ public final class Seeker extends AnchorPane {
             p.getHeaderIcons().set(0, commitB);
             p.getHeaderIcons().add(1, cancelB);
                 // do not add remove buton if the chapter is being created
-            if (!Player.getCurrent().get().containsChapterAt(c.getTime()))
+            if (!Player.playingtem.get().containsChapterAt(c.getTime()))
                 p.getHeaderIcons().remove(delB);
         }
         
@@ -544,7 +544,7 @@ public final class Seeker extends AnchorPane {
                 message.setWrappingWidthNatural(true);
                 // and physically 
                 c.setText(ta.getText());
-                Metadata m = Player.getCurrent().get();            
+                Metadata m = Player.playingtem.get();            
                 MetadataWriter mw = MetadataWriter.create(m);
                                mw.setChapter(c, m);
                                mw.write();

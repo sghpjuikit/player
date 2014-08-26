@@ -18,14 +18,12 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
@@ -39,6 +37,7 @@ import main.App;
 import utilities.AudioFileFormat;
 import utilities.Enviroment;
 import utilities.FileUtil;
+import utilities.access.AccessibleStream;
 
 /**
  * Provides unified handling to everything playlist related in the application
@@ -50,10 +49,16 @@ public class PlaylistManager implements Configurable {
     private static final ObservablePlaylist playlist = new ObservablePlaylist(Player.state.playlist.playlist);
     private static final ReadOnlyObjectWrapper<PlaylistItem> playingItem = new ReadOnlyObjectWrapper<>();
     
-    private static final SimpleObjectProperty<PlaylistItem> selectedItem = new SimpleObjectProperty();
-    private static final ObservableList<PlaylistItem> selectedItems = FXCollections.observableArrayList();
     public static final PlayingItemSelector playingItemSelector = new PlayingItemSelector();
     
+    /**
+     * Last selected item on playlist or null if none.
+     */
+    public static final AccessibleStream<PlaylistItem> selectedItemES = new AccessibleStream(null);
+    /**
+     * Selected items on playlist or empty list if none.
+     */
+    public static final AccessibleStream<List<PlaylistItem>> selectedItemsES = new AccessibleStream(EMPTY_LIST);
     
     /**
      * Initialize state from last session
@@ -105,7 +110,8 @@ public class PlaylistManager implements Configurable {
      * @return true if item is played.
      */
     public static boolean isSameItemPlaying(Item item) {
-        return getPlayingItem().same(item);
+        Objects.requireNonNull(item);
+        return item.same(getPlayingItem());
     }
     /**
      * Returns index of currently playing item.
@@ -133,35 +139,6 @@ public class PlaylistManager implements Configurable {
      */
     public static ReadOnlyProperty<Duration> lengthProperty() {
         return playlist.lengthProperty();
-    }
-
-    /**
-     * Returns selected item. Null if no item selected. Changes to returned
-     * objects are allowed but wont be reflected. Consider it read only.
-     * @return clone of selected item.
-     */
-    public static PlaylistItem getSelectedItem() {                                      // TODO
-        return selectedItem.get();
-    }
-    /**
-     * Returns bindable read only property of last selected item.
-     * @return bindable selected item property.
-     */
-    public static ObjectProperty<PlaylistItem> selectedItemProperty() {                                    // TODO
-        return selectedItem;
-    }       
-    /**
-     * @return bindable unmodifiable observable list of selected items.
-     */
-    public static ObservableList<PlaylistItem> getSelectedItems() {                                    // TODO
-        return selectedItems;
-    }
-    /**
-     * Clears the ObservableList and add all elements from the collection.
-     * @param to_select list of items to select
-     */
-    public static void setSelectedItems(List<PlaylistItem> to_select) {
-        selectedItems.setAll(to_select);
     }
        
 /******************************************************************************/

@@ -23,7 +23,6 @@
 - remove custom context menus as they are now
 - emty metadata MUST NOT return File("") ! - EMPTY_FILE instance? with custom 
   URI scheme for example?
-- Rater make base skin
 - tab area - select tab on mouse release not press or avoid loading content
   somehow when reordering
 - tab drag areas vs tabs implement both at once
@@ -48,7 +47,6 @@
   file, it looks like it is locked) - perhaps generalizes to any change of tag
   that enlarges the file (and thusrequires tmp file)
 - external playlist (m3u, etc) support + dragging too
-- unite selected library & selected playlist item source
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------
@@ -67,6 +65,7 @@
 GENERAL
 - deactivator position | size a bit off when loading first time & into small
   area. It requires area resize call to initialize correct height/y-ccord
+  use black bgr on the buttons pane to see the issue
 - playlist manual sorting does not work
 - Thumbnail borde rchanges size of the control - not good at all
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)

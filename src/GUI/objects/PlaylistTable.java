@@ -356,7 +356,8 @@ public final class PlaylistTable {
         });
         
         // reflect selection for whole application
-        bindSelection();
+        table.getSelectionModel().selectedItemProperty().addListener(selItemListener);
+        table.getSelectionModel().getSelectedItems().addListener(selItemsListener);
         
         // observe and show playing item - set listener & init value
         PlaylistManager.playingItemProperty().addListener(playingListener);
@@ -450,7 +451,8 @@ public final class PlaylistTable {
     /** Clears resources like listeners for this table object. */
     public void clearResources() {
         PlaylistManager.playingItemProperty().removeListener(playingListener);
-        unbindSelection();
+        table.getSelectionModel().selectedItemProperty().removeListener(selItemListener);
+        table.getSelectionModel().getSelectedItems().removeListener(selItemsListener);
     }
     
 /************************************* DATA ***********************************/
@@ -570,24 +572,14 @@ public final class PlaylistTable {
     private boolean movingitems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
         if(movingitems) return; 
-        PlaylistManager.selectedItemProperty().set(nv);
+        PlaylistManager.selectedItemES.push(nv);
     };
     ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {
         if(movingitems) return;
         while(c.next()) {
-            PlaylistManager.getSelectedItems().setAll(table.getSelectionModel().getSelectedItems());
+            PlaylistManager.selectedItemsES.push(table.getSelectionModel().getSelectedItems());
         }
     };
-    
-    private void bindSelection() {
-        table.getSelectionModel().selectedItemProperty().addListener(selItemListener);
-        table.getSelectionModel().getSelectedItems().addListener(selItemsListener);
-    }
-    
-    private void unbindSelection() {
-        table.getSelectionModel().selectedItemProperty().removeListener(selItemListener);
-        table.getSelectionModel().getSelectedItems().removeListener(selItemsListener);
-    }
     
     /**
      * Moves/shifts all selected items by specified distance.
@@ -652,11 +644,13 @@ public final class PlaylistTable {
     };
     
     private void onDragDropped(DragEvent e, int index) {
-        List<Item> items = DragUtil.getAudioItems(e);
-        PlaylistManager.addItems(items, index);
-        //end drag transfer
-        e.setDropCompleted(true);
-        e.consume();
+        if (DragUtil.hasAudio(e.getDragboard())) {
+            List<Item> items = DragUtil.getAudioItems(e);
+            PlaylistManager.addItems(items, index);
+            //end drag transfer
+            e.setDropCompleted(true);
+            e.consume();
+        }
     }
     
 /****************************** CONTEXT MENU **********************************/

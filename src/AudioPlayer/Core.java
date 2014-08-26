@@ -11,14 +11,13 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import AudioPlayer.tagging.MetadataReader;
-import java.util.function.BiConsumer;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
+import java.util.List;
+import java.util.function.Consumer;
 import javafx.util.Duration;
-import org.reactfx.BiEventSource;
 import org.reactfx.Subscription;
 import utilities.FxTimer;
 import utilities.Log;
+import utilities.access.AccessibleStream;
 
 /**
  *
@@ -26,14 +25,14 @@ import utilities.Log;
  */
 final class Core {
     
-    final CurrentItem cI = new CurrentItem();
-    final SimpleObjectProperty<Metadata> selectedMetadata = new SimpleObjectProperty();
+    
 
     void initialize(){
         
-        PlaylistManager.playingItemProperty().addListener((o, ov, nv) -> cI.itemChanged(nv));
+        PlaylistManager.playingItemProperty().addListener((o,ov,nv) -> Player.playingtem.itemChanged(nv));
         
-        PlaylistManager.selectedItemProperty().addListener(lastSelectedLoader);
+        PlaylistManager.selectedItemES.subscribe(this::selectedItemToMetadata);
+        PlaylistManager.selectedItemsES.subscribe(this::selectedItemsToMetadata);
     }
 
 /******************************** current *************************************/
@@ -41,8 +40,8 @@ final class Core {
     public static class CurrentItem {
         Metadata val = EMPTY;
         Metadata nextMetadataCache = EMPTY;
-        BiEventSource<Metadata,Metadata> itemPlayedES = new BiEventSource();
-        BiEventSource<Metadata,Metadata> itemUpdatedES = new BiEventSource();
+        AccessibleStream<Metadata> itemPlayedES = new AccessibleStream(EMPTY);
+        AccessibleStream<Metadata> itemUpdatedES = new AccessibleStream(EMPTY);
         private final FxTimer nextCachePreloader = FxTimer.create(Duration.millis(400), () -> preloadNext());
         
         /**
@@ -56,17 +55,16 @@ final class Core {
         }
 
         void set(boolean change, Metadata value) {
-            Metadata old = val;
             val = value;
-            if(change) itemPlayedES.push(old, val);
-            itemUpdatedES.push(old, val);
+            if(change) itemPlayedES.push(val);
+            itemUpdatedES.push(val);
         }
         
         /** 
          * Add behavior to playing item changed event. 
          * <p>
          * The event is fired every time playing item changes. This includes
-         * replaying the sae item.
+         * replaying the same item.
          * <p>
          * Use in cases requiring constantly updated information about the playing 
          * item.
@@ -74,7 +72,7 @@ final class Core {
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
          */
-        public Subscription subscribeToChanges(BiConsumer<Metadata,Metadata> bc) {
+        public Subscription subscribeToChanges(Consumer<Metadata> bc) {
             return itemPlayedES.subscribe(bc);
         }
         
@@ -87,12 +85,18 @@ final class Core {
          * <p>
          * Use in cases requiring not only change updates, but also constantly
          * (real time) updated information about the playing item, such as when
-         * displaying this information somewhere.
+         * displaying this information somewhere - for example artist of the
+         * played item.
+         * <p>
+         * Do not use when only the identity (defined by its URI) of the played 
+         * item is required. For example lastFM scrobbling service would not want
+         * to update played item status when the metadata of the item change as it
+         * isnt a change in played item - it is still the same item.
          * <p>
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
          */
-        public Subscription subscribeToUpdates(BiConsumer<Metadata,Metadata> bc) {
+        public Subscription subscribeToUpdates(Consumer<Metadata> bc) {
             return itemUpdatedES.subscribe(bc);
         }
         
@@ -156,23 +160,32 @@ final class Core {
         }
     }
     
-/******************************** selected ************************************/
+/************************** selected playlist items ***************************/
     
-    ChangeListener<Item> lastSelectedLoader = (o,ov,nv) -> loadPlaylistSelectedMetadata(nv);
-    
-    void loadPlaylistSelectedMetadata(Item lastSelected) {
-        if(lastSelected==null) {
-            selectedMetadata.set(EMPTY);
+    void selectedItemToMetadata(PlaylistItem item) {
+        if(item==null) {
+            Player.playlistSelectedItemES.push(EMPTY);
         } else {
-            MetadataReader.create(lastSelected, (success,result) -> {
+            MetadataReader.create(item, (success,result) -> {
                 if (success) {
-                    Log.deb("In playlist last selected item metadata loaded.");
-                    selectedMetadata.set(result);
+                    Log.deb("Last selected playlist item metadata loaded.");
+                    Player.playlistSelectedItemES.push(result);
                 } else {
-                    Log.deb("In playlist last selected item metadata reading failed.");
-                    selectedMetadata.set(EMPTY);
+                    Log.deb("Last selected playlistitem metadata reading failed.");
+                    Player.playlistSelectedItemES.push(EMPTY);
                 }
             });
         }
+    }
+    
+    void selectedItemsToMetadata(List<PlaylistItem> items) {
+        MetadataReader.readMetadata(items, (success,result) -> {
+            if (success) {
+                Log.deb("Selected playlist items metadata reading finished successfully.");
+                Player.playlistSelectedItemsES.push(result);
+            } else {
+                Log.deb("Selected playlist items metadata reading failed.");
+            }
+        });
     }
 }

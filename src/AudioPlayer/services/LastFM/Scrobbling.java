@@ -34,7 +34,7 @@ public class Scrobbling {
     }
 
     protected void updateNowPlaying() {
-        Metadata currentMetadata = Player.getCurrent().get();
+        Metadata currentMetadata = Player.playingtem.get();
         ScrobbleResult result = Track.updateNowPlaying(
                 currentMetadata.getArtist(),
                 currentMetadata.getTitle(),

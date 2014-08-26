@@ -7,7 +7,6 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.EMPTY;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
@@ -161,8 +160,8 @@ public class PlayerControlsController extends FXMLController implements Playback
      
         
         // set updating + initialize manually
-        playingItemMonitoring = Player.getCurrent().subscribeToUpdates(this::playingItemChanged);  // add listener
-        playingItemChanged(EMPTY,Player.getCurrent().get());            // init value
+        playingItemMonitoring = Player.playingtem.subscribeToUpdates(this::playingItemChanged);  // add listener
+        playingItemChanged(Player.playingtem.get());                  // init value
         
         PLAYBACK.statusProperty().addListener(statusListener);          // add listener
         statusChanged(PLAYBACK.getStatus());                            // init value
@@ -187,17 +186,19 @@ public class PlayerControlsController extends FXMLController implements Playback
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag transfer
         entireArea.setOnDragDropped( e -> {
-            // get items
-            List<Item> items = DragUtil.getAudioItems(e);
-            // end drag
-            e.setDropCompleted(true);
-            e.consume();
-            // handle result
-            if(playDropped) {
-                PlaylistManager.playPlaylist(new Playlist(
-                        items.stream().map(Item::getURI), true));
-            } else {
-                PlaylistManager.addItems(items);
+            if (DragUtil.hasAudio(e.getDragboard())) {
+                // get items
+                List<Item> items = DragUtil.getAudioItems(e);
+                // end drag
+                e.setDropCompleted(true);
+                e.consume();
+                // handle result
+                if(playDropped) {
+                    PlaylistManager.playPlaylist(new Playlist(
+                            items.stream().map(Item::getURI), true));
+                } else {
+                    PlaylistManager.addItems(items);
+                }
             }
         });
         
@@ -280,7 +281,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     private final InvalidationListener realTimeListener = o -> realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       
     
-    private void playingItemChanged(Metadata ov, Metadata nv) {
+    private void playingItemChanged(Metadata nv) {
         if(nv!=null){
             titleL.setText(nv.getTitle());
             artistL.setText(nv.getArtist());

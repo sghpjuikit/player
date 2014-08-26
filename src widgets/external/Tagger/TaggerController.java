@@ -3,6 +3,7 @@ package Tagger;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
+import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
@@ -22,9 +23,9 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.LIBRARY_SELECTED;
 import static PseudoObjects.ReadMode.PLAYING;
-import static PseudoObjects.ReadMode.PLAYLIST_SELECTED;
+import static PseudoObjects.ReadMode.SELECTED_LIBRARY;
+import static PseudoObjects.ReadMode.SELECTED_PLAYLIST;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
@@ -33,8 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -85,7 +86,6 @@ import org.reactfx.Subscription;
 import utilities.ImageFileFormat;
 import utilities.Log;
 import utilities.Parser.ColorParser;
-import utilities.functional.functor.ChangeConsumer;
 import utilities.functional.impl.Validators.IsBetween0And1;
 import utilities.functional.impl.Validators.Validator;
 import utilities.functional.impl.Validators.isIntString;
@@ -183,10 +183,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
 //    BiProcedure<Boolean,List<Metadata>> onMetaReadingFinish = 
             
     // listeners
-    private final InvalidationListener playlistListener = o -> 
-            read(PlaylistManager.getSelectedItems());
-    private final ChangeConsumer<Metadata> playingListener = (ov,nv) ->
-            read(Collections.singletonList(nv));
+    private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> 
+            read(selectedItems);
+    private final Consumer<Metadata> playingListener = item ->
+            read(Collections.singletonList(item));
             
             
     
@@ -458,19 +458,19 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void refresh() {
-        PlaylistManager.getSelectedItems().removeListener(playlistListener);
         if(playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
+        if(selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
         
         // rebind
-        if (readMode == PLAYLIST_SELECTED) {
-            PlaylistManager.getSelectedItems().addListener(playlistListener);
-            playlistListener.invalidated(null);
-        }
-        else if (readMode == PLAYING){
-            playingItemMonitoring = Player.getCurrent().subscribeToUpdates(playingListener);
-            playingListener.accept(null,Player.getCurrent().get());
-        }
-        else if (readMode==LIBRARY_SELECTED){
+        if (readMode == SELECTED_PLAYLIST) {            
+            selectedItemsMonitoring = PlaylistManager.selectedItemsES.subscribe(playlistListener);
+            playlistListener.accept(PlaylistManager.selectedItemsES.getValue());
+        } else
+        if (readMode == PLAYING){
+            playingItemMonitoring = Player.playingtem.subscribeToUpdates(playingListener);
+            playingListener.accept(Player.playingtem.get());
+        } else
+        if (readMode==SELECTED_LIBRARY){
             // to implement
         }
 //        else if (readMode==ReadMode.CUSTOM)
@@ -481,6 +481,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     }
     
     private Subscription playingItemMonitoring;
+    private Subscription selectedItemsMonitoring;
     
     public void setReadMode(ReadMode val) {
         readMode = val;
@@ -504,7 +505,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void OnClosing() {
         // remove listeners
-        PlaylistManager.getSelectedItems().removeListener(playlistListener);
+        selectedItemsMonitoring.unsubscribe();
         playingItemMonitoring.unsubscribe();
     }
     
@@ -724,18 +725,18 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if (i==0 && !m.getPublisher().isEmpty())                            { Publisher = 1; PublisherS = m.getPublisher(); }
             if (Publisher == 0 && i != 0 && !m.getPublisher().isEmpty())        { Publisher = 2; PublisherS = m.getPublisher(); }
             if (Publisher == 1 && !m.getPublisher().equals(PublisherS))         { Publisher = 2; }
-            if (i==0 && !m.getTrack().isEmpty())                                { Track = 1; TrackS = m.getTrack(); }
-            if (Track == 0 && i != 0 && !m.getTrack().isEmpty())                { Track = 2; TrackS = m.getTrack(); }
-            if (Track == 1 && !m.getTrack().equals(TrackS))                     { Track = 2; }
-            if (i==0 && !m.getTracksTotal().isEmpty())                          { TracksTotal = 1; TracksTotalS = m.getTracksTotal(); }
-            if (TracksTotal == 0 && i != 0 && !m.getTracksTotal().isEmpty())    { TracksTotal = 2; TracksTotalS = m.getTracksTotal(); }
-            if (TracksTotal == 1 && !m.getTracksTotal().equals(TracksTotalS))   { TracksTotal = 2; }
-            if (i==0 && !m.getDisc().isEmpty())                                 { Disc = 1; DiscS = m.getDisc(); }
-            if (Disc == 0 && i != 0 && !m.getDisc().isEmpty())                  { Disc = 2; DiscS = m.getDisc(); }
-            if (Disc == 1 && !m.getDisc().equals(DiscS))                        { Disc = 2; }
-            if (i==0 && !m.getDiscsTotal().isEmpty())                           { DiscsTotal = 1; DiscsTotalS = m.getDiscsTotal(); }
-            if (DiscsTotal == 0 && i != 0 && !m.getDiscsTotal().isEmpty())      { DiscsTotal = 2; DiscsTotalS = m.getDiscsTotal(); }
-            if (DiscsTotal == 1 && !m.getDiscsTotal().equals(DiscsTotalS))      { DiscsTotal = 2; }
+            if (i==0 && !m.getTrackAsS().isEmpty())                             { Track = 1; TrackS = m.getTrackAsS(); }
+            if (Track == 0 && i != 0 && !m.getTrackAsS().isEmpty())             { Track = 2; TrackS = m.getTrackAsS(); }
+            if (Track == 1 && !m.getTrackAsS().equals(TrackS))                  { Track = 2; }
+            if (i==0 && !m.getTracksTotalAsS().isEmpty())                       { TracksTotal = 1; TracksTotalS = m.getTracksTotalAsS(); }
+            if (TracksTotal == 0 && i != 0 && !m.getTracksTotalAsS().isEmpty()) { TracksTotal = 2; TracksTotalS = m.getTracksTotalAsS(); }
+            if (TracksTotal == 1 && !m.getTracksTotalAsS().equals(TracksTotalS)){ TracksTotal = 2; }
+            if (i==0 && !m.getDiscAsS().isEmpty())                              { Disc = 1; DiscS = m.getDiscAsS(); }
+            if (Disc == 0 && i != 0 && !m.getDiscAsS().isEmpty())               { Disc = 2; DiscS = m.getDiscAsS(); }
+            if (Disc == 1 && !m.getDiscAsS().equals(DiscS))                     { Disc = 2; }
+            if (i==0 && !m.getDiscsTotalAsS().isEmpty())                        { DiscsTotal = 1; DiscsTotalS = m.getDiscsTotalAsS(); }
+            if (DiscsTotal == 0 && i != 0 && !m.getDiscsTotalAsS().isEmpty())   { DiscsTotal = 2; DiscsTotalS = m.getDiscsTotalAsS(); }
+            if (DiscsTotal == 1 && !m.getDiscsTotalAsS().equals(DiscsTotalS))   { DiscsTotal = 2; }
             if (i==0 && !m.getGenre().isEmpty())                                { Genre = 1; GenreS = m.getGenre(); }
             if (Genre == 0 && i != 0 && !m.getGenre().isEmpty())                { Genre = 2; GenreS = m.getGenre(); }
             if (Genre == 1 && !m.getGenre().equals(GenreS))                     { Genre = 2; }
@@ -1070,14 +1071,16 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     }
     
     private final EventHandler<DragEvent> drag_dropped_handler = e -> {
-        List<Item> dropped = DragUtil.getAudioItems(e);
-        //end drag transfer
-        e.setDropCompleted(true);
-        e.consume();
-        // handle result - read data
-        if (!dropped.isEmpty()) {
-            if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
-            read(dropped);
+        if (DragUtil.hasAudio(e.getDragboard())) {
+            List<Item> dropped = DragUtil.getAudioItems(e);
+            //end drag transfer
+            e.setDropCompleted(true);
+            e.consume();
+            // handle result - read data
+            if (!dropped.isEmpty()) {
+                if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
+                read(dropped);
+            }
         }
     };
     

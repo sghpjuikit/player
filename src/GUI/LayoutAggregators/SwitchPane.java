@@ -174,6 +174,9 @@ public class SwitchPane implements LayoutAggregator {
         layouts.put(i, layout);
         // reload tab
         addTab(i);
+        // initialize layouts to left & right
+        addTab(i+1);
+        addTab(i-1);
     }
     
     /**
@@ -269,7 +272,7 @@ public class SwitchPane implements LayoutAggregator {
             // snap at the end of animation 
             uiDrag.setOnFinished( a -> {
                 int i = snapTabs();
-                // add layouts to left & right
+                // initialize layouts to left & right
                 // otherwise the layouds are added only if we activate the snapping
                 // which for non-discrete mode is a problem
                 addTab(i-1);

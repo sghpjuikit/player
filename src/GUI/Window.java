@@ -233,11 +233,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                     Color c = nv.getColor();
                     applyColorEffect( c==null ? gui_overlay_color : c);
                 };
-                playingItemMonitoring = Player.getCurrent().subscribeToUpdates((ov,nv)->colorListener.changed(null,null,nv));
+                playingItemMonitoring = Player.playingtem.subscribeToUpdates(item -> colorListener.changed(null,null,item));
                 // fire upon binding to create immediate response
-                colorListener.changed(null, null, Player.getCurrent().get());
+                colorListener.changed(null, null, Player.playingtem.get());
             } else {
-                colorListener.changed(null, null, Player.getCurrent().get());
+                colorListener.changed(null, null, Player.playingtem.get());
             }            
         }
         else {

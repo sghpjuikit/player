@@ -290,15 +290,12 @@ public abstract class Item implements Comparable<Item> {
      */
     public final Metadata getMetadata() {
         // try playing item
-        if (same(Player.getCurrent().get())) return Player.getCurrent().get();
+        if (same(Player.playingtem.get())) return Player.playingtem.get();
         // try library
         Metadata m = DB.getItem(this);
         if (m!=null) return m;
-        // try reading
-        m = MetadataReader.create(this);
-        if(!m.isEmpty()) return m;
-        // try convert
-        return toMetadata();
+        // read
+        return MetadataReader.create(this);
     }
 
     

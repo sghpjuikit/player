@@ -50,7 +50,7 @@ public final class WidgetArea extends UniArea {
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
         // support drag from
-        root.setOnDragDetected( e -> {System.out.println("drag");
+        root.setOnDragDetected( e -> {
             // disallow in normal mode & primary button drag only
             if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);

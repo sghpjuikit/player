@@ -36,11 +36,11 @@ public class PlaycountIncrementer {
     // behavior
     private static final Procedure incrementPlayback = () -> {
         // prevent reading when not initialized
-        if (Player.getCurrent() == null) {
+        if (Player.playingtem == null) {
             return;
         }
         // increment
-        MetadataWriter.incrementPlaycount(Player.getCurrent().get());
+        MetadataWriter.incrementPlaycount(Player.playingtem.get());
         Log.info("Incrementing playount of played item.");
     };
     

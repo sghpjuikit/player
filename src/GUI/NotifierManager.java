@@ -67,7 +67,7 @@ public final class NotifierManager {
         });
         
         // show notification on song change
-        playingItemMonitoring = Player.getCurrent().subscribeToChanges(NotifierManager::songChange);
+        playingItemMonitoring = Player.playingtem.subscribeToChanges(NotifierManager::songChange);
         
         initialized = true;
     }
@@ -83,7 +83,7 @@ public final class NotifierManager {
     
 /******************************************************************************/
     
-    private static void songChange(Metadata oldI, Metadata newI) {
+    private static void songChange(Metadata newI) {
         if (showSongNotification)
             NotifierManager.showNotification(newI , "New Song", SONG);
     }
@@ -91,7 +91,7 @@ public final class NotifierManager {
     private static void playbackStatusChange(Status oldS, Status newS) {
         if (!showStatusNotification || newS == null) return;
         
-        Metadata m = Player.getCurrent().get();
+        Metadata m = Player.playingtem.get();
         String text = "Playback change : " + PLAYBACK.getStatus().toString();
         NotifierManager.showNotification(m, text, PLAYBACK_STATUS);
     }

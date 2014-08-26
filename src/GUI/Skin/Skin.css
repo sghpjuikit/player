@@ -3679,3 +3679,26 @@
 .audiospectrum {
     // note: for now not working, use .chart-bar
 }
+
+//*********************************** RATING *********************************//
+
+.rating > .container {
+    -fx-spacing: 2;
+}
+.rating > .container > .button {
+    -fx-background-color: null;
+    -fx-border-color: null;
+    -fx-background-image: url("rating_unselected-star.png");
+    // the following two lines set the size of the element and therefore size
+    // of the control. The 2nd value must be half of the first.
+    // Should be sized to font size
+    -fx-background-size: 12;
+    -fx-padding: 6;
+    -fx-background-image-repeat: no-repeat;
+}
+.rating > .container > .button.strong {
+    -fx-background-image: url("rating_selected-star.png");
+}
+.rating > .container > .button:hover {
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.3) , 4, 0.0 , 0 , 0 );
+}

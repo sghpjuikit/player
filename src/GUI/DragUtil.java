@@ -67,11 +67,7 @@ public final class DragUtil {
      * @see #getAudioItems(javafx.scene.input.DragEvent)
      */
     public static final EventHandler<DragEvent> audioDragAccepthandler = e -> {
-        Dragboard d = e.getDragboard();
-        // accept if contains at least 1 audio file, audio url, playlist or items
-        if ((d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
-                (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
-                    hasPlaylist() || hasItemList()) {
+        if (hasAudio(e.getDragboard())) {
             e.acceptTransferModes(TransferMode.ANY);
             e.consume();
         }
@@ -82,18 +78,15 @@ public final class DragUtil {
      * @see #getImageFiles(javafx.scene.input.DragEvent)
      */
     public static final EventHandler<DragEvent> imageFileDragAccepthandler = e -> {
-        Dragboard d = e.getDragboard();
-        // accept if contains at least 1 audio file, audio url, playlist or items
-        if ((d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) ||
-                (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()))) {
+        if (hasImage(e.getDragboard())) {
             e.acceptTransferModes(TransferMode.ANY);
             e.consume();
         }
     };
     
+    
 /******************************************************************************/
 
-    
     public static void setPlaylist(Playlist p, Dragboard db) {
         // put fake data into dragboard
         db.setContent(Collections.singletonMap(playlistDF, ""));
@@ -138,6 +131,7 @@ public final class DragUtil {
         return dataFormat == componentDF;
     }
     
+    
     /**
      * Obtains all supported audio items from dragboard. Looks for files, url,
      * list of items, playlist int this exact order.
@@ -174,6 +168,17 @@ public final class DragUtil {
         return out;
     }
     
+     /**
+     * @param d
+     * @return true if contains at least 1 audio file, audio url, playlist or items 
+     */
+    public static boolean hasAudio(Dragboard d) {
+        return (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+               (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
+               hasPlaylist() ||
+               hasItemList();
+    }
+    
     public static List<File> getImageItems(DragEvent e) {
         Dragboard d = e.getDragboard();
         
@@ -185,7 +190,15 @@ public final class DragUtil {
         else
             return EMPTY_LIST;
     }
-
+    
+     /**
+     * @param d
+     * @return true if contains at least 1 img file, img url
+     */
+    public static boolean hasImage(Dragboard d) {
+        return (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) ||
+               (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
+    }
     
     
     /**

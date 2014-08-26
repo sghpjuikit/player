@@ -93,7 +93,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         
         // fire rating changed event
         if (getSkinnable().ratingChanged != null)
-            getSkinnable().ratingChanged.handle(event);
+            getSkinnable().ratingChanged.accept(newRating/getSkinnable().getMax());
     };
     
     // tmp value for restoring old rating after hovering ends

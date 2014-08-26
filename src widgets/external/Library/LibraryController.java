@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
@@ -172,6 +173,12 @@ public class LibraryController extends FXMLController {
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
         
+        
+        // update selected items for application
+        table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(Util.copySelectedItems(table)));
+        table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> Player.librarySelectedItemES.push(nv));
+        
+        
         Label progressL = new Label();
               progressL.setVisible(false);
         root.getChildren().add(progressL);
@@ -182,6 +189,8 @@ public class LibraryController extends FXMLController {
         FadeButton b1 = new FadeButton(PLUS, 13);
                    b1.setOnMouseClicked( e -> {
                         DirectoryChooser fc = new DirectoryChooser();
+                                         fc.setInitialDirectory(last_file);
+                                         fc.setTitle("Add folder to library");
                         last_file = fc.showDialog(root.getScene().getWindow());
                         
                         List<Metadata> metas = FileUtil.getAudioFiles(last_file,111).stream()
@@ -218,9 +227,6 @@ public class LibraryController extends FXMLController {
         table.getItems().addListener(infoUpdater);
             // initialize info label
         infoUpdate.accept(EMPTY_LIST);
-        
-        // update selected library item for app
-        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> Player.librarySelectedItem.set(nv));
         
         HBox controls = new HBox(b1, infoL);
              controls.setSpacing(8);

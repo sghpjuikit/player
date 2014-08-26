@@ -34,15 +34,16 @@ import utilities.access.Accessor;
 public class DB {
     
     public static EntityManagerFactory emf;
+    public static EntityManager em;
     
     public static void start() {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
+        em = emf.createEntityManager();
     }
     
     public static void stop() {
-        if(emf!=null) {
-           emf.close();
-        }
+        if(em!=null && em.isOpen()) em.close();
+        if(emf!=null) emf.close();
     }
     
 /******************************** OBTAINING ***********************************/
@@ -52,7 +53,6 @@ public class DB {
     }
     
     public static boolean exists(URI uri) {
-        EntityManager em = emf.createEntityManager();
         return null != em.find(Metadata.class, uri.toString());
     }
     
@@ -75,7 +75,6 @@ public class DB {
      * @return item from library with the specified URI or null if not found.
      */
     public static Metadata getItem(URI uri) {
-        EntityManager em = emf.createEntityManager();
         return em.find(Metadata.class, uri.toString());
     }
     
@@ -83,36 +82,24 @@ public class DB {
     public static void addItems(List<Metadata> items) {
         if (items.isEmpty()) return;
         
-        EntityManager em = emf.createEntityManager();
-        try {
-            em.getTransaction().begin();
-            items.forEach( m -> {
-                if(em.find(Metadata.class, m.getId()) == null) em.persist(m);
-            });
-            em.getTransaction().commit();
-        }
-        finally {
-            em.close();
-        }
+        em.getTransaction().begin();
+        items.forEach( m -> {
+            if(em.find(Metadata.class, m.getId()) == null) em.persist(m);
+        });
+        em.getTransaction().commit();
+        
         librarychange.push(null);
     }
     public static List<Metadata> getAllItems() {
-        EntityManager em = emf.createEntityManager();
         List result;
-        try {
-            TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p", Metadata.class);
-            result = query.getResultList();
-        }
-        finally {
-            em.close();
-        }
-        return result;
+        
+        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p", Metadata.class);
+        return query.getResultList();
     }
     public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
         return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
     }
     public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
-        EntityManager em = emf.createEntityManager();
         List result;
         
             Accessor<String> filter = new Accessor("");
@@ -122,67 +109,52 @@ public class DB {
                 if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
 
                 String f = (values.get(0) instanceof String)
-                    ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'"
-                    : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString();
+                    ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'"
+                    : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString().replaceAll("'", "''");
                 filter.setValue(filter.getValue() + f);
             });
             
         TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p" + filter.getValue(), Metadata.class);
         result = query.getResultList();
 
-        em.close();
         return result;
     }
-    public static List<Object[]> getAllArtists() {
-        EntityManager em = emf.createEntityManager();
-        List result;
-        try {
-            TypedQuery<String> query = em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class);
-            result = query.getResultList();
-        }
-        finally {
-            em.close();
-        }
-        return result;
+    public static List<String> getAllArtists() {
+        TypedQuery<String> query = em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class);
+        return query.getResultList();
     }
     
     public static List<MetadataGroup> getAllGroups(Metadata.Field metadata_field) {
         return getAllGroups(metadata_field, new HashMap<>());
     } 
     public static List<MetadataGroup> getAllGroups(Metadata.Field groupByField, Map<Metadata.Field,List<Object>> filters) {
-        EntityManager em = emf.createEntityManager();
         List<MetadataGroup> result = new ArrayList();
-        try {
             
 //            filters.put(Metadata.Field.PUBLISHER, Collections.singletonList("Import"));
-            
-            Accessor<String> filter = new Accessor("");
-            
-            filters.forEach((field,values) -> {
 
-                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
+        Accessor<String> filter = new Accessor("");
 
-                String f = (values.get(0) instanceof String)
-                    ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'"
-                    : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString();
-                filter.setValue(filter.getValue() + f);
-            });
-            
-            String f = "p." + groupByField.toString().toLowerCase();
-            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p " + filter.getValue() + " GROUP BY " + f;
-            System.out.println(q);
-            TypedQuery<Object[]> query = em.createQuery(q,Object[].class);
-            query.getResultList().stream().map(r->
-                    // or some strange reason sum(length) returns long! not double below is the original line
-                    //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
-                    //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
-                    new MetadataGroup( groupByField, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
-                )
-                .forEach(result::add);
-        }
-        finally {
-            em.close();
-        }
+        filters.forEach((field,values) -> {
+
+            if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
+
+            String f = (values.get(0) instanceof String)
+                ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'"
+                : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString();
+            filter.setValue(filter.getValue() + f);
+        });
+
+        String f = "p." + groupByField.toString().toLowerCase();
+        String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p " + filter.getValue() + " GROUP BY " + f;
+        System.out.println(q);
+        TypedQuery<Object[]> query = em.createQuery(q,Object[].class);
+        query.getResultList().stream().map(r->
+                // or some strange reason sum(length) returns long! not double below is the original line
+                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
+                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
+                new MetadataGroup( groupByField, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
+            )
+            .forEach(result::add);
         
 //        Query qq = em.createQuery("SELECT p.album, COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p "
 //                + "WHERE p.artist = aa OR p.filesize >0"
@@ -213,35 +185,25 @@ public class DB {
     }
     
     private static void updateItems(List<Metadata> items) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            em.getTransaction().begin();
-            items.forEach( m -> {
+        em.getTransaction().begin();
+        items.forEach( m -> {
 //                Metadata in_db = em.find(Metadata.class, m.getId());
 //                if(in_db != null) 
-                    em.merge(m);
-            });
-            em.getTransaction().commit();
-        }
-        finally {
-            em.close();
-        }
+                em.merge(m);
+        });
+        em.getTransaction().commit();
+
         librarychange.push(null);
     }
 
     public static void removeItems(List<Metadata> items) {
-        EntityManager em = emf.createEntityManager();
-        try {
-            em.getTransaction().begin();
-            items.forEach( m -> {
-                Metadata in_db = em.find(Metadata.class, m.getId());
-                if(in_db != null) em.remove(in_db);
-            });
-            em.getTransaction().commit();
-        }
-        finally {
-            em.close();
-        }
+        em.getTransaction().begin();
+        items.forEach( m -> {
+            Metadata in_db = em.find(Metadata.class, m.getId());
+            if(in_db != null) em.remove(in_db);
+        });
+        em.getTransaction().commit();
+    
         librarychange.push(null);
     }
     public static void updateItemsFromFile(List<? extends Item> items) {

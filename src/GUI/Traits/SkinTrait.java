@@ -5,11 +5,10 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.scene.Parent;
 import utilities.FileUtil;
 
@@ -41,36 +40,58 @@ public interface SkinTrait {
         }
         return s;
     }
+    
+    /**
+     * @return name of the skin in use or "" if default skin.
+     */
     default String getSkinCurrent() {
-        return getSkins().get(skinIndex());
+        int i = skinIndexProperty().get();
+        return i==-1 ? "" : getSkins().get(i);
     }
     
+    /**
+     * Set skin by its name (filename of the stylesheet). Use "" to set default
+     * skin.
+     * <p>
+     * Fires skin change event.
+     * 
+     * @param skincss 
+     */
     default void setSkinCurrent(String skincss) {
-        getSkinOwner().getStylesheets().setAll(skincss);
+        if(skincss.isEmpty()) {
+            getSkinOwner().getStylesheets().clear();
+            skinIndexProperty().set(-1);
+        }
+        else {
+            List<String> skins = getSkins();
+            getSkinOwner().getStylesheets().setAll(skincss);
+            skinIndexProperty().set(skins.indexOf(skincss));
+        }
+        
+        if (getOnSkinChanged() != null) getOnSkinChanged().accept(skincss);
+        System.out.println(skincss);
     }
     
-    default int skinIndex() {
-        return skinIndexProperty().get();
-    }
-    
+    /** Loops through the skins by one. */
     default public void toggleSkin() {
-        skinIndexProperty().set(skinIndexProperty().get()+1);
-        if (skinIndex()==getSkins().size()) skinIndexProperty().set(0);
+        List<String> skins = getSkins();
         
-        getSkinOwner().getStylesheets().setAll(getSkins().get(skinIndex()));
+        int skinIndex = skinIndexProperty().get()+1;
+        if (skinIndex>=skins.size()) skinIndex=-1;
         
-        if (getOnSkinChanged() != null) getOnSkinChanged().handle(null);
+        String skin = skinIndex==-1 ? "" : skins.get(skinIndex);
+        setSkinCurrent(skin);
     }
     
     
     
-   /* @return Handler used when skin changes.*/
-    public EventHandler<Event> getOnSkinChanged();
+   /* @return skin change handler.*/
+    public Consumer<String> getOnSkinChanged();
     
     /**
      * Fired when skin of this control changes - more specifically on right
      * mouse click (after new skin value is set).
      * @param handler 
      */
-    public void setOnSkinChanged(EventHandler<Event> handler);
+    public void setOnSkinChanged(Consumer<String> handler);
 }

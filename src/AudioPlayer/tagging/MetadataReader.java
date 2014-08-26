@@ -4,7 +4,6 @@ package AudioPlayer.tagging;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.Database.DB;
-import static AudioPlayer.services.Database.DB.emf;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -269,7 +268,7 @@ public class MetadataReader{
                 updateTitle("Reading metadata and adding items to library.");
                 Metadata m;
                 
-                EntityManager em = emf.createEntityManager();
+                EntityManager em = DB.em;
                               em.getTransaction().begin();
                 try {
                     for (Item i : items){
@@ -292,8 +291,6 @@ public class MetadataReader{
                     Platform.runLater(() -> DB.librarychange.push(null));
                 } catch (Exception e ) {
                     e.printStackTrace();
-                } finally {
-                    em.close();
                 }
                         
                 // update state

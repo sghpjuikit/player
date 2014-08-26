@@ -22,7 +22,6 @@ import static PseudoObjects.ReadMode.PLAYING;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -37,6 +36,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
+import org.reactfx.Subscription;
 import utilities.access.Accessor;
 
 /**
@@ -92,8 +92,9 @@ public class FileInfoController extends FXMLController  {
     
     private List<Label> labels;
     private final List<Label> visible_labels = new ArrayList();
-    private final SimpleObjectProperty<Metadata> data = new SimpleObjectProperty();
     private final ChangeListener<Number> tileResizer = (o,ov,nv) -> resize(nv.doubleValue());
+    private Subscription dataMonitoring;
+    private Metadata data;
     
     // auto applied configurable values    
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
@@ -116,8 +117,8 @@ public class FileInfoController extends FXMLController  {
     public final Accessor<Boolean> showCover = new Accessor<>(true, this::setCoverVisible);
     @IsConfig(name = "Display fields", info = "Show fields.")
     public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setShowContent(v));
-    @IsConfig(name = "Item source", info = "Source of data for the widget.") // notice that we need to update the value for new binding manually
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> Player.bindObservedMetadata(data,v));
+    @IsConfig(name = "Item source", info = "Source of data for the widget.")
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.bindObservedMetadata(v,dataMonitoring, this::populateGui));
     @IsConfig(name = "Display empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Separate fields by group", info = "Separate fields by gap to group them.")
@@ -208,18 +209,16 @@ public class FileInfoController extends FXMLController  {
         AnchorPane.setTopAnchor(tiles, 0d);
         AnchorPane.setLeftAnchor(tiles, 0d);
         
-        // refresh if metadata source data changed
-        data.addListener( o -> refreshNoBinding(data.get()));
         
         // write metadata on rating change
-        rater.setOnRatingChanged( e -> MetadataWriter.rate(data.get(), rater.getRatingPercent()));
+        rater.setOnRatingChanged( r -> MetadataWriter.rate(data, r));
         
         // swap skin on right mouse click
         rater.setOnMouseClicked( e -> { 
             if (e.getButton() == SECONDARY) rater.toggleSkin(); 
         });
         // remember changed rating
-        rater.setOnSkinChanged( e -> rating_skin.setValue(rater.getSkinCurrent()));
+        rater.setOnSkinChanged(rating_skin::setValue);
         // hide rating if empty
         rater.visibleProperty().bind(rating.disabledProperty().not());
         
@@ -236,45 +235,34 @@ public class FileInfoController extends FXMLController  {
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped( e -> {
-            // get first item
-            List<Item> items = DragUtil.getAudioItems(e);
-            // getMetadata, refresh
-            if (!items.isEmpty()) {
-                // change mode if desired
-                if (changeReadModeOnTransfer) readMode.setNapplyValue(ReadMode.CUSTOM);
-                // set data
-                data.set(items.get(0).getMetadata());
+            if(DragUtil.hasAudio(e.getDragboard())) {
+                // get first item
+                List<Item> items = DragUtil.getAudioItems(e);
+                // getMetadata, refresh
+                if (!items.isEmpty()) {
+                    // change mode if desired
+                    if (changeReadModeOnTransfer) readMode.setNapplyValue(ReadMode.CUSTOM);
+                    // set data
+                    populateGui(items.get(0).getMetadata());
+                }
+                // end drag
+                e.setDropCompleted(true);
+                e.consume();
             }
-            // end drag
-            e.setDropCompleted(true);
-            e.consume();
         });
     }
     
     @Override
     public void OnClosing() {
-        data.unbind();
+        if (dataMonitoring != null) dataMonitoring.unsubscribe();
     }
     
 /********************************* PUBLIC API *********************************/
  
     @Override
     public void refresh() {
-        // data
+        // apply configurables
         readMode.applyValue();
-        refreshNoBinding(data.get());
-    }
-    
-    @Override
-    public boolean isEmpty() {
-        return data.get() == null;
-    }
-    
-/****************************** HELPER METHODS ********************************/
-    
-    private void refreshNoBinding(Metadata m) {
-        
-        // auto applied c. v.
         minColumnWidth.applyValue();
         cover_source.applyValue();
         editableRating.applyValue();
@@ -285,7 +273,18 @@ public class FileInfoController extends FXMLController  {
         overrun_style.applyValue();
         showCover.applyValue();
         showFields.applyValue();
-        
+    }
+    
+    @Override
+    public boolean isEmpty() {
+        return data == null;
+    }
+    
+/****************************** HELPER METHODS ********************************/
+    
+    private void populateGui(Metadata m) {
+        // remember data
+        data = m;
         // gui (fill out data)
         if (m == null) {
             clear();
@@ -417,10 +416,10 @@ public class FileInfoController extends FXMLController  {
     
     private void setCover(CoverSource source) {
         // get image
-        if (data.get() == null) {
+        if (data == null) {
             layout.setImage((Image)null); // clear
         } else {
-            Cover c = data.get().getCover(source);
+            Cover c = data.getCover(source);
             if(c.getFile()!=null) layout.setImage(c.getFile());
             else layout.setImage(c.getImage());
         }
@@ -431,7 +430,10 @@ public class FileInfoController extends FXMLController  {
     }
     
     private void resize(double width) {
-        int columns = (int) Math.floor(width/minColumnWidth.getValue());
+        double cellH = 15+tiles.getVgap();
+        int rowsize = (int)Math.floor(Math.max(tiles.getHeight(), 5)/cellH);
+            if(rowsize==0) rowsize=1;
+        int columns = 1+(int) Math.ceil(visible_labels.size()/rowsize);
         double cellW = columns==1 || columns==0 
             // dont allow 0 columns & set whole width if 1 column
             // handle 1 column manually - the below caused some problems
@@ -439,7 +441,22 @@ public class FileInfoController extends FXMLController  {
             // for n elements there is n-1 gaps so we need to add 1 gap width
             // above cell width includes 1 gap width per element so substract it
             : (width + tiles.getHgap())/columns - tiles.getHgap();
+        
+        // adhere to requested minimum size
+        cellW = Math.max(cellW, minColumnWidth.getValue());
+        
         tiles.setPrefTileWidth(cellW);
+        
+        
+//        int columns = (int) Math.floor(width/minColumnWidth.getValue());
+//        double cellW = columns==1 || columns==0 
+//            // dont allow 0 columns & set whole width if 1 column
+//            // handle 1 column manually - the below caused some problems
+//            ? tiles.getWidth()
+//            // for n elements there is n-1 gaps so we need to add 1 gap width
+//            // above cell width includes 1 gap width per element so substract it
+//            : (width + tiles.getHgap())/columns - tiles.getHgap();
+//        tiles.setPrefTileWidth(cellW);
     }
 
 }

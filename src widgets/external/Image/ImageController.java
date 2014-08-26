@@ -98,12 +98,14 @@ public class ImageController extends FXMLController {
         
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
-            List<File> imgs = DragUtil.getImageItems(e);
-            // set custom image to first available
-            if(!imgs.isEmpty()) custom_image = imgs.get(0);
-            // use custom image
-            useCustomImage.setNapplyValue(true);
-            e.setDropCompleted(true);
+            if(DragUtil.hasImage(e.getDragboard())) {
+                List<File> imgs = DragUtil.getImageItems(e);
+                // set custom image to first available
+                if(!imgs.isEmpty()) custom_image = imgs.get(0);
+                // use custom image
+                useCustomImage.setNapplyValue(true);
+                e.setDropCompleted(true);
+            }
         });
     }
 

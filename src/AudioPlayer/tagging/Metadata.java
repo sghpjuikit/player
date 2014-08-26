@@ -119,10 +119,10 @@ public final class Metadata extends MetaItem {
     private String album_artist = "";
     private String composer = "";
     private String publisher = "";
-    private String track = "";
-    private String tracks_total = "";
-    private String disc = "";
-    private String discs_total = "";
+    private int track = -1;
+    private int tracks_total = -1;
+    private int disc = -1;
+    private int discs_total = -1;
     private String genre = "";
     private String year = "";
     @Transient  // the only field we do not persist
@@ -238,10 +238,10 @@ public final class Metadata extends MetaItem {
         album_artist = getGeneral(tag,FieldKey.ALBUM_ARTIST);
         composer = getGeneral(tag,FieldKey.COMPOSER);
         
-        track = getGeneral(tag,FieldKey.TRACK);
-        tracks_total = getGeneral(tag,FieldKey.TRACK_TOTAL);
-        disc = getGeneral(tag,FieldKey.DISC_NO);
-        discs_total = getGeneral(tag,FieldKey.DISC_TOTAL);
+        track = getNumber(tag,FieldKey.TRACK);
+        tracks_total = getNumber(tag,FieldKey.TRACK_TOTAL);
+        disc = getNumber(tag,FieldKey.DISC_NO);
+        discs_total = getNumber(tag,FieldKey.DISC_TOTAL);
         genre = getGeneral(tag,FieldKey.GENRE);
         year = getGeneral(tag,FieldKey.YEAR);
         
@@ -259,6 +259,10 @@ public final class Metadata extends MetaItem {
         } catch(Exception e) {
             System.out.println("Tag (gen.field) reading error during: " + getURI() + " " + e.getMessage() + e.getStackTrace());
         }
+    }
+    private int getNumber(Tag tag, FieldKey field) {
+        String s = getGeneral(tag,field);
+        return s.isEmpty() ? -1 : Integer.valueOf(s);
     }
     private String getGeneral(Tag tag, FieldKey f) {
         if (!tag.hasField(f)) return "";
@@ -525,16 +529,28 @@ public final class Metadata extends MetaItem {
         return publisher;
     }
 
-    /** @return the track, "" if empty. */
+    /** @return the track, -1 if empty. */
     @MetadataFieldMethod(Field.TRACK)
-    public String getTrack() {
+    public int getTrack() {
         return track;
     }
     
-    /** @return the tracks total, "" if empty. */
+    /** @return the tracks total, -1 if empty. */
     @MetadataFieldMethod(Field.TRACKS_TOTAL)
-    public String getTracksTotal() {
+    public int getTracksTotal() {
         return tracks_total;
+    }
+    
+    /** @return the track, -1 if empty. */
+    @MetadataFieldMethod(Field.TRACK)
+    public String getTrackAsS() {
+        return track==-1 ? "" : String.valueOf(track);
+    }
+    
+    /** @return the tracks total, -1 if empty. */
+    @MetadataFieldMethod(Field.TRACKS_TOTAL)
+    public String getTracksTotalAsS() {
+        return tracks_total==-1 ? "" : String.valueOf(tracks_total);
     }
     
     /**
@@ -550,30 +566,42 @@ public final class Metadata extends MetaItem {
      */
     @MetadataFieldMethod(Field.TRACK_INFO)
     public String getTrackInfo() {
-        if (!track.isEmpty() && !tracks_total.isEmpty()) {
+        if (track!=-1 && tracks_total!=-1) {
             return track+"/"+tracks_total;
         } else
-        if (!track.isEmpty() && tracks_total.isEmpty()) {
+        if (track!=-1 && tracks_total==-1) {
             return track+"/?";
         } else        
-        if (track.isEmpty() && !tracks_total.isEmpty()) {
+        if (track==-1 && tracks_total!=-1) {
             return "?/"+tracks_total;
         } else {
-        //if (track.isEmpty() && tracks_total.isEmpty()) {
+        //if (track==-1 && tracks_total==-1) {
             return "?/?";
         }
     }
     
-    /** @return the disc, "" if empty. */
+    /** @return the disc, -1 if empty. */
     @MetadataFieldMethod(Field.DISC)
-    public String getDisc() {
+    public int getDisc() {
         return disc;
     }
     
-    /** @return the discs total, "" if empty. */
+    /** @return the discs total, -1 if empty. */
     @MetadataFieldMethod(Field.DISCS_TOTAL)
-    public String getDiscsTotal() {
+    public int getDiscsTotal() {
         return discs_total;
+    }
+
+    /** @return the disc, -1 if empty. */
+    @MetadataFieldMethod(Field.DISC)
+    public String getDiscAsS() {
+        return disc==-1 ? "" : String.valueOf(disc);
+    }
+    
+    /** @return the discs total, -1 if empty. */
+    @MetadataFieldMethod(Field.DISCS_TOTAL)
+    public String getDiscsTotalAsS() {
+        return discs_total==-1 ? "" : String.valueOf(discs_total);
     }
     
     /**
@@ -589,13 +617,13 @@ public final class Metadata extends MetaItem {
      */
     @MetadataFieldMethod(Field.DISCS_INFO)
     public String getDiscInfo() {
-        if (!disc.isEmpty() && !discs_total.isEmpty()) {
+        if (disc!=-1 && discs_total!=-1) {
             return disc+"/"+discs_total;
         } else
-        if (!disc.isEmpty() && discs_total.isEmpty()) {
+        if (disc!=-1 && discs_total==-1) {
             return disc+"/?";
         } else        
-        if (disc.isEmpty() && !discs_total.isEmpty()) {
+        if (disc==-1 && discs_total!=-1) {
             return "?/"+discs_total;
         } else {
         //if (disc.isEmpty() && discs_total.isEmpty()) {

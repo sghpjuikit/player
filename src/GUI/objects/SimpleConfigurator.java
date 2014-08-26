@@ -60,7 +60,6 @@ public class SimpleConfigurator<T> extends AnchorPane {
         
         this.configurable = configurable;
         this.onOK = on_OK;
-        setOkbVisible(on_OK!=null);
         
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleConfigurator.class.getResource("SimpleConfigurator.fxml"));
         fxmlLoader.setRoot(this);
@@ -72,6 +71,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
         }
         
         anchor = AnchorPane.getBottomAnchor(fields);
+        setOkbVisible(on_OK!=null);
         
         // set configs
         configFields.clear();

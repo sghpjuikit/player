@@ -144,6 +144,7 @@ public final class AreaControls {
               closeB.setTooltip(new Tooltip("Close widget"));
               closeB.setOnMouseClicked( e -> {
                   close();
+                  Action.Action.actionStream.push("Close widget");
                   e.consume();
               });
         Label detachB = AwesomeDude.createIconLabel(EXTERNAL_LINK_SQUARE,"","12","12",CENTER);

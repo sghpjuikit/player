@@ -88,9 +88,9 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     // global propertiea
     @IsConfig(name="Thumbnail size", info = "Preffered size for thumbnails.")
-    public static double default_Thumbnail_Size = 60;
+    public static double default_Thumbnail_Size = 70;
     @IsConfig(name="Thumbnail anim duration", info = "Preffered hover scale animation duration for thumbnails.")
-    public static double animDur = 200;
+    public static double animDur = 100;
     public static boolean animated = false;
     
     private AnchorPane root = new AnchorPane();
@@ -163,16 +163,16 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         
         // change border framing style on mouse middle button click //experimental
         root.addEventFilter(MOUSE_CLICKED, e -> {
+            // experimental feature
             if(e.getButton()==MIDDLE)
                 setBorderToImage(!isBorderToImage());
             
             // close popup if open
             if(imgCM!=null && imgCM.isShowing()) imgCM.hide();
             if(fileCM!=null && fileCM.isShowing()) fileCM.hide();
-            
         });
         
-        allowContextMenu(true);
+        setContextMenuOn(true);
         
         size-=borderWidth();
         // set size
@@ -327,7 +327,10 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * Stylizable with css.
      */
     public void setBackgroundVisible(boolean val) {
-        if(val) root.getStyleClass().add(bgr_styleclass);
+        if(val) {
+            if(!root.getStyleClass().contains(bgr_styleclass))
+                root.getStyleClass().add(bgr_styleclass);
+        }
         else root.getStyleClass().remove(bgr_styleclass);
     }
 
@@ -364,8 +367,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * Set whether thumbnail context menu should be used for thumbnail.
      * Default true.
      */
-    public void allowContextMenu(boolean val) {
-        if (val) root.setOnContextMenuRequested(contextMenuRequestHandler);
+    public void setContextMenuOn(boolean val) {
+        if (val) root.setOnContextMenuRequested(contextMenuHandler);
         else root.setOnContextMenuRequested(null);
     }
     
@@ -449,12 +452,13 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     private ContextMenu imgCM;
     private ContextMenu fileCM;
     
-    private final EventHandler<ContextMenuEvent> contextMenuRequestHandler = e -> {
+    private final EventHandler<ContextMenuEvent> contextMenuHandler = e -> {
         // decide mode (image vs file), build lazily & show where requested
         if (img_file != null)
             getFileCM().show(root,e.getScreenX(),e.getScreenY());
         else if (getImage() !=null)
             getImgCM().show(root,e.getScreenX(),e.getScreenY());
+        e.consume();
     };
     
     private ContextMenu getFileCM() {

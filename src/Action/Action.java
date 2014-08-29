@@ -29,6 +29,7 @@ import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import main.App;
 import org.atteo.classindex.ClassIndex;
+import org.reactfx.EventSource;
 import utilities.Log;
 import utilities.functional.functor.Procedure;
 
@@ -187,8 +188,15 @@ public final class Action extends Config<Action> {
         if(global) Log.deb("Global shortcut event fired. Shortcut: " + name);
         else Log.deb("Local shortcut event fired. Shortcut: " + name);
         // run on appFX thread
-        if(Platform.isFxApplicationThread()) action.run();
-        else Platform.runLater(()-> action.run());
+        if(Platform.isFxApplicationThread()) {
+            action.run();
+            actionStream.push(name);
+        } else {
+            Platform.runLater(()-> {
+                action.run();
+                actionStream.push(name);
+            });
+        }
     }
     
     /**
@@ -631,4 +639,23 @@ public final class Action extends Config<Action> {
         }
     }
     
+    
+/******************************************************************************/
+
+    /**
+     * Event source and stream for executed actions, providing their name. Use
+     * for notifications of running the action or executing additional behavior.
+     * <p>
+     * A use case could be an application wizard asking user to do something.
+     * The code in question simply notifies this stream of the name of action
+     * or uses custom string as id. The wizard would then monitor this stream
+     * and get notified if the expected action was executed.
+     * <p>
+     * Running an {@link Action} fires an event.
+     * Supports custom actions. Simply push a String value into the stream.
+     */
+    public static final EventSource<String> actionStream = new EventSource();
+
 }
+
+

@@ -23,6 +23,7 @@ import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.WidgetInfo;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
+import static de.jensd.fx.fontawesome.AwesomeIcon.MINUS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.PLUS;
 import java.io.File;
 import java.util.ArrayList;
@@ -185,32 +186,50 @@ public class LibraryController extends FXMLController {
         AnchorPane.setBottomAnchor(progressL, 0d);
         AnchorPane.setRightAnchor(progressL, 0d);
         
-        // add items to library button
+        // add button
         FadeButton b1 = new FadeButton(PLUS, 13);
-                   b1.setOnMouseClicked( e -> {
-                        DirectoryChooser fc = new DirectoryChooser();
-                                         fc.setInitialDirectory(last_file);
-                                         fc.setTitle("Add folder to library");
-                        last_file = fc.showDialog(root.getScene().getWindow());
-                        
-                        List<Metadata> metas = FileUtil.getAudioFiles(last_file,111).stream()
-                                .map(SimpleItem::new)
-                                .map(SimpleItem::toMetadata)
-                                .collect(Collectors.toList());
+        b1.setOnMouseClicked( e -> {
+            // get file
+            DirectoryChooser fc = new DirectoryChooser();
+                             fc.setInitialDirectory(last_file);
+                             fc.setTitle("Add folder to library");
+            File f = fc.showDialog(root.getScene().getWindow());
 
-                        Task t = MetadataReader.readAaddMetadata(metas);
-                        // display progress & hide on end
-                        progressL.setVisible(true);
-                        progressL.textProperty().bind(t.messageProperty());
-                        EventHandler onEnd = event -> {
-                            progressL.textProperty().unbind();
-                            FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-                        };
-                        t.setOnFailed(onEnd);
-                        t.setOnSucceeded(onEnd);
-                        
-                       e.consume();
-                   });
+            if(f!=null) {
+                last_file = f;
+                List<Metadata> metas = FileUtil.getAudioFiles(last_file,111).stream()
+                       .map(SimpleItem::new)
+                       .map(SimpleItem::toMetadata)
+                       .collect(Collectors.toList());
+
+                Task t = MetadataReader.readAaddMetadata(metas);
+                // display progress & hide on end
+                progressL.setVisible(true);
+                progressL.textProperty().bind(t.messageProperty());
+                EventHandler onEnd = event -> {
+                    progressL.textProperty().unbind();
+                    FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                };
+                t.setOnFailed(onEnd);
+                t.setOnSucceeded(onEnd);
+            }
+            e.consume();
+        });
+        FadeButton b2 = new FadeButton(MINUS, 13);
+        b2.setOnMouseClicked( e -> {
+            Task t = MetadataReader.removeMissingFromLibrary();
+            // display progress & hide on end
+            progressL.setVisible(true);
+            progressL.textProperty().bind(t.messageProperty());
+            EventHandler onEnd = event -> {
+                progressL.textProperty().unbind();
+                FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+            };
+            t.setOnFailed(onEnd);
+            t.setOnSucceeded(onEnd);
+            
+            e.consume();
+        });
         // information label
         Label infoL  = new Label();
             // updates info label
@@ -228,7 +247,7 @@ public class LibraryController extends FXMLController {
             // initialize info label
         infoUpdate.accept(EMPTY_LIST);
         
-        HBox controls = new HBox(b1, infoL);
+        HBox controls = new HBox(b1,b2, infoL);
              controls.setSpacing(8);
         
         root.getChildren().add(controls);

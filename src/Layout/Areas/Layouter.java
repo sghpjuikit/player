@@ -193,6 +193,7 @@ public final class Layouter implements ContainerNode {
 //                animS.setOnFinished(null);
                 // this is the crucial part
                 container.addChild(index, f.create());
+                Action.Action.actionStream.push("New widget");
             });
             showControls(false);
         });
@@ -217,7 +218,8 @@ public final class Layouter implements ContainerNode {
         if(e.getButton()!=PRIMARY) return;
         
         container.addChild(index, new BiContainerPure(HORIZONTAL));
-        
+        Action.Action.actionStream.push("Divide layout");
+
         e.consume();
     }
     @FXML
@@ -225,6 +227,7 @@ public final class Layouter implements ContainerNode {
         if(e.getButton()!=PRIMARY) return;
         
         container.addChild(index, new BiContainerPure(VERTICAL));
+        Action.Action.actionStream.push("Divide layout");
         
         e.consume();
     }

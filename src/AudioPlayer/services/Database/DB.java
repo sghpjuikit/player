@@ -90,15 +90,16 @@ public class DB {
         
         librarychange.push(null);
     }
+    
     public static List<Metadata> getAllItems() {
-        List result;
-        
         TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p", Metadata.class);
         return query.getResultList();
     }
+    
     public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
         return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
     }
+    
     public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
         List result;
         

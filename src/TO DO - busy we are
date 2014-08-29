@@ -52,8 +52,6 @@
 ------------------------ PERFECTION - the pain & OCD ---------------------------
 --------------------------------------------------------------------------------
 
-- file info keep content when new is empty, like ImageViewer widget, add option
-- file info show individual field configs should remove labels from pane too
 - explorer widget - support skin loading by opening the fie
 - explorer graphics support css skinning
 - ConfigField (General) disable ok button for manually applied configs
@@ -159,7 +157,6 @@ CLEANUP
 - Serializator and serialization classes clean up
 - widget info and bridge widget factory and widget a bit more elegantly
 - clean window code and centralize it in one place
-- separate and implement Pure vs Leaf Containers better
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them

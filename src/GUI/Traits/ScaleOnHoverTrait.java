@@ -38,7 +38,7 @@ public interface ScaleOnHoverTrait extends HoverableTrait {
      * should be invoked in constructor and only once per object's life cycle.
      */
     default public void installScaleOnHover() {
-        double diff = 0.1;
+        double diff = 0.05;
         ScaleTransition t = new ScaleTransition(getDurationOnHover(), getNode());
                         t.setToX(1+diff);
                         t.setToY(1+diff);

@@ -7,6 +7,8 @@ import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.Configuration;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import GUI.GUI;
 import GUI.NotifierManager;
 import GUI.Window;
@@ -19,11 +21,14 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import utilities.FxTimer;
 
 
 /**
  * Application. Launches and terminates program.
  */
+@IsConfigurable("General")
 public class App extends Application {
 
     /**
@@ -40,6 +45,7 @@ public class App extends Application {
     // initializing fields right up here (or constructor) will have no effect
     public static Window window;
     private Window windowOwner;
+    public static Guide guide;
     private boolean initialized = false;
     
     private static App instance;
@@ -52,6 +58,28 @@ public class App extends Application {
 //    public static App getInstance() {
 //        return instance;
 //    }
+    
+    
+/*********************************** CONFIGS **********************************/
+    
+    @IsConfig(name = "Show hint when on app start", info = "Automatically show guide hints next time application starts up. Automatically sets to false afterwards.")
+    public static boolean showGuide = true;
+    
+    @IsConfig(info = "Preffered editability of rating controls. This value is overridable.")
+    public static boolean allowRatingChange = true;
+    @IsConfig(info = "Preffered number of elements in rating control. This value is overridable.")
+    public static int maxRating = 5;
+    @IsConfig(info = "Preffered value for partial values in rating controls. This value is overridable.")
+    public static boolean partialRating = true;
+    @IsConfig(info = "Preffered hoverability of rating controls. This value is overridable.")
+    public static boolean hoverRating = true;
+    
+    @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
+    public static String TAG_NO_VALUE = "-- no assigned value --";
+    @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
+    public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
+    public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
+    
     
 /******************************************************************************/
     
@@ -122,7 +150,12 @@ public class App extends Application {
 
         Configuration.applyFieldsAll();         // apply all (and gui) settings
         
-        
+        // handle guide
+        guide = new Guide();
+        if(showGuide) {
+            showGuide = false;
+            FxTimer.run(Duration.millis(2222), () -> guide.start());
+        }
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         

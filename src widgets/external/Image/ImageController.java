@@ -131,6 +131,8 @@ public class ImageController extends FXMLController {
             int index = (active_image >= images.size()-1) ? 0 : active_image+1;
             setImage(index);
         }
+        // restart slideshow timer
+        if(slideshow!=null && slideshow_on.getValue()) slideshow.restart();
     }
     
     public void prevImage() {
@@ -141,6 +143,8 @@ public class ImageController extends FXMLController {
             int index = (active_image < 1) ? images.size()-1 : active_image-1;
             setImage(index);
         }
+        // restart slideshow timer
+        if(slideshow!=null && slideshow_on.getValue()) slideshow.restart();
     }
     
 /******************************* HELPER METHODS *******************************/

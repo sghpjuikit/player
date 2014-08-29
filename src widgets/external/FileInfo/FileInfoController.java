@@ -8,7 +8,6 @@ import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
-import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.Panes.ImageFlowPane;
@@ -36,6 +35,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
+import main.App;
 import org.reactfx.Subscription;
 import utilities.access.Accessor;
 
@@ -102,13 +102,13 @@ public class FileInfoController extends FXMLController  {
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
     @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
-    public final Accessor<Boolean> editableRating = new Accessor<>(Configuration.allowRatingChange, rater::setEditable);
+    public final Accessor<Boolean> editableRating = new Accessor<>(App.allowRatingChange, rater::setEditable);
     @IsConfig(name = "Rating stars number", info = "Number of stars for rating. Rating value is recalculated accordingly. Defaults to application settings")
-    public final Accessor<Integer> maxRating = new Accessor<>(Configuration.maxRating, rater::setMax);
+    public final Accessor<Integer> maxRating = new Accessor<>(App.maxRating, rater::setMax);
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating. Defaults to application settings")
-    public final Accessor<Boolean> partialRating = new Accessor<>(Configuration.partialRating, rater::setPartialRating);
+    public final Accessor<Boolean> partialRating = new Accessor<>(App.partialRating, rater::setPartialRating);
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering. Defaults to application settings")
-    public final Accessor<Boolean> hoverRating = new Accessor<>(Configuration.hoverRating, rater::setUpdateOnHover);
+    public final Accessor<Boolean> hoverRating = new Accessor<>(App.hoverRating, rater::setUpdateOnHover);
     @IsConfig(name = "Rating skin", info = "Rating skin.", editable = false)
     public final Accessor<String> rating_skin = new Accessor<>("",rater::setSkinCurrent);
     @IsConfig(name = "Overrun style", info = "Style of clipping fields' text when outside of the area.")
@@ -169,7 +169,8 @@ public class FileInfoController extends FXMLController  {
     // non appliable configurable values
     @IsConfig(name = "Set custom item source on drag&drop", info = "Change read mode to CUSTOM when data are dragged to widget.")
     public boolean changeReadModeOnTransfer = true;
-    
+    @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
+    public boolean keepContentOnEmpty = true;
     
     @Override
     public void init() {
@@ -184,12 +185,13 @@ public class FileInfoController extends FXMLController  {
         
         // set autosizing for tiles to always fill the grid entirely
         tiles.widthProperty().addListener(tileResizer);
+        tiles.heightProperty().addListener(tileResizer);
         
         // alight tiles from left top & tile content to center left
         tiles.setAlignment(TOP_LEFT);
         tiles.setTileAlignment(CENTER_LEFT);
         
-        // add rater stars to rating label as grphics
+        // add rater stars to rating label as graphics
         rating.setGraphic(rater);
         rating.setGraphicTextGap(8);
         rating.setContentDisplay(ContentDisplay.RIGHT);
@@ -201,7 +203,7 @@ public class FileInfoController extends FXMLController  {
             filesize, filename, format, bitrate, encoding, location);
         
         // add to layout
-        tiles.getChildren().addAll(labels);
+//        tiles.getChildren().addAll(labels);
         
         layout.addChild(tiles);
         AnchorPane.setBottomAnchor(tiles, 0d);
@@ -283,6 +285,9 @@ public class FileInfoController extends FXMLController  {
 /****************************** HELPER METHODS ********************************/
     
     private void populateGui(Metadata m) {
+        // prevent refreshing location if shouldnt
+        if(keepContentOnEmpty && m==null) return;
+        
         // remember data
         data = m;
         // gui (fill out data)
@@ -356,7 +361,7 @@ public class FileInfoController extends FXMLController  {
         // initialize
         visible_labels.clear();
         visible_labels.addAll(labels);
-        visible_labels.forEach(l -> l.setVisible(false));
+        tiles.getChildren().clear();
         visible_labels.forEach(l -> l.setDisable(false));
 
         // disable empty fields
@@ -364,8 +369,10 @@ public class FileInfoController extends FXMLController  {
             visible_labels.stream().filter(l->{
                     // filter out nonempty
                     String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
-                    return content.isEmpty() || content.equalsIgnoreCase("?/?") ||
-                            content.equalsIgnoreCase("n/a") || content.equalsIgnoreCase("unknown");
+                    return content.isEmpty() || 
+                             content.equalsIgnoreCase("?/?") ||
+                               content.equalsIgnoreCase("n/a") || 
+                                 content.equalsIgnoreCase("unknown");
                 })
                 .forEach(l->l.setDisable(true));
         } else {
@@ -406,7 +413,7 @@ public class FileInfoController extends FXMLController  {
         }
         
         // show remaining
-        visible_labels.forEach(l -> l.setVisible(true));
+        tiles.getChildren().addAll(visible_labels);
         
         // fix rating value (we have to set text anyway to be able to tell, if
         // rating is empty (same way the other labels)

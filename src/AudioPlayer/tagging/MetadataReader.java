@@ -239,32 +239,10 @@ public class MetadataReader{
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
+            private final StringBuffer sb = new StringBuffer(40);
+            
             @Override 
             protected Void call() throws Exception {
-//                updateTitle("Reading metadata and adding items to library.");
-//                
-//                Metadata m;
-//                for (int i=0; i<items.size(); i++){
-//                    
-//                    if (isCancelled()) break;
-//                    
-//                    // create metadata
-//                    m = create(items.get(i));
-//                    // on fail
-//                    if (m.isEmpty()) skipped++;
-//                    // on success
-//                    else {
-////                        DB.addItems(Collections.singletonList(m));
-//                        System.out.println("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
-//                    }
-//                    // update state
-//                    completed++;
-//                    updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
-//                    updateProgress(completed, all);
-//                }
-//                return null;
-                
-                
                 updateTitle("Reading metadata and adding items to library.");
                 Metadata m;
                 
@@ -278,55 +256,27 @@ public class MetadataReader{
                         // create metadata
                         m = create(i);
                         // on fail
-                        if (m.isEmpty()) skipped++;
+                        if (m.isEmpty()) {
+                            skipped++;
                         // on success
-                        else {
+                        } else {
                             if(em.find(Metadata.class, m.getId()) == null)
                                 em.persist(m);
-                            updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+                            updateMessage(all,completed,skipped);
                             updateProgress(completed, all);
                         }
                     }
                     em.getTransaction().commit();
+                    // emit library change to signal refresh
+                    // we need to run the event on apFX thread
                     Platform.runLater(() -> DB.librarychange.push(null));
                 } catch (Exception e ) {
                     e.printStackTrace();
                 }
                         
                 // update state
-                updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
+                updateMessage(all,completed,skipped);
                 updateProgress(completed, all);
-                
-//                DB.addItems(Arrays.asList(ms));
-                
-//                updateTitle("Reading metadata and adding items to library.");
-//                List<Metadata> metadatas = new ArrayList(100);
-//                Metadata[] ms = new Metadata[2];
-//                
-//                for (int i=0; i<items.size(); i++){
-//                    int j= i%2;
-//                    if (isCancelled()) break;
-//                    
-//                    // create metadata
-//                    Metadata m = create(items.get(i));
-//                    // on fail
-//                    if (m.isEmpty()) skipped++;
-//                    // on success
-//                    else ms[j] = m;
-//                    
-//                    // batch
-//                    if(j==1) {
-//                        DB.addItems(Arrays.asList(ms));
-////                        metadatas.clear();
-//                        System.out.println("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
-//                    }
-//                    
-//                    // update state
-//                    completed++;
-//                    updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
-//                    updateProgress(completed, all);
-//                }
-//                DB.addItems(Arrays.asList(ms));
                 return null;
             }
             @Override protected void succeeded() {
@@ -343,17 +293,102 @@ public class MetadataReader{
                 super.failed();
                 updateMessage("Reading metadata failed!");
             }
-
+            
+            private void updateMessage(int all, int done, int skipped) {
+                sb.setLength(0);
+                sb.append("Completed ");
+                sb.append(all);
+                sb.append(" / ");
+                sb.append(done);
+                sb.append(". ");
+                sb.append(skipped);
+                sb.append(" skipped.");
+                updateMessage(sb.toString());
+            }
+            
             @Override
             protected void updateMessage(String message) {
                 super.updateMessage(message);
                 System.out.println(message);
             }
+            
+        };
+        // execute
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+        return task;
+    }
+    public static Task<Void> removeMissingFromLibrary(){                
+        // create task
+        final Task<Void> task = new Task<Void>(){
+            private int all = 0;
+            private int completed = 0;
+            private int removed = 0;
+            private final StringBuilder sb = new StringBuilder(40);
+            @Override 
+            protected Void call() throws Exception {long timeStart = System.currentTimeMillis();
+                updateTitle("Removing missing items from library.");
+                
+                EntityManager em = DB.em;
+                              em.getTransaction().begin();
+                List<Metadata> library_items = DB.getAllItems();
+                all = library_items.size();
 
+                for (Metadata m : library_items){
+                    completed++;
+                    if (isCancelled()) break;
+
+                    if(!m.getFile().exists()) {
+                        em.remove(m);
+                        removed++;
+                    }
+                    updateMessage(all,completed,removed);
+                    updateProgress(completed, all);
+                }
+                
+                em.getTransaction().commit();
+                
+                Platform.runLater(() -> DB.librarychange.push(null));
+                        
+                // update state
+                updateMessage(all,completed,removed);
+                updateProgress(completed, all);
+                
+                System.out.println((System.currentTimeMillis()-timeStart));
+                
+                return null;
+            }
+            @Override protected void succeeded() {
+                super.succeeded();
+                updateMessage(getTitle() + " succeeded!");
+            }
+
+            @Override protected void cancelled() {
+                super.cancelled();
+                updateMessage(getTitle() + " cancelled!");
+            }
+
+            @Override protected void failed() {
+                super.failed();
+                updateMessage(getTitle() + " failed!");
+            }
+            
+            private void updateMessage(int all, int done, int removed) {
+                sb.setLength(0);
+                sb.append("Completed ");
+                sb.append(all);
+                sb.append(" / ");
+                sb.append(done);
+                sb.append(". ");
+                sb.append(removed);
+                sb.append(" removed.");
+                updateMessage(sb.toString());
+            }
+            
             @Override
-            protected void updateProgress(long workDone, long max) {
-                super.updateProgress(workDone, max);
-                System.out.println("Completed " + workDone + "/" + max + ".");
+            protected void updateMessage(String message) {
+                super.updateMessage(message);
             }
             
         };

@@ -45,6 +45,7 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
 import static de.jensd.fx.fontawesome.AwesomeIcon.FOLDER;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GEARS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GITHUB;
+import static de.jensd.fx.fontawesome.AwesomeIcon.GRADUATION_CAP;
 import static de.jensd.fx.fontawesome.AwesomeIcon.IMAGE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
@@ -634,6 +635,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? UNLOCK : LOCK, "11"));
         // help button - show hel information
         Label helpB = AwesomeDude.createIconLabel(INFO,"","13","11",CENTER);
+        helpB.setTooltip(new Tooltip("Help"));
         helpB.setOnMouseClicked( e -> {
             PopOver<Text> helpP = PopOver.createHelpPopOver(
                 "Available actions:\n" +
@@ -650,10 +652,19 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             );
             helpP.show(helpB);
             helpP.getContentNode().setWrappingWidth(400);
+            Action.actionStream.push("Layout info popup");
+            e.consume();
         });
-        helpB.setTooltip(new Tooltip("Icon browser (developing tool)"));
+        // guide button - sho layout manager in a popp
+        Label guideB = AwesomeDude.createIconLabel(GRADUATION_CAP,"","13","11",CENTER);
+              guideB.setTooltip(new Tooltip("Resume or start the guide"));
+              guideB.setOnMouseClicked( e -> {
+                   App.guide.resume();
+                   Action.actionStream.push("Guide resumed");
+                   e.consume();
+              });
               
-        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,lockB,helpB);
+        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,lockB,helpB,guideB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/

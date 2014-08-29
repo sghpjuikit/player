@@ -24,25 +24,7 @@ import utilities.Util;
  * 
  * @author uranium
  */
-@IsConfigurable(value = "General")
 public class Configuration {
-    
-    // preffered gui settings
-    @IsConfig(info = "Preffered editability of rating controls. This value is overridable.")
-    public static boolean allowRatingChange = true;
-    @IsConfig(info = "Preffered number of elements in rating control. This value is overridable.")
-    public static int maxRating = 5;
-    @IsConfig(info = "Preffered value for partial values in rating controls. This value is overridable.")
-    public static boolean partialRating = true;
-    @IsConfig(info = "Preffered hoverability of rating controls. This value is overridable.")
-    public static boolean hoverRating = true;
-        
-    //tagging
-    @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
-    public static String TAG_NO_VALUE = "-- no assigned value --";
-    @IsConfig(info = "Preffered text when multiple tag values per field. This value is overridable.")
-    public static String TAG_MULTIPLE_VALUE = "-- multiple values --";
-    public static boolean ALBUM_ARTIST_WHEN_NO_ARTIST = true;
     
     private static final Map<String,Config> configs = new HashMap();
     

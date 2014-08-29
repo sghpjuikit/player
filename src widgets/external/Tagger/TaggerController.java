@@ -10,7 +10,6 @@ import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
-import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.ItemHolders.ItemTextFields.MoodTextField;
@@ -79,6 +78,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
+import main.App;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
@@ -162,9 +162,9 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
     public Boolean changeReadModeOnTransfer = false;
     @IsConfig(name = "No value text", info = "Field text in case no tag value for field.")
-    public String TAG_NO_VALUE = Configuration.TAG_NO_VALUE;
+    public String TAG_NO_VALUE = App.TAG_NO_VALUE;
     @IsConfig(name = "Multiple value text", info = "Field text in case multiple tag values per field.")
-    public String TAG_MULTIPLE_VALUE = Configuration.TAG_MULTIPLE_VALUE;
+    public String TAG_MULTIPLE_VALUE = App.TAG_MULTIPLE_VALUE;
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
     public Boolean allow_playcount_change = false;
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")

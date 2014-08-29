@@ -10,7 +10,6 @@ import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import AudioPlayer.tagging.Cover.FileCover;
 import AudioPlayer.tagging.Cover.ImageCover;
-import Configuration.Configuration;
 import PseudoObjects.FormattedDuration;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
@@ -34,6 +33,7 @@ import javafx.util.Duration;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
+import main.App;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
@@ -508,7 +508,7 @@ public final class Metadata extends MetaItem {
      */
     @MetadataFieldMethod(Field.ARTIST)
     public String getArtist() {
-        return Configuration.ALBUM_ARTIST_WHEN_NO_ARTIST && artist.isEmpty() ? album_artist : artist;
+        return App.ALBUM_ARTIST_WHEN_NO_ARTIST && artist.isEmpty() ? album_artist : artist;
     }
     
     /** @return the album_artist, "" if empty. */

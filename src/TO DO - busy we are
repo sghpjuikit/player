@@ -19,7 +19,6 @@
 - minimode popups should prevent from autohiding, but how?
 - bookmark config serialisation - hahsmap not supported
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
-- cant open two info popup at once - evolution of singleton = death...
 - remove custom context menus as they are now
 - emty metadata MUST NOT return File("") ! - EMPTY_FILE instance? with custom 
   URI scheme for example?
@@ -47,6 +46,8 @@
   file, it looks like it is locked) - perhaps generalizes to any change of tag
   that enlarges the file (and thusrequires tmp file)
 - external playlist (m3u, etc) support + dragging too
+
+- lazy selected itemstream
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------
@@ -97,6 +98,17 @@ GENERAL
   length as half of the real one (very irritating bug)
 - when app starts with paused song, playing some other songs starts from that
   point rather than the beginning
+- shortut (local & global both) lock needs to be at least 500ms
+  holding the shortut fires event every 33ms, however after pressing it, there
+  is 500ms pause
+  how does one use lock ~ 100ms and blocks the shortcut after those 500ms, but
+  doest block another press which could have happened during that time
+  solution: have an incrementing sequence unique per shortcut press - this is
+  however kinda hard to implement and i dont think its worth the effort
+- some gif files throw array index out of bounds execption                      (internal javaFX bug)
+- some images with very long names 'can not be found' - it is probably windows
+  thing as have experienced problems with long image names before when copying
+  the files in windows 
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
@@ -179,8 +191,7 @@ PERFORMANCE
   (1,5GB for 8GB of audio files)
   cause: unknown, possible corrupted tag, messing up jAudotagger library
   note: happenns only for my XRay Dog album collection.
-  note: but scanning looks to slow down gradually and noticable for large
-  amount of items
+  note: scanning slowly increases memory consumption
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
@@ -221,6 +232,7 @@ PERFORMANCE
   For example if we handle only left button mouse clicks, do not consume also
   right button clicks, instead let them propagate below. Goes for drag events
   as well.
+
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------
 --------------------------------------------------------------------------------
@@ -235,3 +247,4 @@ PERFORMANCE
 
 - Layout loading into Container
 - onTime events, make sur ethey fire correctly and dont degrade performance
+

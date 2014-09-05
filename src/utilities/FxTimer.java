@@ -89,7 +89,7 @@ public class FxTimer implements Timer {
     @Override
     public void stop() {
         timeline.stop();
-        ++seq;
+        seq++;
     }
     
     /**

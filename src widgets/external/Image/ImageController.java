@@ -7,7 +7,6 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
-import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -99,12 +98,18 @@ public class ImageController extends FXMLController {
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
-                List<File> imgs = DragUtil.getImageItems(e);
-                // set custom image to first available
-                if(!imgs.isEmpty()) custom_image = imgs.get(0);
-                // use custom image
-                useCustomImage.setNapplyValue(true);
+                // grab images
+                DragUtil.doWithImageItems(e, imgs -> {
+                    if(!imgs.isEmpty()) {
+                        // set custom image to first available
+                        custom_image = imgs.get(0);
+                        // use custom image
+                        useCustomImage.setNapplyValue(true);
+                    }
+                });
+                // end drag
                 e.setDropCompleted(true);
+                e.consume();
             }
         });
     }

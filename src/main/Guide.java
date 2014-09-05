@@ -13,13 +13,12 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.util.Duration;
-import static main.Guide.GuidedAction.NONE;
 import org.reactfx.Subscription;
 import utilities.FxTimer;
-import utilities.Util;
 
 /**
  *
@@ -30,7 +29,7 @@ public final class Guide {
     private final List<String> actions = new ArrayList();
     private final List<String> texts = new ArrayList();
     private int at = -1;
-    private PopOver<Text> popup = new PopOver(new Text());
+    private final PopOver<Text> popup = new PopOver(new Text());
     private Subscription action_monitoring;
     Label infoL;
     
@@ -38,9 +37,11 @@ public final class Guide {
         popup.setAutoHide(false);
         popup.setHideOnClick(false);
         popup.setHideOnEscape(true);
+        popup.getSkinn().setContentPadding(new Insets(8));
         popup.setArrowSize(0);
         popup.setDetached(true);
-        popup.getContentNode().setWrappingWidthNatural(true);
+        popup.getContentNode().setWrappingWidth(250);
+        popup.getContentNode().prefWidth(250);
         popup.setOnHidden(e -> FxTimer.run(Duration.millis(20), () -> Action.actionStream.push("Guide closing")));
         
         Label nextB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_RIGHT,"11");                     
@@ -58,7 +59,7 @@ public final class Guide {
         });
         popup.getHeaderIcons().addAll(prevB,infoL,nextB);
         
-        addGuide(NONE, "Hi, this is automatic guide for this application. It will show you around. " +
+        addGuide(" ", "Hi, this is automatic guide for this application. It will show you around. " +
                 "Completing a hint will display next one. You can navigate manually too." +
                 "\n\nShow next hint by clicking on the right arrow button in the header of this popup.");
         addGuide("Guide closing", "Guide can be closed simply by closing the popup.\n\n" +
@@ -87,10 +88,14 @@ public final class Guide {
     private void proceed() {
         if (at<0) at=0;
         if (at<actions.size()) {
-            popup.setTitle("Guide - " + actions.get(at));
-            popup.getContentNode().setText(texts.get(at));
+            // the condition has 2 reasons
+            // - avoids unneded show() call
+            // - avoids relocating thepopupas a result of alignment with different popup size
+            // - the popup size depends on the text
+            if (!popup.isShowing()) popup.show(PopOver.ScreenCentricPos.AppCenter);
             infoL.setText((at+1) + "/" + actions.size());
-            popup.show(PopOver.ScreenCentricPos.AppCenter);
+            popup.setTitle(actions.get(at).isEmpty() ? "Guide" : "Guide - " + actions.get(at));
+            popup.getContentNode().setText(texts.get(at));
         } else {
             stop();
         }
@@ -136,18 +141,5 @@ public final class Guide {
     public void addGuide(String action, String text) {
         actions.add(action);
         texts.add(text);
-    }
-    
-    public void addGuide(GuidedAction action, String text) {
-        actions.add(action.toCapitalizedS());
-        texts.add(text);
-    }
-    
-    public static enum GuidedAction {
-        NONE;
-        
-        public String toCapitalizedS() {
-            return this==NONE ? "" : Util.capitalizeStrong(this.toString());
-        }
     }
 }

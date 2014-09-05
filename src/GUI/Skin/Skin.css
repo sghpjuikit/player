@@ -3684,6 +3684,7 @@
 
 .rating > .container {
     -fx-spacing: 2;
+    -fx-padding: 0 4 0 4;
 }
 .rating > .container > .button {
     -fx-background-color: null;
@@ -3701,4 +3702,14 @@
 }
 .rating > .container > .button:hover {
     -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.3) , 4, 0.0 , 0 , 0 );
+}
+// style for the button when rating is at min value
+// it is good to visually signal this to the user
+.rating > .container > .button:min {
+    -fx-effect: innershadow( three-pass-box, yellow, 2, 0.4, 0, 0);
+}
+// style for the button when rating is at max value
+// it is good to visually signal this to the user
+.rating > .container > .button:max {
+    -fx-effect: innershadow( three-pass-box, yellow, 2, 0.4 ,0, 0);
 }

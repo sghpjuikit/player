@@ -7,10 +7,8 @@
 package Configuration;
 
 import Configuration.Config.ConfigBase;
+import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Objects;
 import utilities.Log;
 
@@ -25,97 +23,64 @@ import utilities.Log;
  */
 public final class FieldConfig<T> extends ConfigBase<T> {
     
-    private final Field field;
-    Method applierMethod;
     private final Object instance;
+    MethodHandle getter;
+    MethodHandle setter;
+    MethodHandle applier;
     
     /**
-     * 
      * @param _name
      * @param c
      * @param category
      * @param instance owner of the field or null if static
-     * @param field to wrap
-     * 
-     * @throws NullPointerException if field value is null. The wrapped value must no be
-     * null.
-     * @throws IllegalStateException if field is not static. Field must be static.
      */
-    FieldConfig(String _name, IsConfig c, Object instance, String category, Field field) {
-        super(_name, c, getValueFromField(field, instance), category);
-        this.field = field;
+    FieldConfig(String _name, IsConfig c, Object instance, String category, MethodHandle getter, MethodHandle setter) {
+        super(_name, c, getValueFromMethodHelper(getter, instance), category);
+        this.getter = getter;
+        this.setter = setter;
         this.instance = instance;
     }
     
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public T getValue() {
-        try {
-            field.setAccessible(true);
-            return (T) field.get(instance);
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Config " + getName() + " can not return "
-                    + "value. Wrong object type." + e.getMessage());
-        } catch (IllegalAccessException | SecurityException e) {
-            throw new RuntimeException("Config " + getName() + " can not access "
-                    + "value. " + e.getMessage());
-        }
+        return getValueFromMethodHelper(getter, instance);
     }
     
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void setValue(T val) { 
         try {
-            field.setAccessible(true);
-            field.set(instance, val);
+            if(instance==null) setter.invokeWithArguments(val);
+            else setter.invokeWithArguments(instance,val);
             Log.deb("Config field: " + getName() + " set to: " + val);
-        } catch (SecurityException | IllegalAccessException ex) {
-            Log.err("Config field: " + getName() + " failed to set. Reason: " + ex.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Config value wrong object type. Cant set "
-                    + getName() + " to: " + val + ".");
+        } catch (Throwable e) {
+            Log.err("Config field: " + getName() + " failed to set. Reason: " + e.getMessage());
         }
     }
     
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void applyValue() {
-        Log.deb("Applying config: " + getName());
-        if(applierMethod != null) {
-            
+        if(applier != null) {
+            Log.deb("Applying config: " + getName());
             try {
-                applierMethod.setAccessible(true);
+                int i = applier.type().parameterCount();
                 
-                // create parameters
-                int i = applierMethod.getParameterCount();
-                Object[] params = new Object[i];
-                if(i==1) params[1] = getValue();
+                if(i==1) applier.invokeWithArguments(getValue());
+                else applier.invoke();
                 
-                applierMethod.invoke(instance, params);
                 Log.deb("    Success.");
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+            } catch (Throwable e) {
                 Log.err("    Failed to apply config field: " + getName() + ". Reason: " + e.getMessage());
             }
-        } else {
-            Log.deb("    Nothing to apply: no applier method.");
         }
     }
     
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Class getType() {
-        return getValue().getClass(); // unfortunately the only working solution
-        // field.getType() wil not work if we pass subcasses into the field
-        // like Object field; field = "some string".  We ned to get the runtime
-        // tpe of z
+        return getValue().getClass();
     }
     
     /** 
@@ -128,37 +93,47 @@ public final class FieldConfig<T> extends ConfigBase<T> {
         if (o == null || !(o instanceof FieldConfig)) return false;
         
         FieldConfig c = (FieldConfig)o;
-        return field.equals(c.field); 
+        return setter.equals(c.setter) && getter.equals(c.getter) &&
+               applier.equals(c.applier); 
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 67 * hash + Objects.hashCode(this.field);
+        int hash = 5;
+        hash = 23 * hash + Objects.hashCode(this.applier);
+        hash = 23 * hash + Objects.hashCode(this.getter);
+        hash = 23 * hash + Objects.hashCode(this.setter);
         return hash;
     }
     
     
 /******************************************************************************/
     
-    // helper method to obtain initial value while enforcing static field check
-    // use in super() constructor
-    private static<T> T getValueFromField(Field f, Object instance) {
+    private static<T> T getValueFromMethodHelper(MethodHandle mh, Object instance) {
         try {
-            // make sure the preconditions apply
-            boolean isStatic = Modifier.isStatic(f.getModifiers());
-            if(instance==null && !isStatic)
-                throw new IllegalStateException("Object instance null with instance field config not allowed.");
-            if(instance!=null && isStatic)
-                throw new IllegalStateException("Object instance not null when field is static not allowed.");
-            // make sure field is accessible
-            f.setAccessible(true);
-            // get value
-            return (T) f.get(instance);
-        } catch (IllegalArgumentException | IllegalAccessException ex) {
-            throw new RuntimeException("Can not access field: " + f.getName() + " for object: " + instance);
+            if(instance==null) return (T) mh.invoke();
+            else return (T) mh.invokeWithArguments(instance);
+        } catch (Throwable ex) {
+            throw new RuntimeException("Error during getting value from a config field. " + ex.getClass() + " " + ex.getMessage());
         }
     }
-    
-    
 }
+        
+//    // helper method to obtain initial value while enforcing static field check
+//    // use in super() constructor
+//    private static<T> T getValueFromField(Field f, Object instance) {
+//        try {
+//            // make sure the preconditions apply
+//            boolean isStatic = Modifier.isStatic(f.getModifiers());
+//            if(instance==null && !isStatic)
+//                throw new IllegalStateException("Object instance null with instance field config not allowed.");
+//            if(instance!=null && isStatic)
+//                throw new IllegalStateException("Object instance not null when field is static not allowed.");
+//            // make sure field is accessible
+//            f.setAccessible(true);
+//            // get value
+//            return (T) f.get(instance);
+//        } catch (IllegalArgumentException | IllegalAccessException ex) {
+//            throw new RuntimeException("Can not access field: " + f.getName() + " for object: " + instance);
+//        }
+//    }

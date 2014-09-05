@@ -90,7 +90,8 @@ public final class MetadataExtended {
         }
             content += "</Chapterlist>";
 
-        FileUtil.writeFile(metadata.getFile().toString()+".xml", content);
+        File f = new File(metadata.getLocation(),metadata.getFilenameFull() + ".xml");
+        FileUtil.writeFile(f.getPath(), content);
         
         MetadataWriter writer = MetadataWriter.create(metadata);
         writer.setChapters(getChapters());
@@ -106,7 +107,7 @@ public final class MetadataExtended {
         // check validity and open file
         if(!metadata.isFileBased()) return;
         
-        File f = new File(metadata.getFile().toString()+".xml");
+        File f = new File(metadata.getLocation(),metadata.getFilenameFull() + ".xml");
         
         if (!f.exists()) { 
             Log.info("File " + f.toString() + " doesnt exist");

@@ -92,6 +92,10 @@ public enum ImageFileFormat {
     
 /******************************************************************************/
     
+    /**
+     * List of supported extension strings in the format: '*.extension'
+     * @return 
+     */
     public static List<String> extensions() {
         List<String> ext = new ArrayList<>();
         for(ImageFileFormat format: values()) {
@@ -100,6 +104,20 @@ public enum ImageFileFormat {
         }
         return ext;
     }
+    
+    /**
+     * List of supported extension strings in the format: 'extension'
+     * @return 
+     */
+    public static List<String> extensionsSimple() {
+        List<String> ext = new ArrayList<>();
+        for(ImageFileFormat format: values()) {
+            if (format.isSupported())
+                ext.add(format.toString());
+        }
+        return ext;
+    }
+    
     /**
      * Writes up list of all image files recognized and supported by the application.
      * @return 
@@ -109,5 +127,14 @@ public enum ImageFileFormat {
         for(String ft: extensions())
             out = out + ft +"\n";
         return out;
+    }
+    
+    public static List<ImageFileFormat> valuesSupported() {
+        List<ImageFileFormat> ext = new ArrayList<>();
+        for(ImageFileFormat format: values()) {
+            if (format.isSupported())
+                ext.add(format);
+        }
+        return ext;
     }
 }

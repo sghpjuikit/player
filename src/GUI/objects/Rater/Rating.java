@@ -277,7 +277,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     public final ObjectProperty<Orientation> orientationProperty() {
         return orientation;
     }
-    private ObjectProperty<Orientation> orientation = new SimpleObjectProperty<Orientation>(this, "orientation", Orientation.HORIZONTAL);
+    private ObjectProperty<Orientation> orientation = new SimpleObjectProperty<>(this, "orientation", Orientation.HORIZONTAL);
     
     /**
      * Sets the {@link Orientation} of the {@code Rating} - this can either be 

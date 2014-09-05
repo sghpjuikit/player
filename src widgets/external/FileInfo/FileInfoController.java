@@ -18,6 +18,7 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +38,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import main.App;
 import org.reactfx.Subscription;
+import utilities.FileUtil;
 import utilities.access.Accessor;
 
 /**
@@ -54,8 +56,9 @@ import utilities.access.Accessor;
             "    Cover left click : Opens over context menu\n" +
             "    Rater left click : Rates displayed song\n" +
             "    Rater right click : Toggles rater skin\n" +
-            "    Drag&Drop audio : Displays information for the first dropped item\n",
-    version = "0.9",
+            "    Drag&Drop audio : Displays information for the first dropped item\n" +
+            "    Drag&Drop image : Copies images into current item's locaton\n",
+    version = "1.0",
     year = "2014",
     group = Widget.Group.OTHER
 )
@@ -171,6 +174,9 @@ public class FileInfoController extends FXMLController  {
     public boolean changeReadModeOnTransfer = true;
     @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
     public boolean keepContentOnEmpty = true;
+    @IsConfig(name = "Copy image as cover", info = "Drag & dropped images will be"
+            + " renamed to be used as cover for the album instead of simply added to the directory. Old cover will be preserved.")
+    public boolean copyImageAsCover = true;
     
     @Override
     public void init() {
@@ -193,7 +199,6 @@ public class FileInfoController extends FXMLController  {
         
         // add rater stars to rating label as graphics
         rating.setGraphic(rater);
-        rating.setGraphicTextGap(8);
         rating.setContentDisplay(ContentDisplay.RIGHT);
         
         // grab fields
@@ -201,9 +206,6 @@ public class FileInfoController extends FXMLController  {
             artist, album, album_artist, year, genre, composer, publisher, gap2,
             rating, playcount, comment, category, gap3,
             filesize, filename, format, bitrate, encoding, location);
-        
-        // add to layout
-//        tiles.getChildren().addAll(labels);
         
         layout.addChild(tiles);
         AnchorPane.setBottomAnchor(tiles, 0d);
@@ -235,6 +237,7 @@ public class FileInfoController extends FXMLController  {
         
         // accept drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
+        entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
@@ -247,6 +250,30 @@ public class FileInfoController extends FXMLController  {
                     // set data
                     populateGui(items.get(0).getMetadata());
                 }
+                // end drag
+                e.setDropCompleted(true);
+                e.consume();
+            }
+            if(data!=null && data.isFileBased() && DragUtil.hasImage(e.getDragboard())) {
+                // grab images
+                DragUtil.doWithImageItems(e, imgs ->  {
+                    if(copyImageAsCover) {
+                        if(!imgs.isEmpty()) {
+                            // preserve old
+                            File f = imgs.get(0);
+                            String suffix = FileUtil.getSuffix(f.toURI());
+                            String name = suffix.isEmpty() ? "cover" : "cover."+suffix;
+                            FileUtil.renameAsOld(new File(data.getLocation(), name));
+                            // copy files to displayed item's location
+                            FileUtil.copyFile(f, data.getLocation(), "cover");
+                            // refres picture
+                            cover_source.applyValue();
+                        }
+                    } else {
+                        // copy files to displayed item's location
+                        FileUtil.copyFiles(imgs, data.getLocation());
+                    }
+                });
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
@@ -453,17 +480,6 @@ public class FileInfoController extends FXMLController  {
         cellW = Math.max(cellW, minColumnWidth.getValue());
         
         tiles.setPrefTileWidth(cellW);
-        
-        
-//        int columns = (int) Math.floor(width/minColumnWidth.getValue());
-//        double cellW = columns==1 || columns==0 
-//            // dont allow 0 columns & set whole width if 1 column
-//            // handle 1 column manually - the below caused some problems
-//            ? tiles.getWidth()
-//            // for n elements there is n-1 gaps so we need to add 1 gap width
-//            // above cell width includes 1 gap width per element so substract it
-//            : (width + tiles.getHgap())/columns - tiles.getHgap();
-//        tiles.setPrefTileWidth(cellW);
     }
-
+    
 }

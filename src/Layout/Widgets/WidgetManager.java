@@ -3,10 +3,10 @@ package Layout.Widgets;
 
 import GUI.ContextManager;
 import Layout.LayoutManager;
-import Layout.WidgetImpl.Visualisation;
 import Layout.WidgetImpl.Configurator;
 import Layout.WidgetImpl.HtmlEditor;
 import Layout.WidgetImpl.Spectrumator;
+import Layout.WidgetImpl.Visualisation;
 import Layout.Widgets.Features.Feature;
 import java.io.File;
 import java.io.IOException;
@@ -196,7 +196,7 @@ public final class WidgetManager {
      * @return any open widget supporting tagging or loaded new if none is loaded.
      * Null if no tagging widget available in application.
      */
-    public static Widget getWidget(Class<? extends Feature> feature, Widget_Source source) {
+    public static<F extends Feature> F getWidget(Class<F> feature, Widget_Source source) {
         Widget out = null;
         // attempt to get preferred widget from active widgets
         if (out == null)
@@ -229,7 +229,7 @@ public final class WidgetManager {
                 ContextManager.showFloating(out);
             }
         }
-        return out;
+        return out==null ? null : (F) out.getController();
     }
     
     /**

@@ -3,7 +3,6 @@ package Action;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistManager;
-import Configuration.AppliesConfig;
 import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -11,26 +10,30 @@ import GUI.ContextManager;
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+import javafx.util.Duration;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
+import utilities.FxTimer;
 import utilities.Log;
+import utilities.access.Accessor;
 import utilities.functional.functor.Procedure;
 
 /**
@@ -51,7 +54,7 @@ import utilities.functional.functor.Procedure;
  * @author uranium
  */
 @IsConfigurable
-public final class Action extends Config<Action> {
+public final class Action extends Config<Action> implements Runnable {
     
     private final String name;
     private final Runnable action;
@@ -68,7 +71,7 @@ public final class Action extends Config<Action> {
     
     /**
      * Creates new action.
-     * @param name value for the final name property
+     * @param name action name. Must be be unique for each action. Also human readable.
      * @param action Code that gets executed on {@link #run()}
      * @param info value for the final info property
      * @param keys Key combination for activating this action as a hotkey. See
@@ -184,19 +187,44 @@ public final class Action extends Config<Action> {
     }
     
     /** Execute the action. Always executes on application thread. */
+    @Override
     public void run() {
-        if(global) Log.deb("Global shortcut event fired. Shortcut: " + name);
-        else Log.deb("Local shortcut event fired. Shortcut: " + name);
-        // run on appFX thread
-        if(Platform.isFxApplicationThread()) {
+        
+        int id = getID();
+        boolean canRun = id!=lock;
+        
+        if(!continuous) {
+            lock = id;
+            System.out.println(System.currentTimeMillis());System.out.println("locking");
+            locker.restart();
+        }
+        
+        if(canRun) {
+            // run on appFX thread
+            if (Platform.isFxApplicationThread()) runUnsafe();
+            else Platform.runLater(this::runUnsafe);
+        }
+        
+
+    }
+    
+    private void runUnsafe() {
+        if(global) Log.deb("Global shortcut " + name + " execuing.");
+        else Log.deb("Local shortcut " + name + " execuing.");
+        
+//        int id = getID();
+//        boolean canRun = id!=lock;
+//        
+//        if(!continuous) {
+//            lock = id;System.out.println(System.currentTimeMillis());
+//            locker.restart();
+////            unlocker.push(null);
+//        }
+//        
+//        if(canRun) {
             action.run();
             actionStream.push(name);
-        } else {
-            Platform.runLater(()-> {
-                action.run();
-                actionStream.push(name);
-            });
-        }
+//        }
     }
     
     /**
@@ -217,7 +245,7 @@ public final class Action extends Config<Action> {
     public void register() {                                                    // Log.deb("Attempting to register shortcut " + name);
         if(!hasKeysAssigned()) return;
         
-        if (global && global_shortcuts && isGlobalShortcutsSupported())
+        if (global && global_shortcuts.getValue() && isGlobalShortcutsSupported())
             registerGlobal();
         else
             registerInApp();
@@ -256,7 +284,7 @@ public final class Action extends Config<Action> {
         if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
         // register for each window separately
         ContextManager.windows.forEach( w -> 
-            w.getStage().getScene().getAccelerators().put(k,action));
+            w.getStage().getScene().getAccelerators().put(k,this));
     }
 
     private void unregisterInApp() {                                            // Log.deb("Unregistering in-app shortcut "+name);
@@ -270,7 +298,7 @@ public final class Action extends Config<Action> {
             w.getStage().getScene().getAccelerators().remove(k));
     }
     public void unregisterInScene(Scene s) {
-        s.getAccelerators().remove(getKeysForLocalRegistering(this),action);
+        s.getAccelerators().remove(getKeysForLocalRegistering(this));
     }
     
     private void registerGlobal() {                                             //  Log.deb("Registering global shortcut "+name);
@@ -278,23 +306,19 @@ public final class Action extends Config<Action> {
     }
     
     public void registerInScene(Scene s) {
-        s.getAccelerators().put(getKeysForLocalRegistering(this),action);
+        s.getAccelerators().put(getKeysForLocalRegistering(this),this);
     }
     private void unregisterGlobal() {                                           //  Log.deb("Unregistering global shortcut "+name);
         JIntellitype.getInstance().unregisterHotKey(getID());
     }
     
     private int getID() {
-        Action[] as = shortcuts();
-        for(int i=0; i<as.length; i++)
-            if (as[i].equals(this)) return i;
-        return -1;
+        return name.hashCode();
     }
     
     private static KeyCombination getKeysForLocalRegistering(Action a) {
         // fix local shortcut problem - keyCodes not registering, needs raw characters instead
         // TODO resolve or include all characters' conversions
-        final KeyCombination k;
         String s = a.getKeys();
         if(s.contains("Back_Slash")) 
             return KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
@@ -389,9 +413,9 @@ public final class Action extends Config<Action> {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 41 * hash + Objects.hashCode(this.name);
-        hash = 41 * hash + (this.global ? 1 : 0);
-        hash = 41 * hash + Objects.hashCode(this.keys);
+            hash = 41 * hash + Objects.hashCode(this.name);
+            hash = 41 * hash + (this.global ? 1 : 0);
+            hash = 41 * hash + Objects.hashCode(this.keys);
         return hash;
     }
     
@@ -434,54 +458,7 @@ public final class Action extends Config<Action> {
     }
     
     
-    
-/****************************** CONFIGURATION *********************************/
-    
-    @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if application is not focused. Not all platforms supported."
-    ,group = "Shortcuts")
-    public static boolean global_shortcuts = true;
-    @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
-    public static boolean global_media_shortcuts = true;
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts", editable = false)
-    public static String Shortcut_ALTERNATE = "Alt";
-    @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
-    public static String Shortcut_COLAPSE = "Shift+C";
-    
-    @AppliesConfig("global_media_shortcuts")
-    private static void applyAllowMediaShortcuts() {
-        if(isGlobalShortcutsSupported()) {
-            if(global_media_shortcuts) {
-                // make sure we dont add the listener twice
-                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
-                JIntellitype.getInstance().addIntellitypeListener(media_listener);
-            } else {
-                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
-            }
-        }
-    }
-    
-    @AppliesConfig("global_shortcuts")
-    private static void applyAllowGlobalShortcuts() {
-        if(isGlobalShortcutsSupported()) {
-            if(global_shortcuts){
-                // make sure we dont add the listener twice
-                JIntellitype.getInstance().removeHotKeyListener(global_listener);
-                JIntellitype.getInstance().addHotKeyListener(global_listener);
-                // reregister shortcuts to switch from local
-                getActions().values().forEach( a -> {
-                    a.unregister();
-                    a.register();
-                });
-            } else {
-                JIntellitype.getInstance().removeHotKeyListener(global_listener);
-                // reregister shortcuts to switch to local
-                getActions().values().forEach( a -> {
-                    a.unregister();
-                    a.register();
-                });
-            }
-        }
-    }
+
     
 /*********************** SHORTCUT HANDLING ON APP LEVEL ***********************/
     
@@ -522,46 +499,67 @@ public final class Action extends Config<Action> {
     /** 
      * Returns modifiable collection of actions mapped by their name. Actions
      * can be added and removed.
-     * @return map of all action_name - action pairs.
+     * <p>
+     * Note that the name must be unique.
+     * 
+     * @return map of all actions.
      */
-    public static Map<String,Action> getActions(){
-        return actions;
+    public static Collection<Action> getActions() {
+        return actions.values();
+    }
+    
+    /**
+     * Returns the action to which the specified name is mapped, or null if 
+     * action does not exist.
+     * @param name
+     * 
+     * @return action or null
+     */
+    public static Action getAction(String name) {
+        return actions.get(name.hashCode());
     }
     
 /************************ action helper methods *******************************/
     
     private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
-    private static final Map<String,Action> actions = gatherActions();
-
-    private static Action[] shortcuts(){
-        return actions.values().toArray(new Action[0]);
-    }
+    private static final Map<Integer,Action> actions = gatherActions();
     
     /** @return all actions of this application */
-    private static Map<String,Action> gatherActions() {
+    private static Map<Integer,Action> gatherActions() {
         List<Class<?>> cs = new ArrayList();
+        
         // autodiscover all classes that can contain actions
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
         
-        Map<String,Action> acts = new HashMap();
         // discover all actions
+        Map<Integer,Action> acts = new HashMap();
+        Lookup method_lookup = MethodHandles.lookup();
         for (Class<?> man : cs) {
             for (Method m : man.getDeclaredMethods()) {
-                if ((m.getModifiers() & Modifier.STATIC) != 0) {
+                if (Modifier.isStatic(m.getModifiers())) {
                     for(IsAction a : m.getAnnotationsByType(IsAction.class)) {
                         if (a != null) {
                             if (m.getParameters().length > 0)
                                 throw new RuntimeException("Action Method must have 0 parameters!");
+                            
+                            // grab method
+                            MethodHandle mh;
+                            try {
+                                m.setAccessible(true);
+                                mh = method_lookup.unreflect(m);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                            
                             String name = a.name();
-                            Procedure b = () -> {
+                            Procedure p = () -> {
                                 try {
-                                    m.invoke(null, new Object[0]);
-                                } catch (IllegalAccessException | InvocationTargetException e) {
-                                    e.printStackTrace();
-                                    Log.err("Can not run specified method. " + e.getMessage());
+                                    mh.invokeExact();
+                                } catch (Throwable e) {
+                                    throw new RuntimeException("Error during running action.",e);
                                 }
                             };
-                            acts.put(name,new Action(a,b));
+                            acts.put(name.hashCode(),new Action(a,p));
                         }
                     }
                 }
@@ -572,14 +570,20 @@ public final class Action extends Config<Action> {
     
 /************************ shortcut helper methods *****************************/
 
+    // lock
+     private static FxTimer locker = FxTimer.create(Duration.millis(100), () -> lock = -1);
+//    private static final FxTimer locker = FxTimer.create(Duration.millis(500), Action::unlock);
+    private static int lock = -1;
+//    private static void unlock() {System.out.println(System.currentTimeMillis() +" unlocking");
+//        lock = -1;
+//    }
+
     //shortcut running
-    private static final HotkeyListener global_listener = i -> {
-        Log.deb("Global shortcut " + i + " captured.");
-        try {
-            runShortcut(i);
-        } catch(IndexOutOfBoundsException e) {
-            
-        }
+    // this listener is running ever 33ms when any registered shortcut is pressed
+    private static final HotkeyListener global_listener = id -> {System.out.println(System.currentTimeMillis() + " s");
+        Log.deb("Global shortcut " + actions.get(id).getName() + " captured.");
+        actions.get(id).run();
+        locker.restart();
     };
     private static final IntellitypeListener media_listener = i -> {
         // run on appFX thread
@@ -594,51 +598,6 @@ public final class Action extends Config<Action> {
             else if(i==JIntellitype.APPCOMMAND_CLOSE) App.close();
         });
     };
-    
-    private static void runShortcut(int s_id) {
-        if(s_id==lock) {
-            lockReached = true;
-        } else {
-            Action a = shortcuts()[s_id];
-            a.run();
-            if(a.continuous)
-                lock(s_id, 30);
-            else
-                lock(s_id, 800);
-        }
-    }
-    
-    // lock
-    private static Timer locker;
-    private static int lock = -1;
-    private static boolean lockReached = false;
-    
-    private static void lock(int shortcut, long period) {
-        unlock();
-        lock = shortcut;
-        locker = new Timer();
-        TimerTask unlock = new TimerTask(){
-            @Override public void run() {
-                unlock();   // no problems, but still... Platform.runlater() maybe?
-            }
-        };
-        locker.schedule(unlock, period);
-    }
-    private static void unlock() {
-        Action a = lock==-1 ? null : shortcuts()[lock];
-        if(lockReached && a!=null && !a.continuous) {
-            lockReached = false;
-            lock(lock, 250);
-        } else {
-            lock = -1;
-            if(locker!=null){
-                locker.cancel();
-                locker.purge();
-                locker = null;
-            }
-        }
-    }
-    
     
 /******************************************************************************/
 
@@ -655,7 +614,51 @@ public final class Action extends Config<Action> {
      * Supports custom actions. Simply push a String value into the stream.
      */
     public static final EventSource<String> actionStream = new EventSource();
+    
+    
+/****************************** CONFIGURATION *********************************/
+    
+    @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
+            + " application is not focused. Not all platforms supported.", group = "Shortcuts")
+    public static final Accessor<Boolean> global_shortcuts = new Accessor<>(true, v -> {
+        if(isGlobalShortcutsSupported()) {
+            if(v){
+                // make sure we dont add the listener twice
+                JIntellitype.getInstance().removeHotKeyListener(global_listener);
+                JIntellitype.getInstance().addHotKeyListener(global_listener);
+                // reregister shortcuts to switch from local
+                getActions().forEach( a -> {
+                    a.unregister();
+                    a.register();
+                });
+            } else {
+                JIntellitype.getInstance().removeHotKeyListener(global_listener);
+                // reregister shortcuts to switch to local
+                getActions().forEach( a -> {
+                    a.unregister();
+                    a.register();
+                });
+            }
+        }
+    });
+    
+    @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
+    public static final Accessor<Boolean> global_media_shortcuts = new Accessor<>(true, v -> {
+        if(isGlobalShortcutsSupported()) {
+            if(v) {
+                // make sure we dont add the listener twice
+                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
+                JIntellitype.getInstance().addIntellitypeListener(media_listener);
+            } else {
+                JIntellitype.getInstance().removeIntellitypeListener(media_listener);
+            }
+        }
+    });
+    
+    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts", editable = false)
+    public static String Shortcut_ALTERNATE = "Alt";
+    
+    @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
+    public static String Shortcut_COLAPSE = "Shift+C";
 
 }
-
-

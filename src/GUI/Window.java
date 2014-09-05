@@ -69,7 +69,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
@@ -122,16 +121,15 @@ import utilities.Util;
 @IsConfigurable
 public class Window extends WindowBase implements SelfSerializator<Window> {
     
-    private static PseudoClass focusedPseudoClass = PseudoClass.getPseudoClass("focused");
+    private static final PseudoClass focusedPseudoClass = PseudoClass.getPseudoClass("focused");
     
     /**
-     * Get focused window. There is only one at most focused window in the application
-     * at once.
+     * Get focused window. There is zero or one focused window in the application
+     * at any given time.
      * <p>
      * Use {@link #getActive()} for non null alternative that always returns a
      * Window.
-     * <p>
-     * Use when querying for focused window. 
+     * 
      * @return focused window or null if none focused.
      */
     public static Window getFocused() {
@@ -148,6 +146,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      * Use when null must absolutely be avoided and the main window substitute 
      * for focused window will not break expected behavior and when this method
      * can get called when app  has no focus (such as through global shortcut).
+     * 
      * @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
@@ -323,8 +322,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // add to list of active windows
         ContextManager.windows.add(this);
         // set shortcuts
-        Action.getActions().values().stream().filter(a->!a.isGlobal())
-                .forEach(Action::register);
+        Action.getActions().stream().filter(a->!a.isGlobal()).forEach(Action::register);
         
         root.addEventFilter(MOUSE_PRESSED,  e -> {
             // update coordinates for context manager
@@ -562,34 +560,24 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
        
        // github button - show all available FontAwesome icons in a popup
-        Label gitB = AwesomeDude.createIconLabel(GITHUB,"","13","11",CENTER);
-              gitB.setOnMouseClicked( e -> Enviroment.browse(App.getGithubLink()));
-              gitB.setTooltip(new Tooltip("Open github project page for this application"));
+        Label gitB = Util.createIcon(GITHUB,13,"Open github project page for this application",
+                e -> Enviroment.browse(App.getGithubLink()));
        // github button - show all available FontAwesome icons in a popup
-        Label dirB = AwesomeDude.createIconLabel(CSS3,"","13","11",CENTER);
-              dirB.setOnMouseClicked( e -> Enviroment.browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
-              dirB.setTooltip(new Tooltip("Open application location (fevelopment tool)"));
+        Label dirB = Util.createIcon(CSS3,13,"Open application location (fevelopment tool)",
+                e -> Enviroment.browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
        // css button - show all available FontAwesome icons in a popup
-        Label cssB = AwesomeDude.createIconLabel(FOLDER,"","13","11",CENTER);
-              cssB.setOnMouseClicked( e -> Enviroment.browse(App.getLocation().toURI()));
-              cssB.setTooltip(new Tooltip("Open css guide"));
+        Label cssB = Util.createIcon(FOLDER,13,"Open css guide",
+                e -> Enviroment.browse(App.getLocation().toURI()));
        // icon button - show all available FontAwesome icons in a popup
-        Label iconsB = AwesomeDude.createIconLabel(IMAGE,"","13","11",CENTER);
+        Label iconsB = Util.createIcon(IMAGE,13,"Icon browser (development tool)",null);
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
-              iconsB.setTooltip(new Tooltip("Icon browser (development tool)"));
         // settings button - show application settings in a popup
-        Label propB = AwesomeDude.createIconLabel(GEARS,"","13","11",CENTER);
-              propB.setOnMouseClicked( e ->
-                  WidgetManager.getWidget(ConfiguringFeature.class,Widget_Source.FACTORY)
-              );
-              propB.setTooltip(new Tooltip("Application settings"));
+        Label propB = Util.createIcon(GEARS,13,"Application settings",
+                e ->  WidgetManager.getWidget(ConfiguringFeature.class,Widget_Source.FACTORY));
         // manage layout button - sho layout manager in a popp
-        Label layB = AwesomeDude.createIconLabel(COLUMNS,"","13","11",CENTER);
-              layB.setOnMouseClicked( e ->
-                  ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager")
-              );
-              layB.setTooltip(new Tooltip("Manage layouts"));
-        // lasFm button - show basic lastFm settings nd toggle scrobbling on/off 
+        Label layB = Util.createIcon(COLUMNS,13,"Manage layouts", 
+                e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
+        // lasFm button - show basic lastFm settings and toggle scrobbling on/off 
               // create graphics once
         Image lastFMon = Util.loadImage(new File("lastFMon.png"), 30);
         Image lastFMoff = Util.loadImage(new File("lastFMoff.png"), 30);
@@ -622,46 +610,41 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   }
               });
         // lock layout button
-        Label lockB = AwesomeDude.createIconLabel(GUI.isLayoutLocked() ? UNLOCK : LOCK,"","13","11",CENTER);
-              lockB.setTooltip(new Tooltip(GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout"));
+        Label lockB = Util.createIcon(GUI.isLayoutLocked() ? UNLOCK : LOCK,13, 
+                GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout", null);
               lockB.setOnMouseClicked( e -> {
                   GUI.toggleLayoutLocked();
                   boolean lck = GUI.isLayoutLocked();
                   AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"13");
                   lockB.getTooltip().setText(lck ? "Unlock widget layout" : "Lock widget layout");
-                  e.consume();
               });
             // initialize proper icon
         GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? UNLOCK : LOCK, "11"));
         // help button - show hel information
-        Label helpB = AwesomeDude.createIconLabel(INFO,"","13","11",CENTER);
-        helpB.setTooltip(new Tooltip("Help"));
-        helpB.setOnMouseClicked( e -> {
-            PopOver<Text> helpP = PopOver.createHelpPopOver(
-                "Available actions:\n" +
-                "    Header icons : Providing custom functionalities. See tooltips.\n" +
-                "    Header buttons : Providing window contorl. See tooltips.\n" +
-                "    Mouse drag : Move window. Windows snap to screen or to other windows.\n" +
-                "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n" +
-                "    Mouse drag edge : Resizes window.\n" +
-                "    Double left click : Toggle meximized mode on/off.\n" +
-                "    Double right click : Toggle hide header on/off.\n" +
-                "    Press ALT : Show hidden header temporarily.\n" +
-                "    Press ALT : Activate layout mode.\n" +
-                "    Content right drag : drag tabs."
-            );
-            helpP.show(helpB);
-            helpP.getContentNode().setWrappingWidth(400);
-            Action.actionStream.push("Layout info popup");
-            e.consume();
-        });
+        Label helpB = Util.createIcon(INFO,13,"Help",null);
+              helpB.setOnMouseClicked( e -> {
+                  PopOver<Text> helpP = PopOver.createHelpPopOver(
+                      "Available actions:\n" +
+                      "    Header icons : Providing custom functionalities. See tooltips.\n" +
+                      "    Header buttons : Providing window contorl. See tooltips.\n" +
+                      "    Mouse drag : Move window. Windows snap to screen or to other windows.\n" +
+                      "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n" +
+                      "    Mouse drag edge : Resizes window.\n" +
+                      "    Double left click : Toggle meximized mode on/off.\n" +
+                      "    Double right click : Toggle hide header on/off.\n" +
+                      "    Press ALT : Show hidden header temporarily.\n" +
+                      "    Press ALT : Activate layout mode.\n" +
+                      "    Content right drag : drag tabs."
+                  );
+                  helpP.show(helpB);
+                  helpP.getContentNode().setWrappingWidth(400);
+                  Action.actionStream.push("Layout info popup");
+                });
         // guide button - sho layout manager in a popp
-        Label guideB = AwesomeDude.createIconLabel(GRADUATION_CAP,"","13","11",CENTER);
-              guideB.setTooltip(new Tooltip("Resume or start the guide"));
-              guideB.setOnMouseClicked( e -> {
+        Label guideB = Util.createIcon(GRADUATION_CAP,13,"Resume or start the guide",
+                e -> {
                    App.guide.resume();
                    Action.actionStream.push("Guide resumed");
-                   e.consume();
               });
               
         leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,lockB,helpB,guideB);

@@ -920,7 +920,8 @@ public final class Metadata extends MetaItem {
      */
     @MetadataFieldMethod(Field.CHAPTERS)
     public List<Chapter> getChaptersFromAny() {
-        List<Chapter> cs = getChapters();
+        List<Chapter> cs = new ArrayList();
+                      cs.addAll(getChapters());
                       cs.addAll(getChaptersFromXML());
                       cs.sort(Chapter::compareTo);
         return cs;
@@ -1029,8 +1030,8 @@ public final class Metadata extends MetaItem {
 
                + "title: " + title + "\n"
                + "album: " + album + "\n"
-               + "artists: " + artists.size() + "\n"
-               +  artists.stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
+                // nullpointer below
+//               + "artists: " + artists==null ? "" : (artists.size() + "\n" + artists.stream().map(a->"    " + a + "\n").collect(Collectors.joining("")))
                + "album artist: " + album_artist + "\n"
                + "composer: " + composer + "\n"
                + "publisher: " + publisher + "\n"
@@ -1049,8 +1050,7 @@ public final class Metadata extends MetaItem {
                + "lyrics: " + lyrics + "\n"
                + "mood: " + mood + "\n"
                + "color: " + getColor() + "\n"
-               + "chapters: " + mood + "\n"
-               + getChaptersFromAny().stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
+               + "chapters: " + mood + "\n" + getChaptersFromAny().stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
                + "custom1: " + custom1 + "\n"
                + "custom2: " + custom2 + "\n"
                + "custom3: " + custom3 + "\n"

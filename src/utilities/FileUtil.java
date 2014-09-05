@@ -6,11 +6,16 @@ package utilities;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -463,6 +468,143 @@ public final class FileUtil {
             ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", file);
         } catch (IOException e) {
             Log.err("Error during saving image " + file.getPath());
+        }
+    }
+    
+    /**
+     * Copies provided items to the provided directory.
+     * <p>
+     * The method consumers I/O exception - that can occur when: an I/O error 
+     * occurs when reading or writing.
+     * 
+     * @param files
+     * @param target
+     * @param options optional. See {@link CopyOption} and Files.copy() methods
+     * 
+     * @return list of files representing the successfully created copies - all
+     * copies that didnt throw IOException
+     */
+    public static List<File> copyFiles(List<File> files, File target, CopyOption... options) {
+        List<File> out = new ArrayList(); 
+        for(File f : files) {
+            try {
+                Files.copy(f.toPath(), target.toPath().resolve(f.toPath().getFileName()), options);
+                out.add(new File(target, f.getName()));
+            } catch(IOException ex) {
+                // ignore
+            }
+        }
+        return out;
+    }
+    
+    public static void copyFile(File f, File target, String new_name, CopyOption... options) {
+        try {
+            File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
+            Files.copy(f.toPath(), nf.toPath(), options);
+        } catch(IOException ex) {
+            // ignore
+        }
+    }
+    
+    /**
+     * Copies file from given url, for example accessed over http protocol, into
+     * new file on a local file system specified by the parameter.
+     * 
+     * @param url
+     * @param destinationFile
+     * @throws IOException when bad url or input or output file inaccessible
+     */
+    public static void saveFileAs(String url, File destinationFile) throws IOException {
+        URL u = new URL(url);
+        InputStream is = u.openStream();
+        OutputStream os = new FileOutputStream(destinationFile);
+
+        byte[] b = new byte[2048];
+        int length;
+
+        while ((length = is.read(b)) != -1) {
+            os.write(b, 0, length);
+        }
+
+        is.close();
+        os.close();
+    }
+    
+    /**
+     * Same as {@link #saveFileAs(java.lang.String, java.io.File)} but instead
+     * destination directory is provided and the destination file will be put
+     * there and named according to the input url file name.
+     * @param url
+     * @param destination
+     * 
+     * @return the file denoting the new file.
+     * 
+     * @throws IOException 
+     */
+    public static File saveFileTo(String url, File destination) throws IOException {
+        int i = url.lastIndexOf('/');
+        if(i==-1) throw new IOException("url does not contain name. No '/' character found.");
+        String name = url.substring(1+i); 
+        
+        File df = new File(destination, name);
+        saveFileAs(url, df);
+        return df;
+    }
+    
+    public static void renameAsOld(File f) {
+        if(f!= null && f.exists()) {
+            // remove name
+            String suffix = getSuffix(f.toURI());
+            f.renameTo(getFirstAvailableOld(f.getParentFile(), getName(f), suffix, 1));
+        }
+    }
+    
+    public static File getFirstAvailableOld(File location, String name, String suffix, int i) {
+        File f = new File(location, name + "-" + i + "."+suffix);
+        if(f.exists()) return getFirstAvailableOld(location, name, suffix, i+1);
+        else return f;
+    }
+    
+    public static String getSuffix(URI f) {
+        String n = f.getPath();
+        int p = n.lastIndexOf('.');
+        return (p == - 1) ? "" : n.substring(p + 1);
+    }
+    
+    
+    
+    /**
+     * Recursively deletes sub files and sub directories. along with the 
+     * specified directory
+     * @param dir 
+     */
+    public static void removeDir(File dir) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null && files.length > 0) {
+                for (File aFile : files) {
+                    removeDir(aFile);
+                }
+            }
+            dir.delete();
+        } else {
+            dir.delete();
+        }
+    }
+    
+    /**
+     * does not delete the main directory but all sub files and directories, 
+     * results in the main directory being empty
+     * @param dir 
+     */
+    public static void removeDirContent(File dir) {
+        if (dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            if (files != null && files.length > 0) {
+                for (File aFile : files) {
+                    removeDir(aFile);
+                }
+            }
         }
     }
 }

@@ -28,9 +28,6 @@ final class Core {
     
 
     void initialize(){
-        
-        PlaylistManager.playingItemProperty().addListener((o,ov,nv) -> Player.playingtem.itemChanged(nv));
-        
         PlaylistManager.selectedItemES.subscribe(this::selectedItemToMetadata);
         PlaylistManager.selectedItemsES.subscribe(this::selectedItemsToMetadata);
     }
@@ -101,21 +98,25 @@ final class Core {
         }
         
         public void update() {
-            load(false, PlaylistManager.getPlayingItem());
+            load(false, val);
         }
         
         void load() {
-            load(true, PlaylistManager.getPlayingItem());
+            load(true, val);
         }       
         
-        void itemChanged(Item item) {
+        public void itemChanged(Item item) {
+            if(item == null) {
+                set(true,EMPTY);
+                Log.deb("Current item metadata set to empty. No item playing.");
+            } 
             // if same item, still fire change
-            if(val.same(item)) {
+            else if(val.same(item)) {
                 set(true,val);
                 Log.deb("Current item metadata reused. Same item playing.");
             }
             // if preloaded, set
-            if (nextMetadataCache.same(item)){
+            else if (nextMetadataCache.same(item)) {
                 set(true,nextMetadataCache);
                 Log.deb("Current item metadata copied from next item metadata cache.");
             // else load

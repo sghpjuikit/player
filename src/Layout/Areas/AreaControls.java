@@ -36,9 +36,7 @@ import javafx.animation.TranslateTransition;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -50,6 +48,7 @@ import javafx.scene.layout.TilePane;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
 import utilities.SingleInstance;
+import utilities.Util;
 
 /**
  * FXML Controller class
@@ -72,20 +71,20 @@ public final class AreaControls {
                 if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
             }
             String text = "Available actions:\n"
-                         + "    Close : Closes the widget\n"
-                         + "    Detach : Opens the widget in new window\n"
-                         + "    Change : Opens widget chooser to pick new widget\n"
-                         + "    Settings : Opens settings for the widget if available\n"
-                         + "    Refresh : Refreshes the widget\n"
-                         + "    Lock : Forbids entering layout mode on mouse hover\n"
-                         + "    Press ALT : Toggles layout mode\n"
-                         + "    Drag & Drop header : Drags widget to other area\n"
-                         + "\n"
-                         + "Available actions in layout mode:\n"
-                         + "    Drag & Drop : Drags widget to other area\n"
-                         + "    Sroll : Changes widget area size\n"
-                         + "    Middle click : Set widget area size to max\n"
-                         + info;
+                + "    Close : Closes the widget\n"
+                + "    Detach : Opens the widget in new window\n"
+                + "    Change : Opens widget chooser to pick new widget\n"
+                + "    Settings : Opens settings for the widget if available\n"
+                + "    Refresh : Refreshes the widget\n"
+                + "    Lock : Forbids entering layout mode on mouse hover\n"
+                + "    Press ALT : Toggles layout mode\n"
+                + "    Drag & Drop header : Drags widget to other area\n"
+                + "\n"
+                + "Available actions in layout mode:\n"
+                + "    Drag & Drop : Drags widget to other area\n"
+                + "    Sroll : Changes widget area size\n"
+                + "    Middle click : Set widget area size to max\n"
+                + info;
             p.getContentNode().setText(text);
             // for some reason we need to set this every time, which
             // should not be the case, investigate
@@ -134,68 +133,35 @@ public final class AreaControls {
         header_buttons.setMinWidth(15);
 
         // build header buttons
-        Label infoB = AwesomeDude.createIconLabel(INFO,"","12","12",CENTER);
-              infoB.setTooltip(new Tooltip("Help"));
-              infoB.setOnMouseClicked( e -> {
-                   helpP.get(this).show(infoB);
-                   e.consume();
-              });
-        Label closeB = AwesomeDude.createIconLabel(TIMES_CIRCLE,"","12","12",CENTER);
-              closeB.setTooltip(new Tooltip("Close widget"));
-              closeB.setOnMouseClicked( e -> {
+        Label infoB = Util.createIcon(INFO,12,"Help",null);
+              infoB.setOnMouseClicked( e ->  helpP.get(this).show(infoB));
+        Label closeB = Util.createIcon(TIMES_CIRCLE,12,"Close widget",
+                e -> {
                   close();
                   Action.Action.actionStream.push("Close widget");
-                  e.consume();
               });
-        Label detachB = AwesomeDude.createIconLabel(EXTERNAL_LINK_SQUARE,"","12","12",CENTER);
-              detachB.setTooltip(new Tooltip("Detach widget to own window"));
-              detachB.setOnMouseClicked( e -> {
-                  detach();
-                  e.consume();
-              });
-        Label changeB = AwesomeDude.createIconLabel(TH_LARGE,"","12","12",CENTER);
-               changeB.setTooltip(new Tooltip("Change widget"));
-               changeB.setOnMouseClicked( e -> {
-                   choose();
-                   e.consume();
-               });
-               propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
-               propB.setTooltip(new Tooltip("Settings"));
-               propB.setOnMouseClicked( e -> {
-                   settings();
-                   e.consume();
-               });
-        Label lockB = AwesomeDude.createIconLabel(area.isLocked() ? UNLOCK : LOCK,"","12","12",CENTER);
-               lockB.setTooltip(new Tooltip(area.isLocked() ? "Unlock widget layout" : "Lock widget layout"));
-               lockB.setOnMouseClicked( e -> {
+        Label detachB = Util.createIcon(EXTERNAL_LINK_SQUARE,12,"Detach widget to own window", e -> detach());
+        Label changeB = Util.createIcon(TH_LARGE,12,"Change widget",e -> choose());
+        propB = Util.createIcon(COGS,12,"Settings",e -> settings());
+        Label lockB = Util.createIcon(area.isLocked() ? UNLOCK : LOCK,12,
+                area.isLocked() ? "Unlock widget layout" : "Lock widget layout",null);
+              lockB.setOnMouseClicked(e -> {
                    toggleLocked();
                    AwesomeDude.setIcon(lockB,area.isLocked() ? UNLOCK : LOCK,"12");
                    lockB.getTooltip().setText(area.isLocked() ? "Unlock widget layout" : "Lock widget layout");
-                   e.consume();
                });
-        Label refreshB = AwesomeDude.createIconLabel(REFRESH,"","12","12",CENTER);
-              refreshB.setTooltip(new Tooltip("Refresh widget"));
-              refreshB.setOnMouseClicked( e -> {
-                  refreshWidget();
-                  e.consume();
-              });
-        absB = AwesomeDude.createIconLabel(LINK,"","12","12",CENTER);
-        absB.setTooltip(new Tooltip("Toggle absolute size"));
-        absB.setOnMouseClicked( e -> {
+        Label refreshB = Util.createIcon(REFRESH,12,"Refresh widget",e -> refreshWidget());
+        absB = Util.createIcon(LINK,12,"Toggle absolute size",e -> {
             toggleAbsSize();
             updateAbsB();
-            e.consume();
         });
         
         // build header
         header_buttons.getChildren().addAll(closeB,detachB,changeB,propB,refreshB,lockB,absB,infoB);
         header_buttons.getChildren().forEach(c->{
-            ((Label)c).setMaxWidth(13);
-            ((Label)c).setPrefWidth(13);
-            ((Label)c).setMinWidth(13);
-            ((Label)c).setMaxHeight(13);
-            ((Label)c).setPrefHeight(13);
-            ((Label)c).setMinHeight(13);
+            ((Label)c).setMaxSize(13, 13);
+            ((Label)c).setPrefSize(13, 13);
+            ((Label)c).setMinSize(13, 13);
         });
         
         // build animations

@@ -205,7 +205,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         img_file = img;
         Point2D size = calculateImageLoadSize(root);
         Image i = Util.loadImage(img_file, size.getX(), size.getY());
-        
+        System.out.println("dddddddddddddddd " + size.getX() + " " + size.getY());
         load(i, img);
     }
     public void loadImage(Cover img) {

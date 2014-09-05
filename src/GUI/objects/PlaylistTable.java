@@ -1,6 +1,7 @@
 
 package GUI.objects;
 
+import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
@@ -11,7 +12,6 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import Layout.Widgets.Features.TaggingFeature;
-import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import PseudoObjects.FormattedDuration;
@@ -20,8 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.beans.InvalidationListener;
-import javafx.beans.WeakInvalidationListener;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -50,6 +48,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import org.reactfx.Subscription;
 import utilities.Enviroment;
 import utilities.FxTimer;
 import utilities.SingleInstance;
@@ -98,8 +97,7 @@ public final class PlaylistTable {
     int clicked_row = -1;
     
     // playing item observation listeners
-    private final InvalidationListener pIL = o -> refresh();
-    private final WeakInvalidationListener playingListener = new WeakInvalidationListener(pIL);
+    Subscription playintItemMonitor = Player.playingtem.subscribeToChanges(o->refresh());
     
     // invisible controls helping with resizing columns
     private Label tmp = new Label();
@@ -359,10 +357,6 @@ public final class PlaylistTable {
         table.getSelectionModel().selectedItemProperty().addListener(selItemListener);
         table.getSelectionModel().getSelectedItems().addListener(selItemsListener);
         
-        // observe and show playing item - set listener & init value
-        PlaylistManager.playingItemProperty().addListener(playingListener);
-        playingListener.invalidated(PlaylistManager.playingItemProperty());
-        
 //        table.setSortPolicy( t -> {
 //            SortedList itemsList = (SortedList) t.getItems();
 //            FXCollections.sort(itemsList, itemsS.getComparator());
@@ -450,7 +444,7 @@ public final class PlaylistTable {
     
     /** Clears resources like listeners for this table object. */
     public void clearResources() {
-        PlaylistManager.playingItemProperty().removeListener(playingListener);
+        playintItemMonitor.unsubscribe();
         table.getSelectionModel().selectedItemProperty().removeListener(selItemListener);
         table.getSelectionModel().getSelectedItems().removeListener(selItemsListener);
     }
@@ -459,7 +453,9 @@ public final class PlaylistTable {
     
      // we will set this to table.getItems, but since the list can change, we
     // have to carry it over to the new list
-    ListChangeListener<PlaylistItem> resizer = o -> {table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
+    ListChangeListener<PlaylistItem> resizer = o -> {
+        // unfortunately this doesnt work, it requires delay
+        // table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
         FxTimer.run(Duration.millis(100), () -> {
                 table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
         });
@@ -669,11 +665,8 @@ public final class PlaylistTable {
                 }),
                 Util.createmenuItem("Edit the item/s in tag editor", e -> {
                     List<PlaylistItem> items = contextMenu.getItem();
-                    Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
-                    if (w!=null) {
-                        TaggingFeature t = (TaggingFeature) w.getController();
-                                       t.read(items);
-                    }
+                    TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
+                    if (tf!=null) tf.read(items);
                 }),
                 Util.createmenuItem("Crop items", e -> {
                     List<PlaylistItem> items = contextMenu.getItem();

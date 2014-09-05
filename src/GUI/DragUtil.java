@@ -7,20 +7,25 @@ import AudioPlayer.playlist.SimpleItem;
 import Layout.Component;
 import Layout.Container;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import main.App;
 import utilities.AudioFileFormat;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
+import utilities.Log;
 
 /**
  *
@@ -174,21 +179,77 @@ public final class DragUtil {
      */
     public static boolean hasAudio(Dragboard d) {
         return (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
-               (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
-               hasPlaylist() ||
-               hasItemList();
+                    (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
+                        hasPlaylist() ||
+                            hasItemList();
     }
     
+    /**
+     * Returns drag&dropped image files.
+     * <p>
+     * If image fiels were dropped, thy will be returned. IIf the item is url
+     * string of an image file, it will be returned as File after appropriate 
+     * conversion.
+     * <p>
+     * Support for url signifies also support for imges accessed remotely (http),
+     * which will be downloaded as temporary files and provided when ready.
+     * <p>
+     * Note that execution of this method may take a very long time.
+     * 
+     * @param e
+     * @return 
+     */
     public static List<File> getImageItems(DragEvent e) {
         Dragboard d = e.getDragboard();
         
-        if (d.hasFiles())
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+            try {
+                File nf = FileUtil.saveFileTo(d.getUrl(), App.TMP_FOLDER());
+                return Collections.singletonList(nf);
+            } catch (IOException ex) {
+                Log.err(ex.getMessage());
+                return EMPTY_LIST;
+            }
+        } else if (d.hasFiles())
             return FileUtil.getImageFiles(d.getFiles());
         else
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()))
-            return Collections.singletonList(new File(d.getUrl()));
-        else
             return EMPTY_LIST;
+    }
+    /**
+     * Functionally equivalent to {@link #getImageItems(javafx.scene.input.DragEvent)} and
+     * then executing the action on the result.
+     * <p>
+     * The difference is that this method delays the execution if needed, outside
+     * of the srag event, allowing it to be consumed and completed before the
+     * action executes.
+     * <p>
+     * This is imperative when the execution takes a long time (I/O operations),
+     * because the drag should be ended without any lag irrelevant of execution
+     * time.
+     * <p>
+     * Because the image can be drag&dropped as url from web, it wil take time
+     * for it to be converted into local file. Therefore, always prefer this
+     * methodover {@link #getImageItems(javafx.scene.input.DragEvent)}.
+     * 
+     * @param e
+     * @param action 
+     */
+    public static void doWithImageItems(DragEvent e, Consumer<List<File>> action) {
+        Dragboard d = e.getDragboard();
+        
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+            String url = d.getUrl();
+            Platform.runLater(() -> {
+                try {
+                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                    action.accept(Collections.singletonList(nf));
+                } catch (IOException ex) {
+                    Log.err(ex.getMessage());
+                }
+            });
+        } else if (d.hasFiles()) {
+            action.accept(FileUtil.getImageFiles(d.getFiles()));
+        }
     }
     
      /**
@@ -197,7 +258,7 @@ public final class DragUtil {
      */
     public static boolean hasImage(Dragboard d) {
         return (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) ||
-               (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
+                    (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
     
     
@@ -223,3 +284,4 @@ public final class DragUtil {
         }
     }
 }
+

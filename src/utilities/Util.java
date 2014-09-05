@@ -4,6 +4,8 @@
  */
 package utilities;
 
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -24,11 +26,15 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.control.ContentDisplay.CENTER;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -37,6 +43,7 @@ import javafx.stage.Screen;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
+import main.App;
 import org.jaudiotagger.tag.images.Artwork;
 
 /**
@@ -379,6 +386,16 @@ public interface Util {
         return (int) (Math.pow(10, 1+digits(number))-1);
     }
     
+    /**
+     * Returns file itself if exists or its existing parent recursively. If
+     * null or no parent exists, returns application location.
+     */
+    public static File getExistingParent(File f) {
+        if (f==null) return App.getLocation();
+        if (f.exists()) return f;
+        else return getExistingParent(f.getParentFile());
+    }
+    
 /******************************** GRAPHICS ************************************/
     
     /**
@@ -458,6 +475,13 @@ public interface Util {
     public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> actionHandler) {
         MenuItem i = new MenuItem(text);
                  i.setOnAction(actionHandler);
+        return i;
+    }
+    
+    public static Label createIcon(AwesomeIcon icon, int size, String tooltip, EventHandler<MouseEvent> onClick) {
+        Label i = AwesomeDude.createIconLabel(icon,"",String.valueOf(size),String.valueOf(GUI.GUI.font.getSize()),CENTER);
+              i.setOnMouseClicked(onClick);
+        if(tooltip!=null && !tooltip.isEmpty()) i.setTooltip(new Tooltip(tooltip));
         return i;
     }
     

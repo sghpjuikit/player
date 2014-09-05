@@ -22,6 +22,7 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import utilities.FileUtil;
 import utilities.FxTimer;
 
 
@@ -62,7 +63,7 @@ public class App extends Application {
     
 /*********************************** CONFIGS **********************************/
     
-    @IsConfig(name = "Show hint when on app start", info = "Automatically show guide hints next time application starts up. Automatically sets to false afterwards.")
+    @IsConfig(name = "Show guide when on app start", info = "Automatically show guide hints next time application starts up. Automatically set to false afterwards.")
     public static boolean showGuide = true;
     
     @IsConfig(info = "Preffered editability of rating controls. This value is overridable.")
@@ -95,7 +96,7 @@ public class App extends Application {
      */
     @Override
     public void init() {
-        Action.startGlobalListening();
+        
     }
     
     /**
@@ -113,7 +114,7 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) {
             
-        
+        Action.startGlobalListening();
         Configuration.load();           // must initialize first
         
         try {
@@ -121,7 +122,7 @@ public class App extends Application {
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
-          
+
             // create hidden main window
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
@@ -146,7 +147,7 @@ public class App extends Application {
         NotifierManager.start();           // after window is shown (and css aplied)
         PlaycountIncrementer.initialize();
         MoodManager.initialize();
-        Action.getActions().values().forEach(Action::register);        
+        Action.getActions().forEach(Action::register);        
 
         Configuration.applyFieldsAll();         // apply all (and gui) settings
         
@@ -188,6 +189,8 @@ public class App extends Application {
             
         }
         DB.stop();
+        // remove temporary files
+        FileUtil.removeDirContent(TMP_FOLDER());
     }
     
     public static boolean isInitialized() {
@@ -221,6 +224,7 @@ public class App extends Application {
 /******************************************************************************/
     
     /**
+     * The root location of the application. Equivalent to new File("").getAbsoluteFile().
      * @return absolute file of location of the root directory of this
      * application.
      */
@@ -238,7 +242,7 @@ public class App extends Application {
         return new Image(new File("icon.png").toURI().toString());
     }
     
-    /** @return github link for this application. */
+    /** @return github link for project of this application. */
     public static URI getGithubLink() {
         return URI.create("https://www.github.com/sghpjuikit/player/");
     }
@@ -267,7 +271,18 @@ public class App extends Application {
     public static File DATA_FOLDER() {
         return new File("UserData").getAbsoluteFile();
     }
-    /** @return absolute file of Location of data. */
+    
+    /** 
+     * Use for temporary files & junk. This folder is emptied on app close.
+     * 
+     * @return absolute file of directory for temporary files.
+     */
+    public static File TMP_FOLDER() {
+        return new File(DATA_FOLDER(),"Temp");
+    }
+    
+    /** 
+     * @return absolute file of Location of database. */
     public static File LIBRARY_FOLDER() {
         return new File(DATA_FOLDER(), "Library");
     }

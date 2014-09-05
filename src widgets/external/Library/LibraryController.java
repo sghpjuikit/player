@@ -18,7 +18,6 @@ import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.FadeButton;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
-import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.WidgetInfo;
 import Layout.Widgets.WidgetManager;
@@ -191,7 +190,7 @@ public class LibraryController extends FXMLController {
         b1.setOnMouseClicked( e -> {
             // get file
             DirectoryChooser fc = new DirectoryChooser();
-                             fc.setInitialDirectory(last_file);
+                             fc.setInitialDirectory(Util.getExistingParent(last_file));
                              fc.setTitle("Add folder to library");
             File f = fc.showDialog(root.getScene().getWindow());
 
@@ -209,6 +208,8 @@ public class LibraryController extends FXMLController {
                 EventHandler onEnd = event -> {
                     progressL.textProperty().unbind();
                     FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                    TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class, FACTORY);
+                    if(tf!= null) tf.read(metas);
                 };
                 t.setOnFailed(onEnd);
                 t.setOnSucceeded(onEnd);
@@ -312,11 +313,8 @@ public class LibraryController extends FXMLController {
                 }),
                 Util.createmenuItem("Edit the item/s in tag editor", e -> {
                     List<Metadata> items = contextMenu.getItem();
-                    Widget w = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
-                    if (w!=null) {
-                        TaggingFeature t = (TaggingFeature) w.getController();
-                                       t.read(items);
-                    }
+                    TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class, FACTORY);
+                    if(tf!= null) tf.read(items);
                 }),
                 Util.createmenuItem("Explore items's directory", e -> {
                     List<Metadata> items = contextMenu.getItem();

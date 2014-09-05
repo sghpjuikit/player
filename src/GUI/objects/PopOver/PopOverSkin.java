@@ -60,6 +60,8 @@ import javafx.scene.shape.PathElement;
 import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
+import javafx.util.Duration;
+import utilities.FxTimer;
 
 
 public class PopOverSkin implements Skin<PopOver> {
@@ -173,8 +175,6 @@ public class PopOverSkin implements Skin<PopOver> {
         content.setTop(shouldHeaderBeVisible() ? header : null);    // show header only if title text not empty
         content.getStyleClass().add("content");
         
-        // show new content when changes
-        popOver.contentNodeProperty().addListener((o,ov,nv) -> content.setCenter(nv));
         
         // show header only if title text not empty
         popOver.titleProperty().addListener((o,ov,nv)->
@@ -187,6 +187,13 @@ public class PopOverSkin implements Skin<PopOver> {
 
         popOver.arrowLocationProperty().addListener(updatePathListener);
 
+        // show new content when changes
+        // not the delay in thelistener, it is essencial for theupdatePath to work here - unknown reason
+        InvalidationListener contentListener = o -> FxTimer.run(Duration.millis(25),this::updatePath);
+        content.widthProperty().addListener(contentListener);
+        content.heightProperty().addListener(contentListener);
+        popOver.contentNodeProperty().addListener((o,ov,nv) -> content.setCenter(nv));
+        
         // this block must be done before the next one
         path = new Path();
         path.getStyleClass().add("bgr");
@@ -607,7 +614,7 @@ public class PopOverSkin implements Skin<PopOver> {
         return loc.equals(arrowLocation) && !popOver.isDetached() && !tornOff;
     }
 
-    private void updatePath() {
+    public void updatePath() {
         // Point2D targetPoint = new Point2D(popOver.getTargetX(),
         // popOver.getTargetY());
         //

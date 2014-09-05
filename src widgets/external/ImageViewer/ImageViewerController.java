@@ -58,7 +58,8 @@ import utilities.access.Accessor;
             "    Image right click : Opens image context menu\n" +
             "    Thumbnail left click : Show as image\n" +
             "    Thumbnail right click : Opens thumbnail context menu\n" +
-            "    Drag&Drop audio : Displays images for the first dropped item\n",
+            "    Drag&Drop audio : Displays images for the first dropped item\n" + 
+            "    Drag&Drop image : Copies images into current item's locaton\n",
     notes = "",
     version = "1.0",
     year = "2014",
@@ -105,23 +106,21 @@ public class ImageViewerController extends FXMLController {
     public final Accessor<Boolean> showImage = new Accessor<>(true, this::setImageVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
     public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::setThumbnailsVisible);
-    @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves widget.")
+    @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
     public final Accessor<Boolean> hideThumbEager = new Accessor<>(true, v -> {
-        if (v) 
-            entireArea.setOnMouseExited(e -> {
-                showThumbnails.setNapplyValue(false);
-                e.consume();
-            });
-        else
-            entireArea.setOnMouseExited(null);
+        if (v) entireArea.setOnMouseExited(e -> showThumbnails.setNapplyValue(false));
+        else entireArea.setOnMouseExited(null);
+    });
+    @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
+    public final Accessor<Boolean> showThumbEager = new Accessor<>(false, v -> {
+        if (v) entireArea.setOnMouseEntered(e -> showThumbnails.setNapplyValue(true));
+        else entireArea.setOnMouseEntered(null);
     });
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
     public final Accessor<Boolean> thums_rect = new Accessor<>(false, v -> thumbnails.forEach(t->{
         t.setBorderToImage(!v);
         t.setBackgroundVisible(v);
     }));
-        
-    // manually applied configurables
     
     // non applied configurables
     @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
@@ -158,8 +157,6 @@ public class ImageViewerController extends FXMLController {
             }
         });
         
-        
-        
         AnchorPane.setBottomAnchor(thumb_root, 0.0);
         AnchorPane.setTopAnchor(thumb_root, 0.0);
         AnchorPane.setLeftAnchor(thumb_root, 0.0);
@@ -167,8 +164,10 @@ public class ImageViewerController extends FXMLController {
         thumb_root.toFront();
         thumb_root.setPickOnBounds(false);
         thumb_root.setOnMouseClicked(e -> {
-            showThumbnails.toggleNapplyValue();
-            e.consume();
+            if (e.getButton()==PRIMARY) {
+                showThumbnails.toggleNapplyValue();
+                e.consume();
+            }
         });
         
         // refresh if source data changed
@@ -176,6 +175,7 @@ public class ImageViewerController extends FXMLController {
         
         // accept drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
+        entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
@@ -192,11 +192,22 @@ public class ImageViewerController extends FXMLController {
                 e.setDropCompleted(true);
                 e.consume();
             }
+            if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {
+                // grab images
+                DragUtil.doWithImageItems(e, files -> {
+                    // copy files to displayed item'slocation
+                    FileUtil.copyFiles(files, folder.get())
+                        // create thumbnails for new files (we avoid refreshign all)
+                        .forEach(f->addThumbnail(f));
+                });
+                // end drag
+                e.setDropCompleted(true);
+                e.consume();
+            }
         });
         
         // consume scroll event to prevent app scroll behavior // optional
         entireArea.setOnScroll(Event::consume);
-        
     }
 
     @Override
@@ -263,12 +274,13 @@ public class ImageViewerController extends FXMLController {
                     // add frame per file - each turning file into thumbnail
                     for(int i=1; i<files.size()+1; i++) {
                         final int ind = i;
-                        frames.add(new KeyFrame(Duration.millis(i*thumbnailReloadTime), e -> {
+                        KeyFrame kf = new KeyFrame(Duration.millis(i*thumbnailReloadTime),
+                        e -> {
                             File f = files.get(ind-1);
-                            images.add(f);
                             addThumbnail(f);
-                            if (ind-1== 0 || thumbnail.isEmpty()) setImage(0);
-                        },new KeyValue(line,1)));
+                        },
+                        new KeyValue(line,1));
+                        frames.add(kf);
                     }
                     thumbTimeline = new Timeline(frames.toArray(new KeyFrame[0]));
                     thumbTimeline.play();
@@ -294,20 +306,25 @@ public class ImageViewerController extends FXMLController {
             thumbReader.start();
     }
     
-    private void addThumbnail(final File image) {
+    private void addThumbnail(final File f) {
+        // create thumbnail
         Thumbnail t = new Thumbnail(thumbSize.getValue());
                   t.setBorderToImage(!thums_rect.getValue());
                   t.setBackgroundVisible(thums_rect.getValue());
                   t.setHoverable(true);
-                  t.loadImage(image);
+                  t.loadImage(f);
                   t.getPane().setOnMouseClicked( e -> {
                       if (e.getButton() == PRIMARY) {
-                          setImage(images.indexOf(image));
+                          setImage(images.indexOf(f));
                           e.consume();
                       }
                   });
+        // store
         thumbnails.add(t);
+        images.add(f);
         thumb_pane.getChildren().add(t.getPane());
+        // if this is first thumbnail display it immediatelly
+        if (thumbnails.size()==1) setImage(0);
     }
     
     private void setImage(int index) {

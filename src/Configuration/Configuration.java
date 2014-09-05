@@ -3,6 +3,9 @@ package Configuration;
 
 import Action.Action;
 import java.io.File;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,6 +30,7 @@ import utilities.Util;
 public class Configuration {
     
     private static final Map<String,Config> configs = new HashMap();
+    private static final Lookup methodLookup = MethodHandles.lookup();
     
     static {
         // for all discovered classes
@@ -50,8 +54,13 @@ public class Configuration {
                         if(!name.isEmpty() && configs.containsKey(name)) {
                             Config c = configs.get(name);
                             if(c instanceof FieldConfig) {
-                                ((FieldConfig)c).applierMethod = m;
-                                Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
+                                try {
+                                    m.setAccessible(true);
+                                    ((FieldConfig)c).applier = methodLookup.unreflect(m);
+                                    Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
+                                } catch (IllegalAccessException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
                     }
@@ -109,7 +118,18 @@ public class Configuration {
                 // if final -> runtime exception, dev needs to fix his code
                 throw new IllegalStateException("Field config must not be final.");
             // make statif field config based on the field
-            return new FieldConfig(name, anotation, instance, group, f);
+//            return new FieldConfig(name, anotation, instance, group, f);
+            
+            try {
+                f.setAccessible(true);
+                MethodHandle getter = methodLookup.unreflectGetter(f);
+                MethodHandle setter = methodLookup.unreflectSetter(f);
+                return new FieldConfig(name, anotation, instance, group, getter, setter);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Unreflecting field " + f.getName() + " failed. " + e.getMessage());
+            }
+            
+            
         }
     }
     
@@ -201,13 +221,13 @@ public class Configuration {
      */
     public static Config getField(String name) {
         Config c = configs.get(name);
-        if (c==null) c = Action.getActions().get(name);
+        if (c==null) c = Action.getAction(name);
         return c;
     }
     
     public static List<Config> getFields() {
         List<Config> cs = new ArrayList(configs.values());
-                     cs.addAll(Action.getActions().values());
+                     cs.addAll(Action.getActions());
         return cs;
     }
     

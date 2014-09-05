@@ -115,8 +115,11 @@ public final class PLAYBACK implements Configurable {
         // play
         createPlayback(item.getURI().toString());
         playback.play();
-        PlaylistManager.setPlayingItem(item);
+        
         realTime.synchroRealTime_onPlayed();
+        // fire playing item change event
+        Player.playingtem.itemChanged(item);
+        PlaylistManager.setPlayingItem(item);
         core.playbackStartDistributor.run();
     }
     

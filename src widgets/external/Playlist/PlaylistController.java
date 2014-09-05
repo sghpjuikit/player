@@ -16,7 +16,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import Layout.Widgets.WidgetManager;
-import Layout.Widgets.WidgetManager.Widget_Source;
+import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.ERASER;
@@ -304,11 +304,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @FXML
     public void tagEditSelected() {
-        Widget w = WidgetManager.getWidget(TaggingFeature.class,Widget_Source.FACTORY);
-        if (w!=null) {
-            TaggingFeature t = (TaggingFeature) w.getController();
-                           t.read(playlist.getSelectedItems());
-        }
+        TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class, FACTORY);
+        if(tf!= null) tf.read(playlist.getSelectedItems());
     }
     @FXML
     public void savePlaylist() {

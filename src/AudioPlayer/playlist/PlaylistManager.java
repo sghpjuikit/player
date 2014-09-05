@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.ObservableList;
@@ -67,6 +66,7 @@ public class PlaylistManager implements Configurable {
         addItems(Player.state.playlist.playlist);
         // fires metadata loading update (needed ?)
         playingItem.set(getItem(Player.state.playlist.playingItem.get()));
+        Player.playingtem.itemChanged(getItem(Player.state.playlist.playingItem.get()));
     }
     
 /******************************************************************************/
@@ -120,12 +120,7 @@ public class PlaylistManager implements Configurable {
     public static int indexOfPlaying() {
         return isItemPlaying() ? playlist.indexOf(playingItem.get()) : -1;
     }
-    /**
-     * @return read only property of played item. Use to bind and observe. 
-     */
-    public static ReadOnlyObjectProperty<PlaylistItem> playingItemProperty() {
-        return playingItem.getReadOnlyProperty();
-    }
+    
     /**
      * Returns read-only playlist length.
      * @return length total duration of the playlist.

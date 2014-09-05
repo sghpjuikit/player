@@ -45,11 +45,11 @@ public final class ContextManager {
     }
     /** Get last mouse click x coordinate. */
     public static double getX() {
-        return Window.getFocused().getX()+X;
+        return Window.getActive().getX()+X;
     }
     /** Get last mouse click y coordinate. */
     public static double getY() {
-        return Window.getFocused().getY()+Y;
+        return Window.getActive().getY()+Y;
     }
 /******************************************************************************/
     

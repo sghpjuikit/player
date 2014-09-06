@@ -17,6 +17,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -474,8 +475,10 @@ public final class FileUtil {
     /**
      * Copies provided items to the provided directory.
      * <p>
-     * The method consumers I/O exception - that can occur when: an I/O error 
+     * The method consumes I/O exception - that can occur when: an I/O error 
      * occurs when reading or writing.
+     * <p>
+     * If source file equals the file of its copy, the file will not be copied.
      * 
      * @param files
      * @param target
@@ -488,8 +491,11 @@ public final class FileUtil {
         List<File> out = new ArrayList(); 
         for(File f : files) {
             try {
-                Files.copy(f.toPath(), target.toPath().resolve(f.toPath().getFileName()), options);
-                out.add(new File(target, f.getName()));
+                Path nf = target.toPath().resolve(f.toPath().getFileName());
+                if(!nf.equals(f.toPath())) {
+                    Files.copy(f.toPath(), nf, options);
+                    out.add(new File(target, f.getName()));
+                }
             } catch(IOException ex) {
                 // ignore
             }
@@ -497,9 +503,48 @@ public final class FileUtil {
         return out;
     }
     
+    /**
+     * <p>
+     * If source file equals the file of its copy, the file will not be copied.
+     * 
+     * @param f
+     * @param target
+     * @param new_name
+     * @param options 
+     */
     public static void copyFile(File f, File target, String new_name, CopyOption... options) {
         try {
             File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
+            Files.copy(f.toPath(), nf.toPath(), options);
+        } catch(IOException ex) {
+            // ignore
+        }
+    }
+    
+    /**
+     * Equivalent to {@link #copyFile(java.io.File, java.io.File, java.lang.String, java.nio.file.CopyOption...) },
+     * but the copying will always take place and never overwrite existing file,
+     * as if there is any, it is backed up by renaming, utilizing {@link #renameAsOld(java.io.File) }
+     * <p>
+     * If source file equals the file of its copy, the operation will not take place.
+     * 
+     * @param f
+     * @param target
+     * @param new_name
+     * @param options 
+     */
+    public static void copyFileSafe(File f, File target, String new_name, CopyOption... options) {
+        try {
+            String suffix = FileUtil.getSuffix(f.toURI());
+            String name = suffix.isEmpty() ? "cover" : "cover."+suffix;
+            File nf = new File(target, new_name + "." + suffix);
+            // avoid when files are the same (would produce nasty side effect of renaming
+            // the file needlessly)
+            if (f.equals(nf)) return;
+            
+            // backup old file
+            FileUtil.renameAsOld(new File(target, name));
+            // copy file
             Files.copy(f.toPath(), nf.toPath(), options);
         } catch(IOException ex) {
             // ignore
@@ -551,6 +596,12 @@ public final class FileUtil {
         return df;
     }
     
+    /**
+     * Renames flle by sufixing it with a number, utilizing 
+     * {@link #getFirstAvailableOld(java.io.File, java.lang.String, java.lang.String, int)}
+     * 
+     * @param f 
+     */
     public static void renameAsOld(File f) {
         if(f!= null && f.exists()) {
             // remove name
@@ -559,6 +610,18 @@ public final class FileUtil {
         }
     }
     
+    /**
+     * For given directory, filename and file suffix, returns first available file
+     * suffixed by an auto-incrementing decadic number.
+     * <p>
+     * Useful to avoid rewriting files on file move/copy.
+     * 
+     * @param location
+     * @param name
+     * @param suffix
+     * @param i
+     * @return 
+     */
     public static File getFirstAvailableOld(File location, String name, String suffix, int i) {
         File f = new File(location, name + "-" + i + "."+suffix);
         if(f.exists()) return getFirstAvailableOld(location, name, suffix, i+1);

@@ -20,6 +20,7 @@ import java.util.Objects;
  */
 public enum ImageFileFormat {
     jpg,
+    jpeg,
     bmp,
     png,
     gif,

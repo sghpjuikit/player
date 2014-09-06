@@ -14,12 +14,15 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -45,6 +48,7 @@ import javafx.util.Duration;
 import javax.imageio.ImageIO;
 import main.App;
 import org.jaudiotagger.tag.images.Artwork;
+import utilities.functional.functor.BiCallback;
 
 /**
  * Provides static utility methods for various purposes.
@@ -579,5 +583,75 @@ public interface Util {
      */
     public static Class getGenericClass(Class c, int i) {
         return (Class) ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()[i];
+    }
+    
+/********************************** FUNCTIONAL ********************************/
+    
+    /**
+     * Functional alternative to for cycle for collections.
+     * <p>
+     * Equivalent to Collection.forEach(), with additional parameter - index of
+     * the element in the collection.
+     * <p>
+     * Maps all elements of the collection into index-element pairs and executes
+     * the action for each. Indexes start at 0.
+     * 
+     * @param <T> element type
+     * @param c
+     * @param action 
+     */
+    public static<T> void forEachIndexed(Collection<T> c, BiConsumer<Integer,T> action) {
+        int i=0;
+        for(T item : c) {
+            action.accept(i, item);
+            i++;
+        }
+    }
+    
+    /**
+     * Returns stream of elements mapped by the mapper from index-element pairs 
+     * of specified collection. Indexes start at 0.
+     * <p>
+     * Functionally equivalent to: List.stream().map(item->new Pair(item,list.indexOf(item))).map(pair->mapper.map(p))
+     * but avoiding the notion of a Pair or Touple, and without any collection
+     * traversal to get indexes.
+     * 
+     * @param <T> element type
+     * @param <R> result type
+     * @param c
+     * @param mapper
+     * @return 
+     */
+    public static<T,R> Stream<R> forEachIndexedStream(Collection<T> c, BiCallback<Integer,T,R> mapper) {
+        int i=0;
+        Stream.Builder<R> b = Stream.builder();
+        for(T item : c) {
+            b.accept(mapper.call(i, item));
+            i++;
+        }
+        return b.build();
+    }
+    
+    /**
+     * More general version of {@link #forEachIndexed(java.util.Collection, utilities.functional.functor.BiCallback)}.
+     * The index can now be of any type and how it changes is defined by a parameter.
+     * @param <I> key type
+     * @param <T> element type
+     * @param <R> result type
+     * @param c
+     * @param initial_val  for example: 0
+     * @param operation for example: number -> number++
+     * @param mapper maps the key-object pair into another object
+     * 
+     * @return stream of mapped values by a mapper out of key-element pairs
+     */
+    public static<I,T,R> Stream<R> forEachIndexedStream(Collection<T> c, I initial_val, Callback<I,I> operation, BiCallback<I,T,R> mapper) {
+        I i = initial_val;
+        Stream.Builder<R> b = Stream.builder();
+        for(T item : c) {
+            b.accept(mapper.call(i, item));
+            i = operation.call(i);
+        }
+        return b.build();
     }
 }

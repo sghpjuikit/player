@@ -17,12 +17,14 @@ import static PseudoObjects.ReadMode.PLAYING;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -40,6 +42,7 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import utilities.FileUtil;
 import utilities.FxTimer;
+import utilities.Util;
 import utilities.access.Accessor;
 
 /**
@@ -257,6 +260,13 @@ public class ImageViewerController extends FXMLController {
     // using change listener means the event fires only if value really changed
     // which is important here to avoid reading thumbnails for nothing
     private final ChangeListener<File> locationChange = (o,ov,nv) -> readThumbnails();
+    Executor executor = Executors.newFixedThreadPool(1, new ThreadFactory(){
+                @Override public Thread newThread(Runnable r) {
+                    Thread t = new Thread(r);
+                           t.setDaemon(true);
+                    return t;
+                }
+            });
     
     private Timeline thumbTimeline = new Timeline();
     private final Service<Void> thumbReader = new Service() {
@@ -265,24 +275,19 @@ public class ImageViewerController extends FXMLController {
             // return newly constructed task
             return new Task<Void>() {
                 @Override protected Void call() throws Exception {
-                    final List<File> files = FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth);
-                    SimpleIntegerProperty line = new SimpleIntegerProperty(0);
-                    List<KeyFrame> frames = new ArrayList();
-                    // create zero frame which will not do anything, otherwise
-                    // first file would be left out
-                    frames.add(new KeyFrame(Duration.ZERO, e -> {}, new KeyValue(line,1)));
-                    // add frame per file - each turning file into thumbnail
-                    for(int i=1; i<files.size()+1; i++) {
-                        final int ind = i;
-                        KeyFrame kf = new KeyFrame(Duration.millis(i*thumbnailReloadTime),
-                        e -> {
-                            File f = files.get(ind-1);
-                            addThumbnail(f);
-                        },
-                        new KeyValue(line,1));
-                        frames.add(kf);
-                    }
-                    thumbTimeline = new Timeline(frames.toArray(new KeyFrame[0]));
+                    // discover files
+                    List<File> files = FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth);
+                    // create timeline for adding thumbnails
+                    thumbTimeline = new Timeline();
+                    // add actions - turn file into thumbnail
+                    Util.forEachIndexedStream(files, 
+                            (i,f) -> new KeyFrame(Duration.millis((1+i)*thumbnailReloadTime), e -> {
+                                    // create & load thumbnail on bgr thread
+                                    Thumbnail t = createThumbnail(f);
+                                    // add to gui on gui thread
+                                    Platform.runLater(()->insertThumbnail(t));
+                                }))
+                            .forEach(thumbTimeline.getKeyFrames()::add);
                     thumbTimeline.play();
                     return null;
                 }
@@ -307,6 +312,10 @@ public class ImageViewerController extends FXMLController {
     }
     
     private void addThumbnail(final File f) {
+        insertThumbnail(createThumbnail(f));
+    }
+    
+    private Thumbnail createThumbnail(final File f) {
         // create thumbnail
         Thumbnail t = new Thumbnail(thumbSize.getValue());
                   t.setBorderToImage(!thums_rect.getValue());
@@ -319,13 +328,20 @@ public class ImageViewerController extends FXMLController {
                           e.consume();
                       }
                   });
+                  
+        return t;
+    }
+    
+    private void insertThumbnail(Thumbnail t) {
         // store
         thumbnails.add(t);
-        images.add(f);
+        images.add(t.getFile());
         thumb_pane.getChildren().add(t.getPane());
         // if this is first thumbnail display it immediatelly
-        if (thumbnails.size()==1) setImage(0);
+//        if (thumbnails.size()==1) setImage(0);
     }
+    
+    
     
     private void setImage(int index) {
         if (images.isEmpty()) index = -1;

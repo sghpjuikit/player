@@ -152,7 +152,8 @@ public final class DragUtil {
         
         if (d.hasFiles()) {
             FileUtil.getAudioFiles(d.getFiles(),0).stream()
-                    .map(SimpleItem::new).forEach(out::add);
+                    .map(SimpleItem::new)
+                    .forEach(out::add);
         } else
         if (d.hasUrl()) {
             String url = d.getUrl();
@@ -178,7 +179,7 @@ public final class DragUtil {
      * @return true if contains at least 1 audio file, audio url, playlist or items 
      */
     public static boolean hasAudio(Dragboard d) {
-        return (d.hasFiles() && d.getFiles().stream().anyMatch(AudioFileFormat::isSupported)) ||
+        return (d.hasFiles() && FileUtil.getAudioFiles(d.getFiles(),0).stream().anyMatch(AudioFileFormat::isSupported)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
                         hasPlaylist() ||
                             hasItemList();

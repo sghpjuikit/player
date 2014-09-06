@@ -4,6 +4,7 @@ import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import java.io.File;
@@ -40,7 +41,7 @@ import utilities.access.Accessor;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class ImageController extends FXMLController {
+public class ImageController extends FXMLController implements ImageDisplayFeature {
     
     // auto applied configurables
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
@@ -100,12 +101,8 @@ public class ImageController extends FXMLController {
             if(DragUtil.hasImage(e.getDragboard())) {
                 // grab images
                 DragUtil.doWithImageItems(e, imgs -> {
-                    if(!imgs.isEmpty()) {
-                        // set custom image to first available
-                        custom_image = imgs.get(0);
-                        // use custom image
-                        useCustomImage.setNapplyValue(true);
-                    }
+                    if(!imgs.isEmpty())
+                        showImage(imgs.get(0));
                 });
                 // end drag
                 e.setDropCompleted(true);
@@ -150,6 +147,14 @@ public class ImageController extends FXMLController {
         }
         // restart slideshow timer
         if(slideshow!=null && slideshow_on.getValue()) slideshow.restart();
+    }
+
+    @Override
+    public void showImage(File img_file) {
+        // set custom image to first available
+        custom_image = img_file;
+        // use custom image
+        useCustomImage.setNapplyValue(true);
     }
     
 /******************************* HELPER METHODS *******************************/

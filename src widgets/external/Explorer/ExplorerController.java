@@ -7,9 +7,14 @@
 package Explorer;
 
 import Configuration.IsConfig;
+import GUI.GUI;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
+import Layout.Widgets.WidgetManager;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,6 +32,7 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
@@ -35,6 +41,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
+import utilities.Enviroment;
+import utilities.FileUtil;
+import utilities.ImageFileFormat;
 import utilities.access.Accessor;
 
 /**
@@ -46,10 +55,12 @@ import utilities.access.Accessor;
     author = "Martin Polakovic",
     description = "Simple file system browser with drag and copy support.",
     howto = "Available actions:\n" +
+            "    Double click file: Open file in native application\n" +
+            "    Double click skin file: Apply skin on application\n" +
             "    Drag file from list : Starts drag & drop or copy\n" +
             "    Drag file from list + SHIFT : Starts drag & drop or move\n",
     notes = "",
-    version = "0.6",
+    version = "0.7",
     year = "2014",
     group = Widget.Group.OTHER
 )
@@ -74,11 +85,31 @@ public class ExplorerController extends FXMLController {
     
     @Override
     public void init() {
-        
+        tree.setFixedCellSize(GUI.font.getSize() + 5);
         tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         // set value factory
         tree.setCellFactory( treeView -> new TreeCell<File>(){
+            {
+                setOnMouseClicked( e -> {
+                    if(e.getClickCount()==2 && e.getButton()==PRIMARY) {
+                        File f = getItem();
+                        // handle files
+                        if(f.isFile()) {
+                            // open skin
+                            if(FileUtil.isValidSkinFile(f))
+                                GUI.setSkin(FileUtil.getName(f));
+                            else if (ImageFileFormat.isSupported(f)) {
+                                ImageDisplayFeature idf = WidgetManager.getWidget(ImageDisplayFeature.class, WidgetManager.Widget_Source.FACTORY);
+                                if(idf != null) idf.showImage(f);
+                            }
+                            // open file in native application
+                            else
+                                Enviroment.open(f);
+                        }
+                    }
+                });
+            }
             @Override
             protected void updateItem(File item, boolean empty) {
                 super.updateItem(item, empty);
@@ -88,13 +119,13 @@ public class ExplorerController extends FXMLController {
                 } else {
                     Path p = item.toPath().getFileName();
                     String s = p==null ? item.toPath().toString() : p.toString();
-                    setText(s);                        // show filenames
-                    setGraphic(makeIcon(item.toPath()));         // denote type by icon
+                    setText(s);                             // show filenames
+                    setGraphic(makeIcon(item.toPath()));    // denote type by icon
                 }
             }
         });
         
-        // supprt drag from tree - add selected to clipboard/dragboard
+        // support drag from tree - add selected to clipboard/dragboard
         tree.setOnDragDetected( e -> {
             if (e.getButton()!=MouseButton.PRIMARY) return; // only left button
             if(tree.getSelectionModel().isEmpty()) return;  // if empty
@@ -143,6 +174,7 @@ public class ExplorerController extends FXMLController {
 /******************************* HELPER METHODS *******************************/
     
     private static Node makeIcon(Path p) {
+        if(p.toString().endsWith(".css")) return AwesomeDude.createIconLabel(CSS3,"11");
         if(p.toFile().isFile()) return new Circle(2.5, Color.CADETBLUE);
         else return new Rectangle(5, 5, Color.CADETBLUE);
     }

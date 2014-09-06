@@ -44,7 +44,9 @@
   double value config
 - writing to tag for files without tag fails sometimes (jaudiotagger cant rename
   file, it looks like it is locked) - perhaps generalizes to any change of tag
-  that enlarges the file (and thusrequires tmp file)
+  that enlarges the file (and thus requires tmp file)
+  it is possible that app doesnt have permission  to create tmp file where the lib
+  is trying to do it.
 - external playlist (m3u, etc) support + dragging too
 
 - lazy selected itemstream
@@ -53,7 +55,7 @@
 ------------------------ PERFECTION - the pain & OCD ---------------------------
 --------------------------------------------------------------------------------
 
-- explorer widget - support skin loading by opening the fie
+- open file types natively in-app support (images, audio, etc)
 - explorer graphics support css skinning
 - ConfigField (General) disable ok button for manually applied configs
 

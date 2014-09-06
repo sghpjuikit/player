@@ -18,7 +18,6 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -259,13 +258,8 @@ public class FileInfoController extends FXMLController  {
                 DragUtil.doWithImageItems(e, imgs ->  {
                     if(copyImageAsCover) {
                         if(!imgs.isEmpty()) {
-                            // preserve old
-                            File f = imgs.get(0);
-                            String suffix = FileUtil.getSuffix(f.toURI());
-                            String name = suffix.isEmpty() ? "cover" : "cover."+suffix;
-                            FileUtil.renameAsOld(new File(data.getLocation(), name));
-                            // copy files to displayed item's location
-                            FileUtil.copyFile(f, data.getLocation(), "cover");
+                            // copy files to displayed item's location & preserve old
+                            FileUtil.copyFileSafe(imgs.get(0), data.getLocation(), "cover");
                             // refres picture
                             cover_source.applyValue();
                         }

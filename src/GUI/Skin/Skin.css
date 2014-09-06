@@ -2285,6 +2285,13 @@
  *                                                                             *
  ******************************************************************************/
 
+.cell {
+    -fx-background-color: null;
+    -fx-border-color: null;
+    -fx-padding: 0 2 0 2;
+    -fx-text-fill: -fx-def-font-color;
+}
+
 /* remove double borders from scrollbars */
 .list-view > .virtual-flow > .scroll-bar:vertical,
 .tree-view > .virtual-flow > .scroll-bar:vertical,
@@ -2308,12 +2315,7 @@
 }
 /* standard cell */
 .list-cell,
-.tree-cell {
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-border-width: 0px;
-    -fx-padding: 0 1 0 1;
-}
+.tree-cell {}
 /* Selected rows focused control*/
 .list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
 .tree-view:focused > .virtual-flow > .clipped-container > .sheet > .tree-cell:filled:selected,
@@ -2351,9 +2353,7 @@
  *                                                                             *
  ******************************************************************************/
 
-.list-cell {
-    -fx-padding: 0.25em 0.583em 0.25em 0.583em;  //3 7 3 7 
-}
+.list-cell {}
 .list-cell:odd {
     -fx-background-color: null;
 }
@@ -2365,7 +2365,6 @@
  ******************************************************************************/
 
 .tree-cell {
-    -fx-padding: 0.25em; /* 3 */
     -fx-indent: 1em;
 }
 .tree-cell .label {
@@ -2374,7 +2373,6 @@
 .tree-cell > .tree-disclosure-node,
 .tree-table-row-cell > .tree-disclosure-node {
     -fx-padding: 4 6 4 8;
-    -fx-background-color: transparent;
 }
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
@@ -2404,7 +2402,7 @@
 /* Each row in the table is a table-row-cell. Inside a table-row-cell is any
    number of table-cell.*/
 .table-row-cell {
-    -fx-background-color: null;
+    -fx-padding: 0;
 }
 .table-row-cell:odd {
     -fx-background-color: null;
@@ -2413,14 +2411,7 @@
     -fx-background-color: null;
 }
 /***** INDIVIDUAL CELLS ********************************************************/
-.table-cell {
-    -fx-background-color: null;
-    -fx-border-color: null;
-    /*-fx-cell-size: 2.0em;  24 */
-    -fx-text-fill: -fx-def-font-color;
-    -fx-border-width: 0;
-    -fx-padding: 0 2 0 2;
-}
+.table-cell {}
 .table-view > .virtual-flow > .clipped-container > .sheet > .table-row-cell .table-cell:selected,
 .tree-table-view > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell .tree-table-cell:selected {
     -fx-background-color: -fx-table-cell-border-color, -fx-background;

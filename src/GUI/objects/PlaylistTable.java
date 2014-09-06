@@ -229,26 +229,24 @@ public final class PlaylistTable {
             double W = table.getWidth();
 
             // column 1
-            // need this weird method to get 9s as their are wide 
+            // need this weird method to get 9s as their are wide chars
             // (font isnt always proportional)
             int i = Util.DecMin1(table.getItems().size());    
-//            tmp.setText(""); // set empty to make sure the label resizes
             tmp.setText(String.valueOf(i)+".");
             tmp.setVisible(true);
             double W1 = tmp.getWidth();
             tmp.setVisible(false);
             // column 3
-//            tmp2.setText("");
             tmp2.setText("00:00");
-            double W3 = tmp2.getWidth()+6;
+            double W3 = tmp2.getWidth() + 4;
             
             // slider
             double H = table.getItems().size()*table.getFixedCellSize();
             double W4 = H > table.getHeight() ? 15 : 0;
-            
+
             // gap to prevent horizontal slider to appear
             double G = 3;
-            
+
             columnIndex.setPrefWidth(W1);
             columnName.setPrefWidth(W-W1-W3-W4-G);
             columnTime.setPrefWidth(W3);
@@ -257,7 +255,7 @@ public final class PlaylistTable {
         
         // handle selection
         table.setOnMousePressed( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return;
+            if (e.getButton() != MouseButton.PRIMARY) return;
             // reselect items from remembered state
             // this overrides default behavior where mousePressed deselects all but
             // the item that was clicked on
@@ -268,7 +266,7 @@ public final class PlaylistTable {
         });
         // handle selection
         table.setOnMouseReleased( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return;
+            if (e.getButton() != MouseButton.PRIMARY) return;
             // remember the indexes of selected rows
             // clone (! not copy), copying would mean that change to selected items
             // would change the remembered indexes too

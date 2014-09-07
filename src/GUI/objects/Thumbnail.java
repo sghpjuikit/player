@@ -27,6 +27,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
@@ -45,6 +46,7 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
@@ -96,6 +98,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     private AnchorPane root = new AnchorPane();
     @FXML ImageView image;
     @FXML StackPane img_container;
+    @FXML BorderPane content_container;
     @FXML Pane img_border;
     
     /**
@@ -385,6 +388,24 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                 db.setContent(c);
             }
         };
+    }
+    
+    public void setAlignment(Pos val) {
+        content_container.getChildren().clear();        
+        switch(val) {
+            case BASELINE_CENTER:
+            case CENTER: content_container.setCenter(img_container); break;
+            case BOTTOM_LEFT:
+            case BASELINE_LEFT:
+            case CENTER_LEFT:
+            case TOP_LEFT: content_container.setLeft(img_container); break;
+            case BOTTOM_RIGHT:
+            case BASELINE_RIGHT:
+            case CENTER_RIGHT:
+            case TOP_RIGHT: content_container.setRight(img_container); break;
+            case TOP_CENTER: content_container.setTop(img_container); break;
+            case BOTTOM_CENTER: content_container.setBottom(img_container); break;
+        }
     }
     
 /***************************  Implemented Traits  *****************************/

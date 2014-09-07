@@ -15,7 +15,6 @@ import javafx.scene.Node;
  * @author uranium
  */
 public class ClassWidgetFactory extends WidgetFactory<ClassWidget> {
-    private final Class type;
 
     /**
      * @param _name
@@ -23,12 +22,11 @@ public class ClassWidgetFactory extends WidgetFactory<ClassWidget> {
      */
     public ClassWidgetFactory(String _name, Class<? extends Node> type) {
         super(_name, type);
-        this.type = type;
     }
     
     @Override
     public ClassWidget create() {
-         ClassWidget w = new ClassWidget(name, (Class<? extends Node>) type);
+         ClassWidget w = new ClassWidget(name, (Class<? extends Node>) getControllerClass());
          return w;
     }
     

@@ -11,6 +11,8 @@ import java.io.File;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -43,6 +45,13 @@ import utilities.access.Accessor;
 )
 public class ImageController extends FXMLController implements ImageDisplayFeature {
     
+    // non configurables
+    @FXML AnchorPane root;
+    private final Thumbnail thumb = new Thumbnail();
+    private final ObservableList<File> images = FXCollections.observableArrayList();
+    private int active_image = -1;
+    private FxTimer slideshow;
+    
     // auto applied configurables
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
     public final Accessor<Boolean> slideshow_on = new Accessor<>(true,  v -> {
@@ -52,21 +61,12 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     public final Accessor<Boolean> useCustomImage = new Accessor<>(false, this::useCustomImage);
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
     public final Accessor<Double> slideshow_dur = new Accessor<>(15000d, this::slideshowDur);   
-    
-    // manually applied configurables
+    @IsConfig(name = "Alignment", info = "Preferred image alignment.")
+    public final Accessor<Pos> align = new Accessor<>(CENTER, thumb::setAlignment);   
     
     // non applied configurables
     @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
     public File custom_image = new File("");
-
-    
-    // non configurables
-    @FXML AnchorPane root;
-    private final Thumbnail thumb = new Thumbnail();
-    private final ObservableList<File> images = FXCollections.observableArrayList();
-    private int active_image = -1;
-    private FxTimer slideshow;
-    
     
     @Override
     public void init() {
@@ -123,6 +123,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     public void refresh() {
         useCustomImage.applyValue();
         slideshow_on.applyValue();
+        align.applyValue();
     }
     
     public void nextImage() {

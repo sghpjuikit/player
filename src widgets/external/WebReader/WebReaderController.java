@@ -8,17 +8,19 @@ package WebReader;
 
 import Configuration.IsConfig;
 import Layout.Widgets.FXMLController;
-import javafx.beans.Observable;
+import Layout.Widgets.WidgetInfo;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 
 /**
  *
  */
+@WidgetInfo(
+    name = "WebReader"
+)
 public final class WebReaderController extends FXMLController {
     @FXML
     private TextField addressBar;
@@ -32,11 +34,11 @@ public final class WebReaderController extends FXMLController {
     @Override
     public void init() {
         engine = webView.getEngine();
-        addressBar.setOnKeyPressed((KeyEvent event) -> {
-            if (event.getCode().equals(KeyCode.ENTER))
+        addressBar.setOnKeyPressed( e -> {
+            if (e.getCode().equals(KeyCode.ENTER))
                 refresh();
         });
-        engine.locationProperty().addListener((Observable observable) -> {
+        engine.locationProperty().addListener( o -> {
             url = engine.getLocation();
             addressBar.setText(engine.getLocation());
         });

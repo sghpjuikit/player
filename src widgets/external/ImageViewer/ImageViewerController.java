@@ -338,10 +338,8 @@ public class ImageViewerController extends FXMLController {
         images.add(t.getFile());
         thumb_pane.getChildren().add(t.getPane());
         // if this is first thumbnail display it immediatelly
-//        if (thumbnails.size()==1) setImage(0);
-    }
-    
-    
+        if (thumbnails.size()==1) setImage(0);
+    }    
     
     private void setImage(int index) {
         if (images.isEmpty()) index = -1;
@@ -410,6 +408,7 @@ public class ImageViewerController extends FXMLController {
         } else fOut.play();
     }
 }
+
 //
 //package ImageViewer;
 //

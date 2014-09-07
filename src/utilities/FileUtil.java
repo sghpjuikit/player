@@ -162,17 +162,25 @@ public final class FileUtil {
      * - is .css
      * - is located in its own folder with the same name
      * example: /Skins/MySkin/MySkin.css
-     * @param skin
+     * @param f
      * @return true if parameter is valid skin file. False otherwise or if null.
      */
-    public static boolean isValidSkinFile(File skin) {
-        String name = FileUtil.getName(skin);
+    public static boolean isValidSkinFile(File f) {
+        String name = FileUtil.getName(f);
         String path = App.SKIN_FOLDER().getPath() + File.separator + name +
                       File.separator + name + ".css";
         File test = new File(path);
-        return (skin != null && FileUtil.isValidFile(skin) &&   // is valid file
-                    skin.getPath().endsWith(".css") &&              // is .css file
-                        skin.equals(test));    // is located in skins folder in its rightful folder
+        return (f != null && FileUtil.isValidFile(f) &&   // is valid file
+                    f.getPath().endsWith(".css") &&       // is .css file
+                        f.equals(test));                  // is located in skins folder in its rightful folder
+    }
+    
+    public static boolean isValidWidgetFile(File f) {
+        File p1 = f.getParentFile();
+        File p2 = p1==null ? null : p1.getParentFile();
+        return (f != null && FileUtil.isValidFile(f) &&   // is valid file
+                    f.getPath().endsWith(".fxml") &&      // is .css file
+                        App.WIDGET_FOLDER().equals(p2));  // is located in skins folder in its rightful folder
     }
     
     /**

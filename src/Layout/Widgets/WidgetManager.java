@@ -14,8 +14,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import main.App;
@@ -28,7 +29,7 @@ import utilities.Log;
  */
 public final class WidgetManager {
     /** Collection of registered Widget Factories. Non null, unique.*/
-    static final List<WidgetFactory> factories = new ArrayList<>();
+    static final Map<String,WidgetFactory> factories = new HashMap<>();
     
     public static void initialize() {
         registerInternalWidgetFactories();
@@ -38,9 +39,10 @@ public final class WidgetManager {
     /**
      * @return read only list of registered widget factories
      */
-    public static List<WidgetFactory> getFactories() {
-        return Collections.unmodifiableList(factories);
+    public static Stream<WidgetFactory> getFactories() {
+        return factories.values().stream();
     }
+    
     /**
      * Looks for widget factory in the list of registered factories. Searches
      * by name.
@@ -48,10 +50,23 @@ public final class WidgetManager {
      * @return widget factory, null if not found
      */
     public static WidgetFactory getFactory(String name) {
-        for (WidgetFactory f: factories)
-            if (name.equals(f.name))
-                return f;
-        return null;
+        // get factory
+        WidgetFactory wf = factories.get(name);
+        
+        // attempt to register new factory for the file
+        if(wf==null) {
+            try {
+                File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
+                URL source = f.toURI().toURL();
+                new FXMLWidgetFactory(name, source).register();
+                Log.deb("registering " + name);
+            } catch(MalformedURLException e) {
+                Log.err("Error registering wirget: " + name);
+            }
+        }
+        
+        // return factory or null
+        return factories.get(name);
     }
 
     
@@ -80,21 +95,24 @@ public final class WidgetManager {
         }
         // get .fxml files
         try {
-            Files.find(dir.toPath(), 2, (t,u) -> t.toString().endsWith(".fxml")).forEach(p->{
-                // dont change t.toString().endsWith(".fxml") to: t.endsWith(".fxml") - wont work
-                // register
-                File f = new File(p.toUri());
-                String name = FileUtil.getName(f);
-                try {
-                    URL source = f.toURI().toURL();
-                    new FXMLWidgetFactory(name, source).register();
-                    Log.deb("registering " + name);
-                }catch(MalformedURLException e) {
-                    Log.err("Error registering wirget: " + name);
-                }
-            });
+            Files.find(dir.toPath(), 2, (path,u) -> path.toString().endsWith(".fxml"))
+                    .forEach(p-> registerFactory(FileUtil.getName(p.toUri())));
         } catch(IOException e) {
             Log.err("Error during looking for widgets. Some widgets might not be available.");
+        }
+    }
+    
+    private static void registerFactory(String name) {
+        // avoid registering twice
+        if(factories.get(name) != null) return;
+        
+        try {
+            File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
+            URL source = f.toURI().toURL();
+            new FXMLWidgetFactory(name, source).register();
+            Log.deb("registering " + name);
+        } catch(MalformedURLException e) {
+            Log.err("Error registering wirget: " + name);
         }
     }
     
@@ -149,13 +167,13 @@ public final class WidgetManager {
         if (out == null && source==Widget_Source.FACTORY) {
             WidgetFactory f;
             // attempt to get preferred factory
-                f = factories.stream()
+                f = getFactories()
                     .filter(w->cond.test(w.info))
                     .filter(w->w.preferred)
                     .findFirst().orElse(null);
             if (f==null)
             // attempt to get any factory
-                f = factories.stream()
+                f = getFactories()
                     .filter(w->cond.test(w.info))
                     .findFirst().orElse(null);
             // open widget if found
@@ -213,14 +231,14 @@ public final class WidgetManager {
         if (out == null && source==Widget_Source.FACTORY) {
            WidgetFactory f;
             // attempt to get preferred factory
-                f = factories.stream()
-                    .filter(w->feature.isAssignableFrom(w.controller_class))
+                f = getFactories()
+                    .filter(w->feature.isAssignableFrom(w.getControllerClass()))
                     .filter(w->w.preferred)
                     .findFirst().orElse(null);
             if (f==null)
             // attempt to get any factory
-                f = factories.stream()
-                    .filter(w->feature.isAssignableFrom(w.controller_class))
+                f = getFactories()
+                    .filter(w->feature.isAssignableFrom(w.getControllerClass()))
                     .findFirst().orElse(null);
             // open widget if found
             out = f==null ? null : f.create();

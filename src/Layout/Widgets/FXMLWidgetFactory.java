@@ -43,7 +43,7 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
      * @param resource
      */
     public FXMLWidgetFactory(String _name, URL resource) {
-        super(_name, instantiateController(resource).getClass());
+        super(_name, obtainControllerClass(resource));
         url = resource;
     }
     
@@ -60,30 +60,36 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
      * standard.
      */
     FXMLController instantiateController() {
-        return instantiateController(url);
+        try {
+            // instantiate the controller
+            return (FXMLController) getControllerClass().newInstance();
+        } catch (InstantiationException | IllegalAccessException ex) {
+            Log.err("Controller instantiation failed. " + ex.getMessage());
+            return null;
+        }
     }
     
-    private static FXMLController instantiateController(URL url) {
-            try {
-                URL dir = new File(url.toURI()).getParentFile().toURI().toURL();
-                URL[] urls = new URL[1];
-                      urls[0] = dir;
-                URLClassLoader controllerLoader = new URLClassLoader(urls);
-                Class cn;
-                
-                // widget name eg.: "Tagger"
-                String wname = FileUtil.getName(url.toURI());
-                // parant folder name eg. : TaggerWidget
-                String fname = new File(url.toURI()).getParentFile().getName();
-                // controller class name eg.: "TaggerWidget.TaggerController
-                String controllerName = fname + "." + wname + "Controller";
-                
-                // instantiate the controller
-                cn = controllerLoader.loadClass(controllerName);
-                return (FXMLController) cn.newInstance();
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | MalformedURLException | URISyntaxException ex) {
-                Log.err("Controller instantiation failed. " + ex.getMessage());
-                return null;
-            }
+    private static Class obtainControllerClass(URL url) {
+        
+        try {
+            URL dir = new File(url.toURI()).getParentFile().toURI().toURL();
+            URL[] urls = new URL[1];
+                  urls[0] = dir;
+            URLClassLoader controllerLoader = new URLClassLoader(urls);
+            Class cn;
+
+            // widget name eg.: "Tagger"
+            String wname = FileUtil.getName(url.toURI());
+            // parant folder name eg. : TaggerWidget
+            String fname = new File(url.toURI()).getParentFile().getName();
+            // controller class name eg.: "TaggerWidget.TaggerController
+            String controllerName = fname + "." + wname + "Controller";
+
+            // instantiate the controller
+            return controllerLoader.loadClass(controllerName);
+        } catch (ClassNotFoundException | MalformedURLException | URISyntaxException ex) {
+            Log.err("Controller class loading failed. " + ex.getMessage());
+            return null;
+        }
     }
 }

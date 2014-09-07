@@ -6,6 +6,7 @@
 
 package Explorer;
 
+import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import GUI.GUI;
 import Layout.Widgets.FXMLController;
@@ -13,8 +14,11 @@ import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetInfo;
 import Layout.Widgets.WidgetManager;
+import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
+import static de.jensd.fx.fontawesome.AwesomeIcon.GE;
+import static de.jensd.fx.fontawesome.AwesomeIcon.PAINT_BRUSH;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -37,10 +41,11 @@ import javafx.scene.input.TransferMode;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.paint.Color;
+import static javafx.scene.paint.Color.CADETBLUE;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
+import utilities.AudioFileFormat;
 import utilities.Enviroment;
 import utilities.FileUtil;
 import utilities.ImageFileFormat;
@@ -81,6 +86,14 @@ public class ExplorerController extends FXMLController {
         customLocationItem = createTreeItem(v.getAbsoluteFile());
         tree.getRoot().getChildren().add(customLocationItem);
     });
+    
+    // non-applied configurables
+    @IsConfig(name = "Open audio in application", info = "Open supported audio files by this application, rather than native one set by OS")
+    public boolean openAudioInApp = true;
+    @IsConfig(name = "Play audio on open", info = "Opening audio files plays the files, rather that adds them to the playlist.")
+    public boolean playAudioOnOpen = true;
+    @IsConfig(name = "Open image in application", info = "Open supported image files by this application, rather than native one set by OS")
+    public boolean openImageInApp = true;
 
     
     @Override
@@ -91,15 +104,26 @@ public class ExplorerController extends FXMLController {
         // set value factory
         tree.setCellFactory( treeView -> new TreeCell<File>(){
             {
+                // TODO: add this to the treeView & handle directories and multiselection
                 setOnMouseClicked( e -> {
                     if(e.getClickCount()==2 && e.getButton()==PRIMARY) {
                         File f = getItem();
                         // handle files
-                        if(f.isFile()) {
+//                        if(f.isFile()) {
                             // open skin
-                            if(FileUtil.isValidSkinFile(f))
+                            if(f.getParentFile().equals(App.SKIN_FOLDER()) || FileUtil.isValidSkinFile(f))
                                 GUI.setSkin(FileUtil.getName(f));
-                            else if (ImageFileFormat.isSupported(f)) {
+                            // open widget
+                            else if(f.getParentFile().equals(App.WIDGET_FOLDER()) || FileUtil.isValidWidgetFile(f)) {
+                                WidgetManager.getWidget(wi -> wi.name().equals(FileUtil.getName(f)), FACTORY);
+                            }
+                            // open audio file
+                            else if (openAudioInApp && AudioFileFormat.isSupported(f)) {
+                                PlaylistManager.addUri(f.toURI());
+                                if (playAudioOnOpen) PlaylistManager.playLastItem();
+                            }
+                            // open image file
+                            else if (openImageInApp && ImageFileFormat.isSupported(f)) {
                                 ImageDisplayFeature idf = WidgetManager.getWidget(ImageDisplayFeature.class, WidgetManager.Widget_Source.FACTORY);
                                 if(idf != null) idf.showImage(f);
                             }
@@ -107,7 +131,7 @@ public class ExplorerController extends FXMLController {
                             else
                                 Enviroment.open(f);
                         }
-                    }
+//                    }
                 });
             }
             @Override
@@ -174,9 +198,15 @@ public class ExplorerController extends FXMLController {
 /******************************* HELPER METHODS *******************************/
     
     private static Node makeIcon(Path p) {
-        if(p.toString().endsWith(".css")) return AwesomeDude.createIconLabel(CSS3,"11");
-        if(p.toFile().isFile()) return new Circle(2.5, Color.CADETBLUE);
-        else return new Rectangle(5, 5, Color.CADETBLUE);
+        if(p.toString().endsWith(".css"))
+            return AwesomeDude.createIconLabel(CSS3,"11");
+        if(App.SKIN_FOLDER().equals(p.toFile().getParentFile()) || FileUtil.isValidSkinFile(p.toFile()))
+            return AwesomeDude.createIconLabel(PAINT_BRUSH,"11");
+        if(App.WIDGET_FOLDER().equals(p.toFile().getParentFile()) || FileUtil.isValidWidgetFile(p.toFile()))
+            return AwesomeDude.createIconLabel(GE,"11");
+        
+        if(p.toFile().isFile()) return new Circle(2.5, CADETBLUE);
+        else return new Rectangle(5, 5, CADETBLUE);
     }
     
     // This method creates a TreeItem to represent the given File. It does this

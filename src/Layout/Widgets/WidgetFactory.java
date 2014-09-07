@@ -14,7 +14,7 @@ package Layout.Widgets;
 public abstract class WidgetFactory<W extends Widget> {
     public final String name;
     public final WidgetInfo info;
-    public final Class<?> controller_class;
+    private final Class<?> controller_class;
     
     /** Whether this factory will be preferred over others of the same group. */
     public boolean preferred = false;
@@ -52,6 +52,10 @@ public abstract class WidgetFactory<W extends Widget> {
         return name;
     }
     
+    protected Class getControllerClass() {
+        return controller_class;
+    }
+    
     /**
      * @return metadata information for widgets of this factory. Never null.
      */
@@ -80,14 +84,14 @@ public abstract class WidgetFactory<W extends Widget> {
      */
     void register() {
         if (!isRegistered())
-            WidgetManager.factories.add(this);
+            WidgetManager.factories.put(name,this);
     }
     /**
      * Returns true if the factory is already registered.
      * @return 
      */
     public boolean isRegistered() {
-        return WidgetManager.factories.contains(this);
+        return WidgetManager.factories.containsKey(name);
     }
 }
 

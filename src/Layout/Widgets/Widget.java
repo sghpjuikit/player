@@ -2,10 +2,15 @@
 package Layout.Widgets;
 
 import Configuration.CompositeConfigurable;
+import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.Node;
@@ -34,17 +39,18 @@ import utilities.Log;
  * 
  * @author uranium
  */
-public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable {
+public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable, WidgetInfo {
     
-    /** Name of the widget. Permanent */
-    public final String name;
+    // Name of the widget. Permanent. same as factory name
+    // it needs to be declared to support deserialization
+    final String name;
+    private @XStreamOmitField WidgetFactory factory;
     
-    @XStreamOmitField
-    C controller;
+    @XStreamOmitField C controller;
+    // cache gui to avoid loading more than once
+    @XStreamOmitField private Node root;  
     
-    @XStreamOmitField
-    private Node root;  // cache loaded root to avoid loading more than once
-    
+    // configuration
     @XStreamOmitField
     @IsConfig(name = "Is preferred", info = "Preferred widget for its widget type.")
     private boolean preferred = false;
@@ -57,14 +63,55 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /**
      * @param {@link Widget#name}
      */
-    public Widget(String name) {
+    public Widget(String name, WidgetFactory factory) {
         this.name = name;
+        this.factory = factory;
     }
-    
+        
+    /** {@inheritDoc} */
     @Override
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
+        
+    /** {@inheritDoc} */
+    @Override
+    public String name() { return name; }
+        
+    /** {@inheritDoc} */
+    @Override
+    public String description() { return getFactory().description; }
+
+    /** {@inheritDoc} */
+    @Override
+    public String version() { return getFactory().version; }
+        
+    /** {@inheritDoc} */
+    @Override
+    public String author() { return getFactory().author; }
+
+    /** {@inheritDoc} */
+    @Override
+    public String programmer() { return getFactory().programmer; }
+        
+    /** {@inheritDoc} */
+    @Override
+    public String contributor() { return getFactory().contributor; }
+
+    /** {@inheritDoc} */
+    @Override
+    public String year() { return getFactory().year; }
+
+    /** {@inheritDoc} */
+    @Override
+    public String howto() { return getFactory().howto; }
+
+    /** {@inheritDoc} */
+    @Override
+    public String notes() { return getFactory().notes; }
+
+    /** {@inheritDoc} */
+    @Override
+    public Widget.Group group() { return getFactory().group; }
+    
     
     /**
      * Loads this widget's content.
@@ -124,12 +171,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return controller;
     }
     
-    /** @return metadata information for this widget. Never null. */
-    public WidgetInfo getInfo() {
-        
-        return getFactory().getInfo();
-    }
-    
     /** @return whether this widget will be preferred over other widgets. */
     public boolean isPreffered() {
         return preferred;
@@ -141,9 +182,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     /** @return factory that produces this widget */
     public WidgetFactory getFactory() {
-        WidgetFactory f = WidgetManager.getFactory(name);
-        assert f!=null; // factory must never be null
-        return f;
+        if (factory==null) factory = WidgetManager.getFactory(name); 
+        return factory;
     }
     
 /******************************************************************************/
@@ -176,14 +216,14 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public void rememberConfigs() {
         if(controller != null) {
             configs = new HashMap();
-            getFields().forEach(c -> 
+            getFields().forEach((Config c) -> 
                 configs.put(c.getName(), c.getValueS())
             );
         }
     }
     public void restoreConfigs() {
         if(configs != null) {
-            configs.forEach((nam,value) -> this.setField(nam, value));
+            configs.forEach((String nam,String value) -> this.setField(nam, value));
 //            configs.forEach(this::setField);
             configs = null;
         }
@@ -201,6 +241,85 @@ public abstract class Widget<C extends Controller> extends Component implements 
      */
     public static Widget EMPTY() {
         return new EmptyWidget();
+    }
+    
+    
+
+    /**
+     * Annotation to pass information about widget. Use on widget's controller.
+     * 
+     * @author uranium
+     */
+    @Retention(value = RetentionPolicy.RUNTIME)
+    @Target(value = ElementType.TYPE)
+    public static @interface Info {
+
+        /**
+         * Name of the widget. "" by default.
+         */
+        String name() default "";
+
+        /**
+         * Description of the widget.
+         */
+        String description() default "";
+
+        /**
+         * Version of the widget
+         */
+        String version() default "";
+
+        /**
+         * Author of the widget
+         */
+        String author() default "";
+
+        /**
+         * Main developer of the widget.
+         * @return
+         */
+        String programmer() default "";
+
+        /**
+         * Co-developer of the widget.
+         */
+        String contributor() default "";
+
+        /**
+         * Last time of change.
+         * @return
+         */
+        String year() default "";
+
+        /**
+         * How to use text.
+         * <pre>
+         * For example:
+         * "Available actions:\n" +
+         * "    Drag cover away : Removes cover\n" +
+         * "    Drop image file : Adds cover\n" +
+         * "    Drop audio files : Adds files to tagger\n" +
+         * "    Write : Saves the tags\n" +
+         * "    Open list of tagged items"
+         * </pre>
+         * @return
+         */
+        String howto() default "";
+
+        /**
+         * Any words from the author, generally about the intention behind or bugs
+         * or plans for the widget or simply unrelated to anything else information.
+         * <p>
+         * For example: "To do: simplify user interface." or: "Discontinued."
+         * @return
+         */
+        String notes() default "";
+
+        /**
+         * Group the widget should categorize under as. Default {@link Widget.Group.UNKNOWN}
+         * @return
+         */
+        Widget.Group group() default Widget.Group.UNKNOWN;
     }
     
 /******************************************************************************/

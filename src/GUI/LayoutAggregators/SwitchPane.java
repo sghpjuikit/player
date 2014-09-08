@@ -25,6 +25,7 @@ import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
 import utilities.FxTimer;
+import utilities.Util;
 
 /**
  * Pane with switchable content.
@@ -85,7 +86,7 @@ public class SwitchPane implements LayoutAggregator {
     }
     
 /******************************************************************************/
-    
+    boolean genuineEvent = true;
     
     private final AnchorPane root = new AnchorPane();
     public final AnchorPane ui = new AnchorPane();
@@ -93,26 +94,33 @@ public class SwitchPane implements LayoutAggregator {
     public SwitchPane() {
         // set ui
         root.getChildren().add(ui);
-        AnchorPane.setBottomAnchor(ui, 0d);
-        AnchorPane.setTopAnchor(ui, 0d);
-        AnchorPane.setLeftAnchor(ui, 0d);
-        AnchorPane.setRightAnchor(ui, 0d);
+        Util.setAPAnchors(ui, 0);
         
         // initialize ui drag behavior
         root.addEventFilter(MOUSE_PRESSED, e -> {
             uiDragActiveLock = false;
             // doesnt work because the isStillSincePress is too insensitive
 //            if(!e.isStillSincePress()) {
-//                if(e.getButton()==SECONDARY) {
-//                        startUiDrag(e);
-//                        ui.setMouseTransparent(true);
-//                }
+                if(e.getButton()==SECONDARY && genuineEvent) {
+//                    startUiDrag(e);
+//                    ui.setMouseTransparent(true);
+                    genuineEvent = false;
+                    
+                    FxTimer.run(1000, ()->{
+//                        Event.fireEvent(root, (Event)e.clone());
+                        genuineEvent = true;
+                    });
+                    
+                    e.consume();
+                        
+                }
 //            }
             
             if(e.getButton()==MIDDLE) {
                 //ui.setMouseTransparent(true);
                 //startScroll(e);
             }
+            
         });
         
         root.addEventFilter(MOUSE_DRAGGED, e -> {
@@ -120,12 +128,12 @@ public class SwitchPane implements LayoutAggregator {
                 ui.setMouseTransparent(true);
                 startUiDrag(e);
                 dragUi(e);
-            }
+            }e.consume();
             //if(e.isMiddleButtonDown())
                 //doScrolling(e);
         });
         
-        root.addEventFilter(MOUSE_CLICKED, e-> {
+        root.addEventFilter(MOUSE_CLICKED, e-> {e.consume();
             if(e.getButton()==SECONDARY) {
                 endUIDrag(e);
                 ui.setMouseTransparent(false);
@@ -140,6 +148,8 @@ public class SwitchPane implements LayoutAggregator {
         });
         
         root.addEventFilter(MOUSE_RELEASED, e-> {
+//            if(genuineEvent) 
+                e.consume();
             if(e.getButton()==MIDDLE) {
                 //endScroll(e);
                 //ui.setMouseTransparent(false);

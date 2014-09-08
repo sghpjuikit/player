@@ -9,14 +9,14 @@ package Layout.WidgetImpl;
 import GUI.objects.Spectrum;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import javafx.scene.layout.AnchorPane;
+import utilities.Util;
 
 /**
  *
  * @author Plutonium_
  */
-@WidgetInfo(
+@Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Spectrumator",
@@ -44,10 +44,7 @@ public class Spectrumator extends AnchorPane implements Controller<Widget>  {
         
         
         this.getChildren().add(spectr);
-        AnchorPane.setBottomAnchor(spectr,0.0);
-        AnchorPane.setTopAnchor(spectr,0.0);
-        AnchorPane.setRightAnchor(spectr,0.0);
-        AnchorPane.setLeftAnchor(spectr,0.0);
+        Util.setAPAnchors(spectr, 0);
         
         // we only need to start listening once, so do it here rather than in
         // refresh(). In fact that would have an effect of multiplying the

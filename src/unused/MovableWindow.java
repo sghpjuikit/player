@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
+import utilities.Util;
 
 /**
  * @author uranium
@@ -95,10 +96,7 @@ public class MovableWindow extends Movable {
     public void setContent(Node c) {
         content.getChildren().clear();
         content.getChildren().add(c);
-        AnchorPane.setBottomAnchor(c, 0.0);
-        AnchorPane.setLeftAnchor(c, 0.0);
-        AnchorPane.setTopAnchor(c, 0.0);
-        AnchorPane.setRightAnchor(c, 0.0);
+        Util.setAPAnchors(c, 0);
         content.setEffect(null);
     }
     

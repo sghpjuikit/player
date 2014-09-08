@@ -61,11 +61,7 @@ public class LibraryViewController extends FXMLController {
     @Override
     public void init() {
         root.getChildren().add(table);
-        
-        AnchorPane.setTopAnchor(table, 0d);
-        AnchorPane.setRightAnchor(table, 0d);
-        AnchorPane.setBottomAnchor(table, 0d);
-        AnchorPane.setLeftAnchor(table, 0d);
+        Util.setAPAnchors(table, 0);
         
 //        table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setFixedCellSize(GUI.font.getSize() + 5);

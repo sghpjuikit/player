@@ -15,7 +15,6 @@ import GUI.objects.Rater.Rating;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import java.util.ArrayList;
@@ -38,6 +37,7 @@ import javafx.scene.layout.TilePane;
 import main.App;
 import org.reactfx.Subscription;
 import utilities.FileUtil;
+import utilities.Util;
 import utilities.access.Accessor;
 
 /**
@@ -45,7 +45,7 @@ import utilities.access.Accessor;
  * <p>
  * @author Plutonium_
  */
-@WidgetInfo(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "File Info",
@@ -207,10 +207,7 @@ public class FileInfoController extends FXMLController  {
             filesize, filename, format, bitrate, encoding, location);
         
         layout.addChild(tiles);
-        AnchorPane.setBottomAnchor(tiles, 0d);
-        AnchorPane.setRightAnchor(tiles, 0d);
-        AnchorPane.setTopAnchor(tiles, 0d);
-        AnchorPane.setLeftAnchor(tiles, 0d);
+        Util.setAPAnchors(tiles, 0);
         
         
         // write metadata on rating change

@@ -10,10 +10,20 @@ package Layout.Widgets;
  * <p>
  * @author uranium
  */
-@WidgetInfo
-public abstract class WidgetFactory<W extends Widget> {
-    public final String name;
-    public final WidgetInfo info;
+@Widget.Info // empty widget info with default values
+public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
+    
+    final String name;
+    final String description;
+    final String version;
+    final String author;
+    final String programmer;
+    final String contributor;
+    final String howto;
+    final String year;
+    final String notes;
+    final Widget.Group group;
+    
     private final Class<?> controller_class;
     
     /** Whether this factory will be preferred over others of the same group. */
@@ -36,10 +46,20 @@ public abstract class WidgetFactory<W extends Widget> {
         
         // init info
             // grab Controller's class and its annotation
-        WidgetInfo i = controller_class.getAnnotation(WidgetInfo.class);
+        Widget.Info i = controller_class.getAnnotation(Widget.Info.class);
             // initialize default value if not n/a
-        info = i!=null ? i : WidgetFactory.class.getAnnotation(WidgetInfo.class);
+        if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
         
+//        name = i.name(); // ignore this for now to not break name contract
+        description = i.description();
+        version = i.version();
+        author = i.author();
+        programmer = i.programmer();
+        contributor = i.contributor();
+        howto = i.howto();
+        year = i.year();
+        notes = i.year();
+        group = i.group();
     }
     
     /**
@@ -55,14 +75,6 @@ public abstract class WidgetFactory<W extends Widget> {
     protected Class getControllerClass() {
         return controller_class;
     }
-    
-    /**
-     * @return metadata information for widgets of this factory. Never null.
-     */
-    public WidgetInfo getInfo() {
-        return info;
-    }
-    
     
     /** {@see #preffered} */
     public boolean isPreffered() {
@@ -83,8 +95,7 @@ public abstract class WidgetFactory<W extends Widget> {
      * application.
      */
     void register() {
-        if (!isRegistered())
-            WidgetManager.factories.put(name,this);
+        if (!isRegistered()) WidgetManager.factories.put(name,this);
     }
     /**
      * Returns true if the factory is already registered.
@@ -93,6 +104,37 @@ public abstract class WidgetFactory<W extends Widget> {
     public boolean isRegistered() {
         return WidgetManager.factories.containsKey(name);
     }
+
+    @Override
+    public String name() { return name; }
+
+    @Override
+    public String description() { return description; }
+
+    @Override
+    public String version() { return version; }
+
+    @Override
+    public String author() { return author; }
+
+    @Override
+    public String programmer() { return programmer; }
+
+    @Override
+    public String contributor() { return contributor; }
+
+    @Override
+    public String year() { return year; }
+
+    @Override
+    public String howto() { return howto; }
+
+    @Override
+    public String notes() { return notes; }
+
+    @Override
+    public Widget.Group group() { return group; }
+    
 }
 
 

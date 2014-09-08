@@ -3311,12 +3311,13 @@
     // default padding for all widgets
     // note: widget devs should be aware of this padding and implement their own
     // for the widget only if they want non-default behavior
-    -fx-padding: 5;
+    -fx-padding: 0;
 }
 
 /* Widget area in layout mode. Inherits .block styleclas.
    Does not inherit .area. So even the same attributes must be repeated.*/
 .area-control {
+    
 }
 
 /* Control for setting up layout. */

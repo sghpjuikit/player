@@ -47,9 +47,11 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
         url = resource;
     }
     
+    
+    /** {@inheritDoc} */
     @Override
     public FXMLWidget create() {
-        FXMLWidget w = new FXMLWidget(getName());
+        FXMLWidget w = new FXMLWidget(name,this);
         return w;
     }
     

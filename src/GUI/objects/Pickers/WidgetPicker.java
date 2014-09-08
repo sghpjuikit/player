@@ -19,7 +19,7 @@ public class WidgetPicker extends Picker<WidgetFactory>{
         super();
         
         setAccumulator(WidgetManager::getFactories);
-        setConverter(wf -> wf.name);
+        setConverter(wf -> wf.name());
     }
     
 }

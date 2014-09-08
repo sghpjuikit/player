@@ -222,3 +222,43 @@
     -fx-border-width: 0;
     -fx-border-insets: 0;
 }
+
+//*********************************** RATING *********************************//
+
+.rating > .container > .button {
+    -fx-background-color: white;
+    -fx-border-color: grey;
+    -fx-border-width: 1;
+    // Should be sized to font size
+    -fx-background-size: 12;
+    -fx-padding: 4 5 4 5;
+    -fx-background-image-repeat: no-repeat;
+    -fx-background-image: none;
+}
+.rating > .container > .button.strong {
+    //-fx-background-color: blue;
+    -fx-background-image: none;
+    -fx-border-color: blue;
+}
+.rating > .container > .button:hover {
+}
+// style for the button when rating is at min value
+// it is good to visually signal this to the user
+.rating > .container > .button:min {
+    //-fx-border-color: blue;
+    -fx-effect: none;
+}
+// style for the button when rating is at max value
+// it is good to visually signal this to the user
+.rating > .container > .button:max,
+.rating > .container > .button.strong:max {
+    -fx-background-color: black;
+    -fx-effect: none
+}
+
+//****************************** THUMBNAIL ***********************************//
+
+// background for thumbnail
+.thumbnail-bgr {
+    -fx-background-color: rgba(255,255,255,0.2);
+}

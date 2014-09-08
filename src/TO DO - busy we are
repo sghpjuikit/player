@@ -48,9 +48,6 @@
   it is possible that app doesnt have permission  to create tmp file where the lib
   is trying to do it.
 - external playlist (m3u, etc) support + dragging too
-- make all widgets loadable by file - requires @WidgetInfo present on every
-  controller - create WidgetInfo class, implement by Widget, Factory, turn the
-  controller annotation into that class and fill in default values
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager? hm
 - lazy selected itemstream
 
@@ -58,7 +55,6 @@
 ------------------------ PERFECTION - the pain & OCD ---------------------------
 --------------------------------------------------------------------------------
 
-- open file types natively in-app support (images, audio, etc)
 - explorer graphics support css skinning
 - ConfigField (General) disable ok button for manually applied configs
 

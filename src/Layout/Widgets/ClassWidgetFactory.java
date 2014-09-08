@@ -22,12 +22,14 @@ public class ClassWidgetFactory extends WidgetFactory<ClassWidget> {
      */
     public ClassWidgetFactory(String _name, Class<? extends Node> type) {
         super(_name, type);
+        if (!Controller.class.isAssignableFrom(type))
+            throw new IllegalArgumentException("Class must implement Controller in order to become a widget.");
     }
     
+    /** {@inheritDoc} */
     @Override
     public ClassWidget create() {
-         ClassWidget w = new ClassWidget(name, (Class<? extends Node>) getControllerClass());
-         return w;
+         return new ClassWidget(name, this);
     }
     
 }

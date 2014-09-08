@@ -14,7 +14,6 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -44,7 +43,7 @@ import utilities.access.Accessor;
  * Playlist FXML Controller class
  * Controls behavior of the Playlist FXML graphics.
  */
-@WidgetInfo(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Playlist",

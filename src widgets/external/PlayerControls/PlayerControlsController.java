@@ -16,7 +16,6 @@ import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_DOWN;
 import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_OFF;
@@ -47,7 +46,7 @@ import utilities.access.Accessor;
  * <p>
  * @author uranium
  */
-@WidgetInfo(
+@Widget.Info(
     name = "Playback Control",
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

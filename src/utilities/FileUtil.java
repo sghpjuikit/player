@@ -191,8 +191,8 @@ public final class FileUtil {
      * @return
      * Empty list if parameter not a valid directory or no results. Never null.
      */
-    public static List<File> getImageFiles(File dir) {
-        return getImageFilesRecursive(dir, 0);
+    public static List<File> getImageFiles(File dir, int maxF) {
+        return getImageFilesRecursive(dir, 0, maxF);
     }
     
     /**
@@ -210,17 +210,23 @@ public final class FileUtil {
      * @return
      * Empty list if parameter not a valid directory or no results. Never null.
      */
-    public static List<File> getImageFilesRecursive(File dir, int maxDepth) {
-        if (!isValidDirectory(dir)) return new ArrayList<>();
+    public static List<File> getImageFilesRecursive(File dir, int maxDepth, int maxF) {
+        if (!isValidDirectory(dir) || maxF==0) return new ArrayList<>();
         
+        int needF = maxF==-1 ? -1 : Math.max(0, maxF);
         List<File> out = new ArrayList<>();
         File[] files = dir.listFiles();
         for (File f: files) {
+            // stop reading if limit reached
+            if(needF==0) break;
+            
             if(ImageFileFormat.isSupported(f.toURI())) {
                 out.add(f);
+                needF--;
             }
             if (maxDepth>=1 && f.isDirectory() && isValidDirectory(f)) {
-                out.addAll(getImageFilesRecursive(f, maxDepth-1));
+                out.addAll(getImageFilesRecursive(f, maxDepth-1, needF));
+                needF = maxF==-1 ? -1 : Math.max(0, maxF-out.size());
             }
         }
         return out;

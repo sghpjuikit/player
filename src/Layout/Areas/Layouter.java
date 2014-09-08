@@ -7,7 +7,6 @@ import GUI.objects.Pickers.WidgetPicker;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.PolyContainer;
-import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
 import java.util.Objects;
 import javafx.animation.FadeTransition;
@@ -28,6 +27,7 @@ import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
 import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
+import utilities.Util;
 
 /**
  * @author uranium
@@ -35,7 +35,7 @@ import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
  * @TODO make dynamic indexes work and this widget part of layout map. See
  * TO Do file API section
  */
-@WidgetInfo
+@Layout.Widgets.Widget.Info
 public final class Layouter implements ContainerNode {
     
     private static final Duration ANIM_DUR = Duration.millis(300);
@@ -201,10 +201,7 @@ public final class Layouter implements ContainerNode {
         animS.setOnFinished( ae -> {
             Node n = w.getNode();
             content.getChildren().add(n);
-            AnchorPane.setBottomAnchor(n, 0d);
-            AnchorPane.setTopAnchor(n, 0d);
-            AnchorPane.setRightAnchor(n, 0d);
-            AnchorPane.setLeftAnchor(n, 0d);
+            Util.setAPAnchors(n, 0);
             controls.setVisible(false);
             showControls(true);
             animS.setOnFinished(null);

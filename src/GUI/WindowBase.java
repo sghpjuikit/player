@@ -44,7 +44,7 @@ public class WindowBase {
      * Doesnt affect content of the window.
      */
     public void update() {        
-        s.setOpacity(Window.windowOpacity);
+        s.setOpacity(Window.windowOpacity.getValue());
         
         // the order is important
         s.setWidth(WProp.get());

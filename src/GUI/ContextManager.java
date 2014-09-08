@@ -83,7 +83,7 @@ public final class ContextManager {
               });
         // build popup
         PopOver p = new PopOver(w.load());
-                p.setTitle(w.name);
+                p.setTitle(w.name());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
                 p.show(Window.getActive().getStage(),getX(),getY());

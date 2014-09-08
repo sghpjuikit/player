@@ -6,7 +6,6 @@ import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import java.io.File;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,7 +26,7 @@ import utilities.access.Accessor;
  *
  * @author Plutonium_
  */
-@WidgetInfo(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Image",
@@ -68,6 +67,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
     public File custom_image = new File("");
     
+    
     @Override
     public void init() {
         thumb.setBackgroundVisible(false);
@@ -87,10 +87,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         root.getChildren().add(thumb.getPane());
         // this currenttly causes thumbnail image not to rezie properly because
         // it is bound to prefSize which is not changed by anchors
-//        AnchorPane.setBottomAnchor(thumb.getPane(), 0.0);
-//        AnchorPane.setTopAnchor(thumb.getPane(), 0.0);
-//        AnchorPane.setLeftAnchor(thumb.getPane(), 0.0);
-//        AnchorPane.setRightAnchor(thumb.getPane(), 0.0);
+        // Util.setAPAnchors(thumb.getPane(), 0);
         // bind manually for now so image resizes properly
         thumb.getPane().prefWidthProperty().bind(root.widthProperty());
         thumb.getPane().prefHeightProperty().bind(root.heightProperty());

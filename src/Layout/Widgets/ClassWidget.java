@@ -19,27 +19,24 @@ import utilities.Log;
  */
 public class ClassWidget extends Widget<Controller> {
     
-    private final Class<? extends Node> class_type;
-    
-    ClassWidget(String name, Class<? extends Node> type) {
-        super(name);
-        class_type = type;
+    ClassWidget(String name, ClassWidgetFactory factory) {
+        super(name,factory);
     }
 
     @Override
     public Node loadInitial() {                    
         try {
-            Node node = (Node) Class.forName(class_type.getName()).newInstance();
-            if (node instanceof Controller) {
-                rememberConfigs();
-                controller = (Controller) node;
-                controller.setWidget(this);
-                restoreConfigs();
-                controller.refresh();
-            }            
+            Node node = (Node) getFactory().getControllerClass().newInstance();
+                
+            rememberConfigs();
+            controller = Controller.class.cast(node);
+            controller.setWidget(this);
+            restoreConfigs();
+            
+            controller.refresh();
             return node;
-        } catch (ClassCastException | InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            Log.info("Widget " + name + " failed to load. "+ex.getMessage());
+        } catch (InstantiationException | IllegalAccessException e) {
+            Log.err("Widget " + name + " failed to load. " + e.getMessage());
             return Widget.EMPTY().load();
         }
     }

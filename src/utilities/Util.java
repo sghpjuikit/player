@@ -29,6 +29,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import javafx.scene.Node;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -38,6 +39,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -307,7 +309,14 @@ public interface Util {
                 BufferedImage readImage = ImageIO.read(file);
                 h = readImage.getHeight();
                 w = readImage.getWidth();
-            } catch (IOException e) {
+                // there is a bug in java throwing arrayIndexOutOfBounds Exception
+                // for some .gif files
+                // java.lang.ArrayIndexOutOfBoundsException: 4096
+                // at com.sun.imageio.plugins.gif.GIFImageReader.read(GIFImageReader.java:984)
+                // at javax.imageio.ImageIO.read(ImageIO.java:1448)
+                // at javax.imageio.ImageIO.read(ImageIO.java:1308)
+                // at utilities.Util.loadImage(Util.java:307)
+            } catch (IOException | ArrayIndexOutOfBoundsException e) {
                 // ignore
             }
             
@@ -401,6 +410,20 @@ public interface Util {
     }
     
 /******************************** GRAPHICS ************************************/
+    
+    public static void setAPAnchors(Node n, double a) {
+        AnchorPane.setTopAnchor(n, a);
+        AnchorPane.setRightAnchor(n, a);
+        AnchorPane.setBottomAnchor(n, a);
+        AnchorPane.setLeftAnchor(n, a);
+    }
+    
+    public static void setAPAnchors(Node n, double top, double right, double bottom, double left) {
+        AnchorPane.setTopAnchor(n, top);
+        AnchorPane.setRightAnchor(n, right);
+        AnchorPane.setBottomAnchor(n, bottom);
+        AnchorPane.setLeftAnchor(n, left);
+    }
     
     /**
      * Returns copy of the selected items of the table. Because the original list

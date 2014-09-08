@@ -140,7 +140,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         try {
             root = (AnchorPane) fxmlLoader.load();
             initialize(_size);
-        } catch (IOException exception) {
+        } catch (IOException e) {
             Log.err("Thumbnail source data coudlnt be read.");
         }        
     }    
@@ -177,7 +177,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         
         setContextMenuOn(true);
         
-        size-=borderWidth();
         // set size
         root.setPrefSize(size,size);
         // initialize image size
@@ -310,7 +309,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * @param val 
      */
     private void borderToImage(boolean val) {
-        double b = borderWidth();
         borderToImage = val;
         if(val) {
             root.getStyleClass().remove(border_styleclass);
@@ -343,10 +341,6 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             root.getStyleClass().remove(border_styleclass);
             img_border.getStyleClass().remove(border_styleclass);
         }
-    }
-    
-    private double borderWidth() {
-        return 4;
     }
     
     /**

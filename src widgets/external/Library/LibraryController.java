@@ -19,7 +19,7 @@ import GUI.objects.FadeButton;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
-import Layout.Widgets.WidgetInfo;
+import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import static de.jensd.fx.fontawesome.AwesomeIcon.MINUS;
@@ -65,7 +65,7 @@ import utilities.functional.functor.UnProcedure;
  *
  * @author Plutonium_
  */
-@WidgetInfo(
+@Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Library",
@@ -99,11 +99,7 @@ public class LibraryController extends FXMLController {
     @Override
     public void init() {
         root.getChildren().add(table);
-        
-        AnchorPane.setTopAnchor(table, 0d);
-        AnchorPane.setRightAnchor(table, 0d);
-        AnchorPane.setBottomAnchor(table, 30d);
-        AnchorPane.setLeftAnchor(table, 0d);
+        Util.setAPAnchors(table, 0,0,30,0);
         
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setFixedCellSize(GUI.font.getSize() + 5);

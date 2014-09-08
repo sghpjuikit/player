@@ -351,7 +351,7 @@ public class GUI {
     public static List<File> getGuiImages() {
         File location = new File(App.SKIN_FOLDER(), skin + separator + "Images");
         if(FileUtil.isValidDirectory(location)) {
-            return FileUtil.getImageFiles(location);
+            return FileUtil.getImageFiles(location, -1);
         } else {
             Log.deb("Can not access skin directory: " + location.getPath());
             return EMPTY_LIST;

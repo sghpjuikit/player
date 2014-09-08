@@ -26,6 +26,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import utilities.Log;
+import utilities.Util;
 import static utilities.Util.NotNULL;
 
 /**
@@ -60,10 +61,7 @@ public final class TabArea extends PolyArea {
         // load controls
         controls = new AreaControls(this);
         root.getChildren().add(controls.root);
-        AnchorPane.setBottomAnchor(controls.root, 0.0);
-        AnchorPane.setTopAnchor(controls.root, 0.0);
-        AnchorPane.setLeftAnchor(controls.root, 0.0);
-        AnchorPane.setRightAnchor(controls.root, 0.0);
+        Util.setAPAnchors(controls.root, 0);
         
         // support drag from
         root.setOnDragDetected( e -> {

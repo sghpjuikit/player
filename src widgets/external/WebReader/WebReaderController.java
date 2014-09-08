@@ -8,7 +8,7 @@ package WebReader;
 
 import Configuration.IsConfig;
 import Layout.Widgets.FXMLController;
-import Layout.Widgets.WidgetInfo;
+import Layout.Widgets.Widget;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -18,7 +18,7 @@ import javafx.scene.web.WebView;
 /**
  *
  */
-@WidgetInfo(
+@Widget.Info(
     name = "WebReader"
 )
 public final class WebReaderController extends FXMLController {

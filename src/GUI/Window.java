@@ -92,6 +92,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import static javafx.scene.paint.Color.BLACK;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import main.App;
@@ -99,6 +100,7 @@ import org.reactfx.Subscription;
 import utilities.Enviroment;
 import utilities.Log;
 import utilities.Util;
+import utilities.access.Accessor;
 
 /**
  * Window for application.
@@ -155,23 +157,32 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     
 /******************************** Configs *************************************/
-    @IsConfig(name="Window header visiblility preference", info="Remembers header"
-            + " state for both fullscreen and not. When selected 'auto off' is true ")
+    
+    @IsConfig(name="Window header visiblility preference", info="Remembers header state for both fullscreen and not. When selected 'auto off' is true ")
     public static boolean headerVisiblePreference = true;
+    
     @IsConfig(name = "Opacity", info = "Window opacity.", min=0, max=1)
-    public static double windowOpacity = 1;
+    public static final Accessor<Double> windowOpacity = new Accessor<>(1d, v -> ContextManager.windows.forEach(w->w.getStage().setOpacity(v)));
+    
     @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
     public static boolean gui_overlay = false;
-    @IsConfig(name = "Overlay effect use song color", info = "Use song color if "
-            + "available as source color for gui overlay effect.")
+    
+    @IsConfig(name = "Overlay effect use song color", info = "Use song color if available as source color for gui overlay effect.")
     public static boolean gui_overlay_use_song = false;
+    
     @IsConfig(name = "Overlay effect color", info = "Set color for color overlay effect.")
-    public static Color gui_overlay_color = Color.BLACK;
-    @IsConfig(name = "Overlay effect normalize", info = "Forbid contrast and "
-            + "brightness change. Applies only hue portion of the color for overlay effect.")
+    public static final Accessor<Color> gui_overlay_color = new Accessor<>(BLACK, v -> {
+        if(!gui_overlay_use_song) applyColorEffect(v);
+    });
+    
+    @IsConfig(name = "Overlay effect normalize", info = "Forbid contrast and brightness change. Applies only hue portion of the color for overlay effect.")
     public static boolean gui_overlay_normalize = true;
+    
     @IsConfig(name = "Overlay effect intensity", info = "Intensity of the color overlay effect.", min=0, max=1)
     public static double overlay_norm_factor = 0.5;
+    
+    @IsConfig(name = "Borderless", info = "Borderless window has hidden header and borders.")
+    public static final Accessor<Boolean> window_borderless = new Accessor<>(false, v -> ContextManager.windows.forEach(w->w.setBorderless(v)));
     
     @AppliesConfig( "headerVisiblePreference")
     private static void applyHeaderVisiblePreference() {
@@ -179,24 +190,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         ContextManager.windows.forEach(w->w.setHeaderVisible(w.headerVisible));
     }
     
-    @AppliesConfig( "windowOpacity")
-    private static void applyWindowOpacity() {
-        ContextManager.windows.forEach(w->w.getStage().setOpacity(windowOpacity));
-    }
-    
-    public static void setColorEffect(Color color) {
-        gui_overlay_color = color;
-        applyColorOverlay();
-    }
-    
     @AppliesConfig( "overlay_norm_factor")
     @AppliesConfig( "gui_overlay_use_song")
     @AppliesConfig( "gui_overlay_normalize")
-    @AppliesConfig( "gui_overlay_color")
     @AppliesConfig( "gui_overlay")
     public static void applyColorOverlay() {
         if(gui_overlay_use_song) applyOverlayUseSongColor();
-        else applyColorEffect(gui_overlay_color);
+        else applyColorEffect(gui_overlay_color.getValue());
     }
     private static void applyColorEffect(Color color) {
         if(!App.isInitialized()) return;
@@ -231,7 +231,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             if(colorListener==null) {
                 colorListener = (o,ov,nv) -> {
                     Color c = nv.getColor();
-                    applyColorEffect( c==null ? gui_overlay_color : c);
+                    applyColorEffect( c==null ? gui_overlay_color.getValue() : c);
                 };
                 playingItemMonitoring = Player.playingtem.subscribeToUpdates(item -> colorListener.changed(null,null,item));
                 // fire upon binding to create immediate response
@@ -248,6 +248,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             applyColorOverlay();
         }
     }
+    
+    
     
 /******************************************************************************/
     
@@ -283,6 +285,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     boolean main = false;
     
     @FXML AnchorPane root = new AnchorPane();
+    public @FXML AnchorPane borders;
     @FXML public AnchorPane content;
     @FXML private HBox controls;
 
@@ -301,7 +304,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /** Initializes the controller class. */
     private void initialize() {
         getStage().setScene(new Scene(root));
-        getStage().setOpacity(windowOpacity);
+        getStage().setOpacity(windowOpacity.getValue());
         
         // clip the content to its bounds to prevent leaking out
         Rectangle contentMask = new Rectangle(1, 1, Color.BLACK);
@@ -374,10 +377,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public void setContent(Node n) {
         content.getChildren().clear();
         content.getChildren().add(n);
-        AnchorPane.setBottomAnchor(n, 0.0);
-        AnchorPane.setRightAnchor(n, 0.0);
-        AnchorPane.setLeftAnchor(n, 0.0);
-        AnchorPane.setTopAnchor(n, 0.0);
+        Util.setAPAnchors(n, 0);
     }
     
     public void setContent(Component c) {
@@ -679,14 +679,26 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     
    @Override  
-    public void setFullscreen(boolean val) {  
-        super.setFullscreen(val);
+    public void setFullscreen(boolean v) {  
+        super.setFullscreen(v);
+        // handle header visibility
         if(headerVisiblePreference){
-            if(val)showHeader(false);
+            if(v)showHeader(false);
             else showHeader(headerVisible);
         } else {
             setHeaderVisible(!headerVisible);
         }
+        setBorderless(v);
+    }
+    
+    public boolean isBorderless() {
+        return AnchorPane.getBottomAnchor(content)==0;
+    }
+    
+    public void setBorderless(boolean v) {
+        if(v) Util.setAPAnchors(content, 0);
+        else Util.setAPAnchors(content, 25,5,5,5);
+        borders.setVisible(!v);
     }
     
     @FXML public void toggleMini() {

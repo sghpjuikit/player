@@ -12,7 +12,7 @@ import GUI.GUI;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
+import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -56,7 +56,7 @@ import utilities.access.Accessor;
  *
  * @author Plutonium_
  */
-@WidgetInfo (
+@Info (
     author = "Martin Polakovic",
     description = "Simple file system browser with drag and copy support.",
     howto = "Available actions:\n" +
@@ -108,30 +108,27 @@ public class ExplorerController extends FXMLController {
                 setOnMouseClicked( e -> {
                     if(e.getClickCount()==2 && e.getButton()==PRIMARY) {
                         File f = getItem();
-                        // handle files
-//                        if(f.isFile()) {
-                            // open skin
-                            if(f.getParentFile().equals(App.SKIN_FOLDER()) || FileUtil.isValidSkinFile(f))
-                                GUI.setSkin(FileUtil.getName(f));
-                            // open widget
-                            else if(f.getParentFile().equals(App.WIDGET_FOLDER()) || FileUtil.isValidWidgetFile(f)) {
-                                WidgetManager.getWidget(wi -> wi.name().equals(FileUtil.getName(f)), FACTORY);
-                            }
-                            // open audio file
-                            else if (openAudioInApp && AudioFileFormat.isSupported(f)) {
-                                PlaylistManager.addUri(f.toURI());
-                                if (playAudioOnOpen) PlaylistManager.playLastItem();
-                            }
-                            // open image file
-                            else if (openImageInApp && ImageFileFormat.isSupported(f)) {
-                                ImageDisplayFeature idf = WidgetManager.getWidget(ImageDisplayFeature.class, WidgetManager.Widget_Source.FACTORY);
-                                if(idf != null) idf.showImage(f);
-                            }
-                            // open file in native application
-                            else
-                                Enviroment.open(f);
+                        // open skin
+                        if((f.isDirectory() && App.SKIN_FOLDER().equals(f.getParentFile())) || FileUtil.isValidSkinFile(f))
+                            GUI.setSkin(FileUtil.getName(f));
+                        // open widget
+                        else if((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
+                            WidgetManager.getWidget(wi -> wi.name().equals(FileUtil.getName(f)), FACTORY);
                         }
-//                    }
+                        // open audio file
+                        else if (openAudioInApp && AudioFileFormat.isSupported(f)) {
+                            PlaylistManager.addUri(f.toURI());
+                            if (playAudioOnOpen) PlaylistManager.playLastItem();
+                        }
+                        // open image file
+                        else if (openImageInApp && ImageFileFormat.isSupported(f)) {
+                            ImageDisplayFeature idf = WidgetManager.getWidget(ImageDisplayFeature.class, WidgetManager.Widget_Source.FACTORY);
+                            if(idf != null) idf.showImage(f);
+                        }
+                        // open file in native application
+                        else if(f.isFile()) 
+                            Enviroment.open(f);
+                    }
                 });
             }
             @Override
@@ -198,14 +195,15 @@ public class ExplorerController extends FXMLController {
 /******************************* HELPER METHODS *******************************/
     
     private static Node makeIcon(Path p) {
+        File f = p.toFile();
         if(p.toString().endsWith(".css"))
             return AwesomeDude.createIconLabel(CSS3,"11");
-        if(App.SKIN_FOLDER().equals(p.toFile().getParentFile()) || FileUtil.isValidSkinFile(p.toFile()))
+        if((f.isDirectory() && App.SKIN_FOLDER().equals(p.toFile().getParentFile())) || FileUtil.isValidSkinFile(p.toFile()))
             return AwesomeDude.createIconLabel(PAINT_BRUSH,"11");
-        if(App.WIDGET_FOLDER().equals(p.toFile().getParentFile()) || FileUtil.isValidWidgetFile(p.toFile()))
+        if((f.isDirectory() && App.WIDGET_FOLDER().equals(p.toFile().getParentFile())) || FileUtil.isValidWidgetFile(p.toFile()))
             return AwesomeDude.createIconLabel(GE,"11");
         
-        if(p.toFile().isFile()) return new Circle(2.5, CADETBLUE);
+        if(f.isFile()) return new Circle(2.5, CADETBLUE);
         else return new Rectangle(5, 5, CADETBLUE);
     }
     

@@ -18,7 +18,6 @@ import Layout.Component;
 import Layout.Container;
 import Layout.Containers.Splitter;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.EXTERNAL_LINK_SQUARE;
@@ -64,7 +63,7 @@ public final class AreaControls {
             Component c = ac.area.getActiveComponent();
             String info = "";
             if (c!=null && c instanceof Widget) {
-                WidgetInfo i = ((Widget)c).getInfo();
+                Widget i = Widget.class.cast(c);
                 info = "\n\nWidget: " + i.name();
                 if(!i.description().isEmpty()) info += "\n\n" + i.description();
                 if(!i.howto().isEmpty()) info += "\n\n" + i.howto();

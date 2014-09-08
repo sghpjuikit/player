@@ -7,7 +7,6 @@ import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +28,7 @@ import utilities.Log;
 import utilities.Util;
 import utilities.access.Accessor;
 
-@WidgetInfo(
+@Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Settings",

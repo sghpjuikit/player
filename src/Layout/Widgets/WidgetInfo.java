@@ -3,58 +3,52 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Layout.Widgets;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package Layout.Widgets;
 
 /**
  *
- * @author uranium
+ * @author Plutonium_
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface WidgetInfo {
+public interface WidgetInfo {
     
     /**
      * Name of the widget. "" by default.
      */
-    String name() default "";
-    
+    String name();
+
     /**
      * Description of the widget.
      */
-    String description() default "";
-    
+    String description();
+
     /**
      * Version of the widget
      */
-    String version() default "";
-    
+    String version();
+
     /**
      * Author of the widget
      */
-    String author() default "";
-    
+    String author();
+
     /**
      * Main developer of the widget.
-     * @return 
+     * @return
      */
-    String programmer() default "";
-    
+    String programmer();
+
     /**
      * Co-developer of the widget.
      */
-    String contributor() default "";
-    
+    String contributor();
+
     /**
      * Last time of change.
-     * @return 
+     * @return
      */
-    String year() default "";
-    
+    String year();
+
     /**
      * How to use text.
      * <pre>
@@ -66,22 +60,22 @@ public @interface WidgetInfo {
      * "    Write : Saves the tags\n" +
      * "    Open list of tagged items"
      * </pre>
-     * @return 
+     * @return
      */
-    String howto() default "";
-    
+    String howto();
+
     /**
-     * Any words from the author, generally about the intention behind or bugs 
-     * or plans for the widget or simply unrelated to anything else information.
+     * Any words from the author, generally about the intention behind or bugs
+     * or plans for the widget or simply unrelated to anything else.
      * <p>
      * For example: "To do: simplify user interface." or: "Discontinued."
-     * @return 
+     * @return
      */
-    String notes() default "";
-    
+    String notes();
+
     /**
      * Group the widget should categorize under as. Default {@link Widget.Group.UNKNOWN}
-     * @return 
+     * @return
      */
-    Widget.Group group() default Widget.Group.UNKNOWN;
+    Widget.Group group();
 }

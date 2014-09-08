@@ -10,6 +10,7 @@ import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.HTMLEditor;
+import utilities.Util;
 
 /**
  *
@@ -32,10 +33,7 @@ public class HtmlEditor extends AnchorPane implements Controller<Widget>  {
         
         
         this.getChildren().add(editor);
-        AnchorPane.setBottomAnchor(editor,0.0);
-        AnchorPane.setTopAnchor(editor,0.0);
-        AnchorPane.setRightAnchor(editor,0.0);
-        AnchorPane.setLeftAnchor(editor,0.0);
+        Util.setAPAnchors(editor, 0);
     }
     
     

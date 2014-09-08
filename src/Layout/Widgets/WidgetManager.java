@@ -154,13 +154,13 @@ public final class WidgetManager {
         // attempt to get preferred widget from loaded widgets
         if (out == null)
             out = getWidgets(source)
-                    .filter(w-> cond.test(w.getInfo()))
+                    .filter(cond::test)
                     .filter(w-> w.isPreffered())
                     .findFirst().orElse(null);
         // attempt to get any widget from loaded widgets
         if (out == null)
             out = getWidgets(source)
-                    .filter(w->cond.test(w.getInfo()))
+                    .filter(cond::test)
                     .findFirst().orElse(null);
         
         // attempt to create new if no result yet
@@ -168,13 +168,13 @@ public final class WidgetManager {
             WidgetFactory f;
             // attempt to get preferred factory
                 f = getFactories()
-                    .filter(w->cond.test(w.info))
+                    .filter(cond::test)
                     .filter(w->w.preferred)
                     .findFirst().orElse(null);
             if (f==null)
             // attempt to get any factory
                 f = getFactories()
-                    .filter(w->cond.test(w.info))
+                    .filter(cond::test)
                     .findFirst().orElse(null);
             // open widget if found
             out = f==null ? null : f.create();

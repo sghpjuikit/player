@@ -13,14 +13,13 @@ import javafx.scene.layout.Region;
 /**
  * Empty widget.
  * <p>
- * Useful for certain layout operations and as a fill in for null
- * <p>.
- * Also its own Controller. To be able to be part of scene graph it returns
- * empty node when loaded.
+ * Useful for certain layout operations and as a fill in for null.
+ * <p>
+ * Also its own Controller. Loading returns empty {@link Region}.
  *  
  * @author uranium
  */
-@WidgetInfo(
+@Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Empty",
@@ -32,12 +31,7 @@ import javafx.scene.layout.Region;
 class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> {
 
     public EmptyWidget() {
-        super("Empty");
-    }
-    
-    /** @return empty (default) widget information */
-    @Override public WidgetInfo getInfo() {
-        return getClass().getAnnotation(WidgetInfo.class);
+        super("Empty", new EmptyWidgetFactory());
     }
 
     @Override
@@ -57,14 +51,10 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     }
     
     /** This implementation is no-op */
-    @Override public void refresh() {
-        // no-op
-    }
+    @Override public void refresh() { }
 
     @Override
-    public void setWidget(EmptyWidget w) {
-        // no-op
-    }
+    public void setWidget(EmptyWidget w) { }
 
     @Override
     public EmptyWidget getWidget() {

@@ -20,7 +20,6 @@ import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetInfo;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import static PseudoObjects.ReadMode.SELECTED_LIBRARY;
@@ -100,7 +99,7 @@ import utilities.functional.impl.Validators.isYearString;
  * 
  * @author Plutonium_
  */
-@WidgetInfo(
+@Widget.Info(
     name = "Tagger",
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

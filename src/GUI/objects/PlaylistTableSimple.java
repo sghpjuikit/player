@@ -25,6 +25,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
+import utilities.Util;
 
 /**
  * @author uranium
@@ -46,10 +47,7 @@ public class PlaylistTableSimple extends AnchorPane {
         // initialize table gui
         table = new TableView();
         getChildren().add(table);
-        AnchorPane.setTopAnchor(table,0d);
-        AnchorPane.setRightAnchor(table,0d);
-        AnchorPane.setBottomAnchor(table,0d);
-        AnchorPane.setLeftAnchor(table,0d);
+        Util.setAPAnchors(table, 0);
         
         //initiaize table columns
         final TableColumn<PlaylistItem, String> columnIndex = new TableColumn<>("item");

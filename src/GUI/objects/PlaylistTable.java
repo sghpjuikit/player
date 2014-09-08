@@ -110,10 +110,7 @@ public final class PlaylistTable {
     
     public void setRoot(AnchorPane parent) {
         parent.getChildren().add(table);
-        AnchorPane.setBottomAnchor(table, 0d);
-        AnchorPane.setLeftAnchor(table, 0d);
-        AnchorPane.setRightAnchor(table, 0d);
-        AnchorPane.setTopAnchor(table, 0d);
+        Util.setAPAnchors(table, 0);
         parent.getChildren().add(tmp);
         parent.getChildren().add(tmp2);        
     }

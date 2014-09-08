@@ -31,6 +31,15 @@ public class FxTimer implements Timer {
         timer.restart();
         return timer;
     }
+    
+    /**
+    * Equivalent to {@code create(delay, action).restart()}.
+    */
+    public static FxTimer run(double delay, Runnable action) {
+        FxTimer timer = create(Duration.millis(delay), action);
+        timer.restart();
+        return timer;
+    }
 
     /**
     * Prepares a (stopped) timer that executes the given action periodically

@@ -13,7 +13,7 @@ import GUI.GUI;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
-import Layout.Widgets.WidgetInfo;
+import Layout.Widgets.Widget;
 import java.io.File;
 import java.util.List;
 import javafx.beans.InvalidationListener;
@@ -39,7 +39,7 @@ import utilities.access.Accessor;
  * <p>
  * @author uranium
  */
-@WidgetInfo(name = "Tiny")
+@Widget.Info(name = "Tiny")
 public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
     
     @FXML AnchorPane root;

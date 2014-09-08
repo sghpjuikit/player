@@ -25,14 +25,13 @@ import utilities.Log;
  */
 public final class FXMLWidget extends Widget<FXMLController> {
     
-    FXMLWidget(String name) {
-        super(name);
+    FXMLWidget(String name, WidgetFactory factory) {
+        super(name,factory);
     }
 
     @Override
     public Node loadInitial() {
         try {
-            // get controller instance
             controller = getFactory().instantiateController();
             controller.setWidget(this);
             
@@ -46,7 +45,8 @@ public final class FXMLWidget extends Widget<FXMLController> {
             controller.refresh();
             
             return n;
-        } catch (IOException ex) {ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
             Log.err("Widget " + name + " failed to load. " + ex.getMessage() );
             // inject empty content to prevent application crash
             return Widget.EMPTY().load();

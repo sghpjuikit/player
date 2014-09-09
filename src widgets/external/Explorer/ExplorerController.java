@@ -98,7 +98,7 @@ public class ExplorerController extends FXMLController {
     
     @Override
     public void init() {
-        tree.setFixedCellSize(GUI.font.getSize() + 5);
+        tree.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         // set value factory

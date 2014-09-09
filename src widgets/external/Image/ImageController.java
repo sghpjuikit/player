@@ -61,7 +61,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
     public final Accessor<Double> slideshow_dur = new Accessor<>(15000d, this::slideshowDur);   
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Accessor<Pos> align = new Accessor<>(CENTER, thumb::setAlignment);   
+    public final Accessor<Pos> align = new Accessor<>(CENTER, thumb::applyAlignment);   
     
     // non applied configurables
     @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
@@ -80,7 +80,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
                 e.consume();
             } else
             if(e.getButton()==MIDDLE) {
-                useCustomImage.toggleNapplyValue();
+                useCustomImage.setCycledNapplyValue();
                 e.consume();
             }
         });

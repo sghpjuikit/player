@@ -524,8 +524,7 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
             cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
             cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
                 if(isApplyOnChange()) {
-                    GUI.skin = getItem();
-                    GUI.applySkin();
+                    GUI.skin.setNapplyValue(getItem());
 //                    applyNsetIfAvailable(); // causes StackOverflow sometimes !
                 }
             });

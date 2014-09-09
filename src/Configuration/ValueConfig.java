@@ -126,9 +126,8 @@ public final class ValueConfig<V> extends ConfigBase<V> {
      * Equivalent to: return applier==null ? true : getApplier().call(value);
      */
     @Override
-    public void applyValue() {
-        if(applier!=null)
-            getApplier().accept(value);
+    public void applyValue(V val) {
+        if(applier!=null) applier.accept(val);
     }
     
     /** {@inheritDoc} */

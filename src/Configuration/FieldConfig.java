@@ -61,13 +61,13 @@ public final class FieldConfig<T> extends ConfigBase<T> {
     
     /** {@inheritDoc} */
     @Override
-    public void applyValue() {
+    public void applyValue(T val) {
         if(applier != null) {
             Log.deb("Applying config: " + getName());
             try {
                 int i = applier.type().parameterCount();
                 
-                if(i==1) applier.invokeWithArguments(getValue());
+                if(i==1) applier.invokeWithArguments(val);
                 else applier.invoke();
                 
                 Log.deb("    Success.");

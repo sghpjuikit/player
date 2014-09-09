@@ -1,10 +1,9 @@
 
 package GUI.objects.Pickers;
 
-import AudioPlayer.tagging.Cover.Cover;
-import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import GUI.Window;
+import GUI.objects.ItemInfo;
 import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
 import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
 import static GUI.objects.Pickers.Notification.NotificationType.SONG;
@@ -12,20 +11,16 @@ import static GUI.objects.Pickers.Notification.NotificationType.TEXT;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.ScreenCentricPos;
 import GUI.objects.Text;
-import GUI.objects.Thumbnail;
 import java.io.IOException;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
-import main.App;
 import utilities.FxTimer;
-import utilities.Log;
 
 /**
  *
@@ -33,7 +28,7 @@ import utilities.Log;
  */
 public class Notification extends PopOver {
         
-    private final AnchorPane songNotif = new AnchorPane();  // song content
+    private ItemInfo songNotif;
     private final AnchorPane textNotif = new AnchorPane();  // text content
     private final FxTimer closer = FxTimer.create(Duration.seconds(1), this::hide);// close delay timer
     
@@ -42,23 +37,15 @@ public class Notification extends PopOver {
     private Duration duration = Duration.seconds(5);
     
     // content 
-    private Thumbnail thumb;
-    @FXML private Label indexL;
-    @FXML private Label songL;
-    @FXML private Label artistL;
-    @FXML private Label albumL;
-    @FXML private Label typeL;
-    @FXML private AnchorPane coverContainer;
-    
     @FXML private BorderPane textContainer;
     @FXML private Label titleText;
     
     private final EventHandler onClickHandler = e-> {
-        Window w = App.getWindow();
         // if app minimized deminimize
         if (isOpenAppOnClick()) {
-             if(w.isMinimized()) w.setMinimized(false);
-             else w.focus();
+            Window w = Window.getActive();
+            if(w.isMinimized()) w.setMinimized(false);
+            else w.focus();
         }
     };
     
@@ -76,19 +63,7 @@ public class Notification extends PopOver {
     }
 
     private void buildContent() {
-        try {
-            //load
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Notification.fxml"));
-            fxmlLoader.setRoot(songNotif);
-            fxmlLoader.setController(this);
-            fxmlLoader.load();
-            
-            // close on click
-            songNotif.setOnMouseClicked(onClickHandler);
-            
-        } catch (IOException ex) {
-            Log.err("Notifier source data coudlnt be read.");
-        }
+        songNotif = new ItemInfo();
         
         try {
             //load
@@ -96,15 +71,13 @@ public class Notification extends PopOver {
             fxmlLoader.setRoot(textNotif);
             fxmlLoader.setController(this);
             fxmlLoader.load();
-            
-            // close on click
-            textNotif.setOnMouseClicked(onClickHandler);
-        } catch (IOException ex) {
-            Log.err("Notifier source data coudlnt be read.");
+        } catch (IOException e) {
+            throw new RuntimeException("Notifier source data coudlnt be read.", e);
         }
         
-        thumb = new Thumbnail(coverContainer.getPrefHeight());
-        coverContainer.getChildren().add(thumb.getPane());
+        // close on click
+        songNotif.setOnMouseClicked(onClickHandler);
+        textNotif.setOnMouseClicked(onClickHandler);
     }
     
     @Override
@@ -129,31 +102,14 @@ public class Notification extends PopOver {
      * content not String if type TEXT
      */
     public void setContent(Object content, String title, NotificationType type) {
-        typeL.setText(title);
         
         if (type == SONG || type == PLAYBACK_STATUS) {
-            
-            Metadata m = (Metadata)content;
-            if (m == null) { // prevent displaying previous info
-                thumb.loadImage((Image)null);
-                indexL.setText("");
-                songL.setText("");
-                artistL.setText("");
-                albumL.setText("");
-            } else {
-                Cover c = m.getCover(ANY);
-                thumb.loadImage(c.getImage());
-                thumb.setFile(c.getFile());
-                indexL.setText(m.getPlaylistIndexInfo());
-                songL.setText(m.getTitle());
-                artistL.setText(m.getArtist());
-                albumL.setText(m.getAlbum());
-            }
+            songNotif.setData(title, (Metadata)content);
             setContentNode(songNotif);
             // call relayout
             songNotif.applyCss();
             songNotif.layout();
-            songNotif.autosize();songNotif.getStylesheets().forEach(System.out::println);
+            songNotif.autosize();
         } else
         if (type == OTHER) {
             setContentNode((Node)content);

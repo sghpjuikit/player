@@ -3,7 +3,6 @@ package GUI;
 
 import Action.IsAction;
 import Action.IsActionable;
-import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.LayoutAggregators.LayoutAggregator;
@@ -33,6 +32,7 @@ import main.App;
 import utilities.FileUtil;
 import utilities.Log;
 import utilities.Util;
+import utilities.access.Accessor;
 
 /**
  *
@@ -42,14 +42,25 @@ import utilities.Util;
 @IsConfigurable
 public class GUI {
     
-    // properties
-    @IsConfig(name = "Font", info = "Application font.")
-    public static Font font = Font.getDefault();
-    @IsConfig(name = "Skin", info = "Application skin.")
-    public static String skin = "Default";
     private static final String DEF_SKIN = GUI.class.getResource("Skin/Skin.css").toExternalForm();
     private static String skinOldUrl = ""; // set to not sensible non null value
+    private static boolean alt_state = false;
+    private static final List<String> skins = new ArrayList();
     
+    // applied configs
+    @IsConfig(name = "Skin", info = "Application skin.")
+    public static final Accessor<String> skin = new Accessor<>("Default", GUI::setSkin);
+    /**
+     * Font of the application. Overrides font defined by skin. The font can be 
+     * overridden programmatically or stylesheet.
+     * 
+     * Note: font is applied only if the GUI is fully initialized, otherwise does
+     * nothing.
+     */
+    @IsConfig(name = "Font", info = "Application font.")
+    public static final Accessor<Font> font = new Accessor<>(Font.getDefault(), GUI::applyFont);
+    
+    // non applied configs
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
     public static boolean blur_layoutMode = false;
     @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
@@ -60,18 +71,12 @@ public class GUI {
     public static double blur_LM = 8;
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static double duration_LM = 250;
-    
-
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
     public static boolean snapping = true;
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     public static double snapDistance = 7;
-
-    private static boolean alt_state = false;
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false);
-    
-    private static final List<String> skins = new ArrayList();
         
 /******************************************************************************/
     
@@ -145,8 +150,8 @@ public class GUI {
     @IsAction(name = "Reload GUI.", description = "Reload application GUI. Includes skin, font, layout.", shortcut = "F5")
     public static void refresh() {
         if (App.isInitialized()) {
-            applySkin();
-            applyFont();
+            skin.applyValue();
+            font.applyValue();
             loadLayout();
         }
     }
@@ -160,7 +165,7 @@ public class GUI {
     /** Toggles layout controlling mode. */
     @IsAction(name = "Reload skin", description = "Reloads skin.", shortcut = "F7")
     public static void loadSkin() {
-        applySkin();
+        skin.applyValue();
     }
     
     /** Toggles layout mode. */
@@ -254,22 +259,7 @@ public class GUI {
        return skins;
     }
     
-    
-
-    
 /*****************************  setter methods ********************************/
-    
-    /**
-     * Applies specified font on the application. The font can be overridden 
-     * locally.
-     * The method executes only if the GUI is fully initialized, otherwise does
-     * nothing.
-     * @param font
-     */
-    public static void setFont(Font _font) {
-        font = _font;
-        applyFont();
-    }
     
     /**
      * Changes application's skin and applies it.
@@ -281,7 +271,7 @@ public class GUI {
      * of that method.
      * @param skinname name of the skin to apply.
      */
-    public static void setSkin(String skinname) {
+    public static void setSkin(String skinname) {System.out.println("applying " + skin);
         if (skinname == null || skinname.isEmpty() || skinname.equalsIgnoreCase(STYLESHEET_MODENA)) {
             setSkinModena();
         } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
@@ -313,7 +303,7 @@ public class GUI {
                 // add new skin
                 StyleManager.getInstance().addUserAgentStylesheet(url);
                 // set current skin
-                skin = FileUtil.getName(file);
+                skin.setValue(FileUtil.getName(file));
                 // store its url so we can remove the skin later
                 skinOldUrl = url;
                 return true;
@@ -331,7 +321,7 @@ public class GUI {
             StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
             // set code skin
             Application.setUserAgentStylesheet(STYLESHEET_MODENA);
-            skin = "Modena";
+            skin.setValue("Modena");
             return true;
         }
         return false;
@@ -342,7 +332,7 @@ public class GUI {
             StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
             // set code skin
             Application.setUserAgentStylesheet(STYLESHEET_CASPIAN);
-            skin = "Caspian";
+            skin.setValue("Caspian");
             return true;
         }
         return false;
@@ -358,30 +348,24 @@ public class GUI {
         }
     }
     
-/****************************  applying methods *******************************/
+/*****************************  helper methods ********************************/
     
-    @AppliesConfig( "skin")
-    public static void applySkin() {
-        setSkin(skin);
-    }
-    
-    @AppliesConfig( "font")
-    private static void applyFont() {
+    private static void applyFont(Font f) {System.out.println("applying " + f);
         // apply only if application initialized correctly
         if (App.isInitialized()) {
             // we need to apply to each window separately
             ContextManager.windows.forEach(w ->{
-                String tmp = font.getStyle().toLowerCase();
+                String tmp = f.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;
                 // for some reason javaFX and css values are quite different...
                 String styleS = style==ITALIC ? "italic" : "normal";
                 String weightS = weight==BOLD ? "bold" : "normal";
                 w.getStage().getScene().getRoot().setStyle(
-                    "-fx-font-family: \"" + font.getFamily() + "\";" + 
+                    "-fx-font-family: \"" + f.getFamily() + "\";" + 
                     "-fx-font-style: " + styleS + ";" + 
                     "-fx-font-weight: " + weightS + ";" + 
-                    "-fx-font-size: " + font.getSize() + ";"
+                    "-fx-font-size: " + f.getSize() + ";"
                 );
             });
         }

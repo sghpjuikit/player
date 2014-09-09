@@ -7,6 +7,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
+import GUI.objects.ItemInfo;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
@@ -15,13 +16,15 @@ import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.CUSTOM;
 import static PseudoObjects.ReadMode.PLAYING;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -35,6 +38,7 @@ import static javafx.geometry.Pos.CENTER;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
@@ -54,11 +58,13 @@ import utilities.access.Accessor;
     name = "Image Viewer",
     description = "Displays images.",
     howto = "Available actions:\n" +
-            "    Left click middle: Toggles show thumbnails\n" +
-            "    Image left click left side: Previous image\n" +
-            "    Image left click right side : Next image\n" +
+            "    Left click middle: Shows/hides thumbnails\n" +
+            "    Left click left side: Previous image\n" +
+            "    Left click right side : Next image\n" +
+            "    Left click bottom : Turns theater mode on/off\n" +
+            "    Info pane right click : Shows/hides bacground for info pane\n" +
             "    Image right click : Opens image context menu\n" +
-            "    Thumbnail left click : Show as image\n" +
+            "    Thumbnail left click : Set as image\n" +
             "    Thumbnail right click : Opens thumbnail context menu\n" +
             "    Drag&Drop audio : Displays images for the first dropped item\n" + 
             "    Drag&Drop image : Copies images into current item's locaton\n",
@@ -76,6 +82,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private final Thumbnail thumbnail = new Thumbnail();
     private FadeTransition fIn;
     private FadeTransition fOut;
+    private ItemInfo itemPane;
     
     // state
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty(null); // current location source (derived from metadata source)
@@ -84,7 +91,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private boolean image_reading_lock = false;
     private int active_image = -1;
     // eager initialized state
-    private FxTimer slideshow;
+    private FxTimer slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
     private Subscription dataMonitoring;
     private Metadata data;
     
@@ -99,13 +106,13 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         thumb_pane.setVgap(v);
     });
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public final Accessor<Double> slideshow_dur = new Accessor<>(15000d, this::slideshowDur);
+    public final Accessor<Double> slideshow_dur = new Accessor<>(15000d, slideshow::setTimeoutAndRestart);
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
     public final Accessor<Boolean> slideshow_on = new Accessor<>(true, v -> {
-        if (v) slideshowStart(); else slideshowEnd();
+        if (v) slideshow.restart(); else slideshow.stop();
     });
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
-    public final Accessor<Boolean> showImage = new Accessor<>(true, this::setImageVisible);
+    public final Accessor<Boolean> showImage = new Accessor<>(true, thumbnail.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
     public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::setThumbnailsVisible);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
@@ -130,28 +137,35 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         t.setBackgroundVisible(v);
     }));
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Accessor<Pos> align = new Accessor<>(CENTER, thumbnail::setAlignment);
+    public final Accessor<Pos> align = new Accessor<>(CENTER, thumbnail::applyAlignment);
+    @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
+    public final Accessor<Boolean> theater_mode = new Accessor<>(false, this::applyTheaterMode);
     
     // non applied configurables
     @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
     public Boolean changeReadModeOnTransfer = false;
-    @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly one after another")
-    public long thumbnailReloadTime = 250l;
+    @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly or fast one after another")
+    public long thumbnailReloadTime = 200l;
     @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
     public boolean keepContentOnEmpty = true;
     @IsConfig(name = "File search depth", info = "Depth to search to for files in folders.")
     public int folderTreeDepth = 1;
     @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
-    public int thumbsLimit = 60;
+    public int thumbsLimit = 100;
     
     @Override
     public void init() {
-        //initialize gui
+        try {
+            entireArea.getStylesheets().add(getResource("skin.css").toURI().toURL().toExternalForm());
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(ImageViewerController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        // add thumbnail & span whole area
         entireArea.getChildren().add(thumbnail.getPane());
         thumbnail.setBorderToImage(true);
         thumbnail.getPane().prefWidthProperty().bind(entireArea.widthProperty());
         thumbnail.getPane().prefHeightProperty().bind(entireArea.heightProperty());
-        thumbnail.getPane().opacityProperty().bind(Bindings.subtract(1d, thumb_root.opacityProperty().divide(2)));
         
         fIn = new FadeTransition(Duration.millis(500), thumb_root);
         fOut = new FadeTransition(Duration.millis(500), thumb_root);
@@ -161,19 +175,26 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         entireArea.setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
-                double width = entireArea.getWidth();
-                if (e.getX() < 0.15*width) prevImage();
-                else if(e.getX() > 0.85*width) nextImage();
-                else showThumbnails.toggleNapplyValue();
+                if(e.getY()>0.8*entireArea.getHeight() && e.getX()>0.7*entireArea.getWidth()) {
+                    theater_mode.setCycledNapplyValue();
+                } else {
+                    double width = entireArea.getWidth();
+                    if (e.getX() < 0.15*width) prevImage();
+                    else if(e.getX() > 0.85*width) nextImage();
+                    else showThumbnails.setCycledNapplyValue();
+                }
                 e.consume();
             }
         });
+        
+        // position thumbnail scroll pane & make sure it doesnt cover whole area
         Util.setAPAnchors(thumb_root, 0);
+        entireArea.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         thumb_root.toFront();
-        thumb_root.setPickOnBounds(false);
+        // prevent scrollpane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
-                showThumbnails.toggleNapplyValue();
+                showThumbnails.setCycledNapplyValue();
                 e.consume();
             }
         });
@@ -203,6 +224,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {
                 // grab images
                 DragUtil.doWithImageItems(e, files -> {
+                    // prevent copying displayed items
+                    // the copyng itself prevents copying the files if source and
+                    // destination is the same, but we obtained files recursively
+                    // which means thei location can differ
+                    files.removeIf(images::contains);
                     // copy files to displayed item'slocation
                     FileUtil.copyFiles(files, folder.get())
                         // create thumbnails for new files (we avoid refreshign all)
@@ -239,8 +265,10 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         slideshow_dur.applyValue();
         slideshow_on.applyValue();
         showThumbnails.applyValue();
-        thums_rect.applyValue();
         hideThumbEager.applyValue();
+        thums_rect.applyValue();
+        align.applyValue();
+        theater_mode.applyValue();
         readThumbnails();
     }
 
@@ -253,7 +281,10 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public void showImage(File img_file) {
         if(img_file!=null && img_file.getParentFile()!=null) {
             folder.set(img_file.getParentFile());
-            slideshowRestart();
+            // this resets the slideshow counter
+            // notice that we query whether slideshow is running, not whether it is
+            // supposed to run, which might not always be the same
+            if(slideshow.isRunning()) slideshow.restart();
             active_image = -1;
             thumbnail.loadImage(img_file);
         }
@@ -272,6 +303,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         if(keepContentOnEmpty && new_folder==null) return;
         // refresh location
         folder.set(new_folder);
+        if(theater_mode.getValue()) itemPane.setData("", m);
      }
     
     // using change listener means the event fires only if value really changed
@@ -338,7 +370,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                           e.consume();
                       }
                   });
-                  
         return t;
     }
     
@@ -380,7 +411,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             int index = (active_image >= images.size()-1) ? 0 : active_image+1;
             setImage(index);
         }
-        slideshowRestart();
+        if(slideshow.isRunning()) slideshow.restart();
     }
     
     public void prevImage() {
@@ -391,33 +422,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             int index = (active_image < 1) ? images.size()-1 : active_image-1;
             setImage(index);
         }
-        slideshowRestart();
-    }
-    
-    private void slideshowStart() {
-        nextImage();
-        // create if needed
-        if(slideshow==null)
-            slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
-        // start up
-        slideshow.restart(Duration.millis(slideshow_dur.getValue()));
-    }
-    
-    private void slideshowRestart() {
-        if(slideshow!=null && slideshow_on.getValue()) slideshow.restart();
-    }
-    
-    private void slideshowEnd() {
-        if (slideshow!=null) slideshow.stop();
-    }
-    
-    private void slideshowDur(double v) {
-        if(slideshow != null && slideshow_on.getValue())
-            slideshow.restart(Duration.millis(v));
-    }
-    
-    private void setImageVisible(boolean v) {
-        thumbnail.getPane().setVisible(v);        
+        if(slideshow.isRunning()) slideshow.restart();
     }
     
     private void setThumbnailsVisible(boolean v) {
@@ -425,5 +430,29 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             thumb_root.setVisible(true);
             fIn.play();
         } else fOut.play();
+    }
+    
+    private void applyTheaterMode(boolean v) {
+        if(v && itemPane==null) {
+            itemPane = new ItemInfo(false);
+            entireArea.getChildren().add(itemPane);
+            itemPane.toFront();
+            AnchorPane.setBottomAnchor(itemPane, 20d);
+            AnchorPane.setRightAnchor(itemPane, 20d);
+            itemPane.setData("", data);
+
+            itemPane.setOnMouseClicked(ee -> {
+                if(ee.getButton()==SECONDARY) {
+                    if(itemPane.getStyleClass().isEmpty()) itemPane.getStyleClass().addAll("block");
+                    else itemPane.getStyleClass().clear();
+                    ee.consume();
+                }
+            });
+        }
+        
+        slideshow_on.applyValue(v ? false : slideshow_on.getValue());
+        thumbnail.setBackgroundVisible(v);
+        thumbnail.setBorderVisible(!v);
+        if (itemPane!=null) itemPane.setVisible(v);
     }
 }

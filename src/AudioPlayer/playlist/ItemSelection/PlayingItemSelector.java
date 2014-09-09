@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import utilities.CyclicEnum;
+import utilities.access.CyclicEnum;
 
 /**
  * Determines playing items. Provides customizable item selector and also the

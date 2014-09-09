@@ -12,14 +12,11 @@ import java.util.Map;
 import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Parent;
-import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import utilities.Animation.Interpolators.CircularInterpolator;
@@ -97,43 +94,35 @@ public class SwitchPane implements LayoutAggregator {
         Util.setAPAnchors(ui, 0);
         
         // initialize ui drag behavior
-        root.addEventFilter(MOUSE_PRESSED, e -> {
-            uiDragActiveLock = false;
-            // doesnt work because the isStillSincePress is too insensitive
-//            if(!e.isStillSincePress()) {
-                if(e.getButton()==SECONDARY && genuineEvent) {
-//                    startUiDrag(e);
-//                    ui.setMouseTransparent(true);
-                    genuineEvent = false;
-                    
-                    FxTimer.run(1000, ()->{
-//                        Event.fireEvent(root, (Event)e.clone());
-                        genuineEvent = true;
-                    });
-                    
-                    e.consume();
-                        
-                }
+//        root.addEventFilter(MOUSE_PRESSED, e -> {
+//            if(e.getButton()==SECONDARY && genuineEvent) {
+////                    startUiDrag(e);
+////                    ui.setMouseTransparent(true);
+//                genuineEvent = false;
+//
+//                FxTimer.run(1000, ()->{
+////                        Event.fireEvent(root, (Event)e.clone());
+//                    genuineEvent = true;
+//                });
+//
+//            } else if(e.getButton()==MIDDLE) {
+//                //ui.setMouseTransparent(true);
+//                //startScroll(e);
 //            }
-            
-            if(e.getButton()==MIDDLE) {
-                //ui.setMouseTransparent(true);
-                //startScroll(e);
-            }
-            
-        });
+//            
+//        });
         
         root.addEventFilter(MOUSE_DRAGGED, e -> {
-            if(!uiDragActiveLock && e.getButton()==SECONDARY ) {
+            if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
                 startUiDrag(e);
                 dragUi(e);
-            }e.consume();
+            }
             //if(e.isMiddleButtonDown())
                 //doScrolling(e);
         });
         
-        root.addEventFilter(MOUSE_CLICKED, e-> {e.consume();
+        root.addEventFilter(MOUSE_CLICKED, e-> {
             if(e.getButton()==SECONDARY) {
                 endUIDrag(e);
                 ui.setMouseTransparent(false);
@@ -144,17 +133,14 @@ public class SwitchPane implements LayoutAggregator {
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, e-> {
             endUIDrag(e);
-            uiDragActiveLock = true;
         });
         
-        root.addEventFilter(MOUSE_RELEASED, e-> {
-//            if(genuineEvent) 
-                e.consume();
-            if(e.getButton()==MIDDLE) {
-                //endScroll(e);
-                //ui.setMouseTransparent(false);
-            }
-        });
+//        root.addEventFilter(MOUSE_RELEASED, e-> {
+//            if(e.getButton()==MIDDLE) {
+//                //endScroll(e);
+//                //ui.setMouseTransparent(false);
+//            }
+//        });
         
         uiDrag = new TranslateTransition(Duration.millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
@@ -241,7 +227,6 @@ public class SwitchPane implements LayoutAggregator {
     private double uiTransX;
     private double uiStartX;
     boolean uiDragActive = false;
-    boolean uiDragActiveLock = false;
     
     private double lastX = 0;
     private double nowX = 0;

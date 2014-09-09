@@ -341,9 +341,7 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     @Override
-    public void applyValue() {
-        // do nothing
-    }
+    public void applyValue(Action val) { }
 
     @Override
     public Class<Action> getType() {

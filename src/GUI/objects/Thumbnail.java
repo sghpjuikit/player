@@ -35,12 +35,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.DataFormat;
 import static javafx.scene.input.DataFormat.FILES;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
@@ -364,8 +364,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * Default true.
      */
     public void setContextMenuOn(boolean val) {
-        if (val) root.setOnContextMenuRequested(contextMenuHandler);
-        else root.setOnContextMenuRequested(null);
+        if (val) root.addEventHandler(MOUSE_CLICKED,contextMenuHandler);
+        else root.removeEventHandler(MOUSE_CLICKED,contextMenuHandler);
     }
     
     private EventHandler<MouseEvent> dragHandler;
@@ -384,7 +384,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         };
     }
     
-    public void setAlignment(Pos val) {
+    public void applyAlignment(Pos val) {
         content_container.getChildren().clear();        
         switch(val) {
             case BASELINE_CENTER:
@@ -466,13 +466,15 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     private ContextMenu imgCM;
     private ContextMenu fileCM;
     
-    private final EventHandler<ContextMenuEvent> contextMenuHandler = e -> {
-        // decide mode (image vs file), build lazily & show where requested
-        if (img_file != null)
-            getFileCM().show(root,e.getScreenX(),e.getScreenY());
-        else if (getImage() !=null)
-            getImgCM().show(root,e.getScreenX(),e.getScreenY());
-        e.consume();
+    private final EventHandler<MouseEvent> contextMenuHandler = e -> {
+        if(e.getButton()==SECONDARY) {
+            // decide mode (image vs file), build lazily & show where requested
+            if (img_file != null)
+                getFileCM().show(root,e.getScreenX(),e.getScreenY());
+            else if (getImage() !=null)
+                getImgCM().show(root,e.getScreenX(),e.getScreenY());
+            e.consume();
+        }
     };
     
     private ContextMenu getFileCM() {

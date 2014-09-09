@@ -95,10 +95,18 @@ public class FxTimer implements Timer {
         timeline.play();
     }
 
+    public void restart(double timeoutInMillis) {
+        restart(Duration.millis(timeoutInMillis));
+    }
+    
     @Override
     public void stop() {
         timeline.stop();
         seq++;
+    }
+    
+    public boolean isRunning() {
+        return timeline.getCurrentRate()!=0;
     }
     
     /**
@@ -110,5 +118,28 @@ public class FxTimer implements Timer {
      */
     public void setTimeout(Duration timeout) {
         this.timeout = timeout;
+    }
+    
+    public void setTimeout(double timeautInMillis) {
+        this.timeout = Duration.millis(timeautInMillis);
+    }
+    
+    /**
+     * If timer running, executes {@link #restart(javafx.util.Duration)}, else
+     * executes {@link #setTimeout(javafx.util.Duration)}
+     * <p>
+     * Basically same as {@link #restart(javafx.util.Duration)}, but restarts
+     * only if needed (when running).
+     * 
+     * @param timeout 
+     */
+    public void setTimeoutAndRestart(Duration timeout) {
+        if (isRunning()) restart(timeout);
+        else setTimeout(timeout);
+    }
+    
+    public void setTimeoutAndRestart(double timeautInMillis) {
+        if (isRunning()) restart(Duration.millis(timeautInMillis));
+        else setTimeout(Duration.millis(timeautInMillis));
     }
 }

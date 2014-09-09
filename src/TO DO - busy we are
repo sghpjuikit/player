@@ -28,7 +28,6 @@
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
 - press C to collapse layout containers easily - implement properly
-- NOTIFICATION PADDING WRONG (AGAIN) - sometimes
 - '/n' character expands table row height, figure out how to disable that...
 - allow multiselection in library metadata group -> support multiple values in
   AND filtering for query

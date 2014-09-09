@@ -64,7 +64,7 @@ public class LibraryViewController extends FXMLController {
         Util.setAPAnchors(table, 0);
         
 //        table.getSelectionModel().setSelectionMode(MULTIPLE);
-        table.setFixedCellSize(GUI.font.getSize() + 5);
+        table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         
         // add index column
         TableColumn indexColumn = Util.createIndexColumn("#");

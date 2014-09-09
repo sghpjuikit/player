@@ -125,7 +125,7 @@ public final class PlaylistTable {
         
         // initialize table gui
         table.setTableMenuButtonVisible(true);
-        table.setFixedCellSize(GUI.font.getSize() + 5);
+        table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         
         // initialize table factories
         indexCellFactory = ( column -> new TableCell<PlaylistItem, String>() {

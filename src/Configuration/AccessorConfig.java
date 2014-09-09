@@ -87,7 +87,7 @@ public class AccessorConfig<T> extends ConfigBase<T> implements FunctAccessibleV
     
     /** {@inheritDoc} */
     @Override
-    public void applyValue() {
+    public void applyValue(T val) {
         // do nothing
     }
     

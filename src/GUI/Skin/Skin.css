@@ -3541,7 +3541,7 @@
     //-fx-padding: 0 0 0 5; 
 }
 
-/* Application notification poover. This styleclass styles the content while the
+/* Application notification popover. This styleclass styles the content while the
    underlying popover is styled above.
    Inherites .block & .anchor-pane */
 .notification {
@@ -3551,14 +3551,12 @@
 
 // background for thumbnail
 .thumbnail-bgr {
-    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-color: rgba(0,0,0,0.9);
 }
 // border of thumbnail
 .thumbnail-border {
     -fx-border-color: black;
-    -fx-border-width: 2; // this should be set to 2 for now as it depends on java code
-/*    -fx-border-insets: -2;*/
-    /*-fx-background-insets: 2;*/
+    -fx-border-width: 2;
 }
 
 //****************************** SEEKER ***********************************//

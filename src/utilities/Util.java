@@ -6,7 +6,7 @@ package utilities;
 
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
-import java.awt.image.BufferedImage;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -48,6 +49,9 @@ import javafx.stage.Screen;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
 import main.App;
 import org.jaudiotagger.tag.images.Artwork;
 import utilities.functional.functor.BiCallback;
@@ -303,28 +307,39 @@ public interface Util {
             return new Image(file.toURI().toString());
         else {
             // find out real image file resolution
-            int w= Integer.MAX_VALUE;
-            int h= Integer.MAX_VALUE;
-            try {
-                BufferedImage readImage = ImageIO.read(file);
-                h = readImage.getHeight();
-                w = readImage.getWidth();
-                // there is a bug in java throwing arrayIndexOutOfBounds Exception
-                // for some .gif files
-                // java.lang.ArrayIndexOutOfBoundsException: 4096
-                // at com.sun.imageio.plugins.gif.GIFImageReader.read(GIFImageReader.java:984)
-                // at javax.imageio.ImageIO.read(ImageIO.java:1448)
-                // at javax.imageio.ImageIO.read(ImageIO.java:1308)
-                // at utilities.Util.loadImage(Util.java:307)
-            } catch (IOException | ArrayIndexOutOfBoundsException e) {
-                // ignore
-            }
+            Dimension d = getImageDim(file);
+            int w = d==null ? Integer.MAX_VALUE : d.width;
+            int h = d==null ? Integer.MAX_VALUE : d.height;
             
-            // lets not get over real size
+            // lets not get over real size (Image unfortunately does that if we dont stop it)
             int fin_width = Math.min((int)width,w);
             int fin_height = Math.min((int)height,h);
             return new Image(file.toURI().toString(), fin_width, fin_height, true, true);
         }
+    }
+    
+    // thx: http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
+    public static Dimension getImageDim(File f) {
+        Dimension result = null;
+        String suffix = FileUtil.getSuffix(f.toURI());
+        Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix(suffix);
+        if (iter.hasNext()) {
+            ImageReader reader = iter.next();
+            try {
+                ImageInputStream stream = new FileImageInputStream(f);
+                reader.setInput(stream);
+                int width = reader.getWidth(reader.getMinIndex());
+                int height = reader.getHeight(reader.getMinIndex());
+                result = new Dimension(width, height);
+            } catch (IOException e) {
+                Log.warn("Problem finding out image size" + e.getMessage());
+            } finally {
+                reader.dispose();
+            }
+        } else
+            throw new RuntimeException("No reader found for given file: " + f.getPath());
+
+        return result;
     }
     
     /**
@@ -506,7 +521,7 @@ public interface Util {
     }
     
     public static Label createIcon(AwesomeIcon icon, int size, String tooltip, EventHandler<MouseEvent> onClick) {
-        Label i = AwesomeDude.createIconLabel(icon,"",String.valueOf(size),String.valueOf(GUI.GUI.font.getSize()),CENTER);
+        Label i = AwesomeDude.createIconLabel(icon,"",String.valueOf(size),String.valueOf(GUI.GUI.font.getValue().getSize()),CENTER);
               i.setOnMouseClicked(onClick);
         if(tooltip!=null && !tooltip.isEmpty()) i.setTooltip(new Tooltip(tooltip));
         return i;

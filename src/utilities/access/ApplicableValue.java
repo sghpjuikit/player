@@ -6,8 +6,6 @@
 
 package utilities.access;
 
-import utilities.CyclicEnum;
-
 /**
  *
  * @author Plutonium_
@@ -15,13 +13,32 @@ import utilities.CyclicEnum;
 public interface ApplicableValue<T> extends AccessibleValue<T> {
     
     /**
-     * Applies value if possible, which depends on implementation, but not value
-     * itself.
+     * Similar to {@link #applyValue()}, but instead of value of this accessor,
+     * provided value is used
+     * <p>
+     * This method is a setter like {@link #setValue(java.lang.Object)}, but the
+     * value is not set, only still applied. So the immediate effect is the same,
+     * but there is still value to fall back on later.
+     * <p>
+     * Useful for internal application within the object, where the value should
+     * change, but when queried (getValue)) from outside, this should not be
+     * reflected.
+     * 
+     * @param val 
      */
-    public abstract void applyValue();
+    public void applyValue(T val);
     
     /**
-     * Equivalent to calling {@link #setValue()} and {@link #applyValue()}.
+     * Applies contained value. Equivalent to calling {@link #applyValue(java.lang.Object)}
+     * with value of {@link #getValue()}
+     */
+    public default void applyValue() {
+        applyValue(getValue());
+    }
+    
+    /**
+     * Equivalent to calling {@link #setValue()} and {@link #applyValue()}
+     * subsequently.
      */
     public default void setNapplyValue(T val) {
         setValue(val);
@@ -29,24 +46,27 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
     }
     
     /**
-     * Loops value. Only available for {@link Boolean} and {@link CyclicEnum}
-     * otherwise does nothing.
-     * <p>
-     * For boolean negates the value. For CyclicEnum sets next value.
+     * Equivalent to calling {@link #setNextValue() ()} and then {@link #applyValue()}
+     * subsequently.
      */
-    public default void toggleValue() {
-        T val = getValue();
-        if(val instanceof Boolean)
-            setValue((T)(Object)!Boolean.class.cast(getValue()));
-        else if(val instanceof CyclicEnum)
-            setValue((T)CyclicEnum.class.cast(getValue()).next());
+    public default void setNextNapplyValue() {
+        setNextValue();
+        applyValue();
     }
-    
     /**
-     * Equivalent to calling {@link #toggleValue()} and then {@link #applyValue()}.
+     * Equivalent to calling {@link #setPreviousValue() ()} and then {@link #applyValue()}
+     * subsequently.
      */
-    public default void toggleNapplyValue() {
-        toggleValue();
+    public default void setPreviousNapplyValue() {
+        setPreviousValue();
+        applyValue();
+    }
+    /**
+     * Equivalent to calling {@link #setCycledValue() ()} and then {@link #applyValue()}
+     * subsequently.
+     */
+    public default void setCycledNapplyValue() {
+        setCycledValue();
         applyValue();
     }
     

@@ -1,0 +1,15 @@
+
+
+.thumbnail-pane {
+	-fx-background-color: rgba(0,0,0,0.3);
+}
+
+.block {
+	-fx-background-color: rgba(20,20,20,0.7);
+	-fx-background-radius: 5;
+	-fx-text-fill: white;
+}
+
+.thumbnail-bgr {
+    -fx-background-color: black;
+}

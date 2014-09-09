@@ -6,11 +6,15 @@
 
 package utilities.access;
 
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
  * Simple object wrapper similar to {@link javafx.beans.property.Property}, but
- * simpler and with the ability to apply value change.
+ * simpler (no binding) and with the ability to apply value change.
+ * <p>
+ * Does not permit null values.
  * 
  * @author Plutonium_
  */
@@ -20,38 +24,54 @@ public class Accessor<T> implements ApplicableValue<T> {
     private Consumer<T> applier;
     
     public Accessor(T val) {
-        value = val;
+        this(val, null);
     }
     
     public Accessor(T val, Consumer<T> applier) {
-        value = val;
-        this.applier = applier;
+        setValue(val);
+        setApplier(applier);
     }
     
-    /** {@inheritDoc} */
+    /** 
+     * {@inheritDoc}
+     * 
+     * @return non null value
+     */
     @Override
     public T getValue() {
+        if (value == null) throw new NoSuchElementException("No value present");
         return value;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void setValue(T val) {
+    public final void setValue(T val) {
+        Objects.requireNonNull(val);
         value = val;
     }
     
     /** {@inheritDoc} */
     @Override
-    public void applyValue() {
-        if (applier != null)  applier.accept(value);
+    public void applyValue(T val) {
+        Objects.requireNonNull(val);
+        if (applier != null) applier.accept(val);
     }
     
-    /** Sets applier. Applier is a code that applies the value in any way. */
-    public void setApplier(Consumer<T> applier) {
+    /** 
+     * Sets applier. Applier is a code that applies the value in any way. 
+     * 
+     * @param applier or null to disable applying
+     */
+    public final void setApplier(Consumer<T> applier) {
         this.applier = applier;
     }
     
-    /** Gets applier. Applier is a code that applies the value. It can do anything. */
+    /** 
+     * Gets applier. Applier is a code that applies the value. It can do anything.
+     * Default null.
+     * 
+     * @return applier or null if none.
+     */
     public Consumer<T> getApplier() {
         return applier;
     }

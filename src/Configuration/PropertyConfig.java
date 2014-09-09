@@ -95,6 +95,13 @@ public class PropertyConfig<T> extends ConfigBase<T> {
         if (value instanceof ApplicableValue)
             ApplicableValue.class.cast(value).applyValue();
     }
+    
+    @Override
+    public void applyValue(T val) {
+        // apply if value applicable
+        if (val instanceof ApplicableValue)
+            ApplicableValue.class.cast(val).applyValue();
+    }
 
     @Override
     public Class getType() {

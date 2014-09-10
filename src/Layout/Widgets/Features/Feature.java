@@ -6,6 +6,9 @@
 
 package Layout.Widgets.Features;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Marker interface denoting a feature - a functionality of some object.
  * <p>
@@ -35,5 +38,15 @@ public interface Feature {
      * 
      * @return human readable name of the feature.
      */
-    String getFeatureName();
+    default String getFeatureName() {
+        Class<?>[] interfaces = getClass().getInterfaces();
+        List<String> out = new ArrayList();
+        for(Class c : interfaces)
+            if (Feature.class.isAssignableFrom(c)) {
+                FeatureName fn = (FeatureName) c.getAnnotation(FeatureName.class);
+                if (fn!=null) out.add(fn.value());
+            }
+        
+        return String.join(", ", out);
+    }
 }

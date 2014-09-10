@@ -18,13 +18,13 @@ import static PseudoObjects.ReadMode.PLAYING;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -89,7 +89,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private final ObservableList<File> images = FXCollections.observableArrayList();
     private final List<Thumbnail> thumbnails = new ArrayList();
     private boolean image_reading_lock = false;
-    private int active_image = -1;
     // eager initialized state
     private FxTimer slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
     private Subscription dataMonitoring;
@@ -152,7 +151,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public int folderTreeDepth = 1;
     @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
     public int thumbsLimit = 100;
+    @IsConfig(
+//            editable = false
+    )
+    private int active_image = -1;
     
+    /** {@inheritDoc} */
     @Override
     public void init() {
         try {
@@ -243,7 +247,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         // consume scroll event to prevent app scroll behavior // optional
         entireArea.setOnScroll(Event::consume);
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public void OnClosing() {
         // unbind
@@ -257,6 +262,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
 /********************************* PUBLIC API *********************************/
  
+    /** {@inheritDoc} */
     @Override
     public void refresh() {
         image_reading_lock = true; // prevent reading thumbnails twice (see below)
@@ -275,12 +281,14 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         theater_mode.applyValue();
         readThumbnails();
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
         return folder.get() == null;
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public void showImage(File img_file) {
         if(img_file!=null && img_file.getParentFile()!=null) {
@@ -321,20 +329,30 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             // return newly constructed task
             return new Task<Void>() {
                 @Override protected Void call() throws Exception {
+                    int ai = active_image;System.out.println("dddddd "+ai);
                     // discover files
-                    List<File> files = FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth, thumbsLimit);
-                    // create timeline for adding thumbnails
-                    thumbTimeline = new Timeline();
-                    // add actions - turn file into thumbnail
-                    Util.forEachIndexedStream(files, 
-                            (i,f) -> new KeyFrame(Duration.millis((1+i)*thumbnailReloadTime), e -> {
-                                    // create & load thumbnail on bgr thread
-                                    Thumbnail t = createThumbnail(f);
-                                    // add to gui on gui thread
-                                    Platform.runLater(()->insertThumbnail(t));
-                                }))
-                            .forEach(thumbTimeline.getKeyFrames()::add);
-                    thumbTimeline.play();
+                    List<File> files = folder.get()==null ? EMPTY_LIST
+                            :FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth, thumbsLimit);
+                    if(files.isEmpty()) {
+                        setImage(-1);
+                    } else {
+                        // create timeline for adding thumbnails
+                        thumbTimeline = new Timeline();
+                        // add actions - turn file into thumbnail
+                        Util.forEachIndexedStream(files, 
+                                (i,f) -> new KeyFrame(Duration.millis((1+i)*thumbnailReloadTime), e -> {
+                                        // create & load thumbnail on bgr thread
+                                        Thumbnail t = createThumbnail(f);
+                                        // add to gui
+                                        insertThumbnail(t);
+                                        // set as image if it should be
+                                        // for example when widget loads, the image might be
+                                        // restored from deserialized index value
+                                        if(i==ai) setImage(ai);
+                                    }))
+                                .forEach(thumbTimeline.getKeyFrames()::add);
+                        thumbTimeline.play();
+                    }
                     return null;
                 }
             };
@@ -343,16 +361,15 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     private void readThumbnails() {
         if (image_reading_lock) return; 
-         // clear old content before adding new
-        setImage(-1);   // set empty image
+        // clear old content before adding new
+        // setImage(-1) // it is set during thumbnail reading, no need to clear it
         images.clear();
         thumbnails.clear();
         thumb_pane.getChildren().clear();   
-        // ready reading process
+        // stop & ready reading process
         stopReadingThumbnails();
         // read if available
-        if (folder.get() != null)
-            thumbReader.start();
+        thumbReader.start();
     }
     private void stopReadingThumbnails() {
         thumbTimeline.stop();

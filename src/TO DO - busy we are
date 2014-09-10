@@ -56,8 +56,6 @@
 
 - explorer graphics support css skinning
 - ConfigField (General) disable ok button for manually applied configs
-- support multiple Feature implementations with List<String> getFeatureName();
-- Image Viewer remember last iamge index for theater mode restoration
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dot want to hear about ------------------
@@ -248,4 +246,3 @@ PERFORMANCE
 
 - Layout loading into Container
 - onTime events, make sur ethey fire correctly and dont degrade performance
-

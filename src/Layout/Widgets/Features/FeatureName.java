@@ -6,13 +6,14 @@
 
 package Layout.Widgets.Features;
 
-import java.io.File;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  *
  * @author Plutonium_
  */
-@FeatureName("Image display")
-public interface ImageDisplayFeature extends Feature {
-    void showImage(File img_file);
+@Retention(RetentionPolicy.RUNTIME)
+public @interface FeatureName {
+    String value() default "";
 }

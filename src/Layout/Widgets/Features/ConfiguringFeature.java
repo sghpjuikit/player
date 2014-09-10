@@ -11,12 +11,5 @@ package Layout.Widgets.Features;
  * 
  * @author Plutonium_
  */
-public interface ConfiguringFeature extends Feature {
-
-    /** {@inheritDoc} */
-    @Override
-    public default String getFeatureName() {
-        return "Settings & Configuration";
-    }
-    
-}
+@FeatureName("Settings & Configuration")
+public interface ConfiguringFeature extends Feature { }

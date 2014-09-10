@@ -22,12 +22,16 @@ import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.MINUS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.PLUS;
 import java.io.File;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -36,7 +40,10 @@ import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -50,6 +57,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import org.reactfx.Subscription;
@@ -59,7 +67,7 @@ import utilities.FxTimer;
 import utilities.SingleInstance;
 import utilities.Util;
 import utilities.access.Accessor;
-import utilities.functional.functor.UnProcedure;
+import utilities.functional.functor.BiProcedure;
 
 /**
  *
@@ -92,10 +100,15 @@ import utilities.functional.functor.UnProcedure;
 )
 public class LibraryController extends FXMLController {
     
-    @FXML AnchorPane root;
-    TableView<Metadata> table = new TableView();
+    private @FXML AnchorPane root;
+    private TableView<Metadata> table = new TableView();
+    private final Label progressL = new Label();
     private Subscription dbMonitor;
-
+    
+    @FXML Menu addMenu;
+    @FXML Menu remMenu;
+    @FXML MenuBar controlsBar;
+    
     @Override
     public void init() {
         root.getChildren().add(table);
@@ -175,75 +188,40 @@ public class LibraryController extends FXMLController {
         table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> Player.librarySelectedItemES.push(nv));
         
         
-        Label progressL = new Label();
-              progressL.setVisible(false);
+        progressL.setVisible(false);
         root.getChildren().add(progressL);
         AnchorPane.setBottomAnchor(progressL, 0d);
         AnchorPane.setRightAnchor(progressL, 0d);
         
         // add button
         FadeButton b1 = new FadeButton(PLUS, 13);
-        b1.setOnMouseClicked( e -> {
-            // get file
-            DirectoryChooser fc = new DirectoryChooser();
-                             fc.setInitialDirectory(Util.getExistingParent(last_file));
-                             fc.setTitle("Add folder to library");
-            File f = fc.showDialog(root.getScene().getWindow());
-
-            if(f!=null) {
-                last_file = f;
-                List<Metadata> metas = FileUtil.getAudioFiles(last_file,111).stream()
-                       .map(SimpleItem::new)
-                       .map(SimpleItem::toMetadata)
-                       .collect(Collectors.toList());
-
-                Task t = MetadataReader.readAaddMetadata(metas,(success,added) -> {
-                    if(success) {
-                        progressL.textProperty().unbind();
-                        FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-                        WidgetManager.getWidget(TaggingFeature.class, NEW, w -> w.read(added));
-                    }
-                });
-                // display progress & hide on end
-                progressL.setVisible(true);
-                progressL.textProperty().bind(t.messageProperty());
-            }
-            e.consume();
-        });
+        b1.setOnMouseClicked(e -> this.addDirectory());
         FadeButton b2 = new FadeButton(MINUS, 13);
-        b2.setOnMouseClicked( e -> {
-            Task t = MetadataReader.removeMissingFromLibrary();
-            // display progress & hide on end
-            progressL.setVisible(true);
-            progressL.textProperty().bind(t.messageProperty());
-            EventHandler onEnd = event -> {
-                progressL.textProperty().unbind();
-                FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-            };
-            t.setOnFailed(onEnd);
-            t.setOnSucceeded(onEnd);
-            
-            e.consume();
-        });
+                   b2.setOnMouseClicked(e -> this.removeInvalid());
+        
         // information label
         Label infoL  = new Label();
             // updates info label
-        UnProcedure<List<? extends Metadata>> infoUpdate = list -> {
-            List<? extends Metadata> content = list.isEmpty() ? table.getItems() : list;
-            Duration du = content.stream().map(m -> (Duration)m.getLength()).reduce(ZERO, Duration::add);
-            String prefix = list.isEmpty() ? "All:" : "Selected:";
-                   prefix += content.size()==1 ? " item " : " items ";
-            infoL.setText(prefix + content.size() + " - " + Util.formatDuration(du));
+        BiProcedure<Boolean,List<? extends Metadata>> infoUpdate = (all,list) -> {
+            if(!all & list.isEmpty()) {
+                all = true;
+                list = table.getItems();
+            }
+            Duration du = list.stream().map(m -> (Duration)m.getLength()).reduce(ZERO, Duration::add);
+            String prefix = all ? "All:" : "Selected:";
+                   prefix += list.size()==1 ? " item " : " items ";
+            infoL.setText(list.size() + prefix + " - " + Util.formatDuration(du));
         };
             // calls info label update on selection change
-        ListChangeListener<Metadata> infoUpdater = c -> infoUpdate.accept(c.getList());
+        ListChangeListener<Metadata> infoUpdater = c -> infoUpdate.accept(c==table.getItems(),c.getList());
         table.getSelectionModel().getSelectedItems().addListener(infoUpdater);
         table.getItems().addListener(infoUpdater);
             // initialize info label
-        infoUpdate.accept(EMPTY_LIST);
+        infoUpdate.accept(true,EMPTY_LIST);
         
-        HBox controls = new HBox(b1,b2, infoL);
+        HBox controls = new HBox(controlsBar, b1, b2, infoL);
              controls.setSpacing(8);
+             controls.setPadding(new Insets(5));
         
         root.getChildren().add(controls);
         AnchorPane.setBottomAnchor(controls, 0d);
@@ -255,6 +233,14 @@ public class LibraryController extends FXMLController {
             changeField.setValue(field); // this causes reloading of the data
             refresh();
         });
+        
+        
+        
+        addMenu.setText("");
+        remMenu.setText("");
+        AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
+        AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
+        
     }
     
     @IsConfig(editable = false)
@@ -280,6 +266,85 @@ public class LibraryController extends FXMLController {
     public void OnClosing() {
         // stop listening
         dbMonitor.unsubscribe();
+    }
+    
+    
+    @FXML private void addDirectory() {
+        addNedit(false,true);
+    }
+    
+    @FXML private void addDirectoryNedit() {
+        addNedit(true,true);
+    }
+    
+    @FXML private void addFiles() {
+        addNedit(false,false);
+    }
+    
+    @FXML private void addFilesNedit() {
+        addNedit(true,false);
+    }
+    
+    private void addNedit(boolean edit, boolean dir) {
+        // get files
+        List<File> files;
+        if(dir) {
+            DirectoryChooser fc = new DirectoryChooser();
+                             fc.setInitialDirectory(Util.getExistingParent(last_file));
+                             fc.setTitle("Add folder to library");
+                             File f = fc.showDialog(root.getScene().getWindow());
+            files = f==null ? EMPTY_LIST : singletonList(f);
+            if (f!=null) last_file = f;
+        } else {
+            FileChooser fc = new FileChooser();
+                             fc.setInitialDirectory(Util.getExistingParent(last_file));
+                             fc.setTitle("Add folder to library");
+            files = fc.showOpenMultipleDialog(root.getScene().getWindow());
+            
+            File d = null;
+            for (File f : files) {
+                File parent = f.getParentFile();
+                if (parent !=null) {
+                    if(d==null) d = parent;
+                    if(d.toPath().compareTo(parent.toPath())<0) d=parent;
+                }
+            }
+            if(d!=null) last_file=d;
+            
+        }
+
+        if(files!=null) {
+            List<Metadata> metas = FileUtil.getAudioFiles(files,0).stream()
+                   .map(SimpleItem::new)
+                   .map(SimpleItem::toMetadata)
+                   .collect(Collectors.toList());
+            
+            BiConsumer<Boolean,List<Metadata>> onEnd = !edit ? null : (success,added) -> {
+                if(success) {
+                    progressL.textProperty().unbind();
+                    FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                    WidgetManager.getWidget(TaggingFeature.class, NEW, w -> w.read(added));
+                }
+            };
+            
+            Task t = MetadataReader.readAaddMetadata(metas,onEnd);
+            // display progress & hide on end
+            progressL.setVisible(true);
+            progressL.textProperty().bind(t.messageProperty());
+        }
+    }
+    
+    @FXML private void removeInvalid() {
+        Task t = MetadataReader.removeMissingFromLibrary();
+        // display progress & hide on end
+        progressL.setVisible(true);
+        progressL.textProperty().bind(t.messageProperty());
+        EventHandler onEnd = ae -> {
+            progressL.textProperty().unbind();
+            FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+        };
+        t.setOnFailed(onEnd);
+        t.setOnSucceeded(onEnd);
     }
     
 /****************************** CONTEXT MENU **********************************/

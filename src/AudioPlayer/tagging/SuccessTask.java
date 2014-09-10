@@ -42,19 +42,19 @@ public abstract class SuccessTask<T> extends Task<T> {
     @Override protected void succeeded() {
         super.succeeded();
         updateMessage(getTitle() + " succeeded!");
-        onEnd.accept(true, getValue());
+        if (onEnd!=null) onEnd.accept(true, getValue());
     }
 
     @Override protected void cancelled() {
         super.cancelled();
         updateMessage(getTitle() + " cancelled!");
-        onEnd.accept(false, getValue());
+        if (onEnd!=null) onEnd.accept(false, getValue());
     }
 
     @Override protected void failed() {
         super.failed();
         updateMessage(getTitle() + " failed!");
-        onEnd.accept(false, getValue());
+        if (onEnd!=null) onEnd.accept(false, getValue());
     }
     
     protected void updateMessage(int all, int done, int skipped) {

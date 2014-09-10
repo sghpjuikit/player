@@ -257,6 +257,7 @@ public final class WidgetManager {
             // get factory
             WidgetFactory f = getFactories()
                    .filter(w -> !w.isIgnored())
+                   .filter(w->feature.isAssignableFrom(w.getControllerClass()))
                    .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
                    .findAny().get();
            

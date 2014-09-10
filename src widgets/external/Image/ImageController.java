@@ -36,8 +36,7 @@ import utilities.access.Accessor;
             "    Left click right side : Next image\n" +
             "    Middle click : Toggle image source - custom/skin\n" +
             "    Drag & drop image : Set custom image",
-    notes = "Note: Some skins may have no associated image, while some"
-          + "may have many.",
+    notes = "Note: Some skins may have no associated image, while some may have many.",
     version = "1.0",
     year = "2014",
     group = Widget.Group.OTHER
@@ -66,7 +65,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     // non applied configurables
     @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
     public File custom_image = new File("");
-    
+
     
     @Override
     public void init() {

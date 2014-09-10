@@ -76,7 +76,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ALT;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
@@ -317,23 +320,34 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // avoid some instances of not closing properly
         s.setOnCloseRequest(e -> close());
         
+        // disable default exit fullscreen on ESC key
+        // it doesnt exit fullscreen properly for this class, because it calls
+        // stage.setFullscreen() directly
+        s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
+        // implement the functionality properly
+        s.addEventHandler(KEY_PRESSED, e -> {
+            if (e.getCode()==ESCAPE && isFullscreen()) setFullscreen(false);
+        });
+        
+        // :focused pseudoclass
         // root is also assigned a .window styleclass to allow css skinning
         // maintain :focused pseudoclass for .window styleclass
-        s.focusedProperty().addListener( (o,ov,nv) ->
-            root.pseudoClassStateChanged(focusedPseudoClass,nv));
+        s.focusedProperty().addListener( (o,ov,nv) -> 
+                root.pseudoClassStateChanged(focusedPseudoClass,nv));
         
         // add to list of active windows
         ContextManager.windows.add(this);
-        // set shortcuts
+        
+        // set local shortcuts
         Action.getActions().stream().filter(a->!a.isGlobal()).forEach(Action::register);
         
+        // update coordinates for context manager
         root.addEventFilter(MOUSE_PRESSED,  e -> {
-            // update coordinates for context manager
             ContextManager.setX(e.getSceneX());
             ContextManager.setY(e.getSceneY());
         });
         
-        // initialize app dragging
+        // app dragging
         root.addEventHandler(DRAG_DETECTED, this::appDragStart);
         root.addEventHandler(MOUSE_DRAGGED, this::appDragDo);
         root.addEventHandler(MOUSE_RELEASED, this::appDragEnd);
@@ -352,7 +366,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         
         // change volume on scroll
         // if some component has its own onScroll behavior, it should consume
-        // the event so this one will not fire
+        // the event so this will not fire
         root.setOnScroll( e -> {
             if(e.getDeltaY()>0) PLAYBACK.incVolume();
             else if(e.getDeltaY()<0) PLAYBACK.decVolume();

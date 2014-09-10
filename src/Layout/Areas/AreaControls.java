@@ -65,16 +65,13 @@ public final class AreaControls {
             String info = "";
             if (c!=null && c instanceof Widget) {
                 Widget w = Widget.class.cast(c);
-                String f = (w.getController() instanceof Feature) ? Feature.class.cast(w.getController()).getFeatureName() : "-";
+                String f = (w.getController() instanceof Feature)
+                        ? Feature.class.cast(w.getController()).getFeatureName()
+                        : "-";
                 info += "\n\nWidget: " + w.name();
-                if(!w.author().isEmpty()) info += "\n\n" + w.author();
-                if(!w.programmer().isEmpty()) info += "" + w.programmer();
-                if(!w.contributor().isEmpty()) info += "" + w.contributor();
-                info += "\n\nFeature API: " + f;
-                if(!w.version().isEmpty()) info += "n" + w.version();
-                if(!w.notes().isEmpty()) info += "" + w.notes();
-                if(!w.howto().isEmpty()) info += "" + w.howto();
-                if(w.group()!=Widget.Group.UNKNOWN) info += "" + w.group();
+                if(!w.notes().isEmpty()) info += "\n" + w.notes();
+                if(!w.howto().isEmpty()) info += "\n" + w.howto();
+                info += "\n\nFeatures: " + f;
             }
             
             String text = "Available actions:\n"
@@ -95,7 +92,7 @@ public final class AreaControls {
             p.getContentNode().setText(text);
             // for some reason we need to set this every time, which
             // should not be the case, investigate
-//            p.getContentNode().setWrappingWidth(400);
+            p.getContentNode().setWrappingWidth(400);
             // we need to handle hiding this AreaControls when popup
             // closes and 
             // we are outside of the area (not implemented yet)

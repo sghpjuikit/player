@@ -8,6 +8,10 @@ import Layout.WidgetImpl.HtmlEditor;
 import Layout.WidgetImpl.Spectrumator;
 import Layout.WidgetImpl.Visualisation;
 import Layout.Widgets.Features.Feature;
+import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
+import static Layout.Widgets.WidgetManager.WidgetSource.LAYOUT;
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
+import static Layout.Widgets.WidgetManager.WidgetSource.STANDALONE;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -17,7 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import main.App;
 import utilities.FileUtil;
@@ -125,16 +131,17 @@ public final class WidgetManager {
      */
     public static final List<Widget> standaloneWidgets = new ArrayList();
 
-    public static Stream<Widget> getWidgets(Widget_Source source) {
+    public static Stream<Widget> getWidgets(WidgetSource source) {
         switch(source) {
             case LAYOUT:
-                return LayoutManager.getLayouts()
-                        .flatMap(l->l.getAllWidgets());
+                return LayoutManager.getLayouts().flatMap(l->l.getAllWidgets());
+            case STANDALONE:
+                return standaloneWidgets.stream();
+            case NEW:
+                return Stream.empty();
             case ACTIVE:
-            case FACTORY:
-                return Stream.concat(standaloneWidgets.stream(), 
-                        LayoutManager.getLayouts()
-                            .flatMap(l->l.getAllWidgets()));
+            case ANY:
+                return Stream.concat(getWidgets(STANDALONE),getWidgets(LAYOUT));
             default: throw new AssertionError(source + " in default switch value.");
         }
     }
@@ -149,36 +156,42 @@ public final class WidgetManager {
      * @return widget fulfilling condition. Null if application has no access to
      * any widget fulfilling the condition.
      */
-    public static Widget getWidget(Predicate<WidgetInfo> cond, Widget_Source source) {
+    public static Widget getWidget(Predicate<WidgetInfo> cond, WidgetSource source) {
         Widget out = null;
-        // attempt to get preferred widget from loaded widgets
-        if (out == null)
-            out = getWidgets(source)
-                    .filter(cond::test)
-                    .filter(w-> w.isPreffered())
-                    .findFirst().orElse(null);
-        // attempt to get any widget from loaded widgets
-        if (out == null)
-            out = getWidgets(source)
-                    .filter(cond::test)
-                    .findFirst().orElse(null);
         
-        // attempt to create new if no result yet
-        if (out == null && source==Widget_Source.FACTORY) {
-            WidgetFactory f;
-            // attempt to get preferred factory
-                f = getFactories()
-                    .filter(cond::test)
-                    .filter(w->w.preferred)
-                    .findFirst().orElse(null);
-            if (f==null)
-            // attempt to get any factory
-                f = getFactories()
-                    .filter(cond::test)
-                    .findFirst().orElse(null);
-            // open widget if found
-            out = f==null ? null : f.create();
-            if(out!=null) {
+        // get preferred type
+        String preferred = getFactories()
+                .filter(cond::test)
+                .filter(f->f.isPreferred())
+                .findAny().map(f->f.name).orElse("");
+        
+        // get viable widgets - widgets of the feature & of preferred type if any
+        List<Widget> widgets = getWidgets(source)
+                .filter(cond::test)
+                .filter(w -> !w.isIgnored())
+                .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
+                .collect(Collectors.toList());
+        
+        // get preferred widget or any if none preferred
+        for(Widget w : widgets) {
+            if(out==null) out = w;
+            if (w.isPreffered()) {
+                out = w;
+                break;
+            }
+        }
+        
+        // if no active or layout widget available & new widgets allowed
+        if (out == null && source.newWidgetsAllowed()) {
+            // get factory
+            WidgetFactory f = getFactories()
+                   .filter(w -> !w.isIgnored())
+                   .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
+                   .findAny().get();
+           
+            // open widget as standalone if found
+            if (f!=null) {
+                out = f.create();
                 standaloneWidgets.add(out);
                 ContextManager.showFloating(out);
             }
@@ -193,7 +206,7 @@ public final class WidgetManager {
      * <p>
      * It is expected that the application contains many widgets and widget
      * types, some of which share some behavior. This can be discovered and
-     * exploited by using common behavior interface - Feature.
+     * exploited by using common behavior interfaces - Features.
      * <p>
      * This method looks up the available widgets and attempts to return best fit
      * for the specified Feature.
@@ -214,74 +227,110 @@ public final class WidgetManager {
      * @return any open widget supporting tagging or loaded new if none is loaded.
      * Null if no tagging widget available in application.
      */
-    public static<F extends Feature> F getWidget(Class<F> feature, Widget_Source source) {
+    public static<F extends Feature> F getWidget(Class<F> feature, WidgetSource source) {
         Widget out = null;
-        // attempt to get preferred widget from active widgets
-        if (out == null)
-            out = getWidgets(source)
-                    .filter(w-> feature.isAssignableFrom(w.getController().getClass()))
-                    .filter(w-> w.isPreffered())
-                    .findFirst().orElse(null);
-        // attempt to get any widget from active widgets
-        if (out == null)
-            out = getWidgets(source)
-                    .filter(w-> feature.isAssignableFrom(w.getController().getClass()))
-                    .findFirst().orElse(null);
         
-        if (out == null && source==Widget_Source.FACTORY) {
-           WidgetFactory f;
-            // attempt to get preferred factory
-                f = getFactories()
-                    .filter(w->feature.isAssignableFrom(w.getControllerClass()))
-                    .filter(w->w.preferred)
-                    .findFirst().orElse(null);
-            if (f==null)
-            // attempt to get any factory
-                f = getFactories()
-                    .filter(w->feature.isAssignableFrom(w.getControllerClass()))
-                    .findFirst().orElse(null);
-            // open widget if found
-            out = f==null ? null : f.create();
-            if(out!=null) {
+        // get preferred type
+        String preferred = getFactories()
+                .filter(f->feature.isAssignableFrom(f.getControllerClass()))
+                .filter(f->f.isPreferred())
+                .findAny().map(f->f.name).orElse("");
+        
+        // get viable widgets - widgets of the feature & of preferred type if any
+        List<Widget> widgets = getWidgets(source)
+                .filter(w -> feature.isAssignableFrom(w.getController().getClass()))
+                .filter(w -> !w.isIgnored())
+                .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
+                .collect(Collectors.toList());
+        
+        // get preferred widget or any if none preferred
+        for(Widget w : widgets) {
+            if(out==null) out = w;
+            if (w.isPreffered()) {
+                out = w;
+                break;
+            }
+        }
+        
+        // if no active or layout widget available & new widgets allowed
+        if (out == null && source.newWidgetsAllowed()) {
+            // get factory
+            WidgetFactory f = getFactories()
+                   .filter(w -> !w.isIgnored())
+                   .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
+                   .findAny().get();
+           
+            // open widget as standalone if found
+            if (f!=null) {
+                out = f.create();
                 standaloneWidgets.add(out);
                 ContextManager.showFloating(out);
             }
         }
+        
         return out==null ? null : (F) out.getController();
+    }
+    
+    /**
+     * Equivalent to {@link #getWidget(java.util.function.Predicate, Layout.Widgets.WidgetManager.Widget_Source)}
+     * with additional parameter - action the widget should execute.
+     * <p>
+     * If no widget is found, action will not be called.
+     * 
+     * @param <F>
+     * @param type
+     * @param source
+     * @param action 
+     */
+    public static<F extends Feature> void getWidget(Class<F> type, WidgetSource source, Consumer<F> action) {
+        F f = getWidget(type, source);
+        if (f!=null) action.accept(f);
     }
     
     /**
      * Denotes source for widgets. Used when looking up a widget. Sometimes it
      * is desirable to limit the source.
      */
-    public static enum Widget_Source {
+    public static enum WidgetSource {
+        
         /**
-         * The source will be all currently active widgets contained within all 
+         * The source is be all currently active widgets contained within all 
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for
          * example located in the popup. Most limited source.
          */
         LAYOUT,
+        
         /**
-         * The source will contain all currently active widgets in the app.
-         * Contains LAYOUT source and in addition all currently active 
-         * standalone widgets.
+         * Source is all currently active standalone widgets - widgets not part
+         * of the layout, such as in popups.
          */
+        STANDALONE,
+        
+        /** Union of {@link #LAYOUT} and {@link #STANDALONE} */
         ACTIVE,
+        
         /**
-         * The source will contain all available widgets to the application.
-         * Contains ACTIVE source, but in addition will search all
-         * registered widget factories and create new widget if necessary.
+         * The source is all available widget factories. In other words new
+         * widget will be created if possible.
+         */
+        NEW,
+        
+        /**
+         * Union of {@link #LAYOUT}, {@link #STANDALONE} and {@link #NEW}
          * Most complete source.
          */
-        FACTORY;
+        ANY;
+        
+        public boolean newWidgetsAllowed() {
+            return this==NEW || this==ANY;
+        }
     }
+    
     public static enum Widget_Target {
         LAYOUT,
         TAB,
         POPUP,
         WINDOW;
     }
-    
-    // if space add new widget to layout, if not make new tab, switch tabs
 }

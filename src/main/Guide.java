@@ -69,20 +69,33 @@ public final class Guide {
         addGuide("Guide resumed", "When you close the guide, it can always be resumed later." +
                 "\n\nClose this guide and go to header of the application window and click on the button labelled by graduation cap.");
         addGuide("Layout info popup", "The application contains lots of informative popups, that " +
-                "explain functionalities for their respective sections and how to use them. " +
-                "These popups can be shown by clicking on the help buttons labelled by 'i'." +
+                "explain functionalities for their respective sections and how to use them." +
+                "\n\nThese popups can be shown by clicking on the help buttons labelled by 'i'. " +
+                "Info popup is volatile and closes next time you click somewhere, including the popup itself." +
                 "\n\nGo to header of the application window and click on the help button.");
         addGuide("New widget", "The aplication functions as a group of widgets on top of the " +
                 "application core. Widget is a standalone block with some functionality." +
-                "\n\nClick anywhere within empty space in the window and choose 'Place widget' to add new widget. " +
-                "All available widgets will display for you to choose from.");
+                "\n\nClick anywhere within empty space in the layout and choose 'Place widget' to add new widget. " +
+                "All available widgets will display for you to choose from, sorted lexicographically. There is a " +
+                "widget called 'Empty' which contains no content. Select it.");
+        addGuide("Widget info", "To read more about the widget and its functionality, you can open another info " +
+                "popup. It contains information about the widget, its intention, functions and developer. The popup " +
+                "opens after click on info button located in the widget header. The widget header is displaed automatically " +
+                "when mouse cursor enters right top corner of the widget." +
+                "\n\nMove the mouse cursor over the top right corner of the widget, " +
+                "wait for the widget header to appear and click on the info button");
         addGuide("Close widget", "Widgets can be opened and closed." +
-                "\n\nFirst try closing the widget by moving the mouse cursor over the top right corner of the widget" +
-                " and click on the 'x' button");
+                "\n\nTry closing the widget by moving the mouse cursor over the top right corner of the widget, " +
+                "wait for the widget header to appear and click on the 'x' button");
         addGuide("Divide layout", "In order to create layout that best suits your needs, you need to create " +
                 "more containers for storing the widgets, by dividing the layout - horizontally or vertically." +
-                "The orientation can be changed later." +
+                "\nThe orientation determines how the layout gets split by the divider and can be changed later." +
+                "The divider can be dragged by mouse to change the sizes of the sub containers." +
                 "\n\nClick anywhere within empty space and choose one of the 'Split' choices.");
+        addGuide("Layout mode", "When widget header is visible, the widget is in layout mode. Layout mode is used " +
+                "for advanced manipulation with the widget. In order to quickly make changes to the layout, layout " +
+                "mode can be activated by pressing Alt or " + Action.getAction("Manage Layout").getKeys() + " key." +
+                "\n\nPress one of the keys to enter layout mode");
     }
             
     private void proceed() {

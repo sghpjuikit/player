@@ -44,7 +44,7 @@ public interface AccessibleValue<T> extends WritableValue<T>, CyclicValue<T> {
      * <p>
      * Only available for {@link CyclicValue} types for which
      * next value is returned, {@link Boolean}
-     * which is equivalent to negation and enums which return the next declared
+     * which is equivalent to negation and {@link Enum} which return the next declared
      * enum constant. Otherwise does nothing.
      */
     @Override
@@ -63,8 +63,8 @@ public interface AccessibleValue<T> extends WritableValue<T>, CyclicValue<T> {
      * {@inheritDoc}
      * <p>
      * Only available for {@link CyclicValue} types for which
-     * next value is returned, {@link Boolean}
-     * which is equivalent to negation and enums which return the next declared
+     * previous value is returned, {@link Boolean}
+     * which is equivalent to negation and {@link Enum} which return the previous declared
      * enum constant. Otherwise does nothing.
      */
     @Override

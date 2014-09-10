@@ -13,7 +13,7 @@ import java.util.function.Supplier;
  *
  * @author Plutonium_
  */
-public interface FunctAccessibleValue<T> extends AccessibleValue<T> {
+public interface FunctAccessibleValue<T> extends ApplicableValue<T> {
     
     @Override
     default T getValue() {

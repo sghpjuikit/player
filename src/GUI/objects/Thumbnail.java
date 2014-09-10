@@ -8,6 +8,10 @@ import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Traits.ScaleOnHoverTrait;
+import GUI.Window;
+import Layout.Widgets.Features.ImageDisplayFeature;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -531,6 +535,17 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                      if(thumb.img_file==null) return;
                      Enviroment.edit(thumb.img_file);
                  });
+        MenuItem item25 = new MenuItem("Fulscreen");
+                 item25.setOnAction(e -> {
+                     if(thumb.img_file==null) return;
+                    Widget c = WidgetManager.getFactory("Image").create();
+                    Window w = Window.create();
+                           w.setSizeAndLocationToInitial();
+                           w.show();
+                           w.setFullscreen(true);
+                           w.setContent(c.load());
+                    ((ImageDisplayFeature)c.getController()).showImage(thumb.img_file);
+                 });
         MenuItem item3 = new MenuItem("Open image");
                  item3.setOnAction(e -> {
                      if(thumb.img_file==null) return;
@@ -561,7 +576,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     }
                  });
                  
-        contextMenu.getItems().addAll(item1, item2, item3, item4, item5);
+        contextMenu.getItems().addAll(item1, item2, item25, item3, item4, item5);
         contextMenu.setConsumeAutoHidingEvents(true);
         return contextMenu;
     } 

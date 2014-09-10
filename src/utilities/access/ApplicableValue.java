@@ -46,7 +46,7 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
     }
     
     /**
-     * Equivalent to calling {@link #setNextValue() ()} and then {@link #applyValue()}
+     * Equivalent to calling {@link #setNextValue()} and then {@link #applyValue()}
      * subsequently.
      */
     public default void setNextNapplyValue() {
@@ -54,7 +54,7 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
         applyValue();
     }
     /**
-     * Equivalent to calling {@link #setPreviousValue() ()} and then {@link #applyValue()}
+     * Equivalent to calling {@link #setPreviousValue()} and then {@link #applyValue()}
      * subsequently.
      */
     public default void setPreviousNapplyValue() {
@@ -62,7 +62,7 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
         applyValue();
     }
     /**
-     * Equivalent to calling {@link #setCycledValue() ()} and then {@link #applyValue()}
+     * Equivalent to calling {@link #setCycledValue())} and then {@link #applyValue()}
      * subsequently.
      */
     public default void setCycledNapplyValue() {

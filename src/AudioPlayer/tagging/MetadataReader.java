@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
@@ -47,23 +48,24 @@ public class MetadataReader{
      * another thread).
      * <p>
      * @param items List of items to read.
-     * @param onFinish procedure to execute upon finishing this task providig
+     * @param onEnd procedure to execute upon finishing this task providig
      * the result and success flag.
      * Must not be null.
      * @return task reading the files returning item's metadatas on successful
      * completion or all successfully obtained metadata when any error occurs.
      * @throws NullPointerException if any parameter null
      */
-    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiProcedure<Boolean, List<Metadata>> onFinish){
+    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiProcedure<Boolean, List<Metadata>> onEnd){
         // perform check
         Objects.requireNonNull(items);
-        Objects.requireNonNull(onFinish);
+        Objects.requireNonNull(onEnd);
                 
         // create task
-        final Task<List<Metadata>> task = new Task<List<Metadata>>(){
+        final Task<List<Metadata>> task = new SuccessTask<List<Metadata>>("Reading metadata", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
+            
             @Override 
             protected List<Metadata> call() throws Exception {
                 updateTitle("Reading metadata for items.");
@@ -90,42 +92,9 @@ public class MetadataReader{
                 
                 return metadatas;
             }
-            @Override protected void succeeded() {
-                super.succeeded();
-                updateMessage("Reading metadata finished succeeded!");
-                onFinish.accept(true, getValue());
-            }
-
-            @Override protected void cancelled() {
-                super.cancelled();
-                updateMessage("Reading metadata cancelled!");
-                onFinish.accept(false, null);
-            }
-
-            @Override protected void failed() {
-                super.failed();
-                updateMessage("Reading metadata failed!");
-                onFinish.accept(false, null);
-            }
-
-            @Override
-            protected void updateMessage(String message) {
-                super.updateMessage(message);
-                System.out.println(message);
-            }
-
-            @Override
-            protected void updateProgress(long workDone, long max) {
-                super.updateProgress(workDone, max);
-                System.out.println("Completed " + workDone + "/" + max + ".");
-            }
-            
         };
-        // execute
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
-        return task;
+        
+        return executeTask(task);
     }
 
     /**
@@ -182,7 +151,7 @@ public class MetadataReader{
         Objects.requireNonNull(item);
         Objects.requireNonNull(onFinish);
 
-        Task<Metadata> task = new Task<Metadata>(){
+        Task<Metadata> task = new Task(){
             @Override protected Metadata call() throws Exception {
                 return create(item);
             }
@@ -204,10 +173,7 @@ public class MetadataReader{
             });
         });
 
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
-        return task;
+        return executeTask(task);
     }
 
     static private Metadata createNonFileBased(Item item){
@@ -229,21 +195,30 @@ public class MetadataReader{
     }
 
     
-    
-    public static Task<Void> readAaddMetadata(List<? extends Item> items){
+    /**
+     * Reads metadata from files of the items and adds items to library. If item
+     * already exists, it will not be overwritten or changed.
+     * <p>
+     * The task returns list of all provided items that are in the database after
+     * the task succeeds.
+     * 
+     * @param items
+     * @param onEnd
+     * @return 
+     */
+    public static Task<List<Metadata>> readAaddMetadata(List<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd){
         // perform check
         Objects.requireNonNull(items);
                 
         // create task
-        final Task<Void> task = new Task<Void>(){
+        final Task<List<Metadata>> task = new SuccessTask("Adding items to library.", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
-            private final StringBuffer sb = new StringBuffer(40);
             
             @Override 
-            protected Void call() throws Exception {
-                updateTitle("Reading metadata and adding items to library.");
+            protected List<Metadata> call() throws Exception {
+                List<Metadata> out = new ArrayList();
                 Metadata m;
                 
                 EntityManager em = DB.em;
@@ -260,11 +235,16 @@ public class MetadataReader{
                             skipped++;
                         // on success
                         } else {
-                            if(em.find(Metadata.class, m.getId()) == null)
-                                em.persist(m);
-                            updateMessage(all,completed,skipped);
-                            updateProgress(completed, all);
+                            Metadata l = em.find(Metadata.class, m.getId());
+                            if(l == null) em.persist(m);
+                            else m = l;
+                            
+                            out.add(m);
                         }
+                        
+                        // update
+                        updateMessage(all,completed,skipped);
+                        updateProgress(completed, all);
                     }
                     em.getTransaction().commit();
                     // emit library change to signal refresh
@@ -277,59 +257,22 @@ public class MetadataReader{
                 // update state
                 updateMessage(all,completed,skipped);
                 updateProgress(completed, all);
-                return null;
+                return out;
             }
-            @Override protected void succeeded() {
-                super.succeeded();
-                updateMessage("Reading metadata finished succeeded!");
-            }
-
-            @Override protected void cancelled() {
-                super.cancelled();
-                updateMessage("Reading metadata cancelled!");
-            }
-
-            @Override protected void failed() {
-                super.failed();
-                updateMessage("Reading metadata failed!");
-            }
-            
-            private void updateMessage(int all, int done, int skipped) {
-                sb.setLength(0);
-                sb.append("Completed ");
-                sb.append(all);
-                sb.append(" / ");
-                sb.append(done);
-                sb.append(". ");
-                sb.append(skipped);
-                sb.append(" skipped.");
-                updateMessage(sb.toString());
-            }
-            
-            @Override
-            protected void updateMessage(String message) {
-                super.updateMessage(message);
-                System.out.println(message);
-            }
-            
         };
-        // execute
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
-        return task;
+        
+        return executeTask(task);
     }
+    
     public static Task<Void> removeMissingFromLibrary(){                
         // create task
-        final Task<Void> task = new Task<Void>(){
+        final Task<Void> task = new SuccessTask("Removing missing items from library",null){
             private int all = 0;
             private int completed = 0;
             private int removed = 0;
-            private final StringBuilder sb = new StringBuilder(40);
+            
             @Override 
-            protected Void call() throws Exception {long timeStart = System.currentTimeMillis();
-                updateTitle("Removing missing items from library.");
-                
+            protected Void call() throws Exception {                    //long timeStart = System.currentTimeMillis();
                 EntityManager em = DB.em;
                               em.getTransaction().begin();
                 List<Metadata> library_items = DB.getAllItems();
@@ -353,28 +296,13 @@ public class MetadataReader{
                         
                 // update state
                 updateMessage(all,completed,removed);
-                updateProgress(completed, all);
-                
-                System.out.println((System.currentTimeMillis()-timeStart));
+                updateProgress(completed, all);                     //System.out.println((System.currentTimeMillis()-timeStart));
                 
                 return null;
             }
-            @Override protected void succeeded() {
-                super.succeeded();
-                updateMessage(getTitle() + " succeeded!");
-            }
-
-            @Override protected void cancelled() {
-                super.cancelled();
-                updateMessage(getTitle() + " cancelled!");
-            }
-
-            @Override protected void failed() {
-                super.failed();
-                updateMessage(getTitle() + " failed!");
-            }
             
-            private void updateMessage(int all, int done, int removed) {
+            @Override
+            protected void updateMessage(int all, int done, int removed) {
                 sb.setLength(0);
                 sb.append("Completed ");
                 sb.append(all);
@@ -386,13 +314,12 @@ public class MetadataReader{
                 updateMessage(sb.toString());
             }
             
-            @Override
-            protected void updateMessage(String message) {
-                super.updateMessage(message);
-            }
-            
         };
-        // execute
+        
+        return executeTask(task);
+    }
+    
+    private static<T> Task<T> executeTask(Task<T> task) {
         Thread thread = new Thread(task);
         thread.setDaemon(true);
         thread.start();

@@ -75,7 +75,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         thumb.setDragImage(false);
         thumb.getPane().setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
-                if(e.getX() < thumb.getPane().getWidth()/2) prevImage();
+                if(e.getX() < 0.5*thumb.getPane().getWidth()) prevImage();
                 else nextImage();
                 e.consume();
             } else

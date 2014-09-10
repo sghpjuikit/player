@@ -28,7 +28,7 @@ import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.WidgetManager;
-import Layout.Widgets.WidgetManager.Widget_Source;
+import Layout.Widgets.WidgetManager.WidgetSource;
 import PseudoObjects.Maximized;
 import Serialization.SelfSerializator;
 import com.thoughtworks.xstream.XStream;
@@ -573,7 +573,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
         // settings button - show application settings in a popup
         Label propB = Util.createIcon(GEARS,13,"Application settings",
-                e ->  WidgetManager.getWidget(ConfiguringFeature.class,Widget_Source.FACTORY));
+                e ->  WidgetManager.getWidget(ConfiguringFeature.class,WidgetSource.NEW));
         // manage layout button - sho layout manager in a popp
         Label layB = Util.createIcon(COLUMNS,13,"Manage layouts", 
                 e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
@@ -672,9 +672,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // in the end close itself
         super.close();
         
-        if(main) {
-            App.close();
-        }
+        if(main)  App.close();
+        else App.getWindow().focus();
     }
 
     
@@ -850,10 +849,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             GUI.setLayoutMode(false);  
         if (e.getCode()==ALT)  
             if(headerVisiblePreference){
-                if(isFullscreen()) showHeader(false); 
-                else showHeader(headerVisible);
+                if(isFullscreen()) {
+                    showHeader(false);
+                    setBorderless(false);
+                }  else {
+                    showHeader(headerVisible);
+                    setBorderless(headerVisible);
+                }
             } else {
                 showHeader(headerVisible);
+                setBorderless(headerVisible);
             }
     }
     

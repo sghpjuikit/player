@@ -52,8 +52,24 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     // configuration
     @XStreamOmitField
-    @IsConfig(name = "Is preferred", info = "Preferred widget for its widget type.")
+    @IsConfig(name = "Is preferred", info = "Prefer this widget among all widgets of its type. If there is a request "
+            + "for widget, preferred one will be selected. ")
     private boolean preferred = false;
+    
+    @XStreamOmitField
+    @IsConfig(name = "Is ignored", info = "Ignore this widget if there is a request.")
+    private boolean forbid_use = false;
+    
+//    @XStreamOmitField
+//    @IsConfig(name = "Is preferred type", info = "Prefer this widget's type among types with the same functionality. "
+//            + "For example sets which widget type out of all that can display image will be used.")
+//    private final FunctAccessor<Boolean> preferredFactory = new FunctAccessor<>(
+//            getFactory()::setPreferred, getFactory()::isPreferred
+//            , v -> {
+//                if (v) WidgetManager.getFactories().forEach(f->f.setPreferred(false));
+//                getFactory().setPreferred(v);
+//            }
+//    );
     
     // list of properties of the widget to provide serialisation support since
     // controller doesnt serialise - this is unwanted and should be handled better
@@ -171,18 +187,29 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return controller;
     }
     
-    /** @return whether this widget will be preferred over other widgets. */
+    /** @return whether this widget will be preferred over other widgets */
     public boolean isPreffered() {
         return preferred;
     }
-    /** @param val whether this widget will be preferred over other widgets. */
+    /** @param val whether this widget will be preferred over other widgets */
     public void setPreferred(boolean val) {
         preferred = val;
+    }
+    /** @return whether this widget will be ignored on widget request */
+    public boolean isIgnored() {
+        return forbid_use;
+    }
+    /** @param val whether this widget will be ignored on widget request */
+    public void setIgnored(boolean val) {
+        forbid_use = val;
     }
     
     /** @return factory that produces this widget */
     public WidgetFactory getFactory() {
-        if (factory==null) factory = WidgetManager.getFactory(name); 
+        // unfortunately deserializing the widget will not restore factory
+        // we need to initialize it lazily manually
+        if (factory==null) factory = WidgetManager.getFactory(name);
+        assert factory!=null;
         return factory;
     }
     

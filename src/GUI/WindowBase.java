@@ -370,9 +370,12 @@ public class WindowBase {
         if(snap) snap();
     }
     
+    /**
+     * 
+     */
     public void setLocationCenter() {
-        double x = Screen.getPrimary().getBounds().getWidth() / 2 - getWidth() / 2;
-        double y = Screen.getPrimary().getBounds().getHeight() / 2 - getHeight() / 2;
+        double x = Screen.getPrimary().getBounds().getWidth()/2 - getWidth()/2;
+        double y = Screen.getPrimary().getBounds().getHeight()/2 - getHeight()/2;
         setXY(x, y);
     }
     
@@ -462,10 +465,10 @@ public class WindowBase {
      * center aligned on the primary screen.
      */
     public void setSizeAndLocationToInitial() {
-        setSize(Screen.getPrimary().getBounds().getWidth()/2,
-                Screen.getPrimary().getBounds().getHeight()/2);
-        setXY(Screen.getPrimary().getBounds().getWidth()/4,
-                    Screen.getPrimary().getBounds().getHeight()/4);
+        double w = Screen.getPrimary().getBounds().getWidth()/2;
+        double h = Screen.getPrimary().getBounds().getHeight()/2;
+        setSize(w,h);
+        setXY(w/2,h/2);
     }
     
     /** Sets the window visible and focuses it. */

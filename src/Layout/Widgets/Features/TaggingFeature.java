@@ -11,7 +11,13 @@ import java.util.Objects;
  * 
  * @author Plutonium_
  */
-public interface TaggingFeature extends Feature{
+public interface TaggingFeature extends Feature {
+    
+    /** {@inheritDoc} */
+    @Override
+    public default String getFeatureName() {
+        return "Edits metadata and tag of songs";
+    }
     
     /**
      * Convenience method for single item reading. For specifics read the

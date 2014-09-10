@@ -9,7 +9,7 @@ import GUI.objects.ContextMenu.ContentContextMenu;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import Library.BookmarkItem;
 import Library.BookmarkManager;
 import java.io.File;
@@ -372,8 +372,7 @@ public class BookmarkerController extends FXMLController {
         MenuItem item4 = new MenuItem("Edit the item/s in tag editor");        
                  item4.setOnAction(e -> {
                      List<BookmarkItem> items = contextMenu.getItem();
-                     TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class,FACTORY);
-                     if (tf!=null) tf.read(items);
+                     WidgetManager.getWidget(TaggingFeature.class,NEW,w->w.read(items));
                  });
         MenuItem item5 = new MenuItem("Explore items's directory");        
                  item5.setOnAction(e -> {

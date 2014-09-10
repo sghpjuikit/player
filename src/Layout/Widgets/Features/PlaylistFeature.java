@@ -11,6 +11,12 @@ package Layout.Widgets.Features;
  * 
  * @author Plutonium_
  */
-public interface PlaylistFeature {
+public interface PlaylistFeature extends Feature {
+    
+    /** {@inheritDoc} */
+    @Override
+    public default String getFeatureName() {
+        return "Contains playlist";
+    }
     
 }

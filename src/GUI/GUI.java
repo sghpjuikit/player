@@ -100,6 +100,7 @@ public class GUI {
         if (val) {
             LayoutManager.getLayouts().forEach(Layout::show);
             alt_state = val;
+            Action.Action.actionStream.push("Layout mode");
         } else {
             alt_state = val;
             LayoutManager.getLayouts().forEach(Layout::hide);
@@ -350,7 +351,7 @@ public class GUI {
     
 /*****************************  helper methods ********************************/
     
-    private static void applyFont(Font f) {System.out.println("applying " + f);
+    private static void applyFont(Font f) {
         // apply only if application initialized correctly
         if (App.isInitialized()) {
             // we need to apply to each window separately

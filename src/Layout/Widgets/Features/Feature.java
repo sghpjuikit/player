@@ -21,4 +21,19 @@ package Layout.Widgets.Features;
  */
 public interface Feature {
     
+    /**
+     * Returns feature name.
+     * <p>
+     * Note that should an implementing class implement multiple Features, it
+     * needs to override this method, but in a way that retains names of all of
+     * the implementations.
+     * <pre>
+     *   public String getFeatureName() {
+     *       return Feature1.super.getFeatureName() + ", " + Feature2.super.getFeatureName();
+     *   }
+     * </pre>
+     * 
+     * @return human readable name of the feature.
+     */
+    String getFeatureName();
 }

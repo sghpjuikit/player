@@ -14,6 +14,12 @@ import java.io.File;
  */
 public interface ImageDisplayFeature extends Feature {
     
+    /** {@inheritDoc} */
+    @Override
+    public default String getFeatureName() {
+        return "Displays image";
+    }
+    
     /**
      * Display the image file.
      * @param img_file 

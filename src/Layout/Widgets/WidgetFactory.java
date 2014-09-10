@@ -27,7 +27,9 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     private final Class<?> controller_class;
     
     /** Whether this factory will be preferred over others of the same group. */
-    public boolean preferred = false;
+    boolean preferred = false;
+    /** Whether this factory will be ignored on widget requests. */
+    boolean ignored = false;
     
     /**
      * Implementation note: this constructor must be called from every extending
@@ -47,7 +49,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         // init info
             // grab Controller's class and its annotation
         Widget.Info i = controller_class.getAnnotation(Widget.Info.class);
-            // initialize default value if not n/a
+            // initialize default value if n/a
         if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
         
 //        name = i.name(); // ignore this for now to not break name contract
@@ -58,7 +60,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         contributor = i.contributor();
         howto = i.howto();
         year = i.year();
-        notes = i.year();
+        notes = i.notes();
         group = i.group();
     }
     
@@ -77,12 +79,20 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     }
     
     /** {@see #preffered} */
-    public boolean isPreffered() {
+    public boolean isPreferred() {
         return preferred;
     }
     /** {@see #preffered} */
     public void setPreferred(boolean val) {
         preferred = val;
+    }
+    /** {@see #ignored} */
+    public boolean isIgnored() {
+        return ignored;
+    }
+    /** {@see #ignored} */
+    public void setIgnored(boolean val) {
+        ignored = val;
     }
     
     

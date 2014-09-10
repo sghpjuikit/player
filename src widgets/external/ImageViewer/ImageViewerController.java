@@ -249,6 +249,10 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         // unbind
         if (dataMonitoring!=null) dataMonitoring.unsubscribe();
         folder.removeListener(locationChange);
+        // prevent continued thumbnail creation
+        stopReadingThumbnails();
+        //stop slideshow
+        slideshow.stop();
     }
     
 /********************************* PUBLIC API *********************************/
@@ -345,12 +349,15 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         thumbnails.clear();
         thumb_pane.getChildren().clear();   
         // ready reading process
-        thumbTimeline.stop();
-        thumbReader.cancel();
-        thumbReader.reset();
+        stopReadingThumbnails();
         // read if available
         if (folder.get() != null)
             thumbReader.start();
+    }
+    private void stopReadingThumbnails() {
+        thumbTimeline.stop();
+        thumbReader.cancel();
+        thumbReader.reset();
     }
     
     private void addThumbnail(final File f) {

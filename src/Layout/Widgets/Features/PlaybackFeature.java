@@ -11,6 +11,12 @@ package Layout.Widgets.Features;
  * 
  * @author Plutonium_
  */
-public interface PlaybackFeature {
+public interface PlaybackFeature extends Feature {
+    
+    /** {@inheritDoc} */
+    @Override
+    public default String getFeatureName() {
+        return "Controls playback";
+    }
     
 }

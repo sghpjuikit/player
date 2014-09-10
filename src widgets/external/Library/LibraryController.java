@@ -21,7 +21,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import static de.jensd.fx.fontawesome.AwesomeIcon.MINUS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.PLUS;
 import java.io.File;
@@ -197,18 +197,16 @@ public class LibraryController extends FXMLController {
                        .map(SimpleItem::toMetadata)
                        .collect(Collectors.toList());
 
-                Task t = MetadataReader.readAaddMetadata(metas);
+                Task t = MetadataReader.readAaddMetadata(metas,(success,added) -> {
+                    if(success) {
+                        progressL.textProperty().unbind();
+                        FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                        WidgetManager.getWidget(TaggingFeature.class, NEW, w -> w.read(added));
+                    }
+                });
                 // display progress & hide on end
                 progressL.setVisible(true);
                 progressL.textProperty().bind(t.messageProperty());
-                EventHandler onEnd = event -> {
-                    progressL.textProperty().unbind();
-                    FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-                    TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class, FACTORY);
-                    if(tf!= null) tf.read(metas);
-                };
-                t.setOnFailed(onEnd);
-                t.setOnSucceeded(onEnd);
             }
             e.consume();
         });
@@ -309,8 +307,7 @@ public class LibraryController extends FXMLController {
                 }),
                 Util.createmenuItem("Edit the item/s in tag editor", e -> {
                     List<Metadata> items = contextMenu.getItem();
-                    TaggingFeature tf = WidgetManager.getWidget(TaggingFeature.class, FACTORY);
-                    if(tf!= null) tf.read(items);
+                    WidgetManager.getWidget(TaggingFeature.class, NEW,w->w.read(items));
                 }),
                 Util.createmenuItem("Explore items's directory", e -> {
                     List<Metadata> items = contextMenu.getItem();

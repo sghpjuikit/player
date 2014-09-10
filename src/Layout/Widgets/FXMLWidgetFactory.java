@@ -11,7 +11,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import utilities.FileUtil;
-import utilities.Log;
 
 /**
  * {@link WidgetFactory} producing {@link FXMLWidget}.
@@ -63,11 +62,9 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
      */
     FXMLController instantiateController() {
         try {
-            // instantiate the controller
             return (FXMLController) getControllerClass().newInstance();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            Log.err("Controller instantiation failed. " + ex.getMessage());
-            return null;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException("Controller instantiation failed. ", e);
         }
     }
     
@@ -78,7 +75,6 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
             URL[] urls = new URL[1];
                   urls[0] = dir;
             URLClassLoader controllerLoader = new URLClassLoader(urls);
-            Class cn;
 
             // widget name eg.: "Tagger"
             String wname = FileUtil.getName(url.toURI());
@@ -89,9 +85,8 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
 
             // instantiate the controller
             return controllerLoader.loadClass(controllerName);
-        } catch (ClassNotFoundException | MalformedURLException | URISyntaxException ex) {
-            Log.err("Controller class loading failed. " + ex.getMessage());
-            return null;
+        } catch (ClassNotFoundException | MalformedURLException | URISyntaxException e) {
+            throw new RuntimeException("Controller class loading failed. ", e);
         }
     }
 }

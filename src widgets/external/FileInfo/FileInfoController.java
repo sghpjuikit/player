@@ -61,7 +61,7 @@ import utilities.access.Accessor;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class FileInfoController extends FXMLController  {
+public class FileInfoController extends FXMLController {
     
     @FXML AnchorPane entireArea;
     ImageFlowPane layout;

@@ -17,6 +17,7 @@ import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
 import Layout.Containers.Splitter;
+import Layout.Widgets.Features.Feature;
 import Layout.Widgets.Widget;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
@@ -63,12 +64,19 @@ public final class AreaControls {
             Component c = ac.area.getActiveComponent();
             String info = "";
             if (c!=null && c instanceof Widget) {
-                Widget i = Widget.class.cast(c);
-                info = "\n\nWidget: " + i.name();
-                if(!i.description().isEmpty()) info += "\n\n" + i.description();
-                if(!i.howto().isEmpty()) info += "\n\n" + i.howto();
-                if(!i.notes().isEmpty()) info += "\n\n" + i.notes();
+                Widget w = Widget.class.cast(c);
+                String f = (w.getController() instanceof Feature) ? Feature.class.cast(w.getController()).getFeatureName() : "-";
+                info += "\n\nWidget: " + w.name();
+                if(!w.author().isEmpty()) info += "\n\n" + w.author();
+                if(!w.programmer().isEmpty()) info += "" + w.programmer();
+                if(!w.contributor().isEmpty()) info += "" + w.contributor();
+                info += "\n\nFeature API: " + f;
+                if(!w.version().isEmpty()) info += "n" + w.version();
+                if(!w.notes().isEmpty()) info += "" + w.notes();
+                if(!w.howto().isEmpty()) info += "" + w.howto();
+                if(w.group()!=Widget.Group.UNKNOWN) info += "" + w.group();
             }
+            
             String text = "Available actions:\n"
                 + "    Close : Closes the widget\n"
                 + "    Detach : Opens the widget in new window\n"
@@ -87,7 +95,7 @@ public final class AreaControls {
             p.getContentNode().setText(text);
             // for some reason we need to set this every time, which
             // should not be the case, investigate
-            p.getContentNode().setWrappingWidth(400);
+//            p.getContentNode().setWrappingWidth(400);
             // we need to handle hiding this AreaControls when popup
             // closes and 
             // we are outside of the area (not implemented yet)
@@ -133,9 +141,11 @@ public final class AreaControls {
 
         // build header buttons
         Label infoB = Util.createIcon(INFO,12,"Help",null);
-              infoB.setOnMouseClicked( e ->  helpP.get(this).show(infoB));
-        Label closeB = Util.createIcon(TIMES_CIRCLE,12,"Close widget",
-                e -> {
+              infoB.setOnMouseClicked( e ->  {
+                  helpP.get(this).show(infoB);
+                  Action.Action.actionStream.push("Widget info");
+              });
+        Label closeB = Util.createIcon(TIMES_CIRCLE,12,"Close widget", e -> {
                   close();
                   Action.Action.actionStream.push("Close widget");
               });

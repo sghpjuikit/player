@@ -14,7 +14,7 @@ import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.Widget_Source.FACTORY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GE;
@@ -113,7 +113,7 @@ public class ExplorerController extends FXMLController {
                             GUI.setSkin(FileUtil.getName(f));
                         // open widget
                         else if((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
-                            WidgetManager.getWidget(wi -> wi.name().equals(FileUtil.getName(f)), FACTORY);
+                            WidgetManager.getWidget(wi -> wi.name().equals(FileUtil.getName(f)), NEW);
                         }
                         // open audio file
                         else if (openAudioInApp && AudioFileFormat.isSupported(f)) {
@@ -122,8 +122,7 @@ public class ExplorerController extends FXMLController {
                         }
                         // open image file
                         else if (openImageInApp && ImageFileFormat.isSupported(f)) {
-                            ImageDisplayFeature idf = WidgetManager.getWidget(ImageDisplayFeature.class, WidgetManager.Widget_Source.FACTORY);
-                            if(idf != null) idf.showImage(f);
+                            WidgetManager.getWidget(ImageDisplayFeature.class,NEW, w->w.showImage(f));
                         }
                         // open file in native application
                         else if(f.isFile()) 

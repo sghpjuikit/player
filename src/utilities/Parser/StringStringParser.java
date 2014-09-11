@@ -6,21 +6,15 @@
 
 package utilities.Parser;
 
+import static java.util.Collections.singletonList;
+import java.util.List;
+
 /**
  * String to String type of parser. For use in rare cases for generic types.
  * <p>
  * @author Plutonium_
  */
 public class StringStringParser implements StringParser<String> {
-
-    /**
-     * @param type
-     * @return true if and only if the class is String
-     */
-    @Override
-    public boolean supports(Class<?> type) {
-        return String.class.isAssignableFrom(type);
-    }
     
     /** {@inheritDoc} */
     @Override
@@ -32,6 +26,12 @@ public class StringStringParser implements StringParser<String> {
     @Override
     public String toS(String object) {
         return object;
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public List<Class> getSupportedClasses() {
+        return singletonList(String.class);
     }
     
 }

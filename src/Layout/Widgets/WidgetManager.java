@@ -10,7 +10,7 @@ import Layout.WidgetImpl.Visualisation;
 import Layout.Widgets.Features.Feature;
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.LAYOUT;
-import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
+import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static Layout.Widgets.WidgetManager.WidgetSource.STANDALONE;
 import java.io.File;
 import java.io.IOException;
@@ -136,6 +136,7 @@ public final class WidgetManager {
             case LAYOUT:
                 return LayoutManager.getLayouts().flatMap(l->l.getAllWidgets());
             case STANDALONE:
+            case NOLAYOUT:
                 return standaloneWidgets.stream();
             case NEW:
                 return Stream.empty();
@@ -308,23 +309,36 @@ public final class WidgetManager {
          */
         STANDALONE,
         
-        /** Union of {@link #LAYOUT} and {@link #STANDALONE} */
+        /** 
+         * Union of {@link #LAYOUT} and {@link #STANDALONE}.
+         * <p>
+         * This is the recommended source when creating widget is not intended.
+         */
         ACTIVE,
         
         /**
          * The source is all available widget factories. In other words new
-         * widget will be created if possible.
+         * widget will always be created if possible.
          */
         NEW,
         
         /**
-         * Union of {@link #LAYOUT}, {@link #STANDALONE} and {@link #NEW}
+         * Union of {@link #NOLAYOUT}, {@link #STANDALONE}. 
+         * <p>
+         * This is the recommended source when it is expected to call the widget
+         * multiple times and layout is not to be included,
+         * because it creates new widget, but reuses standalone ones.
+         */
+        NOLAYOUT,
+        
+        /**
+         * Union of {@link #LAYOUT}, {@link #STANDALONE} and {@link #NOLAYOUT}
          * Most complete source.
          */
         ANY;
         
         public boolean newWidgetsAllowed() {
-            return this==NEW || this==ANY;
+            return this==NOLAYOUT || this==ANY || this==NEW;
         }
     }
     

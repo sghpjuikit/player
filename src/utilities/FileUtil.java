@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -331,6 +332,23 @@ public final class FileUtil {
         return files.stream().filter(NotNULL)
                 .filter(ImageFileFormat::isSupported)
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Returns common root directory for specified files.
+     * 
+     * @param files
+     * @return common root
+     */
+    public static File getCommonRoot(Collection<File> files) {
+            File d = null;
+            for (File f : files) {
+                if (f !=null) {
+                    if(d==null) d = f;
+                    if(d.toPath().compareTo(f.toPath())<0) d=f;
+                }
+            }
+            return d==null ? null : d.isFile() ? d.getParentFile() : d;
     }
     
     /**

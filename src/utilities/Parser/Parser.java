@@ -1,9 +1,7 @@
 package utilities.Parser;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
@@ -18,66 +16,73 @@ import java.util.Objects;
 public class Parser {
     
     private static final PrimitiveParser prim_parser = new PrimitiveParser();
-    private static final FontParser font_parser = new FontParser();
     private static final ValueOfParser valOfParser = new ValueOfParser();
     private static final FromStringParser fromStrParser = new FromStringParser();
     
-    private static final List<ObjectStringParser> parsersO = new ArrayList();
-    private static final List<StringParser> parsersS = new ArrayList();
+    private static final Map<Class,StringParser> parsers = new HashMap();
+    private static final Map<Class,ObjectStringParser> parsersO = new HashMap();
     
-    static {
-        parsersS.add(font_parser);
-        parsersO.add(prim_parser);
-        parsersO.add(valOfParser);
-        parsersO.add(fromStrParser);
+    static {        
+        registerConverter(new FontParser());
+        registerConverter(new FileParser());
+        registerConverter(new ColorParser());
+        registerConverter(new StringStringParser());
+        registerConverter(new PrimitiveParser());
+    }
+    
+    private static<T> void registerConverter(StringParser<T> parser) {
+        parser.getSupportedClasses().forEach(c -> parsers.put(c, parser));
+    }
+    private static<T> void registerConverter(ObjectStringParser parser) {
+        parser.getSupportedClasses().forEach(c -> parsersO.put(c, parser));
     }
     
     public static boolean supports(Class type) {
-        return  type.equals(File.class) ||
-                prim_parser.supports(type) ||
-                font_parser.supports(type) ||
-                valOfParser.supports(type) ||
-                fromStrParser.supports(type);
+        return parsers.get(type)==null || 
+                    type.isEnum() ||
+                        valOfParser.supports(type) || 
+                            fromStrParser.supports(type);
+    }
+    
+    public static StringParser getParserS(Class type) {
+        return parsers.get(type);
+    }
+    public static ObjectStringParser getParserO(Class type) {
+        
+        if(parsersO.containsKey(type)) return parsersO.get(type);
+        if(type.isEnum()) return prim_parser;
+        if(valOfParser.supports(type)) return valOfParser;
+        if(fromStrParser.supports(type)) return fromStrParser;
+        return null;
     }
     
     /**
      * Parses a string to specified type.
      * @param type
      * @param value
-     * @return Object of specified type parsed from string or null if any 
-     * error. Null is always an error output, never valid.
+     * @return Object of specified type parsed from string
      * @throws UnsupportedOperationException if class type not supported.
      */
     public static Object fromS(Class type, String value) {
-        if(type.equals(File.class))         return new FileParser().fromS(value);
-        if(prim_parser.supports(type))      return prim_parser.fromS(type, value);
-        if(font_parser.supports(type))      return font_parser.fromS(value);
-        if(fromStrParser.supports(type))    return fromStrParser.fromS(type, value);
-        if(valOfParser.supports(type))      return valOfParser.fromS(type, value);
+        ObjectStringParser po = getParserO(type);
+        if(po!=null) return po.fromS(type, value);
         
-        throw new UnsupportedOperationException("Class type not supported" + type + ".");
+        StringParser ps = getParserS(type);
+        if(ps!=null) return ps.fromS(value);
+        
+        throw new UnsupportedOperationException("Unsupported class for parsing");
     }
     
     /** 
      * Converts object to String.
+     * 
      * @param o Object to parse. Must not be null.
      * @throws UnsupportedOperationException if class type not supported.
      * @throws NullPointerException if parameter null
      */
     public static String toS(Object o) {
-        Objects.requireNonNull(o);
         Class type = o.getClass();
-        
-        if (type.equals(File.class))   return new FileParser().toS((File) o);
-        
-        for(StringParser p: parsersS)
-            if (p.supports(type))
-                return p.toS(o);
-        for(ObjectStringParser p: parsersO)
-            if (p.supports(type))
-                return p.toS(o);
-        
-        throw new UnsupportedOperationException("Class type not supported " + type + ".");
+        return parsers.getOrDefault(type,getParserO(type)).toS(o);
     }
     
 }

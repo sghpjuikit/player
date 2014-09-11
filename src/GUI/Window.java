@@ -74,8 +74,6 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import static javafx.scene.input.KeyCode.ALT;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -536,6 +534,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     
     private void showHeader(boolean val) {
+        
         controls.setVisible(val);
         leftHeaderBox.setVisible(val);
         if(val) {
@@ -543,6 +542,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             AnchorPane.setTopAnchor(content, 25d);
             AnchorPane.setTopAnchor(lBorder, 25d);
             AnchorPane.setTopAnchor(rBorder, 25d);
+            setBorderless(!val);
         } else {
             header.setPrefHeight(5);
             AnchorPane.setTopAnchor(content, 5d);
@@ -587,7 +587,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
         // settings button - show application settings in a popup
         Label propB = Util.createIcon(GEARS,13,"Application settings",
-                e ->  WidgetManager.getWidget(ConfiguringFeature.class,WidgetSource.NEW));
+                e ->  WidgetManager.getWidget(ConfiguringFeature.class,WidgetSource.NOLAYOUT));
         // manage layout button - sho layout manager in a popp
         Label layB = Util.createIcon(COLUMNS,13,"Manage layouts", 
                 e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
@@ -851,29 +851,31 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     @FXML  
     private void entireArea_OnKeyPressed(KeyEvent e) {  
-        if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))  
-            GUI.setLayoutMode(true);  
-        if (e.getCode()==ALT )  
+        if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
+            GUI.setLayoutMode(true);
+            
             showHeader(true);  
+        }
     }  
 
     @FXML  
     private void entireArea_OnKeyReleased(KeyEvent e) {
-        if (e.getCode().equals(KeyCode.getKeyCode(Action.Shortcut_ALTERNATE)))  
-            GUI.setLayoutMode(false);  
-        if (e.getCode()==ALT)  
+        if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
+            GUI.setLayoutMode(false);
+            
             if(headerVisiblePreference){
                 if(isFullscreen()) {
                     showHeader(false);
-                    setBorderless(false);
+                    setBorderless(true);
                 }  else {
                     showHeader(headerVisible);
-                    setBorderless(headerVisible);
+                    setBorderless(!headerVisible);
                 }
             } else {
                 showHeader(headerVisible);
-                setBorderless(headerVisible);
+                setBorderless(!headerVisible);
             }
+        }
     }
     
 /**************************** SERIALIZATION ***********************************/

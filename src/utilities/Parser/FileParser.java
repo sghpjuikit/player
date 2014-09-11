@@ -7,21 +7,14 @@
 package utilities.Parser;
 
 import java.io.File;
+import static java.util.Collections.singletonList;
+import java.util.List;
 
 /**
  *
  * @author Plutonium_
  */
 public class FileParser implements StringParser<File> {
-
-    /**
-     * @param type
-     * @return true if and only if the class is a File
-     */
-    @Override
-    public boolean supports(Class<?> type) {
-        return File.class.isAssignableFrom(type);
-    }
     
     /** {@inheritDoc} */
     @Override
@@ -33,6 +26,12 @@ public class FileParser implements StringParser<File> {
     @Override
     public String toS(File object) {
         return object.getPath();
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public List<Class> getSupportedClasses() {
+        return singletonList(File.class);
     }
 
 }

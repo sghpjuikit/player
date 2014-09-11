@@ -151,7 +151,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 
     /**
      * Inherited method from {@link StringParser}
-     * Note: this config remains intact.
      * <p>
      * {@inheritDoc}
      */
@@ -159,6 +158,19 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     public final boolean supports(Class<?> type) {
         return getType().isAssignableFrom(type);
     }
+
+    /**
+     * Inherited method from {@link StringParser}
+     * <p>
+     * {@inheritDoc}
+     * 
+     * @throws UnsupportedOperationException always
+     */
+    @Override
+    public List<Class> getSupportedClasses() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     /**
      * Inherited method from {@link StringParser}
      * Note: this config remains intact.

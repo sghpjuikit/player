@@ -10,31 +10,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Marker interface denoting a feature - a functionality of some object.
+ * Common interface for objects implementing some kind of feature or behavior.
+ * Because
+ * <p>
+ * This interface should never be used directly, always use separate 
+ * extending interface.
  * <p>
  * It is expected that the application contains many widgets and widget
  * types, some of which share some behavior. This can be discovered and
  * exploited by using common behavior interface.
  * <p>
- * This interface should not be ever used directly, only its extending interfaces.
- * This interface can be used to limit possible generic methods to Feature by 
- * using bounded wildcards for example: <? extends Feature>
+ * However the intended use is to spawn standalone and unrelated interface 
+ * hierarchies for specific type of objects and object handling.
+ * <p>
+ * The scope of possible behavior and application defined by extending interfaces
+ * is unlimited and as such this interface can theoretically be thought of as
+ * a superinterface of any other class or interface, much like {@link Object} is.
+ * Asking whether object implements
+ * this interface, should therefore be equivalent to asking whether it extends
+ * Object, within given system and whether it belongs to the system when asked
+ * from context outside of it.
+ * <p>
+ * To produce standalone interface hierarchies, it is recommended to use
+ * extending interface to define the hierarchy's root type and follow from there.
  * 
  * @author Plutonium_
  */
 public interface Feature {
     
     /**
-     * Returns feature name.
+     * Returns colon separated list of names of implemented features.
      * <p>
-     * Note that should an implementing class implement multiple Features, it
-     * needs to override this method, but in a way that retains names of all of
-     * the implementations.
-     * <pre>
-     *   public String getFeatureName() {
-     *       return Feature1.super.getFeatureName() + ", " + Feature2.super.getFeatureName();
-     *   }
-     * </pre>
+     * Use to print human readable list of features' names of this object.
+     * <p>
+     * For example: Tagging, Playlist, Playback Control
      * 
      * @return human readable name of the feature.
      */

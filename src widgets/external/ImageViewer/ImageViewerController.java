@@ -329,7 +329,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             // return newly constructed task
             return new Task<Void>() {
                 @Override protected Void call() throws Exception {
-                    int ai = active_image;System.out.println("dddddd "+ai);
+                    int ai = active_image;
                     // discover files
                     List<File> files = folder.get()==null ? EMPTY_LIST
                             :FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth, thumbsLimit);
@@ -420,7 +420,9 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         if (index == -1) {
             Image i = null;
             thumbnail.loadImage(i);
-            active_image = -1;
+            // this is unnecessary because we check the index for validity
+            // also unwanted, sometimes this would erase our deserialized index
+            //  active_image = -1;
         } else {
             thumbnail.loadImage(images.get(index));
             active_image = index;

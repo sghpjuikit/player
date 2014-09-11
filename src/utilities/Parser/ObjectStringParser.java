@@ -6,26 +6,40 @@
 
 package utilities.Parser;
 
+import java.util.List;
+
 /**
  *
  * @author Plutonium_
  */
-interface ObjectStringParser {
+public interface ObjectStringParser extends StringParser<Object> {
     
+    
+    /** {@inheritDoc} */
+    @Override
+    default List<Class> getSupportedClasses() {
+        throw new UnsupportedOperationException("Class must be specified before parsing");
+    }    
+
     /**
-     * Parser supports type only if it can parse both String into the type and the
-     * inverse operation.
-     * @return true if the class type is supported by this parser. False otherwise.
+     * 
+     * @param type Must be primitive type or wrapper of primitive type or enum
+     * or String.
+     * @param source
+     * @throws UnsupportedOperationException if class type not supported.
      */
-    boolean supports(Class type);
+    public Object fromS(Class type, String source);
     
-    /** Converts String into object.
-     * @return object parsed from String.
-     */
-    Object fromS(Class type, String source);
+    /** {@inheritDoc} */
+    @Override
+    default String toS(Object object) {
+        throw new UnsupportedOperationException("Class must be specified before parsing");
+    }
     
-    /** Converts object into String.
-     * @return String the object has been converted.
-     */
-    String toS(Object object);
+    /** {@inheritDoc} */
+    @Override
+    default String fromS(String source) {
+        throw new UnsupportedOperationException("Class must be specified before parsing");
+    }
+    
 }

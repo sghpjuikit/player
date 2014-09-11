@@ -78,9 +78,9 @@ public final class Guide {
                 "\n\nClick anywhere within empty space in the layout and choose 'Place widget' to add new widget. " +
                 "All available widgets will display for you to choose from, sorted lexicographically. There is a " +
                 "widget called 'Empty' which contains no content. Select it.");
-        addGuide("Widget info", "To read more about the widget and its functionality, you can open another info " +
-                "popup. It contains information about the widget, its intention, functions and developer. The popup " +
-                "opens after click on info button located in the widget header. The widget header is displaed automatically " +
+        addGuide("Widget info", "To read more about the widget and its functionality, you can open widget's info " +
+                "popup. It contains information about the widget, its intention, functions and more. The popup " +
+                "opens after click on info button located in the widget header. The widget header is displayed automatically " +
                 "when mouse cursor enters right top corner of the widget." +
                 "\n\nMove the mouse cursor over the top right corner of the widget, " +
                 "wait for the widget header to appear and click on the info button");
@@ -89,13 +89,26 @@ public final class Guide {
                 "wait for the widget header to appear and click on the 'x' button");
         addGuide("Divide layout", "In order to create layout that best suits your needs, you need to create " +
                 "more containers for storing the widgets, by dividing the layout - horizontally or vertically." +
-                "\nThe orientation determines how the layout gets split by the divider and can be changed later." +
+                "\nThe orientation determines how the layout gets split by the divider and can be changed later. " +
                 "The divider can be dragged by mouse to change the sizes of the sub containers." +
                 "\n\nClick anywhere within empty space and choose one of the 'Split' choices.");
         addGuide("Layout mode", "When widget header is visible, the widget is in layout mode. Layout mode is used " +
                 "for advanced manipulation with the widget. In order to quickly make changes to the layout, layout " +
-                "mode can be activated by pressing Alt or " + Action.getAction("Manage Layout").getKeys() + " key." +
-                "\n\nPress one of the keys to enter layout mode");
+                "mode can be activated by shortcut." +
+                "\n\nPress '" + Action.getAction("Manage Layout").getKeys() + "' to enter/leave layout mode");
+        addGuide("Layout mode", "For layout mode, there is also fast-shortcut reacting on key press and release." +
+                "\n\nPress '" + Action.Shortcut_ALTERNATE + "' to temporarily enter layout mode. (If the shortcut " +
+                "is empty (disabled) go to next hint manually).");
+        addGuide("Layout lock", "Because automatic layout mode for widgets and containers can be intrusive, " +
+                "the layout can be locked. Locked layout will enter full layout mode with shortcuts, but not " +
+                "individual widgets. You may want to lock the layout after configuring it to your needs." +
+                "\n\nClick on the lock button in the window header or press '" + Action.getAction("Toggle layout lock.").getKeys() + 
+                "' to temporarily enter layout mode.");
+        addGuide("Widget layout lock", "Note that individual widgets and containers can be locked as well to " +
+                "achieve semi-locked layout effect. You may lock individual widgets or containers if layout mode " +
+                "gets in the way of using them. This could be the case for widgets that display tables or contain " +
+                "other controls in the corner activation area." +
+                "\n\nClick on the lock button in the widget's header.");
     }
             
     private void proceed() {

@@ -600,7 +600,8 @@ public interface Util {
     }
     
     /**
-     * Returns i-th generic parameter of the field. {@code Integer for List<Integer>}
+     * Returns i-th generic parameter of the field starting from 0. 
+     * For example {@code Integer for List<Integer>}
      * @param f
      * @return 
      */
@@ -611,7 +612,7 @@ public interface Util {
     }
     
     /**
-     * Returns i-th generic parameter of the class.
+     * Returns i-th generic parameter of the class starting from 0.
      * For example Integer for {@code IntegerList extends List<Integer>}
      * <p>
      * Will NOT work on variables, using getClass() method on them.

@@ -13,7 +13,7 @@ import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
+import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import PseudoObjects.FormattedDuration;
 import java.io.File;
 import java.net.URI;
@@ -660,7 +660,7 @@ public final class PlaylistTable {
                 }),
                 Util.createmenuItem("Edit the item/s in tag editor", e -> {
                     List<PlaylistItem> items = contextMenu.getItem();
-                    WidgetManager.getWidget(TaggingFeature.class,NEW, w->w.read(items));
+                    WidgetManager.getWidget(TaggingFeature.class,NOLAYOUT, w->w.read(items));
                 }),
                 Util.createmenuItem("Crop items", e -> {
                     List<PlaylistItem> items = contextMenu.getItem();

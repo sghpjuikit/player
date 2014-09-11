@@ -504,8 +504,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void OnClosing() {
         // remove listeners
-        selectedItemsMonitoring.unsubscribe();
-        playingItemMonitoring.unsubscribe();
+        if (selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
+        if (playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
     }
     
     

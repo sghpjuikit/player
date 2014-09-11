@@ -8,6 +8,7 @@ package utilities.Parser;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import utilities.Log;
 
 /**
@@ -54,6 +55,11 @@ public class ValueOfParser implements ObjectStringParser {
     @Override
     public String toS(Object object) {
         return object.toString();
+    }
+
+    @Override
+    public List<Class> getSupportedClasses() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

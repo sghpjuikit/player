@@ -19,7 +19,6 @@
 - minimode popups should prevent from autohiding, but how?
 - bookmark config serialisation - hahsmap not supported
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
-- remove custom context menus as they are now
 - emty metadata MUST NOT return File("") ! - EMPTY_FILE instance? with custom 
   URI scheme for example?
 - tab area - select tab on mouse release not press or avoid loading content
@@ -32,11 +31,6 @@
 - allow multiselection in library metadata group -> support multiple values in
   AND filtering for query
 - library table cells sometimes invisible - not updated
-- adding to library reeading gradually slows down a lot + RAm goes up, batch it
-  try adding items in count of 100-500 each batch within its own transaction &
-  entity manager. I think having 10+k managed items is not healthy...
-  if we maintain the initial speed the whole time ill be very happy with the
-  result
 - library shortcuts
 - library remember value is Object field turn into Config with overriden getType
   that gets the type from the field type config, or unify the two into one
@@ -49,6 +43,10 @@
 - external playlist (m3u, etc) support + dragging too
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager? hm
 - lazy selected itemstream
+
+- parser general se map for parsers to avoid type checking, parsers should return lsit of supported classes
+- check into autoboxing /unbozing for condigs
+- preferred widget factories use map and implement setPreferred, enforce 1max, make config accessible via gui
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------

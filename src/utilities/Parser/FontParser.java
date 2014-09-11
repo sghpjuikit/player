@@ -1,6 +1,8 @@
 
 package utilities.Parser;
 
+import static java.util.Collections.singletonList;
+import java.util.List;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -13,15 +15,6 @@ import utilities.Log;
  * @author Plutonium_
  */
 public class FontParser implements StringParser<Font> {
-
-    /**
-     * @param type
-     * @return true if and only if the class is a Font
-     */
-    @Override
-    public boolean supports(Class<?> type) {
-        return Font.class.isAssignableFrom(type);
-    }
     
     /** Converts Font into String
      * @param font.
@@ -51,6 +44,12 @@ public class FontParser implements StringParser<Font> {
             Log.err("Font cannot be parsed from '" + str + "'. Using default font.");
             return Font.getDefault();
         }
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public List<Class> getSupportedClasses() {
+        return singletonList(Font.class);
     }
     
 }

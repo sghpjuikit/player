@@ -17,6 +17,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import static java.util.Collections.singletonList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,8 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import static javafx.scene.input.KeyCode.ALT;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -330,67 +333,86 @@ public final class Action extends Config<Action> implements Runnable {
     
 /********************************** AS CONFIG *********************************/
     
+    /** {@inheritDoc} */
     @Override
     public Action getValue() {
         return this;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void setValue(Action val) {
         set(val.isGlobal(), val.getKeys());
     }
 
+    /** {@inheritDoc} */
     @Override
     public void applyValue(Action val) { }
 
+    /** {@inheritDoc} */
     @Override
     public Class<Action> getType() {
         return Action.class;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Action getDefaultValue() {
         return new Action(name,action,info,defaultKeys,defaultGlobal,continuous);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getName() {
         return name;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getGuiName() {
         return name;
     }    
     
+    /** {@inheritDoc} */
     @Override
     public String getInfo() {
         return info;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getGroup() {
         return "Shortcuts";
     }
     
+    /** {@inheritDoc} */
     @Override
     public boolean isEditable() {
         return true;
     }
     
+    /** {@inheritDoc} */
     @Override
     public boolean isMinMax() {
         return false;
     }
 
+    /** {@inheritDoc} */
     @Override
     public double getMin() {
         return Double.NaN;
     }
 
+    /** {@inheritDoc} */
     @Override
     public double getMax() {
         return Double.NaN;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<Class> getSupportedClasses() {
+        return singletonList(Action.class);
     }
     
 /********************************** AS OBJECT *********************************/
@@ -653,8 +675,8 @@ public final class Action extends Config<Action> implements Runnable {
         }
     });
     
-    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts", editable = false)
-    public static String Shortcut_ALTERNATE = "Alt";
+    @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts")
+    public static KeyCode Shortcut_ALTERNATE = ALT;
     
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";

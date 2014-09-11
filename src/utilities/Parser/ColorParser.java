@@ -13,16 +13,8 @@ import javafx.scene.paint.Color;
  * @author Plutonium_
  */
 public class ColorParser implements StringParser<Color> {
-
-    /**
-     * @param type
-     * @return true if and only if the class is Color or its subclass
-     */
-    @Override
-    public boolean supports(Class<?> type) {
-        return Color.class.isAssignableFrom(type);
-    }
     
+    /** {@inheritDoc} */
     @Override
     public Color fromS(String source) {
         try {
@@ -31,10 +23,11 @@ public class ColorParser implements StringParser<Color> {
             return null;
         }
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public String toS(Color object) {
         return object.toString();
     }
-    
+
 }

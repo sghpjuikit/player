@@ -60,9 +60,9 @@ public abstract class SuccessTask<T> extends Task<T> {
     protected void updateMessage(int all, int done, int skipped) {
         sb.setLength(0);
         sb.append("Completed ");
-        sb.append(all);
-        sb.append(" / ");
         sb.append(done);
+        sb.append(" / ");
+        sb.append(all);
         sb.append(". ");
         sb.append(skipped);
         sb.append(" skipped.");
@@ -72,6 +72,6 @@ public abstract class SuccessTask<T> extends Task<T> {
     @Override
     protected void updateMessage(String message) {
         super.updateMessage(message);
-        System.out.println(message);
+//        System.out.println(message);
     }
 }

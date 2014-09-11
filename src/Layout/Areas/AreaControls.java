@@ -155,6 +155,7 @@ public final class AreaControls {
                    toggleLocked();
                    AwesomeDude.setIcon(lockB,area.isLocked() ? UNLOCK : LOCK,"12");
                    lockB.getTooltip().setText(area.isLocked() ? "Unlock widget layout" : "Lock widget layout");
+                   Action.Action.actionStream.push("Widget layout lock");
                });
         Label refreshB = Util.createIcon(REFRESH,12,"Refresh widget",e -> refreshWidget());
         absB = Util.createIcon(LINK,12,"Toggle absolute size",e -> {

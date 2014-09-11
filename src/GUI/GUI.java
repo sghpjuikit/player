@@ -76,7 +76,13 @@ public class GUI {
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     public static double snapDistance = 7;
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
-    private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false);
+    private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
+        @Override public void set(boolean v) {
+            super.set(v);
+            Action.Action.actionStream.push("Layout lock");
+        }
+        
+    };
         
 /******************************************************************************/
     
@@ -100,11 +106,11 @@ public class GUI {
         if (val) {
             LayoutManager.getLayouts().forEach(Layout::show);
             alt_state = val;
-            Action.Action.actionStream.push("Layout mode");
         } else {
             alt_state = val;
             LayoutManager.getLayouts().forEach(Layout::hide);
         }
+        Action.Action.actionStream.push("Layout mode");
     }
     
     /**

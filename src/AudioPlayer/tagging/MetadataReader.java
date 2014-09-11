@@ -264,9 +264,9 @@ public class MetadataReader{
         return executeTask(task);
     }
     
-    public static Task<Void> removeMissingFromLibrary(){                
+    public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){                
         // create task
-        final Task<Void> task = new SuccessTask("Removing missing items from library",null){
+        final Task<Void> task = new SuccessTask("Removing missing items from library",onEnd){
             private int all = 0;
             private int completed = 0;
             private int removed = 0;

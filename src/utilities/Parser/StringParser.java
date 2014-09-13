@@ -1,8 +1,8 @@
 
 package utilities.Parser;
 
+import java.util.Collection;
 import static java.util.Collections.singletonList;
-import java.util.List;
 import utilities.Util;
 
 /**
@@ -25,13 +25,13 @@ public interface StringParser<T> extends ToStringConverter<T>, FromStringConvert
      * @return true if the class type is supported by this parser. False otherwise.
      */
     default boolean supports(Class<?> type) {
-        return Util.getGenericClass(getClass(), 0).equals(type);
+        return Util.getGenericInterface(getClass(),0,0).equals(type);
     }
     
     /**
      * @return list of all classes that are supported 
      */
-    default List<Class> getSupportedClasses() {
-        return singletonList(Util.getGenericClass(getClass(), 0));
+    default Collection<Class> getSupportedClasses() {
+        return singletonList(Util.getGenericInterface(getClass(),0,0));
     }
 }

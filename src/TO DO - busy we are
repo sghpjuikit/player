@@ -4,23 +4,18 @@
 --------------------------------------------------------------------------------
 
 - popover position jumps when drag starts
-- tagger use trash big icon or sth when removing cover by drag and add icon
-  for the reverse operation
 - interrupt reading if double reading
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird 4                        (?)
 - popover set arrow location automatically based on available screen space
-  getWidget - implement Target
-- playlist table header button implement properly column hiding (nasty bug)
+- playlist table header button implement properly column hiding
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
 - bookmark config serialisation - hahsmap not supported
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
-- emty metadata MUST NOT return File("") ! - EMPTY_FILE instance? with custom 
-  URI scheme for example?
 - tab area - select tab on mouse release not press or avoid loading content
   somehow when reordering
 - tab drag areas vs tabs implement both at once
@@ -43,9 +38,7 @@
 - external playlist (m3u, etc) support + dragging too
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager? hm
 - lazy selected itemstream
-
 - parser general se map for parsers to avoid type checking, parsers should return lsit of supported classes
-- check into autoboxing /unbozing for condigs
 - preferred widget factories use map and implement setPreferred, enforce 1max, make config accessible via gui
 
 --------------------------------------------------------------------------------
@@ -60,18 +53,12 @@
 --------------------------------------------------------------------------------
 
 GENERAL
-- deactivator position | size a bit off when loading first time & into small
+- deactivator position | size a bit off when loading first time & into small    (minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
 - playlist manual sorting does not work
 - Thumbnail borde rchanges size of the control - not good at all
 - Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
-- little bug with position slider on manual seeking                             (minor)
-  cause: it takes a while for seek() to actually seek. During this time the
-  seeker jumps back to current position. Its bad because the seeker already was
-  at the right position when mouse pressed took place - solution unknown
-  idea: use 2nd thumb for seeking or allow position change only within treshold
-  from the seeked position for limited amount of time
 - playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
 - backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind
@@ -82,7 +69,6 @@ GENERAL
   probabyly a result of messing around with configs. But it can still produce
   issues and return.
 - starting playback at given previous position seeks to beginning for a while   (medium)
-  cause: possibly the same as the seeker bug
 - local shortcuts for complex characters (BACK_SLASH, etc) not working
   solution: solved for some characters by manually rewriting them upon
   shortcut registering, but thats only partial and incomplete workaround
@@ -107,6 +93,10 @@ GENERAL
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
+- seeking for mp3 files with variable bitrate causes                            (major, javaFX bug)
+  - track plays after seeker is at the end
+  - seeking to the beginning of the track (10-20s) seeks to 0 instead
+  - the current time value (and seeker position) is shifted
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
@@ -149,7 +139,11 @@ SOLVED (but the underlying cause still deserves attention)
   problem: css polution, dev might overlook header if he changes -fx-panel-color
 - playlist table index column resizing doesnt apply correct value, the method   (passable)
   needs to be delayed. reason: unknown. solution: delayed execution
-
+- little bug with position slider on manual seeking                             (minor)
+  cause: it takes a while for seek() to actually seek. During this time the
+  seeker jumps back to back position
+  solution: after mouse is released canUpdate is set to true, set canUpdate     (OK)
+  to true with a 100ms delay.
 
 PROBLEMS
 - fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but invasive misbehavior)
@@ -229,6 +223,13 @@ PERFORMANCE
   For example if we handle only left button mouse clicks, do not consume also
   right button clicks, instead let them propagate below. Goes for drag events
   as well.
+- when showing ContextMenu, there is a big difference between show(Window,x,y)
+  and (Node,x,y). The former will not hide the menu when next click happens
+  within the node itself!
+- all popups and context menus have property setConsumeAutoHidingEvents()
+  to specify whether mouse event that closes the popup should have any further
+  effect on the application. In my opinion having it set to true (default) is 
+  rather annoying.
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------

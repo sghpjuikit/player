@@ -50,9 +50,9 @@ public final class Chapter implements Comparable<Chapter> {
      * Gets time as Duration with granularity of 1 millisecond.
      */
     public Duration getTime() {
-        // time must always be equivalent to mathematical integer, so lets
-        // assert that assumption
+        // time must always be equivalent to mathematical integer
         assert time.toMillis() == Math.rint(time.toMillis());
+        
         return time;
     }
 

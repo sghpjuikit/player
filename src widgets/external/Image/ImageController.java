@@ -108,7 +108,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     }
 
     @Override
-    public void OnClosing() {
+    public void close() {
         slideshow.stop();
         images.clear();
     }

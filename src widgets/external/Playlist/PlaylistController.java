@@ -212,7 +212,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     }
 
     @Override
-    public void OnClosing() {
+    public void close() {
         // remove listeners
         PlaylistManager.lengthProperty().removeListener(lengthListener);
         playlist.clearResources();

@@ -121,7 +121,7 @@ public class LibraryController extends FXMLController {
         
         // add data columns
         for(Field mf : Field.values()) {
-            if(!mf.isStringRepresentable()) continue;
+            if(!mf.isTypeStringRepresentable()) continue;
             TableColumn<Metadata,Object> c = new TableColumn(mf.toCapitalizedS());
             c.setCellValueFactory((TableColumn.CellDataFeatures<Metadata,Object> cf) -> {
                 if(cf.getValue()==null) return null;
@@ -256,7 +256,7 @@ public class LibraryController extends FXMLController {
     }
 
     @Override
-    public void OnClosing() {
+    public void close() {
         // stop listening
         dbMonitor.unsubscribe();
     }

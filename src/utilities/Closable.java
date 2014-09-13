@@ -9,11 +9,13 @@ package utilities;
 /**
  * Object that closes.
  * <p>
- * Close operation is mostly to free resources and stop thebehavior of the
+ * Close operation is mostly to free resources and stop the behavior of the
  * object.
  *
  * @author Plutonium_
  */
 public interface Closable {
+    
+    /** Closes this object. */
     public void close();
 }

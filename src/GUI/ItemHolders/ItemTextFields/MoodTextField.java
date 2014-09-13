@@ -8,7 +8,7 @@ import GUI.objects.PopOver.PopOver;
 import java.util.stream.Collectors;
 import org.controlsfx.control.textfield.TextFields;
 import utilities.Parser.StringParser;
-import utilities.Parser.StringStringParser;
+import utilities.Parser.ParserImpl.StringStringParser;
 import utilities.functional.functor.UnProcedure;
 
 /**

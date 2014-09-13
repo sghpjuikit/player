@@ -56,7 +56,8 @@ import utilities.access.Accessor;
             "    Rater left click : Rates displayed song\n" +
             "    Rater right click : Toggles rater skin\n" +
             "    Drag&Drop audio : Displays information for the first dropped item\n" +
-            "    Drag&Drop image : Copies images into current item's locaton\n",
+            "    Drag&Drop image on cover: Copies images into current item's locaton\n" +
+            "    Drag&Drop image elsewhere: Copies images into current item's locaton as cover\n",
     version = "1.0",
     year = "2014",
     group = Widget.Group.OTHER
@@ -173,9 +174,6 @@ public class FileInfoController extends FXMLController {
     public boolean changeReadModeOnTransfer = true;
     @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
     public boolean keepContentOnEmpty = true;
-    @IsConfig(name = "Copy image as cover", info = "Drag & dropped images will be"
-            + " renamed to be used as cover for the album instead of simply added to the directory. Old cover will be preserved.")
-    public boolean copyImageAsCover = true;
     
     @Override
     public void init() {
@@ -252,8 +250,8 @@ public class FileInfoController extends FXMLController {
             }
             if(data!=null && data.isFileBased() && DragUtil.hasImage(e.getDragboard())) {
                 // grab images
-                DragUtil.doWithImageItems(e, imgs ->  {
-                    if(copyImageAsCover) {
+                DragUtil.doWithImageItems(e, imgs ->  {System.out.println(thumb.getPane().contains(thumb.getPane().sceneToLocal(e.getSceneX(), e.getSceneY())));
+                    if(thumb.getPane().contains(thumb.getPane().sceneToLocal(e.getSceneX(), e.getSceneY()))) {
                         if(!imgs.isEmpty()) {
                             // copy files to displayed item's location & preserve old
                             FileUtil.copyFileSafe(imgs.get(0), data.getLocation(), "cover");
@@ -273,7 +271,7 @@ public class FileInfoController extends FXMLController {
     }
     
     @Override
-    public void OnClosing() {
+    public void close() {
         if (dataMonitoring != null) dataMonitoring.unsubscribe();
     }
     

@@ -283,7 +283,7 @@ public abstract class Container extends Component implements AltState {
         getAllWidgets().map(Widget::getController)
                 // there might be passive widgets that avoided being loaded
                 .filter(NotNULL)
-                .forEach(c->c.OnClosing());
+                .forEach(c->c.close());
         
         if (!isRoot()) {
             // remove from layout graph

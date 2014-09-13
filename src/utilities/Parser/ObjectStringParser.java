@@ -6,7 +6,7 @@
 
 package utilities.Parser;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  *
@@ -17,7 +17,7 @@ public interface ObjectStringParser extends StringParser<Object> {
     
     /** {@inheritDoc} */
     @Override
-    default List<Class> getSupportedClasses() {
+    default Collection<Class> getSupportedClasses() {
         throw new UnsupportedOperationException("Class must be specified before parsing");
     }    
 

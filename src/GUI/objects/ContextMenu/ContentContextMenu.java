@@ -6,6 +6,7 @@
 
 package GUI.objects.ContextMenu;
 
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 
 /**
@@ -21,5 +22,13 @@ public class ContentContextMenu<E> extends ContextMenu implements GUI.ItemHolder
     }
     public void setItem(E item) {
         this.item = item;
+    }
+    
+    // when showing ContextMenu, there is a big difference between show(Window,x,y)
+    // and (Node,x,y). The former will not hide the menu when next click happens
+    // within the node itself!
+    @Override
+    public void show(Node anchor, double screenX, double screenY) {
+        super.show(anchor.getScene().getWindow(), screenX, screenY);
     }
 }

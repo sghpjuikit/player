@@ -618,10 +618,24 @@ public interface Util {
      * Will NOT work on variables, using getClass() method on them.
      * 
      * @param c
+     * @param i
      * @return 
      */
     public static Class getGenericClass(Class c, int i) {
         return (Class) ((ParameterizedType) c.getGenericSuperclass()).getActualTypeArguments()[i];
+    }
+    
+    /**
+     * Same as {@link #getGenericClass(java.lang.Class, int)} but for interfaces.
+     * Returns p-th generic parameter of the i-th interface of c class starting from 0.
+     * 
+     * @param c
+     * @param i
+     * @param p
+     * @return 
+     */
+    public static Class getGenericInterface(Class c, int i, int p) {
+        return (Class) ((ParameterizedType) c.getGenericInterfaces()[i]).getActualTypeArguments()[p];
     }
     
 /********************************** FUNCTIONAL ********************************/

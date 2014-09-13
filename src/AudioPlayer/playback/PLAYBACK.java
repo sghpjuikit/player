@@ -13,6 +13,8 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import static java.lang.Double.max;
+import static java.lang.Double.min;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -39,8 +41,14 @@ import utilities.functional.functor.Procedure;
 public final class PLAYBACK implements Configurable {
     @IsConfig(name="Remember playback state", info = "Continue last remembered playback when application starts.")
     public static boolean continuePlaybackOnStart = true;
-    @IsConfig(name="Pause playback on start", info = "Continue last remembered playback paused on application start")
+    @IsConfig(name="Pause playback on start", info = "Continue last remembered playback paused on application start.")
     public static boolean continuePlaybackPaused = false;    
+    @IsConfig(name="Seek relative to length", info = "Seeks forward.backward by fraction of song's length instead of fixed time unit.")
+    public static boolean seekPercent = true;    
+    @IsConfig(name="Seek time unit", info = "Fixed time unit in milliseconds to jump, when seeking forward/backward.")
+    public static long seekUnitT = 4000;
+    @IsConfig(name="Seek fraction", info = "Relative time in fracton of song's length to seek forward/backward by.", min=0, max=1)
+    public static double seekUnitP = 0.05;
     
     private static final PlaybackState state = Player.state.playback;
     static MediaPlayer playback;
@@ -142,7 +150,7 @@ public final class PLAYBACK implements Configurable {
     public static void pause_resume() {
         if (playback == null || playback.getMedia() == null) return;
 
-        if (playback.getStatus() == Status.PLAYING)
+        if (playback.getStatus() == PLAYING)
             pause();
         else
             resume();
@@ -152,18 +160,20 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Stop", description = "Stops playback.", shortcut = "ALT+F", global = true)
     public static void stop() {
         if (playback == null) return;
+        
         playback.stop();
         realTime.synchroRealTime_onStopped();
     }
     
     /** Seeks playback to position specified by duration parameter. */
-    public static void seek(Duration duration) {
+    public static void seek(Duration duration) {System.out.println("seeking to " + duration.toMillis());
         if (playback == null) return;
-        if (playback.getStatus() == Status.STOPPED) {
+        
+        if (playback.getStatus() == STOPPED) {
             pause();
         }
         
-        if (playback.getStatus() == Status.PLAYING || playback.getStatus() == Status.PAUSED) {
+        if (playback.getStatus() == PLAYING || playback.getStatus() == PAUSED) {
             realTime.synchroRealTime_onPreSeeked();
             playback.seek(duration);
             realTime.synchroRealTime_onPostSeeked(duration);
@@ -173,28 +183,43 @@ public final class PLAYBACK implements Configurable {
             core.seekTo = duration;
         }
     }
+
+    /** Seeks playback to position specified by percent value 0-1. */
+    public static void seek(double at) {System.out.println(at);
+        if(at<0 ||at>1) throw new IllegalArgumentException("Seek value must be 0-1");
+        seek(getTotalTime().multiply(at));
+    }
+    
     /** Seek forward by specified duration */
     @IsAction(name = "Seek to beginning", description = "Seek playback to beginning.", shortcut = "ALT+R", global = true)
     public static void seekZero() {
-        seek(Duration.ZERO);
+        seek(0);
     }
     
     /** Seek forward by specified duration */
     @IsAction(name = "Seek forward", description = "Seek forward playback.", shortcut = "ALT+D", continuous = true, global = true)
     public static void seekForward() {
-        seek(getCurrentTime().add(Duration.seconds(4)));
+        if(seekPercent) {
+            double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()+seekUnitP;
+            seek(min(d, 1));
+        } else
+            seek(getCurrentTime().add(Duration.millis(seekUnitT)));
     }
     
     /** Seek backward by specified duration */
     @IsAction(name = "Seek backward", description = "Seek backward playback.", shortcut = "ALT+A", continuous = true, global = true)
     public static void seekBackward() {
-        seek(getCurrentTime().subtract(Duration.seconds(4)));
+        if(seekPercent) {
+            double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()-seekUnitP;
+            seek(max(d, 0));
+        } else
+            seek(getCurrentTime().subtract(Duration.millis(seekUnitT)));
     }
     
     /** Seek forward by specified duration */
     @IsAction(name = "Seek to end", description = "Seek playback to end.", shortcut = "", global = true)
     public static void seekEnd() {
-        seek(getTotalTime());
+        seek(1);
     }
     
 /******************************************************************************/
@@ -455,12 +480,22 @@ public final class PLAYBACK implements Configurable {
         Media media;
         try {
             media = new Media(resource);
-        } catch (MediaException ex) {
-            Log.err(ex.getLocalizedMessage());
+        } catch (MediaException e) {
+            Log.err(e.getLocalizedMessage());
             stop();
             return;
         }
+        
         playback = new MediaPlayer(media);
+        
+        // debug
+        // these two have no effect, unless something is wrong
+        // if seeking out of sync with current value (WHICH IT IS!!)
+        // setStopTime might stop the song prematurely
+        // playback.setStartTime(ZERO);
+        // playback.setStopTime(playback.getTotalDuration());
+        
+        
         playback.setAudioSpectrumInterval(0.1);
         playback.setAudioSpectrumNumBands(64);
 //        playback.setAudioSpectrumThreshold(i) // ? what val is ok?

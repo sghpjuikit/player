@@ -98,6 +98,8 @@ public class PlayerControlsController extends FXMLController implements Playback
     public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
     public final Accessor<Boolean> popupChapters = new Accessor<>(true, seeker::setChaptersShowPopUp);
+    @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
+    public final Accessor<Boolean> snapToChap = new Accessor<>(true, seeker::setSnapToChapters);
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
@@ -207,7 +209,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     public void refresh() { }
 
     @Override
-    public void OnClosing() {
+    public void close() {
         // remove listeners
         playingItemMonitoring.unsubscribe();
         PLAYBACK.statusProperty().removeListener(statusListener);       

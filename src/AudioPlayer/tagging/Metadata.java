@@ -52,9 +52,10 @@ import static utilities.FileUtil.EMPTY_COLOR;
 import static utilities.FileUtil.EMPTY_URI;
 import utilities.ImageFileFormat;
 import utilities.Log;
-import utilities.Parser.ColorParser;
+import utilities.Parser.ParserImpl.ColorParser;
 import utilities.TODO;
 import utilities.Util;
+import utilities.access.TypedValue;
 
 /**
  * Information about audio file.
@@ -718,7 +719,8 @@ public final class Metadata extends MetaItem {
         else return files[0];
     }
     
-    /** @return the rating or 0 if empty. */
+    /** @return the rating or -1 if empty. */
+    @MetadataFieldMethod(Field.RATING_RAW)
     public int getRating() {
         return rating==-1 ? 0 : rating;
     }
@@ -977,6 +979,7 @@ public final class Metadata extends MetaItem {
             case COVER : return getCover();
             case COVER_INFO : return getCoverInfo();
             case RATING : return getRatingPercent();
+            case RATING_RAW : return getRating();
             case PLAYCOUNT : return getPlaycount();
             case CATEGORY : return getCategory();
             case COMMENT : return getComment();
@@ -1078,7 +1081,7 @@ public final class Metadata extends MetaItem {
         return uri != null && m.uri != null && uri.equals(m.uri);
     }
     
-    public static enum Field {
+    public static enum Field implements TypedValue {
         PATH,
         FORMAT,
         FILESIZE,
@@ -1105,6 +1108,7 @@ public final class Metadata extends MetaItem {
         COVER,
         COVER_INFO,
         RATING,
+        RATING_RAW,
         PLAYCOUNT,
         CATEGORY,
         COMMENT,
@@ -1118,7 +1122,10 @@ public final class Metadata extends MetaItem {
         CUSTOM4,
         CUSTOM5;
         
-        public boolean isStringRepresentable() {
+        
+        /** {@inheritDoc} */
+        @Override
+        public boolean isTypeStringRepresentable() {
             return this != COVER;
         }
         
@@ -1126,9 +1133,22 @@ public final class Metadata extends MetaItem {
             return Util.capitalizeStrong(name());
         }
         
+        /** {@inheritDoc} */
+        @Override
         public Class getType() {
             return EMPTY.getField(this).getClass();
         }
+
+        /**
+         * Returns true.
+         * <p>
+         * {@inheritDoc} 
+         */
+        @Override
+        public boolean isTypeNumberNonegative() {
+            return true;
+        }
+        
     }
     
     @Retention(RetentionPolicy.RUNTIME)

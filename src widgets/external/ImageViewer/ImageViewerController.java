@@ -250,7 +250,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     /** {@inheritDoc} */
     @Override
-    public void OnClosing() {
+    public void close() {
         // unbind
         if (dataMonitoring!=null) dataMonitoring.unsubscribe();
         folder.removeListener(locationChange);

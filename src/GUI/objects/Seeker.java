@@ -29,7 +29,6 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
@@ -60,8 +59,8 @@ public final class Seeker extends AnchorPane {
     @FXML Slider position;
     private final List<Chap> chapters = new ArrayList();
     
-    // tmp variables
-    public boolean canUpdate = true;    
+    private boolean canUpdate = true;
+    private boolean snaPosToChap = false;
     
     public Seeker() {
         // load graphics
@@ -90,41 +89,30 @@ public final class Seeker extends AnchorPane {
         position.setCursor(Cursor.HAND);
         position.getStyleClass().add(STYLECLASS);
         
-        position.valueChangingProperty().addListener((o,ov,nv) -> {
-            if (ov && !nv) {
-                double pos = position.getValue();
-                Duration seekTo = totalTime.get().multiply(pos);
-                PLAYBACK.seek(seekTo);                
-            }
-        });
+        
         position.setOnMouseDragged( e -> {
             if(e.getButton()==PRIMARY) {
                 double distance = e.getX();
                 double width = getWidth();
+                
                 // snap to chapter if nearby
-                for (Chap c: chapters) {
-                    if (snapDistance > Math.abs(distance-c.position*width)) {
-                        position.setValue(c.position);
-                        return;
-                    }
-                }
+                if(snaPosToChap)
+                    for (Chap c: chapters)
+                        if (snapDistance > Math.abs(distance-c.position*width)) {
+                            position.setValue(c.position);
+                            return;
+                        }
                 position.setValue(distance / width);
             }
         });
+        position.setOnMousePressed( e -> canUpdate = false );
         position.setOnMouseReleased( e -> {
             if(e.getButton()==PRIMARY) {
-                double pos = position.getValue();
-                Duration seekTo = totalTime.get().multiply(pos);
-                PLAYBACK.seek(seekTo);
-                canUpdate = true;
+                PLAYBACK.seek(position.getValue());
+                FxTimer.run(100, () -> canUpdate = true);
             }
         });
-        position.setOnMousePressed( e -> canUpdate = false );
-        position.addEventFilter(MOUSE_CLICKED, e -> {
-            if(e.getButton()==SECONDARY) {
-                addChapterAt(e.getX());
-            }
-        });
+        
         this.widthProperty().addListener( o -> positionChapters() );
         
         
@@ -144,12 +132,12 @@ public final class Seeker extends AnchorPane {
             addB.l.setDisable(!Player.playingtem.get().isFileBased());
         });
         position.addEventFilter(MOUSE_EXITED, e -> 
-            FxTimer.run(Duration.millis(300), () -> {
+            FxTimer.run(300, () -> {
                 if(!addB.l.isHover() && !position.isHover()) 
                     addB.hide();
         }));
         addB.l.addEventHandler(MOUSE_EXITED, e ->
-            FxTimer.run(Duration.millis(150), () -> {
+            FxTimer.run(150, () -> {
                  if(!addB.l.isHover() && !position.isHover()) 
                     addB.hide();
         }));
@@ -170,13 +158,11 @@ public final class Seeker extends AnchorPane {
         chapters.clear();
         
         // return if disabled or not available
-        if (!showChapters) return;
-        if(m==null || m.isEmpty()) return;
+        if (!showChapters || m==null || m.isEmpty()) return;
         
         // populate
         for (Chapter ch: m.getChaptersFromAny()) {     
-            System.out.println("chapter " + ch);
-            Chap c = new Chap(ch, m.getLength());
+            Chap c = new Chap(ch, ch.getTime().toMillis()/m.getLength().toMillis());
             getChildren().add(c);
             chapters.add(c);
         }
@@ -197,10 +183,12 @@ public final class Seeker extends AnchorPane {
     public void setChaptersShowPopUp(boolean val) {
         popupChapters = val;
     }
+    
     /** Set whether chapters should be displayed on the seeker. Default true */
     public void setChaptersVisible(boolean val) {
         showChapters = val;
     }
+    
     /** 
      * Set distance for snapping seeker thumb to chapter when dragging it.
      * Default 8.
@@ -208,10 +196,21 @@ public final class Seeker extends AnchorPane {
     public void setChapterSnapDistance(double val) {
         snapDistance = val;
     }
+    
     /** Set whether chapters can be edited. Default true. */
     public void setChaptersEditable(boolean val) {
         editableChapters = val;
     }
+    
+    /** Set snapping to chapters during seeker dragging. */
+    public void setSnapToChapters(boolean v) {
+        snaPosToChap = v;
+    }
+    
+    public boolean isSnapToChapters() {
+        return snaPosToChap;
+    }
+    
     /** 
      * Set whether only one chapter popup can be displayed at any given time.
      * Default false. 
@@ -221,11 +220,10 @@ public final class Seeker extends AnchorPane {
     }
     
     // data
-    private final SimpleObjectProperty<Duration> totalTime = new SimpleObjectProperty(0);
-    private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty(0);
-    private final ChangeListener<Duration> positionUpdater = (o,ov,nv)-> {
+    private final SimpleObjectProperty<Duration> totalTime = new SimpleObjectProperty();
+    private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty();
+    private final ChangeListener<Duration> positionUpdater = (o,ov,nv) -> {
         if (!canUpdate) return;
-//        position.setValue(currentTime.get().toMillis()/totalTime.get().toMillis());
         
         double newPos = currentTime.get().toMillis()/totalTime.get().toMillis();
         // turn on if you want discrete§ mode 
@@ -234,8 +232,6 @@ public final class Seeker extends AnchorPane {
 //        double dist = position.getWidth() * Math.abs(newPos-oldPos);
 //        if(dist > unit)
             position.setValue(newPos);
-        
-        
     };
     
     /**
@@ -311,7 +307,7 @@ public final class Seeker extends AnchorPane {
     
     private void addChapterAt(double x) {
         Duration now = totalTime.get().multiply(x);
-        Chap c = new Chap(new Chapter(now, ""), now);
+        Chap c = new Chap(new Chapter(now, ""), position.getValue());
              c.setOpacity(0.5);
         getChildren().add(c);
              c.setLayoutX(x*position.getWidth());
@@ -340,14 +336,10 @@ public final class Seeker extends AnchorPane {
         private final ScaleTransition start;
         private final ScaleTransition end;
             
-        Chap(Chapter c, Duration total_time) {
+        Chap(Chapter c, double pos) {
             // resources
             this.c = c;
-            double total = total_time.toMillis();
-            double pos = c.getTime().toMillis();
-            double relPos = pos/total;
-            // set properties
-            position = relPos;
+            position = pos;
             // set up skin
             this.getStyleClass().add(STYLECLASS);
             // set up layout

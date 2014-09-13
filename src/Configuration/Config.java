@@ -4,10 +4,11 @@ package Configuration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import utilities.Parser.Parser;
+import utilities.Parser.ParserImpl.Parser;
 import utilities.Parser.StringParser;
 import utilities.Util;
 import utilities.access.ApplicableValue;
+import utilities.access.TypedValue;
 
 /**
  * Object representation of a configurable value.
@@ -29,7 +30,7 @@ import utilities.access.ApplicableValue;
  * 
  * @author uranium
  */
-public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringParser<T> {
+public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringParser<T>, TypedValue<T> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -55,12 +56,16 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     public abstract void setValue(T val);
 
     /**
-     * Returns class type of the value. The value and default value can only
+     * {@inheritDoc}
+     * <p>
+     * The value and default value can only
      * be safely cast into the this class.
      * <p>
      * Semantically equivalent to getValue().getClass() but will never fail to
-     * return proper class even if the value is null.
+     * return proper class even if the value is null and possibly performing
+     * much better.
      */
+    @Override
     abstract public Class<T> getType();
 
     /**
@@ -157,18 +162,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     @Override
     public final boolean supports(Class<?> type) {
         return getType().isAssignableFrom(type);
-    }
-
-    /**
-     * Inherited method from {@link StringParser}
-     * <p>
-     * {@inheritDoc}
-     * 
-     * @throws UnsupportedOperationException always
-     */
-    @Override
-    public List<Class> getSupportedClasses() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     /**

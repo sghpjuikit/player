@@ -8,6 +8,30 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.Metadata.Field;
+import static AudioPlayer.tagging.Metadata.Field.ALBUM;
+import static AudioPlayer.tagging.Metadata.Field.ALBUM_ARTIST;
+import static AudioPlayer.tagging.Metadata.Field.ARTIST;
+import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
+import static AudioPlayer.tagging.Metadata.Field.COMMENT;
+import static AudioPlayer.tagging.Metadata.Field.COMPOSER;
+import static AudioPlayer.tagging.Metadata.Field.CUSTOM1;
+import static AudioPlayer.tagging.Metadata.Field.CUSTOM2;
+import static AudioPlayer.tagging.Metadata.Field.CUSTOM3;
+import static AudioPlayer.tagging.Metadata.Field.CUSTOM4;
+import static AudioPlayer.tagging.Metadata.Field.CUSTOM5;
+import static AudioPlayer.tagging.Metadata.Field.DISC;
+import static AudioPlayer.tagging.Metadata.Field.DISCS_TOTAL;
+import static AudioPlayer.tagging.Metadata.Field.GENRE;
+import static AudioPlayer.tagging.Metadata.Field.LYRICS;
+import static AudioPlayer.tagging.Metadata.Field.MOOD;
+import static AudioPlayer.tagging.Metadata.Field.PLAYCOUNT;
+import static AudioPlayer.tagging.Metadata.Field.PUBLISHER;
+import static AudioPlayer.tagging.Metadata.Field.RATING;
+import static AudioPlayer.tagging.Metadata.Field.RATING_RAW;
+import static AudioPlayer.tagging.Metadata.Field.TITLE;
+import static AudioPlayer.tagging.Metadata.Field.TRACKS_TOTAL;
+import static AudioPlayer.tagging.Metadata.Field.YEAR;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
@@ -16,12 +40,15 @@ import GUI.ItemHolders.ItemTextFields.MoodTextField;
 import GUI.NotifierManager;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
+import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
+import static PseudoObjects.ReadMode.CUSTOM;
 import static PseudoObjects.ReadMode.PLAYING;
+import static PseudoObjects.ReadMode.SELECTED_ANY;
 import static PseudoObjects.ReadMode.SELECTED_LIBRARY;
 import static PseudoObjects.ReadMode.SELECTED_PLAYLIST;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -30,6 +57,7 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -45,6 +73,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Cursor;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
@@ -83,12 +112,11 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.Subscription;
 import utilities.ImageFileFormat;
+import utilities.InputConstraints;
 import utilities.Log;
-import utilities.Parser.ColorParser;
-import utilities.functional.impl.Validators.IsBetween0And1;
-import utilities.functional.impl.Validators.Validator;
-import utilities.functional.impl.Validators.isIntString;
-import utilities.functional.impl.Validators.isYearString;
+import utilities.Parser.ParserImpl.ColorParser;
+import utilities.access.Accessor;
+import utilities.functional.impl.Validator;
 
 /**
  * TaggerController graphical component.
@@ -155,21 +183,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @FXML Rectangle img_border;
     @FXML AnchorPane img_borderContainer;
     
-    // properties
-    @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public ReadMode readMode = ReadMode.CUSTOM;
-    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
-    public Boolean changeReadModeOnTransfer = false;
-    @IsConfig(name = "No value text", info = "Field text in case no tag value for field.")
-    public String TAG_NO_VALUE = App.TAG_NO_VALUE;
-    @IsConfig(name = "Multiple value text", info = "Field text in case multiple tag values per field.")
-    public String TAG_MULTIPLE_VALUE = App.TAG_MULTIPLE_VALUE;
-    @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
-    public Boolean allow_playcount_change = false;
-    @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
-    public Pos field_text_alignment = Pos.CENTER_LEFT;
-    @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public NodeCentricPos popupPos = NodeCentricPos.DownCenter;
     
     //global variables
     ObservableList<Item> allitems = FXCollections.observableArrayList();
@@ -179,15 +192,65 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data chagnge during writing
     Task<List<Metadata>> metaReader;
-//    BiProcedure<Boolean,List<Metadata>> onMetaReadingFinish = 
-            
+    
     // listeners
+    private Subscription playingItemMonitoring;
+    private Subscription selectedItemsMonitoring;
     private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> 
             read(selectedItems);
     private final Consumer<Metadata> playingListener = item ->
             read(Collections.singletonList(item));
-            
-            
+    
+    // properties
+    @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
+    public final Accessor<Pos> field_text_alignment = new Accessor<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
+    @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
+    public final Accessor<NodeCentricPos> popupPos = new Accessor<>(DownCenter, MoodF::setPos);
+    @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
+    public final Accessor<ReadMode> readMode = new Accessor<>(CUSTOM, this::apllyReadMode);
+    @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
+    public Accessor<Boolean> allow_playcount_change = new Accessor<>(false, v -> {
+        if(!isEmpty()) PlaycountF.setDisable(!v);
+    });
+
+    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
+    public Boolean changeReadModeOnTransfer = false;
+    @IsConfig(name = "No value text", info = "Field text in case no tag value for field.")
+    public String TAG_NO_VALUE = App.TAG_NO_VALUE;
+    @IsConfig(name = "Multiple value text", info = "Field text in case multiple tag values per field.")
+    public String TAG_MULTIPLE_VALUE = App.TAG_MULTIPLE_VALUE;
+
+
+    
+    private void apllyReadMode(ReadMode v) {
+        if(playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
+        if(selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
+        
+        // rebind
+        if (v == SELECTED_PLAYLIST) {            
+            selectedItemsMonitoring = PlaylistManager.selectedItemsES.subscribe(playlistListener);
+            playlistListener.accept(PlaylistManager.selectedItemsES.getValue());
+        } else
+        if (v == PLAYING){
+            playingItemMonitoring = Player.playingtem.subscribeToUpdates(playingListener);
+            playingListener.accept(Player.playingtem.get());
+        } else
+        if (v==SELECTED_LIBRARY){
+            selectedItemsMonitoring = Player.librarySelectedItemsES.subscribe(list->{
+                this.allitems.setAll(list);
+                populate(list);
+            });
+        } else
+        if (v==SELECTED_ANY){
+            selectedItemsMonitoring = Player.selectedItemsES.subscribe(list->{
+                this.allitems.setAll(list);
+                populate(list);
+            });
+        } else
+        if (v==CUSTOM)
+            read(EMPTY_LIST);
+    }
+    
     
     @Override
     public void init() {
@@ -252,30 +315,30 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         grid.add(MoodF, 1, 14, 2, 1);
         
         // initialize fields
-        fields.add(new TagField(TitleF));
-        fields.add(new TagField(AlbumF));
-        fields.add(new TagField(ArtistF));
-        fields.add(new TagField(AlbumArtistF));
-        fields.add(new TagField(ComposerF));
-        fields.add(new TagField(PublisherF));
-        fields.add(new TagField(TrackF));
-        fields.add(new TagField(TracksTotalF));
-        fields.add(new TagField(DiscF));
-        fields.add(new TagField(DiscsTotalF));
-        fields.add(new TagField(GenreF));
-        fields.add(new TagField(CategoryF));
-        fields.add(new TagField(YearF));
-        fields.add(new TagField(RatingF));
-        fields.add(new TagField(RatingPF));
-        fields.add(new TagField(PlaycountF));
-        fields.add(new TagField(CommentF));
-        fields.add(new TagField(MoodF));
-        fields.add(new TagField(Custom1F));
-        fields.add(new TagField(Custom2F));
-        fields.add(new TagField(Custom3F));
-        fields.add(new TagField(Custom4F));
-        fields.add(new TagField(Custom5F));
-        fields.add(new TagField(LyricsA));
+        fields.add(new TagField(TitleF,TITLE));
+        fields.add(new TagField(AlbumF,ALBUM));
+        fields.add(new TagField(ArtistF,ARTIST));
+        fields.add(new TagField(AlbumArtistF,ALBUM_ARTIST));
+        fields.add(new TagField(ComposerF,COMPOSER));
+        fields.add(new TagField(PublisherF,PUBLISHER));
+        fields.add(new TagField(TrackF,Field.TRACK));
+        fields.add(new TagField(TracksTotalF,TRACKS_TOTAL));
+        fields.add(new TagField(DiscF,DISC));
+        fields.add(new TagField(DiscsTotalF,DISCS_TOTAL));
+        fields.add(new TagField(GenreF,GENRE));
+        fields.add(new TagField(CategoryF,CATEGORY));
+        fields.add(new TagField(YearF,YEAR));
+        fields.add(new TagField(RatingF,RATING_RAW));
+        fields.add(new TagField(RatingPF,RATING));
+        fields.add(new TagField(PlaycountF,PLAYCOUNT));
+        fields.add(new TagField(CommentF,COMMENT));
+        fields.add(new TagField(MoodF,MOOD));
+        fields.add(new TagField(Custom1F,CUSTOM1));
+        fields.add(new TagField(Custom2F,CUSTOM2));
+        fields.add(new TagField(Custom3F,CUSTOM3));
+        fields.add(new TagField(Custom4F,CUSTOM4));
+        fields.add(new TagField(Custom5F,CUSTOM5));
+        fields.add(new TagField(LyricsA,LYRICS));
             // associate color picker with custom1 field
         Custom1F.setEditable(false);
         ColorF.disableProperty().bind(Custom1F.disabledProperty());
@@ -284,9 +347,9 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         
         // validating input
-        Validator<String> isPercent = new IsBetween0And1();
-        Validator<String> isYear = new isYearString();
-        Validator<String> isInt = new isIntString();
+        Validator<String> isPercent = Validator.IsBetween0And1();
+        Validator<String> isYear = Validator.isPastYearS();
+        Validator<String> isInt = Validator.isIntS();
         
         
         ValidationSupport val = new ValidationSupport();
@@ -308,10 +371,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                     (isInt.test(nv)&&(isInt.test(DiscsTotalF.getText())&& new Integer(nv)>Integer.parseInt(DiscsTotalF.getText())))
                     )));
             // rating validation
-        val.registerValidator(RatingF, (Control c, String nv) -> ValidationResult.fromErrorIf(
-            RatingF, "Rating must be between 0 and max value.",
-            !nv.isEmpty() && !isPercent.test(RatingPF.getText()))
-        );
         val.registerValidator(RatingPF, (Control c, String nv) -> ValidationResult.fromErrorIf(
             RatingPF, "Rating must be between 0 and 1.",
             !nv.isEmpty() && !isPercent.test(nv))
@@ -434,7 +493,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             double rat = Double.parseDouble(RatingPF.getText());
             RatingF.setPromptText(String.valueOf(rat*255));
             RatingF.setText(String.valueOf(rat*255));
-        } catch (NumberFormatException | NullPointerException ex) {
+        } catch (NumberFormatException | NullPointerException e) {
             RatingF.setPromptText(RatingF.getId());
         }
     }
@@ -457,39 +516,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void refresh() {
-        if(playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
-        if(selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
-        
-        // rebind
-        if (readMode == SELECTED_PLAYLIST) {            
-            selectedItemsMonitoring = PlaylistManager.selectedItemsES.subscribe(playlistListener);
-            playlistListener.accept(PlaylistManager.selectedItemsES.getValue());
-        } else
-        if (readMode == PLAYING){
-            playingItemMonitoring = Player.playingtem.subscribeToUpdates(playingListener);
-            playingListener.accept(Player.playingtem.get());
-        } else
-        if (readMode==SELECTED_LIBRARY){
-            // to implement
-        }
-//        else if (readMode==ReadMode.CUSTOM)
-//            readData(metadatas);
-        
-        fields.forEach(f->f.setVerticalAlignment(field_text_alignment));
-        MoodF.setPos(popupPos);
+        field_text_alignment.applyValue();
+        popupPos.applyValue();
+        readMode.applyValue();
     }
     
-    private Subscription playingItemMonitoring;
-    private Subscription selectedItemsMonitoring;
-    
-    public void setReadMode(ReadMode val) {
-        readMode = val;
-        if (val == ReadMode.CUSTOM) {
-            items.clear();
-            allitems.clear();
-        }
-        refresh();
-    }
+
+
     
     /**
      * This widget is empty if it has no data.
@@ -497,12 +530,11 @@ public class TaggerController extends FXMLController implements TaggingFeature {
      */
     @Override
     public boolean isEmpty() {
-        // the assumption is that this widget will always display data if present
         return allitems.isEmpty();
     }
     
     @Override
-    public void OnClosing() {
+    public void close() {
         // remove listeners
         if (selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
         if (playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
@@ -529,29 +561,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             for (Item o : unique) has_double |= o.same(i);
             // add if doesnt
             if (!has_double) unique.add(i);
-        }
-        
-        
-//        List<Item> to_add = new ArrayList(unique);
-//        List<Item> to_del = new ArrayList<>(metas);
-//        for (Item o: unique) {
-//            // if exists already dont do anything
-//            for(Item i : metas) {
-//                if(i.same(o)) {
-//                    to_del.remove(i);
-//                    to_add.remove(o);
-//                }
-//            }
-//        }
-//        
-//        // do not use setAll we need to fire remove & add events
-//        // remove all unwanted and keep those that are the same as new ones
-//        this.allitems.removeAll(to_del);
-//        this.items.removeAll(to_del);
-//        // add new ones that werent on the list before
-//        this.allitems.addAll(to_add);
-//        this.items.addAll(to_add);
-        
+        }        
         
         this.allitems.clear();
         this.items.clear();
@@ -821,7 +831,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         else                  CoverV.loadImage((Image)null);
         
         // enable/disable playcount field
-        PlaycountF.setDisable(!allow_playcount_change);
+        PlaycountF.setDisable(!allow_playcount_change.getValue());
         
         // set info
         if (items.size()==1) infoL.setText("Single item loaded");
@@ -884,10 +894,16 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     private final class TagField {
         private final TextInputControl c;
+        private final Metadata.Field f;
         
-        public TagField(TextInputControl control) { 
+        public TagField(TextInputControl control, Metadata.Field field) {
             c = control;
+            f = field;
             emptyContent();
+            
+            // restrain input
+            if(field.isTypeNumber())
+                InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
             
             // if not commitable yet, enable commitable & set text to tag value on click
             c.setOnMouseClicked( e -> OnMouseClicked() );
@@ -1077,7 +1093,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             e.consume();
             // handle result - read data
             if (!dropped.isEmpty()) {
-                if (changeReadModeOnTransfer) setReadMode(ReadMode.CUSTOM);
+                if (changeReadModeOnTransfer) readMode.setNapplyValue(CUSTOM);
                 read(dropped);
             }
         }

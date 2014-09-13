@@ -35,7 +35,7 @@ import static utilities.AudioFileFormat.mp3;
 import static utilities.AudioFileFormat.ogg;
 import static utilities.AudioFileFormat.wav;
 import utilities.Log;
-import utilities.Parser.ColorParser;
+import utilities.Parser.ParserImpl.ColorParser;
 import utilities.TODO;
 
 /**

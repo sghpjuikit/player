@@ -178,7 +178,7 @@ public class ExplorerController extends FXMLController {
     }
     
     @Override
-    public void OnClosing() {
+    public void close() {
         tree.getRoot().getChildren().clear();
         tree.setRoot(null);
         customLocationItem.getChildren().clear();

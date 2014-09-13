@@ -10,7 +10,7 @@ import java.io.File;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import main.App;
-import utilities.Parser.FileParser;
+import utilities.Parser.ParserImpl.FileParser;
 import utilities.Parser.StringParser;
 
 /**

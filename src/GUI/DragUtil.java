@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
@@ -206,7 +207,7 @@ public final class DragUtil {
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             try {
                 File nf = FileUtil.saveFileTo(d.getUrl(), App.TMP_FOLDER());
-                return Collections.singletonList(nf);
+                return Arrays.asList(nf);
             } catch (IOException ex) {
                 Log.err(ex.getMessage());
                 return EMPTY_LIST;
@@ -243,7 +244,7 @@ public final class DragUtil {
             Platform.runLater(() -> {
                 try {
                     File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
-                    action.accept(Collections.singletonList(nf));
+                    action.accept(Arrays.asList(nf));
                 } catch (IOException ex) {
                     Log.err(ex.getMessage());
                 }

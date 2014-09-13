@@ -60,7 +60,7 @@ public class Spectrumator extends AnchorPane implements Controller<Widget>  {
     }
 
     @Override
-    public void OnClosing() {
+    public void close() {
         spectr.stopListening();
     }
 

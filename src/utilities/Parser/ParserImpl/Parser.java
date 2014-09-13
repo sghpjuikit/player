@@ -1,7 +1,9 @@
-package utilities.Parser;
+package utilities.Parser.ParserImpl;
 
 import java.util.HashMap;
 import java.util.Map;
+import utilities.Parser.ObjectStringParser;
+import utilities.Parser.StringParser;
 
 /**
  * 
@@ -26,8 +28,8 @@ public class Parser {
         registerConverter(new FontParser());
         registerConverter(new FileParser());
         registerConverter(new ColorParser());
-        registerConverter(new StringStringParser());
         registerConverter(new PrimitiveParser());
+        registerConverter(new StringStringParser());
     }
     
     private static<T> void registerConverter(StringParser<T> parser) {
@@ -48,7 +50,6 @@ public class Parser {
         return parsers.get(type);
     }
     public static ObjectStringParser getParserO(Class type) {
-        
         if(parsersO.containsKey(type)) return parsersO.get(type);
         if(type.isEnum()) return prim_parser;
         if(valOfParser.supports(type)) return valOfParser;
@@ -58,6 +59,7 @@ public class Parser {
     
     /**
      * Parses a string to specified type.
+     * 
      * @param type
      * @param value
      * @return Object of specified type parsed from string

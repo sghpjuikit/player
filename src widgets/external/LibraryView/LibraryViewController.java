@@ -133,7 +133,7 @@ public class LibraryViewController extends FXMLController {
     }
 
     @Override
-    public void OnClosing() {
+    public void close() {
         // stop listening for db changes
         dbMonitor.unsubscribe();
     }

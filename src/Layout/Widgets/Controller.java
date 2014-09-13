@@ -3,6 +3,7 @@ package Layout.Widgets;
 
 import Configuration.Configurable;
 import Layout.Layout;
+import utilities.Closable;
 
 /**
  * Controller is an object defining behavior of some graphical object and acts
@@ -13,16 +14,12 @@ import Layout.Layout;
  * Controller can be considered behavior defining object and also API of the
  * object to allow external control. Controller can make object fully autonomous
  * an inaccessible or provide certain degree of access from outside.
+ * For more about how to use Controller without relying on type safety, read
+ * {@link Feature}.
  * <p>
  * Encapsulation is still valid approach and it is recommended to make methods
- * and fields public only when trying to export functionality.
- * <p>
- * Controller is also communication channel between the object's behavior and its
- * enviroment capable of providing only necessary information handled somewhere
- * else. An example could be serialization where controller could represent a
- * disposable entity turning widget into light-weight object by Controller. This
- * separates logic of the object depending on where the control for given aspect
- * lies.
+ * and fields public only when trying to export state or functionality when using
+ * the controller when knowing its full class 
  * <p>
  * Implements {@link Configuration.Configurable} interface which is useful for 
  * user customization of internal properties.
@@ -33,7 +30,7 @@ import Layout.Layout;
  * This is also marker interface. It helps flag objects that act as controllers,
  * even if they dont provide any public control. This way it is more clear whether
  * Object is its own controller, which is also possible. Such cases could be
- * required by some wrappers that require their graphics to have Controllers.
+ * required by frameworks that require Controllers.
  * <pre>
  * Below is the lifecycle of the fxml controller:
  * - widget loads (controller is null)
@@ -45,13 +42,13 @@ import Layout.Layout;
  * -----
  * - controller lives
  * -----
- * - controller frees its resources permanently {@link #OnClosing()} invoked
+ * - controller frees its resources permanently {@link #close()} invoked
  * - controller is garbage collected
  * </pre>
  * 
  * @author uranium
  */
-public interface Controller<W extends Widget> extends Configurable, AbstractController<W> {
+public interface Controller<W extends Widget> extends Configurable, AbstractController<W>, Closable {
     
     /**
      * 
@@ -104,13 +101,16 @@ public interface Controller<W extends Widget> extends Configurable, AbstractCont
     public W getWidget();
     
     /**
+     * {@inheritDoc}
+     * <p>
      * Executes immediately before widget is closed. Widget is not
      * expected to be used after this method is invoked. Use to free resources.
      * Note that incorrect or no releasing of the resources (such as listeners) 
      * might prevent this controller from being garbage collected.
      * Default implementation does nothing.
      */
-    default void OnClosing(){}
+    @Override
+    default void close(){}
     
     /**
      * Returns whether widget displays any content. Empty controller generally

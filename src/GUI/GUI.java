@@ -81,7 +81,6 @@ public class GUI {
             super.set(v);
             Action.Action.actionStream.push("Layout lock");
         }
-        
     };
         
 /******************************************************************************/

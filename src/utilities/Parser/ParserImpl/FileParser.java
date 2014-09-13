@@ -4,11 +4,10 @@
  * and open the template in the editor.
  */
 
-package utilities.Parser;
+package utilities.Parser.ParserImpl;
 
 import java.io.File;
-import static java.util.Collections.singletonList;
-import java.util.List;
+import utilities.Parser.StringParser;
 
 /**
  *
@@ -26,12 +25,6 @@ public class FileParser implements StringParser<File> {
     @Override
     public String toS(File object) {
         return object.getPath();
-    }
-    
-    /** {@inheritDoc} */
-    @Override
-    public List<Class> getSupportedClasses() {
-        return singletonList(File.class);
     }
 
 }

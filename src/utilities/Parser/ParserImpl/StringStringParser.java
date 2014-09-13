@@ -4,10 +4,9 @@
  * and open the template in the editor.
  */
 
-package utilities.Parser;
+package utilities.Parser.ParserImpl;
 
-import static java.util.Collections.singletonList;
-import java.util.List;
+import utilities.Parser.StringParser;
 
 /**
  * String to String type of parser. For use in rare cases for generic types.
@@ -26,12 +25,6 @@ public class StringStringParser implements StringParser<String> {
     @Override
     public String toS(String object) {
         return object;
-    }
-    
-    /** {@inheritDoc} */
-    @Override
-    public List<Class> getSupportedClasses() {
-        return singletonList(String.class);
     }
     
 }

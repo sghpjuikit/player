@@ -8,7 +8,7 @@ package GUI.ItemHolders.ItemTextFields;
 
 import javafx.scene.text.Font;
 import org.controlsfx.dialog.Dialogs;
-import utilities.Parser.FontParser;
+import utilities.Parser.ParserImpl.FontParser;
 import utilities.Parser.StringParser;
 
 /**

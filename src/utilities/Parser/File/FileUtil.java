@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package utilities;
+package utilities.Parser.File;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,6 +31,8 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import main.App;
+import utilities.Log;
+import utilities.Util;
 import static utilities.Util.NotNULL;
 
 /**

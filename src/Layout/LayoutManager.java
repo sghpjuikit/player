@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import main.App;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Log;
 
 /**

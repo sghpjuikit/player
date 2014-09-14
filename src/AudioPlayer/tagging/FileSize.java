@@ -15,7 +15,8 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
  * @author uranium
  */
 @Immutable
-public final class FileSize {
+public final class FileSize implements Comparable<FileSize> {
+    
     private final long size;
     
     /**
@@ -73,5 +74,10 @@ public final class FileSize {
             return String.format("%.2f MB", MB);
         else
             return String.format("%.2f kB", kB);
-    }    
+    }
+
+    @Override
+    public int compareTo(FileSize o) {
+        return Long.compare(size, o.size);
+    }
 }

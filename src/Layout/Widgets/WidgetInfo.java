@@ -6,6 +6,8 @@
 
 package Layout.Widgets;
 
+import Layout.Widgets.Features.Feature;
+
 /**
  *
  * @author Plutonium_
@@ -73,9 +75,9 @@ public interface WidgetInfo {
      */
     String notes();
 
-    /**
-     * Group the widget should categorize under as. Default {@link Widget.Group.UNKNOWN}
-     * @return
-     */
+    /** @return widget group. Default {@link Widget.Group.UNKNOWN} */
     Widget.Group group();
+    
+    /** @return true if widget's contoroller implements given feature */
+    boolean hasFeature(Class<? extends Feature> feature);
 }

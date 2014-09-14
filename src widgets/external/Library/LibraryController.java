@@ -37,6 +37,7 @@ import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -52,18 +53,15 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import org.reactfx.Subscription;
-import utilities.Enviroment;
-import utilities.FileUtil;
-import static utilities.FileUtil.getCommonRoot;
 import utilities.FxTimer;
+import utilities.Parser.File.Enviroment;
+import utilities.Parser.File.FileUtil;
+import static utilities.Parser.File.FileUtil.getCommonRoot;
 import utilities.SingleInstance;
 import utilities.Util;
-import static utilities.Util.getExistingParent;
 import utilities.access.Accessor;
 import utilities.functional.functor.BiProcedure;
 
@@ -200,9 +198,9 @@ public class LibraryController extends FXMLController {
                 list = table.getItems();
             }
             Duration du = list.stream().map(m -> (Duration)m.getLength()).reduce(ZERO, Duration::add);
-            String prefix1 = all ? "All:" : "Selected:";
+            String prefix1 = all ? "All:" : "Selected: ";
             String prefix2 = list.size()==1 ? " item " : " items ";
-            infoL.setText(prefix1 + list.size() + prefix2 + " - " + Util.formatDuration(du));
+            infoL.setText(prefix1 + list.size() + prefix2 + "- " + Util.formatDuration(du));
         };
             // calls info label update on selection change
         ListChangeListener<Metadata> infoUpdater = c -> infoUpdate.accept(c==table.getItems(),c.getList());
@@ -213,8 +211,9 @@ public class LibraryController extends FXMLController {
         
         // controls bottom header
         HBox controls = new HBox(controlsBar,infoL);
-             controls.setSpacing(8);
-             controls.setPadding(new Insets(5));
+             controls.setSpacing(7);
+             controls.setAlignment(Pos.CENTER_LEFT);
+             controls.setPadding(new Insets(2));
         
         root.getChildren().add(controls);
         AnchorPane.setBottomAnchor(controls, 0d);
@@ -282,21 +281,13 @@ public class LibraryController extends FXMLController {
         // get files
         List<File> files;
         if(dir) {
-            DirectoryChooser fc = new DirectoryChooser();
-                             fc.setInitialDirectory(getExistingParent(last_file));
-                             fc.setTitle("Add folder to library");
-                             File f = fc.showDialog(root.getScene().getWindow());
+            File f = Enviroment.chooseFile("Add folder to library", true, last_file, root.getScene().getWindow());
             files = f==null ? EMPTY_LIST : singletonList(f);
             if (f!=null) last_file = f;
         } else {
-            FileChooser fc = new FileChooser();
-                             fc.setInitialDirectory(getExistingParent(last_file));
-                             fc.setTitle("Add folder to library");
-            files = fc.showOpenMultipleDialog(root.getScene().getWindow());
-            
+            files = Enviroment.chooseFiles("Add files to library", last_file, root.getScene().getWindow());
             File d = getCommonRoot(files);
             if(d!=null) last_file=d;
-            
         }
 
         if(files!=null) {
@@ -309,7 +300,7 @@ public class LibraryController extends FXMLController {
                 if(success) {
                     progressL.textProperty().unbind();
                     FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-                    WidgetManager.getWidget(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
+                    WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
                 }
             };
             
@@ -355,7 +346,7 @@ public class LibraryController extends FXMLController {
                 }),
                 Util.createmenuItem("Edit the item/s in tag editor", e -> {
                     List<Metadata> items = contextMenu.getItem();
-                    WidgetManager.getWidget(TaggingFeature.class, NOLAYOUT,w->w.read(items));
+                    WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(items));
                 }),
                 Util.createmenuItem("Explore items's directory", e -> {
                     List<Metadata> items = contextMenu.getItem();

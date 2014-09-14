@@ -22,8 +22,8 @@ import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import utilities.FileUtil;
 import utilities.FxTimer;
+import utilities.Parser.File.FileUtil;
 
 
 /**
@@ -127,6 +127,7 @@ public class App extends Application {
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
             
+            // this might me deprecated
             // we need to initialize skin before windows do
             Configuration.applyField("skin");
             

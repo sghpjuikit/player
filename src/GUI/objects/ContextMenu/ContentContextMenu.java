@@ -8,13 +8,24 @@ package GUI.objects.ContextMenu;
 
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 
 /**
  *
  * @author Plutonium_
  */
-public class ContentContextMenu<E> extends ContextMenu implements GUI.ItemHolders.ItemHolder<E>{
+public class ContentContextMenu<E> extends ContextMenu implements GUI.ItemHolders.ItemHolder<E> {
+    
     E item;
+    
+    public ContentContextMenu() {
+        setConsumeAutoHidingEvents(false);
+    }
+    
+    public ContentContextMenu(MenuItem ... items) {
+        this();
+        getItems().addAll(items);
+    }
     
     @Override
     public E getItem() {

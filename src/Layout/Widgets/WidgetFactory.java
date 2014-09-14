@@ -5,6 +5,8 @@
  */
 package Layout.Widgets;
 
+import Layout.Widgets.Features.Feature;
+
 /**
  * Factory that creates widgets.
  * <p>
@@ -107,47 +109,56 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     void register() {
         if (!isRegistered()) WidgetManager.factories.put(name,this);
     }
-    /**
-     * Returns true if the factory is already registered.
-     * @return 
-     */
+    
+    /** @return true if the factory is already registered. */
     public boolean isRegistered() {
         return WidgetManager.factories.containsKey(name);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String name() { return name; }
 
+    /** {@inheritDoc} */
     @Override
     public String description() { return description; }
 
+    /** {@inheritDoc} */
     @Override
     public String version() { return version; }
 
+    /** {@inheritDoc} */
     @Override
     public String author() { return author; }
 
+    /** {@inheritDoc} */
     @Override
     public String programmer() { return programmer; }
 
+    /** {@inheritDoc} */
     @Override
     public String contributor() { return contributor; }
 
+    /** {@inheritDoc} */
     @Override
     public String year() { return year; }
 
+    /** {@inheritDoc} */
     @Override
     public String howto() { return howto; }
 
+    /** {@inheritDoc} */
     @Override
     public String notes() { return notes; }
 
+    /** {@inheritDoc} */
     @Override
     public Widget.Group group() { return group; }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean hasFeature(Class<? extends Feature> feature) {
+        return feature.isAssignableFrom(controller_class);
+    }
     
 }
-
-
-
-
-

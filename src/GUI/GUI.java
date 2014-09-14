@@ -29,7 +29,7 @@ import javafx.scene.text.FontWeight;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Log;
 import utilities.Util;
 import utilities.access.Accessor;

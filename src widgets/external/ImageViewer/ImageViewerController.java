@@ -11,6 +11,7 @@ import GUI.objects.ItemInfo;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
+import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.CUSTOM;
@@ -43,8 +44,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.FileUtil;
 import utilities.FxTimer;
+import utilities.Parser.File.FileUtil;
 import utilities.Util;
 import utilities.access.Accessor;
 
@@ -73,7 +74,7 @@ import utilities.access.Accessor;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class ImageViewerController extends FXMLController implements ImageDisplayFeature {
+public class ImageViewerController extends FXMLController implements ImageDisplayFeature, ImagesDisplayFeature {
     
     // gui
     @FXML private AnchorPane entireArea;
@@ -285,7 +286,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
-        return folder.get() == null;
+        return thumbnails.isEmpty();
+//        return folder.get() == null;
     }
     
     /** {@inheritDoc} */
@@ -301,8 +303,16 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             thumbnail.loadImage(img_file);
         }
     }
-    
-    
+
+    /** {@inheritDoc} */
+    @Override
+    public void showImages(List<File> img_files) {
+        if(img_files.isEmpty()) return;
+        
+        showImage(img_files.get(0));
+        active_image = 0;
+        img_files.forEach(f->addThumbnail(f));
+    }
     
 /****************************** HELPER METHODS ********************************/
     

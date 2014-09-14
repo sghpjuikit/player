@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import main.App;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Log;
 import static utilities.Util.NotNULL;
 

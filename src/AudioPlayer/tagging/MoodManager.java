@@ -11,7 +11,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import main.App;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Util;
 
 /**

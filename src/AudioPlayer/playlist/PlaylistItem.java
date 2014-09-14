@@ -24,7 +24,7 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Log;
 
 /**

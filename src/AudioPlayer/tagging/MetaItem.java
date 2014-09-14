@@ -15,10 +15,8 @@ import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
-import static utilities.AudioFileFormat.flac;
-import static utilities.AudioFileFormat.mp3;
-import static utilities.AudioFileFormat.ogg;
 import utilities.Log;
+import static utilities.Parser.File.AudioFileFormat.mp3;
 
 /**
  *
@@ -27,13 +25,8 @@ import utilities.Log;
 public abstract class MetaItem extends Item {
 
     /** @return maximal value of the rating. */
-    public double getRatingMax() {
-        if (getFormat() == mp3)
-            return 255;
-        else if (getFormat() == flac || getFormat() == ogg)
-            return 100;
-        else
-            return 100; // this case should never happen!
+    public int getRatingMax() {
+        return mp3 == getFormat() ? 255 : 100;
     }
     
     /**  @return minimal value of the rating. */
@@ -41,13 +34,9 @@ public abstract class MetaItem extends Item {
         return 0;
     }
     
-    double clipRating(double val) {
-        if (val < getRatingMin())
-            return getRatingMin();
-        else if (val > getRatingMax())
-            return getRatingMax();
-        else
-            return val;
+    /** @return provided value clipped to min and max rating */
+    double clipRating(double v) {
+        return v<getRatingMin() ? getRatingMin() : v>getRatingMax() ? getRatingMax() : v; 
     }
     
 //****************************** HELPER FUNCTIONS ****************************//

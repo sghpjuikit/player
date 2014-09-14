@@ -16,7 +16,6 @@
 ------------------------------- OLD notes, clean up ----------------------------
 --------------------------------------------------------------------------------
 
-- window docking awareness - disable autohiding when not, enable for all Wndws
 - ability to passivate widget - it autocloses after set amount of time. It
   is within layout but not loaded - Big Layout support
 - support ui autoscroll when near edge while dragging something
@@ -27,14 +26,13 @@
   involves turning layout info turning into ValueConfigurable
 - add URI configField + validator?
 - seeker option to show chapters as they are passing                            (?)
-- cursor trail effect - 'frozen" effect
 - cursor api clean up, fix appliers, make actually usable
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?       (picture as mask?)
 - widget manager widget
 - tagger disable unsupported fields for type
 - tagger multithreaded writing to tag                                           (test if needed, ?)
 - playlist tabs
-- import/export some of the most used playlist file formats
+- import/export some of the most used playlist file formats + drag support
 - gestures & touch support
 - tagger filename change                                                        (?)
 
@@ -51,18 +49,13 @@ FURTHER DOWN THE LIST FUNCTIONALITIES
     columns order                                                               // done        
     columns relative size                                                       // done
     columns wider than table - scroll                                           // done
-- color graph of all songs
 - finish metadata reading/writing flac, ogg (most are already done)
 - playback ogg, flac
 
 APP
 - tray                                                                          (use awt & swing ?)
-- no taskbar presence option                                                    (impossible)
+- no taskbar presence option                                                    (?)
 - associate with supported files
-
-IMAGE VIEWER
-- show subfolder names and categorize images                                    (?)
-- add multiple sources (tag, cds, folder, 'associated') and separate
 
 GALAXY MAP
 - just about everything

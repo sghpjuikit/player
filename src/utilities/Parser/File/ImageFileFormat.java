@@ -5,13 +5,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package utilities;
+package utilities.Parser.File;
 
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 /**
  * All image filetypes known and supported by application except for UNKNOWN that
@@ -29,6 +31,16 @@ public enum ImageFileFormat {
     public boolean isSupported() {
         return this != UNKNOWN;
     }
+    
+    public String toExt() {
+        return "*." + toString();
+    }
+    
+    public ExtensionFilter toExtFilter() {
+        return new FileChooser.ExtensionFilter(toString(), toExt());
+    }
+    
+    
     /**
      * Checks whether the format is supported image format. Unsupported formats
      * dont get any official support for any of the app's features and by default
@@ -93,48 +105,34 @@ public enum ImageFileFormat {
     
 /******************************************************************************/
     
-    /**
-     * List of supported extension strings in the format: '*.extension'
-     * @return 
-     */
-    public static List<String> extensions() {
-        List<String> ext = new ArrayList<>();
-        for(ImageFileFormat format: values()) {
-            if (format.isSupported())
-                ext.add("*." + format.toString());
-        }
-        return ext;
-    }
-    
-    /**
-     * List of supported extension strings in the format: 'extension'
-     * @return 
-     */
-    public static List<String> extensionsSimple() {
-        List<String> ext = new ArrayList<>();
-        for(ImageFileFormat format: values()) {
-            if (format.isSupported())
-                ext.add(format.toString());
-        }
-        return ext;
-    }
-    
-    /**
-     * Writes up list of all image files recognized and supported by the application.
-     * @return 
-     */    
-    public static String listSupportedImageFormats() {
+    /** Writes up list of all supported values. */    
+    public static String supportedExtensionsS() {
         String out = "";
-        for(String ft: extensions())
+        for(String ft: exts())
             out = out + ft +"\n";
         return out;
     }
     
-    public static List<ImageFileFormat> valuesSupported() {
-        List<ImageFileFormat> ext = new ArrayList<>();
+    public static List<ImageFileFormat> supportedValues() {
+        List<ImageFileFormat> ext = new ArrayList();
         for(ImageFileFormat format: values()) {
             if (format.isSupported())
                 ext.add(format);
+        }
+        return ext;
+    }
+    
+    public static ExtensionFilter filter() {
+        return new ExtensionFilter("Image files", exts());
+    }
+    
+    
+    // List of supported extension strings in the format: '*.extension'
+    private static List<String> exts() {
+        List<String> ext = new ArrayList();
+        for(ImageFileFormat format: supportedValues()) {
+            if (format.isSupported())
+                ext.add(format.toExt());
         }
         return ext;
     }

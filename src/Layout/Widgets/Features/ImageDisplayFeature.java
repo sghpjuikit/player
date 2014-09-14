@@ -14,5 +14,11 @@ import java.io.File;
  */
 @FeatureName("Image display")
 public interface ImageDisplayFeature extends Feature {
+    
+    /**
+     * Displays the image.
+     * 
+     * @param img_file 
+     */
     void showImage(File img_file);
 }

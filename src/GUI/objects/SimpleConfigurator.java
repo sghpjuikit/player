@@ -42,6 +42,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
     @FXML private GridPane fields;
     @FXML private BorderPane buttonPane;
     @FXML private ScrollPane fieldsPane;
+    
     private final double anchor;
     private final List<ConfigField<T>> configFields = new ArrayList();
     private final Configurable<T> configurable;
@@ -70,7 +71,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
             throw new RuntimeException("SimpleConfiguratorComponent source data coudlnt be read.");
         }
         
-        anchor = AnchorPane.getBottomAnchor(fields);
+        anchor = AnchorPane.getBottomAnchor(fieldsPane);
         setOkbVisible(on_OK!=null);
         
         // set configs

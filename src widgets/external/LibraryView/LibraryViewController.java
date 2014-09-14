@@ -17,7 +17,9 @@ import javafx.scene.control.TableView;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import javafx.scene.layout.AnchorPane;
 import org.reactfx.Subscription;
+import utilities.FxTimer;
 import utilities.Util;
+import utilities.access.Accessor;
 
 /**
  *
@@ -55,8 +57,38 @@ public class LibraryViewController extends FXMLController {
     @FXML AnchorPane root;
     TableView<MetadataGroup> table = new TableView();
     private Subscription dbMonitor;
+    
+    // configurables
     @IsConfig(name = "Field")
-    Metadata.Field fieldFilter = Metadata.Field.CATEGORY;
+    public final Accessor<Metadata.Field> fieldFilter = new Accessor<>(Metadata.Field.CATEGORY, v-> {
+        table.getSelectionModel().clearSelection();
+        table.getColumns().removeAll(table.getColumns().subList(1, table.getColumns().size()));
+        // get new data
+        List<MetadataGroup> result = DB.getAllGroups(v);
+        // reconstruct columns
+        if (table.getColumns().size() <= 1) {
+            for(MetadataGroup.Field field : MetadataGroup.Field.values()) {
+                String name = field.toString(v);
+                TableColumn<MetadataGroup,Object> c = new TableColumn(name);
+                c.setCellValueFactory( cf -> {
+                    if(cf.getValue()==null) return null;
+                    return new ReadOnlyObjectWrapper(cf.getValue().getField(field));
+                });
+                c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(field.getType(v)));
+                table.getColumns().add(c);
+            }
+        }
+        
+        table.setItems(FXCollections.observableArrayList(result));
+        
+        // unfortunately the table cells dont get updated for some reason, resizing
+        // table or column manually with cursor will do the job, so we invoke that
+        // action programmatically, with a delay (or it wont work)
+        FxTimer.run(100, ()->{
+            TableColumn c = table.getColumns().get(table.getColumns().size()-1);
+            table.columnResizePolicyProperty().get().call(new TableView.ResizeFeatures(table, c, c.getWidth()));
+        });
+    });
 
     @Override
     public void init() {
@@ -103,7 +135,7 @@ public class LibraryViewController extends FXMLController {
         
         table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> {
             if(nv!=null)
-                DB.fieldSelectionChange.push(fieldFilter,nv.getValue());
+                DB.fieldSelectionChange.push(fieldFilter.getValue(),nv.getValue());
         });
         
         // prevent scrol event to propagate up
@@ -112,24 +144,7 @@ public class LibraryViewController extends FXMLController {
 
     @Override
     public void refresh() {
-        table.getSelectionModel().clearSelection();
-        table.getColumns().removeAll(table.getColumns().subList(1, table.getColumns().size()));
-        
-        List<MetadataGroup> result = DB.getAllGroups(fieldFilter);
-        
-        if (table.getColumns().size() <= 1) {
-            for(MetadataGroup.Field field : MetadataGroup.Field.values()) {
-                String name = field.toString(fieldFilter);
-                TableColumn<MetadataGroup,Object> c = new TableColumn(name);
-                c.setCellValueFactory( cf -> {
-                    if(cf.getValue()==null) return null;
-                    return new ReadOnlyObjectWrapper(cf.getValue().getField(field));
-                });
-                c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(field.getType(fieldFilter)));
-                table.getColumns().add(c);
-            }
-        }
-        table.setItems(FXCollections.observableArrayList(result));
+        fieldFilter.applyValue();
     }
 
     @Override

@@ -38,7 +38,7 @@
               <tooltip>
                 <Tooltip text="Maximize/Demaximize" />
               </tooltip>
-            </Button><Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="回">
+            </Button><Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T">
 <tooltip>
 <Tooltip text="Always on top" />
 </tooltip>

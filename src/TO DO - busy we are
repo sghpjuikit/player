@@ -15,7 +15,6 @@
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
 - bookmark config serialisation - hahsmap not supported
-- thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - tab area - select tab on mouse release not press or avoid loading content
   somehow when reordering
 - tab drag areas vs tabs implement both at once
@@ -35,17 +34,22 @@
   that enlarges the file (and thus requires tmp file)
   it is possible that app doesnt have permission  to create tmp file where the lib
   is trying to do it.
-- external playlist (m3u, etc) support + dragging too
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager? hm
 - lazy selected itemstream
-- parser general se map for parsers to avoid type checking, parsers should return lsit of supported classes
 - preferred widget factories use map and implement setPreferred, enforce 1max, make config accessible via gui
+- ConfigFields enable input restriction (currently bugged)
+- fix returning from docked mode exception
+- clean up Enviroment
+- window header troubles again
+- improve mutation of other context fields - change texts when number of selected items =1, block menu actions, etc...
+- explorer graphics support css skinning
+- playcount not working as library filter, make sure all fields work
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------
 --------------------------------------------------------------------------------
 
-- explorer graphics support css skinning
+- thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - ConfigField (General) disable ok button for manually applied configs
 
 --------------------------------------------------------------------------------

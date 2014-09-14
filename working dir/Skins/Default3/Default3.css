@@ -25,14 +25,7 @@
     -fx-background-size: stretch;
 }
 
-.window > .header {
-    // cant use rgba color (rgb with non 1 opacity) for header because it creates artefacts
-    // for window header when mouse hovers over content inside it
-    // instead emulate the color by setting opacity
-    //-fx-background-color: -fx-pane-color;
-    -fx-background-color: black;   // emulate -fx-pane-color
-    -fx-opacity: 0.32;             // emulate -fx-pane-color
-}
+
 
 .window:focused > .header {
     // lets signal which window has focus by altering the header border

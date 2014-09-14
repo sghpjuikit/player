@@ -3,17 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package Layout.Widgets.Features;
 
+import java.io.File;
+import java.util.List;
+
 /**
- * Defines playlist feature - functionality of a widget for playlist.
- * 
+ *
  * @author Plutonium_
  */
-@FeatureName("Playlist")
-public interface PlaylistFeature extends Feature {
-
+@FeatureName("Images display")
+public interface ImagesDisplayFeature extends Feature {
     
-
+    /**
+     * Displays the images.
+     * 
+     * @param img_files 
+     */
+    void showImages(List<File> img_files);
 }

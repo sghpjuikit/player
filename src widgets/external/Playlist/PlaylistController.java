@@ -303,7 +303,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @FXML
     public void tagEditSelected() {
-        WidgetManager.getWidget(TaggingFeature.class,NOLAYOUT,w->w.read(playlist.getSelectedItems()));
+        WidgetManager.use(TaggingFeature.class,NOLAYOUT,w->w.read(playlist.getSelectedItems()));
     }
     @FXML
     public void savePlaylist() {

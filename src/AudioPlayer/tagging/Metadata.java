@@ -45,13 +45,13 @@ import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
-import utilities.AudioFileFormat;
-import static utilities.AudioFileFormat.UNKNOWN;
-import utilities.FileUtil;
-import static utilities.FileUtil.EMPTY_COLOR;
-import static utilities.FileUtil.EMPTY_URI;
-import utilities.ImageFileFormat;
 import utilities.Log;
+import utilities.Parser.File.AudioFileFormat;
+import static utilities.Parser.File.AudioFileFormat.UNKNOWN;
+import utilities.Parser.File.FileUtil;
+import static utilities.Parser.File.FileUtil.EMPTY_COLOR;
+import static utilities.Parser.File.FileUtil.EMPTY_URI;
+import utilities.Parser.File.ImageFileFormat;
 import utilities.Parser.ParserImpl.ColorParser;
 import utilities.TODO;
 import utilities.Util;
@@ -106,7 +106,7 @@ public final class Metadata extends MetaItem {
     // header fields
     private AudioFileFormat format = UNKNOWN;
     private long filesize = 0;
-    private String encoding_type = "";
+    private String encoding = "";
     private int bitrate = -1;
     private String encoder = "";
     private String channels = "";
@@ -217,10 +217,9 @@ public final class Metadata extends MetaItem {
         
         // format and encoding type are switched in jaudiotagger library...
         format = AudioFileFormat.of(getURI());
-        if (format==UNKNOWN) format = super.getFormat();
         bitrate = Bitrate.create(header.getBitRateAsNumber()).getValue();
         duration = 1000 * header.getTrackLength();
-        encoding_type = Util.emptifyString(header.getFormat());
+        encoding = Util.emptifyString(header.getFormat());
         channels = Util.emptifyString(header.getChannels());
         sample_rate = Util.emptifyString(header.getSampleRate());
         
@@ -450,7 +449,7 @@ public final class Metadata extends MetaItem {
     @MetadataFieldMethod(Field.ENCODING)
     public String getEncodingType() {
         // format and encoding type are switched in jaudiotagger library...
-        return encoding_type;
+        return encoding;
     }
     
     /** @return the encoder or empty String if not available. */
@@ -730,7 +729,7 @@ public final class Metadata extends MetaItem {
      * @return the rating in 0-1 percent range */
     @MetadataFieldMethod(Field.RATING)
     public double getRatingPercent() {
-        return getRating()/getRatingMax();
+        return getRating()/(double)getRatingMax();
     }
     
     /** @return the rating value (can for file type) or "" if empty. */

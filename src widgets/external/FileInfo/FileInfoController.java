@@ -36,7 +36,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import main.App;
 import org.reactfx.Subscription;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Util;
 import utilities.access.Accessor;
 

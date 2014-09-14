@@ -7,9 +7,7 @@
 package GUI.ItemHolders.ItemTextFields;
 
 import java.io.File;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import main.App;
+import utilities.Parser.File.Enviroment;
 import utilities.Parser.ParserImpl.FileParser;
 import utilities.Parser.StringParser;
 
@@ -31,19 +29,11 @@ public class FileTextField extends ItemTextField<File> {
     @Override
     void onDialogAction() {
         if(item==null || item.isDirectory()) {
-            File initf = item==null ? App.getLocation() : item;
-            DirectoryChooser dc = new DirectoryChooser();
-                             dc.setInitialDirectory(initf);
-                             dc.setTitle("Choose directory");
-            File newfile = dc.showDialog(getScene().getWindow());
-            setItem(newfile);
+            File f = Enviroment.chooseFile("Choose directory", true, item, getScene().getWindow());
+            setItem(f);
         } else {
-            File initf = item==null ? App.getLocation() : item;
-            FileChooser fc = new FileChooser();
-                        fc.setInitialDirectory(initf);
-                        fc.setTitle("Choose file");
-            File newfile = fc.showOpenDialog(getScene().getWindow());
-            setItem(newfile);
+            File f = Enviroment.chooseFile("Choose file", false, item, getScene().getWindow());
+            setItem(f);
         }
     }
 

@@ -35,6 +35,14 @@ public class SingleInstance<T,R> {
     /**
      * 
      * @param builder produces the instance when it is requested.
+     */
+    public SingleInstance(Supplier<T> builder) {
+        this(builder, null);
+    }
+    
+    /**
+     * 
+     * @param builder produces the instance when it is requested.
      * @param mutator mutates instance's state for certain dependency object. use
      * null if no mutation is desired.
      */
@@ -52,6 +60,9 @@ public class SingleInstance<T,R> {
     public T get() {
         // initialize instance
         if (instance == null) instance = builder.get();
+        
+        assert instance!=null;
+        
         return instance;
     }
     
@@ -63,7 +74,6 @@ public class SingleInstance<T,R> {
         // initialize instance
         if (instance == null) instance = builder.get();
         
-        // this must never happen
         assert instance!=null;
         
         // prepare instance

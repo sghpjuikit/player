@@ -6,15 +6,12 @@
 
 package Explorer;
 
-import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import GUI.GUI;
+import GUI.objects.ContextMenu.ContentContextMenu;
 import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
-import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
 import static de.jensd.fx.fontawesome.AwesomeIcon.GE;
@@ -33,10 +30,13 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
@@ -45,10 +45,10 @@ import static javafx.scene.paint.Color.CADETBLUE;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
-import utilities.AudioFileFormat;
-import utilities.Enviroment;
-import utilities.FileUtil;
-import utilities.ImageFileFormat;
+import utilities.Parser.File.Enviroment;
+import utilities.Parser.File.FileUtil;
+import utilities.SingleInstance;
+import static utilities.Util.createmenuItem;
 import utilities.access.Accessor;
 
 /**
@@ -88,45 +88,30 @@ public class ExplorerController extends FXMLController {
     });
     
     // non-applied configurables
-    @IsConfig(name = "Open audio in application", info = "Open supported audio files by this application, rather than native one set by OS")
-    public boolean openAudioInApp = true;
-    @IsConfig(name = "Play audio on open", info = "Opening audio files plays the files, rather that adds them to the playlist.")
-    public boolean playAudioOnOpen = true;
-    @IsConfig(name = "Open image in application", info = "Open supported image files by this application, rather than native one set by OS")
-    public boolean openImageInApp = true;
-
+    @IsConfig(name = "Open files in application if possible", info = "Open files by this application if possible on doubleclick, rather than always use native OS application.")
+    public boolean openInApp = true;
     
     @Override
     public void init() {
         tree.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         tree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
+        
         // set value factory
-        tree.setCellFactory( treeView -> new TreeCell<File>(){
+        tree.setCellFactory( treeView -> new TreeCell<File>() {
             {
-                // TODO: add this to the treeView & handle directories and multiselection
                 setOnMouseClicked( e -> {
-                    if(e.getClickCount()==2 && e.getButton()==PRIMARY) {
-                        File f = getItem();
-                        // open skin
-                        if((f.isDirectory() && App.SKIN_FOLDER().equals(f.getParentFile())) || FileUtil.isValidSkinFile(f))
-                            GUI.setSkin(FileUtil.getName(f));
-                        // open widget
-                        else if((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
-                            WidgetManager.getWidget(wi -> wi.name().equals(FileUtil.getName(f)), NOLAYOUT);
+                    if(e.getButton()==SECONDARY) {
+                        // open context menu
+                        if(!tree.getSelectionModel().isEmpty())
+                            contxt_menu.get(tree).show(root, e.getSceneX(), e.getScreenY());
+                    } else if (e.getButton()==PRIMARY) {
+                        // open the files
+                        if(e.getClickCount()==2) {
+                            File f = getItem();
+                            if(f!=null && (f.isFile() || Enviroment.isOpenableInApp(f)))
+                                Enviroment.openIn(f, openInApp);
                         }
-                        // open audio file
-                        else if (openAudioInApp && AudioFileFormat.isSupported(f)) {
-                            PlaylistManager.addUri(f.toURI());
-                            if (playAudioOnOpen) PlaylistManager.playLastItem();
-                        }
-                        // open image file
-                        else if (openImageInApp && ImageFileFormat.isSupported(f)) {
-                            WidgetManager.getWidget(ImageDisplayFeature.class,NOLAYOUT, w->w.showImage(f));
-                        }
-                        // open file in native application
-                        else if(f.isFile()) 
-                            Enviroment.open(f);
                     }
                 });
             }
@@ -147,8 +132,8 @@ public class ExplorerController extends FXMLController {
         
         // support drag from tree - add selected to clipboard/dragboard
         tree.setOnDragDetected( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return; // only left button
-            if(tree.getSelectionModel().isEmpty()) return;  // if empty
+            if (e.getButton()!=MouseButton.PRIMARY) return;
+            if(tree.getSelectionModel().isEmpty()) return;
             
             TransferMode tm = e.isShiftDown() ? MOVE : COPY;
             Dragboard db = tree.startDragAndDrop(tm);
@@ -268,5 +253,49 @@ public class ExplorerController extends FXMLController {
             }
         };
     }
-
+/****************************** CONTEXT MENU **********************************/
+    
+    private static final SingleInstance<ContentContextMenu<List<File>>,TreeView<File>> contxt_menu = new SingleInstance<>(
+        () -> {
+            ContentContextMenu<List<File>> m = new ContentContextMenu<>();
+            m.getItems().addAll(
+                createmenuItem("Open", e -> {
+                    Enviroment.open(m.getItem().get(0));
+                }),
+                createmenuItem("Open in-app", e -> {
+                    Enviroment.openIn(m.getItem(),true);
+                }),
+                createmenuItem("Edit", e -> {
+                    Enviroment.edit(m.getItem().get(0));
+                }),
+                createmenuItem("Copy", e -> {
+                    ClipboardContent cc = new ClipboardContent();
+                    cc.put(DataFormat.FILES, m.getItem());
+                    Clipboard.getSystemClipboard().setContent(cc);
+                }),
+                createmenuItem("Explore in browser", e -> {
+                    Enviroment.browse(m.getItem(),true);
+                })
+            );
+            return m;
+        },
+        (menu,tree) -> {
+            List<File> files = tree.getSelectionModel().getSelectedItems().stream()
+                    .map(t->t.getValue())
+                    .collect(Collectors.toList());
+            menu.setItem(files);
+            
+            if(files.isEmpty()) {
+                menu.getItems().forEach(i -> i.setDisable(true));
+            } else if(files.size()==1) {
+                menu.getItems().forEach(i -> i.setDisable(false));
+                menu.getItems().get(2).setDisable(!files.get(0).isFile());
+            } else {
+                menu.getItems().forEach(i -> i.setDisable(false));
+                menu.getItems().get(0).setDisable(true);
+                menu.getItems().get(2).setDisable(true);
+            }
+        }
+    );
+    
 }

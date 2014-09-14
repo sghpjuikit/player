@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import main.App;
-import utilities.FileUtil;
+import utilities.Parser.File.FileUtil;
 import utilities.Log;
 
 /**

@@ -45,7 +45,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
-import utilities.Enviroment;
+import utilities.Parser.File.Enviroment;
 import utilities.Util;
 
 
@@ -372,7 +372,7 @@ public class BookmarkerController extends FXMLController {
         MenuItem item4 = new MenuItem("Edit the item/s in tag editor");        
                  item4.setOnAction(e -> {
                      List<BookmarkItem> items = contextMenu.getItem();
-                     WidgetManager.getWidget(TaggingFeature.class,NOLAYOUT,w->w.read(items));
+                     WidgetManager.use(TaggingFeature.class,NOLAYOUT,w->w.read(items));
                  });
         MenuItem item5 = new MenuItem("Explore items's directory");        
                  item5.setOnAction(e -> {

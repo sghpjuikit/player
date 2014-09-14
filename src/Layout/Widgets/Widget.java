@@ -6,6 +6,7 @@ import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
+import Layout.Widgets.Features.Feature;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -127,7 +128,12 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /** {@inheritDoc} */
     @Override
     public Widget.Group group() { return getFactory().group; }
-    
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean hasFeature(Class<? extends Feature> feature) {
+        return getFactory().hasFeature(feature);
+    }
     
     /**
      * Loads this widget's content.

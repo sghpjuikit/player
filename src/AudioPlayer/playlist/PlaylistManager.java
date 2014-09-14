@@ -29,13 +29,11 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.util.Duration;
 import main.App;
-import utilities.AudioFileFormat;
-import utilities.Enviroment;
-import utilities.FileUtil;
+import utilities.Parser.File.AudioFileFormat;
+import utilities.Parser.File.Enviroment;
+import utilities.Parser.File.FileUtil;
 import utilities.access.AccessibleStream;
 
 /**
@@ -563,13 +561,7 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     public static void addOrEnqueueFiles(boolean add) {
-        FileChooser fc = new FileChooser();
-        fc.setTitle("Choose Audio Files");
-        if (FileUtil.isValidDirectory(browse))
-            fc.setInitialDirectory(browse);
-        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                "supported audio", AudioFileFormat.extensions()));
-        List<File> files = fc.showOpenMultipleDialog(App.getWindowOwner().getStage());
+        List<File> files = Enviroment.chooseFiles("Choose Audio Files", browse, App.getWindowOwner().getStage(), AudioFileFormat.filter());
         if (files != null) {
             browse = files.get(0).getParentFile();
             List<URI> queue = new ArrayList<>();
@@ -589,11 +581,8 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     public static void addOrEnqueueFolder(boolean add) {
-        DirectoryChooser dc = new DirectoryChooser();
-        dc.setTitle("Choose Audio Files From Directory Tree");
-        if (FileUtil.isValidDirectory(browse)) 
-            dc.setInitialDirectory(browse);
-        File dir = dc.showDialog(App.getWindowOwner().getStage());
+        File dir = Enviroment.chooseFile("Choose Audio Files From Directory Tree",
+                true, browse, App.getWindowOwner().getStage());
         if (dir != null) {
             browse = dir;
             List<URI> queue = new ArrayList<>();

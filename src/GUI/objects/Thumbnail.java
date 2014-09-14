@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -54,13 +53,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Duration;
 import main.App;
-import utilities.Enviroment;
-import utilities.FileUtil;
-import utilities.ImageFileFormat;
 import utilities.Log;
+import utilities.Parser.File.Enviroment;
+import utilities.Parser.File.FileUtil;
+import utilities.Parser.File.ImageFileFormat;
 import utilities.TODO;
 import utilities.Util;
 
@@ -498,9 +496,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                  item1.setOnAction(e -> {
                     Image i = thumb.getImage();
                     FileChooser fc = new FileChooser();
-                        fc.getExtensionFilters().addAll(ImageFileFormat.extensions()
-                                .stream().map(ext->new ExtensionFilter( ext,ext))
-                                .collect(Collectors.toList()));
+                        fc.getExtensionFilters().addAll(ImageFileFormat.filter());
                         fc.setTitle("Save image as...");
                         fc.setInitialFileName("new_image");
                         fc.setInitialDirectory(App.getLocation());
@@ -558,19 +554,18 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                  });
         MenuItem item5 = new MenuItem("Save the image as ...");
                  item5.setOnAction(e -> {
-                    File f = thumb.img_file;
-                    if (f==null) return;
+                    File of = thumb.img_file;
+                    if (of==null) return;
                     
                     FileChooser fc = new FileChooser();
-                        fc.getExtensionFilters().addAll(ImageFileFormat.extensions()
-                                .stream().map(ext->new ExtensionFilter(ext,ext))
-                                .collect(Collectors.toList()));
+                        fc.getExtensionFilters().addAll(ImageFileFormat.filter());
                         fc.setTitle("Save image as...");
-                        fc.setInitialFileName("new_image");
+                        fc.setInitialFileName(of.getName());
                         fc.setInitialDirectory(App.getLocation());
-                    File newff = fc.showSaveDialog(App.getWindowOwner().getStage());
+                    File nf = fc.showSaveDialog(App.getWindowOwner().getStage());
+                    if(nf==null) return;
                     try {
-                        Files.copy(f.toPath(), newff.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException ex) {
                         Log.info("File export failed.");
                     }

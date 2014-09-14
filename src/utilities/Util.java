@@ -4,6 +4,7 @@
  */
 package utilities;
 
+import utilities.Parser.File.FileUtil;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.awt.Dimension;
@@ -37,6 +38,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -514,6 +516,29 @@ public interface Util {
         };
     }
     
+    /**
+     * Convenience method to make it easier to select given rows of the
+     * TableView via its SelectionModel.
+     * This methods provides alternative to TableViewSelectionModel.selectIndices()
+     * that requires array parameter. This method makes the appropriate conversions
+     * and selects the items using List parameter
+     * <p>
+     * After the method is invoked only the provided rows will be selected - it
+     * clears any previously selected rows.
+     * @param selectedIndexes
+     * @param selectionModel
+     */
+    public static void selectRows(List<Integer> selectedIndexes, TableViewSelectionModel<?> selectionModel) {
+        selectionModel.clearSelection();
+        int[] newSelected = new int[selectedIndexes.size()];
+        for (int i = 0; i < selectedIndexes.size(); i++) {
+            newSelected[i] = selectedIndexes.get(i);
+        }
+        if (newSelected.length != 0) {
+            selectionModel.selectIndices(newSelected[0], newSelected);
+        }
+    }
+    
     public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> actionHandler) {
         MenuItem i = new MenuItem(text);
                  i.setOnAction(actionHandler);
@@ -707,4 +732,5 @@ public interface Util {
         }
         return b.build();
     }
+
 }

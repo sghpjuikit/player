@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package utilities;
+package utilities.Parser.File;
 
 import AudioPlayer.playlist.Item;
 import java.io.File;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javafx.stage.FileChooser;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that
@@ -33,6 +34,16 @@ public enum AudioFileFormat {
     public boolean isSupported() {
         return this == mp3 || this == wav;
     }
+    
+    public String toExt() {
+        return "*." + toString();
+    }
+    
+    public FileChooser.ExtensionFilter toExtFilter() {
+        return new FileChooser.ExtensionFilter(toString(), toExt());
+    }
+    
+    
     public static boolean isSupported(AudioFileFormat f) {
         return f.isSupported();
     }
@@ -103,24 +114,38 @@ public enum AudioFileFormat {
     
 /******************************************************************************/
     
-    public static List<String> extensions() {
-        List<String> ext = new ArrayList<>();
-        for(AudioFileFormat format: values())
-            if (format.isSupported())
-                ext.add("*." + format.toString());
-        return ext;
-    }
+/******************************************************************************/
     
-    /**
-     * Writes up list of all audio files recognized and supported by the application.
-     * @return 
-     */
-    public static String listSupportedAudioFormats() {
+    /** Writes up list of all supported values. */    
+    public static String supportedExtensionsS() {
         String out = "";
-        for(String ft: extensions())
+        for(String ft: exts())
             out = out + ft +"\n";
         return out;
     }
     
+    public static List<AudioFileFormat> supportedValues() {
+        List<AudioFileFormat> ext = new ArrayList();
+        for(AudioFileFormat format: values()) {
+            if (format.isSupported())
+                ext.add(format);
+        }
+        return ext;
+    }
+    
+    public static FileChooser.ExtensionFilter filter() {
+        return new FileChooser.ExtensionFilter("Audio files", exts());
+    }
+    
+    
+    // List of supported extension strings in the format: '*.extension'
+    private static List<String> exts() {
+        List<String> ext = new ArrayList();
+        for(AudioFileFormat format: supportedValues()) {
+            if (format.isSupported())
+                ext.add(format.toExt());
+        }
+        return ext;
+    }
 }
 

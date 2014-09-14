@@ -61,7 +61,6 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -104,16 +103,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.FileChooser;
 import javafx.util.Callback;
 import main.App;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.Subscription;
-import utilities.ImageFileFormat;
 import utilities.InputConstraints;
 import utilities.Log;
+import utilities.Parser.File.Enviroment;
+import utilities.Parser.File.ImageFileFormat;
 import utilities.Parser.ParserImpl.ColorParser;
 import utilities.access.Accessor;
 import utilities.functional.impl.Validator;
@@ -396,17 +395,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         coverContainer.setOnMouseClicked( e -> {
             if (e.getButton()!=PRIMARY || metas.isEmpty()) return;
             
-            // get initial directory
-            File initial_dir = metas.stream().filter(Item::isFileBased)
-                                         .findFirst().map(Item::getLocation)
-                                         .orElse(new File(""));
-            FileChooser fc = new FileChooser();
-                        fc.setInitialDirectory(initial_dir);
-                        fc.setTitle("Select image to add to tag");
-                        fc.getExtensionFilters().addAll(ImageFileFormat.extensions()
-                          .stream().map(ext->new FileChooser.ExtensionFilter(ext,ext))
-                          .collect(Collectors.toList()));
-            File f = fc.showOpenDialog(entireArea.getScene().getWindow());
+            File initial_dir = metas.stream()
+                    .filter(Item::isFileBased)
+                    .findFirst().map(Item::getLocation)
+                    .orElse(new File(""));
+            File f = Enviroment.chooseFile("Select image to add to tag",
+                    false, initial_dir, entireArea.getScene().getWindow());
             if (f!= null) addImg(f);
         });
         

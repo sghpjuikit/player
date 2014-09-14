@@ -98,7 +98,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import main.App;
 import org.reactfx.Subscription;
-import utilities.Enviroment;
+import utilities.Parser.File.Enviroment;
 import utilities.Log;
 import utilities.Util;
 import utilities.access.Accessor;
@@ -587,7 +587,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
         // settings button - show application settings in a popup
         Label propB = Util.createIcon(GEARS,13,"Application settings",
-                e ->  WidgetManager.getWidget(ConfiguringFeature.class,WidgetSource.NOLAYOUT));
+                e ->  WidgetManager.find(ConfiguringFeature.class,WidgetSource.NOLAYOUT));
         // manage layout button - sho layout manager in a popp
         Label layB = Util.createIcon(COLUMNS,13,"Manage layouts", 
                 e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));

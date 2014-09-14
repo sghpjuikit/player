@@ -15,7 +15,8 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
  * @author uranium
  */
 @Immutable
-public class Bitrate {
+public class Bitrate implements Comparable<Bitrate>{
+    
     private final int bitrate;
     
     /**
@@ -63,5 +64,10 @@ public class Bitrate {
     @Override
     public String toString() {
         return bitrate == -1 ? "N/A" : bitrate + " kbps";
+    }
+    
+    @Override
+    public int compareTo(Bitrate o) {
+        return Long.compare(bitrate, o.bitrate);
     }
 }

@@ -49,11 +49,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.Enviroment;
 import utilities.FxTimer;
+import utilities.Parser.File.Enviroment;
 import utilities.SingleInstance;
 import utilities.TODO;
-import utilities.TableUtil;
 import utilities.Util;
 
 /**
@@ -257,7 +256,7 @@ public final class PlaylistTable {
             // this overrides default behavior where mousePressed deselects all but
             // the item that was clicked on
             if (selected_temp.contains(clicked_row)) {
-                TableUtil.selectRows(selected_temp, table.getSelectionModel());
+                Util.selectRows(selected_temp, table.getSelectionModel());
             }
             e.consume();
         });
@@ -589,7 +588,7 @@ public final class PlaylistTable {
         // move in playlist
         List<Integer> newS = PlaylistManager.moveItemsBy(oldS, by);
         // select back
-        TableUtil.selectRows(newS, table.getSelectionModel());
+        Util.selectRows(newS, table.getSelectionModel());
         
         movingitems = false;    // release lock
     }
@@ -616,7 +615,7 @@ public final class PlaylistTable {
             if(!selected.contains(i))
                 inverse.add(i);
         
-        TableUtil.selectRows(inverse, table.getSelectionModel());
+        Util.selectRows(inverse, table.getSelectionModel());
     }
     /**
      * Deselects all selected items in the playlist table.
@@ -648,34 +647,34 @@ public final class PlaylistTable {
 
     private static final SingleInstance<ContentContextMenu<List<PlaylistItem>>,TableView<PlaylistItem>> contxt_menu = new SingleInstance<>(
         () -> {
-            ContentContextMenu<List<PlaylistItem>> contextMenu = new ContentContextMenu();
-            contextMenu.getItems().addAll(
+            ContentContextMenu<List<PlaylistItem>> m = new ContentContextMenu();
+            m.getItems().addAll(
                 Util.createmenuItem("Play items", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<PlaylistItem> items = m.getItem();
                     PlaylistManager.playItem(items.get(0));
                 }),
                 Util.createmenuItem("Remove items", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<PlaylistItem> items = m.getItem();
                     PlaylistManager.removeItems(items);
                 }),
                 Util.createmenuItem("Edit the item/s in tag editor", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
-                    WidgetManager.getWidget(TaggingFeature.class,NOLAYOUT, w->w.read(items));
+                    List<PlaylistItem> items = m.getItem();
+                    WidgetManager.use(TaggingFeature.class,NOLAYOUT, w->w.read(items));
                 }),
                 Util.createmenuItem("Crop items", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<PlaylistItem> items = m.getItem();
                     PlaylistManager.retainItems(items);
                 }),
                 Util.createmenuItem("Duplicate items as group", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<PlaylistItem> items = m.getItem();
                     PlaylistManager.duplicateItemsAsGroup(items);
                 }),
                 Util.createmenuItem("Duplicate items individually", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<PlaylistItem> items = m.getItem();
                     PlaylistManager.duplicateItemsByOne(items);
                 }),
                 Util.createmenuItem("Explore items's directory", e -> {
-                    List<PlaylistItem> items = contextMenu.getItem();
+                    List<PlaylistItem> items = m.getItem();
                     List<File> files = items.stream()
                             .filter(Item::isFileBased)
                             .map(Item::getLocation)
@@ -683,14 +682,14 @@ public final class PlaylistTable {
                     Enviroment.browse(files,true);
                 }),
                 Util.createmenuItem("Add items to library", e -> {
-                    List<Metadata> items = contextMenu.getItem().stream()
+                    List<Metadata> items = m.getItem().stream()
                             .map(Item::toMetadata)
                             .collect(Collectors.toList());
                     DB.addItems(items);
                 })
             );
-            contextMenu.setConsumeAutoHidingEvents(false);
-            return contextMenu;
+            m.setConsumeAutoHidingEvents(false);
+            return m;
         },
         (menu,table) -> menu.setItem(Util.copySelectedItems(table))
     );

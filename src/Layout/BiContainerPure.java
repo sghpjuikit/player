@@ -45,7 +45,7 @@ public class BiContainerPure extends BiContainer {
         
         if (index<1 || index>2)
             throw new IndexOutOfBoundsException("Index " + index + " not supported. Only null,1,2 values supported.");
-        System.out.println(!(c instanceof  Container));
+        
         // wrap if component is widget
         if(!(c instanceof Container))
             getChildren().put(index, null);

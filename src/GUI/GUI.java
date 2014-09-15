@@ -29,8 +29,8 @@ import javafx.scene.text.FontWeight;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
-import utilities.Parser.File.FileUtil;
 import utilities.Log;
+import utilities.Parser.File.FileUtil;
 import utilities.Util;
 import utilities.access.Accessor;
 
@@ -277,7 +277,7 @@ public class GUI {
      * of that method.
      * @param skinname name of the skin to apply.
      */
-    public static void setSkin(String skinname) {System.out.println("applying " + skin);
+    public static void setSkin(String skinname) {
         if (skinname == null || skinname.isEmpty() || skinname.equalsIgnoreCase(STYLESHEET_MODENA)) {
             setSkinModena();
         } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {

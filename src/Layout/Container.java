@@ -124,7 +124,7 @@ public abstract class Container extends Component implements AltState {
      * @param index of the child to remove. Null is ignored.
      */
     public void removeChild(Integer index) {
-        Log.deb("Removing component at "+ index + " from container");System.out.println(this);
+        Log.deb("Removing component at "+ index + " from container");
         addChild(index, null);
     }
     

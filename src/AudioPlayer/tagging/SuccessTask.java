@@ -69,9 +69,9 @@ public abstract class SuccessTask<T> extends Task<T> {
         updateMessage(sb.toString());
     }
 
-    @Override
-    protected void updateMessage(String message) {
-        super.updateMessage(message);
-//        System.out.println(message);
-    }
+//    @Override
+//    protected void updateMessage(String message) {
+//        super.updateMessage(message);
+//        // print message for debug
+//    }
 }

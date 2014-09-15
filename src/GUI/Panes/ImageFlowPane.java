@@ -51,7 +51,7 @@ public final class ImageFlowPane {
     private final AnchorPane content = new AnchorPane();        // here goes the content
     private ImageNode image;                                 // this is the image
     
-    public ImageFlowPane(AnchorPane parent, ImageNode imgContainer) {System.out.println("CREATING");
+    public ImageFlowPane(AnchorPane parent, ImageNode imgContainer) {
         image = imgContainer;
 
         // layout this whole object onto parent

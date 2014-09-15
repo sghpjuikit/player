@@ -3,7 +3,6 @@ package Layout.Containers;
 
 import Configuration.PropertyMap;
 import GUI.GUI;
-import unused.SimplePositionable;
 import Layout.Areas.ContainerNode;
 import Layout.BiContainer;
 import Layout.Component;
@@ -29,6 +28,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
+import unused.SimplePositionable;
 import utilities.FxTimer;
 import utilities.TODO;
 
@@ -266,7 +266,7 @@ public final class Splitter implements ContainerNode {
     public void toggleAbsoluteSize() {
         int i = getAbsoluteSize();
             i = i==2 ? 0 : i+1;
-        setAbsoluteSize(i);System.out.println(getAbsoluteSize());
+        setAbsoluteSize(i);
     }
     public void toggleAbsoluteSizeFor(int i) {
             int is = getAbsoluteSize();
@@ -340,7 +340,7 @@ public final class Splitter implements ContainerNode {
         }
         setupCollapsed(i);
     }
-    private void setupCollapsed(int i) {System.out.println(i);
+    private void setupCollapsed(int i) {
         if(i==-1) {
             if(splitPane.getOrientation()==VERTICAL) {
                 root_child1.setMaxHeight(0);

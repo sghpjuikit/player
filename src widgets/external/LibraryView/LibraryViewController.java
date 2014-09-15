@@ -12,13 +12,15 @@ import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.Filter;
+import GUI.objects.FilterGenerator;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -26,8 +28,6 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -36,6 +36,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import org.reactfx.Subscription;
+import org.reactfx.util.Tuples;
 import utilities.FxTimer;
 import utilities.Util;
 import static utilities.Util.createmenuItem;
@@ -75,7 +76,7 @@ import utilities.access.Accessor;
 public class LibraryViewController extends FXMLController {
     
     private @FXML AnchorPane root;
-    private final Filter searchBox = new Filter();
+    private final FilterGenerator<MetadataGroup.Field> searchBox = new FilterGenerator();
     private final TableView<MetadataGroup> table = new TableView();
     private final ObservableList<MetadataGroup> allitems = FXCollections.observableArrayList();
     private final FilteredList<MetadataGroup> filtereditems = new FilteredList(allitems);
@@ -115,10 +116,15 @@ public class LibraryViewController extends FXMLController {
             TableColumn c = table.getColumns().get(table.getColumns().size()-1);
             table.columnResizePolicyProperty().get().call(new TableView.ResizeFeatures(table, c, c.getWidth()));
         });
+        
+        
+        searchBox.setOnFilterChange( (f,mgf) -> filtereditems.setPredicate(mg -> f.test(mg.getField(mgf))));
+        searchBox.setData(Arrays.asList(MetadataGroup.Field.values()).stream()
+                .map(mgf->Tuples.t(mgf.toString(v),mgf.getType(v),mgf)).collect(Collectors.toList()));
     });
     
     public final Accessor<MetadataGroup.Field> columnFilter = new Accessor<>(MetadataGroup.Field.VALUE, v -> {
-        searchBox.setOnFilterChange( f -> filtereditems.setPredicate(m -> f.test(m.getField(v))));
+        
         searchBox.setClass(v.getType(fieldFilter.getValue()));
     });
 
@@ -168,24 +174,6 @@ public class LibraryViewController extends FXMLController {
         AnchorPane.setTopAnchor(searchBox, 0d);
         AnchorPane.setRightAnchor(searchBox, 0d);
         AnchorPane.setLeftAnchor(searchBox, 0d);
-
-        // column filter criteria combo box, populate box with enum values
-        ComboBox<MetadataGroup.Field> fieldType = new ComboBox(FXCollections.observableArrayList(MetadataGroup.Field.values()));
-        // use dynamic toString() when populating combobox values
-        fieldType.setCellFactory( view -> {
-            return new ListCell<MetadataGroup.Field>(){
-                @Override
-                protected void updateItem(MetadataGroup.Field item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setText(empty ? null : item.toString(fieldFilter.getValue()));
-                }
-            };
-        });
-        // fire filter changes when value changes
-        fieldType.valueProperty().addListener((o,ov,nv) -> columnFilter.setNapplyValue(nv));
-        // initial value & fire first change
-        fieldType.setValue(MetadataGroup.Field.VALUE);
-        searchBox.getChildren().add(0, fieldType);
     }
 
     @Override

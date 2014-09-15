@@ -253,7 +253,6 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         }
         
         
-        System.out.println(rating);
         if(rating==1*getSkinnable().getMax()){
             foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,true));
             foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(min,false));

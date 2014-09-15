@@ -24,8 +24,8 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import utilities.Parser.File.FileUtil;
 import utilities.Log;
+import utilities.Parser.File.FileUtil;
 
 /**
  * Defines item in playlist.
@@ -163,7 +163,7 @@ public final class PlaylistItem extends Item {
      * <p>
      * Dont use this method for lots of items at once on application thread!
      */
-    public void update() {System.out.println("updating " + getURI());
+    public void update() {
         if (isCorrupt()) return;
         
         if(isFileBased()) {

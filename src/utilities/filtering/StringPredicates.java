@@ -21,7 +21,6 @@ public enum StringPredicates implements Predicates<String> {
     ENDS_WITH_NOCASE,
     STARTS_WITH_NOCASE,
     REGEX;
-
     
     public BiPredicate<String, String> predicate() {
         return predicate(String.class);
@@ -42,6 +41,4 @@ public enum StringPredicates implements Predicates<String> {
             default: throw new AssertionError();
         }
     }
-    
-    
 }

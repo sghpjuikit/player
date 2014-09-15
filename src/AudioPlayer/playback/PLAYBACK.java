@@ -29,8 +29,8 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
-import utilities.Parser.File.Enviroment;
 import utilities.Log;
+import utilities.Parser.File.Enviroment;
 import utilities.functional.functor.Procedure;
 
 /**
@@ -166,7 +166,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Seeks playback to position specified by duration parameter. */
-    public static void seek(Duration duration) {System.out.println("seeking to " + duration.toMillis());
+    public static void seek(Duration duration) {
         if (playback == null) return;
         
         if (playback.getStatus() == STOPPED) {
@@ -185,7 +185,7 @@ public final class PLAYBACK implements Configurable {
     }
 
     /** Seeks playback to position specified by percent value 0-1. */
-    public static void seek(double at) {System.out.println(at);
+    public static void seek(double at) {
         if(at<0 ||at>1) throw new IllegalArgumentException("Seek value must be 0-1");
         seek(getTotalTime().multiply(at));
     }

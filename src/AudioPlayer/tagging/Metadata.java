@@ -254,8 +254,10 @@ public final class Metadata extends MetaItem {
         custom4 = getGeneral(tag,FieldKey.CUSTOM4);
         custom5 = getGeneral(tag,FieldKey.CUSTOM5);
         
+        // debug exception catching. There should be none, but as it appears
+        // so files may produce exceptions, until that gets fixed...
         } catch(Exception e) {
-            System.out.println("Tag (gen.field) reading error during: " + getURI() + " " + e.getMessage() + e.getStackTrace());
+            Log.err("Tag (gen.field) reading error during: " + getURI() + " " + e.getMessage() + e.getStackTrace());
         }
     }
     private int getNumber(Tag tag, FieldKey field) {

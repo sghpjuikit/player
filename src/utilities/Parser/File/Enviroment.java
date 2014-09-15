@@ -160,7 +160,7 @@ public class Enviroment {
         else open(f);
     }
     
-    public static void openIn(List<File> files, boolean inApp) {System.out.println(files.size() + " " + inApp);
+    public static void openIn(List<File> files, boolean inApp) {
         if(files.isEmpty()) return;
         if(files.size()==1) {
             openIn(files.get(0), inApp);

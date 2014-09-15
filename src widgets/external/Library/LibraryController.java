@@ -16,6 +16,7 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.FilterGenerator;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -26,6 +27,7 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.List;
@@ -33,7 +35,11 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -57,6 +63,7 @@ import javafx.scene.layout.HBox;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import org.reactfx.Subscription;
+import org.reactfx.util.Tuples;
 import utilities.FxTimer;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
@@ -98,9 +105,13 @@ import utilities.functional.functor.BiProcedure;
 public class LibraryController extends FXMLController {
     
     private @FXML AnchorPane root;
-    private TableView<Metadata> table = new TableView();
     private final Label progressL = new Label();
     private Subscription dbMonitor;
+    private final FilterGenerator<Metadata.Field> searchBox = new FilterGenerator();
+    private TableView<Metadata> table = new TableView();
+    private final ObservableList<Metadata> allitems = FXCollections.observableArrayList();
+    private final FilteredList<Metadata> filtereditems = new FilteredList(allitems);
+    private final SortedList<Metadata> sortedItems = new SortedList<>(filtereditems);
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -113,6 +124,8 @@ public class LibraryController extends FXMLController {
         
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        table.setItems(sortedItems);
+        sortedItems.comparatorProperty().bind(table.comparatorProperty());
         
         // add index column
         TableColumn indexColumn = Util.createIndexColumn("#");
@@ -229,6 +242,18 @@ public class LibraryController extends FXMLController {
         AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
         AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
         
+        
+        searchBox.setPrefHeight(25);
+        root.getChildren().add(searchBox);
+        AnchorPane.setTopAnchor(searchBox, 0d);
+        AnchorPane.setRightAnchor(searchBox, 0d);
+        AnchorPane.setLeftAnchor(searchBox, 0d);
+        AnchorPane.setTopAnchor(table, 25d);
+        
+        
+        searchBox.setOnFilterChange( (f,mf) -> filtereditems.setPredicate(m -> f.test(m.getField(mf))));
+        searchBox.setData(Arrays.asList(Metadata.Field.values()).stream()
+                .map(mf->Tuples.t(mf.toString(),mf.getType(),mf)).collect(Collectors.toList()));
     }
     
     @IsConfig(editable = false)
@@ -237,7 +262,7 @@ public class LibraryController extends FXMLController {
     @IsConfig(editable = false)
     private final Accessor<Metadata.Field> changeField = new Accessor<>(Metadata.Field.ARTIST, v -> {
         table.getSelectionModel().clearSelection();
-        table.getItems().setAll(DB.getAllItemsWhere(v, changeValue));
+        allitems.setAll(DB.getAllItemsWhere(v, changeValue));
     });
     
     @IsConfig(editable = false)
@@ -247,7 +272,7 @@ public class LibraryController extends FXMLController {
     @Override
     public void refresh() {
         table.getSelectionModel().clearSelection();
-        table.getItems().setAll(DB.getAllItemsWhere(changeField.getValue(), changeValue));
+        allitems.setAll(DB.getAllItemsWhere(changeField.getValue(), changeValue));
     }
 
     @Override

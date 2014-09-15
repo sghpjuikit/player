@@ -43,6 +43,10 @@
 - improve mutation of other context fields - change texts when number of selected items =1, block menu actions, etc...
 - explorer graphics support css skinning
 - playcount not working as library filter, make sure all fields work
+- fix playlist table sorting
+- consumer clicks on table headers to prevent conext menus
+- clean up and finish filtering support
+- add filtering for Library, show/hide on typing/ESC
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------

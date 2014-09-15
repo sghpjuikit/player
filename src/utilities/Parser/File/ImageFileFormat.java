@@ -96,11 +96,11 @@ public enum ImageFileFormat {
      * @return 
      */
     public static ImageFileFormat of(URI uri) {
-        ImageFileFormat type = UNKNOWN;
+        String suffix = FileUtil.getSuffix(uri);
         for(ImageFileFormat f: values())
-            if (uri.getPath().endsWith(f.toString()))
-                type = f;
-        return type;
+            if (suffix.equals(f.toString()))
+                return f;
+        return UNKNOWN;
     }
     
 /******************************************************************************/

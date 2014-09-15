@@ -28,12 +28,12 @@ public class FileTextField extends ItemTextField<File> {
 
     @Override
     void onDialogAction() {
-        if(item==null || item.isDirectory()) {
-            File f = Enviroment.chooseFile("Choose directory", true, item, getScene().getWindow());
-            setItem(f);
+        if(v==null || v.isDirectory()) {
+            File f = Enviroment.chooseFile("Choose directory", true, v, getScene().getWindow());
+            setValue(f);
         } else {
-            File f = Enviroment.chooseFile("Choose file", false, item, getScene().getWindow());
-            setItem(f);
+            File f = Enviroment.chooseFile("Choose file", false, v, getScene().getWindow());
+            setValue(f);
         }
     }
 

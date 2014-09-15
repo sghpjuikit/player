@@ -47,7 +47,6 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import utilities.Log;
 import utilities.Parser.File.AudioFileFormat;
-import static utilities.Parser.File.AudioFileFormat.UNKNOWN;
 import utilities.Parser.File.FileUtil;
 import static utilities.Parser.File.FileUtil.EMPTY_COLOR;
 import static utilities.Parser.File.FileUtil.EMPTY_URI;
@@ -103,8 +102,8 @@ public final class Metadata extends MetaItem {
     // for empty metadata use special 'empty' uri 
     @Id
     private String uri = FileUtil.EMPTY_URI.toString();
+    
     // header fields
-    private AudioFileFormat format = UNKNOWN;
     private long filesize = 0;
     private String encoding = "";
     private int bitrate = -1;
@@ -216,7 +215,6 @@ public final class Metadata extends MetaItem {
         AudioHeader header = aFile.getAudioHeader();
         
         // format and encoding type are switched in jaudiotagger library...
-        format = AudioFileFormat.of(getURI());
         bitrate = Bitrate.create(header.getBitRateAsNumber()).getValue();
         duration = 1000 * header.getTrackLength();
         encoding = Util.emptifyString(header.getFormat());
@@ -391,13 +389,11 @@ public final class Metadata extends MetaItem {
         return this == EMPTY;
     }
     
-    // because of the above we need to override the following method
     /** @{@inheritDoc} */
     @Override
     @MetadataFieldMethod(Field.PATH)
     public String getPath() {
-        if (isEmpty()) return "";
-        else return super.getPath();
+        return isEmpty() ? "" : super.getPath();
     }
     
     /** @{@inheritDoc} */
@@ -407,15 +403,11 @@ public final class Metadata extends MetaItem {
         return new FileSize(filesize);
     }    
     
-    // not that we override this method. We read file type (format) from metadata
-    // and (i believe) it is more safe than other approaches, so rather than
-    // using super implementation, we will check tag and fall back to super if
-    // needed (see constructor)
     /** {@inheritDoc} */
     @Override
     @MetadataFieldMethod(Field.FORMAT)
     public AudioFileFormat getFormat() {
-        return format;
+        return AudioFileFormat.of(uri);
     }
 
     /** @return the bitrate */

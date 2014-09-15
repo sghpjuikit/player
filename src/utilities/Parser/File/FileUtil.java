@@ -668,6 +668,11 @@ public final class FileUtil {
         return (p == - 1) ? "" : n.substring(p + 1);
     }
     
+    public static String getSuffix(String path) {
+        int p = path.lastIndexOf('.');
+        return (p == - 1) ? "" : path.substring(p + 1);
+    }
+    
     
     
     /**

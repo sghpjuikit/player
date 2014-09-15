@@ -9,6 +9,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Traits.ScaleOnHoverTrait;
 import GUI.Window;
+import GUI.objects.ContextMenu.ContentContextMenu;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
@@ -32,8 +33,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Clipboard;
@@ -59,8 +58,10 @@ import utilities.Log;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
 import utilities.Parser.File.ImageFileFormat;
+import utilities.SingleInstance;
 import utilities.TODO;
 import utilities.Util;
+import static utilities.Util.createmenuItem;
 
 /**
  * Thumbnail.
@@ -166,15 +167,11 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         // animations
         installScaleOnHover();
         
+        // experimental feature
         // change border framing style on mouse middle button click //experimental
         root.addEventFilter(MOUSE_CLICKED, e -> {
-            // experimental feature
             if(e.getButton()==MIDDLE)
                 setBorderToImage(!isBorderToImage());
-            
-            // close popup if open
-            if(imgCM!=null && imgCM.isShowing()) imgCM.hide();
-            if(fileCM!=null && fileCM.isShowing()) fileCM.hide();
         });
         
         setContextMenuOn(true);
@@ -465,114 +462,96 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
 
 /******************************************************************************/
     
-    private ContextMenu imgCM;
-    private ContextMenu fileCM;
-    
-    private final EventHandler<MouseEvent> contextMenuHandler = e -> {
-        if(e.getButton()==SECONDARY) {
-            // decide mode (image vs file), build lazily & show where requested
-            if (img_file != null)
-                getFileCM().show(root,e.getScreenX(),e.getScreenY());
-            else if (getImage() !=null)
-                getImgCM().show(root,e.getScreenX(),e.getScreenY());
-            e.consume();
-        }
-    };
-    
-    private ContextMenu getFileCM() {
-        if(fileCM==null) fileCM = buildFileCM(this);
-        return fileCM;
-    }
-    
-    private ContextMenu getImgCM() {
-        if(imgCM==null) imgCM = buildImageCM(this);
-        return imgCM;
-    }
-    
-    private static ContextMenu buildImageCM(Thumbnail thumb) {
-        final ContextMenu contextMenu = new ContextMenu();
-        
-        MenuItem item1 = new MenuItem("Save the image as ...");
-                 item1.setOnAction(e -> {
-                    Image i = thumb.getImage();
+    private static final SingleInstance<ContentContextMenu<Image>,Thumbnail> img_context_menu = new SingleInstance<>(
+        () -> {
+            ContentContextMenu<Image> m = new ContentContextMenu<>();
+            m.getItems().addAll(
+                createmenuItem("Save the image as ...", e -> {
                     FileChooser fc = new FileChooser();
                         fc.getExtensionFilters().addAll(ImageFileFormat.filter());
                         fc.setTitle("Save image as...");
                         fc.setInitialFileName("new_image");
                         fc.setInitialDirectory(App.getLocation());
                     File f = fc.showSaveDialog(App.getWindowOwner().getStage());
-                    FileUtil.writeImage(i, f);
-                 });
-        MenuItem item2 = new MenuItem("Copy the image to clipboard");
-                 item2.setOnAction(e -> {
-                    Image i = thumb.getImage();
-                    if (i==null) return;
+                    FileUtil.writeImage(m.getValue(), f);
+                }),
+                createmenuItem("Copy the image to clipboard", e -> {
+                    if (m.getValue()==null) return;
                     Clipboard clipboard = Clipboard.getSystemClipboard();
                     ClipboardContent content = new ClipboardContent();
-                                     content.putImage(i);
+                                     content.putImage(m.getValue());
                     clipboard.setContent(content);
-                 });
-                 
-        contextMenu.getItems().addAll(item1, item2);
-        contextMenu.setConsumeAutoHidingEvents(true);
-        return contextMenu;
-    }
+                })
+            );
+            return m;
+        },
+        (menu,thumbnail) -> {
+            Image i = thumbnail.getImage();
+            menu.setValue(i);
+            menu.getItems().forEach(m->m.setDisable(i==null));
+        }
+    );
     
-    private static ContextMenu buildFileCM(Thumbnail thumb) {
-        final ContextMenu contextMenu = new ContextMenu();
-
-        MenuItem item1 = new MenuItem("Browse location");
-                 item1.setOnAction(e -> {
-                     if(thumb.img_file==null) return;
-                     Enviroment.browse(thumb.img_file.toURI());
-                 });
-        MenuItem item2 = new MenuItem("Edit the image in editor");
-                 item2.setOnAction(e -> {
-                     if(thumb.img_file==null) return;
-                     Enviroment.edit(thumb.img_file);
-                 });
-        MenuItem item25 = new MenuItem("Fulscreen");
-                 item25.setOnAction(e -> {
-                     if(thumb.img_file==null) return;
-                    Widget c = WidgetManager.getFactory("Image").create();
-                    Window w = Window.create();
-                           w.setSizeAndLocationToInitial();
-                           w.show();
-                           w.setFullscreen(true);
-                           w.setContent(c.load());
-                    ((ImageDisplayFeature)c.getController()).showImage(thumb.img_file);
-                 });
-        MenuItem item3 = new MenuItem("Open image");
-                 item3.setOnAction(e -> {
-                     if(thumb.img_file==null) return;
-                     Enviroment.open(thumb.img_file);
-                 });
-        MenuItem item4 = new MenuItem("Delete the image from disc");
-                 item4.setOnAction(e -> {
-                     if(thumb.img_file==null) return;
-                     FileUtil.deleteFile(thumb.img_file);
-                 });
-        MenuItem item5 = new MenuItem("Save the image as ...");
-                 item5.setOnAction(e -> {
-                    File of = thumb.img_file;
-                    if (of==null) return;
-                    
-                    FileChooser fc = new FileChooser();
-                        fc.getExtensionFilters().addAll(ImageFileFormat.filter());
-                        fc.setTitle("Save image as...");
-                        fc.setInitialFileName(of.getName());
-                        fc.setInitialDirectory(App.getLocation());
-                    File nf = fc.showSaveDialog(App.getWindowOwner().getStage());
-                    if(nf==null) return;
-                    try {
-                        Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException ex) {
-                        Log.info("File export failed.");
-                    }
-                 });
-                 
-        contextMenu.getItems().addAll(item1, item2, item25, item3, item4, item5);
-        contextMenu.setConsumeAutoHidingEvents(true);
-        return contextMenu;
-    } 
+    private static final SingleInstance<ContentContextMenu<File>,Thumbnail> file_context_menu = new SingleInstance<>(
+        () -> {
+            ContentContextMenu<File> m = new ContentContextMenu<>();
+            m.getItems().addAll(
+                createmenuItem("Browse location", e -> {
+                    Enviroment.browse(m.getValue().toURI());
+                }),
+                createmenuItem("Edit the image in editor", e -> {
+                    Enviroment.edit(m.getValue());
+                }),
+                createmenuItem("Fulscreen", e -> {
+                   Widget c = WidgetManager.getFactory("Image").create();
+                   Window w = Window.create();
+                          w.setSizeAndLocationToInitial();
+                          w.show();
+                          w.setFullscreen(true);
+                          w.setContent(c.load());
+                   ((ImageDisplayFeature)c.getController()).showImage(m.getValue());
+                }),
+                createmenuItem("Open image", e -> {
+                    Enviroment.open(m.getValue());
+                }),
+                createmenuItem("Delete the image from disc", e -> {
+                    FileUtil.deleteFile(m.getValue());
+                }),
+                createmenuItem("Save the image as ...", e -> {
+                   File of = m.getValue();
+                   FileChooser fc = new FileChooser();
+                       fc.getExtensionFilters().addAll(ImageFileFormat.filter());
+                       fc.setTitle("Save image as...");
+                       fc.setInitialFileName(of.getName());
+                       fc.setInitialDirectory(App.getLocation());
+                       
+                   File nf = fc.showSaveDialog(App.getWindowOwner().getStage());
+                   if(nf==null) return;
+                   try {
+                       Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                   } catch (IOException ex) {
+                       Log.info("File export failed.");
+                   }
+                })
+            );
+            return m;
+        },
+        (menu,thumbnail) -> {
+            File f = thumbnail.getFile();
+            menu.setValue(f);
+            menu.getItems().forEach(i->i.setDisable(f==null));
+        }
+    );
+    
+    private final EventHandler<MouseEvent> contextMenuHandler = e -> {
+        if(e.getButton()==SECONDARY) {
+            // decide mode (image vs file), build lazily & show where requested
+            if (img_file != null)
+                file_context_menu.get(this).show(root,e);
+            else if (getImage() !=null)
+                img_context_menu.get(this).show(root,e);
+            e.consume();
+        }
+    };
+    
 }

@@ -4,7 +4,6 @@
  */
 package utilities;
 
-import utilities.Parser.File.FileUtil;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.awt.Dimension;
@@ -56,6 +55,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import main.App;
 import org.jaudiotagger.tag.images.Artwork;
+import utilities.Parser.File.FileUtil;
 import utilities.functional.functor.BiCallback;
 
 /**
@@ -257,26 +257,6 @@ public interface Util {
      */
     public static String capitalizeStrong(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
-    }
-    
-    /**
-     * Anytime you are asked for STRING REPRESENTATION OF THE FILE you want to 
-     * use this method if you are not sure what to do.
-     * Converts file to String url. Use to safely get file's url as String from
-     * file in a File object.
-     *
-     * This method is identical to the following codes:
-     * File f.toURI().toString();
-     * File f.toURI().toURL().toString();
-     * 
-     * The above is not the same as File.toString() !
-     * 
-     * For example use when creating Image from File.
-     * @param f
-     * @return String representation of file's url.
-     */
-    public static String FileToUrlString(File f) {
-        return f.toURI().toString();
     }
     
     /**

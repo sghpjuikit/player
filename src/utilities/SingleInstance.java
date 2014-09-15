@@ -26,7 +26,7 @@ import utilities.functional.functor.BiProcedure;
  *
  * @author Plutonium_
  */
-public class SingleInstance<T,R> {
+public class SingleInstance<T,R> implements Closable {
     
     private T instance;
     private final Supplier<T> builder;
@@ -86,13 +86,9 @@ public class SingleInstance<T,R> {
         return instance == null;
     }
     
-    /**
-     * Sets instance to null.
-     * <p>
-     * Might call this when instance consumes lots of memory and is not expected
-     * to be called soon or ever.
-     */
-    public void setNull() {
+    /** {@inheritDoc} */
+    @Override
+    public void close() {
         instance = null;
     }
 }

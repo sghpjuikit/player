@@ -21,7 +21,7 @@ import utilities.functional.functor.UnProcedure;
  */
 public class MoodTextField extends ItemTextField<String> {
     
-    private final UnProcedure<String> pickMood = this::setItem;
+    private final UnProcedure<String> pickMood = this::setValue;
     private PopOver.NodeCentricPos pos = PopOver.NodeCentricPos.RightCenter;
 
     public MoodTextField() {
@@ -62,7 +62,7 @@ public class MoodTextField extends ItemTextField<String> {
         MoodPicker mood_picker = getCM();
         ContextPopOver pp = new ContextPopOver(mood_picker.getNode());
         mood_picker.setOnSelect(mood -> {
-            setItem(mood);
+            setValue(mood);
             pp.hide();
         });
         pp.show(this, pos);

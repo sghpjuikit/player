@@ -6,7 +6,6 @@
 
 package GUI.ItemHolders.ItemTextFields;
 
-import GUI.ItemHolders.ItemHolder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
 import utilities.Parser.StringParser;
+import utilities.access.AccessibleValue;
 import utilities.functional.functor.BiProcedure;
 
 /**
@@ -48,9 +48,9 @@ import utilities.functional.functor.BiProcedure;
  * <p>
  * @author Plutonium_
  */
-public abstract class ItemTextField<T> extends CustomTextField implements ItemHolder<T>{
+public abstract class ItemTextField<T> extends CustomTextField implements AccessibleValue<T> {
     
-    T item;
+    T v;
     private Class parser_class;
     private BiProcedure<T,T> onItemChange;
     private Callback<T, String> valueFactory;
@@ -92,14 +92,15 @@ public abstract class ItemTextField<T> extends CustomTextField implements ItemHo
      * Sets item for this text field. Sets text and prompt text according to
      * provided implementation. The item change event is fired.
      */
-    public void setItem(T newItem) {
-         if(newItem!=null) {
-             T oldItem = item;
-             this.item = newItem;
-             String text = valueFactory.call(newItem);    // use factory to convert
+    @Override
+    public void setValue(T val) {
+         if(val!=null) {
+             T oldItem = v;
+             this.v = val;
+             String text = valueFactory.call(val);    // use factory to convert
              setText(text);
              setPromptText(text);
-             if(onItemChange!=null) onItemChange.accept(oldItem,newItem);
+             if(onItemChange!=null) onItemChange.accept(oldItem,val);
          }
     }
     
@@ -112,8 +113,8 @@ public abstract class ItemTextField<T> extends CustomTextField implements ItemHo
 
     /** @return current value displayed in this text field. */
     @Override
-    public T getItem() {
-        return item;
+    public T getValue() {
+        return v;
     }
     
     /**

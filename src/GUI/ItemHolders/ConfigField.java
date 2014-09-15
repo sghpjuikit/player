@@ -58,7 +58,7 @@ import utilities.Util;
  *
  * @author uranium
  */
-abstract public class ConfigField<T> implements ItemHolder<T> {
+abstract public class ConfigField<T> {
     private final Label label = new Label();
     private final HBox box = new HBox();
     final Config<T> config;
@@ -78,7 +78,7 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
         // display default button when hovered for certain time
         box.addEventFilter(MOUSE_ENTERED, e -> {
             // wait delay
-            FxTimer.run(Duration.millis(270), () -> {
+            FxTimer.run(270, () -> {
                 // no need to do anything if hover ended
                 if(box.isHover()) {
                     // lazily build the button when requested
@@ -171,7 +171,6 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
      * 
      * @return 
      */
-    @Override
     public abstract T getItem();
     
     /**
@@ -693,10 +692,10 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
             return txtF;
         }
         @Override public Font getItem() {
-            return txtF.getItem();
+            return txtF.getValue();
         }
         @Override public void refreshItem() {
-            txtF.setItem(config.getValue());
+            txtF.setValue(config.getValue());
         }
     }
     
@@ -719,10 +718,10 @@ abstract public class ConfigField<T> implements ItemHolder<T> {
             return txtF;
         }
         @Override public File getItem() {
-            return txtF.getItem();
+            return txtF.getValue();
         }
         @Override public void refreshItem() {
-            txtF.setItem(config.getValue());
+            txtF.setValue(config.getValue());
         }
     }
 }  

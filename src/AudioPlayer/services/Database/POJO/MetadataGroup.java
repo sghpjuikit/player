@@ -11,6 +11,7 @@ import AudioPlayer.tagging.Metadata;
 import PseudoObjects.FormattedDuration;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import utilities.Util;
+import utilities.access.TypedValue;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -77,7 +78,7 @@ public final class MetadataGroup {
         throw new AssertionError();
     }
     
-    public static enum Field {
+    public static enum Field implements TypedValue{
         VALUE,
         ITEMS,
         ALBUMS,
@@ -95,6 +96,8 @@ public final class MetadataGroup {
                     : Util.capitalizeStrong(super.toString());
         }
         
+        /** {@inheritDoc} */
+        @Override
         public Class getType() {
             switch(this) {
                 case VALUE : return Object.class;
@@ -105,6 +108,7 @@ public final class MetadataGroup {
             }
             throw new AssertionError();
         }
+        
         public Class getType(Metadata.Field field) {
             switch(this) {
                 case VALUE : return field.getType();

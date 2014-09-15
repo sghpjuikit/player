@@ -105,14 +105,21 @@ public enum AudioFileFormat {
      * @return 
      */
     public static AudioFileFormat of(URI uri) {
-        AudioFileFormat type = UNKNOWN;
-        for(AudioFileFormat f: values())
-            if (uri.getPath().endsWith(f.toString()))
-                type = f;
-        return type;
-    }    
+        return of(uri.getPath());
+    }
     
-/******************************************************************************/
+    /**
+     * Labels file as one of the audio file types the application recognizes.
+     * @param uri
+     * @return 
+     */
+    public static AudioFileFormat of(String path) {
+        String suffix = FileUtil.getSuffix(path);
+        for(AudioFileFormat f: values())
+            if (suffix.equals(f.toString()))
+                return f;
+        return UNKNOWN;
+    }    
     
 /******************************************************************************/
     

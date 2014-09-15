@@ -11,6 +11,7 @@ import AudioPlayer.tagging.Metadata;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.TableContextMenuInstance;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
@@ -51,9 +52,9 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import utilities.FxTimer;
 import utilities.Parser.File.Enviroment;
-import utilities.SingleInstance;
 import utilities.TODO;
 import utilities.Util;
+import static utilities.Util.createmenuItem;
 
 /**
  * Playlist table GUI component.
@@ -274,19 +275,19 @@ public final class PlaylistTable {
         });
         // handle click
         table.setOnMouseClicked( e -> {
-            if (e.getButton() == PRIMARY) {     // play item on doubleclick
+            // play item on doubleclick
+            if (e.getButton() == PRIMARY) {     
                 if (e.getClickCount() == 2) {
                     int i = table.getSelectionModel().getSelectedIndex();
                     int real_i = itemsF.getSourceIndex(i);
                     PlaylistManager.playItem(real_i);
-                    e.consume();
                 }           
             } else
-            if (e.getButton() == SECONDARY)     // show contextmenu
-                if (!PlaylistManager.isEmpty()) {
-                    contxt_menu.get(table).show(table, e.getScreenX(), e.getScreenY());
-                    e.consume();
-                }
+            // show contextmenu
+            if (e.getButton() == SECONDARY)
+                contxt_menu.show(table, e);
+            
+            e.consume();
         });
         
         // move items on drag
@@ -451,7 +452,7 @@ public final class PlaylistTable {
         // unfortunately this doesnt work, it requires delay
         // table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
         FxTimer.run(Duration.millis(100), () -> {
-                table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
+            table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
         });
     };
     
@@ -510,47 +511,49 @@ public final class PlaylistTable {
     }
     
     public void sortByName() {
-//        itemsS.comparatorProperty().unbind();
+        itemsS.comparatorProperty().unbind();
 //        table.setItems(FXCollections.emptyObservableList());
 //        
-//        itemsS.setComparator(PlaylistItem.getComparatorName());
+        itemsS.setComparator(PlaylistItem.getComparatorName());
 ////        FXCollections.sort(itemsS, PlaylistItem.getComparatorName());
 //        itemsS.sort(PlaylistItem.getComparatorName());
 //        
 //        table.setItems(itemsS);
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        columnName.setComparator((o1,o2) -> 
-                PlaylistItem.getComparatorArtist().compare(
-                        new PlaylistItem(null, o1, last), 
-                        new PlaylistItem(null, o2, last)));
-        columnName.setSortType(TableColumn.SortType.ASCENDING);
-        table.sort();
+        
+        
+//        columnName.setComparator((o1,o2) -> 
+//                PlaylistItem.getComparatorArtist().compare(
+//                        new PlaylistItem(null, o1, last), 
+//                        new PlaylistItem(null, o2, last)));
+//        columnName.setSortType(TableColumn.SortType.ASCENDING);
+//        table.sort();
         
 //        FXCollections.sort(itemsF, PlaylistItem.getComparatorName());
     }
     public void sortByLength() {        
-//        itemsS.comparatorProperty().unbind();
-//        itemsS.setComparator(PlaylistItem.getComparatorTime());
+        itemsS.comparatorProperty().unbind();
+        itemsS.setComparator(PlaylistItem.getComparatorTime());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
         
 //        FXCollections.sort(itemsS, PlaylistItem.getComparatorTime());
     }
     public void sortByLocation() {
-//        itemsS.comparatorProperty().unbind();
+        itemsS.comparatorProperty().unbind();
         itemsS.setComparator(PlaylistItem.getComparatorURI());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
         
 //        FXCollections.sort(itemsS, PlaylistItem.getComparatorURI());
     }
     public void sortByArtist() {
-//        itemsS.comparatorProperty().unbind();
+        itemsS.comparatorProperty().unbind();
         itemsS.setComparator(PlaylistItem.getComparatorArtist());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
         
 //        FXCollections.sort(itemsS, PlaylistItem.getComparatorArtist());
     }
     public void sortByTitle() {
-//        itemsS.comparatorProperty().unbind();
+        itemsS.comparatorProperty().unbind();
         itemsS.setComparator(PlaylistItem.getComparatorTitle());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
 //        
@@ -645,52 +648,52 @@ public final class PlaylistTable {
     
 /****************************** CONTEXT MENU **********************************/
 
-    private static final SingleInstance<ContentContextMenu<List<PlaylistItem>>,TableView<PlaylistItem>> contxt_menu = new SingleInstance<>(
+    private static final TableContextMenuInstance<PlaylistItem> contxt_menu = new TableContextMenuInstance<> (
         () -> {
             ContentContextMenu<List<PlaylistItem>> m = new ContentContextMenu();
             m.getItems().addAll(
-                Util.createmenuItem("Play items", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    PlaylistManager.playItem(items.get(0));
+                createmenuItem("Play items", e -> {
+                    PlaylistManager.playItem(m.getValue().get(0));
                 }),
-                Util.createmenuItem("Remove items", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    PlaylistManager.removeItems(items);
+                createmenuItem("Remove items", e -> {
+                    PlaylistManager.removeItems(m.getValue());
                 }),
-                Util.createmenuItem("Edit the item/s in tag editor", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    WidgetManager.use(TaggingFeature.class,NOLAYOUT, w->w.read(items));
+                createmenuItem("Edit the item/s in tag editor", e -> {
+                    WidgetManager.use(TaggingFeature.class,NOLAYOUT, w->w.read(m.getValue()));
                 }),
-                Util.createmenuItem("Crop items", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    PlaylistManager.retainItems(items);
+                createmenuItem("Crop items", e -> {
+                    PlaylistManager.retainItems(m.getValue());
                 }),
-                Util.createmenuItem("Duplicate items as group", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    PlaylistManager.duplicateItemsAsGroup(items);
+                createmenuItem("Duplicate items as group", e -> {
+                    PlaylistManager.duplicateItemsAsGroup(m.getValue());
                 }),
-                Util.createmenuItem("Duplicate items individually", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    PlaylistManager.duplicateItemsByOne(items);
+                createmenuItem("Duplicate items individually", e -> {
+                    PlaylistManager.duplicateItemsByOne(m.getValue());
                 }),
-                Util.createmenuItem("Explore items's directory", e -> {
-                    List<PlaylistItem> items = m.getItem();
-                    List<File> files = items.stream()
+                createmenuItem("Explore items's directory", e -> {
+                    List<File> files = m.getValue().stream()
                             .filter(Item::isFileBased)
                             .map(Item::getLocation)
                             .collect(Collectors.toList());
                     Enviroment.browse(files,true);
                 }),
-                Util.createmenuItem("Add items to library", e -> {
-                    List<Metadata> items = m.getItem().stream()
+                createmenuItem("Add items to library", e -> {
+                    List<Metadata> items = m.getValue().stream()
                             .map(Item::toMetadata)
                             .collect(Collectors.toList());
                     DB.addItems(items);
                 })
             );
-            m.setConsumeAutoHidingEvents(false);
             return m;
         },
-        (menu,table) -> menu.setItem(Util.copySelectedItems(table))
+        (menu,table) -> {
+            List<PlaylistItem> items = Util.copySelectedItems(table);
+            menu.setValue(items);
+            if(items.isEmpty()) {
+                menu.getItems().forEach(i->i.setDisable(true));
+            } else {
+                menu.getItems().forEach(i->i.setDisable(false));
+            }
+        }
     );
 }

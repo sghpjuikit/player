@@ -6,6 +6,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.TableContextMenuInstance;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
@@ -21,32 +22,25 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
-import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
-import static javafx.scene.input.KeyCode.LEFT;
-import static javafx.scene.input.KeyCode.RIGHT;
-import javafx.scene.input.KeyEvent;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import static javafx.scene.input.ScrollEvent.SCROLL;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
 import utilities.Parser.File.Enviroment;
 import utilities.Util;
+import static utilities.Util.createmenuItem;
 
 
 /**
@@ -185,27 +179,6 @@ public class BookmarkerController extends FXMLController {
                     table.getSelectionModel().clearSelection();
         });
         
-        
-        table.setRowFactory( t -> {
-            TableRow<BookmarkItem> row = new TableRow<>();
-            // support dragging from table
-            row.setOnDragDetected( e -> {
-                if (e.getButton()==PRIMARY) {
-                    Dragboard db = table.startDragAndDrop(TransferMode.ANY);
-                    DragUtil.setItemList(table.getSelectionModel().getSelectedItems(), db);
-                    e.consume();
-                }
-            });
-            // show contextmenu on right click
-            row.setOnMouseClicked( e -> {
-                if (!row.isEmpty() && e.getButton().equals(SECONDARY)) {  
-                    if (!table.getSelectionModel().getSelectedItems().isEmpty())
-                        getCM(t).show(row, e.getScreenX(), e.getScreenY());
-                }
-            });
-            
-            return row;
-        });
         // support drag transfer
         table.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle drag drop
@@ -218,26 +191,25 @@ public class BookmarkerController extends FXMLController {
             }
         });
         
-        // scroll vertically when holding shift
-        table.addEventFilter(SCROLL, e -> {
-            if(e.isShiftDown()) {
-                if(e.getDeltaY()<0) {   // scroll to the right
-                    KeyEvent ev = new KeyEvent(KEY_PRESSED, RIGHT.getName(),
-                            RIGHT.getName(), RIGHT, false,false,false,false);
-                    Event.fireEvent(table, ev);
-                } else {                // scroll to the left
-                    KeyEvent ev = new KeyEvent(KEY_PRESSED, LEFT.getName(),
-                            LEFT.getName(), LEFT, false,false,false,false);
-                    Event.fireEvent(table, ev);
-                }
-                e.consume(); // consume so table wont scroll vertically
-            }
-        });
-        
         // maintain lock on column maintenance
         table.addEventFilter(MOUSE_PRESSED,e->column_resize_lock=true);
         table.addEventFilter(MOUSE_RELEASED,e->column_resize_lock=false);
         
+        // context menu
+        table.setOnMouseClicked( e -> {
+            if (e.getButton()==SECONDARY)
+                context_menu.show(table,e);
+        });
+        
+        // support dragging from table
+        table.setOnDragDetected( e -> {
+            if (e.getButton()==PRIMARY) {
+                Dragboard db = table.startDragAndDrop(TransferMode.ANY);
+                DragUtil.setItemList(Util.copySelectedItems(table), db);
+                e.consume();
+            }
+        });
+            
         // keep remembering column positions
         table.getColumns().addListener(colPosReader);
         
@@ -339,53 +311,40 @@ public class BookmarkerController extends FXMLController {
     
 /****************************** CONTEXT MENU **********************************/
     
-    private static ContentContextMenu<List<BookmarkItem>> cm;
-    
-    private static ContentContextMenu getCM(TableView<BookmarkItem> t) {
-        if(cm==null) cm = buildCM();
-        // note: we need to create a copy of the list to avoid modification
-        cm.setItem(new ArrayList(t.getSelectionModel().getSelectedItems()));
-        return cm;
-    }
-    
-    private static ContentContextMenu buildCM() {
-        final ContentContextMenu<List<BookmarkItem>> contextMenu = new ContentContextMenu();
-        
-        MenuItem item1 = new MenuItem("Add items to playlist");        
-                 item1.setOnAction(e -> {
-                     List<BookmarkItem> items = contextMenu.getItem();
+    private static final TableContextMenuInstance<BookmarkItem> context_menu = new TableContextMenuInstance<>(
+        () -> {
+            ContentContextMenu<List<BookmarkItem>> m = new ContentContextMenu();
+            m.getItems().addAll(
+                createmenuItem("Add items to playlist", e -> {
+                     List<BookmarkItem> items = m.getValue();
                      PlaylistManager.addItems(items);
-                 });
-        MenuItem item2 = new MenuItem("Add items to playlist & play");        
-                 item2.setOnAction(e -> {
-                     List<BookmarkItem> items = contextMenu.getItem();
-                     if(items.isEmpty()) return;
-                     int i = PlaylistManager.getSize();
-                     PlaylistManager.addItems(items);
-                     PlaylistManager.playItem(i);
-                 });
-        MenuItem item3 = new MenuItem("Unbookmark items");        
-                 item3.setOnAction(e -> {
-                     List<BookmarkItem> items = contextMenu.getItem();
-                     BookmarkManager.removeBookmarks(items);
-                 });
-        MenuItem item4 = new MenuItem("Edit the item/s in tag editor");        
-                 item4.setOnAction(e -> {
-                     List<BookmarkItem> items = contextMenu.getItem();
-                     WidgetManager.use(TaggingFeature.class,NOLAYOUT,w->w.read(items));
-                 });
-        MenuItem item5 = new MenuItem("Explore items's directory");        
-                 item5.setOnAction(e -> {
-                     List<BookmarkItem> items = contextMenu.getItem();
-                     List<File> files = items.stream()
-                             .filter(Item::isFileBased)
-                             .map(Item::getLocation)
-                             .collect(Collectors.toList());
-                     Enviroment.browse(files,true);
-                 });                 
-                 
-        contextMenu.getItems().addAll(item1, item2, item3, item4, item5);
-        contextMenu.setConsumeAutoHidingEvents(false);
-        return contextMenu;
-    }
+                 }),
+                createmenuItem("Add items to playlist & play", e -> {
+                    List<BookmarkItem> items = m.getValue();
+                    if(items.isEmpty()) return;
+                    int i = PlaylistManager.getSize();
+                    PlaylistManager.addItems(items);
+                    PlaylistManager.playItem(i);
+                }),
+                createmenuItem("Unbookmark items", e -> {
+                    List<BookmarkItem> items = m.getValue();
+                    BookmarkManager.removeBookmarks(items);
+                }),
+                createmenuItem("Edit the item/s in tag editor", e -> {
+                    List<BookmarkItem> items = m.getValue();
+                    WidgetManager.use(TaggingFeature.class,NOLAYOUT,w->w.read(items));
+                }),
+                createmenuItem("Explore items's directory", e -> {
+                    List<BookmarkItem> items = m.getValue();
+                    List<File> files = items.stream()
+                            .filter(Item::isFileBased)
+                            .map(Item::getLocation)
+                            .collect(Collectors.toList());
+                    Enviroment.browse(files,true);
+                })               
+            );
+            return m;
+        },
+        (menu,table) -> menu.setValue(Util.copySelectedItems(table))
+    );
 }

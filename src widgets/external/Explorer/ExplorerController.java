@@ -9,6 +9,7 @@ package Explorer;
 import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.TreeContextMenuInstance;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
@@ -47,7 +48,6 @@ import javafx.scene.shape.Rectangle;
 import main.App;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
-import utilities.SingleInstance;
 import static utilities.Util.createmenuItem;
 import utilities.access.Accessor;
 
@@ -62,6 +62,8 @@ import utilities.access.Accessor;
     howto = "Available actions:\n" +
             "    Double click file: Open file in native application\n" +
             "    Double click skin file: Apply skin on application\n" +
+            "    Double click widget file: Open widget\n" +
+            "    Right click: Open context menu\n" +
             "    Drag file from list : Starts drag & drop or copy\n" +
             "    Drag file from list + SHIFT : Starts drag & drop or move\n",
     notes = "",
@@ -88,7 +90,8 @@ public class ExplorerController extends FXMLController {
     });
     
     // non-applied configurables
-    @IsConfig(name = "Open files in application if possible", info = "Open files by this application if possible on doubleclick, rather than always use native OS application.")
+    @IsConfig(name = "Open files in application if possible", info = "Open files by this"
+            + " application if possible on doubleclick, rather than always use native OS application.")
     public boolean openInApp = true;
     
     @Override
@@ -99,22 +102,6 @@ public class ExplorerController extends FXMLController {
         
         // set value factory
         tree.setCellFactory( treeView -> new TreeCell<File>() {
-            {
-                setOnMouseClicked( e -> {
-                    if(e.getButton()==SECONDARY) {
-                        // open context menu
-                        if(!tree.getSelectionModel().isEmpty())
-                            contxt_menu.get(tree).show(root, e.getSceneX(), e.getScreenY());
-                    } else if (e.getButton()==PRIMARY) {
-                        // open the files
-                        if(e.getClickCount()==2) {
-                            File f = getItem();
-                            if(f!=null && (f.isFile() || Enviroment.isOpenableInApp(f)))
-                                Enviroment.openIn(f, openInApp);
-                        }
-                    }
-                });
-            }
             @Override
             protected void updateItem(File item, boolean empty) {
                 super.updateItem(item, empty);
@@ -130,6 +117,20 @@ public class ExplorerController extends FXMLController {
             }
         });
         
+        // context menu & open file
+        tree.setOnMouseClicked( e -> {
+            if (e.getButton()==PRIMARY) {
+                if(e.getClickCount()==2) {
+                    File f = tree.getSelectionModel().getSelectedItem().getValue();
+                    if(f!=null && (f.isFile() || Enviroment.isOpenableInApp(f)))
+                        Enviroment.openIn(f, openInApp);
+                }
+            } else
+            if(e.getButton()==SECONDARY) {
+                contxt_menu.show(tree, e);
+            }
+        });
+                
         // support drag from tree - add selected to clipboard/dragboard
         tree.setOnDragDetected( e -> {
             if (e.getButton()!=MouseButton.PRIMARY) return;
@@ -255,26 +256,26 @@ public class ExplorerController extends FXMLController {
     }
 /****************************** CONTEXT MENU **********************************/
     
-    private static final SingleInstance<ContentContextMenu<List<File>>,TreeView<File>> contxt_menu = new SingleInstance<>(
+    private static final TreeContextMenuInstance<File> contxt_menu = new TreeContextMenuInstance<File>(
         () -> {
             ContentContextMenu<List<File>> m = new ContentContextMenu<>();
             m.getItems().addAll(
                 createmenuItem("Open", e -> {
-                    Enviroment.open(m.getItem().get(0));
+                    Enviroment.open(m.getValue().get(0));
                 }),
                 createmenuItem("Open in-app", e -> {
-                    Enviroment.openIn(m.getItem(),true);
+                    Enviroment.openIn(m.getValue(),true);
                 }),
                 createmenuItem("Edit", e -> {
-                    Enviroment.edit(m.getItem().get(0));
+                    Enviroment.edit(m.getValue().get(0));
                 }),
                 createmenuItem("Copy", e -> {
                     ClipboardContent cc = new ClipboardContent();
-                    cc.put(DataFormat.FILES, m.getItem());
+                    cc.put(DataFormat.FILES, m.getValue());
                     Clipboard.getSystemClipboard().setContent(cc);
                 }),
                 createmenuItem("Explore in browser", e -> {
-                    Enviroment.browse(m.getItem(),true);
+                    Enviroment.browse(m.getValue(),true);
                 })
             );
             return m;
@@ -283,7 +284,7 @@ public class ExplorerController extends FXMLController {
             List<File> files = tree.getSelectionModel().getSelectedItems().stream()
                     .map(t->t.getValue())
                     .collect(Collectors.toList());
-            menu.setItem(files);
+            menu.setValue(files);
             
             if(files.isEmpty()) {
                 menu.getItems().forEach(i -> i.setDisable(true));

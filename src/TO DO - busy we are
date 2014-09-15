@@ -22,8 +22,7 @@
 - ALT+F4 closes windows separately instead whole app
 - press C to collapse layout containers easily - implement properly
 - '/n' character expands table row height, figure out how to disable that...
-- allow multiselection in library metadata group -> support multiple values in
-  AND filtering for query
+- support multiple values in AND filtering for query
 - library table cells sometimes invisible - not updated
 - library shortcuts
 - library remember value is Object field turn into Config with overriden getType

@@ -15,6 +15,7 @@ import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.TableContextMenuInstance;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -60,8 +61,8 @@ import utilities.FxTimer;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
 import static utilities.Parser.File.FileUtil.getCommonRoot;
-import utilities.SingleInstance;
 import utilities.Util;
+import static utilities.Util.createmenuItem;
 import utilities.access.Accessor;
 import utilities.functional.functor.BiProcedure;
 
@@ -129,15 +130,10 @@ public class LibraryController extends FXMLController {
             table.getColumns().add(c);
         }
         
-        // context menu hide/show
+        // context menu & play
         table.setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
-                if(e.getClickCount()==1) {
-                    // hide CM on left click
-                    ContentContextMenu cm = contxt_menu.get();
-                    if(cm!=null && cm.isShowing())
-                        cm.hide();
-                } else {
+                if(e.getClickCount()==2) {
                     Playlist p = new Playlist(table.getItems().stream()
                             .map(Metadata::toPlaylistItem)
                             .collect(Collectors.toList()));
@@ -145,10 +141,10 @@ public class LibraryController extends FXMLController {
                 }
             } else
             if(e.getButton()==SECONDARY)
-                // show CM on right click
-                contxt_menu.get(table).show(table, e.getScreenX(), e.getScreenY());
+                contxt_menu.show(table, e);
         });
-        // set key-induced actions
+        
+        // key actions
         table.setOnKeyReleased( e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
                 if(!table.getSelectionModel().isEmpty()) {
@@ -323,33 +319,33 @@ public class LibraryController extends FXMLController {
     
 /****************************** CONTEXT MENU **********************************/
     
-    private static final SingleInstance<ContentContextMenu<List<Metadata>>,TableView<Metadata>> contxt_menu = new SingleInstance<>(
+    private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
         () -> {
-            ContentContextMenu<List<Metadata>> contextMenu = new ContentContextMenu();
-            contextMenu.getItems().addAll(
-                Util.createmenuItem("Play items", e -> {                     
+            ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
+            m.getItems().addAll(
+                createmenuItem("Play items", e -> {                     
                     List<PlaylistItem> to_play = new ArrayList();
-                    contextMenu.getItem().stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
+                    m.getValue().stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
                 }),
-                Util.createmenuItem("Enqueue items", e -> {
-                    List<Metadata> items = contextMenu.getItem();
+                createmenuItem("Enqueue items", e -> {
+                    List<Metadata> items = m.getValue();
                     PlaylistManager.addItems(items);
                 }),
-                Util.createmenuItem("Update from file", e -> {
-                    List<Metadata> items = contextMenu.getItem();
+                createmenuItem("Update from file", e -> {
+                    List<Metadata> items = m.getValue();
                     DB.updateItemsFromFile(items);
                 }),
-                Util.createmenuItem("Remove from library", e -> {
-                    List<Metadata> items = contextMenu.getItem();
+                createmenuItem("Remove from library", e -> {
+                    List<Metadata> items = m.getValue();
                     DB.removeItems(items);
                 }),
-                Util.createmenuItem("Edit the item/s in tag editor", e -> {
-                    List<Metadata> items = contextMenu.getItem();
+                createmenuItem("Edit the item/s in tag editor", e -> {
+                    List<Metadata> items = m.getValue();
                     WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(items));
                 }),
-                Util.createmenuItem("Explore items's directory", e -> {
-                    List<Metadata> items = contextMenu.getItem();
+                createmenuItem("Explore items's directory", e -> {
+                    List<Metadata> items = m.getValue();
                     List<File> files = items.stream()
                             .filter(Item::isFileBased)
                             .map(Item::getLocation)
@@ -357,9 +353,8 @@ public class LibraryController extends FXMLController {
                     Enviroment.browse(files,true);
                 })
                );
-            contextMenu.setConsumeAutoHidingEvents(false);
-            return contextMenu;
+            return m;
         },
-        (menu,table) -> menu.setItem(Util.copySelectedItems(table))
+        (menu,table) -> menu.setValue(Util.copySelectedItems(table))
     );
 }

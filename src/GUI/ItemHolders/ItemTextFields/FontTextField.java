@@ -26,8 +26,8 @@ public class FontTextField extends ItemTextField<Font> {
     
     @Override
     void onDialogAction() {
-        Font tmp = Dialogs.create().owner(getScene().getWindow()).showFontSelector(item).orElse(null);
-        setItem(tmp);
+        Font tmp = Dialogs.create().owner(getScene().getWindow()).showFontSelector(v).orElse(null);
+        setValue(tmp);
     }
 
     @Override

@@ -109,9 +109,9 @@ public class DB {
 
                 if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
 
-                String f = (values.get(0) instanceof String)
-                    ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'"
-                    : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString().replaceAll("'", "''");
+                String f = field.isTypeNumber()
+                    ? " WHERE p."+field.name().toLowerCase() + " = " + values.get(0).toString().replaceAll("'", "''")
+                    : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'";
                 filter.setValue(filter.getValue() + f);
             });
             
@@ -139,9 +139,9 @@ public class DB {
 
             if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
 
-            String f = (values.get(0) instanceof String)
-                ? " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'"
-                : " WHERE p."+field.name().toLowerCase() + " IS " + values.get(0).toString();
+            String f = field.isTypeNumber()
+                ? " WHERE p."+field.name().toLowerCase() + " = " + values.get(0).toString()
+                : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'";
             filter.setValue(filter.getValue() + f);
         });
 

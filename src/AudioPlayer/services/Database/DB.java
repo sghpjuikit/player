@@ -7,7 +7,7 @@
 package AudioPlayer.services.Database;
 
 import AudioPlayer.playlist.Item;
-import AudioPlayer.services.Database.POJO.MetadataGroup;
+import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;

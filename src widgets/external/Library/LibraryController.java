@@ -16,7 +16,7 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.FilterGenerator;
+import GUI.objects.FilterGenerator.TableFilterGenerator;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -60,6 +60,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import org.reactfx.Subscription;
@@ -98,20 +99,21 @@ import utilities.functional.functor.BiProcedure;
             "    Click column + SHIFT : Sorts by multiple columns\n" +
             "    Menu bar : Opens additional actions\n",
     notes = "",
-    version = "0.3",
+    version = "0.6",
     year = "2014",
     group = LIBRARY
 )
 public class LibraryController extends FXMLController {
     
     private @FXML AnchorPane root;
+    private @FXML VBox content;
     private final Label progressL = new Label();
     private Subscription dbMonitor;
-    private final FilterGenerator<Metadata.Field> searchBox = new FilterGenerator();
     private TableView<Metadata> table = new TableView();
     private final ObservableList<Metadata> allitems = FXCollections.observableArrayList();
     private final FilteredList<Metadata> filtereditems = new FilteredList(allitems);
     private final SortedList<Metadata> sortedItems = new SortedList<>(filtereditems);
+    private final TableFilterGenerator<Metadata,Metadata.Field> searchBox = new TableFilterGenerator(filtereditems);
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -119,13 +121,13 @@ public class LibraryController extends FXMLController {
     
     @Override
     public void init() {
-        root.getChildren().add(table);
-        Util.setAPAnchors(table, 0,0,30,0);
-        
-        table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setItems(sortedItems);
         sortedItems.comparatorProperty().bind(table.comparatorProperty());
+        
+        searchBox.setData(Arrays.asList(Metadata.Field.values()).stream()
+                .map(mf->Tuples.t(mf.toStringEnum(),mf.getType(),mf)).collect(Collectors.toList()));  
         
         // add index column
         TableColumn indexColumn = Util.createIndexColumn("#");
@@ -166,13 +168,11 @@ public class LibraryController extends FXMLController {
                             .collect(Collectors.toList()));
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
-            } else
-            if (e.getCode() == DELETE) {    // delete selected
-                DB.removeItems(table.getSelectionModel().getSelectedItems());
-            } else
-            if (e.getCode() == ESCAPE) {    // deselect
-                table.getSelectionModel().clearSelection();
             }
+            else if (e.getCode() == DELETE)    // delete selected
+                DB.removeItems(table.getSelectionModel().getSelectedItems());
+            else if (e.getCode() == ESCAPE)    // deselect
+                table.getSelectionModel().clearSelection();
         });
         
         // handle drag from - copy selected items
@@ -224,9 +224,14 @@ public class LibraryController extends FXMLController {
              controls.setAlignment(Pos.CENTER_LEFT);
              controls.setPadding(new Insets(2));
         
-        root.getChildren().add(controls);
-        AnchorPane.setBottomAnchor(controls, 0d);
-        AnchorPane.setLeftAnchor(controls, 0d);
+        addMenu.setText("");
+        remMenu.setText("");
+        AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
+        AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
+        
+        
+        content.getChildren().addAll(searchBox, table, controls);
+
         
         // listen for database changes to refresh library
         dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
@@ -234,26 +239,6 @@ public class LibraryController extends FXMLController {
             changeField.setValue(field); // this causes reloading of the data
             refresh();
         });
-        
-        
-        
-        addMenu.setText("");
-        remMenu.setText("");
-        AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
-        AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
-        
-        
-        searchBox.setPrefHeight(25);
-        root.getChildren().add(searchBox);
-        AnchorPane.setTopAnchor(searchBox, 0d);
-        AnchorPane.setRightAnchor(searchBox, 0d);
-        AnchorPane.setLeftAnchor(searchBox, 0d);
-        AnchorPane.setTopAnchor(table, 25d);
-        
-        
-        searchBox.setOnFilterChange( (f,mf) -> filtereditems.setPredicate(m -> f.test(m.getField(mf))));
-        searchBox.setData(Arrays.asList(Metadata.Field.values()).stream()
-                .map(mf->Tuples.t(mf.toString(),mf.getType(),mf)).collect(Collectors.toList()));
     }
     
     @IsConfig(editable = false)

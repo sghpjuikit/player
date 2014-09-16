@@ -5,16 +5,18 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.Database.POJO.MetadataGroup;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
+import AudioPlayer.tagging.MetadataGroup;
 import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.FilterGenerator;
+import GUI.objects.FilterGenerator.TableFilterGenerator;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
+import static Layout.Widgets.Widget.Group.LIBRARY;
+import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.util.ArrayList;
@@ -31,10 +33,12 @@ import javafx.fxml.FXML;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import org.reactfx.Subscription;
 import org.reactfx.util.Tuples;
 import utilities.FxTimer;
@@ -46,41 +50,39 @@ import utilities.access.Accessor;
  *
  * @author Plutonium_
  */
-//@WidgetInfo(
-//    author = "Martin Polakovic",
-//    programmer = "Martin Polakovic",
-//    name = "Library",
-//    description = "Provides access to database.",
-//    howto = "Available actions:\n" +
-//            "    Item left click : Selects item\n" +
-//            "    Item right click : Opens context menu\n" +
-//            // not yet implemented
-////            "    Item double click : Plays item\n" +
-////            "    Item drag : Moves item within playlist\n" +
-////            "    Item drag + CTRL : Activates Drag&Drop\n" +
-////            "    Press ENTER : Plays item\n" +
-////            "    Press ESC : Clear selection & filter\n" +
-////            "    Type : Searches for item - applies filter\n" +
-//            "    Scroll : Scroll table vertically\n" +
-//            "    Scroll + SHIFT : Scroll table horizontally\n" +
-//            "    Drag column : Changes column order\n" +
-//            "    Click column : Changes sort order - ascending,\n" +
-//            "                   descending, none\n" +
-//            "    Click column + SHIFT : Sorts by multiple columns\n" +
-//            "    Menu bar : Opens additional actions\n",
-//    notes = "",
-//    version = "0.1",
-//    year = "2014",
-//    group = LIBRARY
-//)
+@Info(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Library",
+    description = "Provides access to database.",
+    howto = "Available actions:\n" +
+            "    Item left click : Selects item\n" +
+            "    Item right click : Opens context menu\n" +
+            "    Item double click : Plays item\n" +
+//            "    Item drag : \n" +
+            "    Press ENTER : Plays item\n" +
+            "    Press ESC : Clear selection & filter\n" +
+//            "    Type : Searches for item - applies filter\n" +
+            "    Scroll : Scroll table vertically\n" +
+            "    Scroll + SHIFT : Scroll table horizontally\n" +
+            "    Drag column : Changes column order\n" +
+            "    Click column : Changes sort order - ascending,\n" +
+            "                   descending, none\n" +
+            "    Click column + SHIFT : Sorts by multiple columns\n",
+    notes = "",
+    version = "0.6",
+    year = "2014",
+    group = LIBRARY
+)
 public class LibraryViewController extends FXMLController {
     
     private @FXML AnchorPane root;
-    private final FilterGenerator<MetadataGroup.Field> searchBox = new FilterGenerator();
+    private @FXML VBox content;
     private final TableView<MetadataGroup> table = new TableView();
     private final ObservableList<MetadataGroup> allitems = FXCollections.observableArrayList();
     private final FilteredList<MetadataGroup> filtereditems = new FilteredList(allitems);
     private final SortedList<MetadataGroup> sortedItems = new SortedList<>(filtereditems);
+    private final TableFilterGenerator<MetadataGroup,MetadataGroup.Field> searchBox = new TableFilterGenerator(filtereditems);
     private Subscription dbMonitor;
     
     // configurables
@@ -118,20 +120,13 @@ public class LibraryViewController extends FXMLController {
         });
         
         
-        searchBox.setOnFilterChange( (f,mgf) -> filtereditems.setPredicate(mg -> f.test(mg.getField(mgf))));
         searchBox.setData(Arrays.asList(MetadataGroup.Field.values()).stream()
                 .map(mgf->Tuples.t(mgf.toString(v),mgf.getType(v),mgf)).collect(Collectors.toList()));
-    });
-    
-    public final Accessor<MetadataGroup.Field> columnFilter = new Accessor<>(MetadataGroup.Field.VALUE, v -> {
-        
-        searchBox.setClass(v.getType(fieldFilter.getValue()));
     });
 
     @Override
     public void init() {
-        root.getChildren().add(table);
-        Util.setAPAnchors(table, 25,0,0,0);
+        content.getChildren().addAll(searchBox, table);
         
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
@@ -152,10 +147,10 @@ public class LibraryViewController extends FXMLController {
         
         // key actions
         table.setOnKeyReleased( e -> {
-            if (e.getCode() == ESCAPE) {    // deselect
+            if (e.getCode() == ENTER)     // play first of the selected
+                play(table.getSelectionModel().getSelectedItems());
+            else if (e.getCode() == ESCAPE)    // deselect
                 table.getSelectionModel().clearSelection();
-                e.consume();
-            }
         });
         
         // listen for database changes to refresh library
@@ -168,18 +163,11 @@ public class LibraryViewController extends FXMLController {
         
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
-                
-        searchBox.setPrefHeight(25);
-        root.getChildren().add(searchBox);
-        AnchorPane.setTopAnchor(searchBox, 0d);
-        AnchorPane.setRightAnchor(searchBox, 0d);
-        AnchorPane.setLeftAnchor(searchBox, 0d);
     }
 
     @Override
     public void refresh() {
         fieldFilter.applyValue();
-        columnFilter.applyValue();
     }
 
     @Override
@@ -191,33 +179,17 @@ public class LibraryViewController extends FXMLController {
     
 /******************************** PUBLIC API **********************************/
     
-    int id = 1;
-    int listening_to = 0;
-    
-    
-    
-    
+/******************************** CONTEXT MENU ********************************/
     
     private static final TableContextMenuInstance<MetadataGroup> contxt_menu = new TableContextMenuInstance<>(
         () -> {
             ContentContextMenu<List<MetadataGroup>> m = new ContentContextMenu();
             m.getItems().addAll(
-                createmenuItem("Play items", e -> {                     
-                    play(m.getValue());
-                }),
-                createmenuItem("Enqueue items", e -> {
-                    PlaylistManager.addItems(dbFetch(m.getValue()));
-                }),
-                createmenuItem("Update from file", e -> {
-                    DB.updateItemsFromFile(dbFetch(m.getValue()));
-                }),
-                createmenuItem("Remove from library", e -> {
-                    DB.removeItems(dbFetch(m.getValue()));
-                }),
-                createmenuItem("Edit the item/s in tag editor", e -> {
-                    WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(dbFetch(m.getValue())));
-                })
-               );
+                createmenuItem("Play items", e -> play(m.getValue())),
+                createmenuItem("Enqueue items", e -> PlaylistManager.addItems(dbFetch(m.getValue()))),
+                createmenuItem("Update from file", e -> DB.updateItemsFromFile(dbFetch(m.getValue()))),
+                createmenuItem("Remove from library", e -> DB.removeItems(dbFetch(m.getValue()))),
+                createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(dbFetch(m.getValue())))));
             return m;
         },
         (menu,table) -> menu.setValue(Util.copySelectedItems(table))
@@ -227,6 +199,7 @@ public class LibraryViewController extends FXMLController {
         return DB.getAllItemsWhere(filters.get(0).getField(), filters.get(0).getValue());
     }
     private static void play(List<MetadataGroup> filters) {
+        if(filters.isEmpty()) return;
         List<PlaylistItem> to_play = new ArrayList();
         dbFetch(filters).stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
         PlaylistManager.playPlaylist(new Playlist(to_play));

@@ -4,14 +4,14 @@
  * and open the template in the editor.
  */
 
-package AudioPlayer.services.Database.POJO;
+package AudioPlayer.tagging;
 
-import AudioPlayer.tagging.FileSize;
-import AudioPlayer.tagging.Metadata;
 import PseudoObjects.FormattedDuration;
+import java.util.HashMap;
+import java.util.Map;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import utilities.Util;
-import utilities.access.TypedValue;
+import utilities.access.FieldValue.FieldEnum;
+import utilities.access.FieldValue.FieldedValue;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -26,7 +26,7 @@ import utilities.access.TypedValue;
  * @author Plutonium_
  */
 @Immutable
-public final class MetadataGroup {
+public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataGroup.Field> {
     private final Metadata.Field field;
     private final Object value;
     private final long items;
@@ -67,7 +67,9 @@ public final class MetadataGroup {
         return new FileSize(size);
     }
     
-    public Object getField(MetadataGroup.Field field) {
+    /** {@inheritDoc} */
+    @Override
+    public Object getField(Field field) {
         switch(field) {
             case VALUE : return getValue();
             case ITEMS : return getItemCount(); 
@@ -77,8 +79,18 @@ public final class MetadataGroup {
         }
         throw new AssertionError();
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<MetadataGroup.Field, Object> getFields() {
+        Map<Field,Object> m = new HashMap();
+        for(Field f : Field.values()) {
+            m.put(f, getField(f));
+        }
+        return m;
+    }
     
-    public static enum Field implements TypedValue{
+    public static enum Field implements FieldEnum<MetadataGroup> {
         VALUE,
         ITEMS,
         ALBUMS,
@@ -86,14 +98,11 @@ public final class MetadataGroup {
         SIZE;
         
         public String toString(MetadataGroup group) {
-            return this==VALUE 
-                    ? group.getField().toString()
-                    : Util.capitalizeStrong(super.toString());
+            return this==VALUE ? group.getField().toStringEnum() : toStringEnum();
         }
+        
         public String toString(Metadata.Field field) {
-            return this==VALUE 
-                    ? Util.capitalizeStrong(field.toString())
-                    : Util.capitalizeStrong(super.toString());
+            return this==VALUE ? field.toStringEnum() : toStringEnum();
         }
         
         /** {@inheritDoc} */

@@ -21,9 +21,10 @@
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
 - press C to collapse layout containers easily - implement properly
-- '/n' character expands table row height, figure out how to disable that...
+- '/n' character expands table row height, figure out how to disable that...    (still an issue ?)
 - support multiple values in AND filtering for query
-- library table cells sometimes invisible - not updated
+  well, now that FilterGenerator is running, does filtering through DB even
+  make sense?
 - library shortcuts
 - library remember value is Object field turn into Config with overriden getType
   that gets the type from the field type config, or unify the two into one
@@ -43,10 +44,11 @@
 - improve mutation of other context fields - change texts when number of selected items =1, block menu actions, etc...
 - explorer graphics support css skinning
 - playcount not working as library filter, make sure all fields work
-- fix playlist table sorting
 - consumer clicks on table headers to prevent conext menus
-- clean up and finish filtering support
-- add filtering for Library, show/hide on typing/ESC
+- lib filter add predicate support to  -  always support all types
+- FilterableTable class to abstract away the filter crap -> join PlaylistTable in on the party
+- full sorting suport for FilteredTable -> make API
+- filter show/hide on typing/ESC
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------
@@ -104,6 +106,10 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
+- library table cells sometimes invisible - not updated                         (medium)
+  mostly solved, but sometimes table is indeed empty
+  also initial scrolling reveals that rows are not created yet, which breaks the
+  scroll
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)

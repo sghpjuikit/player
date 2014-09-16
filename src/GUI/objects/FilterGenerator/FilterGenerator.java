@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package GUI.objects.FilterGenerator;
 
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
@@ -33,9 +35,14 @@ public class FilterGenerator<T> extends HBox {
     BiConsumer<Predicate<Object>,T> onFilterChange;
     private Class type;
     
+    public Predicate<Object> predicate;
+    public T val;
+    
     public FilterGenerator() {
         // initialize gui
         getChildren().addAll(classCB, filterCB, valueF);
+        setAlignment(Pos.CENTER_LEFT);
+        setPadding(new Insets(1));
         
         // generate predicates on change
         filterCB.valueProperty().addListener((o,ov,nv) -> generatePredicate(nv, valueF.getText(),classCB.getValue()==null ? null : classCB.getValue()._3));
@@ -51,10 +58,21 @@ public class FilterGenerator<T> extends HBox {
                 }
             };
         });
+        classCB.setButtonCell(classCB.getCellFactory().call(null));
+        filterCB.setCellFactory( view -> {
+            return new ListCell<Predicates>(){
+                @Override
+                protected void updateItem(Predicates item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? null : item.toStringEnum());
+                }
+            };
+        });
+        filterCB.setButtonCell(filterCB.getCellFactory().call(null));
+        
+        
         // fire filter changes when value changes
         classCB.valueProperty().addListener((o,ov,nv) -> setClass(nv._2));
-        // initial value & fire first change
-        // classCB.setValue(Tuples.t("Text", String.class, null));     
     }
     
     /**
@@ -90,7 +108,7 @@ public class FilterGenerator<T> extends HBox {
      * 
      * @param c 
      */
-    public final void setClass(Class c) {
+    private void setClass(Class c) {
         type = c;
         if(type==null) {
             filterCB.getItems().clear();
@@ -112,9 +130,14 @@ public class FilterGenerator<T> extends HBox {
             BiPredicate filterP = nv.predicate(type);
             try {
                 Object value = Parser.fromS(type, txt_val);
-                if(value != null) onFilterChange.accept(x -> filterP.test(x,value),o);
+                if(value != null) {
+                    predicate = x -> filterP.test(x,value);
+                    val = o;
+                    onFilterChange.accept(predicate,o);
+                }
             } catch(Exception e) {
-                // ignore
+                predicate = null;
+                val = null;
             }
         }
     }

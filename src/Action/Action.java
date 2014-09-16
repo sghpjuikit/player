@@ -26,7 +26,7 @@ import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-import static javafx.scene.input.KeyCode.ALT;
+import static javafx.scene.input.KeyCode.SHIFT;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -676,7 +676,7 @@ public final class Action extends Config<Action> implements Runnable {
     });
     
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts")
-    public static KeyCode Shortcut_ALTERNATE = ALT;
+    public static KeyCode Shortcut_ALTERNATE = SHIFT;
     
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";

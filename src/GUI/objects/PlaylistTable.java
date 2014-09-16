@@ -112,7 +112,7 @@ public final class PlaylistTable {
         parent.getChildren().add(table);
         Util.setAPAnchors(table, 0);
         parent.getChildren().add(tmp);
-        parent.getChildren().add(tmp2);        
+        parent.getChildren().add(tmp2);
     }
     
     /**
@@ -121,7 +121,7 @@ public final class PlaylistTable {
      * Initializes everything needed to fully function.
      * @param parent AnchorPane container wrapping this table. Anchors will be set to 0.
      */
-    public PlaylistTable () {
+    public PlaylistTable () {        
         
         // initialize table gui
         table.setTableMenuButtonVisible(true);
@@ -183,7 +183,6 @@ public final class PlaylistTable {
             
             // remember index of row that was clicked on
             row.setOnMousePressed( e -> {
-//            if (e.getButton()!=PRIMARY) return;
                 // remember position for moving selected rows on mouse drag
                 last = e.getScreenY();
             
@@ -195,7 +194,6 @@ public final class PlaylistTable {
             });
             // clear table selection on mouse released if no item
             row.setOnMouseReleased( e -> {
-//            if (e.getButton()!=PRIMARY) return;
                 if (row.getItem() == null)
                     selectNone();
             });
@@ -252,7 +250,8 @@ public final class PlaylistTable {
         
         // handle selection
         table.setOnMousePressed( e -> {
-            if (e.getButton() != MouseButton.PRIMARY) return;
+            if (e.getY()<table.getFixedCellSize()) return;
+            if (e.getButton() != PRIMARY) return;
             // reselect items from remembered state
             // this overrides default behavior where mousePressed deselects all but
             // the item that was clicked on
@@ -263,7 +262,8 @@ public final class PlaylistTable {
         });
         // handle selection
         table.setOnMouseReleased( e -> {
-            if (e.getButton() != MouseButton.PRIMARY) return;
+            if (e.getY()<table.getFixedCellSize()) return;
+            if (e.getButton() != PRIMARY) return;
             // remember the indexes of selected rows
             // clone (! not copy), copying would mean that change to selected items
             // would change the remembered indexes too
@@ -275,6 +275,7 @@ public final class PlaylistTable {
         });
         // handle click
         table.setOnMouseClicked( e -> {
+            if (e.getY()<table.getFixedCellSize()) return;
             // play item on doubleclick
             if (e.getButton() == PRIMARY) {     
                 if (e.getClickCount() == 2) {

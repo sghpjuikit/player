@@ -68,23 +68,24 @@ public interface Configurable<T> {
      * Get all configs of this configurable.
      * <p>
      * Use to get Configs and access their values. Config can provide
-     * its value type, but that is helpful only when using the values dynamically.
-     * Because the collection does not know about the type of the Config and its
-     * value type - casting is necessary when accessing config's value directly.
+     * its value type, but that is helpful only when using the values dynamically
+     * which is the intended use of this method.
+     * Because the collection does not know about the types of the Configs - 
+     * casting is necessary when accessing config's value directly.
      * <p>
      * There are two possible ways:<br>
      * <t>Casting to Config with the correct generic parameter and then calling
      * the getValue() like this:
      * <p>
-     * String val = ((Config<String>) c.getFields().get(0)).getValue();
+     * {@code String val = ((Config<String>) c.getFields().get(0)).getValue()}
      * <p>
      *     Or obtaining the value and then casting it to the correct type. This 
      * should be the preferred way of doing this. Like this:
      * <p>
-     * String val = (String) c.getFields().get(0).getValue();
+     * {@code String val = (String) c.getFields().get(0).getValue()}
      * <p>
      * Note: if all configs of this configurable contain the same type of value,
-     * use generic configurable to avoid the need to cast.
+     * use generic configurable to avoid the need to cast at all.
      * 
      * @return Configs of this configurable
      */

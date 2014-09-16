@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package utilities.filtering;
+package utilities.access.FieldValue;
 
-import java.util.function.BiPredicate;
 import utilities.SteroidObject;
+import utilities.access.TypedValue;
 
 /**
  *
  * @author Plutonium_
  */
-public interface Predicates<T> extends SteroidObject {
-    public BiPredicate<T,T> predicate(Class<T> type);
+public interface FieldEnum<T> extends TypedValue, SteroidObject {
+    
 }

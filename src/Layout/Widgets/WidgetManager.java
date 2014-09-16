@@ -122,6 +122,7 @@ public final class WidgetManager {
         // get preferred type
         String preferred = getFactories()
                 .filter(cond::test)
+                .filter(w -> !w.isIgnored())
                 .filter(f->f.isPreferred())
                 .findAny().map(f->f.name).orElse("");
         
@@ -145,6 +146,7 @@ public final class WidgetManager {
         if (out == null && source.newWidgetsAllowed()) {
             // get factory
             WidgetFactory f = getFactories()
+                   .filter(cond::test)
                    .filter(w -> !w.isIgnored())
                    .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
                    .findAny().orElse(null);

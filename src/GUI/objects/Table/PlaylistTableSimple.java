@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package GUI.objects.Table;
 
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.Playlist;

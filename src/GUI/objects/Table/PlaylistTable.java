@@ -1,10 +1,11 @@
 
-package GUI.objects;
+package GUI.objects.Table;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
+import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -75,17 +75,14 @@ public final class PlaylistTable {
     private static final PseudoClass playingRowCSS = PseudoClass.getPseudoClass("played");
     private static final PseudoClass corruptRowCSS = PseudoClass.getPseudoClass("corrupt");
     
-    private final TableView<PlaylistItem> table = new TableView();
-    private final TableColumn<PlaylistItem, String> columnIndex = new TableColumn<>("#");
-    private final TableColumn<PlaylistItem, String> columnName = new TableColumn<>("name");
-    private final TableColumn<PlaylistItem, FormattedDuration> columnTime = new TableColumn<>("time");
+    private final FilterableTable<PlaylistItem,PlaylistItem.Field> table = new FilterableTable(NAME);
+    
+    private final TableColumn<PlaylistItem, String> columnIndex = new TableColumn("#");
+    private final TableColumn<PlaylistItem, String> columnName = new TableColumn("name");
+    private final TableColumn<PlaylistItem, FormattedDuration> columnTime = new TableColumn("time");
     
     private final Callback<TableColumn<PlaylistItem,String>, TableCell<PlaylistItem,String>> indexCellFactory;
-    private final Callback<TableView<PlaylistItem>,TableRow<PlaylistItem>> rowFactory;
-    
-    private FilteredList<PlaylistItem> itemsF = new FilteredList(FXCollections.emptyObservableList());
-    private SortedList<PlaylistItem> itemsS = new SortedList(itemsF);
-    
+    private final Callback<TableView<PlaylistItem>,TableRow<PlaylistItem>> rowFactory;    
     
     // properties
     boolean zero_pad = true;
@@ -109,8 +106,8 @@ public final class PlaylistTable {
     }
     
     public void setRoot(AnchorPane parent) {
-        parent.getChildren().add(table);
-        Util.setAPAnchors(table, 0);
+        parent.getChildren().add(table.getAsNode());
+        Util.setAPAnchors(table.getAsNode(), 0);
         parent.getChildren().add(tmp);
         parent.getChildren().add(tmp2);
     }
@@ -136,7 +133,7 @@ public final class PlaylistTable {
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (!empty) {
-                    int index = show_original_index ? itemsF.getSourceIndex(getIndex()) : getIndex();
+                    int index = show_original_index ? table.getItemsFiltered().getSourceIndex(getIndex()) : getIndex();
                         index++;
                     setText(Util.zeroPad(index, table.getItems().size(), zero_pad ? '0' : ' ') + ".");
                 } 
@@ -215,7 +212,6 @@ public final class PlaylistTable {
         table.getColumns().setAll(columnIndex, columnName, columnTime);
         table.getColumns().forEach( t -> t.setResizable(false));
         table.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        table.setItems(itemsS);
         
         // resizing
         tmp.setVisible(false);tmp2.setVisible(false);
@@ -226,7 +222,8 @@ public final class PlaylistTable {
             // column 1
             // need this weird method to get 9s as their are wide chars
             // (font isnt always proportional)
-            int i = Util.DecMin1(table.getItems().size());    
+            int s = show_original_index ? table.getItemsRaw().size() : table.getItems().size();
+            int i = Util.DecMin1(s);
             tmp.setText(String.valueOf(i)+".");
             tmp.setVisible(true);
             double W1 = tmp.getWidth();
@@ -280,7 +277,7 @@ public final class PlaylistTable {
             if (e.getButton() == PRIMARY) {     
                 if (e.getClickCount() == 2) {
                     int i = table.getSelectionModel().getSelectedIndex();
-                    int real_i = itemsF.getSourceIndex(i);
+                    int real_i = table.getItemsFiltered().getSourceIndex(i);
                     PlaylistManager.playItem(real_i);
                 }           
             } else
@@ -363,7 +360,9 @@ public final class PlaylistTable {
         refresh();
     }
     
-    public TableView<PlaylistItem> getTable() {
+//    public TableView<PlaylistItem> getTable() {
+    // this should be removed
+    public FilterableTable<PlaylistItem,PlaylistItem.Field> getTable() {
         return table;
     }
     
@@ -471,29 +470,18 @@ public final class PlaylistTable {
      * wrapped by SortedList.
      */
     public void setItems(ObservableList<PlaylistItem> items) {
-        if(items instanceof SortedList) {
-            itemsS = (SortedList<PlaylistItem>)items;
-        } else {
-            if(items instanceof FilteredList) {
-                itemsF = (FilteredList<PlaylistItem>) items;
-            }
-            else itemsF = new FilteredList(items);
-            itemsS = new SortedList<>(itemsF);
-        }
-        if (table.getItems() != null) table.getItems().removeListener(resizer); // remove listener
-        table.setItems(itemsS);
-        table.getItems().addListener(resizer);  // add listener
-        itemsS.comparatorProperty().bind(table.comparatorProperty());
+        table.setItemsRaw(items);
         refresh();
     }
     
     /** @return list of items of this table. Supports filtering. */
     public FilteredList<PlaylistItem> getItemsF() {
-        return itemsF;
+        return table.getItemsFiltered();
     }
+    
     /** @return list of items of this table. Supports sorting. */
     public SortedList<PlaylistItem> getItemsS() {
-        return itemsS;
+        return table.getItemsSorted();
     }
     
     /** 
@@ -504,7 +492,7 @@ public final class PlaylistTable {
      */
     public void setShowOriginalIndex(boolean val) {
         show_original_index = val;
-        refresh(); // in order to apply value
+        refresh();
     }
     
     public boolean isShowOriginalIndex() {
@@ -512,53 +500,28 @@ public final class PlaylistTable {
     }
     
     public void sortByName() {
-        itemsS.comparatorProperty().unbind();
-//        table.setItems(FXCollections.emptyObservableList());
-//        
-        itemsS.setComparator(PlaylistItem.getComparatorName());
-////        FXCollections.sort(itemsS, PlaylistItem.getComparatorName());
-//        itemsS.sort(PlaylistItem.getComparatorName());
-//        
-//        table.setItems(itemsS);
-//        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        
-        
-//        columnName.setComparator((o1,o2) -> 
-//                PlaylistItem.getComparatorArtist().compare(
-//                        new PlaylistItem(null, o1, last), 
-//                        new PlaylistItem(null, o2, last)));
-//        columnName.setSortType(TableColumn.SortType.ASCENDING);
-//        table.sort();
-        
-//        FXCollections.sort(itemsF, PlaylistItem.getComparatorName());
+        table.getItemsSorted().comparatorProperty().unbind();
+        table.getItemsSorted().setComparator(PlaylistItem.getComparatorName());
     }
     public void sortByLength() {        
-        itemsS.comparatorProperty().unbind();
-        itemsS.setComparator(PlaylistItem.getComparatorTime());
+        table.getItemsSorted().comparatorProperty().unbind();
+        table.getItemsSorted().setComparator(PlaylistItem.getComparatorTime());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        
-//        FXCollections.sort(itemsS, PlaylistItem.getComparatorTime());
     }
     public void sortByLocation() {
-        itemsS.comparatorProperty().unbind();
-        itemsS.setComparator(PlaylistItem.getComparatorURI());
+        table.getItemsSorted().comparatorProperty().unbind();
+        table.getItemsSorted().setComparator(PlaylistItem.getComparatorURI());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        
-//        FXCollections.sort(itemsS, PlaylistItem.getComparatorURI());
     }
     public void sortByArtist() {
-        itemsS.comparatorProperty().unbind();
-        itemsS.setComparator(PlaylistItem.getComparatorArtist());
+        table.getItemsSorted().comparatorProperty().unbind();
+        table.getItemsSorted().setComparator(PlaylistItem.getComparatorArtist());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-        
-//        FXCollections.sort(itemsS, PlaylistItem.getComparatorArtist());
     }
     public void sortByTitle() {
-        itemsS.comparatorProperty().unbind();
-        itemsS.setComparator(PlaylistItem.getComparatorTitle());
+        table.getItemsSorted().comparatorProperty().unbind();
+        table.getItemsSorted().setComparator(PlaylistItem.getComparatorTitle());
 //        itemsS.comparatorProperty().bind(table.comparatorProperty());
-//        
-//        FXCollections.sort(((SortableList<PlaylistItem>)table.getItems()), PlaylistItem.getComparatorTitle());
     }
     
 /********************************** SELECTION *********************************/

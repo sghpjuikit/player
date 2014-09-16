@@ -5,6 +5,9 @@
  */
 package utilities.access.FieldValue;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,9 +24,23 @@ public interface FieldedValue<T, F extends FieldEnum<T>> {
      */
     Object getField(F field);
     
+    F getMainField();
+    
     /**
      * Returns Field-value map representation of this object.
      * @return Field-value map representation of this object.
      */
-    Map<F,Object> getFields();
+    default Map<F,Object> getFields() {
+        Map<F,Object> m = new HashMap();
+        for(F f : getFIeldConstants())
+            m.put(f, getField(f));
+        return m;
+    }
+    
+    /**
+     * @return all possible fields
+     */
+    default List<F> getFIeldConstants() {
+        return Arrays.asList((F[]) getMainField().getClass().getEnumConstants());
+    }
 }

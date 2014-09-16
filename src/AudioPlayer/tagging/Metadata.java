@@ -22,9 +22,7 @@ import java.lang.annotation.Target;
 import java.net.URI;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.scene.image.Image;
@@ -992,20 +990,9 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         }
     }
     
-    /**
-     * {@inheritDoc}
-     * <p>
-     * Note: This method can be used on {@link #EMPTY} to inspect the class
-     * type of the fields without actually using any Metadata object.
-     */
-    @Override
-    public Map<Field,Object> getFields() {
-        Map<Field,Object> m = new HashMap();
-        for(Field f : Field.values()) {
-            m.put(f, getField(f));
-        }
-        return m;
-    }
+    /** {@inheritDoc} */
+    @Override 
+    public Field getMainField() { return Field.TITLE; }
     
 /******************************* AS OBJECT ************************************/
     
@@ -1130,10 +1117,6 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
             return this != COVER;
         }
         
-        public String toCapitalizedS() {
-            return Util.capitalizeStrong(name());
-        }
-        
         /** {@inheritDoc} */
         @Override
         public Class getType() {
@@ -1146,9 +1129,7 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
          * {@inheritDoc} 
          */
         @Override
-        public boolean isTypeNumberNonegative() {
-            return true;
-        }
+        public boolean isTypeNumberNonegative() { return true; }
         
     }
     

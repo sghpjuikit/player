@@ -591,7 +591,7 @@ public final class Action extends Config<Action> implements Runnable {
 /************************ shortcut helper methods *****************************/
 
     // lock
-     private static FxTimer locker = FxTimer.create(Duration.millis(100), () -> lock = -1);
+     private static FxTimer locker = FxTimer.create(Duration.millis(80), () -> lock = -1);
 //    private static final FxTimer locker = FxTimer.create(Duration.millis(500), Action::unlock);
     private static int lock = -1;
 //    private static void unlock() {System.out.println(System.currentTimeMillis() +" unlocking");

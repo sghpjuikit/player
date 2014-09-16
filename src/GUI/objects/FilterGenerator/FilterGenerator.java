@@ -102,6 +102,19 @@ public class FilterGenerator<T> extends HBox {
         onFilterChange = filter_acceptor;
     }
     
+    public void focus() {
+        valueF.requestFocus();
+        valueF.selectEnd();
+    }
+    
+    public boolean isEmpty() {
+        return valueF.getText().isEmpty() || predicate==null;
+    }
+    
+    public void clear() {
+        valueF.setText("");
+    }
+    
     /**
      * Entry point. After class is provided, list of available predicates will
      * be assigned to the combo box.

@@ -16,7 +16,7 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.FilterGenerator.TableFilterGenerator;
+import GUI.objects.Table.FilterableTable;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -27,7 +27,6 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.List;
@@ -35,11 +34,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -50,7 +45,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.DELETE;
 import static javafx.scene.input.KeyCode.ENTER;
@@ -60,11 +54,11 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import org.reactfx.Subscription;
-import org.reactfx.util.Tuples;
 import utilities.FxTimer;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
@@ -109,11 +103,7 @@ public class LibraryController extends FXMLController {
     private @FXML VBox content;
     private final Label progressL = new Label();
     private Subscription dbMonitor;
-    private TableView<Metadata> table = new TableView();
-    private final ObservableList<Metadata> allitems = FXCollections.observableArrayList();
-    private final FilteredList<Metadata> filtereditems = new FilteredList(allitems);
-    private final SortedList<Metadata> sortedItems = new SortedList<>(filtereditems);
-    private final TableFilterGenerator<Metadata,Metadata.Field> searchBox = new TableFilterGenerator(filtereditems);
+    private final FilterableTable<Metadata,Metadata.Field> table = new FilterableTable(Metadata.EMPTY.getMainField());
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -122,12 +112,7 @@ public class LibraryController extends FXMLController {
     @Override
     public void init() {
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
-        table.getSelectionModel().setSelectionMode(MULTIPLE);
-        table.setItems(sortedItems);
-        sortedItems.comparatorProperty().bind(table.comparatorProperty());
-        
-        searchBox.setData(Arrays.asList(Metadata.Field.values()).stream()
-                .map(mf->Tuples.t(mf.toStringEnum(),mf.getType(),mf)).collect(Collectors.toList()));  
+        table.getSelectionModel().setSelectionMode(MULTIPLE);  
         
         // add index column
         TableColumn indexColumn = Util.createIndexColumn("#");
@@ -136,7 +121,7 @@ public class LibraryController extends FXMLController {
         // add data columns
         for(Field mf : Field.values()) {
             if(!mf.isTypeStringRepresentable()) continue;
-            TableColumn<Metadata,Object> c = new TableColumn(mf.toCapitalizedS());
+            TableColumn<Metadata,Object> c = new TableColumn(mf.toStringEnum());
             c.setCellValueFactory((TableColumn.CellDataFeatures<Metadata,Object> cf) -> {
                 if(cf.getValue()==null) return null;
                 return new ReadOnlyObjectWrapper(cf.getValue().getField(mf));
@@ -147,6 +132,7 @@ public class LibraryController extends FXMLController {
         
         // context menu & play
         table.setOnMouseClicked( e -> {
+            if (e.getY()<table.getFixedCellSize()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2) {
                     Playlist p = new Playlist(table.getItems().stream()
@@ -230,8 +216,8 @@ public class LibraryController extends FXMLController {
         AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
         
         
-        content.getChildren().addAll(searchBox, table, controls);
-
+        content.getChildren().addAll(table.getAsNode(), controls);
+        VBox.setVgrow(table.getAsNode(),ALWAYS);
         
         // listen for database changes to refresh library
         dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
@@ -247,7 +233,7 @@ public class LibraryController extends FXMLController {
     @IsConfig(editable = false)
     private final Accessor<Metadata.Field> changeField = new Accessor<>(Metadata.Field.ARTIST, v -> {
         table.getSelectionModel().clearSelection();
-        allitems.setAll(DB.getAllItemsWhere(v, changeValue));
+        table.setItemsRaw(DB.getAllItemsWhere(v, changeValue));
     });
     
     @IsConfig(editable = false)
@@ -257,7 +243,7 @@ public class LibraryController extends FXMLController {
     @Override
     public void refresh() {
         table.getSelectionModel().clearSelection();
-        allitems.setAll(DB.getAllItemsWhere(changeField.getValue(), changeValue));
+        table.setItemsRaw(DB.getAllItemsWhere(changeField.getValue(), changeValue));
     }
 
     @Override

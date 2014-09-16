@@ -7,8 +7,6 @@
 package AudioPlayer.tagging;
 
 import PseudoObjects.FormattedDuration;
-import java.util.HashMap;
-import java.util.Map;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import utilities.access.FieldValue.FieldEnum;
 import utilities.access.FieldValue.FieldedValue;
@@ -82,13 +80,9 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
 
     /** {@inheritDoc} */
     @Override
-    public Map<MetadataGroup.Field, Object> getFields() {
-        Map<Field,Object> m = new HashMap();
-        for(Field f : Field.values()) {
-            m.put(f, getField(f));
-        }
-        return m;
-    }
+    public Field getMainField() { return Field.VALUE; }
+    
+/***************************** COMPANION CLASS ********************************/
     
     public static enum Field implements FieldEnum<MetadataGroup> {
         VALUE,

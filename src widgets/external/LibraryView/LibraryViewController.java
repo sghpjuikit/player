@@ -8,11 +8,12 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import AudioPlayer.tagging.MetadataGroup;
+import static AudioPlayer.tagging.MetadataGroup.Field.VALUE;
 import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.FilterGenerator.TableFilterGenerator;
+import GUI.objects.Table.FilterableTable;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -25,9 +26,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -78,11 +76,7 @@ public class LibraryViewController extends FXMLController {
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
-    private final TableView<MetadataGroup> table = new TableView();
-    private final ObservableList<MetadataGroup> allitems = FXCollections.observableArrayList();
-    private final FilteredList<MetadataGroup> filtereditems = new FilteredList(allitems);
-    private final SortedList<MetadataGroup> sortedItems = new SortedList<>(filtereditems);
-    private final TableFilterGenerator<MetadataGroup,MetadataGroup.Field> searchBox = new TableFilterGenerator(filtereditems);
+    private final FilterableTable<MetadataGroup,MetadataGroup.Field> table = new FilterableTable<>(VALUE);
     private Subscription dbMonitor;
     
     // configurables
@@ -90,8 +84,6 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Metadata.Field> fieldFilter = new Accessor<>(CATEGORY, v -> {
         table.getSelectionModel().clearSelection();
         table.getColumns().removeAll(table.getColumns().subList(1, table.getColumns().size()));
-        table.setItems(sortedItems);
-        sortedItems.comparatorProperty().bind(table.comparatorProperty());
         
         // get new data
         List<MetadataGroup> result = DB.getAllGroups(v);
@@ -109,7 +101,7 @@ public class LibraryViewController extends FXMLController {
             }
         }
         
-        allitems.setAll(FXCollections.observableArrayList(result));
+        table.setItemsRaw(FXCollections.observableArrayList(result));
         
         // unfortunately the table cells dont get updated for some reason, resizing
         // table or column manually with cursor will do the job, so we invoke that
@@ -120,16 +112,16 @@ public class LibraryViewController extends FXMLController {
         });
         
         
-        searchBox.setData(Arrays.asList(MetadataGroup.Field.values()).stream()
+        table.getSearchBox().setData(Arrays.asList(MetadataGroup.Field.values()).stream()
                 .map(mgf->Tuples.t(mgf.toString(v),mgf.getType(v),mgf)).collect(Collectors.toList()));
     });
 
     @Override
     public void init() {
-        content.getChildren().addAll(searchBox, table);
+        content.getChildren().addAll(table.getAsNode());
         
-        table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        table.getSelectionModel().setSelectionMode(MULTIPLE);
         
         // add index column
         TableColumn indexColumn = Util.createIndexColumn("#");
@@ -137,6 +129,7 @@ public class LibraryViewController extends FXMLController {
         
         // context menu
         table.setOnMouseClicked( e -> {
+            if (e.getY()<table.getFixedCellSize()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2)
                     play(Util.copySelectedItems(table));

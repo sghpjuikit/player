@@ -25,7 +25,10 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import utilities.Log;
+import utilities.Parser.File.AudioFileFormat;
 import utilities.Parser.File.FileUtil;
+import utilities.access.FieldValue.FieldEnum;
+import utilities.access.FieldValue.FieldedValue;
 
 /**
  * Defines item in playlist.
@@ -54,7 +57,7 @@ import utilities.Parser.File.FileUtil;
  * into more generic ObjectProperty. It will cause XStream serializing
  * to malperform (java7)(needs more testing).
  */
-public final class PlaylistItem extends Item {
+public final class PlaylistItem extends Item implements FieldedValue<PlaylistItem,PlaylistItem.Field>{
     
     private final SimpleObjectProperty<URI> uri;
     private final SimpleObjectProperty<FormattedDuration> time;
@@ -327,7 +330,6 @@ public final class PlaylistItem extends Item {
      * @return clone of the item or null if parameter null.
      */
     public PlaylistItem clone() {
-        
         URI _uri = getURI();
         String _name = getName();
         double _length = getTime().toMillis();
@@ -336,5 +338,66 @@ public final class PlaylistItem extends Item {
                      i.corrupted = corrupted; // also clone corrupted state
         return i;
     }
+    
+/******************************************************************************/
 
+    /** {@inheritDoc} */
+    @Override
+    public Object getField(Field field) {
+        switch(field) {
+            case PATH :  return getPath();
+            case FORMAT :  return getFormat();
+            case LENGTH : return getTime();
+            case TITLE : return getTitle();
+            case NAME : return getName();
+            case ARTIST : return getArtist();
+            default : throw new AssertionError("Default case should never execute");
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Field getMainField() {
+        return Field.NAME;
+    }
+    
+    
+ /**************************** COMPANION CLASS *********************************/
+    
+    /**
+     * 
+     */
+    public static enum Field implements FieldEnum<PlaylistItem> {
+        NAME,
+        TITLE,
+        ARTIST,
+        LENGTH,
+        PATH,
+        FORMAT;
+
+        /**
+         * Returns true.
+         * <p>
+         * {@inheritDoc} 
+         */
+        @Override
+        public boolean isTypeStringRepresentable() { return true; }
+                
+        /** {@inheritDoc} */
+        @Override
+        public Class getType() {
+            if(this==FORMAT) return AudioFileFormat.class;
+            else if (this==LENGTH) return FormattedDuration.class;
+            else return String.class;
+        }
+
+        /**
+         * Returns true.
+         * <p>
+         * {@inheritDoc} 
+         */
+        @Override
+        public boolean isTypeNumberNonegative() { return true; }
+        
+    }
 }

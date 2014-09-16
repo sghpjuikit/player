@@ -197,6 +197,7 @@ public class BookmarkerController extends FXMLController {
         
         // context menu
         table.setOnMouseClicked( e -> {
+            if (e.getY()<table.getFixedCellSize()) return;
             if (e.getButton()==SECONDARY)
                 context_menu.show(table,e);
         });
@@ -232,11 +233,11 @@ public class BookmarkerController extends FXMLController {
         });
     }
     
-    @IsConfig(editable = false)
+    //@IsConfig(editable = false)
     public HashMap<String,Boolean> colVis = new HashMap();
-    @IsConfig(editable = false)
+    //@IsConfig(editable = false)
     public HashMap<String,Double> colWid = new HashMap();
-    @IsConfig(editable = false)
+    //@IsConfig(editable = false)
     public HashMap<String,Integer> colPos = new HashMap();
     
     private boolean column_resize_lock = false; // true - maintenance allowed

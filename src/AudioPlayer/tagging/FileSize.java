@@ -6,6 +6,7 @@ package AudioPlayer.tagging;
 
 import java.io.File;
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import utilities.Dependency;
 
 /**
  * Simple class for file size handling.
@@ -26,17 +27,17 @@ public final class FileSize implements Comparable<FileSize> {
      * @throws NullPointerException if param null
      */
     public FileSize(File f) {
-        size = f.length();
+        long l = f.length();
+        size = l==0 ? -1 : l;
     }
     
     /**
      * Creates filesize set to specified value.
-     * @param bytes amount of bytes as a size value or 0l if unknown.
+     * @param bytes amount of bytes as a size value or -l if unknown.
      * @throws IllegalArgumentException if param negative
      */
     public FileSize(long bytes) {
-        if(bytes<0) 
-            throw new IllegalArgumentException("Filesize can not be negative");
+        if(bytes<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
         
         size = bytes;
     }
@@ -59,6 +60,7 @@ public final class FileSize implements Comparable<FileSize> {
      * @return string representation of the object
      */
     @Override
+    @Dependency("Must be consistent with fromString()")
     public String toString() {
         if(size == 0l) return "Unknown";
         
@@ -79,5 +81,33 @@ public final class FileSize implements Comparable<FileSize> {
     @Override
     public int compareTo(FileSize o) {
         return Long.compare(size, o.size);
+    }
+    
+    @Dependency("Enables convertability to String using Parser by reflection")
+    public static FileSize fromString(String s) {
+        int i = 0;
+        
+        if (s.contains("B")) {
+            int b = s.indexOf("B");
+            String prefix = s.substring(b-1, b);
+            boolean number = true;
+            if("k".equals(prefix) || "K".equals(prefix)) {
+                i=1;
+                number = false;
+            } else
+            if("m".equals(prefix) || "M".equals(prefix)) {
+                i=2;
+                number = false;
+            } else
+            if("g".equals(prefix) || "G".equals(prefix)) {
+                i=3;
+                number = false;
+            }
+            s = s.substring(0, number ? b : b-1);
+        }
+        
+        long number = Long.parseLong(s);
+        int unit = (int) Math.pow(1024, i);
+        return new FileSize(unit*number);
     }
 }

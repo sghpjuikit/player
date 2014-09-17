@@ -5,11 +5,11 @@ import AudioPlayer.tagging.MoodManager;
 import GUI.objects.Pickers.MoodPicker;
 import GUI.objects.PopOver.ContextPopOver;
 import GUI.objects.PopOver.PopOver;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.controlsfx.control.textfield.TextFields;
-import utilities.Parser.StringParser;
 import utilities.Parser.ParserImpl.StringStringParser;
-import utilities.functional.functor.UnProcedure;
+import utilities.Parser.StringParser;
 
 /**
  * Text field intended for mood tagging specifically. It provides two additional
@@ -21,7 +21,7 @@ import utilities.functional.functor.UnProcedure;
  */
 public class MoodTextField extends ItemTextField<String> {
     
-    private final UnProcedure<String> pickMood = this::setValue;
+    private final Consumer<String> pickMood = this::setValue;
     private PopOver.NodeCentricPos pos = PopOver.NodeCentricPos.RightCenter;
 
     public MoodTextField() {

@@ -9,7 +9,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import utilities.FxTimer;
-import utilities.functional.functor.Procedure;
 
 /**
  *
@@ -151,7 +150,7 @@ public final class RealTimeProperty {
     
     private boolean invalidated = false;
     private final InvalidationListener eventInvalidator = o -> invalidated = true;
-    private final Procedure eventExecutor = () -> handlers.forEach(DurationHandler::handle);
+    private final Runnable eventExecutor = () -> handlers.forEach(DurationHandler::handle);
     private final FxTimer eventDistributorPulse = FxTimer.createPeriodic(Duration.millis(500), () -> {
         if (invalidated) eventExecutor.run();
         invalidated = false;

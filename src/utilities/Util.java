@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -56,12 +57,13 @@ import javax.imageio.stream.ImageInputStream;
 import main.App;
 import org.jaudiotagger.tag.images.Artwork;
 import utilities.Parser.File.FileUtil;
-import utilities.functional.functor.BiCallback;
 
 /**
  * Provides static utility methods for various purposes.
  */
 public interface Util {
+    
+    
     
     /** Basic string comparator utilizing String.compareTo(). */
     public static final Comparator<String> STR_COMPARATOR = (a,b) -> a.compareTo(b);
@@ -100,6 +102,12 @@ public interface Util {
     
     /** Simple Predicate returning true if object is not null. Use in lambda. */
     public static Predicate<Object> NotNULL = Objects::nonNull;
+    
+    /** Simple Predicate returning true. Use in lambda. */
+    public static Predicate<?> TRUE = o -> true;
+    
+    /** @return runnable that does nothing. */
+    public static Runnable DO_NOTHING = () -> {};
     
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      * by delimiter ", ".  Use in lambda. */
@@ -680,11 +688,11 @@ public interface Util {
      * @param mapper
      * @return 
      */
-    public static<T,R> Stream<R> forEachIndexedStream(Collection<T> c, BiCallback<Integer,T,R> mapper) {
+    public static<T,R> Stream<R> forEachIndexedStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
         int i=0;
         Stream.Builder<R> b = Stream.builder();
         for(T item : c) {
-            b.accept(mapper.call(i, item));
+            b.accept(mapper.apply(i, item));
             i++;
         }
         return b.build();
@@ -703,11 +711,11 @@ public interface Util {
      * 
      * @return stream of mapped values by a mapper out of key-element pairs
      */
-    public static<I,T,R> Stream<R> forEachIndexedStream(Collection<T> c, I initial_val, Callback<I,I> operation, BiCallback<I,T,R> mapper) {
+    public static<I,T,R> Stream<R> forEachIndexedStream(Collection<T> c, I initial_val, Callback<I,I> operation, BiFunction<I,T,R> mapper) {
         I i = initial_val;
         Stream.Builder<R> b = Stream.builder();
         for(T item : c) {
-            b.accept(mapper.call(i, item));
+            b.accept(mapper.apply(i, item));
             i = operation.call(i);
         }
         return b.build();

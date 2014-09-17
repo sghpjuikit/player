@@ -15,12 +15,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.util.Callback;
+import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
 import utilities.Parser.ParserImpl.Parser;
 import utilities.Util;
-import utilities.filtering.NumberPredicates;
-import utilities.filtering.Predicates;
-import utilities.filtering.StringPredicates;
 
 /**
  *
@@ -29,10 +28,12 @@ import utilities.filtering.StringPredicates;
 public class FilterGenerator<T> extends HBox {
     
     ComboBox<Tuple3<String,Class,T>> classCB = new ComboBox();
-    ComboBox<Predicates> filterCB = new ComboBox();
+    ComboBox<Tuple2<String,BiPredicate>> filterCB = new ComboBox();
     TextField valueF = new TextField();
     
-    BiConsumer<Predicate<Object>,T> onFilterChange;
+    private BiConsumer<Predicate<Object>,T> onFilterChange;
+    private Callback<Class,List<Tuple2<String,BiPredicate>>> predicateSupplier;
+    
     private Class type;
     
     public Predicate<Object> predicate;
@@ -45,8 +46,8 @@ public class FilterGenerator<T> extends HBox {
         setPadding(new Insets(1));
         
         // generate predicates on change
-        filterCB.valueProperty().addListener((o,ov,nv) -> generatePredicate(nv, valueF.getText(),classCB.getValue()==null ? null : classCB.getValue()._3));
-        valueF.textProperty().addListener((o,ob,nv) -> generatePredicate(filterCB.getValue(), nv,classCB.getValue()==null ? null : classCB.getValue()._3));
+        valueF.textProperty().addListener((o,ob,nv) -> generatePredicate(filterCB.getValue()==null ? null : filterCB.getValue()._2, nv, classCB.getValue()==null ? null : classCB.getValue()._3));
+        filterCB.valueProperty().addListener((o,ov,nv) -> generatePredicate(nv==null ? null : nv._2, valueF.getText(), classCB.getValue()==null ? null : classCB.getValue()._3));
 
         // use dynamic toString() when populating combobox values
         classCB.setCellFactory( view -> {
@@ -60,11 +61,11 @@ public class FilterGenerator<T> extends HBox {
         });
         classCB.setButtonCell(classCB.getCellFactory().call(null));
         filterCB.setCellFactory( view -> {
-            return new ListCell<Predicates>(){
+            return new ListCell<Tuple2<String,BiPredicate>>(){
                 @Override
-                protected void updateItem(Predicates item, boolean empty) {
+                protected void updateItem(Tuple2<String,BiPredicate> item, boolean empty) {
                     super.updateItem(item, empty);
-                    setText(empty ? null : item.toStringEnum());
+                    setText(empty ? null : item._1);
                 }
             };
         });
@@ -88,8 +89,13 @@ public class FilterGenerator<T> extends HBox {
      * @param classes 
      */
     public void setData(List<Tuple3<String,Class,T>> classes) {
+        classes.removeIf(e->predicateSupplier.call(Util.unPrimitivize(e._2)).isEmpty()); // remove unsupported
         classCB.getItems().setAll(classes);
         classCB.setValue(classes.isEmpty() ? null : classes.get(0));
+    }
+    
+    public void setPredicateSupplier(Callback<Class,List<Tuple2<String,BiPredicate>>> supplier) {
+        predicateSupplier = supplier;
     }
     
     /**
@@ -128,23 +134,16 @@ public class FilterGenerator<T> extends HBox {
             filterCB.setValue(null);
         }
         type = Util.unPrimitivize(type);
-        
-        if (String.class.equals(type)) {
-            filterCB.getItems().setAll(StringPredicates.values());
-            filterCB.setValue(StringPredicates.CONTAINS_NOCASE);
-        } else if(Number.class.isAssignableFrom(type)) {
-            filterCB.getItems().setAll(NumberPredicates.values());
-            filterCB.setValue(NumberPredicates.SAME);
-        }
+        filterCB.getItems().setAll(predicateSupplier.call(type));
+        filterCB.setValue(filterCB.getItems().isEmpty() ? null : filterCB.getItems().get(0));
     }
     
-    private void generatePredicate(Predicates nv, String txt_val, T o) {
-        if(onFilterChange!=null && nv!= null && o!= null) {
-            BiPredicate filterP = nv.predicate(type);
-            try {
+    private void generatePredicate(BiPredicate p, String txt_val, T o) {
+        if(onFilterChange!=null && p!=null) {
+            try {System.out.println("parsing " + type);
                 Object value = Parser.fromS(type, txt_val);
                 if(value != null) {
-                    predicate = x -> filterP.test(x,value);
+                    predicate = x -> p.test(x,value);
                     val = o;
                     onFilterChange.accept(predicate,o);
                 }

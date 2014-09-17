@@ -4,6 +4,7 @@ package GUI.objects.Pickers;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.scene.Node;
@@ -16,7 +17,6 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 import utilities.Parser.ToStringConverter;
 import utilities.Util;
-import utilities.functional.functor.UnProcedure;
 
 /**
  * Generic item picker.
@@ -42,7 +42,7 @@ public class Picker<E> {
     private final TilePane tiles = new TilePane();
     private final ScrollPane scroll = new ScrollPane(tiles);
     
-    private UnProcedure<E> onSelect = item -> {};
+    private Consumer<E> onSelect = item -> {};
     private ToStringConverter<E> converter = item -> item.toString();
     private Supplier<Stream<E>> accumulator = () -> Stream.empty();
     private Callback<E,Node> cellFactory = item -> {
@@ -124,7 +124,7 @@ public class Picker<E> {
      * does nothing.
      * @param onSelect procedure. Must not be null;
      */
-    public void setOnSelect(UnProcedure<E> onSelect) {
+    public void setOnSelect(Consumer<E> onSelect) {
         Objects.requireNonNull(onSelect);
         this.onSelect = onSelect;
     }
@@ -133,7 +133,7 @@ public class Picker<E> {
      * Returns onSelect handler. Never null.
      * @see #setOnSelect(utilities.functional.functor.UnProcedure) 
      */
-    public UnProcedure<E> getOnSelect() {
+    public Consumer<E> getOnSelect() {
         return onSelect;
     }
     

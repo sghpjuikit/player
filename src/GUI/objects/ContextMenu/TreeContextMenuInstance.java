@@ -6,11 +6,11 @@
 package GUI.objects.ContextMenu;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
 import utilities.SingleInstance;
-import utilities.functional.functor.BiProcedure;
 
 /**
  *
@@ -21,7 +21,7 @@ public class TreeContextMenuInstance<E> extends SingleInstance<ContentContextMen
     public TreeContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TreeContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiProcedure<ContentContextMenu<List<E>>, TreeView<E>> mutator) {
+    public TreeContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, TreeView<E>> mutator) {
         super(builder, mutator);
     }
     

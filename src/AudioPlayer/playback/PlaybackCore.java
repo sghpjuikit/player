@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javafx.scene.media.AudioSpectrumListener;
 import javafx.util.Duration;
-import utilities.functional.functor.Procedure;
 
 /**
  * @author uranium
@@ -51,27 +50,27 @@ public final class PlaybackCore {
     
 //*****************************************************************************/
 
-    private final List<Procedure> onStartHandlers = new ArrayList<>();
+    private final List<Runnable> onStartHandlers = new ArrayList<>();
     
-    final Procedure playbackStartDistributor = () -> onStartHandlers.forEach(Procedure::run);
+    final Runnable playbackStartDistributor = () -> onStartHandlers.forEach(Runnable::run);
     
-    void addOnPlaybackStart(Procedure b) {
+    void addOnPlaybackStart(Runnable b) {
         onStartHandlers.add(b);
     }
-    void removeOnPlaybackStart(Procedure b) {
+    void removeOnPlaybackStart(Runnable b) {
         onStartHandlers.remove(b);
     }
     
 //*****************************************************************************/
 
-    private final List<Procedure> onEndHandlers = new ArrayList<>();
+    private final List<Runnable> onEndHandlers = new ArrayList<>();
     
-    final Runnable playbackEndDistributor = () -> onEndHandlers.forEach(Procedure::run);
+    final Runnable playbackEndDistributor = () -> onEndHandlers.forEach(Runnable::run);
     
-    void addOnPlaybackEnd(Procedure b) {
+    void addOnPlaybackEnd(Runnable b) {
         onEndHandlers.add(b);
     }
-    void removeOnPlaybackEnd(Procedure b) {
+    void removeOnPlaybackEnd(Runnable b) {
         onEndHandlers.remove(b);
     }
     

@@ -5,15 +5,20 @@
  */
 package utilities.filtering;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import org.reactfx.util.Tuple2;
+import org.reactfx.util.Tuples;
+import utilities.SteroidObject;
 
 /**
  *
  * @author Plutonium_
  */
-public enum NumberPredicates implements Predicates<Number> {
+public enum NumberPredicates implements SteroidObject{
     LESS((t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0),
     MORE((t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0),
     SAME((t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0);
@@ -29,9 +34,13 @@ public enum NumberPredicates implements Predicates<Number> {
         ps.put(Double.class.hashCode(), d);
     }
     
-    @Override
-    public BiPredicate<Number,Number> predicate(Class<Number> type) {
+    public static List<Class> getSupportedClasses() {
+        return Arrays.asList(Short.class,Integer.class,Long.class,Float.class,Double.class);
+    }
+
+    
+    public Tuple2<String, BiPredicate<Number, Number>> predicate(Class<Number> type) {
         if (!ps.containsKey(type.hashCode())) throw new RuntimeException("illegal class parameter");
-        return (BiPredicate<Number,Number>) ps.get(type.hashCode());
+        return Tuples.t(toStringEnum(), (BiPredicate<Number,Number>) ps.get(type.hashCode()));
     }
 }

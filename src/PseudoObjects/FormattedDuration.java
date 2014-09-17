@@ -14,7 +14,7 @@ import utilities.Util;
 public class FormattedDuration extends Duration {
     private static final long serialVersionUID = 11L;
     
-    /* Constructor. Initializes to 0.  */
+    /* Constructor. Initializes to 0. */
     public FormattedDuration() {
         super(0);
     }
@@ -28,5 +28,5 @@ public class FormattedDuration extends Duration {
     @Override
     public String toString () {
         return Util.formatDuration(this);
-    } 
+    }
 }

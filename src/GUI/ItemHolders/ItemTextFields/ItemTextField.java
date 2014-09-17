@@ -9,6 +9,7 @@ package GUI.ItemHolders.ItemTextFields;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -16,7 +17,6 @@ import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
 import utilities.Parser.StringParser;
 import utilities.access.AccessibleValue;
-import utilities.functional.functor.BiProcedure;
 
 /**
  * Customized {@link TextField} that stores an item. Normally a non-editable text
@@ -52,7 +52,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
     
     T v;
     private Class parser_class;
-    private BiProcedure<T,T> onItemChange;
+    private BiConsumer<T,T> onItemChange;
     private Callback<T, String> valueFactory;
     
     /**
@@ -107,7 +107,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
     /** 
      * Sets behavior to execute when item changes. The item change ignores
      * equality check and will fire even for same object to be set. */
-    public void setOnItemChange(BiProcedure<T,T> _onFontChange) {
+    public void setOnItemChange(BiConsumer<T,T> _onFontChange) {
         onItemChange=_onFontChange;
     }
 

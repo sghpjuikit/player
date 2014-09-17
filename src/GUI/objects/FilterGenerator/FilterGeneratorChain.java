@@ -9,6 +9,8 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -18,10 +20,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
+import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
 import utilities.access.FieldValue.FieldEnum;
 import utilities.access.FieldValue.FieldedValue;
-import utilities.functional.functor.BiCallback;
 
 /**
  *
@@ -32,8 +35,9 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     private final List<Tuple3<String,Class,F>> data = new ArrayList();
     private final List<FilterGenerator<F>> generators = new ArrayList();
     private Consumer<Predicate<T>> onFilterChange;
+    private Callback<Class,List<Tuple2<String,BiPredicate>>> predicateSupplier;
     private Predicate<T> conjuction;
-    private BiCallback<F,Predicate<Object>,Predicate<T>> converter;
+    private BiFunction<F,Predicate<Object>,Predicate<T>> converter;
     
     public FilterGeneratorChain() {
         this(1);
@@ -53,7 +57,11 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         onFilterChange = filter_acceptor;
     }
     
-    public void setMapper(BiCallback<F,Predicate<Object>,Predicate<T>> mapper) {
+    public void setPredicateSupplier(Callback<Class,List<Tuple2<String,BiPredicate>>> supplier) {
+        generators.forEach(g->g.setPredicateSupplier(supplier));
+    }
+    
+    public void setMapper(BiFunction<F,Predicate<Object>,Predicate<T>> mapper) {
         this.converter = mapper;
     }
     
@@ -82,6 +90,7 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         FilterGenerator<F> g = new FilterGenerator();
         g.setData(data);
         g.setOnFilterChange((a,b) -> generatePredicate());
+        g.setPredicateSupplier(predicateSupplier);
         Label rem = AwesomeDude.createIconLabel(AwesomeIcon.MINUS, "13");
         Label add = AwesomeDude.createIconLabel(AwesomeIcon.PLUS, "13");
         rem.setOnMouseClicked(e -> {
@@ -105,16 +114,16 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     }
     
     private void generatePredicate() {
-        if(isEmpty()) conjuction = null;
+        if(isEmpty()) 
+            conjuction = o -> true;
         else {
             conjuction = o -> true;
             for(FilterGenerator<F> g : generators) {
                 if(!g.isEmpty()) 
-                    conjuction=conjuction.and(converter.call(g.val,g.predicate));
-//                if(g.predicate==null) return;
-//                else conjuction=conjuction.and(converter.call(g.val,g.predicate));
+                    conjuction=conjuction.and(converter.apply(g.val,g.predicate));
             }
-            if(onFilterChange!=null) onFilterChange.accept(conjuction);
         }
+        
+        if(onFilterChange!=null) onFilterChange.accept(conjuction);
     }
 }

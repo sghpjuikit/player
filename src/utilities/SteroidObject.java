@@ -6,12 +6,14 @@
 package utilities;
 
 /**
+ * 
  *
  * @author Plutonium_
  */
 public interface SteroidObject {
     
     /** 
+     * Variation of {@link #toString()} method.
      * Converts first letter of the string to upper case.
      */
     public default String toStringCapital() {
@@ -20,6 +22,7 @@ public interface SteroidObject {
     }
     
     /** 
+     * Variation of {@link #toString()} method.
      * Converts first letter of the string to upper case and all others into
      * lower case.
      */
@@ -29,6 +32,7 @@ public interface SteroidObject {
     }
     
     /** 
+     * Variation of {@link #toString()} method.
      * Converts first letter of the string to upper case and all others into
      * lower case and replaces all '_' with ' '.
      * <p>

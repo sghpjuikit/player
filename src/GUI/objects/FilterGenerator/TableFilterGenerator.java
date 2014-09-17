@@ -8,6 +8,7 @@ package GUI.objects.FilterGenerator;
 import javafx.collections.transformation.FilteredList;
 import utilities.access.FieldValue.FieldEnum;
 import utilities.access.FieldValue.FieldedValue;
+import utilities.filtering.Predicates;
 
 /**
  *
@@ -18,5 +19,6 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
     public TableFilterGenerator(FilteredList<T> table_list) {
         setMapper((elementField,filter) -> element -> filter.test(element.getField(elementField)));
         setOnFilterChange(table_list::setPredicate);
+        setPredicateSupplier(Predicates::getPredicate);
     }
 }

@@ -3,7 +3,6 @@ package AudioPlayer.playback;
 
 import javafx.util.Duration;
 import utilities.Log;
-import utilities.functional.functor.Procedure;
 
 /**
  *
@@ -13,7 +12,7 @@ public class TimeEventHandler implements DurationHandler {
     
     private final String name;
     Duration atTime;
-    Procedure behavior;
+    Runnable behavior;
     // init to true -> failsafe
     // bad realTime initialization could (would) fire single 'initialization'
     // event (very bad thing) before the realTime is properly initialized
@@ -24,11 +23,11 @@ public class TimeEventHandler implements DurationHandler {
     private Duration timeMin;
     private Duration timeMax;
     
-    public TimeEventHandler(Duration at, Procedure b) {
+    public TimeEventHandler(Duration at, Runnable b) {
         this(at, b, "");
     }
     
-    public TimeEventHandler(Duration at, Procedure b, String name) {
+    public TimeEventHandler(Duration at, Runnable b, String name) {
         atTime = at;
         percMin = 0;
         percMax = 0;

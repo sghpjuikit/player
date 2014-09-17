@@ -8,8 +8,7 @@ import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import javafx.util.Duration;
-import utilities.Log;
-import utilities.functional.functor.Procedure;
+import utilities.Log; 
 
 /**
  *
@@ -34,7 +33,7 @@ public class PlaycountIncrementer {
     private static TimeEventHandler timeIncrementer;
     
     // behavior
-    private static final Procedure incrementPlayback = () -> {
+    private static final Runnable incrementPlayback = () -> {
         // prevent reading when not initialized
         if (Player.playingtem == null) {
             return;

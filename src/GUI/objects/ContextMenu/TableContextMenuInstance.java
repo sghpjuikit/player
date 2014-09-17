@@ -6,11 +6,11 @@
 package GUI.objects.ContextMenu;
 
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
 import utilities.SingleInstance;
-import utilities.functional.functor.BiProcedure;
 
 /**
  *
@@ -21,7 +21,7 @@ public class TableContextMenuInstance<E> extends SingleInstance<ContentContextMe
     public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiProcedure<ContentContextMenu<List<E>>, TableView<E>> mutator) {
+    public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, TableView<E>> mutator) {
         super(builder, mutator);
     }
     

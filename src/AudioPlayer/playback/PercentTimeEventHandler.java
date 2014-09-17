@@ -3,7 +3,6 @@ package AudioPlayer.playback;
 
 import javafx.util.Duration;
 import utilities.Log;
-import utilities.functional.functor.Procedure;
 
 /**
  *
@@ -14,7 +13,7 @@ public class PercentTimeEventHandler implements DurationHandler {
     private final String name;
     RealTimeProperty parent;
     private double percent;
-    Procedure behavior;
+    Runnable behavior;
     
     // init to true -> failsafe
     // bad realTime initialization could (would) fire single 'initialization'
@@ -27,10 +26,10 @@ public class PercentTimeEventHandler implements DurationHandler {
     private Duration timeMin;
     private Duration timeMax;
     
-    public PercentTimeEventHandler(double p, Procedure b) {
+    public PercentTimeEventHandler(double p, Runnable b) {
         this(p, b, "");
     }
-    public PercentTimeEventHandler(double p, Procedure b, String name) {
+    public PercentTimeEventHandler(double p, Runnable b, String name) {
         parent = PLAYBACK.realTimeProperty();
         percent = p;
         percMin = 0;

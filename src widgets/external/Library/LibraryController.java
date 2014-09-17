@@ -17,6 +17,7 @@ import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilterableTable;
+import GUI.objects.Table.ImprovedTable;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -66,7 +67,6 @@ import static utilities.Parser.File.FileUtil.getCommonRoot;
 import utilities.Util;
 import static utilities.Util.createmenuItem;
 import utilities.access.Accessor;
-import utilities.functional.functor.BiProcedure;
 
 /**
  *
@@ -156,7 +156,7 @@ public class LibraryController extends FXMLController {
                 }
             }
             else if (e.getCode() == DELETE)    // delete selected
-                DB.removeItems(table.getSelectionModel().getSelectedItems());
+                DB.removeItems(table.getSelectedItems());
             else if (e.getCode() == ESCAPE)    // deselect
                 table.getSelectionModel().clearSelection();
         });
@@ -175,7 +175,7 @@ public class LibraryController extends FXMLController {
         
         
         // update selected items for application
-        table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(Util.copySelectedItems(table)));
+        table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(table.getSelectedItemsCopy()));
         table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> Player.librarySelectedItemES.push(nv));
         
         
@@ -187,7 +187,7 @@ public class LibraryController extends FXMLController {
         // information label
         Label infoL  = new Label();
             // updates info label
-        BiProcedure<Boolean,List<? extends Metadata>> infoUpdate = (all,list) -> {
+        BiConsumer<Boolean,List<? extends Metadata>> infoUpdate = (all,list) -> {
             if(!all & list.isEmpty()) {
                 all = true;
                 list = table.getItems();
@@ -351,6 +351,6 @@ public class LibraryController extends FXMLController {
                );
             return m;
         },
-        (menu,table) -> menu.setValue(Util.copySelectedItems(table))
+        (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
 }

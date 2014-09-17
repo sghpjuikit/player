@@ -32,10 +32,11 @@ public class Parser {
         registerConverter(new StringStringParser());
     }
     
-    private static<T> void registerConverter(StringParser<T> parser) {
+    public static<T> void registerConverter(StringParser<T> parser) {
         parser.getSupportedClasses().forEach(c -> parsers.put(c, parser));
     }
-    private static<T> void registerConverter(ObjectStringParser parser) {
+    
+    public static<T> void registerConverter(ObjectStringParser parser) {
         parser.getSupportedClasses().forEach(c -> parsersO.put(c, parser));
     }
     
@@ -49,6 +50,7 @@ public class Parser {
     public static StringParser getParserS(Class type) {
         return parsers.get(type);
     }
+    
     public static ObjectStringParser getParserO(Class type) {
         if(parsersO.containsKey(type)) return parsersO.get(type);
         if(type.isEnum()) return prim_parser;

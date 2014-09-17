@@ -7,8 +7,8 @@
 package utilities;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
-import utilities.functional.functor.BiProcedure;
 
 /**
  * Mutable lazy singleton object implementation.
@@ -30,7 +30,7 @@ public class SingleInstance<T,R> implements Closable {
     
     private T instance;
     private final Supplier<T> builder;
-    private final BiProcedure<T,R> mutator;
+    private final BiConsumer<T,R> mutator;
     
     /**
      * 
@@ -46,7 +46,7 @@ public class SingleInstance<T,R> implements Closable {
      * @param mutator mutates instance's state for certain dependency object. use
      * null if no mutation is desired.
      */
-    public SingleInstance(Supplier<T> builder, BiProcedure<T,R> mutator) {
+    public SingleInstance(Supplier<T> builder, BiConsumer<T,R> mutator) {
         Objects.requireNonNull(builder);
         
         this.builder = builder;

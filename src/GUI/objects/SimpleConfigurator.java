@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ScrollPane;
@@ -14,7 +15,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import utilities.Util;
-import utilities.functional.functor.UnProcedure;
 
 /**
  * Configurable state transformer graphical control.
@@ -46,7 +46,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
     private final double anchor;
     private final List<ConfigField<T>> configFields = new ArrayList();
     private final Configurable<T> configurable;
-    private final UnProcedure<Configurable<T>>  onOK;
+    private final Consumer<Configurable<T>>  onOK;
 
     /**
      * @param configurable configurable object
@@ -56,7 +56,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
      * The procedure provides the Configurable of this configurator as a 
      * parameter to access the configs.
      */
-    public SimpleConfigurator(Configurable<T> configurable, UnProcedure<Configurable<T>> on_OK) {
+    public SimpleConfigurator(Configurable<T> configurable, Consumer<Configurable<T>> on_OK) {
         Objects.requireNonNull(configurable);
         
         this.configurable = configurable;

@@ -15,7 +15,6 @@ import javafx.scene.media.Media;
 import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
 import utilities.Log;
-import utilities.functional.functor.BiProcedure;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -55,7 +54,7 @@ public class MetadataReader{
      * completion or all successfully obtained metadata when any error occurs.
      * @throws NullPointerException if any parameter null
      */
-    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiProcedure<Boolean, List<Metadata>> onEnd){
+    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
         // perform check
         Objects.requireNonNull(items);
         Objects.requireNonNull(onEnd);
@@ -147,7 +146,7 @@ public class MetadataReader{
      * completion or nothing when any error occurs. Never null.
      * @throws NullPointerException if any parameter null
      */
-    public static Task<Metadata> create(Item item, BiProcedure<Boolean, Metadata> onFinish){
+    public static Task<Metadata> create(Item item, BiConsumer<Boolean, Metadata> onFinish){
         Objects.requireNonNull(item);
         Objects.requireNonNull(onFinish);
 

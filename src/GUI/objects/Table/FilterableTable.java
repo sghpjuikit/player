@@ -9,12 +9,12 @@ import GUI.objects.FilterGenerator.TableFilterGenerator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -27,17 +27,17 @@ import utilities.access.FieldValue.FieldedValue;
 
 /**
  * 
- * Table with a search filter header.
+ * Table with a search filter header that supports filtering with provided gui.
  *
  * @author Plutonium_
  */
-public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends TableView<T> {
+public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
     
     private final ObservableList<T> allitems = FXCollections.observableArrayList();
     private final FilteredList<T> filtereditems = new FilteredList(allitems);
     private final SortedList<T> sortedItems = new SortedList(filtereditems);
     public final TableFilterGenerator<T,F> searchBox = new TableFilterGenerator(filtereditems);
-    private final VBox root = new VBox(this);
+    final VBox root = new VBox(this);
     
     public FilterableTable(F initialVal) {
         setItems(sortedItems);
@@ -102,6 +102,14 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
     
     public final FilteredList<T> getItemsFiltered() {
         return filtereditems;
+    }
+    
+    /**
+     * Equivalent to {@code (Predicate<T>) filtereditems.getPredicate();}
+     * @return 
+     */
+    public Predicate<T> getFilterPredicate() {
+        return (Predicate<T>) filtereditems.getPredicate();
     }
     
     /**

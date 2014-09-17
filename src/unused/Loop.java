@@ -6,13 +6,13 @@
 
 package unused;
 
-import utilities.functional.functor.UnProcedure;
+import java.util.function.Consumer;
 
 /**
  *
  * @author Plutonium_
  */
-public interface Loop<O extends Object, P extends UnProcedure<?>> {// extends BiProcedure<O, P>{
+public interface Loop<O extends Object, P extends Consumer<?>> {// extends BiProcedure<O, P>{
 
 //    @Override
 //    public void accept(O s1, P s2);

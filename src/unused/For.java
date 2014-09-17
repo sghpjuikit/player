@@ -7,14 +7,14 @@
 package unused;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
-import utilities.functional.functor.UnProcedure;
 
 /**
  *
  * @author Plutonium_
  */
-public class For<E extends Object> implements Loop<List<E>,UnProcedure<E>>{
+public class For<E extends Object> implements Loop<List<E>,Consumer<E>>{
     private E[] els;
 
     
@@ -26,13 +26,13 @@ public class For<E extends Object> implements Loop<List<E>,UnProcedure<E>>{
     }
     
     
-    public void run(UnProcedure<E> procedure) {
+    public void run(Consumer<E> procedure) {
         Stream.of(els).forEach(procedure::accept);
     }
-    public void run(List<E> elements, UnProcedure<E> procedure) {
+    public void run(List<E> elements, Consumer<E> procedure) {
         eachRun(elements, procedure);
     }
-    public void run(UnProcedure<E> procedure, E... elements) {
+    public void run(Consumer<E> procedure, E... elements) {
         eachRun(procedure, elements);
     }
     public Stream<E> stream() {
@@ -43,13 +43,13 @@ public class For<E extends Object> implements Loop<List<E>,UnProcedure<E>>{
     public static<E> For<E> each(E... els) {
         return new For(els);
     }
-    public static <E> void eachRun(List<E> elements, UnProcedure<E> procedure) {
+    public static <E> void eachRun(List<E> elements, Consumer<E> procedure) {
         elements.forEach(procedure::accept);
     }
-    public static <E> void run(E[] elements, UnProcedure<E> procedure) {
+    public static <E> void run(E[] elements, Consumer<E> procedure) {
         Stream.of(elements).forEach(procedure::accept);  
     }
-    public static <E> void eachRun(UnProcedure<E> procedure, E... elements) {
+    public static <E> void eachRun(Consumer<E> procedure, E... elements) {
         Stream.of(elements).forEach(procedure::accept);
     } 
 }

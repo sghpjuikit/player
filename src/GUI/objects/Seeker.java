@@ -12,6 +12,7 @@ import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.beans.property.ObjectProperty;
@@ -41,7 +42,6 @@ import javafx.util.Duration;
 import utilities.FxTimer;
 import utilities.Log;
 import utilities.Util;
-import utilities.functional.functor.UnProcedure;
 
 /**
  * 
@@ -573,14 +573,14 @@ public final class Seeker extends AnchorPane {
             PLAYBACK.seek(c.getTime());
         }
         
-        UnProcedure<Boolean> onEditFinish;
+        Consumer<Boolean> onEditFinish;
         
         /**
          * Sets behavior executed after editing finishes.
          * @param procedure to execute with a success parameter where true
          * signifies changes were applied and false indicates cancellation.
          */
-        public void setOnEditFinish(UnProcedure<Boolean> onEditFinish) {
+        public void setOnEditFinish(Consumer<Boolean> onEditFinish) {
             this.onEditFinish = onEditFinish;
         }
     }

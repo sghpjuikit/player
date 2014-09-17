@@ -31,7 +31,6 @@ import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
 import utilities.Log;
 import utilities.Parser.File.Enviroment;
-import utilities.functional.functor.Procedure;
 
 /**
  * Provides methods for playback.
@@ -430,13 +429,13 @@ public final class PLAYBACK implements Configurable {
      * like can result in misbehavior due to outdated information.
      * @param b 
      */
-    public static void addOnPlaybackStart(Procedure b)
+    public static void addOnPlaybackStart(Runnable b)
         { core.addOnPlaybackStart(b); }
     /**
      * Remove behavior that executes when item starts playing.
      * @param b 
      */
-    public static void removeOnPlaybackStart(Procedure b)
+    public static void removeOnPlaybackStart(Runnable b)
         { core.removeOnPlaybackStart(b); }
     /**
      * Add behavior that will execute when item playback ends.
@@ -445,13 +444,13 @@ public final class PLAYBACK implements Configurable {
      * playbackEnd event;
      * @param b 
      */
-    public static void addOnPlaybackEnd(Procedure b) 
+    public static void addOnPlaybackEnd(Runnable b) 
         { core.addOnPlaybackEnd(b); }
     /**
      * Remove behavior that executes when item playback ends.
      * @param b 
      */
-    public static void removeOnPlaybackEnd(Procedure b)
+    public static void removeOnPlaybackEnd(Runnable b)
         { core.removeOnPlaybackEnd(b); }
     /**
      * Set audio spectrum listener to listen to spectrum changes.

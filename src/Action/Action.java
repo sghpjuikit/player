@@ -37,7 +37,6 @@ import org.reactfx.EventSource;
 import utilities.FxTimer;
 import utilities.Log;
 import utilities.access.Accessor;
-import utilities.functional.functor.Procedure;
 
 /**
  * Encapsulates application behavior.
@@ -572,14 +571,14 @@ public final class Action extends Config<Action> implements Runnable {
                             }
                             
                             String name = a.name();
-                            Procedure p = () -> {
+                            Runnable r = () -> {
                                 try {
                                     mh.invokeExact();
                                 } catch (Throwable e) {
                                     throw new RuntimeException("Error during running action.",e);
                                 }
                             };
-                            acts.put(name.hashCode(),new Action(a,p));
+                            acts.put(name.hashCode(),new Action(a,r));
                         }
                     }
                 }

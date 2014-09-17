@@ -106,8 +106,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
                 case VALUE : return Object.class;
                 case ITEMS : return long.class; 
                 case ALBUMS : return long.class; 
-                case LENGTH : return double.class; 
-                case SIZE : return long.class; 
+                case LENGTH : return FormattedDuration.class; 
+                case SIZE : return FileSize.class; 
             }
             throw new AssertionError();
         }
@@ -117,8 +117,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
                 case VALUE : return field.getType();
                 case ITEMS : return long.class; 
                 case ALBUMS : return long.class; 
-                case LENGTH : return double.class; 
-                case SIZE : return long.class; 
+                case LENGTH : return FormattedDuration.class; 
+                case SIZE : return FileSize.class; 
             }
             throw new AssertionError();
         }

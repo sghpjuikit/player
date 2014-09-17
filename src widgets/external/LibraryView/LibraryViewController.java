@@ -14,6 +14,7 @@ import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilterableTable;
+import GUI.objects.Table.ImprovedTable;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -132,7 +133,7 @@ public class LibraryViewController extends FXMLController {
             if (e.getY()<table.getFixedCellSize()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2)
-                    play(Util.copySelectedItems(table));
+                    play(table.getSelectedItemsCopy());
             } else
             if(e.getButton()==SECONDARY)
                 contxt_menu.show(table, e);
@@ -141,7 +142,7 @@ public class LibraryViewController extends FXMLController {
         // key actions
         table.setOnKeyReleased( e -> {
             if (e.getCode() == ENTER)     // play first of the selected
-                play(table.getSelectionModel().getSelectedItems());
+                play(table.getSelectedItems());
             else if (e.getCode() == ESCAPE)    // deselect
                 table.getSelectionModel().clearSelection();
         });
@@ -185,7 +186,7 @@ public class LibraryViewController extends FXMLController {
                 createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(dbFetch(m.getValue())))));
             return m;
         },
-        (menu,table) -> menu.setValue(Util.copySelectedItems(table))
+        (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
     
     private static List<Metadata> dbFetch(List<MetadataGroup> filters) {

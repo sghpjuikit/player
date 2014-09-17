@@ -16,16 +16,15 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
+import PseudoObjects.FormattedDuration;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.ERASER;
 import static de.jensd.fx.fontawesome.AwesomeIcon.FILTER;
+import java.util.Collection;
 import java.util.Date;
-import java.util.function.Predicate;
 import javafx.beans.InvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -36,7 +35,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.util.Duration;
 import utilities.Util;
 import utilities.access.Accessor;
 
@@ -84,25 +82,22 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML Menu selMenu;
     @FXML Menu orderMenu;
     
-    
-    private final ChangeListener<Duration> lengthListener = (o,ov,nv) -> updateLength(nv);
-    
     // auto applied configurables
     @IsConfig(name = "Table orientation", info = "Orientation of table.")
     public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
     public final Accessor<Boolean> zeropad = new Accessor<>(true, table::zeropadIndex);
     @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setMenuButtonVisible);
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
+    @IsConfig(name = "Search show original index", info = "Show index of the itme as it was in the unfiltered playlist when filter applied.")
+    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
     @IsConfig(name = "Show bottom header", info = "Show contorls pane at the bottom.")
     public final Accessor<Boolean> show_bottom_header = new Accessor<>(true, v -> {
         optionPane.setVisible(v);
         AnchorPane.setBottomAnchor(tablePane, v ? 28d : 0d);
     });
-    @IsConfig(name = "Search show original index", info = "Show index of the itme as it was in the unfiltered playlist when filter applied.")
-    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
         String off = "      Enable filter for playback\n Causes the playback "
@@ -112,7 +107,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         Tooltip t = new Tooltip(v ? on : off);
                 t.setWrapText(true);
                 t.setMaxWidth(200);
-        table.getTable().getSearchBox().setButton(v ? ERASER : FILTER, t, filterToggler());
+        table.getSearchBox().setButton(v ? ERASER : FILTER, t, filterToggler());
         setUseFilterForPlayback(v);
     });
     
@@ -124,14 +119,24 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @IsConfig(name = "Search ignore case", info = "Ignore case when comparing for search results.")
     public boolean ignoreCase = true;
     
-    
-    ListChangeListener<PlaylistItem> playlistitemsChangeHandler = c -> table.setItems((ObservableList<PlaylistItem>) c.getList());
-    InvalidationListener predicateListener = o -> 
-            PlaylistManager.playingItemSelector.setFilter((Predicate<PlaylistItem>)table.getItemsF().getPredicate());
+    private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
+            table.setItemsRaw((Collection<PlaylistItem>) c.getList());
+    private final InvalidationListener predicateL = o -> 
+            PlaylistManager.playingItemSelector.setFilter(table.getFilterPredicate());
     
     
     @Override
-    public void init() {
+    public void init() {        
+        tablePane.getChildren().add(table.getAsNode());
+        Util.setAPAnchors(table.getAsNode(), 0d);
+        
+        // for now...  either get rid of PM and allow multiple playlists OR allow binding
+        PlaylistManager.getItems().addListener(playlistitemsL);
+        table.getItems().addListener((ListChangeListener.Change<?> c) -> updateLength());
+        
+        // consume scroll event to prevent other scroll behavior // optional
+        table.setOnScroll(Event::consume);
+        
         // menubar - change text to icons
         addMenu.setText("");
         remMenu.setText("");
@@ -141,24 +146,13 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
         AwesomeDude.setIcon(selMenu, AwesomeIcon.CROP, "11", "11");
         AwesomeDude.setIcon(orderMenu, AwesomeIcon.NAVICON, "11", "11");
-        
-        table.setRoot(tablePane);
-        // for now...  either get rid of PM and allow multiple playlists OR allow binding
-        PlaylistManager.getItems().addListener(playlistitemsChangeHandler);
-
-        PlaylistManager.lengthProperty().addListener(lengthListener);   // add listener
-        updateLength(PlaylistManager.getLength());                      // init value
-        
-        // consume scroll event to prevent other scroll behavior // optional
-        table.getTable().setOnScroll(Event::consume);        
     }
 
     @Override
     public void close() {
         // remove listeners
         setUseFilterForPlayback(false);
-        PlaylistManager.getItems().removeListener(playlistitemsChangeHandler);
-        PlaylistManager.lengthProperty().removeListener(lengthListener);
+        PlaylistManager.getItems().removeListener(playlistitemsL);
         table.clearResources();
     }
     
@@ -173,6 +167,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         show_bottom_header.applyValue();
         orig_index.applyValue();
         filter_for_playback.applyValue();
+        table.setItemsRaw(PlaylistManager.getItems());
+        updateLength();
     }
     
     @FXML public void chooseFiles() {
@@ -249,7 +245,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @FXML
     public void savePlaylist() {
-        if(table.getItemsF().isEmpty()) return;
+        if(table.getItemsFiltered().isEmpty()) return;
         
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
         MapConfigurable cs = new MapConfigurable(
@@ -257,7 +253,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 new ValueConfig("Category", "Listening to..."));
         SimpleConfigurator sc = new SimpleConfigurator<String>(cs, c -> {
             String name = c.getField("Name").getValue();
-            NamedPlaylist p = new NamedPlaylist(name, table.getItemsF());
+            NamedPlaylist p = new NamedPlaylist(name, table.getItems());
                           p.addCategory("Listening to...");
                           p.serialize();
         });
@@ -276,7 +272,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
             String name = c.getField("Name").getValue();
             String category = c.getField("Category").getValue();
-            NamedPlaylist p = new NamedPlaylist(name, table.getItemsF());
+            NamedPlaylist p = new NamedPlaylist(name, table.getSelectedItems());
                           p.addCategory(category);
                           p.serialize();
         });
@@ -287,18 +283,19 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
 /***************************** HELPER METHODS *********************************/
     
-    private void updateLength(Duration d) {
-        duration.setText(PlaylistManager.getSize() + " items: " + Util.formatDuration(d));
+    private void updateLength() {
+        double d = table.getItems().stream().mapToDouble(i->i.getTime().toMillis()).sum();
+        duration.setText(table.getItems().size() + " items: " + new FormattedDuration(d));
     }
     
     private void setUseFilterForPlayback(boolean v) {
         if(v) {
             filter_for_playback.setValue(true);
-            table.getItemsF().predicateProperty().addListener(predicateListener);
-            PlaylistManager.playingItemSelector.setFilter((Predicate<PlaylistItem>)table.getItemsF().getPredicate());
+            table.getItemsFiltered().predicateProperty().addListener(predicateL);
+            PlaylistManager.playingItemSelector.setFilter(table.getFilterPredicate());
         } else {
             filter_for_playback.setValue(false);
-            table.getItemsF().predicateProperty().removeListener(predicateListener);
+            table.getItemsFiltered().predicateProperty().removeListener(predicateL);
             PlaylistManager.playingItemSelector.setFilter(null);
         }
     }

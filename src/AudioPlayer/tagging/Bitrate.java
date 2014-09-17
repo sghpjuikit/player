@@ -5,6 +5,7 @@
 package AudioPlayer.tagging;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import utilities.Dependency;
 
 /**
  * Simple wrapper class for bitrate represented as int, implementing toString method.
@@ -24,6 +25,7 @@ public class Bitrate implements Comparable<Bitrate>{
      * @param value bit rate value in kb per second. Use -1 if not available.
      */
     public Bitrate(int value){
+        if(value<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
         bitrate = value;
     }
     
@@ -62,6 +64,7 @@ public class Bitrate implements Comparable<Bitrate>{
      * @return string representation of the object
      */
     @Override
+    @Dependency("Must be consistent with fromString()")
     public String toString() {
         return bitrate == -1 ? "N/A" : bitrate + " kbps";
     }
@@ -69,5 +72,10 @@ public class Bitrate implements Comparable<Bitrate>{
     @Override
     public int compareTo(Bitrate o) {
         return Long.compare(bitrate, o.bitrate);
+    }
+    
+    @Dependency("Enables convertability to String using Parser by reflection")
+    public Bitrate fromString(String s) {
+        return new Bitrate(Integer.parseInt(s));
     }
 }

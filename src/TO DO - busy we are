@@ -26,9 +26,6 @@
   well, now that FilterGenerator is running, does filtering through DB even
   make sense?
 - library shortcuts
-- library remember value is Object field turn into Config with overriden getType
-  that gets the type from the field type config, or unify the two into one
-  double value config
 - writing to tag for files without tag fails sometimes (jaudiotagger cant rename
   file, it looks like it is locked) - perhaps generalizes to any change of tag
   that enlarges the file (and thus requires tmp file)
@@ -42,9 +39,6 @@
 - clean up Enviroment
 - window header troubles again
 - explorer graphics support css skinning
-- playcount not working as library filter, make sure all fields work
-
-- lib filter add predicate support to  -  always support all types
 - full sorting suport for FilteredTable -> make API
 
 --------------------------------------------------------------------------------
@@ -99,7 +93,7 @@ GENERAL
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
-- seeking for mp3 files with variable bitrate causes                            (major, javaFX bug)
+- seeking mp3 files                                                             (major, javaFX bug)
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
@@ -173,7 +167,7 @@ CLEANUP
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them
-- file format discovery. Unite Image and Audio types add category               (not needed for now)
+- file format discovery. Unite Image and Audio types add category               (not needed)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - Notification class unite contents, remove enum                                (lot of code + fxml duplicity)
 - popover investigate default NodeOwner and windowOwner and default move with   
@@ -207,8 +201,6 @@ PERFORMANCE
   playlist) share the same playlist item object instances. Keep that in mind.
 - playlist table row height is fixed for now
 - scrollbar width should be 15px. Or table resize (and more) might break.
-- thumbnail border is expected to be 2px wide, dont change css until the
-  hardcoded part in Thumbnail class is resolved
 - instead of javafx.scene.text.Text use Text class provided by the project. It
   is exactly the same but provides css styleclass and support for skinning. Also
   comes in with a handy resize methods

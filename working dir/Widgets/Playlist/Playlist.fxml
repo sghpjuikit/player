@@ -15,7 +15,7 @@
     <AnchorPane fx:id="optionPane" prefHeight="28.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
       <children><StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <children>
-            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" StackPane.alignment="CENTER" /><MenuBar maxWidth="50.0" prefWidth="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" StackPane.alignment="CENTER_LEFT">
+            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" StackPane.alignment="CENTER" /><MenuBar maxWidth="46.0" prefWidth="46.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" StackPane.alignment="CENTER_LEFT">
   <menus>
     <Menu fx:id="addMenu" mnemonicParsing="false" text="+">
 <items>

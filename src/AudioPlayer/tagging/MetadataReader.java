@@ -203,9 +203,11 @@ public class MetadataReader{
      * 
      * @param items
      * @param onEnd
+     * @param all true to return all discovered files, false to return only those that
+     * were added to library as a result of this task - ignore existing files
      * @return 
      */
-    public static Task<List<Metadata>> readAaddMetadata(List<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd){
+    public static Task<List<Metadata>> readAaddMetadata(List<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
         // perform check
         Objects.requireNonNull(items);
                 
@@ -235,10 +237,13 @@ public class MetadataReader{
                         // on success
                         } else {
                             Metadata l = em.find(Metadata.class, m.getId());
-                            if(l == null) em.persist(m);
-                            else m = l;
-                            
-                            out.add(m);
+                            if(l == null) {
+                                em.persist(m);
+                                out.add(m);
+                            }
+                            else {
+                                if(all_i) out.add(l);
+                            }                            
                         }
                         
                         // update

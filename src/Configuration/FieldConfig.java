@@ -53,7 +53,7 @@ public final class FieldConfig<T> extends ConfigBase<T> {
         try {
             if(instance==null) setter.invokeWithArguments(val);
             else setter.invokeWithArguments(instance,val);
-            Log.deb("Config field: " + getName() + " set to: " + val);
+            //Log.deb("Config field: " + getName() + " set to: " + val);
         } catch (Throwable e) {
             Log.err("Config field: " + getName() + " failed to set. Reason: " + e.getMessage());
         }
@@ -63,14 +63,14 @@ public final class FieldConfig<T> extends ConfigBase<T> {
     @Override
     public void applyValue(T val) {
         if(applier != null) {
-            Log.deb("Applying config: " + getName());
+            //Log.deb("Applying config: " + getName());
             try {
                 int i = applier.type().parameterCount();
                 
                 if(i==1) applier.invokeWithArguments(val);
                 else applier.invoke();
                 
-                Log.deb("    Success.");
+                //Log.deb("    Success.");
             } catch (Throwable e) {
                 Log.err("    Failed to apply config field: " + getName() + ". Reason: " + e.getMessage());
             }

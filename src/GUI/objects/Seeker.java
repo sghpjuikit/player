@@ -41,7 +41,6 @@ import javafx.stage.Popup;
 import javafx.util.Duration;
 import utilities.FxTimer;
 import utilities.Log;
-import utilities.Util;
 
 /**
  * 
@@ -440,7 +439,7 @@ public final class Seeker extends AnchorPane {
                 p.setHideOnEscape(true);
                 p.setHideOnClick(false); // we will emulate it on our own
                 p.setAutoFix(false);
-                p.setTitle(Util.formatDuration(c.getTime()));
+                p.setTitle(c.getTime().toString());
                 p.setOnHidden( e -> {
                     if (editOn) cancelEdit();
                     end.play();

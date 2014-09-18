@@ -5,8 +5,8 @@
  */
 package AudioPlayer.playlist;
 
+import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
-import PseudoObjects.FormattedDuration;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Comparator;
@@ -143,11 +143,14 @@ public final class PlaylistItem extends Item implements FieldedValue<PlaylistIte
         return i==-1 ? s : s.substring(i+3);
     }
     
-    /**
-     * @return the time. 0 if item wasnt updated yet. Never null.
-     */
+    /** @return the time. ZERO if item wasnt updated yet. Never null. */
     public FormattedDuration getTime() {
         return time.get();
+    }
+    
+    /** @return the time in millisecods. 0 if item wasnt updated yet. */
+    public double getTimeInMs() {
+        return time.get().toMillis();
     }
     
     /**

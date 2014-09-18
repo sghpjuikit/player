@@ -4,6 +4,7 @@
  */
 package AudioPlayer.tagging.Chapters;
 
+import AudioPlayer.tagging.FormattedDuration;
 import java.util.Objects;
 import javafx.util.Duration;
 
@@ -16,7 +17,7 @@ import javafx.util.Duration;
  */
 public final class Chapter implements Comparable<Chapter> {
     
-    private Duration time;
+    private FormattedDuration time;
     private String info = "";
 
     
@@ -49,7 +50,7 @@ public final class Chapter implements Comparable<Chapter> {
     /**
      * Gets time as Duration with granularity of 1 millisecond.
      */
-    public Duration getTime() {
+    public FormattedDuration getTime() {
         // time must always be equivalent to mathematical integer
         assert time.toMillis() == Math.rint(time.toMillis());
         
@@ -67,7 +68,7 @@ public final class Chapter implements Comparable<Chapter> {
     
     private void setTimeInMillis(double millis) {
         // round to decimal number before assigning
-        this.time = new Duration(Math.rint(millis));
+        this.time = new FormattedDuration(Math.rint(millis));
     }
     
     /** Returns the text. Never null. Default value is "". */

@@ -268,7 +268,7 @@ public final class Action extends Config<Action> implements Runnable {
         try {
             this.keys = KeyCombination.keyCombination(keys);
         } catch (Exception e) {
-            Log.info("Illegal shortcut keys parameter. Shortcut keys disabled for: "
+            Log.warn("Illegal shortcut keys parameter. Shortcut keys disabled for: "
                     + name + " Keys: '" + keys + "'");    
             this.keys = NO_MATCH;   // disable shortcut for wrong keys
         }

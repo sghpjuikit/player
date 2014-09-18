@@ -29,7 +29,7 @@ public class FromStringParser implements ObjectStringParser {
     }
 
     @Override
-    public Object fromS(Class type, String source) {
+    public Object fromS(Class type, String source) {        
         //try parsing unknown types with fromString(String) method if available
         try {
             Method m = type.getDeclaredMethod("fromString", String.class);

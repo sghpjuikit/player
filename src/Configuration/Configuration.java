@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import javafx.beans.value.WritableValue;
 import main.App;
@@ -162,55 +161,6 @@ public class Configuration {
         } catch (IllegalAccessException | SecurityException ex) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
-    }
-    
-    
-    
-/******************************** setting fields ******************************/
-
-    /**
-     * @param value Object value. If not a proper type exceptions will be thrown.
-     * @throws ClassCastException when value parameter not of expected type.
-     * @throws IllegalArgumentException when value parameter not of expected type.
-     * @throws RuntimeException if config does not exist. Such case must be a 
-     * programming error.
-     */
-    public static void setNapplyField(String name, Object value) {
-        Log.deb("Attempting to set and apply config field " + name + " to " + value);
-        Config c = getField(name);
-        Objects.requireNonNull(c,"Failed to set and apply config field: " + name + " . Reason: Does not exist.");
-        c.setNapplyValue(value);
-    }
-    
-    /**
-     * 
-     * @param name
-     * @param value 
-     * @throws RuntimeException if config does not exist. Such case must be a 
-     * programming error.
-     */
-    public static void setField(String name, Object value) {
-        Log.deb("Attempting to set config field value of: " + name + " to: " + value);
-        Config c = getField(name);
-        Objects.requireNonNull(c,"Failed to set config field: " + name + " . Reason: Does not exist.");
-        c.setValue(value);
-    }
-    
-    /**
-     * 
-     * @param name 
-     * @throws RuntimeException if config does not exist. Such case must be a 
-     * programming error.
-     */
-    public static void applyField(String name) {
-        Log.deb("Attempting to apply config field " + name);
-        Config c = getField(name);
-        Objects.requireNonNull(c,"Failed to apply config field: " + name + " . Reason: Does not exist.");
-        c.applyValue();
-    }
-    
-    public static void applyFieldsAll() {
-        getFields().forEach(Config::applyValue);
     }
     
 /******************************* public api ***********************************/

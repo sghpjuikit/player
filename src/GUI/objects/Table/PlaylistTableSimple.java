@@ -9,7 +9,7 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import GUI.DragUtil;
-import PseudoObjects.FormattedDuration;
+import AudioPlayer.tagging.FormattedDuration;
 import java.util.List;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;

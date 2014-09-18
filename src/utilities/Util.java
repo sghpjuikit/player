@@ -154,19 +154,18 @@ public interface Util {
         Objects.requireNonNull(duration);
         
         double sec_total = duration.toMillis()/1000;
-        int seconds = (int) sec_total %  60;
-        int minutes = (int)(sec_total /  60) % 60;
-        int hours   = (int)(sec_total /3600);
+        int seconds = (int) sec_total %60;
+        int minutes = (int)((sec_total-seconds) /60) %60;
+        int hours   = (int)(sec_total-seconds-60*minutes) /3600;
         
-        if (minutes < 1) {
+        if(hours>99)
+            return String.format("%d:%02d:%02d", hours, minutes, seconds); 
+        else if (hours>0)
+            return String.format("%02d:%02d:%02d", hours, minutes, seconds);            
+        else if(minutes>0)
+            return String.format("%02d:%02d", minutes, seconds);
+        else
             return String.format("00:%02d",seconds);            
-        } else if (hours < 1) {
-            return String.format("%02d:%02d", minutes, seconds);            
-        } else if (hours < 100){
-            return String.format("%2d:%02d:%02d", hours, minutes, seconds);            
-        } else {
-            return String.format("%3d:%02d:%02d", hours, minutes, seconds); 
-        }
     }
     
     /**
@@ -188,19 +187,18 @@ public interface Util {
         if (include_zeros) return formatDuration(duration);
         
         double sec_total = duration.toMillis()/1000;
-        int seconds = (int) sec_total %  60;
-        int minutes = (int)(sec_total /  60) % 60;
-        int hours   = (int)(sec_total /3600);
+        int seconds = (int) sec_total %60;
+        int minutes = (int)((sec_total-seconds) /60) %60;
+        int hours   = (int)(sec_total-seconds-60*minutes) /3600;
         
-        if (minutes < 1) {
-            return String.format("%2d",seconds);            
-        } else if (hours < 1) {
-            return String.format("%2d:%2d", minutes, seconds);            
-        } else if (hours < 100) {
-            return String.format("%2d:%2d:%2d", hours, minutes, seconds);            
-        } else {
+        if(hours>99)
             return String.format("%3d:%2d:%2d", hours, minutes, seconds);            
-        }
+        else if(hours>0)
+            return String.format("%2d:%2d:%2d", hours, minutes, seconds);       
+        else if (minutes>0)
+            return String.format("%2d:%2d", minutes, seconds);
+        else
+            return String.format("%2d",seconds);
     }
     
     /**

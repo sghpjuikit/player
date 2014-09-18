@@ -119,7 +119,7 @@ public class LibraryViewController extends FXMLController {
 
     @Override
     public void init() {
-        content.getChildren().addAll(table.getAsNode());
+        content.getChildren().addAll(table.getRoot());
         
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);

@@ -98,8 +98,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import main.App;
 import org.reactfx.Subscription;
-import utilities.Parser.File.Enviroment;
 import utilities.Log;
+import utilities.Parser.File.Enviroment;
 import utilities.Util;
 import utilities.access.Accessor;
 
@@ -213,6 +213,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 w.colorEffectPane.setBackground(new Background(new BackgroundFill(cl, CornerRadii.EMPTY, Insets.EMPTY)));
                 w.colorEffectPane.setOpacity(overlay_norm_factor);
                 w.colorEffectPane.setVisible(true);
+                
+//                String s = ".root{ skin-main-color: rgb(" + (int)(cl.getRed()*255) + ","+ (int)(cl.getGreen()*255)+ ","+ (int)(cl.getBlue()*255)+ "); }";
+//                w.root.setStyle(s);System.out.println(s);
             });
 
         } else {
@@ -295,7 +298,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML Button minimizeB;
     @FXML Pane colorEffectPane;
     @FXML AnchorPane bgrImgLayer;
-    public @FXML AnchorPane contextPane;
     public @FXML AnchorPane overlayPane;
     
     private Window() {

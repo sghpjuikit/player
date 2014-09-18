@@ -4,6 +4,7 @@ package Playlist;
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.FormattedDuration;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
@@ -16,7 +17,6 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import PseudoObjects.FormattedDuration;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.ERASER;
@@ -127,8 +127,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @Override
     public void init() {        
-        tablePane.getChildren().add(table.getAsNode());
-        Util.setAPAnchors(table.getAsNode(), 0d);
+        tablePane.getChildren().add(table.getRoot());
+        Util.setAPAnchors(table.getRoot(), 0d);
         
         // for now...  either get rid of PM and allow multiple playlists OR allow binding
         PlaylistManager.getItems().addListener(playlistitemsL);
@@ -284,7 +284,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
 /***************************** HELPER METHODS *********************************/
     
     private void updateLength() {
-        double d = table.getItems().stream().mapToDouble(i->i.getTime().toMillis()).sum();
+        double d = table.getItems().stream().mapToDouble(PlaylistItem::getTimeInMs).sum();
         duration.setText(table.getItems().size() + " items: " + new FormattedDuration(d));
     }
     

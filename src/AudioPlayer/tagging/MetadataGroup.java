@@ -6,7 +6,6 @@
 
 package AudioPlayer.tagging;
 
-import PseudoObjects.FormattedDuration;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import utilities.access.FieldValue.FieldEnum;
 import utilities.access.FieldValue.FieldedValue;

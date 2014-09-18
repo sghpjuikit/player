@@ -10,7 +10,6 @@ import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import AudioPlayer.tagging.Cover.FileCover;
 import AudioPlayer.tagging.Cover.ImageCover;
-import PseudoObjects.FormattedDuration;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
@@ -451,10 +450,15 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         return encoder;
     }
     
-    /** @return the length in milliseconds */
+    /** @return the length */
     @MetadataFieldMethod(Field.LENGTH)
     public FormattedDuration getLength() {
         return new FormattedDuration(duration);
+    }
+    
+    /** @return the length in milliseconds */
+    public double getLengthInMs() {
+        return duration;
     }
     
 /******************************************************************************/    

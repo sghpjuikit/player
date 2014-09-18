@@ -21,7 +21,10 @@ import utilities.SteroidObject;
 public enum NumberPredicates implements SteroidObject{
     LESS((t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0, (t,u) -> t.compareTo(u)<0),
     MORE((t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0, (t,u) -> t.compareTo(u)>0),
-    SAME((t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0);
+    SAME((t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0, (t,u) -> t.compareTo(u)==0),
+    NOT_LESS((t,u) -> t.compareTo(u)>=0, (t,u) -> t.compareTo(u)>=0, (t,u) -> t.compareTo(u)>=0, (t,u) -> t.compareTo(u)>=0, (t,u) -> t.compareTo(u)>=0),
+    NOT_MORE((t,u) -> t.compareTo(u)<=0, (t,u) -> t.compareTo(u)<=0, (t,u) -> t.compareTo(u)<=0, (t,u) -> t.compareTo(u)<=0, (t,u) -> t.compareTo(u)<=0),
+    NOT_SAME((t,u) -> t.compareTo(u)!=0, (t,u) -> t.compareTo(u)!=0, (t,u) -> t.compareTo(u)!=0, (t,u) -> t.compareTo(u)!=0, (t,u) -> t.compareTo(u)!=0);
 
     
     Map<Integer, BiPredicate<? extends Number,? extends Number>> ps = new HashMap();

@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
+import java.util.function.Supplier;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -34,10 +34,15 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     
     private final List<Tuple3<String,Class,F>> data = new ArrayList();
     private final List<FilterGenerator<F>> generators = new ArrayList();
+    
     private Consumer<Predicate<T>> onFilterChange;
     private Callback<Class,List<Tuple2<String,BiPredicate>>> predicateSupplier;
-    private Predicate<T> conjuction;
+    private Supplier<Tuple3<String,Class,F>> prefTypeSupplier;
+    private Callback<Class,Tuple2<String,BiPredicate>> prefpredicateSupplier;
     private BiFunction<F,Predicate<Object>,Predicate<T>> converter;
+    
+    private Predicate<T> conjuction;
+    
     
     public FilterGeneratorChain() {
         this(1);
@@ -45,24 +50,36 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     
     public FilterGeneratorChain(int i) {
         if(i<1) throw new IllegalArgumentException("Number of filters must be positive");
-        IntStream.range(1, i+1).forEach( index -> generators.add(buildG()));
+        for(int a=0; a<i; a++) generators.add(buildG());
     }
+    
     
     public void setData(List<Tuple3<String,Class,F>> classes) {
         data.addAll(classes);
         generators.forEach(g->g.setData(classes));
     }
     
-    public void setOnFilterChange(Consumer<Predicate<T>> filter_acceptor) {
-        onFilterChange = filter_acceptor;
+    public void setPrefTypeSupplier(Supplier<Tuple3<String,Class,F>> supplier) {
+        prefTypeSupplier = supplier;
+        generators.forEach(g->g.setPrefTypeSupplier(supplier));
+    }
+    
+    public void setPrefPredicateSupplier(Callback<Class,Tuple2<String,BiPredicate>> supplier) {
+        prefpredicateSupplier = supplier;
+        generators.forEach(g->g.setPrefPredicateSupplier(supplier));
     }
     
     public void setPredicateSupplier(Callback<Class,List<Tuple2<String,BiPredicate>>> supplier) {
+        predicateSupplier = supplier;
         generators.forEach(g->g.setPredicateSupplier(supplier));
     }
     
     public void setMapper(BiFunction<F,Predicate<Object>,Predicate<T>> mapper) {
         this.converter = mapper;
+    }
+    
+    public void setOnFilterChange(Consumer<Predicate<T>> filter_acceptor) {
+        onFilterChange = filter_acceptor;
     }
     
     public void focus() {
@@ -88,9 +105,11 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
 
     private FilterGenerator<F> buildG() {
         FilterGenerator<F> g = new FilterGenerator();
-        g.setData(data);
         g.setOnFilterChange((a,b) -> generatePredicate());
         g.setPredicateSupplier(predicateSupplier);
+        g.setPrefTypeSupplier(prefTypeSupplier);
+        g.setPrefPredicateSupplier(prefpredicateSupplier);
+        g.setData(data);
         Label rem = AwesomeDude.createIconLabel(AwesomeIcon.MINUS, "13");
         Label add = AwesomeDude.createIconLabel(AwesomeIcon.PLUS, "13");
         rem.setOnMouseClicked(e -> {
@@ -114,15 +133,11 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     }
     
     private void generatePredicate() {
-        if(isEmpty()) 
-            conjuction = o -> true;
-        else {
-            conjuction = o -> true;
-            for(FilterGenerator<F> g : generators) {
+        conjuction = o -> true;
+        if(!isEmpty())
+            for(FilterGenerator<F> g : generators)
                 if(!g.isEmpty()) 
                     conjuction=conjuction.and(converter.apply(g.val,g.predicate));
-            }
-        }
         
         if(onFilterChange!=null) onFilterChange.accept(conjuction);
     }

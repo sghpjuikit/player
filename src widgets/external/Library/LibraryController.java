@@ -8,6 +8,7 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataReader;
@@ -58,7 +59,6 @@ import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import static javafx.util.Duration.ZERO;
 import org.reactfx.Subscription;
 import utilities.FxTimer;
 import utilities.Parser.File.Enviroment;
@@ -192,10 +192,10 @@ public class LibraryController extends FXMLController {
                 all = true;
                 list = table.getItems();
             }
-            Duration du = list.stream().map(m -> (Duration)m.getLength()).reduce(ZERO, Duration::add);
+            double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
             String prefix1 = all ? "All:" : "Selected: ";
             String prefix2 = list.size()==1 ? " item " : " items ";
-            infoL.setText(prefix1 + list.size() + prefix2 + "- " + Util.formatDuration(du));
+            infoL.setText(prefix1 + list.size() + prefix2 + "- " + new FormattedDuration(d));
         };
             // calls info label update on selection change
         ListChangeListener<Metadata> infoUpdater = c -> infoUpdate.accept(c==table.getItems(),c.getList());
@@ -208,7 +208,7 @@ public class LibraryController extends FXMLController {
         HBox controls = new HBox(controlsBar,infoL);
              controls.setSpacing(7);
              controls.setAlignment(Pos.CENTER_LEFT);
-             controls.setPadding(new Insets(2));
+             controls.setPadding(new Insets(2,0,2,0));
         
         addMenu.setText("");
         remMenu.setText("");
@@ -216,8 +216,8 @@ public class LibraryController extends FXMLController {
         AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
         
         
-        content.getChildren().addAll(table.getAsNode(), controls);
-        VBox.setVgrow(table.getAsNode(),ALWAYS);
+        content.getChildren().addAll(table.getRoot(), controls);
+        VBox.setVgrow(table.getRoot(),ALWAYS);
         
         // listen for database changes to refresh library
         dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
@@ -283,7 +283,7 @@ public class LibraryController extends FXMLController {
         }
 
         if(files!=null) {
-            List<Metadata> metas = FileUtil.getAudioFiles(files,0).stream()
+            List<Metadata> metas = FileUtil.getAudioFiles(files,6).stream()
                    .map(SimpleItem::new)
                    .map(SimpleItem::toMetadata)
                    .collect(Collectors.toList());
@@ -296,7 +296,7 @@ public class LibraryController extends FXMLController {
                 }
             };
             
-            Task t = MetadataReader.readAaddMetadata(metas,onEnd);
+            Task t = MetadataReader.readAaddMetadata(metas,onEnd,false);
             // display progress & hide on end
             progressL.setVisible(true);
             progressL.textProperty().bind(t.messageProperty());

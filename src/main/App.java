@@ -6,6 +6,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.MoodManager;
+import Configuration.Config;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -128,7 +129,7 @@ public class App extends Application {
             
             // this might me deprecated
             // we need to initialize skin before windows do
-            Configuration.applyField("skin");
+            Configuration.getField("skin").applyValue();
             
             DB.start();
             
@@ -147,9 +148,10 @@ public class App extends Application {
         NotifierManager.start();           // after window is shown (and css aplied)
         PlaycountIncrementer.initialize();
         MoodManager.initialize();
-        Action.getActions().forEach(Action::register);        
-
-        Configuration.applyFieldsAll();         // apply all (and gui) settings
+        Action.getActions().forEach(Action::register);
+        
+        // apply all (and gui) settings
+        Configuration.getFields().forEach(Config::applyValue);
         
         // handle guide
         guide = new Guide();

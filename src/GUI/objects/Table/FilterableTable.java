@@ -6,11 +6,8 @@
 package GUI.objects.Table;
 
 import GUI.objects.FilterGenerator.TableFilterGenerator;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -20,8 +17,6 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
-import org.reactfx.util.Tuple3;
-import org.reactfx.util.Tuples;
 import utilities.access.FieldValue.FieldEnum;
 import utilities.access.FieldValue.FieldedValue;
 
@@ -36,24 +31,17 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
     private final ObservableList<T> allitems = FXCollections.observableArrayList();
     private final FilteredList<T> filtereditems = new FilteredList(allitems);
     private final SortedList<T> sortedItems = new SortedList(filtereditems);
-    public final TableFilterGenerator<T,F> searchBox = new TableFilterGenerator(filtereditems);
+    public final TableFilterGenerator<T,F> searchBox;
     final VBox root = new VBox(this);
     
     public FilterableTable(F initialVal) {
+        searchBox = new TableFilterGenerator(filtereditems, initialVal);
+        
         setItems(sortedItems);
         sortedItems.comparatorProperty().bind(comparatorProperty());
         VBox.setVgrow(this, ALWAYS);
         
         searchBox.setVisible(false);
-        
-        if(initialVal instanceof Enum) {
-            F[] es = (F[]) initialVal.getClass().getEnumConstants();
-            List<Tuple3<String,Class,F>> data = Arrays.asList(es).stream()
-                .map(mf->Tuples.t(mf.toStringEnum(),mf.getType(),mf))
-                .collect(Collectors.toList());
-            searchBox.setData(data);
-        } else
-            throw new IllegalArgumentException("Initial value - field type must be an enum");
         
         searchBox.addEventFilter(KEY_PRESSED, e -> {
             if(e.getCode()==ESCAPE) {
@@ -88,7 +76,7 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
      * 
      * @return 
      */
-    public VBox getAsNode() {
+    public VBox getRoot() {
         return root;
     }
     

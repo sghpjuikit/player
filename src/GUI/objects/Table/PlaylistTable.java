@@ -16,7 +16,7 @@ import GUI.objects.ContextMenu.TableContextMenuInstance;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import PseudoObjects.FormattedDuration;
+import AudioPlayer.tagging.FormattedDuration;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;

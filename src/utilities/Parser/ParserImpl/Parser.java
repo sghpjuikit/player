@@ -67,12 +67,12 @@ public class Parser {
      * @return Object of specified type parsed from string
      * @throws UnsupportedOperationException if class type not supported.
      */
-    public static Object fromS(Class type, String value) {
+    public static<T> T fromS(Class<T> type, String value) {
         ObjectStringParser po = getParserO(type);
-        if(po!=null) return po.fromS(type, value);
+        if(po!=null) return (T) po.fromS(type, value);
         
         StringParser ps = getParserS(type);
-        if(ps!=null) return ps.fromS(value);
+        if(ps!=null) return (T) ps.fromS(value);
         
         throw new UnsupportedOperationException("Unsupported class for parsing");
     }

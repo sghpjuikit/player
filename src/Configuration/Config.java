@@ -186,7 +186,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     @Override
     public final T fromS(String str) {
-        return (T) Parser.fromS(getType(), str);
+        return Parser.fromS(getType(), str);
     }
     
 /*************************** configurable methods *****************************/

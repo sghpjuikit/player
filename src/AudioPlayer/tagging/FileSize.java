@@ -22,7 +22,7 @@ public final class FileSize implements Comparable<FileSize> {
     
     /**
      * Creates filesize set to size of the specified file. If the value can not
-     * be determined it will be set to 0l. 
+     * be determined it will be set to -l. 
      * @param f non null file to read filesize of
      * @throws NullPointerException if param null
      */
@@ -52,7 +52,7 @@ public final class FileSize implements Comparable<FileSize> {
     /**
      * Returns human readable file size text.
      * <p>
-     * Displays "Unknown" if value 0 - which is an 'unknown' value.
+     * Displays "Unknown" if value -1 which is an 'unknown' value.
      * Appends byte units after the value.
      * <p>
      * Most appropriate unit prefix is calculated and the value converted. The

@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.util.Duration;
+import static utilities.Parser.File.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Playlist handles PlaylistItem groups and provides methods for easy
@@ -346,7 +347,7 @@ abstract public class AbstractPlaylist {
         List<PlaylistItem> l = list();
         //iterate backwards and delete one by one
         for (int i=l.size()-1; i>=0; i--) {
-            if (l.get(i).isCorrupt()) l.remove(i);
+            if (l.get(i).isCorrupt(PLAYBACK)) l.remove(i);
         }
         updateDuration();
     }
@@ -558,7 +559,7 @@ abstract public class AbstractPlaylist {
      * @return corruptness. 
      */
     public boolean isCorrupt() {
-        return list().stream().allMatch(PlaylistItem::isCorrupt);
+        return list().stream().allMatch(PlaylistItem::isNotPlayable);
     }
     /**
      * Checks and returns true only if no item on this playlist is corrupt.
@@ -566,7 +567,7 @@ abstract public class AbstractPlaylist {
      * @return corruptness. 
      */
     public boolean isValid() {
-        return list().stream().noneMatch(PlaylistItem::isCorrupt);
+        return list().stream().noneMatch(PlaylistItem::isNotPlayable);
     }
     /**
      * Updates item.

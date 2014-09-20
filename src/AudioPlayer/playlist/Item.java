@@ -10,6 +10,8 @@ import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
 import utilities.Parser.File.AudioFileFormat;
+import utilities.Parser.File.AudioFileFormat.Use;
+import static utilities.Parser.File.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Playable item.
@@ -20,7 +22,7 @@ import utilities.Parser.File.AudioFileFormat;
  */
 public abstract class Item implements Comparable<Item> {
     
-    boolean corrupted = false;
+
     
 /******************************************************************************/
     
@@ -174,32 +176,28 @@ public abstract class Item implements Comparable<Item> {
      * Also see {@link #markedAsCorrupted()};
      * @return playability/validity of the item.
      */
-    public boolean isCorrupt() {
+    public boolean isCorrupt(Use use) {
+        return !getFormat().isSupported(use) || isCorruptWeak();
+    }
+    
+    boolean isCorruptWeak() {
         if(isFileBased()) {
             File f = getFile();
-            corrupted = !f.exists() ||
-                        !f.isFile() ||
-                        !AudioFileFormat.isSupported(this) ||
-                        !f.canRead();
+            return !f.isFile() ||
+                        !f.exists() ||
+                            !f.canRead();
         } else {
             // this should get improved
-            corrupted =  false;
+            return false;
         }
-        return corrupted;
     }
-    /**
-     * Returns true if this item was marked corrupt last time it was checked. This
-     * doesn't necessarily reflect the real value. The method
-     * returns cached value so the curruptness check involving I/O can be avoided.
-     * Use when performance is prioritized, for example when iterating lists in
-     * tables.
-     * <p>
-     * If the validity of the check is prioritized, use {@link #isCorrupt()}.
-     * @return corrupt
-     */
-    public boolean markedAsCorrupted() {
-        return corrupted;
-    }
+    
+    /** Equivalent to {@code isCorrupt(PLAYBACK);} */
+    public boolean isNotPlayable() {
+        return isCorrupt(PLAYBACK);
+    }    
+    
+
     
 /******************************************************************************/
     

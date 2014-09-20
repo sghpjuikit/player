@@ -32,6 +32,7 @@ import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import main.App;
 import utilities.Log;
+import utilities.Parser.File.AudioFileFormat.Use;
 import utilities.Util;
 import static utilities.Util.NotNULL;
 
@@ -261,8 +262,8 @@ public final class FileUtil {
      * List of audio files or empty list if parameter not a valid directory or no
      * results. Never null.
      */
-    public static List<File> getAudioFiles(File dir) {
-        return getAudioFiles(dir, 0);
+    public static List<File> getAudioFiles(File dir, Use use) {
+        return getAudioFiles(dir, use, 0);
     }
     /**
      * Constructs list of audio files found in the folder and subfolders. Looks 
@@ -278,16 +279,16 @@ public final class FileUtil {
      * @return Empty list if parameter not a valid directory or no results. Never
      * null.
      */
-    public static List<File> getAudioFiles(File dir, int maxDepth) {
+    public static List<File> getAudioFiles(File dir, Use use, int maxDepth) {
         if (!isValidDirectory(dir)) return new ArrayList<>(); 
         
         List<File> out = new ArrayList<>();
         File[] files = dir.listFiles();
         for (File f: files) {
-            if(AudioFileFormat.isSupported(f.toURI()))
+            if(AudioFileFormat.isSupported(f.toURI(),use))
                 out.add(f);
             if (maxDepth>0 && f.isDirectory() && isValidDirectory(f))
-                out.addAll(getAudioFiles(f, maxDepth-1));
+                out.addAll(getAudioFiles(f, use, maxDepth-1));
         }
         return out;
     }
@@ -301,13 +302,13 @@ public final class FileUtil {
      * @return Empty list if parameter not a valid directory or no results. Never
      * null.
      */
-    public static List<File> getAudioFiles(List<File> files, int maxDepth) {
+    public static List<File> getAudioFiles(List<File> files, Use use, int maxDepth) {
         ArrayList<File> out = new ArrayList<>();
         for(File f: files) {
-            if(AudioFileFormat.isSupported(f.toURI()))
+            if(AudioFileFormat.isSupported(f.toURI(),use))
                 out.add(f);
             if ( maxDepth>=0 && f.isDirectory()) {
-                for(File ff: getAudioFiles(f,maxDepth))
+                for(File ff: getAudioFiles(f, use, maxDepth))
                     out.add(ff);
             }
         }
@@ -318,16 +319,29 @@ public final class FileUtil {
      * @param files list of files and directories to filter
      * Equivalent to : getAudioFiles(files,0);
      */
-    public static List<File> getAudioFiles(List<File> files) {
-        return getAudioFiles(files, -1);
+    public static List<File> getAudioFiles(List<File> files, Use use) {
+        return getAudioFiles(files, use, -1);
     }
+    
+    public static List<File> getAudioFilesR(List<File> files, Use use) {
+        return getAudioFiles(files, use, Integer.MAX_VALUE);
+    }
+    
     /**
      * Checks if there is at least one supported audio file in the list.
      * @param files
      * @return true if the list contains at least one supported audio file.
      */
-    public static boolean hasAudioFiles(List<File> files) {
-        return files.stream().anyMatch(AudioFileFormat::isSupported);
+    public static boolean containsAudioFiles(List<File> files, Use use) {
+        for(File f : files) 
+            if(AudioFileFormat.isSupported(f, use)) return true;
+        return false;
+    }
+    
+    static boolean containsImageFiles(List<File> files) {
+        for(File f : files) 
+            if(ImageFileFormat.isSupported(f)) return true;
+        return false;
     }
     
     public static List<File> getImageFiles(List<File> files) {

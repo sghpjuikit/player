@@ -111,6 +111,7 @@ import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.Subscription;
 import utilities.InputConstraints;
 import utilities.Log;
+import utilities.Parser.File.AudioFileFormat.Use;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.ImageFileFormat;
 import utilities.Parser.ParserImpl.ColorParser;
@@ -270,7 +271,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                     List<Item> needs_read = new ArrayList();
                     c.getAddedSubList().stream()
                         // filter out untaggable
-                        .filter(i -> !i.isCorrupt() && i.isFileBased())
+                        .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
                         // separate Metadata and Items
                         .forEach(i -> {
                             if(i instanceof Metadata) ready.add((Metadata)i);
@@ -1023,7 +1024,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                     if(!empty) {
                         int index = getIndex() + 1;
                         setText(index + " " + item.getFilenameFull());
-                        boolean untaggable = item.isCorrupt() || !item.isFileBased();
+                        boolean untaggable = item.isCorrupt(Use.DB) || !item.isFileBased();
                         // mark corrupt items with css style
                         pseudoClassStateChanged(corrupt, untaggable);
                         // mark corrupt item as not taggable
@@ -1068,7 +1069,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                     if(!empty) {
                         int index = getIndex()+1;
                         setText(index + " " + item.getFilenameFull());
-                        boolean iscorrupt = item.isCorrupt() || !item.isFileBased();
+                        boolean iscorrupt = item.isCorrupt(Use.DB) || !item.isFileBased();
                         // mark corrupt items with css style
                         pseudoClassStateChanged(corrupt, iscorrupt);
                     } else

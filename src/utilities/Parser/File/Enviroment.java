@@ -27,6 +27,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import main.App;
 import utilities.Log;
+import utilities.Parser.File.AudioFileFormat.Use;
 import utilities.TODO;
 import utilities.Util;
 
@@ -131,7 +132,7 @@ public class Enviroment {
     public static boolean isOpenableInApp(File f) {
         return ((f.isDirectory() && App.SKIN_FOLDER().equals(f.getParentFile())) || FileUtil.isValidSkinFile(f)) ||
                ((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) ||
-               AudioFileFormat.isSupported(f) || ImageFileFormat.isSupported(f);
+               AudioFileFormat.isSupported(f,Use.PLAYBACK) || ImageFileFormat.isSupported(f);
     }
     
     public static void openIn(File f, boolean inApp) {
@@ -147,7 +148,7 @@ public class Enviroment {
         }
         
         // open audio file
-        else if (inApp && AudioFileFormat.isSupported(f)) {
+        else if (inApp && AudioFileFormat.isSupported(f,Use.PLAYBACK)) {
             PlaylistManager.addUri(f.toURI());
         }
         
@@ -166,7 +167,7 @@ public class Enviroment {
             openIn(files.get(0), inApp);
         } else {
             if(inApp) {
-                List<File> audio = FileUtil.getAudioFiles(files);
+                List<File> audio = FileUtil.getAudioFiles(files, Use.PLAYBACK);
                 List<File> images = FileUtil.getImageFiles(files);
 
                 if(!audio.isEmpty())

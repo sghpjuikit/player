@@ -23,10 +23,11 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import main.App;
+import utilities.Log;
 import utilities.Parser.File.AudioFileFormat;
+import utilities.Parser.File.AudioFileFormat.Use;
 import utilities.Parser.File.FileUtil;
 import utilities.Parser.File.ImageFileFormat;
-import utilities.Log;
 
 /**
  *
@@ -152,17 +153,16 @@ public final class DragUtil {
         ArrayList<Item> out = new ArrayList();
         
         if (d.hasFiles()) {
-            FileUtil.getAudioFiles(d.getFiles(),0).stream()
-                    .map(SimpleItem::new)
-                    .forEach(out::add);
+            FileUtil.getAudioFiles(d.getFiles(),Use.APP,0)
+                    .stream().map(SimpleItem::new).forEach(out::add);
         } else
         if (d.hasUrl()) {
             String url = d.getUrl();
             // watch out for non audio urls, we must filter those out, or
             // we could couse subtle bugs
-            if(AudioFileFormat.isSupported(url))
+            if(AudioFileFormat.isSupported(url,Use.APP))
                 Optional.of(new SimpleItem(URI.create(url)))  // isnt this dangerous?
-                        .filter(AudioFileFormat::isSupported) // isnt this pointless?
+                        .filter(i->!i.isCorrupt(Use.APP)) // isnt this pointless?
                         .ifPresent(out::add);
         } else
         if (hasPlaylist()) {
@@ -180,8 +180,8 @@ public final class DragUtil {
      * @return true if contains at least 1 audio file, audio url, playlist or items 
      */
     public static boolean hasAudio(Dragboard d) {
-        return (d.hasFiles() && FileUtil.getAudioFiles(d.getFiles(),0).stream().anyMatch(AudioFileFormat::isSupported)) ||
-                    (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl())) ||
+        return (d.hasFiles() && !FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
+                    (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
                         hasPlaylist() ||
                             hasItemList();
     }
@@ -259,7 +259,7 @@ public final class DragUtil {
      * @return true if contains at least 1 img file, img url
      */
     public static boolean hasImage(Dragboard d) {
-        return (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) ||
+        return (d.hasFiles() && FileUtil.getImageFiles(d.getFiles()).isEmpty()) ||
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
     

@@ -32,6 +32,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import main.App;
 import utilities.Parser.File.AudioFileFormat;
+import utilities.Parser.File.AudioFileFormat.Use;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
 import utilities.access.AccessibleStream;
@@ -439,16 +440,15 @@ public class PlaylistManager implements Configurable {
      */
     public static void playItem(PlaylistItem item) {
         if (item != null && playlist.contains(item)) {
-            if (item.isCorrupt()) {
+            if (item.isNotPlayable()) {
                 // prevent infinite check loop when whole playlist corrupted (checks once per playlsit size)
                 if (playlist.indexOf(item)==0 && playlist.isMarkedAsCorrupted()) {
                     PLAYBACK.stop();
                     return;
                 }
                 playItem(getNextItem(item));
-            } else {
+            } else
                 PLAYBACK.play(item);
-            }
         }
     }
     
@@ -561,7 +561,7 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     public static void addOrEnqueueFiles(boolean add) {
-        List<File> files = Enviroment.chooseFiles("Choose Audio Files", browse, App.getWindowOwner().getStage(), AudioFileFormat.filter());
+        List<File> files = Enviroment.chooseFiles("Choose Audio Files", browse, App.getWindowOwner().getStage(), AudioFileFormat.filter(Use.PLAYBACK));
         if (files != null) {
             browse = files.get(0).getParentFile();
             List<URI> queue = new ArrayList<>();
@@ -586,7 +586,7 @@ public class PlaylistManager implements Configurable {
         if (dir != null) {
             browse = dir;
             List<URI> queue = new ArrayList<>();
-            List<File> files = FileUtil.getAudioFiles(dir, folder_depth);
+            List<File> files = FileUtil.getAudioFiles(dir, Use.APP, folder_depth);
             files.forEach(f -> queue.add(f.toURI()));
             
             if(add) addUris(queue);

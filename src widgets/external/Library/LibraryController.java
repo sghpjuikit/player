@@ -61,6 +61,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import utilities.FxTimer;
+import utilities.Parser.File.AudioFileFormat.Use;
 import utilities.Parser.File.Enviroment;
 import utilities.Parser.File.FileUtil;
 import static utilities.Parser.File.FileUtil.getCommonRoot;
@@ -208,7 +209,7 @@ public class LibraryController extends FXMLController {
         HBox controls = new HBox(controlsBar,infoL);
              controls.setSpacing(7);
              controls.setAlignment(Pos.CENTER_LEFT);
-             controls.setPadding(new Insets(2,0,2,0));
+             controls.setPadding(new Insets(2,0,2,5));
         
         addMenu.setText("");
         remMenu.setText("");
@@ -283,23 +284,49 @@ public class LibraryController extends FXMLController {
         }
 
         if(files!=null) {
-            List<Metadata> metas = FileUtil.getAudioFiles(files,6).stream()
-                   .map(SimpleItem::new)
-                   .map(SimpleItem::toMetadata)
-                   .collect(Collectors.toList());
             
-            BiConsumer<Boolean,List<Metadata>> onEnd = !edit ? null : (success,added) -> {
-                if(success) {
-                    progressL.textProperty().unbind();
-                    FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-                    WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
-                }
-            };
+            Task ts = MetadataReader.execute("Discovering files",
+                    () -> FileUtil.getAudioFiles(files,Use.APP,6).stream().map(SimpleItem::new).collect(Collectors.toList()),
+                    (success,result) -> {
+                        if (success) {
+                            BiConsumer<Boolean,List<Metadata>> onEnd = (succes,added) -> {
+                                if(succes & edit)
+                                    WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
+                                    
+                                FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                                progressL.textProperty().unbind();
+                            };
+
+                            Task t = MetadataReader.readAaddMetadata(result,onEnd,false);
+                            progressL.textProperty().bind(t.messageProperty());
+                        } else {
+                            FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                            progressL.textProperty().unbind();
+                        }
+                    });
             
-            Task t = MetadataReader.readAaddMetadata(metas,onEnd,false);
             // display progress & hide on end
             progressL.setVisible(true);
-            progressL.textProperty().bind(t.messageProperty());
+            progressL.textProperty().bind(ts.messageProperty());
+            
+            
+            
+//            List<Item> metas = FileUtil.getAudioFiles(files,6).stream()
+//                   .map(SimpleItem::new)
+//                   .collect(Collectors.toList());
+//            
+//            BiConsumer<Boolean,List<Metadata>> onEnd = !edit ? null : (success,added) -> {
+//                if(success) {
+//                    progressL.textProperty().unbind();
+//                    FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+//                    WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
+//                }
+//            };
+//            
+//            Task t = MetadataReader.readAaddMetadata(metas,onEnd,false);
+//            // display progress & hide on end
+//            progressL.setVisible(true);
+//            progressL.textProperty().bind(t.messageProperty());
         }
     }
     

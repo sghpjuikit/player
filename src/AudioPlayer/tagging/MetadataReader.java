@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
 import utilities.Log;
+import utilities.Parser.File.AudioFileFormat.Use;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -110,7 +112,7 @@ public class MetadataReader{
      */
     public static Metadata create(Item item){
 //        // handle corrupt item
-        if (item.isCorrupt()){
+        if (item.isCorrupt(Use.APP)){
             return Metadata.EMPTY;        // is this good way to handle corrupt item? //no.
         }
         // handle items with no file representation
@@ -212,7 +214,7 @@ public class MetadataReader{
         Objects.requireNonNull(items);
                 
         // create task
-        final Task<List<Metadata>> task = new SuccessTask("Adding items to library.", onEnd){
+        final Task<List<Metadata>> task = new SuccessTask("Adding items to library", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
@@ -229,21 +231,20 @@ public class MetadataReader{
                         completed++;
                         if (isCancelled()) break;
 
-                        // create metadata
-                        m = create(i);
-                        // on fail
-                        if (m.isEmpty()) {
-                            skipped++;
-                        // on success
-                        } else {
-                            Metadata l = em.find(Metadata.class, m.getId());
-                            if(l == null) {
+                        Metadata l = em.find(Metadata.class, Metadata.metadataID(i.getURI()));
+                        if(l == null) {
+                            m = create(i);
+
+                            if (m.isEmpty()) skipped++;
+                            else {
                                 em.persist(m);
                                 out.add(m);
                             }
-                            else {
-                                if(all_i) out.add(l);
-                            }                            
+                        } else {
+                            if(all_i) {
+                                skipped++;
+                                out.add(l);
+                            }
                         }
                         
                         // update
@@ -322,6 +323,16 @@ public class MetadataReader{
         
         return executeTask(task);
     }
+    
+    public static<R> Task<R> execute(String name, Supplier<R> action, BiConsumer<Boolean,R> onEnd) {
+        return executeTask(new SuccessTask(name, onEnd) {
+            @Override protected R call() throws Exception {
+                updateMessage(name + " ...");
+                return action.get();
+            }
+        });
+    }
+    
     
     private static<T> Task<T> executeTask(Task<T> task) {
         Thread thread = new Thread(task);

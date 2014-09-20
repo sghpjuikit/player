@@ -18,7 +18,7 @@ import jdk.nashorn.internal.ir.annotations.Immutable;
  */
 @Immutable
 public class SimpleItem extends Item implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 100034L;
     private final URI uri;
     
     public SimpleItem(URI _uri) {

@@ -7,9 +7,10 @@ package utilities.Parser.File;
 import AudioPlayer.playlist.Item;
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.stage.FileChooser;
 
 /**
@@ -31,8 +32,8 @@ public enum AudioFileFormat {
      * are ignored.
      * @return true if supported, false otherwise
      */
-    public boolean isSupported() {
-        return this == mp3 || this == wav;
+    public boolean isSupported(Use use) {
+        return this!=UNKNOWN && !((this==flac || this==ogg) && use==Use.PLAYBACK);
     }
     
     public String toExt() {
@@ -43,10 +44,6 @@ public enum AudioFileFormat {
         return new FileChooser.ExtensionFilter(toString(), toExt());
     }
     
-    
-    public static boolean isSupported(AudioFileFormat f) {
-        return f.isSupported();
-    }
     /**
      * Checks whether the item is of supported audio format. Unsupported file
      * dont get any official support for any of the app's features and by default
@@ -54,8 +51,8 @@ public enum AudioFileFormat {
      * @param item
      * @return true if supported, false otherwise
      */
-    public static boolean isSupported(Item item) {
-        return of(item.getURI()).isSupported();
+    public static boolean isSupported(Item item, Use use) {
+        return of(item.getURI()).isSupported(use);
     }
     
     /**
@@ -66,9 +63,9 @@ public enum AudioFileFormat {
      * @return true if supported, false otherwise
      * @throws NullPointerException if param is null
      */
-    public static boolean isSupported(URI uri) {
+    public static boolean isSupported(URI uri, Use use) {
         Objects.requireNonNull(uri);
-        return of(uri).isSupported();
+        return of(uri).isSupported(use);
     }
     
     /**
@@ -77,9 +74,9 @@ public enum AudioFileFormat {
      * @return 
      * @throws NullPointerException if param is null
      */
-    public static boolean isSupported(File file) {
+    public static boolean isSupported(File file, Use use) {
         Objects.requireNonNull(file);
-        return of(file.toURI()).isSupported();
+        return of(file.toURI()).isSupported(use);
     }
     
     /**
@@ -90,10 +87,10 @@ public enum AudioFileFormat {
      * @return 
      * @throws NullPointerException if param is null
      */
-    public static boolean isSupported(String url) {
+    public static boolean isSupported(String url, Use use) {
         try {
             URI uri = URI.create(url);
-            return of(uri).isSupported();
+            return of(uri).isSupported(use);
         } catch(IllegalArgumentException e) {
             return false;
         }
@@ -124,35 +121,32 @@ public enum AudioFileFormat {
 /******************************************************************************/
     
     /** Writes up list of all supported values. */    
-    public static String supportedExtensionsS() {
+    public static String supportedExtensionsS(Use use) {
         String out = "";
-        for(String ft: exts())
+        for(String ft: exts(use))
             out = out + ft +"\n";
         return out;
     }
     
-    public static List<AudioFileFormat> supportedValues() {
-        List<AudioFileFormat> ext = new ArrayList();
-        for(AudioFileFormat format: values()) {
-            if (format.isSupported())
-                ext.add(format);
-        }
-        return ext;
+    public static List<AudioFileFormat> supportedValues(Use use) {
+        return Stream.of(values()).filter(f->f.isSupported(use)).collect(Collectors.toList());
     }
     
-    public static FileChooser.ExtensionFilter filter() {
-        return new FileChooser.ExtensionFilter("Audio files", exts());
+    public static FileChooser.ExtensionFilter filter(Use use) {
+        return new FileChooser.ExtensionFilter("Audio files", exts(use));
     }
     
     
     // List of supported extension strings in the format: '*.extension'
-    private static List<String> exts() {
-        List<String> ext = new ArrayList();
-        for(AudioFileFormat format: supportedValues()) {
-            if (format.isSupported())
-                ext.add(format.toExt());
-        }
-        return ext;
+    private static List<String> exts(Use use) {
+        return supportedValues(use).stream().map(f->f.toExt()).collect(Collectors.toList());
+    }
+    
+    
+    public static enum Use {
+        APP,
+        PLAYBACK,
+        DB;
     }
 }
 

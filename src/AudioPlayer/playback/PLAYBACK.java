@@ -30,6 +30,7 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
 import utilities.Log;
+import static utilities.Parser.File.AudioFileFormat.Use.PLAYBACK;
 import utilities.Parser.File.Enviroment;
 
 /**
@@ -115,7 +116,7 @@ public final class PLAYBACK implements Configurable {
         // properly end previous
         destroyPlayback();
         // handle corrupted
-        if (item.isCorrupt()) { 
+        if (item.isCorrupt(PLAYBACK)) { 
             PlaylistManager.playItem(item); // will handle 'corruptness' within playlist
             return;
         }

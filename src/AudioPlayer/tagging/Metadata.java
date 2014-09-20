@@ -154,6 +154,10 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
      */
     public static final Metadata EMPTY = new Metadata();
     
+    public static String metadataID(URI u) {
+        return u.toString();
+    }
+    
     // public - this type of metadata is simply a conversion, harmless & we need
     // to allow the access from Item subclasses
     /**

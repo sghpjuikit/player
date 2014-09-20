@@ -26,6 +26,8 @@ import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import utilities.Log;
 import utilities.Parser.File.AudioFileFormat;
+import utilities.Parser.File.AudioFileFormat.Use;
+import static utilities.Parser.File.AudioFileFormat.Use.APP;
 import utilities.Parser.File.FileUtil;
 import utilities.access.FieldValue.FieldEnum;
 import utilities.access.FieldValue.FieldedValue;
@@ -64,6 +66,7 @@ public final class PlaylistItem extends Item implements FieldedValue<PlaylistIte
     /** Consists of item's artist and title separated by separator string. */
     private final SimpleStringProperty name;
     private boolean updated = false;
+    boolean corrupted = false;
     
     /**
      * URI Constructor.
@@ -170,7 +173,7 @@ public final class PlaylistItem extends Item implements FieldedValue<PlaylistIte
      * Dont use this method for lots of items at once on application thread!
      */
     public void update() {
-        if (isCorrupt()) return;
+        if (isCorrupt(APP)) return;
         
         if(isFileBased()) {
             // update as file based item
@@ -225,6 +228,28 @@ public final class PlaylistItem extends Item implements FieldedValue<PlaylistIte
      */
     public boolean updated() {
         return updated;
+    }
+
+    @Override
+    public boolean isCorrupt(AudioFileFormat.Use use) {
+        AudioFileFormat f = getFormat();
+        boolean c = isCorruptWeak();
+        corrupted = !f.isSupported(Use.PLAYBACK) || c;
+        return !f.isSupported(Use.PLAYBACK) || c;
+    }
+    
+    /**
+     * Returns true if this item was marked corrupt last time it was checked. This
+     * doesn't necessarily reflect the real value. The method
+     * returns cached value so the curruptness check involving I/O can be avoided.
+     * Use when performance is prioritized, for example when iterating lists in
+     * tables.
+     * <p>
+     * If the validity of the check is prioritized, use {@link #isCorrupt()}.
+     * @return corrupt
+     */
+    public boolean markedAsCorrupted() {
+        return corrupted;
     }
     
 /******************************************************************************/

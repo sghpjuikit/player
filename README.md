@@ -4,11 +4,11 @@ player
 info:
 
 JavaFX based audio player application.
-Application's main focus is on modularity of the graphical user interface (GUI) and its customizability, aiming to provide put-anything-anywhere functionality. Indivindual functionalities are represented by widgets that can be used anywhere within the layout. Widgets can be developed as plugable modules.
+Application's main focus is on modularity of the graphical user interface (GUI) and its customizability, aiming to provide put-anything-anywhere functionality. Indivindual functionalities are represented by widgets that can be used anywhere within the layout. Widgets are developed as plugable modules.
 
 The application is portable.
 
-Below are screenshots of current looks with different (experimental) skins:
+Below are screenshots of how the application looks like with different skins:
 
 ![ScreenShot](/extra/screenshot1.png)
 ![ScreenShot](/extra/screenshot3.png)
@@ -16,18 +16,12 @@ Below are screenshots of current looks with different (experimental) skins:
 
 use:
 
-To run the application download the [zip with the executable](/extra/executable.zip), extract to arbitrary location and run the Player.jar file. You will only be able to run the file with latest java installed on your system - Java Runtime Enviroment (JRE) 8u20 [a link](https://jdk8.java.net/download.html).
+To run the application download the [zip with the executable](/extra/executable.zip), extract and run the Player.jar file. 
+You will only be able to run the file with latest java installed on your system - Java Runtime Enviroment (JRE) 8u40 [a link](https://jdk8.java.net/download.html).
 
-To customize layout, click on any empty area and chose the container. Placing mouse in the top right corner of the container will display container options. Holding ALT key will display options for all containers and show additional controls for layouting.
+Starting the application for the first time will run an automatic guide, that will guide you through the basics of the application.
 Tip: Most of the controls like buttons have informative tooltips explaining their functionality. Mouse over the controls to display tooltips.
 Tip: Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 
-
-project:
-
-Project is currently under development and being readied for use and collaborative development.
-Know that:
-- some functionalities are incomplete, bugged, dysfunctional, undocumented or simply not intuitive.
-- some functionalities are experimental or for educational or testing purposes
 
 
 contribution:

@@ -182,11 +182,15 @@ public class GUI {
     
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
     @IsAction(name = "Minimize", description = "Switch minimized mode.", shortcut = "F10")
-    public static void toggleMinimize() {
+    public static void toggleMinimizeFocus() {
         if(!App.getWindowOwner().isMinimized() && Window.getFocused()==null)
             Window.getActive().focus();
         else
             Window.getActive().toggleMinimize();
+    }
+    
+    public static void toggleMinimize() {
+        Window.getActive().toggleMinimize();
     }
     
     @IsAction(name = "Maximize", description = "Switch maximized mode.", shortcut = "F11")

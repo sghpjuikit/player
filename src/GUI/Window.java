@@ -96,6 +96,8 @@ import javafx.scene.paint.Color;
 import static javafx.scene.paint.Color.BLACK;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
+import static javafx.stage.StageStyle.TRANSPARENT;
+import static javafx.stage.StageStyle.UTILITY;
 import main.App;
 import org.reactfx.Subscription;
 import util.Log;
@@ -277,8 +279,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             return null;
         }   
     }
+    
     public static Window createWindowOwner() {
         Window w = new Window();
+               w.getStage().initStyle(WindowManager.show_taskbar_icon ? TRANSPARENT : UTILITY);
                w.s.setOpacity(0);
                w.s.setScene(new Scene(new Region()));
         return w;
@@ -692,7 +696,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         if(main)  App.close();
         else App.getWindow().focus();
     }
-
     
    @Override  
     public void setFullscreen(boolean v) {  

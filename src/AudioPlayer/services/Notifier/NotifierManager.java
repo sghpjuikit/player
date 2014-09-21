@@ -1,8 +1,10 @@
 
-package GUI;
+package AudioPlayer.services.Notifier;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.services.Service;
+import AudioPlayer.services.Service;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -26,7 +28,7 @@ import org.reactfx.Subscription;
  * @author uranium
  */
 @IsConfigurable("Notification")
-public final class NotifierManager {
+public final class NotifierManager implements Service {
     
     @IsConfig(name = "Show notifications.", info = "Turn notification on and off completely")
     public static boolean showNotification = true;
@@ -51,56 +53,74 @@ public final class NotifierManager {
     
 /******************************************************************************/
     
-    private static Notification n;
-    private static Subscription playingItemMonitoring;
-    private static boolean initialized = false;
+    private Notification n;
+    private Subscription playingItemMonitoring;
 
-    /** Sets up application notification behavior. */
-    public static void start() {
+    /** {@inheritDoc} */
+    @Override
+    public void start() {
         // create notification
         n = new Notification();
         
         // show notification on playback status change
-        PLAYBACK.statusProperty().addListener((observable, oldV, newV) -> {
-            if (newV == PAUSED || newV ==PLAYING || newV == STOPPED)
-                playbackStatusChange(oldV,newV);
+        PLAYBACK.statusProperty().addListener((o,ov,nv) -> {
+            if (nv == PAUSED || nv ==PLAYING || nv == STOPPED)
+                playbackStatusChange(nv);
         });
         
         // show notification on song change
-        playingItemMonitoring = Player.playingtem.subscribeToChanges(NotifierManager::songChange);
-        
-        initialized = true;
+        playingItemMonitoring = Player.playingtem.subscribeToChanges(this::songChange);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean isRunning() {
+        return n==null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void stop() {
+        if(playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
+        if(n!=null) n.hideImmediatelly();
+        n = null;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean isSupported() { return true; }
+
+    /** {@inheritDoc} */
+    @Override
+    public boolean isDependency() { return false; }
+    
+/******************************************************************************/
     
     /** Show notification for custom content. */
-    public static void showNotification(Node content, String title) {
-        NotifierManager.showNotification(content, title, OTHER);
+    public void showNotification(Node content, String title) {
+        showNotification(content, title, OTHER);
     }
     /** Show notification for text. */
-    public static void showTextNotification(String text, String title) {
-        NotifierManager.showNotification(text, title, TEXT);
+    public void showTextNotification(String text, String title) {
+        showNotification(text, title, TEXT);
     }
     
 /******************************************************************************/
     
-    private static void songChange(Metadata newI) {
+    private void songChange(Metadata newI) {
         if (showSongNotification)
-            NotifierManager.showNotification(newI , "New Song", SONG);
+            showNotification(newI , "New Song", SONG);
     }
     
-    private static void playbackStatusChange(Status oldS, Status newS) {
+    private void playbackStatusChange(Status newS) {
         if (!showStatusNotification || newS == null) return;
         
         Metadata m = Player.playingtem.get();
         String text = "Playback change : " + PLAYBACK.getStatus().toString();
-        NotifierManager.showNotification(m, text, PLAYBACK_STATUS);
+        showNotification(m, text, PLAYBACK_STATUS);
     }
     
-    /**
-     * @param content
-     * @param title Description of the event. Example: "New Playing".
-     */
-    private static void showNotification(Object content, String title, NotificationType type) {
+    private void showNotification(Object content, String title, NotificationType type) {
         if (showNotification) {
             // build content
             n.setContent(content, title, type);
@@ -116,18 +136,4 @@ public final class NotifierManager {
         }
     }
     
-    /** Stops application notification behavior. */
-    public static void stop() {
-        if(initialized) {
-            // free listening to playing item
-            playingItemMonitoring.unsubscribe();
-            // free notification
-            if(n!=null) {
-                n.hideImmediatelly();
-                n = null;
-            }
-        } else {
-            throw new IllegalStateException("Cant dispose of not initialized notifier manager.");
-        }
-    }
 }

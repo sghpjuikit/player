@@ -37,7 +37,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.ItemHolders.ItemTextFields.MoodTextField;
-import GUI.NotifierManager;
+import AudioPlayer.services.Notifier.NotifierManager;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
@@ -614,7 +614,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // post writing
         hideProgress();
         writing = false;
-        NotifierManager.showTextNotification("Tagging complete", "Tagger");
+        App.use(NotifierManager.class, s->s.showTextNotification("Tagging complete", "Tagger"));
         read(metas);
     }
     

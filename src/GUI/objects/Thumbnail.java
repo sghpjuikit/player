@@ -526,6 +526,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     n.setPrefWidth(Screen.getPrimary().getBounds().getWidth());
                     n.setPrefHeight(Screen.getPrimary().getBounds().getHeight());
                     p.setHideOnEscape(true);
+                    p.setConsumeAutoHidingEvents(true);
                     Node cn = c.load();
                     n.getChildren().add(cn);
                     Util.setAPAnchors(cn, 0);

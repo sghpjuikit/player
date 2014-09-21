@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main;
+package AudioPlayer.services.Tray;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service;
@@ -15,12 +15,15 @@ import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.application.Platform;
 import javax.imageio.ImageIO;
+import main.App;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuples;
 import util.Log;
@@ -35,22 +38,25 @@ public class TrayService implements Service{
     private static SystemTray tray;
     private static TrayIcon trayIcon;
 
-    void setTootip(String text){
-        trayIcon.setToolTip(text);
+    public void setTootip(String text){
+        trayIcon.setToolTip(text.isEmpty() ? "PlayerFX" : text);
     }
 
-    void popUpBaloon(String caption, String text){
-        EventQueue.invokeLater(() -> trayIcon.displayMessage(text, text,
-                                                               TrayIcon.MessageType.NONE));
+    /** Equivalent to: {@code setNotification(caption,text,NONE)}*/
+    public void setNotification(String caption, String text){
+        EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, TrayIcon.MessageType.NONE));
+    }
+    
+    public void setNotification(String caption, String text, TrayIcon.MessageType type){
+        EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, type));
     }
 
     public void nowPlaying(String name){
         EventQueue.invokeLater(() -> {
-            if(!name.isEmpty()){
-            setTootip("Now playinh:" + name);
-            popUpBaloon("",name);}
-            else{
-            setTootip("PlayerFX");
+                setTootip(name);
+            if(!name.isEmpty()) {
+                setTootip("PlayerFX playing: " + name);
+                setNotification("",name);
             }
         });
     }
@@ -86,33 +92,28 @@ public class TrayService implements Service{
     }
 
     @Override
-    public boolean isRunning(){
-        return tray != null;
-    }
-
-    @Override
-    public boolean isSupported(){
-        return SystemTray.isSupported();
-    }
-
-    @Override
     public void start(){
         EventQueue.invokeLater(() -> {
             menuActions.add(Tuples.t("Play/Pause", () -> Platform.runLater(
                                      PLAYBACK::pause_resume)));
             menuActions.add(Tuples.t("Quit", () -> Platform.runLater(
                                      Platform::exit)));
-            try{
+            try {
                 tray = SystemTray.getSystemTray();
-//trayIcon = new TrayIcon(ImageIO.read(new URL("http://icons.iconarchive.com/icons/scafer31000/bubble-circle-3/16/GameCenter-icon.png")));
                 trayIcon = new TrayIcon(ImageIO.read(imgUrl));
                 buildContextmenu();
                 trayIcon.setToolTip("PlayerFX");
-                trayIcon.addActionListener(event -> {
-                    Platform.runLater(GUI::toggleMinimizeWithFocus);
+//                trayIcon.addActionListener(event -> {
+//                    Platform.runLater(GUI::toggleMinimize);
+//                });
+                trayIcon.addMouseListener(new MouseAdapter() {
+                    @Override public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 1)
+                            Platform.runLater(GUI::toggleMinimize);
+                    }
                 });
                 tray.add(trayIcon);
-            }
+            } 
             catch (AWTException | IOException e){
                 Log.err("Tray icon initialization failed.");
             }
@@ -122,12 +123,22 @@ public class TrayService implements Service{
     @Override
     public void stop(){
         EventQueue.invokeLater(() -> {
-            if (tray != null){
-                tray.remove(trayIcon);
-            }
+            if (tray != null) tray.remove(trayIcon);
             tray = null; // stop this service
         });
     }
+
+    @Override
+    public boolean isRunning(){
+        return tray != null;
+    }
+
+    @Override
+    public boolean isSupported(){
+        return SystemTray.isSupported();
+    }
+    
+/******************************************************************************/
 
     private void buildContextmenu(){
         PopupMenu p = new PopupMenu();

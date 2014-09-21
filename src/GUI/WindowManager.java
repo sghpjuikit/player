@@ -31,8 +31,8 @@ import javafx.stage.Screen;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import main.App;
-import util.Parser.File.FileUtil;
 import util.Log;
+import util.Parser.File.FileUtil;
 
 /**
  *
@@ -331,4 +331,11 @@ public class WindowManager {
             }));
         }
     }
+    
+    
+/******************************** NO TASKBAR MODE *****************************/
+    
+    @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")
+    public static boolean show_taskbar_icon = true;
+    
 }

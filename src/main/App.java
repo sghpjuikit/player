@@ -1,6 +1,7 @@
 
 package main;
 
+import AudioPlayer.services.Tray.TrayService;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
@@ -13,13 +14,14 @@ import Configuration.Configuration;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.GUI;
-import GUI.NotifierManager;
+import AudioPlayer.services.Notifier.NotifierManager;
 import GUI.Window;
 import GUI.WindowManager;
 import Layout.Widgets.WidgetManager;
 import Library.BookmarkManager;
 import java.io.File;
 import java.net.URI;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.application.Application;
@@ -55,7 +57,7 @@ public class App extends Application {
     public static Guide guide;
     private boolean initialized = false;
     
-    private final ServiceManager services = new ServiceManager();
+    private static final ServiceManager services = new ServiceManager();
     
     private static App instance;
     public App() {
@@ -159,7 +161,6 @@ public class App extends Application {
         // initialize non critical parts
         Player.loadLast();                      // should load in the end
 
-        NotifierManager.start();           // after window is shown (and css aplied)
         PlaycountIncrementer.initialize();
         MoodManager.initialize();
         Action.getActions().forEach(Action::register);
@@ -168,6 +169,8 @@ public class App extends Application {
         Configuration.getFields().forEach(Config::applyValue);
         
         services.addService(new TrayService());
+        services.addService(new NotifierManager());
+        
         services.getAllServices()
                 .filter(s->!s.isDependency()).filter(Service::isSupported)
                 .forEach(Service::start);
@@ -209,7 +212,6 @@ public class App extends Application {
             Player.state.serialize();            
             Configuration.save();
             BookmarkManager.saveBookmarks();
-            NotifierManager.stop();
         }
         DB.stop();
         Action.stopGlobalListening();
@@ -232,6 +234,10 @@ public class App extends Application {
     }
     public static Window getWindowOwner() {
         return instance.windowOwner;
+    }
+    
+    public static<S extends Service> void use(Class<S> type, Consumer<S> action) {
+        services.getService(type).ifPresent(action);
     }
     
     /**

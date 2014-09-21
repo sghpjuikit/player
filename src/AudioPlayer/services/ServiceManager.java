@@ -20,11 +20,13 @@ public class ServiceManager {
     private final Map<Class<? extends Service>,Service> services = new HashMap();
     
     public void addService(Service s) {
-        services.put(s.getClass(), s);
+        Class c = s.getClass();
+        if(services.containsKey(c)) throw new IllegalStateException("There already is a service of this type");
+        services.put(c, s);
     }
     
-    public Optional<Service> getService(Class<? extends Service> type) {
-        return Optional.ofNullable(services.get(type));
+    public<S extends Service> Optional<S> getService(Class<S> type) {
+        return Optional.ofNullable((S) services.get(type));
     }
     
     public Stream<Service> getAllServices() {

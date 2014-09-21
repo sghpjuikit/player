@@ -30,7 +30,10 @@
 }
 
 
-
+.header {
+    -fx-background-color: rgb(0,0,0);  // emulate -fx-pane-color
+    -fx-opacity: 0.3;                  // emulate -fx-pane-color
+}
 .window:focused > .header {
     // lets signal which window has focus by altering the header border
     // improve this

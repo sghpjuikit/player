@@ -176,7 +176,7 @@ public final class WidgetManager {
     }
     
     /** Equivalent to: {@code getWidget(cond, source).ifPresent(action)} */
-    public static<F extends Feature> void use(Predicate<WidgetInfo> cond, WidgetSource source, Consumer<Widget> action) {
+    public static void use(Predicate<WidgetInfo> cond, WidgetSource source, Consumer<Widget> action) {
         WidgetManager.find(cond, source).ifPresent(action);
     }
     

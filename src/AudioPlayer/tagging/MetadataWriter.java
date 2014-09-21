@@ -6,7 +6,7 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Chapters.Chapter;
-import GUI.NotifierManager;
+import AudioPlayer.services.Notifier.NotifierManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -16,6 +16,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.paint.Color;
+import main.App;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.mp3.MP3File;
@@ -29,12 +30,12 @@ import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
+import util.Log;
 import util.Parser.File.AudioFileFormat;
 import static util.Parser.File.AudioFileFormat.flac;
 import static util.Parser.File.AudioFileFormat.mp3;
 import static util.Parser.File.AudioFileFormat.ogg;
 import static util.Parser.File.AudioFileFormat.wav;
-import util.Log;
 import util.Parser.ParserImpl.ColorParser;
 import util.TODO;
 
@@ -628,7 +629,7 @@ public class MetadataWriter extends MetaItem {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setPlaycount(String.valueOf(count));
         if (writer.write())
-            NotifierManager.showTextNotification("Song playcount incremented to: " + count, "Update");
+            App.use(NotifierManager.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
     }
     
     /**
@@ -642,7 +643,8 @@ public class MetadataWriter extends MetaItem {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setRatingPercent(rating);
         if (writer.write())
-            NotifierManager.showTextNotification("Song rating changed to: " + rating, "Update");
+            App.use(NotifierManager.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
+//            App.use(TrayService.class, s -> s.setNotification("","Song rating changed to: " + rating));
     }
 
 }

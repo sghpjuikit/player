@@ -37,11 +37,8 @@
 - ConfigFields enable input restriction (currently bugged)
 - fix returning from docked mode exception
 - clean up Enviroment
-- window header troubles again
 - explorer graphics support css skinning
 - full sorting suport for FilteredTable -> make API
-
-- fix filter chain not updating when predicate null
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------

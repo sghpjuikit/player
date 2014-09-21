@@ -23,6 +23,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -38,9 +40,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
-import utilities.Parser.File.Enviroment;
-import utilities.Util;
-import static utilities.Util.createmenuItem;
+import util.Parser.File.Enviroment;
+import util.Util;
+import static util.Util.createmenuItem;
+import util.access.Accessor;
 
 
 /**
@@ -53,6 +56,16 @@ public class BookmarkerController extends FXMLController {
     @FXML TableColumn<BookmarkItem,String> pathColumn;
     
     // properties
+    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
+    public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
+//    @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
+//    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
+//    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
+//    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+//    @IsConfig(name = "Show table header", info = "Show table header with columns.")
+//    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
+//    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
+//    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(name = "Read only", info = "Forbid all changes to bookmarks through this widget.")
     public boolean read_only = false;
     @IsConfig(name = "Editable", info = "Allow editing of the bookmarks directly in table.")

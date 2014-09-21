@@ -46,10 +46,10 @@ import static javafx.scene.paint.Color.CADETBLUE;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
-import utilities.Parser.File.Enviroment;
-import utilities.Parser.File.FileUtil;
-import static utilities.Util.createmenuItem;
-import utilities.access.Accessor;
+import util.Parser.File.Enviroment;
+import util.Parser.File.FileUtil;
+import static util.Util.createmenuItem;
+import util.access.Accessor;
 
 /**
  * FXML Controller class

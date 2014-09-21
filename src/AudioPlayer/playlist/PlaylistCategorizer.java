@@ -6,8 +6,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import main.App;
-import utilities.Parser.File.FileUtil;
-import utilities.Log;
+import util.Parser.File.FileUtil;
+import util.Log;
 
 /**
  *

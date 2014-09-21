@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import main.App;
-import utilities.Parser.File.FileUtil;
-import utilities.Log;
+import util.Parser.File.FileUtil;
+import util.Log;
 
 /**
  *

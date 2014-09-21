@@ -25,7 +25,7 @@ import main.App;
 import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
 import org.reactfx.EventStream;
-import utilities.access.Accessor;
+import util.access.Accessor;
 
 /**
  *

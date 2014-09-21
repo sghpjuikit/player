@@ -7,7 +7,7 @@
 package Layout.Areas;
 
 import Layout.AltState;
-import utilities.Closable;
+import util.Closable;
 
 /**
  *

@@ -5,6 +5,8 @@ import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.Service;
+import AudioPlayer.services.ServiceManager;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.Config;
 import Configuration.Configuration;
@@ -18,12 +20,16 @@ import Layout.Widgets.WidgetManager;
 import Library.BookmarkManager;
 import java.io.File;
 import java.net.URI;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
-import utilities.FxTimer;
-import utilities.Parser.File.FileUtil;
+import util.FxTimer;
+import util.Parser.File.FileUtil;
 
 
 /**
@@ -49,8 +55,9 @@ public class App extends Application {
     public static Guide guide;
     private boolean initialized = false;
     
-    private static App instance;
+    private final ServiceManager services = new ServiceManager();
     
+    private static App instance;
     public App() {
         instance = this;
     }
@@ -113,11 +120,10 @@ public class App extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
-            
-        Action.startGlobalListening();
-        Configuration.load();           // must initialize first
-        
         try {
+            Action.startGlobalListening();
+            Configuration.load();           // must initialize first
+        
             // initializing, the order is important
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
@@ -137,9 +143,17 @@ public class App extends Application {
             WindowManager.deserialize();
             
             initialized = true;
+            
         } catch(Exception e) {
+            String ex = Stream.of(e.getStackTrace()).map(s->s.toString()).collect(Collectors.joining("\n"));
+           
+            // copy exception trace to clipboard
+            final Clipboard clipboard = Clipboard.getSystemClipboard();
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(ex);
+            clipboard.setContent(content);
+            
             e.printStackTrace();
-            throw new RuntimeException("Application failed to start. Reason: " + e.getMessage());
         }
         
         // initialize non critical parts
@@ -152,6 +166,11 @@ public class App extends Application {
         
         // apply all (and gui) settings
         Configuration.getFields().forEach(Config::applyValue);
+        
+        services.addService(new TrayService());
+        services.getAllServices()
+                .filter(s->!s.isDependency()).filter(Service::isSupported)
+                .forEach(Service::start);
         
         // handle guide
         guide = new Guide();
@@ -182,15 +201,18 @@ public class App extends Application {
      */
     @Override
     public void stop() {
-        Action.stopGlobalListening();
+        services.getAllServices()
+                .filter(s->!s.isDependency()).filter(Service::isRunning)
+                .forEach(Service::stop);
+        
         if(initialized) {
             Player.state.serialize();            
             Configuration.save();
             BookmarkManager.saveBookmarks();
             NotifierManager.stop();
-            
         }
         DB.stop();
+        Action.stopGlobalListening();
         // remove temporary files
         FileUtil.removeDirContent(TMP_FOLDER());
     }

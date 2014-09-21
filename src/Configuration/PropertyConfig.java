@@ -10,11 +10,11 @@ import Configuration.Config.ConfigBase;
 import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.beans.value.WritableValue;
-import utilities.access.ApplicableValue;
+import util.access.ApplicableValue;
 
 /**
  * {@link Config} wrapping a {@link WritableValue}, most often {@link Property}.
- * or {@link utilities.access.Accessor}
+ * or {@link util.access.Accessor}
  * <p>
  * Property Config wraps a Property and acts as a Config.
  * The getter and setter directly sets and gets the

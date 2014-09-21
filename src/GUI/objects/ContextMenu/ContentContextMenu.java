@@ -10,7 +10,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseEvent;
-import utilities.access.AccessibleValue;
+import util.access.AccessibleValue;
 
 /**
  *

@@ -47,8 +47,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
-import utilities.SingleInstance;
-import utilities.Util;
+import util.SingleInstance;
+import util.Util;
 
 /**
  * FXML Controller class

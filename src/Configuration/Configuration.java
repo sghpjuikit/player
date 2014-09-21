@@ -17,9 +17,9 @@ import java.util.function.Predicate;
 import javafx.beans.value.WritableValue;
 import main.App;
 import org.atteo.classindex.ClassIndex;
-import utilities.Parser.File.FileUtil;
-import utilities.Log;
-import utilities.Util;
+import util.Parser.File.FileUtil;
+import util.Log;
+import util.Util;
 
 /**
  * Provides methods to access configs of the application.

@@ -20,8 +20,8 @@ import javafx.scene.layout.HBox;
 import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
-import utilities.Parser.ParserImpl.Parser;
-import utilities.Util;
+import util.Parser.ParserImpl.Parser;
+import util.Util;
 
 /**
  *

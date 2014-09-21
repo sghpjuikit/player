@@ -4,11 +4,11 @@ package Configuration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import utilities.Parser.ParserImpl.Parser;
-import utilities.Parser.StringParser;
-import utilities.Util;
-import utilities.access.ApplicableValue;
-import utilities.access.TypedValue;
+import util.Parser.ParserImpl.Parser;
+import util.Parser.StringParser;
+import util.Util;
+import util.access.ApplicableValue;
+import util.access.TypedValue;
 
 /**
  * Object representation of a configurable value.

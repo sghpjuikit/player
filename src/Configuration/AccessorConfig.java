@@ -9,8 +9,8 @@ package Configuration;
 import Configuration.Config.ConfigBase;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import utilities.access.FunctAccessibleValue;
-import utilities.access.FunctAccessor;
+import util.access.FunctAccessibleValue;
+import util.access.FunctAccessor;
 
 /**
  * Functional implementation of {@link Config} that doesnt store nor wrap the

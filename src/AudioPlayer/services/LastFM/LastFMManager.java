@@ -28,9 +28,9 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.Log;
-import utilities.Password;
-import utilities.TODO;
+import util.Log;
+import util.Password;
+import util.TODO;
 
 /**
  *

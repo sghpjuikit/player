@@ -10,7 +10,7 @@ import GUI.objects.Spectrum;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;
-import utilities.Util;
+import util.Util;
 
 /**
  *

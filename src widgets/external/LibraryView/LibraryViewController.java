@@ -29,6 +29,8 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.event.Event;
 import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import static javafx.geometry.NodeOrientation.INHERIT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -37,13 +39,14 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.reactfx.Subscription;
 import org.reactfx.util.Tuples;
-import utilities.FxTimer;
-import utilities.Util;
-import static utilities.Util.createmenuItem;
-import utilities.access.Accessor;
+import util.FxTimer;
+import util.Util;
+import static util.Util.createmenuItem;
+import util.access.Accessor;
 
 /**
  *
@@ -81,6 +84,16 @@ public class LibraryViewController extends FXMLController {
     private Subscription dbMonitor;
     
     // configurables
+    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
+    public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
+    @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
+    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
+    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
+    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    @IsConfig(name = "Show table header", info = "Show table header with columns.")
+    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(name = "Field")
     public final Accessor<Metadata.Field> fieldFilter = new Accessor<>(CATEGORY, v -> {
         table.getSelectionModel().clearSelection();
@@ -104,15 +117,15 @@ public class LibraryViewController extends FXMLController {
         
         table.setItemsRaw(FXCollections.observableArrayList(result));
         
-        // unfortunately the table cells dont get updated for some reason, resizing
-        // table or column manually with cursor will do the job, so we invoke that
-        // action programmatically, with a delay (or it wont work)
+//        // unfortunately the table cells dont get updated for some reason, resizing
+//        // table or column manually with cursor will do the job, so we invoke that
+//        // action programmatically, with a delay (or it wont work)
         FxTimer.run(100, ()->{
             TableColumn c = table.getColumns().get(table.getColumns().size()-1);
             table.columnResizePolicyProperty().get().call(new TableView.ResizeFeatures(table, c, c.getWidth()));
         });
         
-        
+        table.getSearchBox().setPrefTypeSupplier(() -> Tuples.t(VALUE.toString(v), VALUE.getType(v), VALUE));
         table.getSearchBox().setData(Arrays.asList(MetadataGroup.Field.values()).stream()
                 .map(mgf->Tuples.t(mgf.toString(v),mgf.getType(v),mgf)).collect(Collectors.toList()));
     });
@@ -120,6 +133,7 @@ public class LibraryViewController extends FXMLController {
     @Override
     public void init() {
         content.getChildren().addAll(table.getRoot());
+        VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
         
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);

@@ -4,7 +4,7 @@
  */
 package PseudoObjects;
 
-import utilities.access.CyclicEnum;
+import util.access.CyclicEnum;
 
 /**
  * Enum class for application maximized states.

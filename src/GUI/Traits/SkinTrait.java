@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.IntegerProperty;
 import javafx.scene.Parent;
-import utilities.Parser.File.FileUtil;
+import util.Parser.File.FileUtil;
 
 /**
  *

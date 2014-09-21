@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.MouseEvent;
-import utilities.SingleInstance;
+import util.SingleInstance;
 
 /**
  *

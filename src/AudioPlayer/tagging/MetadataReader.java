@@ -15,8 +15,8 @@ import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
-import utilities.Log;
-import utilities.Parser.File.AudioFileFormat.Use;
+import util.Log;
+import util.Parser.File.AudioFileFormat.Use;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files

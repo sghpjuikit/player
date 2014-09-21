@@ -23,11 +23,11 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import main.App;
-import utilities.Log;
-import utilities.Parser.File.AudioFileFormat;
-import utilities.Parser.File.AudioFileFormat.Use;
-import utilities.Parser.File.FileUtil;
-import utilities.Parser.File.ImageFileFormat;
+import util.Log;
+import util.Parser.File.AudioFileFormat;
+import util.Parser.File.AudioFileFormat.Use;
+import util.Parser.File.FileUtil;
+import util.Parser.File.ImageFileFormat;
 
 /**
  *

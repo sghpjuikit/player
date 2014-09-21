@@ -98,10 +98,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 import main.App;
 import org.reactfx.Subscription;
-import utilities.Log;
-import utilities.Parser.File.Enviroment;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.Log;
+import util.Parser.File.Enviroment;
+import util.Util;
+import util.access.Accessor;
 
 /**
  * Window for application.
@@ -125,6 +125,7 @@ import utilities.access.Accessor;
 public class Window extends WindowBase implements SelfSerializator<Window> {
     
     private static final PseudoClass focusedPseudoClass = PseudoClass.getPseudoClass("focused");
+    public static final ArrayList<Window> windows = new ArrayList();
     
     /**
      * Get focused window. There is zero or one focused window in the application
@@ -136,7 +137,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      * @return focused window or null if none focused.
      */
     public static Window getFocused() {
-        return ContextManager.windows.stream()
+        return windows.stream()
                 .filter(Window::isFocused).findAny().orElse(null);
     }
     /**
@@ -153,7 +154,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      * @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
-        return ContextManager.windows.stream()
+        return windows.stream()
                 .filter(Window::isFocused).findAny().orElse(App.getWindow());
     }
     
@@ -163,7 +164,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static boolean headerVisiblePreference = true;
     
     @IsConfig(name = "Opacity", info = "Window opacity.", min=0, max=1)
-    public static final Accessor<Double> windowOpacity = new Accessor<>(1d, v -> ContextManager.windows.forEach(w->w.getStage().setOpacity(v)));
+    public static final Accessor<Double> windowOpacity = new Accessor<>(1d, v -> windows.forEach(w->w.getStage().setOpacity(v)));
     
     @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
     public static boolean gui_overlay = false;
@@ -183,12 +184,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static double overlay_norm_factor = 0.5;
     
     @IsConfig(name = "Borderless", info = "Borderless window has hidden header and borders.")
-    public static final Accessor<Boolean> window_borderless = new Accessor<>(false, v -> ContextManager.windows.forEach(w->w.setBorderless(v)));
+    public static final Accessor<Boolean> window_borderless = new Accessor<>(false, v -> windows.forEach(w->w.setBorderless(v)));
     
     @AppliesConfig( "headerVisiblePreference")
     private static void applyHeaderVisiblePreference() {
         // weird that this still doesnt apply it correctly, whats wrong?
-        ContextManager.windows.forEach(w->w.setHeaderVisible(w.headerVisible));
+        windows.forEach(w->w.setHeaderVisible(w.headerVisible));
     }
     
     @AppliesConfig( "overlay_norm_factor")
@@ -208,7 +209,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             
             final Color cl = color;
             // apply effect
-            ContextManager.windows.forEach( w -> {
+            windows.forEach( w -> {
                 w.colorEffectPane.setBlendMode(BlendMode.OVERLAY);
                 w.colorEffectPane.setBackground(new Background(new BackgroundFill(cl, CornerRadii.EMPTY, Insets.EMPTY)));
                 w.colorEffectPane.setOpacity(overlay_norm_factor);
@@ -220,7 +221,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
         } else {
             // disable effect
-            ContextManager.windows.forEach( w ->
+            windows.forEach( w ->
                 w.colorEffectPane.setVisible(false));
         }
     }
@@ -336,7 +337,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 root.pseudoClassStateChanged(focusedPseudoClass,nv));
         
         // add to list of active windows
-        ContextManager.windows.add(this);
+        windows.add(this);
         
         // set local shortcuts
         Action.getActions().stream().filter(a->!a.isGlobal()).forEach(Action::register);
@@ -676,7 +677,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         // normally if it runs bgr threads + we want to sae it
         layout_aggregator.getLayouts().values().forEach(Layout::close);
         // remove from window list as life time of this ends
-        ContextManager.windows.remove(this); 
+        windows.remove(this); 
         if(main) {
             // close all pop overs first (or we risk an exception and not closing app
             // properly - PopOver bug

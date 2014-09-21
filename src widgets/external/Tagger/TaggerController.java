@@ -109,14 +109,14 @@ import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.Subscription;
-import utilities.InputConstraints;
-import utilities.Log;
-import utilities.Parser.File.AudioFileFormat.Use;
-import utilities.Parser.File.Enviroment;
-import utilities.Parser.File.ImageFileFormat;
-import utilities.Parser.ParserImpl.ColorParser;
-import utilities.access.Accessor;
-import utilities.functional.impl.Validator;
+import util.InputConstraints;
+import util.Log;
+import util.Parser.File.AudioFileFormat.Use;
+import util.Parser.File.Enviroment;
+import util.Parser.File.ImageFileFormat;
+import util.Parser.ParserImpl.ColorParser;
+import util.access.Accessor;
+import util.functional.impl.Validator;
 
 /**
  * TaggerController graphical component.

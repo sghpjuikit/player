@@ -15,8 +15,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
-import utilities.Parser.ToStringConverter;
-import utilities.Util;
+import util.Parser.ToStringConverter;
+import util.Util;
 
 /**
  * Generic item picker.

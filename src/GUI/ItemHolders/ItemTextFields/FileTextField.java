@@ -7,9 +7,9 @@
 package GUI.ItemHolders.ItemTextFields;
 
 import java.io.File;
-import utilities.Parser.File.Enviroment;
-import utilities.Parser.ParserImpl.FileParser;
-import utilities.Parser.StringParser;
+import util.Parser.File.Enviroment;
+import util.Parser.ParserImpl.FileParser;
+import util.Parser.StringParser;
 
 /**
  * {@link AbstractFileField} for {@link File} objects denoting directories

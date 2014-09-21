@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import utilities.Util;
+import util.Util;
 
 /**
  * Denotes Cover represented by a {@link File}.

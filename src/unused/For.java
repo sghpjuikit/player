@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  *
  * @author Plutonium_
  */
-public class For<E extends Object> implements Loop<List<E>,Consumer<E>>{
+public class For<E extends Object>{
     private E[] els;
 
     

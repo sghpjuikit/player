@@ -27,8 +27,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import main.App;
-import utilities.Log;
-import utilities.Parser.File.FileUtil;
+import util.Log;
+import util.Parser.File.FileUtil;
 
 /**
  * Handles operations with Widgets.

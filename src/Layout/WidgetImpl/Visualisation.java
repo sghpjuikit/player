@@ -26,7 +26,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
 import javafx.util.Duration;
-import utilities.access.Accessor;
+import util.access.Accessor;
 
 /**
  *

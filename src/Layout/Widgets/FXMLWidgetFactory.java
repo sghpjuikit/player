@@ -10,7 +10,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import utilities.Parser.File.FileUtil;
+import util.Parser.File.FileUtil;
 
 /**
  * {@link WidgetFactory} producing {@link FXMLWidget}.

@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-import utilities.Log;
-import static utilities.Util.NotNULL;
+import util.Log;
+import static util.Util.NotNULL;
 
 /**
  * @author uranium

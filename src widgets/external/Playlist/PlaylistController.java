@@ -34,9 +34,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import utilities.Util;
-import utilities.access.Accessor;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import util.access.Accessor;
 
 /**
  * Playlist FXML Controller class
@@ -71,10 +72,9 @@ import utilities.access.Accessor;
 )
 public class PlaylistController extends FXMLController implements PlaylistFeature {
 
-    @FXML AnchorPane root;
+    @FXML VBox root;
     private @FXML Label duration;
-    private @FXML AnchorPane tablePane;
-    private @FXML AnchorPane optionPane;
+    private @FXML StackPane optionPane;
     private final PlaylistTable table = new PlaylistTable();
     
     @FXML Menu addMenu;
@@ -82,21 +82,22 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML Menu selMenu;
     @FXML Menu orderMenu;
     
-    // auto applied configurables
-    @IsConfig(name = "Table orientation", info = "Orientation of table.")
+    // configurables
+    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
-    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::zeropadIndex);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Search show original index", info = "Show index of the itme as it was in the unfiltered playlist when filter applied.")
     public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
+    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
+    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(name = "Show bottom header", info = "Show contorls pane at the bottom.")
     public final Accessor<Boolean> show_bottom_header = new Accessor<>(true, v -> {
+        if(v) root.getChildren().setAll(table.getRoot(),optionPane);
+        else root.getChildren().setAll(table.getRoot());
         optionPane.setVisible(v);
-        AnchorPane.setBottomAnchor(tablePane, v ? 28d : 0d);
     });
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
@@ -111,14 +112,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         setUseFilterForPlayback(v);
     });
     
-    // non applied configurables
-    @IsConfig(name = "Search show always", info = "Forbid hiding of the search paneat all times. It will always be displayed.")
-    public boolean always_show_search = false;
-    @IsConfig(name = "Search hide always", info = "Allows hiding search pane even if in effect.")
-    public boolean always_hide_search = false;
-    @IsConfig(name = "Search ignore case", info = "Ignore case when comparing for search results.")
-    public boolean ignoreCase = true;
-    
     private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
             table.setItemsRaw((Collection<PlaylistItem>) c.getList());
     private final InvalidationListener predicateL = o -> 
@@ -127,8 +120,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @Override
     public void init() {        
-        tablePane.getChildren().add(table.getRoot());
-        Util.setAPAnchors(table.getRoot(), 0d);
+        root.getChildren().setAll(table.getRoot(),optionPane);
+        VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
         
         // for now...  either get rid of PM and allow multiple playlists OR allow binding
         PlaylistManager.getItems().addListener(playlistitemsL);

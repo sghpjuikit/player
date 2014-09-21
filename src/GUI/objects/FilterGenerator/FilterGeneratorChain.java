@@ -23,8 +23,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
-import utilities.access.FieldValue.FieldEnum;
-import utilities.access.FieldValue.FieldedValue;
+import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldedValue;
 
 /**
  *
@@ -92,6 +92,12 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     
     public void clear() {
         generators.forEach(FilterGenerator::clear);
+        FilterGenerator first = generators.get(0);
+        generators.clear();
+        generators.add(first);
+        generatePredicate();
+        for(int i=getChildren().size()-1; i>0; i--)
+            getChildren().remove(getChildren().get(i));
     }
     
     public void setButton(AwesomeIcon icon, Tooltip t, EventHandler<MouseEvent> action) {

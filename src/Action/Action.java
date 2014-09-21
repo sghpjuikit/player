@@ -7,6 +7,7 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.ContextManager;
+import GUI.Window;
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
@@ -34,9 +35,9 @@ import javafx.util.Duration;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
-import utilities.FxTimer;
-import utilities.Log;
-import utilities.access.Accessor;
+import util.FxTimer;
+import util.Log;
+import util.access.Accessor;
 
 /**
  * Encapsulates application behavior.
@@ -285,7 +286,7 @@ public final class Action extends Config<Action> implements Runnable {
         
         if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
         // register for each window separately
-        ContextManager.windows.forEach( w -> 
+        Window.windows.forEach( w -> 
             w.getStage().getScene().getAccelerators().put(k,this));
     }
 
@@ -296,7 +297,7 @@ public final class Action extends Config<Action> implements Runnable {
         
         if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
         // unregister for each window separately
-        ContextManager.windows.forEach( w -> 
+        Window.windows.forEach( w -> 
             w.getStage().getScene().getAccelerators().remove(k));
     }
     public void unregisterInScene(Scene s) {

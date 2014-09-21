@@ -61,7 +61,7 @@ import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import utilities.FxTimer;
+import util.FxTimer;
 
 
 public class PopOverSkin implements Skin<PopOver> {

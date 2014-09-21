@@ -25,9 +25,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
-import utilities.Animation.Interpolators.CircularInterpolator;
-import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
-import utilities.Util;
+import util.Animation.Interpolators.CircularInterpolator;
+import static util.Animation.Interpolators.EasingMode.EASE_OUT;
+import util.Util;
 
 /**
  * @author uranium

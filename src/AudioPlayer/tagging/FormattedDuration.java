@@ -5,7 +5,8 @@
 package AudioPlayer.tagging;
 
 import javafx.util.Duration;
-import utilities.Util;
+import util.Dependency;
+import util.Util;
 
 /**
  * Duration with overriden toString method, where it is formatted into
@@ -25,11 +26,16 @@ public class FormattedDuration extends Duration {
     }
     
     /** @return formatted string representation of the duration */
+    @Dependency("Designed to be used in tables and gui. Should be in xx:xx format")
+    @Dependency("Must be consistent with fromString().")
     @Override
     public String toString() {
         return Util.formatDuration(this);
     }
     
+    @Dependency("Name. Used by String Parser by reflection discovered by method name.")
+    @Dependency("Must be consistent with toStirng()")
+    @Dependency("Supports different units to allow convenient search filters.")
     public static FormattedDuration valueOf(String time) {
         int index = -1;
         for (int i=0; i<time.length(); i++) {
@@ -53,7 +59,7 @@ public class FormattedDuration extends Duration {
             } else if ("m".equals(suffix)) {
                 return new FormattedDuration(60000*value);
             } else if ("h".equals(suffix)) {
-                return new FormattedDuration(60000000*value);
+                return new FormattedDuration(3600000*value);
             } else {
                 // Malformed suffix
                 throw new IllegalArgumentException("The time parameter must have a suffix of [ms|s|m|h]");

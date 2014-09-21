@@ -8,7 +8,7 @@ import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import javafx.util.Duration;
-import utilities.Log; 
+import util.Log; 
 
 /**
  *

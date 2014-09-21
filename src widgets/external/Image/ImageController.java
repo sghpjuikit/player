@@ -17,9 +17,9 @@ import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-import utilities.FxTimer;
-import utilities.Parser.File.ImageFileFormat;
-import utilities.access.Accessor;
+import util.FxTimer;
+import util.Parser.File.ImageFileFormat;
+import util.access.Accessor;
 
 /**
  * FXML Controller class

@@ -29,10 +29,10 @@ import javafx.scene.text.FontWeight;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
-import utilities.Log;
-import utilities.Parser.File.FileUtil;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.Log;
+import util.Parser.File.FileUtil;
+import util.Util;
+import util.access.Accessor;
 
 /**
  *
@@ -360,7 +360,7 @@ public class GUI {
         // apply only if application initialized correctly
         if (App.isInitialized()) {
             // we need to apply to each window separately
-            ContextManager.windows.forEach(w ->{
+            Window.windows.forEach(w ->{
                 String tmp = f.getStyle().toLowerCase();
                 FontPosture style = tmp.contains("italic") ? ITALIC : REGULAR;
                 FontWeight weight = tmp.contains("bold") ? BOLD : NORMAL;

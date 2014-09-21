@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import main.App;
-import utilities.FxTimer;
+import util.FxTimer;
 
 /**
  * Customized Stage, window of the application.
@@ -411,7 +411,7 @@ public class WindowBase {
         }
         
         // snap to other window edges
-        for(Window w: ContextManager.windows) {
+        for(Window w: Window.windows) {
             double WXS = w.getX()+w.getWidth();
             double WXE = w.getX();
             double WYS = w.getY()+w.getHeight();

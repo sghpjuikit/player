@@ -18,7 +18,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import utilities.Closable;
+import util.Closable;
 
 /**
  * Graphical part of the container within layout.

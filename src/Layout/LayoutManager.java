@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import main.App;
-import utilities.Parser.File.FileUtil;
-import utilities.Log;
+import util.Parser.File.FileUtil;
+import util.Log;
 
 /**
  * @author uranium
@@ -37,7 +37,7 @@ public final class LayoutManager implements Configurable {
      */
     public static Stream<Layout> getLayouts() {
         // get all windows and fetch their layouts
-        return ContextManager.windows.stream()
+        return Window.windows.stream()
                     .map(w->w.getLayoutAggregator())
                     .flatMap(la->la.getLayouts().values().stream());
     }

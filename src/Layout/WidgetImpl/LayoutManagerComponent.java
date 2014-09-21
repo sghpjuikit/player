@@ -21,9 +21,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import main.App;
-import utilities.Parser.File.Enviroment;
-import utilities.Log;
-import static utilities.Util.toCSList;
+import util.Parser.File.Enviroment;
+import util.Log;
+import static util.Util.toCSList;
 
 /**
  *

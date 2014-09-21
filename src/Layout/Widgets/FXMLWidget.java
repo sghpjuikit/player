@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import utilities.Log;
+import util.Log;
 
 /**
  * Generic widget based on .fxml file. 

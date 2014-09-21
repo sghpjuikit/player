@@ -11,9 +11,9 @@ import java.util.stream.Collectors;
 import javafx.collections.transformation.FilteredList;
 import org.reactfx.util.Tuple3;
 import org.reactfx.util.Tuples;
-import utilities.access.FieldValue.FieldEnum;
-import utilities.access.FieldValue.FieldedValue;
-import utilities.filtering.Predicates;
+import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldedValue;
+import util.filtering.Predicates;
 
 /**
  *

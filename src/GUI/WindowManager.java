@@ -31,8 +31,8 @@ import javafx.stage.Screen;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import main.App;
-import utilities.Parser.File.FileUtil;
-import utilities.Log;
+import util.Parser.File.FileUtil;
+import util.Log;
 
 /**
  *
@@ -191,7 +191,7 @@ public class WindowManager {
         }
         
         // get windows
-        List<Window> src = new ArrayList<>(ContextManager.windows);
+        List<Window> src = new ArrayList<>(Window.windows);
                      src.remove(miniWindow);    // manually
         Log.deb("Serializing " + src.size() + " application windows for next session.");
         

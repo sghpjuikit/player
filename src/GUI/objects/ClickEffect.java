@@ -23,7 +23,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import utilities.Log;
+import util.Log;
 
 /**
  * 
@@ -53,14 +53,14 @@ public class ClickEffect {
     
     @AppliesConfig("show_clickEffect")
     private static void applyShowClickEffect() {
-        if(show_clickEffect) ContextManager.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
-        else ContextManager.windows.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_PRESSED, clickHandler));
+        if(show_clickEffect) Window.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
+        else Window.windows.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_PRESSED, clickHandler));
     }
     
     @AppliesConfig("show_trailEffect")
     private static void applyShowTrailEffect() {
-        if(show_trailEffect) ContextManager.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_MOVED, trailHandler));
-        else ContextManager.windows.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_MOVED, trailHandler));
+        if(show_trailEffect) Window.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_MOVED, trailHandler));
+        else Window.windows.forEach(w -> w.getStage().getScene().getRoot().removeEventFilter(MOUSE_MOVED, trailHandler));
     }
     
     @AppliesConfig( "blend_mode")

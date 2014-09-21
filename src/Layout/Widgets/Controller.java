@@ -3,7 +3,7 @@ package Layout.Widgets;
 
 import Configuration.Configurable;
 import Layout.Layout;
-import utilities.Closable;
+import util.Closable;
 
 /**
  * Controller is an object defining behavior of some graphical object and acts

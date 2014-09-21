@@ -6,12 +6,12 @@ package AudioPlayer.tagging;
 
 import java.io.File;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import utilities.Dependency;
+import util.Dependency;
 
 /**
- * Simple class for file size handling.
+ * Simple class for file size handling, used primarily for its string representation.
  * <p>
- * Provides human readable text output and handling of unknown size
+ * Simple example of use: {@code new FIlesize(bytes).toString() }.
  * 
  * @author uranium
  */
@@ -42,9 +42,7 @@ public final class FileSize implements Comparable<FileSize> {
         size = bytes;
     }
     
-    /**
-     * @return file size in bytes or 0L if unknown
-     */
+    /** @return file size in bytes or -1 if unknown */
     public long inBytes() {
         return size;
     }
@@ -60,9 +58,10 @@ public final class FileSize implements Comparable<FileSize> {
      * @return string representation of the object
      */
     @Override
-    @Dependency("Must be consistent with fromString()")
+    @Dependency("Designed to be used in tables and gui.")
+    @Dependency("Must be consistent with fromString().")
     public String toString() {
-        if(size == 0l) return "Unknown";
+        if(size == -1) return "Unknown";
         
         double kB = (size / 1024d);
         double MB = (size / (1024d*1024d));
@@ -83,7 +82,9 @@ public final class FileSize implements Comparable<FileSize> {
         return Long.compare(size, o.size);
     }
     
-    @Dependency("Enables convertability to String using Parser by reflection")
+    @Dependency("Name. Used by String Parser by reflection discovered by method name.")
+    @Dependency("Must be consistent with toStirng()")
+    @Dependency("Supports different units to allow convenient search filters.")
     public static FileSize fromString(String s) {
         int i = 0;
         

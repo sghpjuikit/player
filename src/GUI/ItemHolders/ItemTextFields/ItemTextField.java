@@ -15,8 +15,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
-import utilities.Parser.StringParser;
-import utilities.access.AccessibleValue;
+import util.Parser.StringParser;
+import util.access.AccessibleValue;
 
 /**
  * Customized {@link TextField} that stores an item. Normally a non-editable text

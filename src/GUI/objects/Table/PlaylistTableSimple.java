@@ -25,7 +25,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import utilities.Util;
+import util.Util;
 
 /**
  * @author uranium

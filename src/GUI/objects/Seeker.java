@@ -39,8 +39,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
-import utilities.FxTimer;
-import utilities.Log;
+import util.FxTimer;
+import util.Log;
 
 /**
  * 

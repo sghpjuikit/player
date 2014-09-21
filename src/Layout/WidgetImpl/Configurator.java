@@ -24,9 +24,9 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
-import utilities.Log;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.Log;
+import util.Util;
+import util.access.Accessor;
 
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",

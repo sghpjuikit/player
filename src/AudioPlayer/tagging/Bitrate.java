@@ -5,13 +5,10 @@
 package AudioPlayer.tagging;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import utilities.Dependency;
+import util.Dependency;
 
 /**
- * Simple wrapper class for bitrate represented as int, implementing toString method.
- * This class is immutable.
- * Use -1 value if bitrate not available. It avoids null values of this
- * object and there is also implemented toString method for this scenario.
+ * Simple class for media bit rate represented as int, implementing toString method.
  * 
  * @author uranium
  */
@@ -21,7 +18,6 @@ public class Bitrate implements Comparable<Bitrate>{
     private final int bitrate;
     
     /**
-     * Constructor.
      * @param value bit rate value in kb per second. Use -1 if not available.
      */
     public Bitrate(int value){
@@ -29,44 +25,32 @@ public class Bitrate implements Comparable<Bitrate>{
         bitrate = value;
     }
     
-    /**
-     * Convenience static method for creating Bitrate objects.
-     * @param value
-     * @param value bit rate value in kb per second. Use -1 if not available.
-     * @return 
-     */
+    /** @param value bit rate value in kb per second. Use -1 if not available. */
     public static Bitrate create(int value) {
         return new Bitrate(value);
     }
     
-    /**
-     * Convenience static method for creating Bitrate objects.
-     * @param value
-     * @param value bit rate value in kb per second. Use -1 if not available.
-     * @return 
-     */    
+    /** @param value bit rate value in kb per second. Use -1 if not available. */    
     public static Bitrate create(long value) {
         Long l = value;
         return new Bitrate(l.intValue());
     }    
     
-    /**
-     * @return bit rate value in kb per second.
-     */
+    /** @return bit rate value in kb per second. */
     public int getValue() {
         return bitrate;
     }
     
     /**
-     * Appends ' kbps' string after value. If no value available it returns 
-     * "N/A" string.
+     * Appends ' kbps' string after value. If no value available it returns "".
      * For example: "320 kbps" or "N/A"
      * @return string representation of the object
      */
     @Override
+    @Dependency("Designed to be used in tables and gui.")
     @Dependency("Must be consistent with fromString()")
     public String toString() {
-        return bitrate == -1 ? "N/A" : bitrate + " kbps";
+        return bitrate == -1 ? "" : bitrate + " kbps";
     }
     
     @Override
@@ -74,7 +58,9 @@ public class Bitrate implements Comparable<Bitrate>{
         return Long.compare(bitrate, o.bitrate);
     }
     
-    @Dependency("Enables convertability to String using Parser by reflection")
+    @Dependency("Name. Used by String Parser by reflection discovered by method name.")
+    @Dependency("Must be consistent with toString()")
+    @Dependency("Used in search filters")
     public Bitrate fromString(String s) {
         return new Bitrate(Integer.parseInt(s));
     }

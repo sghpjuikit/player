@@ -29,8 +29,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import unused.SimplePositionable;
-import utilities.FxTimer;
-import utilities.TODO;
+import util.FxTimer;
+import util.TODO;
 
 /**
  * @author uranium

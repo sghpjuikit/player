@@ -31,11 +31,11 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import main.App;
-import utilities.Parser.File.AudioFileFormat;
-import utilities.Parser.File.AudioFileFormat.Use;
-import utilities.Parser.File.Enviroment;
-import utilities.Parser.File.FileUtil;
-import utilities.access.AccessibleStream;
+import util.Parser.File.AudioFileFormat;
+import util.Parser.File.AudioFileFormat.Use;
+import util.Parser.File.Enviroment;
+import util.Parser.File.FileUtil;
+import util.access.AccessibleStream;
 
 /**
  * Provides unified handling to everything playlist related in the application

@@ -8,6 +8,7 @@ import AudioPlayer.playlist.PlaylistItem;
 import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import GUI.DragUtil;
 import GUI.GUI;
@@ -16,7 +17,6 @@ import GUI.objects.ContextMenu.TableContextMenuInstance;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import AudioPlayer.tagging.FormattedDuration;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -26,10 +26,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -44,11 +42,10 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
-import utilities.FxTimer;
-import utilities.Parser.File.Enviroment;
-import utilities.TODO;
-import utilities.Util;
-import static utilities.Util.createmenuItem;
+import util.Parser.File.Enviroment;
+import util.TODO;
+import util.Util;
+import static util.Util.createmenuItem;
 
 /**
  * Playlist table GUI component.
@@ -65,16 +62,10 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
     private static final PseudoClass playingRowCSS = PseudoClass.getPseudoClass("played");
     private static final PseudoClass corruptRowCSS = PseudoClass.getPseudoClass("corrupt");
     
-    private final TableColumn<PlaylistItem, String> columnIndex = new TableColumn("#");
-    private final TableColumn<PlaylistItem, String> columnName = new TableColumn("name");
-    private final TableColumn<PlaylistItem, FormattedDuration> columnTime = new TableColumn("time");
+    private final TableColumn<PlaylistItem,String> columnName = new TableColumn("name");
+    private final TableColumn<PlaylistItem,FormattedDuration> columnTime = new TableColumn("time");
     
-    private final Callback<TableColumn<PlaylistItem,String>, TableCell<PlaylistItem,String>> indexCellFactory;
-    private final Callback<TableView<PlaylistItem>,TableRow<PlaylistItem>> rowFactory;    
-    
-    // properties
-    boolean zero_pad = true;
-    private boolean show_original_index;
+    private final Callback<TableView<PlaylistItem>,TableRow<PlaylistItem>> rowFactory;
     
     // selection helper variables
     double last;
@@ -98,23 +89,7 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
         setTableMenuButtonVisible(false);
         setFixedCellSize(GUI.font.getValue().getSize() + 5);
         
-        // initialize table factories
-        indexCellFactory = ( column -> new TableCell<PlaylistItem, String>() {
-            {
-                setAlignment(Pos.CENTER_RIGHT);
-            }
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (!empty) {
-                    int index = show_original_index ? getItemsFiltered().getSourceIndex(getIndex()) : getIndex();
-                        index++;
-                    setText(Util.zeroPad(index, getItems().size(), zero_pad ? '0' : ' ') + ".");
-                } 
-                else setText("");
-            }
-        });
-        
+        // initialize factories
         rowFactory = p_table -> {
             TableRow<PlaylistItem> row = new TableRow<PlaylistItem>() {
                 private void updatePseudoclassState(PlaylistItem item, boolean empty) {
@@ -176,8 +151,6 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
         };
         
          // set table factories
-        columnIndex.setSortable(false);
-        columnIndex.setCellFactory(indexCellFactory);
         columnName.setCellValueFactory(new PropertyValueFactory("name"));
         columnTime.setCellValueFactory(new PropertyValueFactory("time"));
         setRowFactory(rowFactory);
@@ -196,7 +169,7 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
             // column 1
             // need this weird method to get 9s as their are wide chars
             // (font isnt always proportional)
-            int s = show_original_index ? getItemsRaw().size() : getItems().size();
+            int s = isShowOriginalIndex() ? getItemsRaw().size() : getItems().size();
             int i = Util.DecMin1(s);
             tmp.setText(String.valueOf(i)+".");
             tmp.setVisible(true);
@@ -323,25 +296,11 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
         // reflect selection for whole application
         getSelectionModel().selectedItemProperty().addListener(selItemListener);
         getSelectionModel().getSelectedItems().addListener(selItemsListener);
-        
-//        table.setSortPolicy( t -> {
-//            SortedList itemsList = (SortedList) t.getItems();
-//            FXCollections.sort(itemsList, itemsS.getComparator());
-//            return true;
-//        });
-//        columnIndex.s
-        
+                
         refresh();
     }
     
-    /**
-     * Will add zeros to index numbers to maintain length consistency.
-     * @param val 
-     */
-    public void zeropadIndex(boolean val) {
-        zero_pad = val;
-        refresh();
-    }
+
     
 /******************************************************************************/     
     
@@ -378,30 +337,7 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
     }
     
 /************************************* DATA ***********************************/
-    
-     // we will set this to table.getItems, but since the list can change, we
-    // have to carry it over to the new list
-    ListChangeListener<PlaylistItem> resizer = o -> {
-        // unfortunately this doesnt work, it requires delay
-        // table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
-        FxTimer.run(100, () -> getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d)));
-    };
-    
-    /** 
-     * @param true shows item's index in the observable list - source of its
-     * data. False will display index within filtered list. In other words false
-     * will cause items to always be indexed from 1 to items.size. This has only
-     * effect when filtering the table. 
-     */
-    public void setShowOriginalIndex(boolean val) {
-        show_original_index = val;
-        refresh();
-    }
-    
-    public boolean isShowOriginalIndex() {
-        return show_original_index;
-    }
-    
+        
     public void sortByName() {
         getItemsSorted().comparatorProperty().unbind();
         getItemsSorted().setComparator(PlaylistItem.getComparatorName());

@@ -14,7 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import utilities.Util;
+import util.Util;
 
 /**
  *

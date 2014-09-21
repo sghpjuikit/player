@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import main.App;
-import utilities.Log;
+import util.Log;
 
 /**
  * @author uranium

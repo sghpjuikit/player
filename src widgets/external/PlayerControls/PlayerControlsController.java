@@ -37,8 +37,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.Util;
+import util.access.Accessor;
 
 
 /**

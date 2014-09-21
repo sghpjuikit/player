@@ -1,7 +1,6 @@
 
 package GUI;
 
-import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
@@ -18,31 +17,23 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.WritableImage;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
-import utilities.TODO;
 
 /**
  *
  * @author uranium
  */
 @IsConfigurable
-public final class ContextManager {
-    
-    @TODO("implement or remove")
-    @IsConfig(name="Layout mode on for menus", info="Transition into layout mode when context menus open.", editable = false)
-    public static boolean transitForMenu = true;
-    
+public final class ContextManager {    
     private static double X;
     private static double Y;
     
 
     /** Set last mouse click x coordinate. */
-    static void setX(double x) {
-        X = x;
-    }
+    static void setX(double screenX) { X = screenX; }
+    
     /** Set last mouse click y coordinate. */
-    static void setY(double y) {
-        Y = y;
-    }
+    static void setY(double screenY) { Y = screenY; }
+    
     /** Get last mouse click x coordinate. */
     public static double getX() {
         return Window.getActive().getX()+X;
@@ -51,9 +42,6 @@ public final class ContextManager {
     public static double getY() {
         return Window.getActive().getY()+Y;
     }
-/******************************************************************************/
-    
-    public static final ArrayList<Window> windows = new ArrayList();
     
     /** 
      * @param widget widget to open, does nothing when null.

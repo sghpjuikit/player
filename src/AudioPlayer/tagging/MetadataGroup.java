@@ -7,8 +7,8 @@
 package AudioPlayer.tagging;
 
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import utilities.access.FieldValue.FieldEnum;
-import utilities.access.FieldValue.FieldedValue;
+import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldedValue;
 
 /**
  * Simple transfer class for result of a database query, that groups items by

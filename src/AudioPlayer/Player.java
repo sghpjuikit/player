@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.reactfx.EventStreams;
 import org.reactfx.Subscription;
-import utilities.access.AccessibleStream;
+import util.access.AccessibleStream;
 
 /**
  *

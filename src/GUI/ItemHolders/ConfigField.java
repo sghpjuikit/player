@@ -43,11 +43,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
-import utilities.FxTimer;
-import utilities.Parser.ParserImpl.FileParser;
-import utilities.Parser.ParserImpl.FontParser;
-import utilities.Password;
-import utilities.Util;
+import util.FxTimer;
+import util.Parser.ParserImpl.FileParser;
+import util.Parser.ParserImpl.FontParser;
+import util.Password;
+import util.Util;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.

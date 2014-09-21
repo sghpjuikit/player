@@ -16,9 +16,8 @@ import java.util.List;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.FxTimer;
+import util.FxTimer;
 
 /**
  *
@@ -40,9 +39,9 @@ public final class Guide {
         popup.getSkinn().setContentPadding(new Insets(8));
         popup.setArrowSize(0);
         popup.setDetached(true);
-        popup.getContentNode().setWrappingWidth(250);
-        popup.getContentNode().prefWidth(250);
-        popup.setOnHidden(e -> FxTimer.run(Duration.millis(20), () -> Action.actionStream.push("Guide closing")));
+        popup.getContentNode().setWrappingWidth(300);
+        popup.getContentNode().prefWidth(300);
+        popup.setOnHidden(e -> FxTimer.run(20,() -> Action.actionStream.push("Guide closing")));
         
         Label nextB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_RIGHT,"11");                     
         nextB.setTooltip(new Tooltip("Cancel edit"));

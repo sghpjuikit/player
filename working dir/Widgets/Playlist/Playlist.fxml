@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="root" onMouseClicked="#selectNone" prefHeight="400.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-  <children>
-    <AnchorPane fx:id="tablePane" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="28.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<padding>
-<Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
-</padding></AnchorPane>
-    <AnchorPane fx:id="optionPane" prefHeight="28.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-      <children><StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="300.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<children><StackPane fx:id="optionPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <children>
-            <Label fx:id="duration" alignment="CENTER" prefWidth="109.0" text="00:00" BorderPane.alignment="CENTER" StackPane.alignment="CENTER" /><MenuBar maxWidth="46.0" prefWidth="46.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" StackPane.alignment="CENTER_LEFT">
+            <Label fx:id="duration" alignment="CENTER" text="00:00" BorderPane.alignment="CENTER" StackPane.alignment="CENTER" /><MenuBar maxWidth="46.0" prefWidth="46.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" StackPane.alignment="CENTER_LEFT">
   <menus>
     <Menu fx:id="addMenu" mnemonicParsing="false" text="+">
 <items>
@@ -46,7 +39,5 @@
   </menus>
 </MenuBar>
 </children></StackPane>
-      </children>
-    </AnchorPane>
-  </children>
-</AnchorPane>
+</children>
+</VBox>

@@ -24,7 +24,7 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import utilities.Log;
+import util.Log;
 
 /**
  * FXML Controller class

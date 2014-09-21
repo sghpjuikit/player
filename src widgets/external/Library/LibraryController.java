@@ -41,6 +41,8 @@ import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.NodeOrientation;
+import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -60,14 +62,15 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.FxTimer;
-import utilities.Parser.File.AudioFileFormat.Use;
-import utilities.Parser.File.Enviroment;
-import utilities.Parser.File.FileUtil;
-import static utilities.Parser.File.FileUtil.getCommonRoot;
-import utilities.Util;
-import static utilities.Util.createmenuItem;
-import utilities.access.Accessor;
+import util.FxTimer;
+import util.Parser.File.AudioFileFormat;
+import util.Parser.File.AudioFileFormat.Use;
+import util.Parser.File.Enviroment;
+import util.Parser.File.FileUtil;
+import static util.Parser.File.FileUtil.getCommonRoot;
+import util.Util;
+import static util.Util.createmenuItem;
+import util.access.Accessor;
 
 /**
  *
@@ -110,16 +113,24 @@ public class LibraryController extends FXMLController {
     @FXML Menu remMenu;
     @FXML MenuBar controlsBar;
     
+    // configurables
+    @IsConfig(name = "Table orientation", info = "Orientation of the table.")
+    public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
+    @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
+    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
+    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
+    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    @IsConfig(name = "Show table header", info = "Show table header with columns.")
+    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    
     @Override
     public void init() {
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
-        table.getSelectionModel().setSelectionMode(MULTIPLE);  
+        table.getSelectionModel().setSelectionMode(MULTIPLE);
         
-        // add index column
-        TableColumn indexColumn = Util.createIndexColumn("#");
-        table.getColumns().add(indexColumn);
-        
-        // add data columns
+        // generate data columns
         for(Field mf : Field.values()) {
             if(!mf.isTypeStringRepresentable()) continue;
             TableColumn<Metadata,Object> c = new TableColumn(mf.toStringEnum());
@@ -274,17 +285,18 @@ public class LibraryController extends FXMLController {
         // get files
         List<File> files;
         if(dir) {
-            File f = Enviroment.chooseFile("Add folder to library", true, last_file, root.getScene().getWindow());
+            File f = Enviroment.chooseFile("Add folder to library", true, last_file,
+                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
             files = f==null ? EMPTY_LIST : singletonList(f);
             if (f!=null) last_file = f;
         } else {
-            files = Enviroment.chooseFiles("Add files to library", last_file, root.getScene().getWindow());
-            File d = getCommonRoot(files);
-            if(d!=null) last_file=d;
+            files = Enviroment.chooseFiles("Add files to library", last_file,
+                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
+            File f=  getCommonRoot(files);
+            if(f!=null) last_file=f;
         }
 
         if(files!=null) {
-            
             Task ts = MetadataReader.execute("Discovering files",
                     () -> FileUtil.getAudioFiles(files,Use.APP,6).stream().map(SimpleItem::new).collect(Collectors.toList()),
                     (success,result) -> {
@@ -308,25 +320,6 @@ public class LibraryController extends FXMLController {
             // display progress & hide on end
             progressL.setVisible(true);
             progressL.textProperty().bind(ts.messageProperty());
-            
-            
-            
-//            List<Item> metas = FileUtil.getAudioFiles(files,6).stream()
-//                   .map(SimpleItem::new)
-//                   .collect(Collectors.toList());
-//            
-//            BiConsumer<Boolean,List<Metadata>> onEnd = !edit ? null : (success,added) -> {
-//                if(success) {
-//                    progressL.textProperty().unbind();
-//                    FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
-//                    WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
-//                }
-//            };
-//            
-//            Task t = MetadataReader.readAaddMetadata(metas,onEnd,false);
-//            // display progress & hide on end
-//            progressL.setVisible(true);
-//            progressL.textProperty().bind(t.messageProperty());
         }
     }
     

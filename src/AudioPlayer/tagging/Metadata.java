@@ -42,17 +42,17 @@ import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
-import utilities.Log;
-import utilities.Parser.File.AudioFileFormat;
-import utilities.Parser.File.FileUtil;
-import static utilities.Parser.File.FileUtil.EMPTY_COLOR;
-import static utilities.Parser.File.FileUtil.EMPTY_URI;
-import utilities.Parser.File.ImageFileFormat;
-import utilities.Parser.ParserImpl.ColorParser;
-import utilities.TODO;
-import utilities.Util;
-import utilities.access.FieldValue.FieldEnum;
-import utilities.access.FieldValue.FieldedValue;
+import util.Log;
+import util.Parser.File.AudioFileFormat;
+import util.Parser.File.FileUtil;
+import static util.Parser.File.FileUtil.EMPTY_COLOR;
+import static util.Parser.File.FileUtil.EMPTY_URI;
+import util.Parser.File.ImageFileFormat;
+import util.Parser.ParserImpl.ColorParser;
+import util.TODO;
+import util.Util;
+import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldedValue;
 
 /**
  * Information about audio file.

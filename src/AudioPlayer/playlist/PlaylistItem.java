@@ -24,13 +24,13 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import utilities.Log;
-import utilities.Parser.File.AudioFileFormat;
-import utilities.Parser.File.AudioFileFormat.Use;
-import static utilities.Parser.File.AudioFileFormat.Use.APP;
-import utilities.Parser.File.FileUtil;
-import utilities.access.FieldValue.FieldEnum;
-import utilities.access.FieldValue.FieldedValue;
+import util.Log;
+import util.Parser.File.AudioFileFormat;
+import util.Parser.File.AudioFileFormat.Use;
+import static util.Parser.File.AudioFileFormat.Use.APP;
+import util.Parser.File.FileUtil;
+import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldedValue;
 
 /**
  * Defines item in playlist.

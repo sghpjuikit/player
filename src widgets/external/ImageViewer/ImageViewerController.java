@@ -44,10 +44,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.FxTimer;
-import utilities.Parser.File.FileUtil;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.FxTimer;
+import util.Parser.File.FileUtil;
+import util.Util;
+import util.access.Accessor;
 
 /**
  * 

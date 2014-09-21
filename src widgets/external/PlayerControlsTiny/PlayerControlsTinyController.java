@@ -31,8 +31,8 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.Util;
+import util.access.Accessor;
 
 /**
  * Playback Controller class

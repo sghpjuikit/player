@@ -25,9 +25,9 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import utilities.Log;
-import utilities.Util;
-import static utilities.Util.NotNULL;
+import util.Log;
+import util.Util;
+import static util.Util.NotNULL;
 
 /**
  * Implementation of PolyArea.

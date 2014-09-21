@@ -6,7 +6,6 @@
 
 package GUI.objects.PopOver;
 
-import GUI.ContextManager;
 import javafx.scene.Node;
 
 /**
@@ -27,11 +26,11 @@ public class ContextPopOver<N extends Node> extends PopOver<N> {
         
         // support layout mode transition
         setOnShown(e-> {
-            if(ContextManager.transitForMenu)
+//            if(ContextManager.transitForMenu)
                 GUI.GUI.setLayoutMode(true);
         });
         setOnHiding(e-> {
-            if(ContextManager.transitForMenu)
+//            if(ContextManager.transitForMenu)
                 GUI.GUI.setLayoutMode(false);
         });
     }

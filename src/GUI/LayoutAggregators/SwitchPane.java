@@ -19,10 +19,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-import utilities.Animation.Interpolators.CircularInterpolator;
-import static utilities.Animation.Interpolators.EasingMode.EASE_OUT;
-import utilities.FxTimer;
-import utilities.Util;
+import util.Animation.Interpolators.CircularInterpolator;
+import static util.Animation.Interpolators.EasingMode.EASE_OUT;
+import util.FxTimer;
+import util.Util;
 
 /**
  * Pane with switchable content.
@@ -66,7 +66,7 @@ public class SwitchPane implements LayoutAggregator {
     
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
-        ContextManager.windows.stream()
+        Window.windows.stream()
                 .map(Window::getLayoutAggregator)
                 .filter(la->la instanceof SwitchPane)
                 .map(la->(SwitchPane)la)
@@ -75,7 +75,7 @@ public class SwitchPane implements LayoutAggregator {
     
     @AppliesConfig( "snap_tabs")
     private static void applySnapTabs() {
-        ContextManager.windows.stream()
+        Window.windows.stream()
                 .map(Window::getLayoutAggregator)
                 .filter(la->la instanceof SwitchPane)
                 .map(la->(SwitchPane)la)

@@ -8,7 +8,6 @@ import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Traits.ScaleOnHoverTrait;
-import GUI.Window;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
@@ -30,6 +29,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -48,20 +48,26 @@ import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import static javafx.scene.paint.Color.BLACK;
 import javafx.stage.FileChooser;
+import javafx.stage.Popup;
+import javafx.stage.Screen;
 import javafx.util.Duration;
 import main.App;
-import utilities.Log;
-import utilities.Parser.File.Enviroment;
-import utilities.Parser.File.FileUtil;
-import utilities.Parser.File.ImageFileFormat;
-import utilities.SingleInstance;
-import utilities.TODO;
-import utilities.Util;
-import static utilities.Util.createmenuItem;
+import util.Log;
+import util.Parser.File.Enviroment;
+import util.Parser.File.FileUtil;
+import util.Parser.File.ImageFileFormat;
+import util.SingleInstance;
+import util.TODO;
+import util.Util;
+import static util.Util.createmenuItem;
 
 /**
  * Thumbnail.
@@ -496,27 +502,43 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         () -> {
             ContentContextMenu<File> m = new ContentContextMenu<>();
             m.getItems().addAll(
-                createmenuItem("Browse location", e -> {
-                    Enviroment.browse(m.getValue().toURI());
-                }),
-                createmenuItem("Edit the image in editor", e -> {
-                    Enviroment.edit(m.getValue());
-                }),
+                createmenuItem("Browse location", e ->
+                    Enviroment.browse(m.getValue().toURI())
+                ),
+                createmenuItem("Edit the image in editor", e ->
+                    Enviroment.edit(m.getValue())
+                ),
                 createmenuItem("Fulscreen", e -> {
-                   Widget c = WidgetManager.getFactory("Image").create();
-                   Window w = Window.create();
-                          w.setSizeAndLocationToInitial();
-                          w.show();
-                          w.setFullscreen(true);
-                          w.setContent(c.load());
-                   ((ImageDisplayFeature)c.getController()).showImage(m.getValue());
+                    Widget c = WidgetManager.getFactory("Image").create();
+//                   Window w = Window.create();
+//                          w.setSizeAndLocationToInitial();
+//                          w.show();
+//                          w.setFullscreen(true);
+//                          w.setContent(c.load());
+//                          w.getStage().getScene().getRoot().setOnKeyPressed(ke -> {
+//                              if(ke.getCode()==ESCAPE) w.hide();
+//                          });
+//                   
+                   
+                    Popup p = new Popup();
+                    AnchorPane n = new AnchorPane();
+                    n.setBackground(new Background(new BackgroundFill(BLACK, CornerRadii.EMPTY, Insets.EMPTY)));
+                    n.setPrefWidth(Screen.getPrimary().getBounds().getWidth());
+                    n.setPrefHeight(Screen.getPrimary().getBounds().getHeight());
+                    p.setHideOnEscape(true);
+                    Node cn = c.load();
+                    n.getChildren().add(cn);
+                    Util.setAPAnchors(cn, 0);
+                    ((ImageDisplayFeature)c.getController()).showImage(m.getValue());
+                    p.getContent().setAll(n);
+                    p.show(App.getWindow().getStage(), 0, 0);
                 }),
-                createmenuItem("Open image", e -> {
-                    Enviroment.open(m.getValue());
-                }),
-                createmenuItem("Delete the image from disc", e -> {
-                    FileUtil.deleteFile(m.getValue());
-                }),
+                createmenuItem("Open image", e ->
+                    Enviroment.open(m.getValue())
+                ),
+                createmenuItem("Delete the image from disc", e ->
+                    FileUtil.deleteFile(m.getValue())
+                ),
                 createmenuItem("Save the image as ...", e -> {
                    File of = m.getValue();
                    FileChooser fc = new FileChooser();

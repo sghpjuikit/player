@@ -36,9 +36,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import main.App;
 import org.reactfx.Subscription;
-import utilities.Parser.File.FileUtil;
-import utilities.Util;
-import utilities.access.Accessor;
+import util.Parser.File.FileUtil;
+import util.Util;
+import util.access.Accessor;
 
 /**
  * File info widget controller.

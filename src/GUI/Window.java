@@ -580,7 +580,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         Label gitB = Util.createIcon(GITHUB,13,"Open github project page for this application",
                 e -> Enviroment.browse(App.getGithubLink()));
        // github button - show all available FontAwesome icons in a popup
-        Label dirB = Util.createIcon(CSS3,13,"Open application location (fevelopment tool)",
+        Label dirB = Util.createIcon(CSS3,13,"Open application location (development tool)",
                 e -> Enviroment.browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
        // css button - show all available FontAwesome icons in a popup
         Label cssB = Util.createIcon(FOLDER,13,"Open css guide",

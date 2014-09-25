@@ -94,10 +94,8 @@ public class TrayService implements Service{
     @Override
     public void start(){
         EventQueue.invokeLater(() -> {
-            menuActions.add(Tuples.t("Play/Pause", () -> Platform.runLater(
-                                     PLAYBACK::pause_resume)));
-            menuActions.add(Tuples.t("Quit", () -> Platform.runLater(
-                                     Platform::exit)));
+            menuActions.add(Tuples.t("Play/Pause", () -> Platform.runLater(PLAYBACK::pause_resume)));
+            menuActions.add(Tuples.t("Quit", () -> Platform.runLater(Platform::exit)));
             try {
                 tray = SystemTray.getSystemTray();
                 trayIcon = new TrayIcon(ImageIO.read(imgUrl));

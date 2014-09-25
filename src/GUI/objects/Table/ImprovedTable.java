@@ -86,8 +86,8 @@ public class ImprovedTable<T> extends TableView<T> {
                 if (empty) {
                     setText("");
                 } else {
-                    int i = getIndex();
-                    setText((zero_pad ? i+1 : Util.zeroPad(i+1, getItems().size(),'0')) + ".");
+                    int i = 1+getIndex();
+                    setText((zero_pad ? Util.zeroPad(i, getItems().size(),'0') : i) + ".");
                 }
             }
         });

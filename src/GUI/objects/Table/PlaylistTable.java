@@ -40,6 +40,9 @@ import javafx.scene.input.MouseButton;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
 import util.Parser.File.Enviroment;
@@ -82,8 +85,11 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
     public PlaylistTable () {
         super(NAME);
         
-        root.getChildren().add(tmp);
-        root.getChildren().add(tmp2);
+        // stupid workaround for having to put the tmp,tmp2 labels somewhere on the scenegrapgh...
+        AnchorPane a = new AnchorPane(this, tmp,tmp2);
+        Util.setAPAnchors(this, 0);
+        root.getChildren().add(a);
+        VBox.setVgrow(a, Priority.ALWAYS);
         
         // initialize table gui
         setTableMenuButtonVisible(false);

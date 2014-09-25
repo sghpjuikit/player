@@ -1,20 +1,20 @@
 
 package main;
 
-import AudioPlayer.services.Tray.TrayService;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.Notifier.NotifierManager;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
+import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.Config;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.GUI;
-import AudioPlayer.services.Notifier.NotifierManager;
 import GUI.Window;
 import GUI.WindowManager;
 import Layout.Widgets.WidgetManager;
@@ -204,11 +204,11 @@ public class App extends Application {
      */
     @Override
     public void stop() {
-        services.getAllServices()
-                .filter(s->!s.isDependency()).filter(Service::isRunning)
-                .forEach(Service::stop);
         
         if(initialized) {
+            services.getAllServices()
+                    .filter(s->!s.isDependency()).filter(Service::isRunning)
+                    .forEach(Service::stop);
             Player.state.serialize();            
             Configuration.save();
             BookmarkManager.saveBookmarks();

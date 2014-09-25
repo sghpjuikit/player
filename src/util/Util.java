@@ -21,10 +21,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -62,6 +65,10 @@ import util.Parser.File.FileUtil;
  * Provides static utility methods for various purposes.
  */
 public interface Util {
+    
+    
+    Function<Runnable,Runnable> fxExecutor = r -> () -> Platform.runLater(r);
+    Function<Consumer<Runnable>,Function<Runnable,Runnable>> executionWrapper = executor -> r -> () -> executor.accept(r);
     
     
     

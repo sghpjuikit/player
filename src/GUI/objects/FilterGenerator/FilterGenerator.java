@@ -17,6 +17,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
@@ -46,6 +47,7 @@ public class FilterGenerator<T> extends HBox {
     public FilterGenerator() {
         // initialize gui
         getChildren().addAll(typeCB, filterCB, valueF);
+        HBox.setHgrow(valueF, Priority.ALWAYS);
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(1));
         

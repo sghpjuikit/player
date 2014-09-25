@@ -87,11 +87,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
     public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
-    @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
-    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
     @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
+    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    @IsConfig(name = "Show table header", info = "Show table header with columns.")
+    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(name = "Show bottom header", info = "Show contorls pane at the bottom.")
     public final Accessor<Boolean> show_bottom_header = new Accessor<>(true, v -> {

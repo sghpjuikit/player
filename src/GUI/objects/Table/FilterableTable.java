@@ -165,7 +165,8 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
                     setText("");
                 } else {
                     int index = show_original_index ? filtereditems.getSourceIndex(getIndex()) : getIndex();
-                    setText((zero_pad ? index+1 : Util.zeroPad(index+1, getItems().size(),'0')) + ".");
+                        index++;
+                    setText((zero_pad ? Util.zeroPad(index, allitems.size(),'0') : index) + ".");
                 }
             }
         });

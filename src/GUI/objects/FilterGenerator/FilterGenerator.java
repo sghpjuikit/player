@@ -56,10 +56,16 @@ public class FilterGenerator<T> extends HBox {
         valueF.setPromptText("Filter criteria");
         
         // generate predicates on change
-        valueF.textProperty().addListener((o,ob,nv) -> generatePredicate(filterCB.getValue()==null ? null : filterCB.getValue()._2, nv, typeCB.getValue()==null ? null : typeCB.getValue()._3));
-        filterCB.valueProperty().addListener((o,ov,nv) -> generatePredicate(nv==null ? null : nv._2, valueF.getText(), typeCB.getValue()==null ? null : typeCB.getValue()._3));
+        valueF.textProperty().addListener((o,ob,nv) -> 
+                generatePredicate(filterCB.getValue()==null ? null : filterCB.getValue()._2,
+                                  nv,
+                                  typeCB.getValue()==null ? null : typeCB.getValue()._3));
+        filterCB.valueProperty().addListener((o,ov,nv) -> 
+                generatePredicate(nv==null ? null : nv._2,
+                                  valueF.getText(),
+                                  typeCB.getValue()==null ? null : typeCB.getValue()._3));
 
-        // use dynamic toString() when populating combobox values
+        // use custom string when populating combobox values
         typeCB.setCellFactory( view -> {
             return new ListCell<Tuple3<String,Class,T>>(){
                 @Override

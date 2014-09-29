@@ -6,7 +6,6 @@
 
 package util.access;
 
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -39,7 +38,7 @@ public class Accessor<T> implements ApplicableValue<T> {
      */
     @Override
     public T getValue() {
-        if (value == null) throw new NoSuchElementException("No value present");
+        Objects.requireNonNull(value);
         return value;
     }
 

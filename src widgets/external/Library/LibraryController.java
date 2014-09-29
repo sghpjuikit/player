@@ -59,6 +59,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
@@ -190,11 +191,8 @@ public class LibraryController extends FXMLController {
         table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(table.getSelectedItemsCopy()));
         table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> Player.librarySelectedItemES.push(nv));
         
-        
+        // progress label
         progressL.setVisible(false);
-        root.getChildren().add(progressL);
-        AnchorPane.setBottomAnchor(progressL, 0d);
-        AnchorPane.setRightAnchor(progressL, 0d);
                 
         // information label
         Label infoL  = new Label();
@@ -217,10 +215,12 @@ public class LibraryController extends FXMLController {
         infoUpdate.accept(true,EMPTY_LIST);
         
         // controls bottom header
-        HBox controls = new HBox(controlsBar,infoL);
+        Region padding = new Region();
+        HBox controls = new HBox(controlsBar,infoL,padding,progressL);
              controls.setSpacing(7);
              controls.setAlignment(Pos.CENTER_LEFT);
-             controls.setPadding(new Insets(2,0,2,5));
+             controls.setPadding(new Insets(0,5,0,0));
+        HBox.setHgrow(padding, ALWAYS);
         
         addMenu.setText("");
         remMenu.setText("");

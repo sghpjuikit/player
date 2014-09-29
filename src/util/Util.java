@@ -72,46 +72,52 @@ public interface Util {
     
     
     
+    /** Basic string comparator utilizing Comparable.compareTo(). */
+    public static final Comparator<Comparable> COMPARATOR_DEF = (a,b) -> a.compareTo(b);
+    
     /** Basic string comparator utilizing String.compareTo(). */
-    public static final Comparator<String> STR_COMPARATOR = (a,b) -> a.compareTo(b);
+    public static final Comparator<String> COMPARATOR_STR = (a,b) -> a.compareTo(b);
     
     /** Basic string comparator utilizing String.compareToIgnoreCase(). */
-    public static final Comparator<String> IGNORE_CASE_STR_COMPARATOR = (a,b) -> a.compareToIgnoreCase(b);
+    public static final Comparator<String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
     
     /** 
-     * Creates comparator comparing E elements by some associated {@link Comparable}
-     * object, mostly their property, Utilizing Comparable.compareTo().
+     * Creates comparator comparing E elements by derived {@link Comparable}, for
+     * example a Comparable field, obtained by the converter.
+     * Utilizes Comparable.compareTo().
      * <p>
      * Easy and concise way to compare objects without code duplication
      * <p>
      * This method is generic Comparator factory producing comparators comparing
      * the obtained result of the comparable supplier.
      * 
-     * @param toC Comparable supplier - E to Comparable mapper. Returns the 
-     * Comparable derived from the E.
+     * @param toComparableConverter E to Comparable mapper, derives Comparable from E.
      */
-    public static<E> Comparator<E> cmpareBy(Callback<E,Comparable> toC) {
-        return (a,b) -> toC.call(a).compareTo(toC.call(b));
+    public static<E> Comparator<E> cmpareBy(Callback<E,Comparable> toComparableConverter) {
+        return (a,b) -> toComparableConverter.call(a).compareTo(toComparableConverter.call(b));
     }
     
     /** 
      * Creates comparator comparing E elements by their string representation
-     * obtained by provided implementation. Utilizes String.compareToIgnoreCase().
+     * obtained by provided converter. Utilizes String.compareToIgnoreCase().
      * <p>
      * Easy and concise way to compare objects without code duplication.
      * 
-     * @param cmpGetter Comparable supplier. Returns the Comparable derived from
+     * @param cmpGetter E to String mapper, derives String from E.
      * the object.
      */
-    public static<E> Comparator<E> cmpareNoCase(Callback<E,String> strGetter) {
-        return (a,b) -> strGetter.call(a).compareToIgnoreCase(strGetter.call(b));
+    public static<E> Comparator<E> cmpareNoCase(Callback<E,String> toStringConverter) {
+        return (a,b) -> toStringConverter.call(a).compareToIgnoreCase(toStringConverter.call(b));
     }
     
     /** Simple Predicate returning true if object is not null. Use in lambda. */
     public static Predicate<Object> NotNULL = Objects::nonNull;
     
     /** Simple Predicate returning true. Use in lambda. */
-    public static Predicate<?> TRUE = o -> true;
+    public static Predicate<Object> TRUE = o -> true;
+    
+    /** Simple Predicate returning false. Use in lambda. */
+    public static Predicate<Object> FALSE = o -> false;
     
     /** @return runnable that does nothing. */
     public static Runnable DO_NOTHING = () -> {};
@@ -123,21 +129,18 @@ public interface Util {
     /**
      * Method equivalent to object's equal method, but if both objects are null
      * they are considered equal as well.
-     * @param o1
-     * @param o2
-     * @return 
+     * Equivalent to {@code (o1==null && o2==null) || (o1!=null && o1.equals(o2));}
      */
     public static boolean nullEqual(Object o1, Object o2) {
-        return (o1==null && o2==null) ||
-               (o1!=null && o1.equals(o2));
+        return (o1==null && o2==null) || (o1!=null && o1.equals(o2));
     }
     
 /******************************** GRAPHICS ************************************/
     
     /**
      * Simple black background with no insets or radius. use for debugging (to
-     * see pane layout);
-     * @return 
+     * see pane layout)
+     * Equivalent to {@code new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));}
      */
     public static Background SIMPLE_BGR() {
         return new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));

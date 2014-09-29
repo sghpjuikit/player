@@ -1122,7 +1122,7 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         /** {@inheritDoc} */
         @Override
         public boolean isTypeStringRepresentable() {
-            return this != COVER;
+            return this != COVER && this != CHAPTERS;
         }
         
         /** {@inheritDoc} */

@@ -7,7 +7,6 @@ package AudioPlayer.services.Tray;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service;
-import GUI.GUI;
 import java.awt.AWTException;
 import java.awt.EventQueue;
 import java.awt.Image;
@@ -35,6 +34,8 @@ import util.Log;
 public class TrayService implements Service{
     private File imgUrl = new File(App.getLocation(), "icon.png");
     private final List<Tuple2<String, Runnable>> menuActions = new ArrayList();
+    private Runnable onClick;
+    private int onDoubleClick = 1;
     private static SystemTray tray;
     private static TrayIcon trayIcon;
 
@@ -42,12 +43,12 @@ public class TrayService implements Service{
         trayIcon.setToolTip(text.isEmpty() ? "PlayerFX" : text);
     }
 
-    /** Equivalent to: {@code setNotification(caption,text,NONE)}*/
-    public void setNotification(String caption, String text){
+    /**  Equivalent to: {@code showNotification(caption,text,NONE)} */
+    public void showNotification(String caption, String text){
         EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, TrayIcon.MessageType.NONE));
     }
     
-    public void setNotification(String caption, String text, TrayIcon.MessageType type){
+    public void showNotification(String caption, String text, TrayIcon.MessageType type){
         EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, type));
     }
 
@@ -56,7 +57,7 @@ public class TrayService implements Service{
                 setTootip(name);
             if(!name.isEmpty()) {
                 setTootip("PlayerFX playing: " + name);
-                setNotification("",name);
+                TrayService.this.showNotification("",name);
             }
         });
     }
@@ -73,7 +74,7 @@ public class TrayService implements Service{
                 oldImage.flush();
             }
 
-            try{
+            try {
                 trayIcon.setImage(ImageIO.read(img));
             }
             catch (IOException ex){
@@ -81,14 +82,19 @@ public class TrayService implements Service{
             }
         }
     }
+    
+    /** Sets action executed on tray click. Default null. */
+    public void setOnTrayClick(Runnable action) {
+        onClick = action;
+    }
+    
+    /** Number of clicks for tray click to execute action. Default 1. */
+    public void setClickCount(int action) {
+        onDoubleClick = action;
+    }
 
     public List<Tuple2<String, Runnable>> getMenu(){
         return menuActions;
-    }
-
-    @Override
-    public boolean isDependency(){
-        return false;
     }
 
     @Override
@@ -101,13 +107,10 @@ public class TrayService implements Service{
                 trayIcon = new TrayIcon(ImageIO.read(imgUrl));
                 buildContextmenu();
                 trayIcon.setToolTip("PlayerFX");
-//                trayIcon.addActionListener(event -> {
-//                    Platform.runLater(GUI::toggleMinimize);
-//                });
                 trayIcon.addMouseListener(new MouseAdapter() {
                     @Override public void mouseClicked(MouseEvent e) {
-                        if (e.getClickCount() == 1)
-                            Platform.runLater(GUI::toggleMinimize);
+                        if(e.getButton()==MouseEvent.BUTTON1 && e.getClickCount() == onDoubleClick && onClick!=null)
+                             Platform.runLater(onClick);
                     }
                 });
                 tray.add(trayIcon);
@@ -119,14 +122,6 @@ public class TrayService implements Service{
     }
 
     @Override
-    public void stop(){
-        EventQueue.invokeLater(() -> {
-            if (tray != null) tray.remove(trayIcon);
-            tray = null; // stop this service
-        });
-    }
-
-    @Override
     public boolean isRunning(){
         return tray != null;
     }
@@ -134,6 +129,19 @@ public class TrayService implements Service{
     @Override
     public boolean isSupported(){
         return SystemTray.isSupported();
+    }
+
+    @Override
+    public boolean isDependency(){
+        return false;
+    }
+
+    @Override
+    public void stop(){
+        EventQueue.invokeLater(() -> {
+            if (tray != null) tray.remove(trayIcon);
+            tray = null; // stop this service
+        });
     }
     
 /******************************************************************************/

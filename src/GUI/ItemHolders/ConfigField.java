@@ -3,7 +3,6 @@ package GUI.ItemHolders;
 
 import Action.Action;
 import Configuration.Config;
-import GUI.GUI;
 import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -11,19 +10,18 @@ import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.REPEAT;
 import java.io.File;
 import javafx.animation.FadeTransition;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -127,7 +125,7 @@ abstract public class ConfigField<T> {
      * @param val 
      */
     public void setEditable(boolean val) {
-        getNode().setDisable(val);
+        getNode().setDisable(!val);
     }
     
     /**
@@ -245,17 +243,14 @@ abstract public class ConfigField<T> {
         Class type = f.getType();
         
         ConfigField cf;
-        if (name.equals("skin"))
-            cf = new SkinField(f);
+        if (f.isTypeEnumerable())
+            cf = new EnumertionField(f);
         else
         if (Boolean.class.equals(Util.unPrimitivize(type)))
             cf = new BooleanField(f);
         else 
         if (String.class.equals(Util.unPrimitivize(type)))
             cf = new GeneralField(f);
-        else 
-        if (type.isEnum())
-            cf = new EnumField(f);
         else
         if (Action.class.equals(Util.unPrimitivize(type)))
             cf = new ShortcutField(f);
@@ -277,7 +272,7 @@ abstract public class ConfigField<T> {
         else
             cf = new GeneralField(f);
         
-        cf.setEditable(!f.isEditable());
+        cf.setEditable(f.isEditable());
         if(!f.getInfo().isEmpty()) {
             Tooltip tooltip = new Tooltip(f.getInfo());
                     tooltip.setWrapText(true);
@@ -433,48 +428,15 @@ abstract public class ConfigField<T> {
         }
     }
     
-    private static final class EnumField extends ConfigField<Object> {
-        ChoiceBox<Object> cBox;
-        
-        private EnumField(Config c) {
-            super(c);
-            cBox = new ChoiceBox();
-            ObservableList<Object> constants = FXCollections.observableArrayList();
-            // get enum constants
-            //      of enums with class method bodies
-            Class clazz = c.getType();
-            if(clazz.getEnclosingClass()!=null && clazz.getEnclosingClass().isEnum())
-                constants.setAll(clazz.getEnclosingClass().getEnumConstants());
-            //      of normal enums
-            else constants.setAll(clazz.getEnumConstants());
-            
-            cBox.setItems(constants);
-            cBox.setValue(config.getValue());
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv)->{
-                if(isApplyOnChange()) applyNsetIfAvailable();
-            });
-        }
-        
-        @Override public Control getNode() {
-            return cBox;
-        }
-        @Override public Object getItem() {
-            return cBox.getValue();
-        }
-        @Override public void refreshItem() {
-            cBox.setValue(config.getValue());
-        }
-    }
-    
     private static final class SliderField extends ConfigField<Number> {
         Slider slider;
         private SliderField(Config<Number> c) {
             super(c);
             slider = new Slider(c.getMin(),c.getMax(),c.getValue().doubleValue());
-            // there is a slight bug where isValueChanging is false even it if 
+            // there is a slight bug where isValueChanging is false even if it
             // shouldnt. It appears when mouse clicks NOT on the thumb but on
             // the slider track instead and keeps dragging. valueChanging doesn
-            // activate - fill out JIRA bug?
+            // activate
             slider.valueProperty().addListener( (o,ov,nv) -> {
                 if(isApplyOnChange() && !slider.isValueChanging())
                     applyNsetIfAvailable();
@@ -507,36 +469,38 @@ abstract public class ConfigField<T> {
             slider.setValue(config.getValue().doubleValue());
         }
     }
-    
-    
-    /** Specifically for listing out available skins. */
-    private static final class SkinField extends ConfigField<String> {
-        ChoiceBox<String> cBox;
         
-        private SkinField(Config c) {
+    /** Specifically for listing out available skins. */
+    private static final class EnumertionField extends ConfigField<Object> {
+        ComboBox<Object> cBox;
+        
+        private EnumertionField(Config<Object> c) {
             super(c);
-            cBox = new ChoiceBox<>();
-            ObservableList<String> items = FXCollections.observableArrayList();
-                                   items.setAll(GUI.getSkins());
-            cBox.setItems(items);
-            cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-                if(isApplyOnChange()) {
-                    GUI.skin.setNapplyValue(getItem());
-//                    applyNsetIfAvailable(); // causes StackOverflow sometimes !
+            // combobox, make factory
+            cBox = new ComboBox();
+            cBox.setCellFactory( cbox -> new ListCell<Object>() {
+                @Override protected void updateItem(Object item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty ? "" : c.toS(item));
                 }
             });
+            cBox.setButtonCell(cBox.getCellFactory().call(null));
+            
+            cBox.getItems().addAll(c.enumerateValues());
+            cBox.getItems().sort(Util.cmpareBy(v->c.toS(v)));
+            cBox.setValue(c.getValue());
+            
+            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
+                if(isApplyOnChange()) applyNsetIfAvailable();
+            });
         }
-        @Override public final String getItem() {
+        @Override public Object getItem() {
             return cBox.getValue();
         }
 
         @Override
         public void refreshItem() {
-//            ObservableList<String> items = FXCollections.observableArrayList();
-//                                   items.setAll(GUI.getSkins());
-//            cBox.setItems(items);
-//            cBox.getSelectionModel().select(GUI.getSkins().indexOf(GUI.skin));
+            cBox.setValue(config.getValue());
         }
 
         @Override

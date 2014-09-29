@@ -17,8 +17,8 @@ import java.util.function.Predicate;
 import javafx.beans.value.WritableValue;
 import main.App;
 import org.atteo.classindex.ClassIndex;
-import util.Parser.File.FileUtil;
 import util.Log;
+import util.Parser.File.FileUtil;
 import util.Util;
 
 /**
@@ -144,10 +144,11 @@ public class Configuration {
             WritableValue val = (WritableValue)f.get(instance);
             // make property config based on the property
             return new PropertyConfig(name, anotation, val, group);
-        } catch (IllegalAccessException | SecurityException ex) {
+        } catch (IllegalAccessException | SecurityException e) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
     }
+    
     private static Config extractConfig(Field f, Object instance) {
         try {
             // make sure the field is final

@@ -6,7 +6,6 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ContextManager;
 import GUI.Window;
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
@@ -27,7 +26,7 @@ import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-import static javafx.scene.input.KeyCode.SHIFT;
+import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
@@ -676,7 +675,7 @@ public final class Action extends Config<Action> implements Runnable {
     });
     
     @IsConfig(name = "Manage Layout (fast) Shortcut", info = "Enables layout managment mode.", group = "Shortcuts")
-    public static KeyCode Shortcut_ALTERNATE = SHIFT;
+    public static KeyCode Shortcut_ALTERNATE = ALT_GRAPH;
     
     @IsConfig(name = "Collapse layout", info = "Colapses focused container within layout.", group = "Shortcuts", editable = false)
     public static String Shortcut_COLAPSE = "Shift+C";

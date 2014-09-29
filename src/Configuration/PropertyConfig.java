@@ -11,6 +11,7 @@ import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.beans.value.WritableValue;
 import util.access.ApplicableValue;
+import util.access.FieldValue.EnumerableValue;
 
 /**
  * {@link Config} wrapping a {@link WritableValue}, most often {@link Property}.
@@ -33,7 +34,7 @@ import util.access.ApplicableValue;
  */
 public class PropertyConfig<T> extends ConfigBase<T> {
     
-    WritableValue<T> value;
+    private final WritableValue<T> value;
 
     /**
      * Constructor to be used with framework
@@ -46,6 +47,10 @@ public class PropertyConfig<T> extends ConfigBase<T> {
     PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
         super(_name, c, property.getValue(), category);
         value = property;
+        
+        // support enumeration by delegation if property supports is
+        if(property instanceof EnumerableValue)
+            valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
     }
     /**
      * @param _name

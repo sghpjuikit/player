@@ -435,9 +435,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                 double dir = Math.signum(x);
                        x = Math.abs(x);
                 bgrImgLayer.setTranslateX(dir * space * (1-(1/(1+0.0005*x))));
-            });  
-            
-            
+            });
             
             
             
@@ -732,13 +730,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private boolean app_drag = false;
     
     private void appDragStart(MouseEvent e) {
-        // also disable when being resized, resize starts at mouse pressed so
+        // disable when being resized, resize starts at mouse pressed so
         // it can not consume drag detected event and prevent dragging
         // should be fixed
         if (e.getButton()!=MouseButton.PRIMARY || isResizing()) return;
-            app_drag = true;
-            appX = e.getSceneX();
-            appY = e.getSceneY();
+        
+        app_drag = true;
+        appX = e.getSceneX();
+        appY = e.getSceneY();
     }
     private void appDragDo(MouseEvent e) {
         if(!app_drag || e.getButton()!=MouseButton.PRIMARY) return;

@@ -75,6 +75,8 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
+//    @IsConfig(name = "a")
+//    public LoopMode lm = PlayingItemSelector.LoopMode.OFF;
     
     @Override
     public void init() {

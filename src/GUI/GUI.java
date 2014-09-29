@@ -33,6 +33,7 @@ import util.Log;
 import util.Parser.File.FileUtil;
 import util.Util;
 import util.access.Accessor;
+import util.access.AccessorEnum;
 
 /**
  *
@@ -49,7 +50,7 @@ public class GUI {
     
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static final Accessor<String> skin = new Accessor<>("Default", GUI::setSkin);
+    public static final AccessorEnum<String> skin = new AccessorEnum<>("Default", GUI::setSkin, GUI::getSkins);
     /**
      * Font of the application. Overrides font defined by skin. The font can be 
      * overridden programmatically or stylesheet.

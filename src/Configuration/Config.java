@@ -1,13 +1,16 @@
 
 package Configuration;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import util.Parser.ParserImpl.Parser;
 import util.Parser.StringParser;
 import util.Util;
 import util.access.ApplicableValue;
+import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
 
 /**
@@ -30,7 +33,7 @@ import util.access.TypedValue;
  * 
  * @author uranium
  */
-public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringParser<T>, TypedValue<T> {
+public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringParser<T>, TypedValue<T>, EnumerableValue<T> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -191,6 +194,19 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     
 /*************************** configurable methods *****************************/
 
+    Supplier<List<T>> valueEnumerator;
+    
+    public boolean isTypeEnumerable() {
+        return valueEnumerator!=null;
+    }
+    
+    @Override
+    public List<T> enumerateValues() {
+        return valueEnumerator.get();
+    }
+    
+/*************************** configurable methods *****************************/
+
     /**
      * This method is inherited from Configurable and is not intended to be used
      * manually on objects of this class, rather, in situations this config
@@ -261,11 +277,23 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             this.editable = editable;
             this.min = min;
             this.max = max;
+            
+            // handle enums as enumerable value
+            Class c = val.getClass();
+            if(c.isEnum()) {
+                valueEnumerator = () -> Arrays.asList((T[]) c.getEnumConstants());
+            // enums with class method bodies (they are not recognized as enums)
+            } else {
+                Class ec = c.getEnclosingClass();
+                if(ec!=null && ec.isEnum()) {
+                    valueEnumerator = () -> Arrays.asList((T[]) ec.getEnumConstants());
+                }
+            }
         }
 
         /**
          * 
-         * @param _name
+         * @param name
          * @param c
          * @param val
          * @param category 
@@ -273,16 +301,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws NullPointerException if val parameter null. The wrapped value must
          * no be null.
          */
-        ConfigBase(String _name, IsConfig c, T val, String category) {
-            Objects.requireNonNull(val);
-            gui_name = c.name().isEmpty() ? _name : c.name();
-            name = _name;
-            defaultValue = toS(val);
-            group = category;
-            info = c.info();
-            editable = c.editable();
-            min = c.min();
-            max = c.max();
+        ConfigBase(String name, IsConfig c, T val, String category) {
+            this(name, c.name().isEmpty() ? name : c.name(), val, category, c.info(), c.editable(), c.min(), c.max());
         }
 
         /** {@inheritDoc} */

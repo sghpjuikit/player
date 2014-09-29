@@ -168,7 +168,10 @@ public class App extends Application {
         // apply all (and gui) settings
         Configuration.getFields().forEach(Config::applyValue);
         
-        services.addService(new TrayService());
+        
+        TrayService ts = new TrayService();
+                    ts.setOnTrayClick(GUI::toggleMinimize);
+        services.addService(ts);
         services.addService(new NotifierManager());
         
         services.getAllServices()

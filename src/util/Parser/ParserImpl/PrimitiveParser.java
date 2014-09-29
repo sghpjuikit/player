@@ -79,6 +79,7 @@ public class PrimitiveParser implements ObjectStringParser {
 
     @Override
     public String toS(Object object) {
-        return object.toString();
+        if(object instanceof Enum) return ((Enum)object).name();
+        else return object.toString();
     }
 }

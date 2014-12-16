@@ -27,7 +27,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import util.Log;
 import util.Util;
-import static util.Util.NotNULL;
+import static util.functional.FunctUtil.isNotNULL;
 
 /**
  * Implementation of PolyArea.
@@ -119,7 +119,7 @@ public final class TabArea extends PolyArea {
         int i = container.properties.getI("selected");
         // process components -> turn into tab, set behavior, load lazily
             // somehow null get through here, investigate, fix, document
-        cs.stream().filter(NotNULL).forEach(c -> {
+        cs.stream().filter(isNotNULL).forEach(c -> {
             Tab t = buildTab(c,tabPane.getTabs().size());
             container.getChildren().put(container.getChildren().size(), c);
             tabPane.getTabs().add(t);

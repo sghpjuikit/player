@@ -17,6 +17,7 @@ import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
 import util.Log;
 import util.Parser.File.AudioFileFormat.Use;
+import static util.Util.executeTask;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -331,14 +332,6 @@ public class MetadataReader{
                 return action.get();
             }
         });
-    }
-    
-    
-    private static<T> Task<T> executeTask(Task<T> task) {
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
-        return task;
     }
     
 }

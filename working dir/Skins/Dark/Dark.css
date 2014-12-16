@@ -43,7 +43,7 @@
 }
 
 .window > .w-border {
-    -fx-background-color: white;
+    -fx-background-color: -fx-pane-color;
 }
 
 .item-picker-element {

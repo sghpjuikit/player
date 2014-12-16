@@ -4,7 +4,6 @@ package GUI.LayoutAggregators;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ContextManager;
 import GUI.Window;
 import Layout.Layout;
 import java.util.HashMap;
@@ -111,7 +110,7 @@ public class SwitchPane implements LayoutAggregator {
 //            }
 //            
 //        });
-        
+                
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);

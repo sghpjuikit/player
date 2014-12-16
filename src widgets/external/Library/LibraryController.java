@@ -12,7 +12,9 @@ import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataReader;
+import Configuration.Config;
 import Configuration.IsConfig;
+import Configuration.PropertyConfig;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
@@ -31,7 +33,9 @@ import java.io.File;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javafx.beans.Observable;
@@ -55,6 +59,8 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -70,6 +76,7 @@ import util.Parser.File.Enviroment;
 import util.Parser.File.FileUtil;
 import static util.Parser.File.FileUtil.getCommonRoot;
 import util.Util;
+import static util.Util.consumeOnSecondaryButton;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
 
@@ -128,20 +135,37 @@ public class LibraryController extends FXMLController {
     
     @Override
     public void init() {
+        // for each field
+        for(Field f : Metadata.Field.values()) {
+            boolean inTable = f.isTypeStringRepresentable();
+            if(inTable) {
+                String name = f.toStringEnum();
+                boolean visible = f.isCommon();
+                Accessor<Boolean> a = new Accessor<>(visible, v -> {
+                    if(v) {
+                        // config.getValue does not work here, we need to check the columns
+                        boolean exists = table.getColumns().stream().map(c->c.getText()).anyMatch(c->c.equals(name));
+                        if(!exists) {
+                            TableColumn<Metadata,Object> c = new TableColumn(name);
+                            c.setCellValueFactory((TableColumn.CellDataFeatures<Metadata,Object> cf) -> {
+                                if(cf.getValue()==null) return null;
+                                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+                            });
+                            c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(f.getType()));
+                            table.getColumns().add(c);
+                        }
+                    } else {
+                        table.getColumns().removeIf(c->c.getText().equals(name));
+                    }
+                    table.refreshColumn(table.getColumns().get(0));
+                });
+                Config c = new PropertyConfig("Show " + name, a, "Show " + name);
+                configs.put(name, c);
+            }
+        }
+        
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        
-        // generate data columns
-        for(Field mf : Field.values()) {
-            if(!mf.isTypeStringRepresentable()) continue;
-            TableColumn<Metadata,Object> c = new TableColumn(mf.toStringEnum());
-            c.setCellValueFactory((TableColumn.CellDataFeatures<Metadata,Object> cf) -> {
-                if(cf.getValue()==null) return null;
-                return new ReadOnlyObjectWrapper(cf.getValue().getField(mf));
-            });
-            c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(mf.getType()));
-            table.getColumns().add(c);
-        }
         
         // context menu & play
         table.setOnMouseClicked( e -> {
@@ -154,8 +178,9 @@ public class LibraryController extends FXMLController {
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
             } else
-            if(e.getButton()==SECONDARY)
+            if(e.getButton()==SECONDARY) {
                 contxt_menu.show(table, e);
+            }
         });
         
         // key actions
@@ -186,6 +211,9 @@ public class LibraryController extends FXMLController {
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
         
+        // prevent overly eager selection change
+        table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
+        table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
         
         // update selected items for application
         table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(table.getSelectedItemsCopy()));
@@ -193,7 +221,7 @@ public class LibraryController extends FXMLController {
         
         // progress label
         progressL.setVisible(false);
-                
+        
         // information label
         Label infoL  = new Label();
             // updates info label
@@ -243,7 +271,7 @@ public class LibraryController extends FXMLController {
     private Object changeValue = "";
     
     @IsConfig(editable = false)
-    private final Accessor<Metadata.Field> changeField = new Accessor<>(Metadata.Field.ARTIST, v -> {
+    private final Accessor<Metadata.Field> changeField = new Accessor<>(Field.ARTIST, v -> {
         table.getSelectionModel().clearSelection();
         table.setItemsRaw(DB.getAllItemsWhere(v, changeValue));
     });
@@ -254,6 +282,7 @@ public class LibraryController extends FXMLController {
 
     @Override
     public void refresh() {
+        getFields().forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
         table.setItemsRaw(DB.getAllItemsWhere(changeField.getValue(), changeValue));
     }
@@ -331,6 +360,23 @@ public class LibraryController extends FXMLController {
         // display progress & hide on end
         progressL.setVisible(true);
         progressL.textProperty().bind(t.messageProperty());
+    }
+    
+/********************************* CONFIGS ************************************/
+    
+    private final Map<String,Config<Boolean>> configs = new HashMap();
+
+    @Override
+    public List<Config> getFields() {
+        List<Config> fields = new ArrayList(configs.values());
+        fields.addAll(super.getFields());
+        return fields;
+    }
+
+    @Override
+    public Config getField(String name) {
+        Config c = configs.get(name);
+        return c==null ? super.getField(name) : c;
     }
     
 /****************************** CONTEXT MENU **********************************/

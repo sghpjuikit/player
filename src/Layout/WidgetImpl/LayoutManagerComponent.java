@@ -23,7 +23,7 @@ import javafx.scene.layout.VBox;
 import main.App;
 import util.Parser.File.Enviroment;
 import util.Log;
-import static util.Util.toCSList;
+import static util.functional.FunctUtil.toCSList;
 
 /**
  *

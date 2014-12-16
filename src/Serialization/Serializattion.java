@@ -11,9 +11,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import main.App;
-import util.Parser.File.FileUtil;
 import util.Log;
-import static util.Util.NotNULL;
+import util.Parser.File.FileUtil;
+import static util.functional.FunctUtil.isNotNULL;
 
 /**
  * Serializes objects.
@@ -47,7 +47,7 @@ public final class Serializattion {
             xstream.autodetectAnnotations(true);
             
             // serialize widget properties as well
-            o.getAllWidgets().filter(NotNULL).forEach(Widget::rememberConfigs);
+            o.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
             xstream.toXML(o, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + o.getName() + "' into the file: " + f.toPath());
@@ -81,7 +81,7 @@ public final class Serializattion {
             xstream.autodetectAnnotations(true);
             
             // serialize widget properties as well
-            l.getAllWidgets().filter(NotNULL).forEach(Widget::rememberConfigs);
+            l.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
             xstream.toXML(l, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + l.getName() + "' into the file: " + f.toPath());

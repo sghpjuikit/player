@@ -14,20 +14,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -44,10 +34,15 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
@@ -66,66 +61,6 @@ import util.Parser.File.FileUtil;
  */
 public interface Util {
     
-    
-    Function<Runnable,Runnable> fxExecutor = r -> () -> Platform.runLater(r);
-    Function<Consumer<Runnable>,Function<Runnable,Runnable>> executionWrapper = executor -> r -> () -> executor.accept(r);
-    
-    
-    
-    /** Basic string comparator utilizing Comparable.compareTo(). */
-    public static final Comparator<Comparable> COMPARATOR_DEF = (a,b) -> a.compareTo(b);
-    
-    /** Basic string comparator utilizing String.compareTo(). */
-    public static final Comparator<String> COMPARATOR_STR = (a,b) -> a.compareTo(b);
-    
-    /** Basic string comparator utilizing String.compareToIgnoreCase(). */
-    public static final Comparator<String> COMPARATOR_STR_CASELESS = (a,b) -> a.compareToIgnoreCase(b);
-    
-    /** 
-     * Creates comparator comparing E elements by derived {@link Comparable}, for
-     * example a Comparable field, obtained by the converter.
-     * Utilizes Comparable.compareTo().
-     * <p>
-     * Easy and concise way to compare objects without code duplication
-     * <p>
-     * This method is generic Comparator factory producing comparators comparing
-     * the obtained result of the comparable supplier.
-     * 
-     * @param toComparableConverter E to Comparable mapper, derives Comparable from E.
-     */
-    public static<E> Comparator<E> cmpareBy(Callback<E,Comparable> toComparableConverter) {
-        return (a,b) -> toComparableConverter.call(a).compareTo(toComparableConverter.call(b));
-    }
-    
-    /** 
-     * Creates comparator comparing E elements by their string representation
-     * obtained by provided converter. Utilizes String.compareToIgnoreCase().
-     * <p>
-     * Easy and concise way to compare objects without code duplication.
-     * 
-     * @param cmpGetter E to String mapper, derives String from E.
-     * the object.
-     */
-    public static<E> Comparator<E> cmpareNoCase(Callback<E,String> toStringConverter) {
-        return (a,b) -> toStringConverter.call(a).compareToIgnoreCase(toStringConverter.call(b));
-    }
-    
-    /** Simple Predicate returning true if object is not null. Use in lambda. */
-    public static Predicate<Object> NotNULL = Objects::nonNull;
-    
-    /** Simple Predicate returning true. Use in lambda. */
-    public static Predicate<Object> TRUE = o -> true;
-    
-    /** Simple Predicate returning false. Use in lambda. */
-    public static Predicate<Object> FALSE = o -> false;
-    
-    /** @return runnable that does nothing. */
-    public static Runnable DO_NOTHING = () -> {};
-    
-    /** Simple Collector concatenating Strings to coma separated list (CSList)
-     * by delimiter ", ".  Use in lambda. */
-    public static Collector<CharSequence,?,String> toCSList = Collectors.joining(", ");
-    
     /**
      * Method equivalent to object's equal method, but if both objects are null
      * they are considered equal as well.
@@ -135,16 +70,19 @@ public interface Util {
         return (o1==null && o2==null) || (o1!=null && o1.equals(o2));
     }
     
-/******************************** GRAPHICS ************************************/
+/********************************** DEBUG *************************************/
     
     /**
-     * Simple black background with no insets or radius. use for debugging (to
-     * see pane layout)
+     * Simple black background with no insets or radius. use for layout debugging
      * Equivalent to {@code new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));}
      */
-    public static Background SIMPLE_BGR() {
-        return new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));
-    }
+    public static Background SIMPLE_BGR = new Background(new BackgroundFill(Color.BLACK, CornerRadii.EMPTY, Insets.EMPTY));
+    
+    /**
+     * Simple black border with no radius
+     * Equivalent to {@code new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));}
+     */
+    public static Border BORDER_SIMPLE = new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
     
 /********************************** STRING ************************************/
     
@@ -228,10 +166,10 @@ public interface Util {
     /**
      * Broader check for emptiness of String object.
      * Checks for: 
-     * - null
-     * - "null", "NULL" and other combinations
-     * - ""
-     * - whitespaceOnly.
+ - null
+ - "null", "isNULL" and other combinations
+ - ""
+ - whitespaceOnly.
      * 
      * @param str String to check.
      * @return true if any of the above is met.
@@ -535,6 +473,10 @@ public interface Util {
         }
     }
     
+    public static final EventHandler<MouseEvent> consumeOnSecondaryButton = e-> {
+        if (e.getButton()==MouseButton.SECONDARY) e.consume();
+    };
+    
     public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> actionHandler) {
         MenuItem i = new MenuItem(text);
                  i.setOnAction(actionHandler);
@@ -659,74 +601,48 @@ public interface Util {
         return (Class) ((ParameterizedType) c.getGenericInterfaces()[i]).getActualTypeArguments()[p];
     }
     
-/********************************** FUNCTIONAL ********************************/
+/******************************** THREADING ***********************************/
     
     /**
-     * Functional alternative to for cycle for collections.
-     * <p>
-     * Equivalent to Collection.forEach(), with additional parameter - index of
-     * the element in the collection.
-     * <p>
-     * Maps all elements of the collection into index-element pairs and executes
-     * the action for each. Indexes start at 0.
-     * 
-     * @param <T> element type
-     * @param c
-     * @param action 
+     * Executes given task immediately on a new thread. Task is returned to
+     * support monitoring.
+     * @param <T>
+     * @param task
+     * @return the task
      */
-    public static<T> void forEachIndexed(Collection<T> c, BiConsumer<Integer,T> action) {
-        int i=0;
-        for(T item : c) {
-            action.accept(i, item);
-            i++;
-        }
+    public static<T> Task<T> executeTask(Task<T> task) {
+        Thread thread = new Thread(task);
+        thread.setDaemon(true);
+        thread.start();
+        return task;
     }
     
     /**
-     * Returns stream of elements mapped by the mapper from index-element pairs 
-     * of specified collection. Indexes start at 0.
-     * <p>
-     * Functionally equivalent to: List.stream().map(item->new Pair(item,list.indexOf(item))).map(pair->mapper.map(p))
-     * but avoiding the notion of a Pair or Touple, and without any collection
-     * traversal to get indexes.
-     * 
-     * @param <T> element type
-     * @param <R> result type
-     * @param c
-     * @param mapper
-     * @return 
+     * Executes the Runnable immediately on ne thread as new Task and returns it.
+     * @param <Void>
+     * @param r
+     * @return task
      */
-    public static<T,R> Stream<R> forEachIndexedStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
-        int i=0;
-        Stream.Builder<R> b = Stream.builder();
-        for(T item : c) {
-            b.accept(mapper.apply(i, item));
-            i++;
-        }
-        return b.build();
+    public static<Void> Task<Void> executeAsTask(Runnable r) {
+        Task<Void> t = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                r.run();
+                return null;
+            }
+        };
+        executeTask(t);
+        return t;
     }
     
     /**
-     * More general version of {@link #forEachIndexed(java.util.Collection, utilities.functional.functor.BiCallback)}.
-     * The index can now be of any type and how it changes is defined by a parameter.
-     * @param <I> key type
-     * @param <T> element type
-     * @param <R> result type
-     * @param c
-     * @param initial_val  for example: 0
-     * @param operation for example: number -> number++
-     * @param mapper maps the key-object pair into another object
-     * 
-     * @return stream of mapped values by a mapper out of key-element pairs
+     * Executes the Runnable immediately on a new Thread.
+     * @param r 
      */
-    public static<I,T,R> Stream<R> forEachIndexedStream(Collection<T> c, I initial_val, Callback<I,I> operation, BiFunction<I,T,R> mapper) {
-        I i = initial_val;
-        Stream.Builder<R> b = Stream.builder();
-        for(T item : c) {
-            b.accept(mapper.apply(i, item));
-            i = operation.call(i);
-        }
-        return b.build();
+    public static void execute(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.start();
     }
 
 }

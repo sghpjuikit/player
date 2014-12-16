@@ -302,7 +302,7 @@ public final class PlaylistTable extends FilterableTable<PlaylistItem,PlaylistIt
         // reflect selection for whole application
         getSelectionModel().selectedItemProperty().addListener(selItemListener);
         getSelectionModel().getSelectedItems().addListener(selItemsListener);
-                
+        
         refresh();
     }
     

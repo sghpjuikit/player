@@ -50,23 +50,31 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
         
         searchBox.setVisible(false);
         
+        // close search box on ESCAPE when focused
         searchBox.addEventFilter(KEY_PRESSED, e -> {
             if(e.getCode()==ESCAPE) {
-                searchBox.clear();
-                setFilterVisible(false);
+                // use this to hive seach box on single ESC stroke
+                // searchBox.clear();
+                // setFilterVisible(false);
+                if(searchBox.isEmpty()) setFilterVisible(false);
+                else searchBox.clear();
                 e.consume();
             }
         });
         
-        addEventFilter(KEY_PRESSED, e -> {
+        // using EventFilter would cause ignoring first key stroke when setting
+        // search box visible
+        addEventHandler(KEY_PRESSED, e -> {
             KeyCode k = e.getCode();
+            // close search box on ESCAPE when not focused
             if(k==ESCAPE) {
                 if(searchBox.isEmpty()) setFilterVisible(false);
                 else searchBox.clear();
                 e.consume();
+            // open search box when typing (and NOT consume the key stroke)
             } else if (k.isDigitKey() || k.isLetterKey()){
                 if(searchBox.isEmpty()) setFilterVisible(true);
-                // e.consume(); // must not consume
+                // must not consume event
             }
         });
     }

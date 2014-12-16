@@ -34,9 +34,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import static util.Util.consumeOnSecondaryButton;
 import util.access.Accessor;
 
 /**
@@ -127,8 +130,12 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         PlaylistManager.getItems().addListener(playlistitemsL);
         table.getItems().addListener((ListChangeListener.Change<?> c) -> updateLength());
         
-        // consume scroll event to prevent other scroll behavior // optional
-        table.setOnScroll(Event::consume);
+        // prevent scrol event to propagate up
+        root.setOnScroll(Event::consume);
+        
+        // prevent overly eager selection change
+        table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
+        table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
         
         // menubar - change text to icons
         addMenu.setText("");

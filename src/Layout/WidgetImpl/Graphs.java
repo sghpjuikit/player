@@ -31,7 +31,7 @@ import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
-import static util.Util.NotNULL;
+import static util.functional.FunctUtil.isNotNULL;
 
 /**
  *
@@ -109,9 +109,9 @@ public final class Graphs extends AnchorPane implements Controller<Widget>  {
     private void populate() {    
         // initialize chart min/max
         double min = 0;
-        double maxx = metadatas.stream().filter(NotNULL).mapToDouble(Metadata::getRatingPercent).max().orElse(1);
-        double maxy = metadatas.stream().filter(NotNULL).mapToInt(Metadata::getPlaylistIndex).max().orElse(1);
-        double maxz = metadatas.stream().filter(NotNULL).map(Metadata::getLength).mapToDouble(d->d.toMinutes()).max().orElse(0)+1;
+        double maxx = metadatas.stream().filter(isNotNULL).mapToDouble(Metadata::getRatingPercent).max().orElse(1);
+        double maxy = metadatas.stream().filter(isNotNULL).mapToInt(Metadata::getPlaylistIndex).max().orElse(1);
+        double maxz = metadatas.stream().filter(isNotNULL).map(Metadata::getLength).mapToDouble(d->d.toMinutes()).max().orElse(0)+1;
         
         // initialize elements
         els.clear();

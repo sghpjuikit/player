@@ -25,8 +25,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import util.Log;
-import util.Util;
 import util.access.Accessor;
+import static util.functional.FunctUtil.cmpareNoCase;
 
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
@@ -79,7 +79,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         groups.forEach((n,g) -> g.grid.getRowConstraints().clear());
         
         // sort & populate fields
-        Configuration.getFields().stream().sorted(Util.cmpareNoCase(o->o.getGuiName())).forEach(f-> {
+        Configuration.getFields().stream().sorted(cmpareNoCase(o->o.getGuiName())).forEach(f-> {
             if (f.isEditable()) {        // ignore noneditabe
                 // create graphics
                 ConfigField cf = ConfigField.create(f);
@@ -98,7 +98,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         
         // sort & populate groups
         groups.values().stream()
-                .sorted(Util.cmpareNoCase(g -> g.name()))
+                .sorted(cmpareNoCase(g -> g.name()))
                 .forEach(g -> accordion.getPanes().add(g.pane));
         
         // consume scroll event to prevent other scroll behavior // optional

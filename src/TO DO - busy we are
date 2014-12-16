@@ -39,6 +39,7 @@
 - clean up Enviroment
 - explorer graphics support css skinning
 - full sorting suport for FilteredTable -> make API
+- enums with class bodies deserialistion parsing problems
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------
@@ -152,7 +153,7 @@ PROBLEMS
 - fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but invasive misbehavior)
   factory available - also instantiatingController should never return null in
   fxmlFactory
-- dynamically create LayoutAggregator depending on size or preferences when
+- get rid of layout aggregators
   deserializing and creating windows, or make it into a container?
 - circle context menu find some use for it
 

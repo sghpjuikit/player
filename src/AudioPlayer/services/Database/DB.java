@@ -7,8 +7,8 @@
 package AudioPlayer.services.Database;
 
 import AudioPlayer.playlist.Item;
-import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static javafx.application.Platform.runLater;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -24,7 +25,7 @@ import javax.persistence.TypedQuery;
 import main.App;
 import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
-import org.reactfx.EventStream;
+import static util.Util.execute;
 import util.access.Accessor;
 
 /**
@@ -229,11 +230,19 @@ public class DB {
     * A library widget can monitor this stream instead of {@link #librarychange}
     */
     public static final BiEventSource<Metadata.Field,Object> fieldSelectionChange = new BiEventSource();
-            
-   
-    
-    public static final EventStream<List<Metadata>> filteredItemsEvent = 
-            fieldSelectionChange.map((metaField,value) -> getAllItemsWhere(metaField, value));
-    
+    public static final EventSource<List<Metadata>> filteredItemsEvent = new EventSource<>();
+//            fieldSelectionChange.map((metaField,value) -> getAllItemsWhere(metaField, value));
     public static Map<Integer,String> filterFields = new HashMap();
+            
+    static {
+        fieldSelectionChange.subscribe((metaField,value)->{
+            execute(()->{
+//                List<Metadata> items = getAllItemsWhere(metaField, value);
+//                runLater(()->filteredItemsEvent.push(items));
+                runLater(()->filteredItemsEvent.push(getAllItems()));
+            });
+        });
+    }
+    
+    
 }

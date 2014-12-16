@@ -46,6 +46,7 @@ import util.Parser.ParserImpl.FileParser;
 import util.Parser.ParserImpl.FontParser;
 import util.Password;
 import util.Util;
+import static util.functional.FunctUtil.cmpareBy;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -487,7 +488,7 @@ abstract public class ConfigField<T> {
             cBox.setButtonCell(cBox.getCellFactory().call(null));
             
             cBox.getItems().addAll(c.enumerateValues());
-            cBox.getItems().sort(Util.cmpareBy(v->c.toS(v)));
+            cBox.getItems().sort(cmpareBy(v->c.toS(v)));
             cBox.setValue(c.getValue());
             
             cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {

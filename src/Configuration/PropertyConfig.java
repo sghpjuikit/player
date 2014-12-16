@@ -105,7 +105,7 @@ public class PropertyConfig<T> extends ConfigBase<T> {
     public void applyValue(T val) {
         // apply if value applicable
         if (val instanceof ApplicableValue)
-            ApplicableValue.class.cast(val).applyValue();
+            ApplicableValue.class.cast(val).applyValue(val);
     }
 
     @Override

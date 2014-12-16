@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import util.Log;
-import static util.Util.NotNULL;
+import static util.functional.FunctUtil.isNotNULL;
 
 /**
  * @author uranium
@@ -282,7 +282,7 @@ public abstract class Container extends Component implements AltState {
         //    We want to avoid recursively closing every container by one
         getAllWidgets().map(Widget::getController)
                 // there might be passive widgets that avoided being loaded
-                .filter(NotNULL)
+                .filter(isNotNULL)
                 .forEach(c->c.close());
         
         if (!isRoot()) {

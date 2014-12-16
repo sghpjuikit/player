@@ -75,7 +75,9 @@ public interface TypedValue<C> {
      * <p>
      * For example an image might have representation "300x300, jpg", but also
      * none when such information is not desired (inherently image is just array
-     * of bytes and therefore not string representable)
+     * of bytes and therefore not string representable).
+     * <p>
+     * Default implementation returns true;
      * 
      * @return 
      */

@@ -3,6 +3,7 @@ package GUI.objects;
 
 import Configuration.Configurable;
 import GUI.ItemHolders.ConfigField;
+import com.sun.glass.ui.Screen;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import util.Util;
+import util.functional.FunctUtil;
 
 /**
  * Configurable state transformer graphical control.
@@ -71,13 +72,14 @@ public class SimpleConfigurator<T> extends AnchorPane {
             throw new RuntimeException("SimpleConfiguratorComponent source data coudlnt be read.");
         }
         
+        fieldsPane.setMaxHeight(Screen.getMainScreen().getVisibleHeight()*0.8);
         anchor = AnchorPane.getBottomAnchor(fieldsPane);
         setOkbVisible(on_OK!=null);
         
         // set configs
         configFields.clear();
         fields.getChildren().clear();
-        configurable.getFields().stream().sorted(Util.cmpareNoCase( f -> f.getGuiName())).forEach( f -> {
+        configurable.getFields().stream().sorted(FunctUtil.cmpareNoCase(f -> f.getGuiName())).forEach( f -> {
             if (f.isEditable()) {                   // ignore noneditabe    
                 ConfigField cf = ConfigField.create(f);                 // create
                 configFields.add(cf);                                   // add

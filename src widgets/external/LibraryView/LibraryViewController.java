@@ -38,6 +38,8 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -45,6 +47,7 @@ import org.reactfx.Subscription;
 import org.reactfx.util.Tuples;
 import util.FxTimer;
 import util.Util;
+import static util.Util.consumeOnSecondaryButton;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
 
@@ -171,6 +174,10 @@ public class LibraryViewController extends FXMLController {
         
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
+        
+        // prevent overly eager selection change
+        table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
+        table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
     }
 
     @Override

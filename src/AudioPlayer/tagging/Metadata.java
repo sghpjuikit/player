@@ -1128,7 +1128,7 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         /** {@inheritDoc} */
         @Override
         public Class getType() {
-            return EMPTY.getField(this).getClass();
+            return Metadata.EMPTY.getField(this).getClass();
         }
 
         /**
@@ -1139,6 +1139,10 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         @Override
         public boolean isTypeNumberNonegative() { return true; }
         
+        public boolean isCommon() {
+            return this==TITLE || this==ALBUM || this==ARTIST || this==RATING || this==PLAYCOUNT ||
+                   this==LENGTH || this==BITRATE || this==TRACK_INFO || this==DISCS_INFO;
+        }
     }
     
     @Retention(RetentionPolicy.SOURCE) // we do not make use of this now, stay at source lvl

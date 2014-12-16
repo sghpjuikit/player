@@ -17,10 +17,12 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
+import static java.lang.Double.max;
+import static java.lang.Math.ceil;
+import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -95,13 +97,12 @@ public class FileInfoController extends FXMLController {
     
     private List<Label> labels;
     private final List<Label> visible_labels = new ArrayList();
-    private final ChangeListener<Number> tileResizer = (o,ov,nv) -> resize(nv.doubleValue());
     private Subscription dataMonitoring;
     private Metadata data;
     
     // auto applied configurable values    
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth()));
+    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth(), tiles.getHeight()));
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
     @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
@@ -187,8 +188,8 @@ public class FileInfoController extends FXMLController {
         layout.setGap(5);
         
         // set autosizing for tiles to always fill the grid entirely
-        tiles.widthProperty().addListener(tileResizer);
-        tiles.heightProperty().addListener(tileResizer);
+        tiles.widthProperty().addListener((o,ov,nv) -> resize(nv.doubleValue(), tiles.getHeight()));
+        tiles.heightProperty().addListener((o,ov,nv) -> resize(tiles.getWidth(), nv.doubleValue()));
         
         // alight tiles from left top & tile content to center left
         tiles.setAlignment(TOP_LEFT);
@@ -452,21 +453,21 @@ public class FileInfoController extends FXMLController {
         layout.setShowImage(v);        
     }
     
-    private void resize(double width) {
+    private void resize(double width, double height) {
         double cellH = 15+tiles.getVgap();
-        int rowsize = (int)Math.floor(Math.max(tiles.getHeight(), 5)/cellH);
-            if(rowsize==0) rowsize=1;
-        int columns = 1+(int) Math.ceil(visible_labels.size()/rowsize);
+        int rows = (int)floor(max(height, 5)/cellH);
+        if(rows==0) rows=1;
+        int columns = 1+(int) ceil(visible_labels.size()/rows);
         double cellW = columns==1 || columns==0 
             // dont allow 0 columns & set whole width if 1 column
             // handle 1 column manually - the below caused some problems
-            ? tiles.getWidth()
+            ? width
             // for n elements there is n-1 gaps so we need to add 1 gap width
             // above cell width includes 1 gap width per element so substract it
             : (width + tiles.getHgap())/columns - tiles.getHgap();
         
         // adhere to requested minimum size
-        cellW = Math.max(cellW, minColumnWidth.getValue());
+        cellW = max(cellW, minColumnWidth.getValue());
         
         tiles.setPrefTileWidth(cellW);
     }

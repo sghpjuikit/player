@@ -44,6 +44,7 @@ import util.Parser.File.Enviroment;
 import util.Util;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
+import static util.functional.FunctUtil.cmpareBy;
 
 
 /**
@@ -288,7 +289,7 @@ public class BookmarkerController extends FXMLController {
         List<TableColumn> cols = new ArrayList(table.getColumns());
         table.getColumns().clear();
         colPos.entrySet().stream()
-                .sorted(Util.cmpareBy(e->e.getValue()))
+                .sorted(cmpareBy(e->e.getValue()))
                 .forEach( e -> {
                     TableColumn c = cols.stream().filter(cc->cc.getText().equals(e.getKey())).findAny().get();
                     if(c!=null)

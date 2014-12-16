@@ -34,7 +34,7 @@ import main.App;
 import util.Log;
 import util.Parser.File.AudioFileFormat.Use;
 import util.Util;
-import static util.Util.NotNULL;
+import static util.functional.FunctUtil.isNotNULL;
 
 /**
  * Provides file operations.
@@ -345,7 +345,7 @@ public final class FileUtil {
     }
     
     public static List<File> getImageFiles(List<File> files) {
-        return files.stream().filter(NotNULL)
+        return files.stream().filter(isNotNULL)
                 .filter(ImageFileFormat::isSupported)
                 .collect(Collectors.toList());
     }

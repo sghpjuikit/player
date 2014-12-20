@@ -574,7 +574,6 @@ public final class Action extends Config<Action> implements Runnable {
                                 throw new RuntimeException(e);
                             }
                             
-                            String name = a.name();
                             Runnable r = () -> {
                                 try {
                                     mh.invokeExact();
@@ -582,7 +581,8 @@ public final class Action extends Config<Action> implements Runnable {
                                     throw new RuntimeException("Error during running action.",e);
                                 }
                             };
-                            acts.put(name.hashCode(),new Action(a,r));
+                            Action act = new Action(a, r);
+                            acts.put(act.getID(), act);
                         }
                     }
                 }

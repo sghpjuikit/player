@@ -6,6 +6,7 @@
 
 package AudioPlayer.tagging;
 
+import java.util.function.Predicate;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
@@ -80,6 +81,10 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     /** {@inheritDoc} */
     @Override
     public Field getMainField() { return Field.VALUE; }
+    
+    public Predicate<Metadata> toMetadataPredicate() {
+        return m->m.getField(getField()).equals(getValue());
+    }
     
 /***************************** COMPANION CLASS ********************************/
     

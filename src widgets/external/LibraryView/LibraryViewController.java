@@ -6,15 +6,18 @@ import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.Metadata.Field;
 import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import AudioPlayer.tagging.MetadataGroup;
 import static AudioPlayer.tagging.MetadataGroup.Field.VALUE;
+import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilterableTable;
 import GUI.objects.Table.ImprovedTable;
+import GUI.objects.Table.TableColumnInfo;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -23,8 +26,14 @@ import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.event.Event;
@@ -46,12 +55,15 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
 import org.reactfx.util.Tuples;
-import util.Util;
 import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
 import static util.Util.consumeOnSecondaryButton;
+import static util.Util.createIndexColumn;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
 import static util.async.Async.run;
+import util.collections.Tuple4;
+import static util.functional.FunctUtil.forEachIndexed;
+import static util.functional.FunctUtil.isFALSE;
 
 /**
  *
@@ -136,6 +148,55 @@ public class LibraryViewController extends FXMLController {
         table.getSearchBox().setData(Arrays.asList(MetadataGroup.Field.values()).stream()
                 .map(mgf->Tuples.t(mgf.toString(v),mgf.getType(v),mgf)).collect(Collectors.toList()));
     });
+    
+    @IsConfig(name = "Library level", info = "")
+    public final Accessor<Integer> lvl = new Accessor<>(1, v -> {
+        if(dbMonitor!=null) dbMonitor.unsubscribe();
+        // listen for database changes to refresh library
+        dbMonitor = DB.views.subscribe(v, (i,list) -> {
+            setItems(list);
+        });
+        // initialize
+        setItems(DB.views.getValue(v));
+    });
+    
+    @IsConfig(editable = false)
+    private TableColumnInfo columnInfo = new TableColumnInfo();
+    
+    private void setItems(List<Metadata> list) {
+        Field f = fieldFilter.getValue();
+        Map<Object, Tuple4<Long,Set<String>,Double,Long>> dat = new HashMap();
+        list.stream().forEach(m->{
+            Object o = m.getField(f);
+            Tuple4<Long,Set<String>,Double,Long> s = dat.get(o);
+            if(s==null) {
+                dat.put(o,new Tuple4(0l,new HashSet(),0d,0l));
+                s = dat.get(o);
+            }
+            s.a++;
+            s.b.add(m.getAlbum());
+            s.c += m.getLengthInMs();
+            s.d += m.getFilesizeInB();
+        });
+        List<MetadataGroup> mgs = new ArrayList(dat.size());
+        dat.forEach((v,s)->mgs.add(new MetadataGroup(f, v, s.a, s.b.size(), s.c, s.d)));
+        table.setItemsRaw(mgs);
+        forwardItems(list);
+    }
+    
+    private void forwardItems(List<Metadata> list) {
+        List<Metadata> forwardList;
+        if(table.getSelectionModel().isEmpty()) {
+            forwardList = list;
+        } else {
+            Predicate<Metadata> p = table.getSelectedItems().stream()
+                    .map(MetadataGroup::toMetadataPredicate)
+                    .reduce(Predicate::or)
+                    .orElse(isFALSE);
+            forwardList = list.stream().filter(p).collect(toList());
+        }
+        DB.views.push(lvl.getValue()+1, forwardList);
+    }
 
     @Override
     public void init() {
@@ -146,7 +207,7 @@ public class LibraryViewController extends FXMLController {
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         
         // add index column
-        TableColumn indexColumn = Util.createIndexColumn("#");
+        TableColumn indexColumn = createIndexColumn("#");
         table.getColumns().add(indexColumn);
         
         // context menu
@@ -168,13 +229,9 @@ public class LibraryViewController extends FXMLController {
                 table.getSelectionModel().clearSelection();
         });
         
-        // listen for database changes to refresh library
-        dbMonitor = DB.librarychange.subscribe( nothing -> fieldFilter.applyValue());
-        
-        table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> {
-            if(nv!=null)
-                DB.fieldSelectionChange.push(fieldFilter.getValue(),nv.getValue());
-        });
+        // send selection changed events, do not use InvalidationListener
+        table.getSelectionModel().selectedItemProperty().addListener(
+                (o,ov,nv) -> forwardItems(DB.views.getValue(lvl.getValue())));
         
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
@@ -186,13 +243,49 @@ public class LibraryViewController extends FXMLController {
 
     @Override
     public void refresh() {
+        
+        table_orient.applyValue();
+        zeropad.applyValue();
+        orig_index.applyValue();
+        show_header.applyValue();
+        show_menu_button.applyValue();
         fieldFilter.applyValue();
+        // apply last as it loads data
+        lvl.applyValue();
+        
+        // first set up columns
+        forEachIndexed(columnInfo.columns, (i,c)->{
+            TableColumn tc = null;
+            for(TableColumn t : table.getColumns())
+                if(c.name.equals(t.getText())) {
+                    tc = t;
+                    break;
+                }
+            table.getColumns().remove(tc);
+//            tc.setMinWidth(c.width);
+            tc.setPrefWidth(c.width);
+//            tc.setMaxWidth(c.width);
+            if(c.visible) table.getColumns().add(i,tc);
+        });
     }
 
     @Override
     public void close() {
         // stop listening for db changes
         dbMonitor.unsubscribe();
+    }
+
+    @Override
+    public List getFields() {
+        // serialize column state as config
+        columnInfo = new TableColumnInfo(table);
+        return super.getFields(); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Config getField(String name) {
+        if("columnInfo".equals(name)) columnInfo = new TableColumnInfo(table);
+        return super.getField(name); //To change body of generated methods, choose Tools | Templates.
     }
     
     

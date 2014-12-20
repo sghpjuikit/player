@@ -21,7 +21,6 @@
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
 - press C to collapse layout containers easily - implement properly
-- '/n' character expands table row height, figure out how to disable that...    (still an issue ?)
 - support multiple values in AND filtering for query
   well, now that FilterGenerator is running, does filtering through DB even
   make sense?

@@ -14,6 +14,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,9 @@ import javax.persistence.TypedQuery;
 import main.App;
 import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
+import util.access.AccessibleStream;
 import util.access.Accessor;
+import util.access.CascadingStream;
 import static util.async.Async.run;
 
 /**
@@ -40,6 +43,8 @@ public class DB {
     public static void start() {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
+        views.eventStreamFactory = () -> new AccessibleStream(EMPTY_LIST);
+        views.push(1, getAllItems());
     }
     
     public static void stop() {
@@ -245,5 +250,5 @@ public class DB {
         });
     }
     
-    
+    public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
 }

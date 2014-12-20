@@ -8,7 +8,6 @@ package util.Parser.ParserImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import util.Log;
 import util.Parser.ObjectStringParser;
 
 /**
@@ -34,9 +33,8 @@ public class FromStringParser implements ObjectStringParser {
         try {
             Method m = type.getDeclaredMethod("fromString", String.class);
             return m.invoke(null, source);
-        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Log.deb("Unable to parse. Encountered problem during invoking fromString() method");
-            return null;
+        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e.getCause());
         }
     }
 

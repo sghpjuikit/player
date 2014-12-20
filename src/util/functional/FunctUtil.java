@@ -33,10 +33,10 @@ public class FunctUtil {
     public static final Predicate<Object> isNULL = Objects::isNull;
     
     /** Predicate returning true.*/
-    public static final Predicate<Object> isTRUE = o -> true;
+    public static final Predicate isTRUE = o -> true;
     
     /** Predicate returning false.*/
-    public static final Predicate<Object> isFALSE = o -> false;
+    public static final Predicate isFALSE = o -> false;
     
     /** Runnable that does nothing.  () -> {}; */
     public static final Runnable do_NOTHING = () -> {};

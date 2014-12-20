@@ -405,7 +405,12 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
     @Override
     public FileSize getFilesize() {
         return new FileSize(filesize);
-    }    
+    }
+    
+    /** {@link getFilesize()} in bytes */
+    public long getFilesizeInB() {
+        return filesize;
+    }
     
     /** {@inheritDoc} */
     @Override

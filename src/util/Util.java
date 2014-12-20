@@ -395,7 +395,7 @@ public interface Util {
      * @return the column
      */
     public static<T> TableColumn<T,Void> createIndexColumn(String name) {
-        TableColumn<T,Void> indexColumn = new TableColumn<>(name);
+        TableColumn<T,Void> indexColumn = new TableColumn(name);
         indexColumn.setSortable(false);
         indexColumn.setCellFactory( column -> 
             new TableCell<T,Void>(){
@@ -475,9 +475,9 @@ public interface Util {
      */
     public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Pos a, String no_val_text) {
         return column -> {
-            TableCell cell = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text).call(column);
-                      cell.setAlignment(a);
-            return cell;
+            TableCell c = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text).call(column);
+                      c.setAlignment(a);
+            return c;
         };
     }
     

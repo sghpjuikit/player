@@ -9,7 +9,6 @@ package util.Parser.ParserImpl;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import util.Log;
 import util.Parser.ObjectStringParser;
 
 /**
@@ -47,9 +46,8 @@ public class ValueOfParser implements ObjectStringParser {
         try {
             Method m = type.getDeclaredMethod("valueOf", String.class);
             return m.invoke(null, source);
-        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            Log.deb("Unable to parse. Encountered problem during invoking valueOf() method");
-            return null;
+        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e.getCause());
         }
     }
 

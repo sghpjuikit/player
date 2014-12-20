@@ -25,7 +25,7 @@
 - beautify layout manager widget - add info popup and improve layout and looks
   involves turning layout info turning into ValueConfigurable
 - add URI configField + validator?
-- seeker option to show chapters as they are passing                            (?)
+- seeker option to show chapters as they are passing                            
 - cursor api clean up, fix appliers, make actually usable
 - gradient masks - it IS possible, proved by image on drag&drop, but HOW?       (picture as mask?)
 - widget manager widget
@@ -39,22 +39,12 @@
 FURTHER DOWN THE LIST FUNCTIONALITIES
 - even more flexibly resizable widget areas
 - cover downloading widget
-- general table object - remember 'state':                                      (see BookmarkController)
-    editable/non editable                                                       // done
-    generate from POJO
-    read database records
-    sorting, filtering                                                          // done
-    header                                                                      // done
-    columns visibility - make use of manual factories?
-    columns order                                                               // done        
-    columns relative size                                                       // done
-    columns wider than table - scroll                                           // done
 - finish metadata reading/writing flac, ogg (most are already done)
 - playback ogg, flac
 
 APP
 - tray                                                                          (use awt & swing ?)
-- no taskbar presence option                                                    (?)
+- taskbar functionalities
 - associate with supported files
 
 GALAXY MAP

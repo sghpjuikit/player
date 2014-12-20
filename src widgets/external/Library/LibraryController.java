@@ -249,22 +249,23 @@ public class LibraryController extends FXMLController {
         
         content.getChildren().addAll(table.getRoot(), controls);
         VBox.setVgrow(table.getRoot(),ALWAYS);
-        
-        // listen for database changes to refresh library
-        dbMonitor = DB.fieldSelectionChange.subscribe( (field,value) -> {
-            changeValue = value; // needs to be ready before the next line
-            changeField.setValue(field); // this causes reloading of the data
-            refresh();
-        });
     }
     
     @IsConfig(editable = false)
     private Object changeValue = "";
     
     @IsConfig(editable = false)
-    private final Accessor<Metadata.Field> changeField = new Accessor<>(Field.ARTIST, v -> {
-        table.getSelectionModel().clearSelection();
-        table.setItemsRaw(DB.getAllItemsWhere(v, changeValue));
+    private final Accessor<Metadata.Field> changeField = new Accessor<>(Field.ARTIST, v -> {});
+    
+    @IsConfig(name = "Library level", info = "")
+    public final Accessor<Integer> lvl = new Accessor<>(1, v -> {
+        if(dbMonitor!=null) dbMonitor.unsubscribe();
+        // listen for database changes to refresh library
+        dbMonitor = DB.views.subscribe(v, (i,list) -> {
+            table.setItemsRaw(list);
+        });
+        // initialize
+        table.setItemsRaw(DB.views.getValue(v));
     });
     
     @IsConfig(editable = false)
@@ -273,9 +274,9 @@ public class LibraryController extends FXMLController {
 
     @Override
     public void refresh() {
-        getFields().forEach(Config::applyValue);
+        getFields().stream().filter(c->!c.getName().equals("Library level")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
-        table.setItemsRaw(DB.getAllItemsWhere(changeField.getValue(), changeValue));
+        lvl.applyValue();
     }
 
     @Override

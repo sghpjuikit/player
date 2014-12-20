@@ -22,14 +22,12 @@ import static org.atteo.evo.inflector.English.plural;
  */
 public final class TableInfo<E> {
     
-    /**
-     * Default text factory. Provides texts like: <pre>
+    /** Default text factory. Provides texts like: <pre>
      * 'All: 1 item'
      * 'Selected: 89 items'
      * </pre>
      * Custom implementation change or expand the text with additional 
-     * information depending on type of table elements.
-     */
+     * information depending on type of table elements. */
     public static final BiFunction<Boolean,List<?>,String> DEFAULT_TEXT_FACTORY = (all, list) -> {
         String prefix1 = all ? "All: " : "Selected: ";
         int s = list.size();
@@ -38,11 +36,9 @@ public final class TableInfo<E> {
     
     /** The graphical text element */
     public Labeled node;
-    /**
-     * Provides text to the node. The first parameters specifies whether selection
+    /** Provides text to the node. The first parameters specifies whether selection
      * is empty, the other is the list of table items if selection is empty or 
-     * selected items if nonempty.
-     */
+     * selected items if nonempty. */
     public BiFunction<Boolean,List<E>,String> textFactory = (BiFunction)DEFAULT_TEXT_FACTORY;
     
     /** Sets the node. The text updating needs to be done manually. */
@@ -62,8 +58,7 @@ public final class TableInfo<E> {
     
     /** Updates the text of the node using the text factory.
      * @param all all items of the table
-     * @param selected  selected items of the table
-     */
+     * @param selected  selected items of the table */
     public final void updateText(List<E> all, List<E> selected) {
         boolean isAll = selected.isEmpty();
         List<E> l = isAll ? all : selected;

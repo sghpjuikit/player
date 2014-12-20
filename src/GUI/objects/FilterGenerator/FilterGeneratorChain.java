@@ -25,6 +25,7 @@ import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import static util.functional.FunctUtil.isTRUE;
 
 /**
  *
@@ -141,7 +142,8 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     private void generatePredicate() {        
         conjuction = generators.stream()
                                .map(g->converter.apply(g.val,g.predicate))
-                               .reduce(o->true, Predicate::and);
+                               .reduce(Predicate::and)
+                               .orElse(isTRUE);
         
         if(onFilterChange!=null) onFilterChange.accept(conjuction);
     }

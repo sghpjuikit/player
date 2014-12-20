@@ -19,7 +19,7 @@ import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.Log;
 import util.Parser.File.FileUtil;
-import util.Util;
+import static util.Util.getAllFields;
 
 /**
  * Provides methods to access configs of the application.
@@ -80,7 +80,7 @@ public class Configuration {
         
         Map<String,Config> out = new HashMap();
         
-        for (Field f : Util.getAllFields(clazz)) {
+        for (Field f : getAllFields(clazz)) {
             Config c = createConfig(clazz, f, instnc, include_static, include_instance);
             if(c!=null) out.put(c.getName(), c);
         }
@@ -92,14 +92,13 @@ public class Configuration {
         Config c = null;
         IsConfig a = f.getAnnotation(IsConfig.class);
         if (a != null) {
-
             String group = a.group().isEmpty() ? getGroup(cl) : a.group();
             String name = f.getName();
-
-            if (include_static && Modifier.isStatic(f.getModifiers()))
+            int modifiers = f.getModifiers();
+            if (include_static && Modifier.isStatic(modifiers))
                 c = createConfig(f, instnc, name, a, group);
             
-            if (include_instance && !Modifier.isStatic(f.getModifiers()))
+            if (include_instance && !Modifier.isStatic(modifiers))
                 c = createConfig(f, instnc, name, a, group);
             
         }
@@ -107,17 +106,16 @@ public class Configuration {
     }
     
     private static Config createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
-        if(Config.class.isAssignableFrom(f.getType())) {
+        Class c = f.getType();
+        if(Config.class.isAssignableFrom(c)) {
             return extractConfig(f, instance);
         }
-        else if(WritableValue.class.isAssignableFrom(f.getType()))
+        else if(WritableValue.class.isAssignableFrom(c))
             return createPropertyConfig(f, instance, name, anotation, group);
         else {
             if(Modifier.isFinal(f.getModifiers()))
                 // if final -> runtime exception, dev needs to fix his code
                 throw new IllegalStateException("Field config must not be final.");
-            // make statif field config based on the field
-//            return new FieldConfig(name, anotation, instance, group, f);
             
             try {
                 f.setAccessible(true);

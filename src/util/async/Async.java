@@ -10,6 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -131,10 +132,10 @@ public final class Async {
     
 
     /** Transforms Runnable into Runnable that executes on FxApplication Thread.*/
-    public static final Function<Runnable,Runnable> toFxRunnable = r -> () -> runOnFX(r);
+    public static final UnaryOperator<Runnable> toFxRunnable = r -> () -> runOnFX(r);
     
     /** Function transforming executor into function transforming runnable into 
      * runnable that executes with provided executor */
-    public static final Function<Consumer<Runnable>,Function<Runnable,Runnable>> executionWrapper = executor -> r -> () -> executor.accept(r);
+    public static final Function<Consumer<Runnable>,UnaryOperator<Runnable>> executionWrapper = executor -> r -> () -> executor.accept(r);
     
 }

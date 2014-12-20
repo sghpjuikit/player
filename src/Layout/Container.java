@@ -400,14 +400,18 @@ public abstract class Container extends Component implements AltState {
     @Override
     public void show() {
         if(getGraphics()!=null) getGraphics().show();
-        getChildren().values().stream().filter(child -> child instanceof AltState)
-                .forEach(child -> ((AltState) child).show());
+        getChildren().values().stream()
+                     .filter(AltState.class::isInstance)
+                     .map(AltState.class::cast)
+                     .forEach(AltState::show);
         
     }
     @Override
     public void hide() {
         if(getGraphics()!=null) getGraphics().hide();
-        getChildren().values().stream().filter(child -> child instanceof AltState)
-                .forEach(child -> ((AltState) child).hide()); 
+        getChildren().values().stream()
+                     .filter(AltState.class::isInstance)
+                     .map(AltState.class::cast)
+                     .forEach(AltState::hide);
     }
 }

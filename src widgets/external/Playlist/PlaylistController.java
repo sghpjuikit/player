@@ -132,7 +132,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         TableIInfo<PlaylistItem> infoL = new TableIInfo(duration, table);
         infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(PlaylistItem::getTimeInMs).sum();
-            return DEFAULT_TEXT_FACTORY.call(all, list) + " - " + new FormattedDuration(d);
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
         };
         
         // for now...  either get rid of PM and allow multiple playlists OR allow binding

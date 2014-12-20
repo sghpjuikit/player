@@ -12,6 +12,4 @@ import java.util.function.BiConsumer;
  *
  * @author Plutonium_
  */
-public interface ChangeConsumer<T> extends BiConsumer<T, T> {
-    
-}
+public interface ChangeConsumer<T> extends BiConsumer<T, T> { }

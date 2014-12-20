@@ -21,8 +21,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import main.App;
-import util.Parser.File.Enviroment;
 import util.Log;
+import util.Parser.File.Enviroment;
 import static util.functional.FunctUtil.toCSList;
 
 /**
@@ -153,7 +153,7 @@ public final class LayoutManagerComponent {
             // all widgets (and fetch names while at it to avoid reiterating
         long ws = l.getAllWidgets().peek(w->w_names.add(w.getName())).count();
             // all leaf containers - cs that contain only widgets
-        long chs = l.getAllContainers().filter(c->c instanceof UniContainer).count();
+        long chs = l.getAllContainers().filter(UniContainer.class::isInstance).count();
             // all empty leaf containers
         long cs = chs-ws;
         

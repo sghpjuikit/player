@@ -68,8 +68,8 @@ public class SwitchPane implements LayoutAggregator {
     private static void applyAlignTabs() {
         Window.windows.stream()
                 .map(Window::getLayoutAggregator)
-                .filter(la->la instanceof SwitchPane)
-                .map(la->(SwitchPane)la)
+                .filter(SwitchPane.class::isInstance)
+                .map(SwitchPane.class::cast)
                 .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
     
@@ -77,8 +77,8 @@ public class SwitchPane implements LayoutAggregator {
     private static void applySnapTabs() {
         Window.windows.stream()
                 .map(Window::getLayoutAggregator)
-                .filter(la->la instanceof SwitchPane)
-                .map(la->(SwitchPane)la)
+                .filter(SwitchPane.class::isInstance)
+                .map(SwitchPane.class::cast)
                 .forEach(sp -> sp.snapTabs());
     }
     

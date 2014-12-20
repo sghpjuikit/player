@@ -230,7 +230,7 @@ public class LibraryController extends FXMLController {
         TableIInfo<Metadata> infoL = new TableIInfo(new Label(), table);
         infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.call(all, list) + " - " + new FormattedDuration(d);
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
         };
         
         // controls bottom header

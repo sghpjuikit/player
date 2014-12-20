@@ -11,8 +11,8 @@ import Configuration.ValueConfig;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Table.PlaylistTable;
-import GUI.objects.Table.TableIInfo;
-import static GUI.objects.Table.TableIInfo.DEFAULT_TEXT_FACTORY;
+import GUI.objects.Table.TableInfo;
+import static GUI.objects.Table.TableInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -129,7 +129,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
         
         // information label
-        TableIInfo<PlaylistItem> infoL = new TableIInfo(duration, table);
+        TableInfo<PlaylistItem> infoL = new TableInfo(duration, table);
         infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(PlaylistItem::getTimeInMs).sum();
             return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);

@@ -21,8 +21,8 @@ import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilterableTable;
 import GUI.objects.Table.ImprovedTable;
-import GUI.objects.Table.TableIInfo;
-import static GUI.objects.Table.TableIInfo.DEFAULT_TEXT_FACTORY;
+import GUI.objects.Table.TableInfo;
+import static GUI.objects.Table.TableInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -227,7 +227,7 @@ public class LibraryController extends FXMLController {
         progressL.setVisible(false);
         
         // information label
-        TableIInfo<Metadata> infoL = new TableIInfo(new Label(), table);
+        TableInfo<Metadata> infoL = new TableInfo(new Label(), table);
         infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
             return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);

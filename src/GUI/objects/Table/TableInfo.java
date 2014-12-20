@@ -20,7 +20,7 @@ import static org.atteo.evo.inflector.English.plural;
  * 
  * @author Plutonium_
  */
-public final class TableIInfo<E> {
+public final class TableInfo<E> {
     
     /**
      * Default text factory. Provides texts like: <pre>
@@ -46,13 +46,13 @@ public final class TableIInfo<E> {
     public BiFunction<Boolean,List<E>,String> textFactory = (BiFunction)DEFAULT_TEXT_FACTORY;
     
     /** Sets the node. The text updating needs to be done manually. */
-    public TableIInfo(Labeled node) {
+    public TableInfo(Labeled node) {
         this.node = node;
     }
     
     /** Sets the node and listeners to update the text automatically by monitoring
       * the table items and selection. */
-    public TableIInfo(Labeled node, TableView<E> t) {
+    public TableInfo(Labeled node, TableView<E> t) {
         this(node);
         List<E> items = t.getItems();
         t.getItems().addListener((Observable o)-> updateText(items, t.getSelectionModel().getSelectedItems()));

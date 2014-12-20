@@ -60,8 +60,7 @@ import javafx.scene.shape.PathElement;
 import javafx.scene.shape.QuadCurveTo;
 import javafx.scene.shape.VLineTo;
 import javafx.stage.Window;
-import javafx.util.Duration;
-import util.FxTimer;
+import util.async.Async;
 
 
 public class PopOverSkin implements Skin<PopOver> {
@@ -189,7 +188,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
         // show new content when changes
         // not the delay in thelistener, it is essencial for theupdatePath to work here - unknown reason
-        InvalidationListener contentListener = o -> FxTimer.run(Duration.millis(25),this::updatePath);
+        InvalidationListener contentListener = o -> Async.run(25,this::updatePath);
         content.widthProperty().addListener(contentListener);
         content.heightProperty().addListener(contentListener);
         popOver.contentNodeProperty().addListener((o,ov,nv) -> content.setCenter(nv));

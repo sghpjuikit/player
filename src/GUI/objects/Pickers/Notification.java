@@ -20,7 +20,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
-import util.FxTimer;
+import util.async.FxTimer;
 
 /**
  *
@@ -30,7 +30,7 @@ public class Notification extends PopOver {
         
     private ItemInfo songNotif;
     private final AnchorPane textNotif = new AnchorPane();  // text content
-    private final FxTimer closer = FxTimer.create(Duration.seconds(1), this::hide);// close delay timer
+    private final FxTimer closer = new FxTimer(1000, 1, this::hide);
     
     // properties   
     private boolean openAppOnClick = true;

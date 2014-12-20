@@ -25,8 +25,8 @@ import javax.persistence.TypedQuery;
 import main.App;
 import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
-import static util.Util.execute;
 import util.access.Accessor;
+import static util.async.Async.run;
 
 /**
  *
@@ -236,10 +236,11 @@ public class DB {
             
     static {
         fieldSelectionChange.subscribe((metaField,value)->{
-            execute(()->{
-//                List<Metadata> items = getAllItemsWhere(metaField, value);
-//                runLater(()->filteredItemsEvent.push(items));
-                runLater(()->filteredItemsEvent.push(getAllItems()));
+            run(()->{
+                List<Metadata> items = getAllItemsWhere(metaField, value);
+                runLater(()->filteredItemsEvent.push(items));
+                // performance testing - even this still causes GUI lag
+                // runLater(()->filteredItemsEvent.push(getAllItems()));
             });
         });
     }

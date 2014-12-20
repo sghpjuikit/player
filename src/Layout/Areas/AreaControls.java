@@ -245,7 +245,8 @@ public final class AreaControls {
         SimpleConfigurator sc = new SimpleConfigurator(w);
         PopOver p = new PopOver(sc);
                 p.setTitle(w.getName() + " Settings");
-                p.setAutoFix(false);
+                p.setArrowSize(0); // unfortunately autofix breaks the arrow functionality, turn it off
+                p.setAutoFix(true); // we need autofix here
                 p.setAutoHide(true);
                 p.show(propB);  
     }

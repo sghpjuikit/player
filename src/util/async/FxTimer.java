@@ -1,6 +1,6 @@
 
 
-package util;
+package util.async;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -15,62 +15,34 @@ import org.reactfx.util.Timer;
 * @author Tomas Mikula
 */
 public class FxTimer implements Timer {
-
-    /**
-    * Prepares a (stopped) timer with the given delay and action.
-    */
-    public static FxTimer create(Duration delay, Runnable action) {
-        return new FxTimer(delay, action, 1);
-    }
-
-    /**
-    * Equivalent to {@code create(delay, action).restart()}.
-    */
-    public static FxTimer run(Duration delay, Runnable action) {
-        FxTimer timer = create(delay, action);
-        timer.restart();
-        return timer;
-    }
-    
-    /**
-    * Equivalent to {@code create(delay, action).restart()}.
-    */
-    public static FxTimer run(double delay, Runnable action) {
-        FxTimer timer = create(Duration.millis(delay), action);
-        timer.restart();
-        return timer;
-    }
-
-    /**
-    * Prepares a (stopped) timer that executes the given action periodically
-    * with the given interval.
-    */
-    public static FxTimer createPeriodic(Duration interval, Runnable action) {
-        return new FxTimer(interval, action, Animation.INDEFINITE);
-    }
-
-    /**
-    * Equivalent to {@code createPeriodic(interval, action).restart()}.
-    */
-    public static FxTimer runPeriodic(Duration interval, Runnable action) {
-        FxTimer timer = createPeriodic(interval, action);
-        timer.restart();
-        return timer;
-    }
-
     
     private final Timeline timeline;
     private final Runnable action;
     
     private Duration timeout;
     private long seq = 0;
-
-    private FxTimer(Duration timeout, Runnable action, int cycles) {
-        this.timeout = Duration.millis(timeout.toMillis());
+    
+    /**
+    * Creates a (stopped) timer that executes the given action specified number
+    * of times with a delay period.
+    * @param delay Time to wait before each execution. The first execution is 
+    * already delayed.
+    * @param action action to execute
+    * @param cycles denotes number of executions. Use 1 for single execution, n
+    * for n executions and {@link Animation.INDEFINITE} (-1) for infinite amount.
+    */
+    public FxTimer(Duration delay, int cycles, Runnable action) {
+        this.timeout = Duration.millis(delay.toMillis());
         this.timeline = new Timeline();
         this.action = action;
 
         timeline.setCycleCount(cycles);
+    }
+    /**
+    * Equivalent to {@code new FxTimer(Duration.millis(delay), action, cycles);}
+    */
+    public FxTimer(double delay, int cycles, Runnable action) {
+        this(Duration.millis(delay), cycles, action);
     }
 
     @Override

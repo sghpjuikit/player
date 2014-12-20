@@ -21,6 +21,8 @@ import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilterableTable;
 import GUI.objects.Table.ImprovedTable;
+import GUI.objects.Table.TableIInfo;
+import static GUI.objects.Table.TableIInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -40,7 +42,6 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -69,7 +70,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import util.FxTimer;
 import util.Parser.File.AudioFileFormat;
 import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.Enviroment;
@@ -79,6 +79,8 @@ import util.Util;
 import static util.Util.consumeOnSecondaryButton;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
+import static util.async.Async.run;
+import static util.async.Async.runAsTask;
 
 /**
  *
@@ -121,6 +123,8 @@ public class LibraryController extends FXMLController {
     @FXML Menu remMenu;
     @FXML MenuBar controlsBar;
     
+    private final Duration hideDelay = Duration.seconds(5);
+    
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
@@ -151,7 +155,7 @@ public class LibraryController extends FXMLController {
                                 if(cf.getValue()==null) return null;
                                 return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
                             });
-                            c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(f.getType()));
+                            c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(f.getType(),""));
                             table.getColumns().add(c);
                         }
                     } else {
@@ -160,7 +164,7 @@ public class LibraryController extends FXMLController {
                     table.refreshColumn(table.getColumns().get(0));
                 });
                 Config c = new PropertyConfig("Show " + name, a, "Show " + name);
-                configs.put(name, c);
+                configs.put("Show " + name, c);
             }
         }
         
@@ -223,28 +227,15 @@ public class LibraryController extends FXMLController {
         progressL.setVisible(false);
         
         // information label
-        Label infoL  = new Label();
-            // updates info label
-        BiConsumer<Boolean,List<? extends Metadata>> infoUpdate = (all,list) -> {
-            if(!all & list.isEmpty()) {
-                all = true;
-                list = table.getItems();
-            }
+        TableIInfo<Metadata> infoL = new TableIInfo(new Label(), table);
+        infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            String prefix1 = all ? "All:" : "Selected: ";
-            String prefix2 = list.size()==1 ? " item " : " items ";
-            infoL.setText(prefix1 + list.size() + prefix2 + "- " + new FormattedDuration(d));
+            return DEFAULT_TEXT_FACTORY.call(all, list) + " - " + new FormattedDuration(d);
         };
-            // calls info label update on selection change
-        ListChangeListener<Metadata> infoUpdater = c -> infoUpdate.accept(c==table.getItems(),c.getList());
-        table.getSelectionModel().getSelectedItems().addListener(infoUpdater);
-        table.getItems().addListener(infoUpdater);
-            // initialize info label
-        infoUpdate.accept(true,EMPTY_LIST);
         
         // controls bottom header
         Region padding = new Region();
-        HBox controls = new HBox(controlsBar,infoL,padding,progressL);
+        HBox controls = new HBox(controlsBar,infoL.node,padding,progressL);
              controls.setSpacing(7);
              controls.setAlignment(Pos.CENTER_LEFT);
              controls.setPadding(new Insets(0,5,0,0));
@@ -326,7 +317,7 @@ public class LibraryController extends FXMLController {
         }
 
         if(files!=null) {
-            Task ts = MetadataReader.execute("Discovering files",
+            Task ts = runAsTask("Discovering files",
                     () -> FileUtil.getAudioFiles(files,Use.APP,6).stream().map(SimpleItem::new).collect(Collectors.toList()),
                     (success,result) -> {
                         if (success) {
@@ -334,14 +325,14 @@ public class LibraryController extends FXMLController {
                                 if(succes & edit)
                                     WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
                                     
-                                FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                                run(hideDelay, () -> progressL.setVisible(false));
                                 progressL.textProperty().unbind();
                             };
 
                             Task t = MetadataReader.readAaddMetadata(result,onEnd,false);
                             progressL.textProperty().bind(t.messageProperty());
                         } else {
-                            FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+                            run(hideDelay, () -> progressL.setVisible(false));
                             progressL.textProperty().unbind();
                         }
                     });
@@ -355,7 +346,7 @@ public class LibraryController extends FXMLController {
     @FXML private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
             progressL.textProperty().unbind();
-            FxTimer.run(Duration.seconds(5), () -> progressL.setVisible(false));
+            run(hideDelay, () -> progressL.setVisible(false));
         });
         // display progress & hide on end
         progressL.setVisible(true);

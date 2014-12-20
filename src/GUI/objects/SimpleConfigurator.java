@@ -72,7 +72,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
             throw new RuntimeException("SimpleConfiguratorComponent source data coudlnt be read.");
         }
         
-        fieldsPane.setMaxHeight(Screen.getMainScreen().getVisibleHeight()*0.8);
+        fieldsPane.setMaxHeight(Screen.getMainScreen().getVisibleHeight()*0.7);
         anchor = AnchorPane.getBottomAnchor(fieldsPane);
         setOkbVisible(on_OK!=null);
         

@@ -43,13 +43,15 @@ import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import org.reactfx.Subscription;
 import org.reactfx.util.Tuples;
-import util.FxTimer;
 import util.Util;
+import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
 import static util.Util.consumeOnSecondaryButton;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
+import static util.async.Async.run;
 
 /**
  *
@@ -106,14 +108,16 @@ public class LibraryViewController extends FXMLController {
         List<MetadataGroup> result = DB.getAllGroups(v);
         // reconstruct columns
         if (table.getColumns().size() <= 1) {
-            for(MetadataGroup.Field field : MetadataGroup.Field.values()) {
-                String name = field.toString(v);
+            for(MetadataGroup.Field f : MetadataGroup.Field.values()) {
+                String name = f.toString(v);
                 TableColumn<MetadataGroup,Object> c = new TableColumn(name);
                 c.setCellValueFactory( cf -> {
                     if(cf.getValue()==null) return null;
-                    return new ReadOnlyObjectWrapper(cf.getValue().getField(field));
+                    return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
                 });
-                c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(field.getType(v)));
+                Callback cellfactory = f==f.VALUE ? DEFAULT_ALIGNED_CELL_FACTORY(f.getType(v),"<none>")
+                                                  : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(v), null);
+                c.setCellFactory(cellfactory);
                 table.getColumns().add(c);
             }
         }
@@ -123,7 +127,7 @@ public class LibraryViewController extends FXMLController {
 //        // unfortunately the table cells dont get updated for some reason, resizing
 //        // table or column manually with cursor will do the job, so we invoke that
 //        // action programmatically, with a delay (or it wont work)
-        FxTimer.run(100, ()->{
+        run(100, ()->{
             TableColumn c = table.getColumns().get(table.getColumns().size()-1);
             table.columnResizePolicyProperty().get().call(new TableView.ResizeFeatures(table, c, c.getWidth()));
         });

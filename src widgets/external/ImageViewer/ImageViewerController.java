@@ -23,6 +23,7 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -44,10 +45,10 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import util.FxTimer;
 import util.Parser.File.FileUtil;
 import util.Util;
 import util.access.Accessor;
+import util.async.FxTimer;
 import static util.functional.FunctUtil.forEachIndexedStream;
 
 /**
@@ -92,7 +93,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private final List<Thumbnail> thumbnails = new ArrayList();
     private boolean image_reading_lock = false;
     // eager initialized state
-    private FxTimer slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
+    private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Subscription dataMonitoring;
     private Metadata data;
     

@@ -2,7 +2,6 @@
 package Layout.Widgets;
 
 import Configuration.CompositeConfigurable;
-import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
@@ -249,15 +248,12 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public void rememberConfigs() {
         if(controller != null) {
             configs = new HashMap();
-            getFields().forEach((Config c) -> 
-                configs.put(c.getName(), c.getValueS())
-            );
+            getFields().forEach(c -> configs.put(c.getName(), c.getValueS()));
         }
     }
     public void restoreConfigs() {
         if(configs != null) {
-            configs.forEach((String nam,String value) -> this.setField(nam, value));
-//            configs.forEach(this::setField);
+            configs.forEach(this::setField);
             configs = null;
         }
     }

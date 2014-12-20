@@ -41,11 +41,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
-import util.FxTimer;
 import util.Parser.ParserImpl.FileParser;
 import util.Parser.ParserImpl.FontParser;
 import util.Password;
 import util.Util;
+import static util.async.Async.run;
 import static util.functional.FunctUtil.cmpareBy;
 
 /**
@@ -77,7 +77,7 @@ abstract public class ConfigField<T> {
         // display default button when hovered for certain time
         box.addEventFilter(MOUSE_ENTERED, e -> {
             // wait delay
-            FxTimer.run(270, () -> {
+            run(270, () -> {
                 // no need to do anything if hover ended
                 if(box.isHover()) {
                     // lazily build the button when requested
@@ -352,7 +352,7 @@ abstract public class ConfigField<T> {
                 } else {
                     // the timer solves a little bug where the focus shift from
                     // txtF to okB has a delay which we need to jump over
-                    FxTimer.run(Duration.millis(80), () -> {
+                    run(80, () -> {
                         if(!okBL.isFocused() && !okB.isFocused()) {
                             txtF.setText("");
                             showOkButton(false);

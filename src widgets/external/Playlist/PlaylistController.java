@@ -11,6 +11,8 @@ import Configuration.ValueConfig;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Table.PlaylistTable;
+import GUI.objects.Table.TableIInfo;
+import static GUI.objects.Table.TableIInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -126,9 +128,15 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         root.getChildren().setAll(table.getRoot(),optionPane);
         VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
         
+        // information label
+        TableIInfo<PlaylistItem> infoL = new TableIInfo(duration, table);
+        infoL.textFactory = (all, list) -> {
+            double d = list.stream().mapToDouble(PlaylistItem::getTimeInMs).sum();
+            return DEFAULT_TEXT_FACTORY.call(all, list) + " - " + new FormattedDuration(d);
+        };
+        
         // for now...  either get rid of PM and allow multiple playlists OR allow binding
         PlaylistManager.getItems().addListener(playlistitemsL);
-        table.getItems().addListener((ListChangeListener.Change<?> c) -> updateLength());
         
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
@@ -168,7 +176,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         orig_index.applyValue();
         filter_for_playback.applyValue();
         table.setItemsRaw(PlaylistManager.getItems());
-        updateLength();
     }
     
     @FXML public void chooseFiles() {
@@ -282,11 +289,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     }
     
 /***************************** HELPER METHODS *********************************/
-    
-    private void updateLength() {
-        double d = table.getItems().stream().mapToDouble(PlaylistItem::getTimeInMs).sum();
-        duration.setText(table.getItems().size() + " items: " + new FormattedDuration(d));
-    }
     
     private void setUseFilterForPlayback(boolean v) {
         if(v) {

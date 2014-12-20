@@ -13,13 +13,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.application.Platform;
 import javafx.util.Callback;
 
 /**
@@ -28,11 +26,11 @@ import javafx.util.Callback;
  */
 public class FunctUtil {
     
-    /** Predicate returning true if object is null. */
-    public static final Predicate<Object> isNotNULL = Objects::isNull;
-    
     /** Predicate returning true if object is not null. */
-    public static final Predicate<Object> isNULL = Objects::nonNull;
+    public static final Predicate<Object> isNotNULL = Objects::nonNull;
+    
+    /** Predicate returning true if object is null. */
+    public static final Predicate<Object> isNULL = Objects::isNull;
     
     /** Predicate returning true.*/
     public static final Predicate<Object> isTRUE = o -> true;
@@ -88,13 +86,6 @@ public class FunctUtil {
         return (a,b) -> toStringConverter.call(a).compareToIgnoreCase(toStringConverter.call(b));
     }
     
-    
-    /** Transforms Runnable into Runnable that executes on FxApplication Thread.
-     *  Declared as r -> () -> Platform.runLater(r); */
-    public static final Function<Runnable,Runnable> fxRunnableMapper = r -> () -> Platform.runLater(r);
-    /** Function transforming executor into function transforming runnable into 
-     * runnable that executes the runnable with provided executor */
-    public static final Function<Consumer<Runnable>,Function<Runnable,Runnable>> executionWrapper = executor -> r -> () -> executor.accept(r);
     
     
     

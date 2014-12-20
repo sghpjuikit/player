@@ -101,8 +101,9 @@ import static javafx.stage.StageStyle.UTILITY;
 import main.App;
 import org.reactfx.Subscription;
 import util.Log;
-import util.Parser.File.Enviroment;
+import static util.Parser.File.Enviroment.browse;
 import util.Util;
+import static util.Util.createIcon;
 import util.access.Accessor;
 
 /**
@@ -579,22 +580,22 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
        
        // github button - show all available FontAwesome icons in a popup
-        Label gitB = Util.createIcon(GITHUB,13,"Open github project page for this application",
-                e -> Enviroment.browse(App.getGithubLink()));
+        Label gitB = createIcon(GITHUB,13,"Open github project page for this application",
+                e -> browse(App.getGithubLink()));
        // github button - show all available FontAwesome icons in a popup
-        Label dirB = Util.createIcon(CSS3,13,"Open application location (development tool)",
-                e -> Enviroment.browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
+        Label dirB = createIcon(CSS3,13,"Open application location (development tool)",
+                e -> browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
        // css button - show all available FontAwesome icons in a popup
-        Label cssB = Util.createIcon(FOLDER,13,"Open css guide",
-                e -> Enviroment.browse(App.getLocation().toURI()));
+        Label cssB = createIcon(FOLDER,13,"Open css guide",
+                e -> browse(App.getLocation().toURI()));
        // icon button - show all available FontAwesome icons in a popup
-        Label iconsB = Util.createIcon(IMAGE,13,"Icon browser (development tool)",null);
+        Label iconsB = createIcon(IMAGE,13,"Icon browser (development tool)",null);
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
         // settings button - show application settings in a popup
-        Label propB = Util.createIcon(GEARS,13,"Application settings",
+        Label propB = createIcon(GEARS,13,"Application settings",
                 e ->  WidgetManager.find(ConfiguringFeature.class,WidgetSource.NOLAYOUT));
         // manage layout button - sho layout manager in a popp
-        Label layB = Util.createIcon(COLUMNS,13,"Manage layouts", 
+        Label layB = createIcon(COLUMNS,13,"Manage layouts", 
                 e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
         // lasFm button - show basic lastFm settings and toggle scrobbling on/off 
               // create graphics once
@@ -629,7 +630,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   }
               });
         // lock layout button
-        Label lockB = Util.createIcon(GUI.isLayoutLocked() ? UNLOCK : LOCK,13, 
+        Label lockB = createIcon(GUI.isLayoutLocked() ? UNLOCK : LOCK,13, 
                 GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout", null);
               lockB.setOnMouseClicked( e -> {
                   GUI.toggleLayoutLocked();
@@ -640,7 +641,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             // initialize proper icon
         GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? UNLOCK : LOCK, "11"));
         // help button - show hel information
-        Label helpB = Util.createIcon(INFO,13,"Help",null);
+        Label helpB = createIcon(INFO,13,"Help",null);
               helpB.setOnMouseClicked( e -> {
                   PopOver<Text> helpP = PopOver.createHelpPopOver(
                       "Available actions:\n" +
@@ -660,8 +661,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   Action.actionStream.push("Layout info popup");
                 });
         // guide button - sho layout manager in a popp
-        Label guideB = Util.createIcon(GRADUATION_CAP,13,"Resume or start the guide",
-                e -> {
+        Label guideB = createIcon(GRADUATION_CAP,13,"Resume or start the guide", e -> {
                    App.guide.resume();
                    Action.actionStream.push("Guide resumed");
               });

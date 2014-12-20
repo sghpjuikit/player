@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -391,7 +390,7 @@ public interface Util {
     
     /**
      * Creates column that indexes rows from 1 and is right aligned. The column 
-     * is general and doesnt need to know what kind of data is in the table.
+     * is of type Void - table data type agnostic.
      * @param name name of the column. For example "#"
      * @return the column
      */
@@ -407,12 +406,48 @@ public interface Util {
                 @Override
                 protected void updateItem(Void item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty) setText("");
+                    if (empty) setText(null);
                     else setText(String.valueOf(getIndex()+1)+ ".");
                 }
             }
         );
         return indexColumn;
+    }
+    
+    /**
+     * Creates default cell factory, which sets cell text to provided text when 
+     * cells text equals "". This is to differentiate between empty cell and nonempty
+     * cell with 'empty' value.
+     * For example: '<empty cell>'
+     * @param empty_value
+     * @return 
+     */
+    public static Callback<TableColumn<?,?>, TableCell<?,?>> EMPTY_TEXT_DEFAULT_CELL_FACTORY(String empty_value) { 
+       return new Callback<TableColumn<?,?>, TableCell<?,?>>() {
+            @Override public TableCell<?,?> call(TableColumn<?,?> param) {
+                return new TableCell<Object,Object>() {
+                    @Override protected void updateItem(Object item, boolean empty) {
+                        if (item == getItem()) return;
+
+                        super.updateItem(item, empty);
+
+                        if (item == null) {
+                            super.setText(null);
+                            super.setGraphic(null);
+                        } else if ("".equals(item)) {
+                            super.setText(empty_value);
+                            super.setGraphic(null);
+                        } else if (item instanceof Node) {
+                            super.setText(null);
+                            super.setGraphic((Node)item);
+                        } else {
+                            super.setText(item.toString());
+                            super.setGraphic(null);
+                        }
+                    }
+                };
+            }
+        };
     }
     
     /**
@@ -425,13 +460,9 @@ public interface Util {
      * 
      * @param type for cell content.
      */
-    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Class<O> type) {
+    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Class<O> type, String no_val_text) {
         Pos al = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-        return column -> {
-            TableCell cell = TableColumn.DEFAULT_CELL_FACTORY.call(column);
-                      cell.setAlignment(al);
-            return cell;
-        };
+        return DEFAULT_ALIGNED_CELL_FACTORY(al, no_val_text);
     }
     
     /**
@@ -439,13 +470,13 @@ public interface Util {
      * when no factory is specified), aligning the cell content to specified value.
      * <p>
      * The factory will need to be cast if it its generic types are declared.
-     * @param cell_alignment
+     * @param a cell alignment
      * @return 
      */
-    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Pos cell_alignment) {
+    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Pos a, String no_val_text) {
         return column -> {
-            TableCell cell = TableColumn.DEFAULT_CELL_FACTORY.call(column);
-                      cell.setAlignment(cell_alignment);
+            TableCell cell = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text).call(column);
+                      cell.setAlignment(a);
             return cell;
         };
     }
@@ -599,50 +630,6 @@ public interface Util {
      */
     public static Class getGenericInterface(Class c, int i, int p) {
         return (Class) ((ParameterizedType) c.getGenericInterfaces()[i]).getActualTypeArguments()[p];
-    }
-    
-/******************************** THREADING ***********************************/
-    
-    /**
-     * Executes given task immediately on a new thread. Task is returned to
-     * support monitoring.
-     * @param <T>
-     * @param task
-     * @return the task
-     */
-    public static<T> Task<T> executeTask(Task<T> task) {
-        Thread thread = new Thread(task);
-        thread.setDaemon(true);
-        thread.start();
-        return task;
-    }
-    
-    /**
-     * Executes the Runnable immediately on ne thread as new Task and returns it.
-     * @param <Void>
-     * @param r
-     * @return task
-     */
-    public static<Void> Task<Void> executeAsTask(Runnable r) {
-        Task<Void> t = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                r.run();
-                return null;
-            }
-        };
-        executeTask(t);
-        return t;
-    }
-    
-    /**
-     * Executes the Runnable immediately on a new Thread.
-     * @param r 
-     */
-    public static void execute(Runnable r) {
-        Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        thread.start();
     }
 
 }

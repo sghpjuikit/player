@@ -39,8 +39,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
-import util.FxTimer;
 import util.Log;
+import static util.async.Async.run;
+import util.async.FxTimer;
 
 /**
  * 
@@ -108,7 +109,7 @@ public final class Seeker extends AnchorPane {
         position.setOnMouseReleased( e -> {
             if(e.getButton()==PRIMARY) {
                 PLAYBACK.seek(position.getValue());
-                FxTimer.run(100, () -> canUpdate = true);
+                run(100, () -> canUpdate = true);
             }
         });
         
@@ -131,12 +132,12 @@ public final class Seeker extends AnchorPane {
             addB.l.setDisable(!Player.playingtem.get().isFileBased());
         });
         position.addEventFilter(MOUSE_EXITED, e -> 
-            FxTimer.run(300, () -> {
+            run(300, () -> {
                 if(!addB.l.isHover() && !position.isHover()) 
                     addB.hide();
         }));
         addB.l.addEventHandler(MOUSE_EXITED, e ->
-            FxTimer.run(150, () -> {
+            run(150, () -> {
                  if(!addB.l.isHover() && !position.isHover()) 
                     addB.hide();
         }));
@@ -479,7 +480,7 @@ public final class Seeker extends AnchorPane {
         }
         
         private boolean can_hide = true;
-        private FxTimer delayerCloser = FxTimer.create(Duration.millis(200), ()->{
+        private FxTimer delayerCloser = new FxTimer(200, 1, ()->{
             if(can_hide) p.hideStrong();
             can_hide = true;
         });

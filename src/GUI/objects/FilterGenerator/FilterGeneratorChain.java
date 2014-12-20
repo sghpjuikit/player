@@ -138,12 +138,10 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         return g;
     }
     
-    private void generatePredicate() {
-        conjuction = o -> true;
-        if(!isEmpty())
-            for(FilterGenerator<F> g : generators)
-                if(!g.isEmpty()) 
-                    conjuction=conjuction.and(converter.apply(g.val,g.predicate));
+    private void generatePredicate() {        
+        conjuction = generators.stream()
+                               .map(g->converter.apply(g.val,g.predicate))
+                               .reduce(o->true, Predicate::and);
         
         if(onFilterChange!=null) onFilterChange.accept(conjuction);
     }

@@ -8,6 +8,7 @@ import GUI.Window;
 import Layout.Layout;
 import java.util.HashMap;
 import java.util.Map;
+import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Parent;
@@ -20,8 +21,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import util.FxTimer;
 import util.Util;
+import util.async.FxTimer;
 
 /**
  * Pane with switchable content.
@@ -229,7 +230,7 @@ public class SwitchPane implements LayoutAggregator {
     
     private double lastX = 0;
     private double nowX = 0;
-    FxTimer measurePulser = FxTimer.createPeriodic(Duration.millis(100), () -> {
+    FxTimer measurePulser = new FxTimer(100, INDEFINITE, () -> {
         lastX = nowX;
         nowX = ui.getTranslateX();
     });

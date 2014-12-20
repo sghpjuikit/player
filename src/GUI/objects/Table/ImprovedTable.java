@@ -12,8 +12,8 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.util.Callback;
-import util.FxTimer;
 import util.Util;
+import static util.async.Async.run;
 
 /**
  *
@@ -35,7 +35,7 @@ public class ImprovedTable<T> extends TableView<T> {
         ListChangeListener<T> refresher = o -> {
             // unfortunately this doesnt work, it requires delay
             // table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
-            FxTimer.run(100, () -> getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d)));
+            run(100, () -> getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d)));
         };
         itemsProperty().addListener((o,ov,nv) -> {
             ov.removeListener(refresher);

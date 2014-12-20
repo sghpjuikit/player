@@ -30,8 +30,8 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
-import util.FxTimer;
 import util.Parser.File.FileUtil;
+import static util.async.Async.run;
 
 
 /**
@@ -182,7 +182,7 @@ public class App extends Application {
         guide = new Guide();
         if(showGuide) {
             showGuide = false;
-            FxTimer.run(2222, () -> guide.start());
+            run(2222, () -> guide.start());
         }
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?

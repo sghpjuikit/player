@@ -30,13 +30,13 @@ import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
-import javafx.util.Duration;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
-import util.FxTimer;
 import util.Log;
 import util.access.Accessor;
+import util.async.FxTimer;
+import static util.functional.FunctUtil.do_NOTHING;
 
 /**
  * Encapsulates application behavior.
@@ -57,6 +57,9 @@ import util.access.Accessor;
  */
 @IsConfigurable
 public final class Action extends Config<Action> implements Runnable {
+    
+    /** Action that does nothing. Use where null inappropriate. */
+    public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", false, false);
     
     private final String name;
     private final Runnable action;
@@ -552,6 +555,7 @@ public final class Action extends Config<Action> implements Runnable {
         
         // discover all actions
         Map<Integer,Action> acts = new HashMap();
+                            acts.put(EMPTY.getID(), EMPTY);
         Lookup method_lookup = MethodHandles.lookup();
         for (Class<?> man : cs) {
             for (Method m : man.getDeclaredMethods()) {
@@ -590,7 +594,7 @@ public final class Action extends Config<Action> implements Runnable {
 /************************ shortcut helper methods *****************************/
 
     // lock
-     private static FxTimer locker = FxTimer.create(Duration.millis(80), () -> lock = -1);
+     private static FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
 //    private static final FxTimer locker = FxTimer.create(Duration.millis(500), Action::unlock);
     private static int lock = -1;
 //    private static void unlock() {System.out.println(System.currentTimeMillis() +" unlocking");

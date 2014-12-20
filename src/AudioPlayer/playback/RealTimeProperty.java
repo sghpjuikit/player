@@ -3,12 +3,13 @@ package AudioPlayer.playback;
 
 import java.util.ArrayList;
 import java.util.List;
+import static javafx.animation.Animation.INDEFINITE;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
-import util.FxTimer;
+import util.async.FxTimer;
 
 /**
  *
@@ -151,10 +152,11 @@ public final class RealTimeProperty {
     private boolean invalidated = false;
     private final InvalidationListener eventInvalidator = o -> invalidated = true;
     private final Runnable eventExecutor = () -> handlers.forEach(DurationHandler::handle);
-    private final FxTimer eventDistributorPulse = FxTimer.createPeriodic(Duration.millis(500), () -> {
+    private final Runnable pulseAction = () -> {
         if (invalidated) eventExecutor.run();
         invalidated = false;
-    });
+    };
+    private final FxTimer eventDistributorPulse = new FxTimer(500, INDEFINITE, pulseAction);
     
 
 }

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
@@ -17,7 +16,7 @@ import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
 import util.Log;
 import util.Parser.File.AudioFileFormat.Use;
-import static util.Util.executeTask;
+import static util.async.Async.run;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -96,7 +95,7 @@ public class MetadataReader{
             }
         };
         
-        return executeTask(task);
+        return run(task);
     }
 
     /**
@@ -175,7 +174,7 @@ public class MetadataReader{
             });
         });
 
-        return executeTask(task);
+        return run(task);
     }
 
     static private Metadata createNonFileBased(Item item){
@@ -267,7 +266,7 @@ public class MetadataReader{
             }
         };
         
-        return executeTask(task);
+        return run(task);
     }
     
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){                
@@ -322,16 +321,6 @@ public class MetadataReader{
             
         };
         
-        return executeTask(task);
-    }
-    
-    public static<R> Task<R> execute(String name, Supplier<R> action, BiConsumer<Boolean,R> onEnd) {
-        return executeTask(new SuccessTask(name, onEnd) {
-            @Override protected R call() throws Exception {
-                updateMessage(name + " ...");
-                return action.get();
-            }
-        });
-    }
-    
+        return run(task);
+    }    
 }

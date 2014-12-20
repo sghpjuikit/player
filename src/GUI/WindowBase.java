@@ -14,9 +14,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
 import main.App;
-import util.FxTimer;
+import static util.async.Async.run;
 
 /**
  * Customized Stage, window of the application.
@@ -61,7 +60,7 @@ public class WindowBase {
         // window is not yet ready. Delay execution. Avoid the whole process
         // when the value is not true
         if(FullProp.get())
-            FxTimer.run(Duration.millis(222), ()->setFullscreen(true));
+            run(222, ()->setFullscreen(true));
     }
     /**
      * WARNING: Dont use the stage for positioning, maximizing and other

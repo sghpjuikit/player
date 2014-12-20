@@ -13,9 +13,8 @@ import static AudioPlayer.tagging.Metadata.EMPTY;
 import AudioPlayer.tagging.MetadataReader;
 import java.util.List;
 import java.util.function.Consumer;
-import javafx.util.Duration;
 import org.reactfx.Subscription;
-import util.FxTimer;
+import util.async.FxTimer;
 import util.Log;
 import util.access.AccessibleStream;
 
@@ -39,7 +38,7 @@ final class Core {
         Metadata nextMetadataCache = EMPTY;
         AccessibleStream<Metadata> itemPlayedES = new AccessibleStream(EMPTY);
         AccessibleStream<Metadata> itemUpdatedES = new AccessibleStream(EMPTY);
-        private final FxTimer nextCachePreloader = FxTimer.create(Duration.millis(400), () -> preloadNext());
+        private final FxTimer nextCachePreloader = new FxTimer(400, 1, () -> preloadNext());
         
         /**
          * Returns the playing item and all its information.

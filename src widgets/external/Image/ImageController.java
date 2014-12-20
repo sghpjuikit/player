@@ -7,6 +7,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import java.io.File;
+import static javafx.animation.Animation.INDEFINITE;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -17,9 +18,9 @@ import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-import util.FxTimer;
 import util.Parser.File.ImageFileFormat;
 import util.access.Accessor;
+import util.async.FxTimer;
 
 /**
  * FXML Controller class
@@ -189,9 +190,9 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         nextImage();
         // create if needed
         if(slideshow==null)
-            slideshow = FxTimer.createPeriodic(Duration.ZERO,this::nextImage);
+            slideshow = new FxTimer(slideshow_dur.getValue(),INDEFINITE,this::nextImage);
         // start up
-        slideshow.restart(Duration.millis(slideshow_dur.getValue()));
+        slideshow.restart();
     }
     
     private void slideshowEnd() {

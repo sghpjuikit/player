@@ -10,7 +10,6 @@ import Layout.Container;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -29,8 +28,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import unused.SimplePositionable;
-import util.FxTimer;
 import util.TODO;
+import static util.async.Async.run;
+import static util.async.Async.runOnFX;
 
 /**
  * @author uranium
@@ -180,9 +180,9 @@ public final class Splitter implements ContainerNode {
                 } else {
                     double p = prop.getD("pos");
                     if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08)
-                        Platform.runLater(this::applyPos);
+                        runOnFX(this::applyPos);
                     else
-                        FxTimer.run(Duration.seconds(2),()->initialized=true);
+                        run(Duration.seconds(2),()->initialized=true);
                 }
             }
         });

@@ -40,19 +40,11 @@ import static util.functional.FunctUtil.isNotNULL;
 public final class Serializattion {
 
     
-    private void serialize(Layout o) {
-        File f = new File(App.LAYOUT_FOLDER(), o.getName() + ".l");
-        try {
-            XStream xstream = new XStream(new DomDriver());
-            xstream.autodetectAnnotations(true);
-            
-            // serialize widget properties as well
-            o.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
-            xstream.toXML(o, new BufferedWriter(new FileWriter(f)));
-        } catch (IOException ex) {
-            Log.err("Unable to save gui layout '" + o.getName() + "' into the file: " + f.toPath());
-        }
+    private void serialize(Layout l) {
+        File f = new File(App.LAYOUT_FOLDER(), l.getName() + ".l");
+        serialize(l, f);
     }
+    
     private Object deserialize(Class<Layout> type, File f) {
         try {
             XStream xstream = new XStream(new DomDriver());
@@ -80,8 +72,10 @@ public final class Serializattion {
             XStream xstream = new XStream(new DomDriver());
             xstream.autodetectAnnotations(true);
             
-            // serialize widget properties as well
-            l.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
+            // doont forget to serialize widget properties as well
+            l.getAllWidgets()
+                    .filter(isNotNULL)
+                    .forEach(Widget::rememberConfigs);
             xstream.toXML(l, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + l.getName() + "' into the file: " + f.toPath());

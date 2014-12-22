@@ -103,6 +103,19 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             return this==VALUE ? field.toStringEnum() : toStringEnum();
         }
         
+        public static Field valueOfEnumString(String s) {
+            if(ITEMS.toStringEnum().equals(s)) return ITEMS;
+            if(ALBUMS.toStringEnum().equals(s)) return ALBUMS;
+            if(LENGTH.toStringEnum().equals(s)) return LENGTH;
+            if(SIZE.toStringEnum().equals(s)) return SIZE;
+            else return VALUE;
+//            return Enum.valueOf(Field.class, s.toUpperCase().replace(" ", "_"));
+        }
+        public static Field valueOfEnumString(String s, Metadata.Field field) {
+            
+            return Enum.valueOf(Field.class, s.toUpperCase().replace(" ", "_"));
+        }
+        
         /** {@inheritDoc} */
         @Override
         public Class getType() {

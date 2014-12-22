@@ -44,7 +44,7 @@
 <Cursor fx:constant="NE_RESIZE" />
 </cursor>
 </Region>
-  <BorderPane fx:id="header" mouseTransparent="true" prefHeight="25.0" styleClass="block,header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+  <BorderPane fx:id="header" prefHeight="25.0" styleClass="block,header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <opaqueInsets>
 <Insets />
 </opaqueInsets>

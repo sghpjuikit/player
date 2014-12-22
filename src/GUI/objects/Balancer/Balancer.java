@@ -53,7 +53,7 @@ public class Balancer extends Control {
     }
 
     /** {@inheritDoc} */
-    @Override protected String getUserAgentStylesheet() {
+    @Override public String getUserAgentStylesheet() {
         return getClass().getResource("balancer.css").toExternalForm();
     }
     

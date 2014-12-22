@@ -32,7 +32,7 @@ public interface FieldedValue<T, F extends FieldEnum<T>> {
      */
     default Map<F,Object> getFields() {
         Map<F,Object> m = new HashMap();
-        for(F f : getFIeldConstants())
+        for(F f : getFieldConstants())
             m.put(f, getField(f));
         return m;
     }
@@ -40,7 +40,7 @@ public interface FieldedValue<T, F extends FieldEnum<T>> {
     /**
      * @return all possible fields
      */
-    default List<F> getFIeldConstants() {
+    default List<F> getFieldConstants() {
         return Arrays.asList((F[]) getMainField().getClass().getEnumConstants());
     }
 }

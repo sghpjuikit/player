@@ -31,8 +31,8 @@ public class CascadingStream<E> {
     }
     
     public void push(int i, E event) {
+        link(i);
         AccessibleStream<E> s = map.get(i);
-        requireNonNull(s);
         s.push(event);
     }
     
@@ -59,6 +59,7 @@ public class CascadingStream<E> {
     }
     
     public E getValue(int i) {
+        link(i+1);
         AccessibleStream<E> s = map.get(i);
         requireNonNull(s);
         return s.getValue();

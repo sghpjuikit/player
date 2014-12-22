@@ -3,6 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- check, clean up, refactor, improve, widely adopt table state serialization
+- clean up library views + remove useless DB stuff & event streams
+- clean up Table & Collections packages
+- properly implement in-memory db, support CRUD
+- reduce memory footprint
+- javadoc new code
+
 - popover position jumps when drag starts
 - interrupt reading if double reading
 - support 'infos' - custom tagged extended comments like chapters - figure out
@@ -21,9 +28,6 @@
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
 - press C to collapse layout containers easily - implement properly
-- support multiple values in AND filtering for query
-  well, now that FilterGenerator is running, does filtering through DB even
-  make sense?
 - library shortcuts
 - writing to tag for files without tag fails sometimes (jaudiotagger cant rename
   file, it looks like it is locked) - perhaps generalizes to any change of tag
@@ -35,10 +39,10 @@
 - preferred widget factories use map and implement setPreferred, enforce 1max, make config accessible via gui
 - ConfigFields enable input restriction (currently bugged)
 - fix returning from docked mode exception
-- clean up Enviroment
+- clean up Environment + more robust
 - explorer graphics support css skinning
 - full sorting suport for FilteredTable -> make API
-- enums with class bodies deserialistion parsing problems
+- enums with class bodies deserialistion parsing problems                       (?)
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------
@@ -96,10 +100,11 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- library table cells sometimes invisible - not updated                         (medium)
+- library table cells sometimes invisible - not updated                         (medium, javaFX bug?)
   mostly solved, but sometimes table is indeed empty
-  also initial scrolling reveals that rows are not created yet, which breaks the
-  scroll
+  also 
+- initial table scroll reveals that rows are not created yet and the scroll     (medium, javaFX bug?)
+  jumps to end of table prematurely
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
@@ -149,7 +154,7 @@ SOLVED (but the underlying cause still deserves attention)
   to true with a 100ms delay.
 
 PROBLEMS
-- fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but invasive misbehavior)
+- fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but dangerous)
   factory available - also instantiatingController should never return null in
   fxmlFactory
 - get rid of layout aggregators
@@ -162,7 +167,7 @@ PROBLEMS
 
 CLEANUP
 - Serializator and serialization classes clean up
-- clean window code and centralize it in one place
+- clean window code
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them

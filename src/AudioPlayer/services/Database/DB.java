@@ -18,18 +18,15 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static javafx.application.Platform.runLater;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import main.App;
-import org.reactfx.BiEventSource;
 import org.reactfx.EventSource;
 import util.access.AccessibleStream;
 import util.access.Accessor;
 import util.access.CascadingStream;
-import static util.async.Async.run;
 
 /**
  *
@@ -224,31 +221,7 @@ public class DB {
      * Fires on every remove, update, insert operation on the database.
      */
     public static final EventSource<Void> librarychange = new EventSource();
-    
-    /**
-    * Fires on every library view field change. The event indicates for library to
-    * refresh items it displays according to the new field as a filter.
-    * <p>
-    * A widget serving a role of a library view can push new value into this
-    * event source to emit new event.
-    * <p>
-    * A library widget can monitor this stream instead of {@link #librarychange}
-    */
-    public static final BiEventSource<Metadata.Field,Object> fieldSelectionChange = new BiEventSource();
-    public static final EventSource<List<Metadata>> filteredItemsEvent = new EventSource<>();
-//            fieldSelectionChange.map((metaField,value) -> getAllItemsWhere(metaField, value));
-    public static Map<Integer,String> filterFields = new HashMap();
-            
-    static {
-        fieldSelectionChange.subscribe((metaField,value)->{
-            run(()->{
-                List<Metadata> items = getAllItemsWhere(metaField, value);
-                runLater(()->filteredItemsEvent.push(items));
-                // performance testing - even this still causes GUI lag
-                // runLater(()->filteredItemsEvent.push(getAllItems()));
-            });
-        });
-    }
+
     
     public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
 }

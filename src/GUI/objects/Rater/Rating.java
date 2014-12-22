@@ -208,7 +208,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     }
 
     /** {@inheritDoc} */
-    @Override protected String getUserAgentStylesheet() {
+    @Override public String getUserAgentStylesheet() {
         if (skinIndexProperty().get()==-1) return super.getUserAgentStylesheet();
         else return getSkins().get(skinIndexProperty().get());
     }    

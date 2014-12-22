@@ -63,5 +63,8 @@ public final class TableInfo<E> {
         boolean isAll = selected.isEmpty();
         List<E> l = isAll ? all : selected;
         node.setText(textFactory.apply(isAll,l));
+        
+        // if bugs appear avoid using original list by copying it
+//        node.setText(textFactory.apply(isAll,new ArrayList(l)));
     }
 }

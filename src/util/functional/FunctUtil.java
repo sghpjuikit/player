@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -19,6 +20,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.util.Callback;
+import org.reactfx.util.Tuple2;
+import org.reactfx.util.Tuples;
 
 /**
  *
@@ -42,7 +45,7 @@ public class FunctUtil {
     public static final Runnable do_NOTHING = () -> {};
     
     /** Function transforming object into its string representation by invoking its toString() method*/
-    public static final Function<Object,String> toString = Objects::toString;
+    public static final Function<?,String> toString = Object::toString;
     
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      *  by delimiter ", ". */
@@ -93,7 +96,7 @@ public class FunctUtil {
         return col.stream().map(mapper).collect(Collectors.toList());
     }
     
-    public static<T,E> List<T> mapToList(Stream<E> s, Function<E,T> mapper) {
+    public static<T,E> List<T> mapStoList(Stream<E> s, Function<E,T> mapper) {
         return s.map(mapper).collect(Collectors.toList());
     }
     
@@ -131,7 +134,7 @@ public class FunctUtil {
         return col.values().stream().flatMap(mapper).collect(Collectors.toList());
     }
     
-/************************** collection -> list<String> ************************/
+/***************************** collection -> object ***************************/
     
     /**
      * Converts collection to string, joining string representations of the
@@ -154,6 +157,16 @@ public class FunctUtil {
     public static<T> String toString(Collection<T> c) {
         return toString(c, Object::toString);
     }
+    
+    public static<E> E findOrDie(Collection<E> c, Predicate<E> filter) {
+        for(E i : c) if(filter.test(i)) return i;
+        throw new RuntimeException("Collection does not have the element.");
+    }
+    public static<E> Optional<E> find(Collection<E> c, Predicate<E> filter) {
+        for(E i : c) if(filter.test(i)) return Optional.of(i);
+        return Optional.empty();
+    }
+    
 /****************************** indexed forEach *******************************/
     
     /**
@@ -220,6 +233,16 @@ public class FunctUtil {
         for(T item : c) {
             b.accept(mapper.apply(i, item));
             i = operation.apply(i);
+        }
+        return b.build();
+    }
+    
+    public static<T> Stream<Tuple2<Integer,T>> toIndexedStream(Collection<T> c) {
+        int i=0;
+        Stream.Builder<Tuple2<Integer,T>> b = Stream.builder();
+        for(T item : c) {
+            b.accept(Tuples.t(i, item));
+            i++;
         }
         return b.build();
     }

@@ -359,7 +359,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         root.addEventHandler(MOUSE_RELEASED, this::appDragEnd);
         
         // header double click maximize, show header on/off
-        header.setOnMouseClicked( e -> {
+        root.setOnMouseClicked(e -> {
             if(e.getButton()==MouseButton.PRIMARY) {
                 if(e.getClickCount()==2)
                     toggleMaximize();
@@ -540,7 +540,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     
     private void showHeader(boolean val) {
-        
         controls.setVisible(val);
         leftHeaderBox.setVisible(val);
         if(val) {
@@ -579,16 +578,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         leftHeaderBox.getChildren().remove(iconI);
 //       if(img!=null)leftHeaderBox.getChildren().add(0, iconI);
        
-       // github button - show all available FontAwesome icons in a popup
+        // github button - show all available FontAwesome icons in a popup
         Label gitB = createIcon(GITHUB,13,"Open github project page for this application",
                 e -> browse(App.getGithubLink()));
-       // github button - show all available FontAwesome icons in a popup
+        // github button - show all available FontAwesome icons in a popup
         Label dirB = createIcon(CSS3,13,"Open application location (development tool)",
                 e -> browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
-       // css button - show all available FontAwesome icons in a popup
+        // css button - show all available FontAwesome icons in a popup
         Label cssB = createIcon(FOLDER,13,"Open css guide",
                 e -> browse(App.getLocation().toURI()));
-       // icon button - show all available FontAwesome icons in a popup
+        // icon button - show all available FontAwesome icons in a popup
         Label iconsB = createIcon(IMAGE,13,"Icon browser (development tool)",null);
               iconsB.setOnMouseClicked( e -> new PopOver(new IconsBrowser()).show(iconsB));
         // settings button - show application settings in a popup

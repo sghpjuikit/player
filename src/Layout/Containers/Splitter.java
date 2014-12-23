@@ -29,6 +29,8 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import unused.SimplePositionable;
 import util.TODO;
+import static util.TODO.Purpose.UNIMPLEMENTED;
+import static util.TODO.Severity.MEDIUM;
 import static util.async.Async.run;
 import static util.async.Async.runOnFX;
 
@@ -36,7 +38,8 @@ import static util.async.Async.runOnFX;
  * @author uranium
  *
  */
-@TODO("resizing when collapsed slow response & boilerplate code")
+@TODO(purpose = UNIMPLEMENTED, severity = MEDIUM,
+      note = "resizing when collapsed slow response & boilerplate code")
 public final class Splitter implements ContainerNode {
     
     AnchorPane root = new AnchorPane();

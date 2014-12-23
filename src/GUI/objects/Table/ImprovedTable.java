@@ -5,6 +5,7 @@
  */
 package GUI.objects.Table;
 
+import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ListChangeListener;
 import javafx.geometry.Pos;
@@ -41,8 +42,6 @@ public class ImprovedTable<T> extends TableView<T> {
             ov.removeListener(refresher);
             nv.addListener(refresher);
         });
-        
-        
     }
     
     /** Set visibility of columns header. Default true. */
@@ -51,12 +50,14 @@ public class ImprovedTable<T> extends TableView<T> {
         else    getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
     }
     
+    /** Returns selected items. */
     public List<T> getSelectedItems() {
         return getSelectionModel().getSelectedItems();
     }
     
+    /** Returns copy of selected items (to prevent modification). */
     public List<T> getSelectedItemsCopy() {
-        return Util.copySelectedItems(this);
+        return new ArrayList(getSelectionModel().getSelectedItems());
     }
     
     /** Will add zeros to index numbers to maintain length consistency. */
@@ -70,12 +71,23 @@ public class ImprovedTable<T> extends TableView<T> {
         return zero_pad;
     }
     
+    /** Refreshes given column. */
     public void refreshColumn(TableColumn c) {
         Callback cf = c.getCellFactory();
-        c.setCellFactory(null);
+        // c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
+        c.setCellFactory( column->new TableCell());     // use this
         c.setCellFactory(cf);
     }
     
+    /** Builds index column. */
+    public TableColumn<T,Void> buildIndexColumn() {
+        TableColumn<T,Void> c = new TableColumn("#");
+                            c.setCellFactory(buildIndexColumnCellFactory());
+                            c.setSortable(false);
+        return c;
+    }
+    
+    /** Builds index column cell factory. Called only once. */
     protected Callback<TableColumn<T,Void>, TableCell<T,Void>> buildIndexColumnCellFactory() {
         return (column -> new TableCell<T,Void>() {
             { 
@@ -84,7 +96,7 @@ public class ImprovedTable<T> extends TableView<T> {
             @Override protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) {
-                    setText("");
+                    setText(null);
                 } else {
                     int i = 1+getIndex();
                     setText((zero_pad ? Util.zeroPad(i, getItems().size(),'0') : i) + ".");

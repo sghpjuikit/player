@@ -57,12 +57,24 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         return albums;
     }
     
+    /** @return the length */
     public FormattedDuration getLength() {
         return new FormattedDuration(length);
     }
     
-    public FileSize getTotalFileSize() {
+    /** @return the length in milliseconds */
+    public double getLengthInMs() {
+        return length;
+    }
+    
+    /** get total file size */
+    public FileSize getFileSize() {
         return new FileSize(size);
+    }
+    
+    /** {@link getFilesize()} in bytes */
+    public long getFileSizeInB() {
+        return size;
     }
     
     /** {@inheritDoc} */
@@ -73,17 +85,26 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             case ITEMS : return getItemCount(); 
             case ALBUMS : return getAlbumCount(); 
             case LENGTH : return getLength(); 
-            case SIZE : return getTotalFileSize();
+            case SIZE : return getFileSize();
         }
         throw new AssertionError();
     }
 
     /** {@inheritDoc} */
     @Override
-    public Field getMainField() { return Field.VALUE; }
+    public Field getMainField() { 
+        return Field.VALUE;
+    }
     
     public Predicate<Metadata> toMetadataPredicate() {
         return m->m.getField(getField()).equals(getValue());
+    }
+
+    @Override
+    public String toString() {
+        return getField() + ": " + getValue() + ", items: " + getItemCount() + 
+                ", albums: " + getAlbumCount() + ", length: " + getLength() + 
+                ", size: " + getFileSize();
     }
     
 /***************************** COMPANION CLASS ********************************/
@@ -94,7 +115,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         ALBUMS,
         LENGTH,
         SIZE;
-        
+                
         public String toString(MetadataGroup group) {
             return this==VALUE ? group.getField().toStringEnum() : toStringEnum();
         }

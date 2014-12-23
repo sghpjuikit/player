@@ -5,15 +5,16 @@
  */
 package GUI.objects.FilterGenerator;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
 import javafx.collections.transformation.FilteredList;
 import org.reactfx.util.Tuple3;
 import org.reactfx.util.Tuples;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.filtering.Predicates;
+import static util.functional.FunctUtil.cmpareBy;
 
 /**
  *
@@ -35,9 +36,11 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
             setPrefTypeSupplier(() -> Tuples.t(prefFilterType.toStringEnum(), prefFilterType.getType(), prefFilterType));
             if(prefFilterType instanceof Enum) {
                 F[] es = (F[]) prefFilterType.getClass().getEnumConstants();
-                List<Tuple3<String,Class,F>> data = Arrays.asList(es).stream()
+                List<Tuple3<String,Class,F>> data = Stream.of(es)
+                    .filter(FieldEnum::isTypeStringRepresentable)
                     .map(mf->Tuples.t(mf.toStringEnum(),mf.getType(),mf))
-                    .collect(Collectors.toList());
+                    .sorted(cmpareBy(e->e._1))
+                    .collect(toList());
                 setData(data);
             } else
                 throw new IllegalArgumentException("Initial value - field type must be an enum");

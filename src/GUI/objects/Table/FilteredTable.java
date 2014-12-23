@@ -21,7 +21,7 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-import util.Util;
+import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 
@@ -31,7 +31,7 @@ import util.access.FieldValue.FieldedValue;
  *
  * @author Plutonium_
  */
-public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
+public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends FieldedTable<T,F> {
     
     private final ObservableList<T> allitems = FXCollections.observableArrayList();
     private final FilteredList<T> filtereditems = new FilteredList(allitems);
@@ -41,7 +41,9 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
     
     private boolean show_original_index;
     
-    public FilterableTable(F initialVal) {
+    public FilteredTable(F initialVal) {
+        super();
+        
         searchBox = new TableFilterGenerator(filtereditems, initialVal);
         
         setItems(sortedItems);
@@ -79,30 +81,41 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
         });
     }
     
-    /**
-     * 
-     * @return 
-     */
+    /** @return the table filter */
     public TableFilterGenerator<T,F> getSearchBox() {
         return searchBox;
     }
     
-    /**
-     * 
-     * @return 
-     */
+    /** The root is a container for this table and the filter. Use the root instead
+     * of this table when attaching it to the scene graph.
+     * @return the root of this table */
     public VBox getRoot() {
         return root;
     }
     
+    /** Return the items assigned to this this table. Includes the filtered out items. 
+     * <p>
+     * This list can be modified, but it is recommended to use {@link #setItemsRaw(java.util.Collection)}
+     * to change the items in the table.
+     */
     public final ObservableList<T> getItemsRaw() {
         return allitems;
     }
     
+    /** Return the items assigned to this this table as sorted list. The sorted
+     *  list wraps the raw list. Use to apply sorting operations on the table. 
+     * <p>
+     * Do not modify the contents of this list.
+     */
     public final SortedList<T> getItemsSorted() {
         return sortedItems;
     }
     
+    /** Return the items assigned to this this table as filtered list. The filtered
+     *  list wraps the sorted list. Use to apply filtering operations on the table.
+     * <p>
+     * Do not modify the contents of this list. 
+     */
     public final FilteredList<T> getItemsFiltered() {
         return filtereditems;
     }
@@ -111,7 +124,7 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
      * Sets items to the table. If any filter is in effect, it will be aplied.
      * <p>
      * Do not use {@link #setItems(javafx.collections.ObservableList)} or 
-     * {@code getItems().setAll(new_items)} . It will cause the filters stop
+     * {@code getItems().setAll(new_items)} . It will cause the filters to stop
      * working. The first replaces the table item list (instance of {@link FilteredList}
      * which must not happen. The second would throw an exception as FilteredList
      * is not directly modifiable.
@@ -167,14 +180,24 @@ public class FilterableTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>
             { 
                 setAlignment(Pos.CENTER_RIGHT);
             }
-            @Override protected void updateItem(Void item, boolean empty) {
+            @Override 
+            protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setText("");
-                } else {
-                    int index = show_original_index ? filtereditems.getSourceIndex(getIndex()) : getIndex();
-                        index++;
-                    setText((zero_pad ? Util.zeroPad(index, allitems.size(),'0') : index) + ".");
+                if (empty)
+                    setText(null);
+                else {
+                    int j = getIndex();
+                    String txt;
+                    if(zero_pad) {
+                        int i = show_original_index ? filtereditems.getSourceIndex(j) : j;
+                            i++;
+                        int max = show_original_index ? allitems.size() : getItems().size();
+                            max++;
+                        txt = zeroPad(i, max, '0');
+                    } else
+                        txt = String.valueOf(j+1);
+                    
+                    setText( txt + ".");
                 }
             }
         });

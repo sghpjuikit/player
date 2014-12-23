@@ -327,17 +327,17 @@ public interface Util {
     /**
      * Creates zeropadded string - string of a number with '0' added in to
      * maintain consistency in number of length.
-     * @param a - to turn onto zeropadded string
-     * @param b - number to zeropad into
-     * @param ch - character to use. Notable characters are: ' ' or '0'
+     * @param n number to turn onto zeropadded string
+     * @param max number to zeropad to
+     * @param ch character to use. Notable characters are: ' ' or '0'
      * @return 
      */
-    public static String zeroPad(int a, int b, char ch) {
-        int diff = digits(b) - digits(a);
+    public static String zeroPad(int n, int max, char ch) {
+        int diff = digits(max) - digits(n);
         String out = "";
         for (int i=1; i<=diff; i++)
             out += ch;
-        return out + String.valueOf(a);
+        return out + String.valueOf(n);
     }
     
     /**
@@ -381,11 +381,11 @@ public interface Util {
      * we need a 'snapshot' of the selected items list at the moment and we dont
      * want that snapshot to mutate.
      * @param <T> type of element in the list
-     * @param table_source
+     * @param t
      * @return 
      */
-    public static<T> List<T> copySelectedItems(TableView<T> table_source) {
-        return new ArrayList(table_source.getSelectionModel().getSelectedItems());
+    public static<T> List<T> copySelectedItems(TableView<T> t) {
+        return new ArrayList(t.getSelectionModel().getSelectedItems());
     }
     
     /**

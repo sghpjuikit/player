@@ -19,7 +19,7 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.Table.FilterableTable;
+import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableInfo;
 import static GUI.objects.Table.TableInfo.DEFAULT_TEXT_FACTORY;
@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
@@ -81,6 +80,8 @@ import static util.Util.createmenuItem;
 import util.access.Accessor;
 import static util.async.Async.run;
 import static util.async.Async.runAsTask;
+import static util.functional.FunctUtil.list;
+import static util.functional.FunctUtil.listM;
 
 /**
  *
@@ -117,7 +118,7 @@ public class LibraryController extends FXMLController {
     private @FXML VBox content;
     private final Label progressL = new Label();
     private Subscription dbMonitor;
-    private final FilterableTable<Metadata,Metadata.Field> table = new FilterableTable(Metadata.EMPTY.getMainField());
+    private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -176,9 +177,7 @@ public class LibraryController extends FXMLController {
             if (e.getY()<table.getFixedCellSize()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2) {
-                    Playlist p = new Playlist(table.getItems().stream()
-                            .map(Metadata::toPlaylistItem)
-                            .collect(Collectors.toList()));
+                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylistItem));
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
             } else
@@ -191,9 +190,7 @@ public class LibraryController extends FXMLController {
         table.setOnKeyReleased( e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
                 if(!table.getSelectionModel().isEmpty()) {
-                    Playlist p = new Playlist(table.getItems().stream()
-                            .map(Metadata::toPlaylistItem)
-                            .collect(Collectors.toList()));
+                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylistItem));
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
             }
@@ -207,7 +204,7 @@ public class LibraryController extends FXMLController {
         table.setOnDragDetected( e -> {
             if (e.getButton() == PRIMARY && e.getY()>table.getFixedCellSize()) {
                 Dragboard db = table.startDragAndDrop(TransferMode.COPY);
-                DragUtil.setItemList(Util.copySelectedItems(table),db);
+                DragUtil.setItemList(table.getSelectedItemsCopy(),db);
                 e.consume();
             }
         });
@@ -313,13 +310,13 @@ public class LibraryController extends FXMLController {
         } else {
             files = Enviroment.chooseFiles("Add files to library", last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            File f=  getCommonRoot(files);
+            File f = getCommonRoot(files);
             if(f!=null) last_file=f;
         }
 
         if(files!=null) {
             Task ts = runAsTask("Discovering files",
-                    () -> FileUtil.getAudioFiles(files,Use.APP,6).stream().map(SimpleItem::new).collect(Collectors.toList()),
+                    () -> listM(FileUtil.getAudioFiles(files,Use.APP,6), SimpleItem::new),
                     (success,result) -> {
                         if (success) {
                             BiConsumer<Boolean,List<Metadata>> onEnd = (succes,added) -> {
@@ -378,8 +375,7 @@ public class LibraryController extends FXMLController {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             m.getItems().addAll(
                 createmenuItem("Play items", e -> {                     
-                    List<PlaylistItem> to_play = new ArrayList();
-                    m.getValue().stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
+                    List<PlaylistItem> to_play = listM(m.getValue(), Metadata::toPlaylistItem);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
                 }),
                 createmenuItem("Enqueue items", e -> {
@@ -400,10 +396,7 @@ public class LibraryController extends FXMLController {
                 }),
                 createmenuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
-                    List<File> files = items.stream()
-                            .filter(Item::isFileBased)
-                            .map(Item::getLocation)
-                            .collect(Collectors.toList());
+                    List<File> files = list(items, Item::isFileBased, Item::getLocation);
                     Enviroment.browse(files,true);
                 })
                );

@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import util.TODO;
+import static util.TODO.Purpose.API;
+import static util.TODO.Severity.LOW;
 
 /**
  * {@link HashMap} with key mapper, which transforms elements into keys. The map
@@ -17,6 +20,7 @@ import java.util.stream.Stream;
  *
  * @author Plutonium_
  */
+@TODO(note = "implement Set", purpose = API, severity = LOW)
 public class KeyMap<K,E> extends HashMap<K,E> {
     private static final long serialVersionUID = 192L;
     public final Function<E,K> keyMapper;

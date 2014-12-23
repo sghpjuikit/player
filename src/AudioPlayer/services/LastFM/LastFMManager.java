@@ -31,6 +31,7 @@ import org.reactfx.Subscription;
 import util.Log;
 import util.Password;
 import util.TODO;
+import static util.TODO.Purpose.UNIMPLEMENTED;
 
 /**
  *
@@ -109,9 +110,8 @@ public class LastFMManager {
     }
     
     
-    @TODO("Implement")
+    @TODO(purpose = UNIMPLEMENTED)
     public static boolean isLoginSet() {
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         return !"".equals(acquireUserName());
     }
     

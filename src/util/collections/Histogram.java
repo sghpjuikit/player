@@ -60,7 +60,7 @@ public final class Histogram<K,E,H> extends HashMap<K,H>{
     }
     
     /** Maps the histogram into list of results, using the provided mapper. */
-    public<R> List<R> getResult(BiFunction<K,H,R> resultMapper) {
+    public<R> List<R> toList(BiFunction<K,H,R> resultMapper) {
         return mapStoList(entrySet().stream(), e -> resultMapper.apply(e.getKey(), e.getValue()));
     }
 }

@@ -5,8 +5,8 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.services.Notifier.NotifierManager;
+import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +38,7 @@ import static util.Parser.File.AudioFileFormat.ogg;
 import static util.Parser.File.AudioFileFormat.wav;
 import util.Parser.ParserImpl.ColorParser;
 import util.TODO;
+import static util.TODO.Purpose.FUNCTIONALITY;
 
 /**
  * 
@@ -48,7 +49,7 @@ import util.TODO;
  *  
  * @author uranium
  */
-@TODO("limit rating bounds value, multiple values, id3 popularimeter mail settings")
+@TODO(purpose = FUNCTIONALITY, note = "limit rating bounds value, multiple values, id3 popularimeter mail settings")
 public class MetadataWriter extends MetaItem {
     
     private final File file;

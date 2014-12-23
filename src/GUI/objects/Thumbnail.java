@@ -66,6 +66,7 @@ import util.Parser.File.FileUtil;
 import util.Parser.File.ImageFileFormat;
 import util.SingleInstance;
 import util.TODO;
+import static util.TODO.Purpose.FUNCTIONALITY;
 import util.Util;
 import static util.Util.createmenuItem;
 
@@ -89,7 +90,7 @@ import static util.Util.createmenuItem;
  * additional functionalities (context menu). It is recommended to use file
  * to pass an image into the thumbnail object, when possible.
  */
-@TODO("add picture stick from outside/inside for keep ratio=true case")
+@TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable
 public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     

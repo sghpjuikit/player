@@ -29,6 +29,8 @@ import main.App;
 import util.Log;
 import util.Parser.File.AudioFileFormat.Use;
 import util.TODO;
+import static util.TODO.Purpose.FUNCTIONALITY;
+import static util.TODO.Severity.MEDIUM;
 import util.Util;
 
 /**
@@ -37,7 +39,8 @@ import util.Util;
  * 
  * @author uranium
  */
-@TODO("printing, mailing if needed (but can be easily implemented")
+@TODO(purpose = FUNCTIONALITY,
+      note = "printing, mailing if needed (but can be easily implemented")
 public class Enviroment {
     
     /**
@@ -46,7 +49,8 @@ public class Enviroment {
      * On some platforms the operation may be unsupported.
      * @param uri to brose, for files call file.toURI()
      */
-    @TODO("make this work so the file is selected in the explorer")
+    @TODO(purpose = FUNCTIONALITY, severity = MEDIUM,
+          note = "make this work so the file is selected in the explorer")
     public static void browse(URI uri) {
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(BROWSE)) {
             Log.unsupported("Unsupported operation : " + BROWSE + " uri.");

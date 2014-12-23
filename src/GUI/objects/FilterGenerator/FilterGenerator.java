@@ -22,6 +22,9 @@ import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
 import util.Parser.ParserImpl.Parser;
+import util.TODO;
+import static util.TODO.Purpose.BUG;
+import static util.TODO.Severity.MEDIUM;
 import util.Util;
 
 /**
@@ -169,9 +172,16 @@ public class FilterGenerator<T> extends HBox {
         filterCB.setValue(v);
     }
     
+    @TODO(purpose = BUG, severity = MEDIUM)
     private void generatePredicate(BiPredicate p, String txt_val, T o) {
         if(onFilterChange!=null && p!=null) {
             try {
+                
+                // workaround for a bug, somehow bad object classes manage to get here
+                // and we must throw an exception before ClassCastExcetion is thorn 
+                // within the predicate and crashes the app
+                if(!type.equals(o.getClass())) throw new Exception("class mismatch");
+                
                 Object value = Parser.fromS(type, txt_val);
                 if(value != null) {
                     predicate = x -> p.test(x,value);
@@ -179,6 +189,8 @@ public class FilterGenerator<T> extends HBox {
                     onFilterChange.accept(predicate,o);
                 }
             } catch(Exception e) {
+                // this should never happen, and val==null causes additional trouble in FilterGeneratorChain
+                // System.out.println("ERROR " + e + " " + e.getCause());
                 predicate = null;
                 val = null;
             }

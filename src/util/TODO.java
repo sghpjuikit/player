@@ -5,6 +5,7 @@
  */
 package util;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -16,7 +17,33 @@ import java.lang.annotation.RetentionPolicy;
  * 
  * @author uranium
  */
+@Documented
 @Retention(RetentionPolicy.SOURCE)
 public @interface TODO {
-    String value();
+    Purpose purpose() default Purpose.UNSPECIFIED;
+    Severity severity() default Severity.UNSPECIFIED;
+    String note() default "";
+    
+    
+    public static enum Purpose {
+        PERFORMANCE_OPTIMIZATION,
+        BUG,
+        DOCUMENTATION,
+        READABILITY,
+        ILL_DEPENDENCY,
+        COSMETIC,
+        API,
+        FUNCTIONALITY,
+        UNIMPLEMENTED,
+        UNSPECIFIED;
+    }
+    
+    public static enum Severity {
+        CRITICAL,
+        SEVERE,
+        MEDIUM,
+        LOW,
+        INSIGNIFICANT,
+        UNSPECIFIED;
+    }
 }

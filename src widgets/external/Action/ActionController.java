@@ -45,7 +45,7 @@ public class ActionController extends FXMLController {
     
     @IsConfig(name = "Action", info = "Action for the button.")
     // not sure if string instead of action is good idea, but it is safer
-    public final AccessorEnum<String> action = new AccessorEnum<String>(Action.EMPTY.getName(), v -> {},
+    public final AccessorEnum<String> action = new AccessorEnum(Action.EMPTY.getName(), v -> {},
         () -> Action.getActions().stream().map(Action::getName).collect(toList())
     );
     

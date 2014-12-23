@@ -5,14 +5,11 @@
  */
 package unused;
 
-import util.TODO;
-
 /**
  * Circular context menu.
  * 
  * @author uranium
  */
-@TODO("implement as javaFX ContextMenu")
 public class CircleContextMenu {
     private static double radius = 200;
     private static final double PI = Math.PI; // 360 degrees = 2PI

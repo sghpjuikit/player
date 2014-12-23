@@ -697,7 +697,7 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
      * avoid this method, or even better use getCoverFromAnySource()
      * @return 
      */
-    @TODO(value = "ensure null doesnt cause any problems")
+    @TODO(note = "ensure null doesnt cause any problems")
     private File getCoverFromDirAsFile() {
         if(!isFileBased()) return null;
         

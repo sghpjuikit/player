@@ -5,6 +5,7 @@
  */
 package util.functional;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
@@ -237,6 +239,8 @@ public class FunctUtil {
         return b.build();
     }
     
+/****************************** -> collection *********************************/
+    
     public static<T> Stream<Tuple2<Integer,T>> toIndexedStream(Collection<T> c) {
         int i=0;
         Stream.Builder<Tuple2<Integer,T>> b = Stream.builder();
@@ -245,5 +249,36 @@ public class FunctUtil {
             i++;
         }
         return b.build();
+    }
+    
+    public static<T> List<T> list(T... a) {
+        return Arrays.asList(a);
+    }
+    
+    
+    public static<T> List<T> list(T[] a, Predicate<T> f) {
+        return Stream.of(a).filter(f).collect(toList());
+    }
+    
+    public static<T> List<T> list(Collection<T> c, Predicate<T> f) {
+        return c.stream().filter(f).collect(toList());
+    }
+    
+    
+    public static<T,R> List<R> listM(T[] a, Function<T,R> m) {
+        return Stream.of(a).map(m).collect(toList());
+    }
+    
+    public static<T,R> List<R> listM(Collection<T> c, Function<T,R> m) {
+        return c.stream().map(m).collect(toList());
+    }
+    
+    
+    public static<T,R> List<R> list(T[] a, Predicate<T> f, Function<T,R> m) {
+        return Stream.of(a).filter(f).map(m).collect(toList());
+    }
+    
+    public static<T,R> List<R> list(Collection<T> c, Predicate<T> f, Function<T,R> m) {
+        return c.stream().filter(f).map(m).collect(toList());
     }
 }

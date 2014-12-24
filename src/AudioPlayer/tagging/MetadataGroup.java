@@ -8,6 +8,8 @@ package AudioPlayer.tagging;
 
 import java.util.function.Predicate;
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import static util.Util.capitalizeStrong;
+import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 
@@ -115,26 +117,25 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         ALBUMS,
         LENGTH,
         SIZE;
-                
+        
+        Field() {
+            mapEnumConstant(Field.class, this, constant->capitalizeStrong(constant.replace('_', ' ')));
+        }
+        
         public String toString(MetadataGroup group) {
-            return this==VALUE ? group.getField().toStringEnum() : toStringEnum();
+            return this==VALUE ? group.getField().toString() : toString();
         }
         
         public String toString(Metadata.Field field) {
-            return this==VALUE ? field.toStringEnum() : toStringEnum();
+            return this==VALUE ? field.toString() : toString();
         }
         
         public static Field valueOfEnumString(String s) {
-            if(ITEMS.toStringEnum().equals(s)) return ITEMS;
-            if(ALBUMS.toStringEnum().equals(s)) return ALBUMS;
-            if(LENGTH.toStringEnum().equals(s)) return LENGTH;
-            if(SIZE.toStringEnum().equals(s)) return SIZE;
+            if(ITEMS.name().equals(s)) return ITEMS;
+            if(ALBUMS.name().equals(s)) return ALBUMS;
+            if(LENGTH.name().equals(s)) return LENGTH;
+            if(SIZE.name().equals(s)) return SIZE;
             else return VALUE;
-//            return Enum.valueOf(Field.class, s.toUpperCase().replace(" ", "_"));
-        }
-        public static Field valueOfEnumString(String s, Metadata.Field field) {
-            
-            return Enum.valueOf(Field.class, s.toUpperCase().replace(" ", "_"));
         }
         
         /** {@inheritDoc} */

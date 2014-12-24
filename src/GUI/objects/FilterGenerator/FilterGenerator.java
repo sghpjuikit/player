@@ -22,10 +22,8 @@ import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
 import util.Parser.ParserImpl.Parser;
-import util.TODO;
-import static util.TODO.Purpose.BUG;
-import static util.TODO.Severity.MEDIUM;
 import util.Util;
+import static util.Util.unPrimitivize;
 
 /**
  *
@@ -46,6 +44,7 @@ public class FilterGenerator<T> extends HBox {
     
     public Predicate<Object> predicate;
     public T val;
+    boolean inconsistentState = false; // prevents eager predicate generation
     
     public FilterGenerator() {
         // initialize gui
@@ -131,8 +130,10 @@ public class FilterGenerator<T> extends HBox {
      */
     public void setData(List<Tuple3<String,Class,T>> classes) {
         List<Tuple3<String,Class,T>> cs = new ArrayList(classes);
-        cs.removeIf(e->predicateSupplier.call(Util.unPrimitivize(e._2)).isEmpty()); // remove unsupported
+        cs.removeIf(e->predicateSupplier.call(unPrimitivize(e._2)).isEmpty()); // remove unsupported
+        inconsistentState = true;
         typeCB.getItems().setAll(cs);
+        inconsistentState = false;
         
         Tuple3<String,Class,T> v = prefTypeSupplier == null ? null : prefTypeSupplier.get();
         if (v==null) v = cs.isEmpty() ? null : cs.get(0);
@@ -172,25 +173,20 @@ public class FilterGenerator<T> extends HBox {
         filterCB.setValue(v);
     }
     
-    @TODO(purpose = BUG, severity = MEDIUM)
-    private void generatePredicate(BiPredicate p, String txt_val, T o) {
+    private void generatePredicate(BiPredicate p, String input, T o) {
+        if(inconsistentState) return;
+        
         if(onFilterChange!=null && p!=null) {
             try {
                 
-                // workaround for a bug, somehow bad object classes manage to get here
-                // and we must throw an exception before ClassCastExcetion is thorn 
-                // within the predicate and crashes the app
-                if(!type.equals(o.getClass())) throw new Exception("class mismatch");
-                
-                Object value = Parser.fromS(type, txt_val);
+                Object value = Parser.fromS(type, input);
                 if(value != null) {
                     predicate = x -> p.test(x,value);
                     val = o;
                     onFilterChange.accept(predicate,o);
                 }
+            // catch input parsing exceptions
             } catch(Exception e) {
-                // this should never happen, and val==null causes additional trouble in FilterGeneratorChain
-                // System.out.println("ERROR " + e + " " + e.getCause());
                 predicate = null;
                 val = null;
             }

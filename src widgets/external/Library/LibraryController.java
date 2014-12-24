@@ -11,6 +11,8 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
+import static AudioPlayer.tagging.Metadata.Field.PATH;
+import static AudioPlayer.tagging.Metadata.Field.TITLE;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
@@ -21,6 +23,8 @@ import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
+import GUI.objects.Table.TableColumnInfo;
+import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import GUI.objects.Table.TableInfo;
 import static GUI.objects.Table.TableInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
@@ -74,7 +78,7 @@ import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.Enviroment;
 import util.Parser.File.FileUtil;
 import static util.Parser.File.FileUtil.getCommonRoot;
-import util.Util;
+import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
 import static util.Util.consumeOnSecondaryButton;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
@@ -82,6 +86,7 @@ import static util.async.Async.run;
 import static util.async.Async.runAsTask;
 import static util.functional.FunctUtil.list;
 import static util.functional.FunctUtil.listM;
+import util.functional.Runner;
 
 /**
  *
@@ -125,6 +130,7 @@ public class LibraryController extends FXMLController {
     @FXML MenuBar controlsBar;
     
     private final Duration hideDelay = Duration.seconds(5);
+    private final Runner runOnce = new Runner(1);
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -137,40 +143,55 @@ public class LibraryController extends FXMLController {
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
     @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    @IsConfig(editable = false)
+    private TableColumnInfo columnInfo;
+    @IsConfig(name = "Library level", info = "")
+    public final Accessor<Integer> lvl = new Accessor<>(1, v -> {
+        if(dbMonitor!=null) dbMonitor.unsubscribe();
+        // listen for database changes to refresh library
+        dbMonitor = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
+        // initialize
+        table.setItemsRaw(DB.views.getValue(v));
+    });
+    
+    @IsConfig(editable = false)
+    private File last_file = new File("");
     
     @Override
     public void init() {
+        table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        table.getSelectionModel().setSelectionMode(MULTIPLE);
+        
+        // set up table columns
+        table.setColumnStateFacory( f -> {
+            double w = f==PATH || f==TITLE ? 150 : 50;
+            return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
+        });
+        table.setColumnFactory( f -> {
+            TableColumn<Metadata,?> c = new TableColumn(f.toString());
+            c.setCellValueFactory( cf -> {
+                if(cf.getValue()==null) return null;
+                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+            });
+            c.setCellFactory(DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
+            c.setUserData(f);
+            return c;
+        });
+        columnInfo = table.getDefaultColumnInfo();
+        
+        
         // for each field
         for(Field f : Metadata.Field.values()) {
             boolean inTable = f.isTypeStringRepresentable();
             if(inTable) {
-                String name = f.toStringEnum();
+                String name = f.toString();
                 boolean visible = f.isCommon();
-                Accessor<Boolean> a = new Accessor<>(visible, v -> {
-                    if(v) {
-                        // config.getValue does not work here, we need to check the columns
-                        boolean exists = table.getColumns().stream().map(c->c.getText()).anyMatch(c->c.equals(name));
-                        if(!exists) {
-                            TableColumn<Metadata,Object> c = new TableColumn(name);
-                            c.setCellValueFactory((TableColumn.CellDataFeatures<Metadata,Object> cf) -> {
-                                if(cf.getValue()==null) return null;
-                                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
-                            });
-                            c.setCellFactory(Util.DEFAULT_ALIGNED_CELL_FACTORY(f.getType(),""));
-                            table.getColumns().add(c);
-                        }
-                    } else {
-                        table.getColumns().removeIf(c->c.getText().equals(name));
-                    }
-                    table.refreshColumn(table.getColumns().get(0));
-                });
+                Accessor a = new Accessor<>(visible, v -> table.setColumnVisible(name, v));
                 Config c = new PropertyConfig("Show " + name, a, "Show " + name);
                 configs.put("Show " + name, c);
             }
         }
         
-        table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
-        table.getSelectionModel().setSelectionMode(MULTIPLE);
         
         // context menu & play
         table.setOnMouseClicked( e -> {
@@ -247,33 +268,15 @@ public class LibraryController extends FXMLController {
         content.getChildren().addAll(table.getRoot(), controls);
         VBox.setVgrow(table.getRoot(),ALWAYS);
     }
-    
-    @IsConfig(editable = false)
-    private Object changeValue = "";
-    
-    @IsConfig(editable = false)
-    private final Accessor<Metadata.Field> changeField = new Accessor<>(Field.ARTIST, v -> {});
-    
-    @IsConfig(name = "Library level", info = "")
-    public final Accessor<Integer> lvl = new Accessor<>(1, v -> {
-        if(dbMonitor!=null) dbMonitor.unsubscribe();
-        // listen for database changes to refresh library
-        dbMonitor = DB.views.subscribe(v, (i,list) -> {
-            table.setItemsRaw(list);
-        });
-        // initialize
-        table.setItemsRaw(DB.views.getValue(v));
-    });
-    
-    @IsConfig(editable = false)
-    private File last_file = new File("");
-    
 
     @Override
     public void refresh() {
-        getFields().stream().filter(c->!c.getName().equals("Library level")).forEach(Config::applyValue);
+        runOnce.run(()->table.setColumnState(columnInfo));
+        
+        getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
         lvl.applyValue();
+        
     }
 
     @Override
@@ -357,6 +360,8 @@ public class LibraryController extends FXMLController {
 
     @Override
     public List<Config> getFields() {
+        // serialize column state when requested
+        columnInfo = table.getColumnState();
         List<Config> fields = new ArrayList(configs.values());
         fields.addAll(super.getFields());
         return fields;
@@ -364,6 +369,8 @@ public class LibraryController extends FXMLController {
 
     @Override
     public Config getField(String name) {
+        // serialize column state when requested
+        if("columnInfo".equals(name)) columnInfo = table.getColumnState();
         Config c = configs.get(name);
         return c==null ? super.getField(name) : c;
     }

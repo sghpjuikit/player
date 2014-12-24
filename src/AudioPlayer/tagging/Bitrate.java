@@ -4,17 +4,19 @@
  */
 package AudioPlayer.tagging;
 
+import static java.lang.Integer.parseInt;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Dependency;
+import static util.Util.shouldBeEmpty;
 
 /**
- * Simple class for media bit rate represented as int, implementing toString method.
+ * Simple class for media bit rate. Internally represents the value as int.
  * 
  * @author uranium
  */
 @Immutable
-public class Bitrate implements Comparable<Bitrate>{
-    
+public class Bitrate implements Comparable<Bitrate> {
+    private static final String UNIT = " kbps";
     private final int bitrate;
     
     /**
@@ -25,20 +27,14 @@ public class Bitrate implements Comparable<Bitrate>{
         bitrate = value;
     }
     
-    /** @param value bit rate value in kb per second. Use -1 if not available. */
-    public static Bitrate create(int value) {
-        return new Bitrate(value);
-    }
-    
-    /** @param value bit rate value in kb per second. Use -1 if not available. */    
-    public static Bitrate create(long value) {
-        Long l = value;
-        return new Bitrate(l.intValue());
-    }    
-    
     /** @return bit rate value in kb per second. */
     public int getValue() {
         return bitrate;
+    }
+    
+    @Override
+    public int compareTo(Bitrate o) {
+        return Integer.compare(bitrate, o.bitrate);
     }
     
     /**
@@ -50,18 +46,14 @@ public class Bitrate implements Comparable<Bitrate>{
     @Dependency("Designed to be used in tables and gui.")
     @Dependency("Must be consistent with fromString()")
     public String toString() {
-        return bitrate == -1 ? "" : bitrate + " kbps";
-    }
-    
-    @Override
-    public int compareTo(Bitrate o) {
-        return Long.compare(bitrate, o.bitrate);
+        return bitrate == -1 ? "" : bitrate + UNIT;
     }
     
     @Dependency("Name. Used by String Parser by reflection discovered by method name.")
     @Dependency("Must be consistent with toString()")
     @Dependency("Used in search filters")
-    public Bitrate fromString(String s) {
-        return new Bitrate(Integer.parseInt(s));
+    public static Bitrate fromString(String s) {
+        if(s.endsWith(UNIT)) s=s.substring(0, s.length()-UNIT.length());
+        return new Bitrate(shouldBeEmpty(s) ? -1 : parseInt(s));
     }
 }

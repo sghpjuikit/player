@@ -5,31 +5,44 @@
  */
 package GUI.objects.Table;
 
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
-import static java.util.stream.Collectors.joining;
-import java.util.stream.Stream;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
+import org.reactfx.util.Tuple2;
+import org.reactfx.util.Tuples;
+import util.TODO;
+import static util.TODO.Purpose.DOCUMENTATION;
 import util.collections.KeyMap;
+import static util.functional.FunctUtil.find;
+import static util.functional.FunctUtil.listM;
+import static util.functional.FunctUtil.split;
 import static util.functional.FunctUtil.toIndexedStream;
+import static util.functional.FunctUtil.toS;
 
 /**
  *
  * @author Plutonium_
  */
+@TODO(purpose = DOCUMENTATION)
 public final class TableColumnInfo {
     
+    private static final String S1 = "+";
+    private static final String S2 = ";";
+    private static final String S3 = ",";
+    
     public final KeyMap<String,ColumnInfo> columns;
+    public final ColumnSortInfo sortOrder;
     public UnaryOperator<String> nameKeyMapper = name -> name;
-    
-    private String nameKeyMap(String name) {
-        return nameKeyMapper.apply(name);
-    }
-    
+        
     public TableColumnInfo() {
-        columns = new KeyMap<>(c->nameKeyMap(c.name));
-//        columns = new KeyMap<>(c->nameKeyMapper.apply(c.name));
+        columns = new KeyMap<>(c->nameKeyMapper.apply(c.name));
+        sortOrder = new ColumnSortInfo();
     }
     
     public TableColumnInfo(List<String> all_columns) {
@@ -46,6 +59,7 @@ public final class TableColumnInfo {
         toIndexedStream(table.getColumns())
                 .map(p->new ColumnInfo(p._1,p._2))
                 .forEach(columns::addE);
+        sortOrder.fromTable(table);
     }
     
     public TableColumnInfo(TableView<?> table, List<String> all_columns) {
@@ -54,7 +68,8 @@ public final class TableColumnInfo {
     }
     
     public void update(TableView<?> table) {
-        KeyMap<String,ColumnInfo> old = new KeyMap<>(c->nameKeyMap(c.name));
+        KeyMap<String,ColumnInfo> old = new KeyMap<>(c->nameKeyMapper.apply(c.name));
+                                  old.addAllE(columns.values());
         columns.clear();
         // add visible columns
         toIndexedStream(table.getColumns())
@@ -64,29 +79,32 @@ public final class TableColumnInfo {
         // add invisible columns
         int i = columns.size();
         old.stream()
-                .map(p->new ColumnInfo(p.name, i+p.position, false, p.width))
-                .forEach(columns::addE);
+           .map(p->new ColumnInfo(p.name, i+p.position, false, p.width))
+           .forEach(columns::addE);
+        
+        sortOrder.fromTable(table);
     }
 
     @Override
     public String toString() {
-        return columns.stream().map(Object::toString).collect(joining(";"));
+        return toS(columns.values(),Object::toString,S2) + S1 + sortOrder.toString();
     }
     
-    public static TableColumnInfo fromString(String s) {
-        if("".equals(s)) return new TableColumnInfo();
+    public static TableColumnInfo fromString(String str) {
+        String[] a = str.split("\\"+S1, -1);
         TableColumnInfo tci = new TableColumnInfo();
-        Stream.of(s.split(";", 0)).map(ColumnInfo::fromString).forEach(tci.columns::addE);
+                        tci.columns.addAllE(split(a[0], S2, ColumnInfo::fromString));
+                        tci.sortOrder.sorts.addAll(ColumnSortInfo.fromString(a[1]).sorts);
         return tci;
     }
     
     
     
-    public static class ColumnInfo implements Comparable<ColumnInfo>{
-        public final String name;
-        public final int position;
-        public final boolean visible;
-        public final double width;
+    public static final class ColumnInfo implements Comparable<ColumnInfo>{
+        public String name;
+        public int position;
+        public boolean visible;
+        public double width;
         
         public ColumnInfo(String name, int position, boolean visible, double width) {
             this.name = name;
@@ -95,19 +113,17 @@ public final class TableColumnInfo {
             this.width = width;
         }
         public ColumnInfo(int position, TableColumn c) {
-//            this(c.getText(), position, c.isVisible(), c.getWidth());
-            this(c.getText(), position, true, c.getWidth());
+             this(c.getText(), position, c.isVisible(), c.getWidth());
         }
 
         @Override
         public String toString() {
-            return name + "," + position + "," + visible + "," + width;
+            return toS(S3, name, position, visible, width);
         }
         
         public static ColumnInfo fromString(String str) {
-            String[] s = str.split(",", 0);
-            return new ColumnInfo(s[0], Integer.parseInt(s[1]), 
-                    Boolean.valueOf(s[2]), Double.parseDouble(s[3]));
+            String[] s = str.split(S3, -1);
+            return new ColumnInfo(s[0], parseInt(s[1]), parseBoolean(s[2]), parseDouble(s[3]));
         }
 
         @Override
@@ -115,102 +131,45 @@ public final class TableColumnInfo {
             return Integer.compare(position, o.position);
         }
     }
+    
+    public static final class ColumnSortInfo {
+        public final List<Tuple2<String,SortType>> sorts = new ArrayList();
+        
+        public ColumnSortInfo() {}
+        
+        public ColumnSortInfo(TableView<?> table) {
+            fromTable(table);
+        }
+        
+        public void fromTable(TableView<?> table) {
+            sorts.clear();
+            sorts.addAll(listM(table.getSortOrder(),c->Tuples.t(c.getText(), c.getSortType())));
+        }
+        
+        public void toTable(TableView<?> table) {
+            table.getSortOrder().clear();
+            sorts.forEach(t -> {
+                find(table.getColumns(), c -> t._1.equals(c.getText())).ifPresent(c->{
+                    c.setSortType(t._2);
+                    table.getSortOrder().add((TableColumn)c);
+                });
+            });
+        }
+
+        @Override
+        public String toString() {
+            return toS(sorts, t->t._1 + S3 + t._2, S2);
+        }
+        
+        public static ColumnSortInfo fromString(String s) {
+            ColumnSortInfo tsi = new ColumnSortInfo();
+                           tsi.sorts.addAll(split(s, S2, str-> {
+                               String[] a = str.split(S3, -1);
+                               return Tuples.t(a[0],SortType.valueOf(a[1]));
+                           }));
+            return tsi;
+        }
+        
+    }
+    
 }
-///*
-// * To change this license header, choose License Headers in Project Properties.
-// * To change this template file, choose Tools | Templates
-// * and open the template in the editor.
-// */
-//package GUI.objects.Table;
-//
-//import java.util.ArrayList;
-//import java.util.List;
-//import static java.util.stream.Collectors.joining;
-//import java.util.stream.Stream;
-//import javafx.scene.control.TableColumn;
-//import javafx.scene.control.TableView;
-//import util.functional.FunctUtil;
-//
-///**
-// *
-// * @author Plutonium_
-// */
-//public class TableColumnInfo {
-//    
-//    public final List<ColumnInfo> columns;
-//    
-//    public TableColumnInfo() {
-//        columns = new ArrayList();
-//    }
-//    
-//    public TableColumnInfo(List<String> all_columns) {
-//        this();
-//        // add columns as visible
-//        all_columns.stream().map(c->new ColumnInfo(c, true, 50))
-//                            .forEach(columns::add);
-//    }
-//    
-//    public TableColumnInfo(TableView<?> table) {
-//        this();
-//        // add visible columns
-//        columns.addAll(FunctUtil.mapToList(table.getColumns(), ColumnInfo::new));
-//    }
-//    
-//    public TableColumnInfo(TableView<?> table, List<String> all_columns) {
-//        this(table);
-//        // add invisible columns
-//        all_columns.stream().filter(c->columns.stream().noneMatch(cc->cc.name.equals(c)))
-//                            .map(c->new ColumnInfo(c, false, 50))
-//                            .forEach(columns::add);
-//    }
-//    
-//    public void update(TableView<?> table) {
-//        List<ColumnInfo> old = new ArrayList(columns);
-//        columns.clear();
-//        // add visible columns
-//        columns.addAll(FunctUtil.mapToList(table.getColumns(), ColumnInfo::new));
-//        // remove all visible from old
-//        table.getColumns().forEach(c1->old.removeIf(c->c.name.equals(c1.getText())));
-//        // add invisible columns
-//        columns.addAll(FunctUtil.mapToList(old, c->new ColumnInfo(c.name, false, c.width)));
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return columns.stream().map(Object::toString).collect(joining(";"));
-//    }
-//    
-//    public static TableColumnInfo fromString(String s) {
-//        if("".equals(s)) return new TableColumnInfo();
-//        TableColumnInfo tci = new TableColumnInfo();
-//        Stream.of(s.split(";", 0)).map(ColumnInfo::fromString).forEach(tci.columns::add);
-//        return tci;
-//    }
-//    
-//    
-//    
-//    public static class ColumnInfo {
-//        public final String name;
-//        public final boolean visible;
-//        public final double width;
-//        
-//        public ColumnInfo(String name, boolean visible, double width) {
-//            this.name = name;
-//            this.visible = visible;
-//            this.width = width;
-//        }
-//        public ColumnInfo(TableColumn c) {
-//            this(c.getText(), c.isVisible(), c.getWidth());
-//        }
-//
-//        @Override
-//        public String toString() {
-//            return name + "," + visible + "," + width;
-//        }
-//        
-//        public static ColumnInfo fromString(String s) {
-//            String[] is = s.split(",", 0);
-//            return new ColumnInfo(is[0], Boolean.valueOf(is[1]), Double.parseDouble(is[2]));
-//        }
-//    }
-//}

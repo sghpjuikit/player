@@ -12,6 +12,10 @@ import javafx.beans.Observable;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
 import static org.atteo.evo.inflector.English.plural;
+import util.TODO;
+import static util.TODO.Purpose.BUG;
+import static util.TODO.Severity.LOW;
+import static util.Util.copySelectedItems;
 
 /**
  * Provides information about table items and table item selection.
@@ -46,13 +50,20 @@ public final class TableInfo<E> {
         this.node = node;
     }
     
+    @TODO(purpose = BUG, severity = LOW, note = "see the commented part"
+            + "modification erros - INVSTIGATE if te issue still appears (some sort of IndexOutOfBounds in Table SortedList)")
     /** Sets the node and listeners to update the text automatically by monitoring
       * the table items and selection. */
     public TableInfo(Labeled node, TableView<E> t) {
         this(node);
         List<E> items = t.getItems();
-        t.getItems().addListener((Observable o)-> updateText(items, t.getSelectionModel().getSelectedItems()));
-        t.getSelectionModel().getSelectedItems().addListener((Observable o)-> updateText(items, t.getSelectionModel().getSelectedItems()));
+        // the below causes bug & not sure if EMPTY_LIST does not produce incorrect
+        // behavior, but looks fine so far the problem seems to be when the
+        // whole table list changes and both of the
+        // listeners are called, just a guess
+        // t.getItems().addListener((Observable o)-> updateText(items, copySelectedItems(t)));
+        t.getItems().addListener((Observable o)-> updateText(items, EMPTY_LIST));
+        t.getSelectionModel().getSelectedItems().addListener((Observable o)-> updateText(items, copySelectedItems(t)));
         updateText(items, EMPTY_LIST);
     }
     
@@ -65,6 +76,6 @@ public final class TableInfo<E> {
         node.setText(textFactory.apply(isAll,l));
         
         // if bugs appear avoid using original list by copying it
-//        node.setText(textFactory.apply(isAll,new ArrayList(l)));
+        node.setText(textFactory.apply(isAll,l));
     }
 }

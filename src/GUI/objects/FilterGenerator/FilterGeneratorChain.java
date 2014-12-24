@@ -23,8 +23,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuple3;
-import util.TODO;
-import static util.TODO.Purpose.BUG;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import static util.functional.FunctUtil.isTRUE;
@@ -141,11 +139,8 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         return g;
     }
     
-    @TODO(purpose = BUG, note = "comes from generator.val being null which should"
-            + " never happen, but does..., see the commented line")
-    private void generatePredicate() {        
+    private void generatePredicate() {
         conjuction = generators.stream()
-                               .filter(g->g.val!=null) // removes subtle but annoying bug
                                .map(g->converter.apply(g.val,g.predicate))
                                .reduce(Predicate::and)
                                .orElse(isTRUE);

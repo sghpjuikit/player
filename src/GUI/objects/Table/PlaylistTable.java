@@ -47,7 +47,7 @@ import javafx.util.Callback;
 import org.reactfx.Subscription;
 import util.Parser.File.Enviroment;
 import util.TODO;
-import static util.TODO.Purpose.COSMETIC;
+import static util.TODO.Purpose.READABILITY;
 import util.Util;
 import static util.Util.createmenuItem;
 
@@ -60,7 +60,7 @@ import static util.Util.createmenuItem;
  * 
  * @author uranium
  */
-@TODO(purpose = COSMETIC, note = "dragging duplicite code for empty table case")
+@TODO(purpose = READABILITY, note = "dragging duplicite code for empty table case")
 public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
     // css styles for rows
     private static final PseudoClass playingRowCSS = PseudoClass.getPseudoClass("played");

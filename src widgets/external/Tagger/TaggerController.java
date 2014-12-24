@@ -209,7 +209,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
     public final Accessor<ReadMode> readMode = new Accessor<>(CUSTOM, this::apllyReadMode);
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
-    public Accessor<Boolean> allow_playcount_change = new Accessor<>(false, v -> {
+    public final Accessor<Boolean> allow_playcount_change = new Accessor<>(false, v -> {
         if(!isEmpty()) PlaycountF.setDisable(!v);
     });
 

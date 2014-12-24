@@ -6,7 +6,7 @@
 
 package util.access;
 
-import util.Util;
+import static util.Util.unPrimitivize;
 
 /**
  *
@@ -36,7 +36,7 @@ public interface TypedValue<C> {
      * or any of the number type primitives
      */
     default boolean isTypeNumber() {
-        return Number.class.isAssignableFrom(Util.unPrimitivize(getType()));
+        return Number.class.isAssignableFrom(unPrimitivize(getType()));
     }
     
     /**

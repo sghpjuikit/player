@@ -52,8 +52,8 @@ public class KeyMap<K,E> extends HashMap<K,E> {
         });
     }
     
-    public void containsE(E e) {
-        containsKey(keyMapper.apply(e));
+    public boolean containsE(E e) {
+        return containsKey(keyMapper.apply(e));
     }
     
     public Stream<E> stream() {
@@ -63,4 +63,5 @@ public class KeyMap<K,E> extends HashMap<K,E> {
     public Stream<Entry<K,E>> streamK() {
         return entrySet().stream();
     }
+    
 }

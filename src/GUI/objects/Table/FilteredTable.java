@@ -21,6 +21,9 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import util.TODO;
+import static util.TODO.Purpose.BUG;
+import static util.TODO.Severity.MEDIUM;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
@@ -42,7 +45,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     private boolean show_original_index;
     
     public FilteredTable(F initialVal) {
-        super();
+        super((Class<F>)initialVal.getClass());
         
         searchBox = new TableFilterGenerator(filtereditems, initialVal);
         
@@ -55,9 +58,10 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         // close search box on ESCAPE when focused
         searchBox.addEventFilter(KEY_PRESSED, e -> {
             if(e.getCode()==ESCAPE) {
-                // use this to hive seach box on single ESC stroke
+                // use this to hide seach box on single ESC stroke
                 // searchBox.clear();
                 // setFilterVisible(false);
+                // or clear filter on 1st, hide on 2nd
                 if(searchBox.isEmpty()) setFilterVisible(false);
                 else searchBox.clear();
                 e.consume();
@@ -67,6 +71,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         // using EventFilter would cause ignoring first key stroke when setting
         // search box visible
         addEventHandler(KEY_PRESSED, e -> {
+            if(e.isAltDown() || e.isControlDown() || e.isShiftDown()) return;
             KeyCode k = e.getCode();
             // close search box on ESCAPE when not focused
             if(k==ESCAPE) {
@@ -175,6 +180,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     }
     
     @Override
+    @TODO(purpose = BUG, severity = MEDIUM, note = "IndexOutOfBounds during filter & item operations")
     protected Callback<TableColumn<T, Void>, TableCell<T, Void>> buildIndexColumnCellFactory() {
         return ( column -> new TableCell<T,Void>() {
             { 
@@ -189,7 +195,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                     int j = getIndex();
                     String txt;
                     if(zero_pad) {
-                        int i = show_original_index ? filtereditems.getSourceIndex(j) : j;
+                        int i = show_original_index ? filtereditems.getSourceIndex(j) : j;      // BUG HERE
                             i++;
                         int max = show_original_index ? allitems.size() : getItems().size();
                             max++;

@@ -6,19 +6,18 @@
 package util;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Annotation type indicating a programming task needs to be done, for example
- * a new feature or a bug fix.
- * <p>
- * Retention is kept to SOURCE.
+ * Annotation type indicating a programming task needs to be done.
  * 
  * @author uranium
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
+@Repeatable(TODOs.class)
 public @interface TODO {
     Purpose purpose() default Purpose.UNSPECIFIED;
     Severity severity() default Severity.UNSPECIFIED;
@@ -31,7 +30,6 @@ public @interface TODO {
         DOCUMENTATION,
         READABILITY,
         ILL_DEPENDENCY,
-        COSMETIC,
         API,
         FUNCTIONALITY,
         UNIMPLEMENTED,

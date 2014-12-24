@@ -104,9 +104,7 @@ public class App extends Application {
      * application may construct other JavaFX objects in this method.
      */
     @Override
-    public void init() {
-        
-    }
+    public void init() {}
     
     /**
      * The main entry point for applications. The start method is

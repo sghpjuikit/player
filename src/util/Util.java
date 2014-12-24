@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -165,10 +166,10 @@ public interface Util {
     /**
      * Broader check for emptiness of String object.
      * Checks for: 
- - null
- - "null", "isNULL" and other combinations
- - ""
- - whitespaceOnly.
+        - null
+        - "null", "isNULL" and other combinations
+        - ""
+        - whitespaceOnly.
      * 
      * @param str String to check.
      * @return true if any of the above is met.
@@ -630,6 +631,46 @@ public interface Util {
      */
     public static Class getGenericInterface(Class c, int i, int p) {
         return (Class) ((ParameterizedType) c.getGenericInterfaces()[i]).getActualTypeArguments()[p];
+    }
+    
+    /**
+     * Renames declared enum sonstant using the mapper function on the enum
+     * constant string.
+     * <p>
+     * This method effectively overrides both enum's toString() and valueOf() 
+     * methods. It allows using arbitrary string values for enum constants,
+     * but in toString/valueOf cpliant way.
+     * <p>
+     * Use in enum constructor. For example:
+     * <p>
+     * <pre>
+     * {@code
+     *  class MyEnum {
+     *      A,
+     *      B;
+     * 
+     *      public MuEnum() {
+     *          mapEnumConstant(MyEnum.class, this, String::toLowerCase);
+     *      }
+     *  }
+     * }
+     * </pre>
+     * <p>
+     * @param <E>
+     * @param c class
+     * @param e enum constant/instance
+     * @param mapper function to apply on the constant
+     */
+    public static<E extends Enum>void mapEnumConstant(Class<E> c, E e, Function<String, String> mapper) {
+        try {
+            Field f = c.getSuperclass().getDeclaredFields()[0];
+            f.setAccessible(true);
+            String old = ((String)f.get(e));
+            f.set(e, mapper.apply(old));
+            f.setAccessible(false);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
 }

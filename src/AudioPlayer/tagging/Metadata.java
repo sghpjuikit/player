@@ -51,6 +51,9 @@ import util.Parser.File.ImageFileFormat;
 import util.Parser.ParserImpl.ColorParser;
 import util.TODO;
 import util.Util;
+import static util.Util.capitalizeStrong;
+import static util.Util.emptifyString;
+import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 
@@ -217,11 +220,11 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         AudioHeader header = aFile.getAudioHeader();
         
         // format and encoding type are switched in jaudiotagger library...
-        bitrate = Bitrate.create(header.getBitRateAsNumber()).getValue();
+        bitrate = new Bitrate((int)header.getBitRateAsNumber()).getValue();
         duration = 1000 * header.getTrackLength();
-        encoding = Util.emptifyString(header.getFormat());
-        channels = Util.emptifyString(header.getChannels());
-        sample_rate = Util.emptifyString(header.getSampleRate());
+        encoding = emptifyString(header.getFormat());
+        channels = emptifyString(header.getChannels());
+        sample_rate = emptifyString(header.getSampleRate());
         
         Tag tag = aFile.getTag();
         if(tag==null) {
@@ -1122,7 +1125,10 @@ public final class Metadata extends MetaItem implements FieldedValue<Metadata,Me
         CUSTOM3,
         CUSTOM4,
         CUSTOM5;
-        
+            
+        Field() {
+            mapEnumConstant(Field.class, this, constant->capitalizeStrong(constant.replace('_', ' ')));
+        }
         
         /** {@inheritDoc} */
         @Override

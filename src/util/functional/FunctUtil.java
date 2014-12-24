@@ -7,6 +7,7 @@ package util.functional;
 
 import java.util.Arrays;
 import java.util.Collection;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.util.Callback;
@@ -139,25 +141,57 @@ public class FunctUtil {
 /***************************** collection -> object ***************************/
     
     /**
-     * Converts collection to string, joining string representations of the
-     * elements by ', '
-     * @param <T>
-     * @param c collection
-     * @param toStringConverter to map each element to string
-     * @return String representation of the collection
+     * Converts array to string, joining string representations of the
+     * elements by separator.
+     * @param a array
+     * @param m element to string mapper
+     * @param s delimiter/separator
+     * @return s separated representation of the array
      */
-    public static<T> String toString(Collection<T> c, Function<T,String> toStringConverter) {
-        return c.stream().map(toStringConverter).collect(toCSList);
+    public static<T> String toS(T[] a, Function<T,String> m, String s) {
+        return Stream.of(a).map(m).collect(joining(s));
+    }
+    
+    /**
+     * Converts array to string, joining string representations of the
+     * elements by ', '.
+     * @param a array
+     * @return comma separated string representation of the array
+     */
+    public static<T> String toS(String s, T... a) {
+        return Stream.of(a).map(Object::toString).collect(joining(s));
+    }
+    
+    /**
+     * Converts collection to string, joining string representations of the
+     * elements by separator
+     * @param c collection
+     * @param m element to string mapper
+     * @param s delimiter/separator
+     * @return s separated representation of the collection
+     */
+    public static<T> String toS(Collection<T> c, Function<T,String> m, String s) {
+        return c.stream().map(m).collect(joining(s));
+    }
+    
+    /**
+     * Converts collection to string, joining string representations of the
+     * elements by ', '.
+     * @param c collection
+     * @param m element to string mapper
+     * @return comma separated string representation of the collection
+     */
+    public static<T> String toS(Collection<T> c, Function<T,String> m) {
+        return c.stream().map(m).collect(toCSList);
     }
     
     /**
      * Equivalent to {@code toString(c, Object::toString)}.
-     * @param <T>
      * @param c collection
-     * @return String representation of the collection
+     * @return comma separated string representation of the collection
      */
-    public static<T> String toString(Collection<T> c) {
-        return toString(c, Object::toString);
+    public static<T> String toS(Collection<T> c) {
+        return toS(c, Object::toString);
     }
     
     public static<E> E findOrDie(Collection<E> c, Predicate<E> filter) {
@@ -280,5 +314,16 @@ public class FunctUtil {
     
     public static<T,R> List<R> list(Collection<T> c, Predicate<T> f, Function<T,R> m) {
         return c.stream().filter(f).map(m).collect(toList());
+    }
+    
+    
+    public static<T> List<T> split(String txt, String regex, int i, Function<String,T> factory) {
+        if(txt.isEmpty()) return EMPTY_LIST;
+        return Stream.of(txt.split(regex, i)).map(factory).collect(toList());
+    }
+    
+    public static<T> List<T> split(String txt, String regex, Function<String,T> factory) {
+        if(txt.isEmpty()) return EMPTY_LIST;
+        return Stream.of(txt.split(regex, -1)).map(factory).collect(toList());
     }
 }

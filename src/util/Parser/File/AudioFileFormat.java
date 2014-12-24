@@ -113,7 +113,7 @@ public enum AudioFileFormat {
     public static AudioFileFormat of(String path) {
         String suffix = FileUtil.getSuffix(path);
         for(AudioFileFormat f: values())
-            if (suffix.equals(f.toString()))
+            if (suffix.equalsIgnoreCase(f.toString()))
                 return f;
         return UNKNOWN;
     }    

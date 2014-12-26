@@ -81,6 +81,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
@@ -379,6 +380,38 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             if(e.getDeltaY()>0) PLAYBACK.incVolume();
             else if(e.getDeltaY()<0) PLAYBACK.decVolume();
         });
+        
+        root.addEventFilter(KEY_PRESSED, e -> {
+            if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
+                GUI.setLayoutMode(true);
+    //            SwitchPane.class.cast(layout_aggregator).zoomOut();
+                showHeader(true);  
+            }
+        });
+        
+        root.addEventFilter(KEY_RELEASED, e -> {
+            if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
+                GUI.setLayoutMode(false);
+    //            SwitchPane.class.cast(layout_aggregator).zoomIn();
+
+                if(headerVisiblePreference){
+                    if(isFullscreen()) {
+                        showHeader(false);
+                        setBorderless(true);
+                    }  else {
+                        showHeader(headerVisible);
+                        setBorderless(!headerVisible);
+                    }
+                } else {
+                    showHeader(headerVisible);
+                    setBorderless(!headerVisible);
+                }
+            }
+        });
+        
+
+        
+        
     };
     
     public void setAsMain() {
@@ -864,32 +897,32 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     @FXML  
     private void entireArea_OnKeyPressed(KeyEvent e) {  
-        if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
-            GUI.setLayoutMode(true);
-//            SwitchPane.class.cast(layout_aggregator).zoomOut();
-            showHeader(true);  
-        }
+//        if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
+//            GUI.setLayoutMode(true);
+////            SwitchPane.class.cast(layout_aggregator).zoomOut();
+//            showHeader(true);  
+//        }
     }  
 
     @FXML  
     private void entireArea_OnKeyReleased(KeyEvent e) {
-        if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
-            GUI.setLayoutMode(false);
-//            SwitchPane.class.cast(layout_aggregator).zoomIn();
-            
-            if(headerVisiblePreference){
-                if(isFullscreen()) {
-                    showHeader(false);
-                    setBorderless(true);
-                }  else {
-                    showHeader(headerVisible);
-                    setBorderless(!headerVisible);
-                }
-            } else {
-                showHeader(headerVisible);
-                setBorderless(!headerVisible);
-            }
-        }
+//        if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
+//            GUI.setLayoutMode(false);
+////            SwitchPane.class.cast(layout_aggregator).zoomIn();
+//            
+//            if(headerVisiblePreference){
+//                if(isFullscreen()) {
+//                    showHeader(false);
+//                    setBorderless(true);
+//                }  else {
+//                    showHeader(headerVisible);
+//                    setBorderless(!headerVisible);
+//                }
+//            } else {
+//                showHeader(headerVisible);
+//                setBorderless(!headerVisible);
+//            }
+//        }
     }
     
 /**************************** SERIALIZATION ***********************************/

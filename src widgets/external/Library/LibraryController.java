@@ -10,13 +10,11 @@ import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.Metadata.Field;
 import static AudioPlayer.tagging.Metadata.Field.PATH;
 import static AudioPlayer.tagging.Metadata.Field.TITLE;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import Configuration.PropertyConfig;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
@@ -36,12 +34,9 @@ import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
-import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -178,19 +173,6 @@ public class LibraryController extends FXMLController {
             return c;
         });
         columnInfo = table.getDefaultColumnInfo();
-        
-        
-        // for each field
-        for(Field f : Metadata.Field.values()) {
-            boolean inTable = f.isTypeStringRepresentable();
-            if(inTable) {
-                String name = f.toString();
-                boolean visible = f.isCommon();
-                Accessor a = new Accessor<>(visible, v -> table.setColumnVisible(name, v));
-                Config c = new PropertyConfig("Show " + name, a, "Show " + name);
-                configs.put("Show " + name, c);
-            }
-        }
         
         
         // context menu & play
@@ -356,23 +338,18 @@ public class LibraryController extends FXMLController {
     
 /********************************* CONFIGS ************************************/
     
-    private final Map<String,Config<Boolean>> configs = new HashMap();
-
     @Override
     public List<Config> getFields() {
         // serialize column state when requested
         columnInfo = table.getColumnState();
-        List<Config> fields = new ArrayList(configs.values());
-        fields.addAll(super.getFields());
-        return fields;
+        return super.getFields();
     }
 
     @Override
     public Config getField(String name) {
         // serialize column state when requested
         if("columnInfo".equals(name)) columnInfo = table.getColumnState();
-        Config c = configs.get(name);
-        return c==null ? super.getField(name) : c;
+        return super.getField(name);
     }
     
 /****************************** CONTEXT MENU **********************************/

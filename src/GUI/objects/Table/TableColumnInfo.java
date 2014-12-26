@@ -18,7 +18,7 @@ import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuples;
 import util.TODO;
 import static util.TODO.Purpose.DOCUMENTATION;
-import util.collections.KeyMap;
+import util.collections.MapSet;
 import static util.functional.FunctUtil.find;
 import static util.functional.FunctUtil.listM;
 import static util.functional.FunctUtil.split;
@@ -36,12 +36,12 @@ public final class TableColumnInfo {
     private static final String S2 = ";";
     private static final String S3 = ",";
     
-    public final KeyMap<String,ColumnInfo> columns;
+    public final MapSet<String,ColumnInfo> columns;
     public final ColumnSortInfo sortOrder;
     public UnaryOperator<String> nameKeyMapper = name -> name;
         
     public TableColumnInfo() {
-        columns = new KeyMap<>(c->nameKeyMapper.apply(c.name));
+        columns = new MapSet<>(c->nameKeyMapper.apply(c.name));
         sortOrder = new ColumnSortInfo();
     }
     
@@ -50,7 +50,7 @@ public final class TableColumnInfo {
         // add columns as visible
         toIndexedStream(all_columns)
                 .map(p->new ColumnInfo(p._2,p._1,true,50))
-                .forEach(columns::addE);
+                .forEach(columns::add);
     }
     
     public TableColumnInfo(TableView<?> table) {
@@ -58,7 +58,7 @@ public final class TableColumnInfo {
         // add visible columns
         toIndexedStream(table.getColumns())
                 .map(p->new ColumnInfo(p._1,p._2))
-                .forEach(columns::addE);
+                .forEach(columns::add);
         sortOrder.fromTable(table);
     }
     
@@ -68,36 +68,35 @@ public final class TableColumnInfo {
     }
     
     public void update(TableView<?> table) {
-        KeyMap<String,ColumnInfo> old = new KeyMap<>(c->nameKeyMapper.apply(c.name));
-                                  old.addAllE(columns.values());
+        MapSet<String,ColumnInfo> old = new MapSet<>(c->nameKeyMapper.apply(c.name));
+                                  old.addAll(columns);
         columns.clear();
         // add visible columns
         toIndexedStream(table.getColumns())
                 .map(p->new ColumnInfo(p._1,p._2))
-                .peek(old::removeE)
-                .forEach(columns::addE);
+                .peek(old::remove)
+                .forEach(columns::add);
         // add invisible columns
         int i = columns.size();
         old.stream()
            .map(p->new ColumnInfo(p.name, i+p.position, false, p.width))
-           .forEach(columns::addE);
+           .forEach(columns::add);
         
         sortOrder.fromTable(table);
     }
 
     @Override
     public String toString() {
-        return toS(columns.values(),Object::toString,S2) + S1 + sortOrder.toString();
+        return toS(columns,Object::toString,S2) + S1 + sortOrder.toString();
     }
     
     public static TableColumnInfo fromString(String str) {
         String[] a = str.split("\\"+S1, -1);
         TableColumnInfo tci = new TableColumnInfo();
-                        tci.columns.addAllE(split(a[0], S2, ColumnInfo::fromString));
+                        tci.columns.addAll(split(a[0], S2, ColumnInfo::fromString));
                         tci.sortOrder.sorts.addAll(ColumnSortInfo.fromString(a[1]).sorts);
         return tci;
     }
-    
     
     
     public static final class ColumnInfo implements Comparable<ColumnInfo>{

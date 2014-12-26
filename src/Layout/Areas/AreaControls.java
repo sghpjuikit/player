@@ -14,7 +14,6 @@ import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
 import Layout.BiContainer;
-import Layout.Component;
 import Layout.Container;
 import Layout.Containers.Splitter;
 import Layout.Widgets.Features.Feature;
@@ -48,7 +47,7 @@ import javafx.scene.layout.TilePane;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
 import util.SingleInstance;
-import util.Util;
+import static util.Util.createIcon;
 
 /**
  * FXML Controller class
@@ -61,16 +60,16 @@ public final class AreaControls {
     private static final SingleInstance<PopOver<Text>,AreaControls> helpP = new SingleInstance<>(
         () -> PopOver.createHelpPopOver(""),
         (p,ac) -> {
-            Component c = ac.area.getActiveComponent();
+            Widget w = ac.area.getActiveWidget();
             String info = "";
-            if (c!=null && c instanceof Widget) {
-                Widget w = Widget.class.cast(c);
+            if (w!=null) {
+                info += "\n\nWidget: " + w.name();
+                if(!w.description().isEmpty()) info += "\n\n" + w.description();
+                if(!w.notes().isEmpty()) info += "\n\n" + w.notes();
+                if(!w.howto().isEmpty()) info += "\n\n" + w.howto();
                 String f = (w.getController() instanceof Feature)
                         ? Feature.class.cast(w.getController()).getFeatureName()
                         : "-";
-                info += "\n\nWidget: " + w.name();
-                if(!w.notes().isEmpty()) info += "\n" + w.notes();
-                if(!w.howto().isEmpty()) info += "\n" + w.howto();
                 info += "\n\nFeatures: " + f;
             }
             
@@ -94,8 +93,7 @@ public final class AreaControls {
             // should not be the case, investigate
             p.getContentNode().setWrappingWidth(400);
             // we need to handle hiding this AreaControls when popup
-            // closes and 
-            // we are outside of the area (not implemented yet)
+            // closes and we are outside of the area (not implemented yet)
             p.addEventHandler(WINDOW_HIDDEN, we -> {
                 if(ac.isShowingWeak) ac.hide();
             });
@@ -137,19 +135,19 @@ public final class AreaControls {
         header_buttons.setMinWidth(15);
 
         // build header buttons
-        Label infoB = Util.createIcon(INFO,12,"Help",null);
+        Label infoB = createIcon(INFO,12,"Help",null);
               infoB.setOnMouseClicked( e ->  {
                   helpP.get(this).show(infoB);
                   Action.Action.actionStream.push("Widget info");
               });
-        Label closeB = Util.createIcon(TIMES_CIRCLE,12,"Close widget", e -> {
+        Label closeB = createIcon(TIMES_CIRCLE,12,"Close widget", e -> {
                   close();
                   Action.Action.actionStream.push("Close widget");
               });
-        Label detachB = Util.createIcon(EXTERNAL_LINK_SQUARE,12,"Detach widget to own window", e -> detach());
-        Label changeB = Util.createIcon(TH_LARGE,12,"Change widget",e -> choose());
-        propB = Util.createIcon(COGS,12,"Settings",e -> settings());
-        Label lockB = Util.createIcon(area.isLocked() ? UNLOCK : LOCK,12,
+        Label detachB = createIcon(EXTERNAL_LINK_SQUARE,12,"Detach widget to own window", e -> detach());
+        Label changeB = createIcon(TH_LARGE,12,"Change widget",e -> choose());
+        propB = createIcon(COGS,12,"Settings",e -> settings());
+        Label lockB = createIcon(area.isLocked() ? UNLOCK : LOCK,12,
                 area.isLocked() ? "Unlock widget layout" : "Lock widget layout",null);
               lockB.setOnMouseClicked(e -> {
                    toggleLocked();
@@ -157,8 +155,8 @@ public final class AreaControls {
                    lockB.getTooltip().setText(area.isLocked() ? "Unlock widget layout" : "Lock widget layout");
                    Action.Action.actionStream.push("Widget layout lock");
                });
-        Label refreshB = Util.createIcon(REFRESH,12,"Refresh widget",e -> refreshWidget());
-        absB = Util.createIcon(LINK,12,"Toggle absolute size",e -> {
+        Label refreshB = createIcon(REFRESH,12,"Refresh widget",e -> refreshWidget());
+        absB = createIcon(LINK,12,"Toggle absolute size",e -> {
             toggleAbsSize();
             updateAbsB();
         });
@@ -239,8 +237,8 @@ public final class AreaControls {
     }
 
     void settings() {
-        if(area.getActiveComponents().isEmpty()) return;
-        Widget w = (Widget) area.getActiveComponents().get(0);
+        if(area.getActiveWidgets().isEmpty()) return;
+        Widget w = (Widget) area.getActiveWidgets().get(0);
         
         SimpleConfigurator sc = new SimpleConfigurator(w);
         PopOver p = new PopOver(sc);
@@ -346,6 +344,7 @@ public final class AreaControls {
     
     private boolean isShowingStrong = false;
     private boolean isShowingWeak = false;
+    
     public boolean isShowing() {
         return isShowingStrong;
     }

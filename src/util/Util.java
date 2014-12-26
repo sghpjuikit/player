@@ -9,6 +9,10 @@ import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.pow;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -56,8 +60,10 @@ import main.App;
 import org.jaudiotagger.tag.images.Artwork;
 import util.Parser.File.FileUtil;
 
-/**
- * Provides static utility methods for various purposes.
+/** 
+ * Provides static utility methods for various purposes. 
+ * 
+ * @author _Plutonium
  */
 public interface Util {
     
@@ -306,7 +312,7 @@ public interface Util {
      */
     static int log(int base, int i) {
         short p = 0;
-        while(Math.pow(base, p) <= i)
+        while(pow(base, p) <= i)
             p++;
         return p;
     }
@@ -343,11 +349,22 @@ public interface Util {
     
     /**
      * @return highest possible number of the same decadic length as specified
-     * number.
+     * number in absolute value.
      * Examples:  9 for 1-10, 99 for 10-99, 999 for nubmers 100-999, etc...
      */
-    public static int DecMin1(int number) {
-        return (int) (Math.pow(10, 1+digits(number))-1);
+    public static int DecMin1(int n) {
+        // normally we would do the below
+        // return n==0 ? 0 : (int) (pow(10, 1+digits(n))-1);
+        // but why not make this perform faster
+        if(n==0) return n;
+        n = abs(n);
+        if(n<10) return 9;
+        else if(n<100) return 99;
+        else if(n<1000) return 999;
+        else if(n<10000) return 9999;
+        else if(n<100000) return 99999;
+        else if(n<1000000) return 999999;
+        else return (int) (pow(10, 1+digits(n))-1);
     }
     
     /**
@@ -358,6 +375,23 @@ public interface Util {
         if (f==null) return App.getLocation();
         if (f.exists()) return f;
         else return getExistingParent(f.getParentFile());
+    }
+    
+    /** @return {@code max(min,min(i,max))} */
+    public static int clip(int min, int i, int max) {
+        return max(min,min(i,max));
+    }
+    /** @return {@code max(min,min(i,max))} */
+    public static long clip(long min, long i, long max) {
+        return max(min,min(i,max));
+    }
+    /** @return {@code max(min,min(i,max))} */
+    public static float clip(float min, float i, float max) {
+        return max(min,min(i,max));
+    }
+    /** @return {@code max(min,min(i,max))} */
+    public static double clip(double min, double i, double max) {
+        return max(min,min(i,max));
     }
     
 /******************************** GRAPHICS ************************************/

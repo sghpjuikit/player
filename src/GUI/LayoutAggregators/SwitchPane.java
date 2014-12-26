@@ -10,18 +10,22 @@ import java.util.HashMap;
 import java.util.Map;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.Interpolator;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
+import javafx.beans.property.DoubleProperty;
 import javafx.scene.Parent;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import util.Util;
+import static util.Util.clip;
+import static util.Util.setAPAnchors;
 import util.async.FxTimer;
 
 /**
@@ -63,6 +67,8 @@ public class SwitchPane implements LayoutAggregator {
             + " which tabs align. Tab snap activates if"
             + " at least one condition is fulfilled min distance or min fraction.")
     public static double SNAP_TRESHOLD_DIST = 25;
+    @IsConfig(editable = false, min=0.2, max=1)
+    private static double zoomScaleFactor = 0.7;
     
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
@@ -83,15 +89,18 @@ public class SwitchPane implements LayoutAggregator {
     }
     
 /******************************************************************************/
-    boolean genuineEvent = true;
     
     private final AnchorPane root = new AnchorPane();
-    public final AnchorPane ui = new AnchorPane();
+    private final AnchorPane zoom = new AnchorPane();
+    private final AnchorPane ui = new AnchorPane();
+//    boolean genuineEvent = true;
     
     public SwitchPane() {
         // set ui
-        root.getChildren().add(ui);
-        Util.setAPAnchors(ui, 0);
+        root.getChildren().add(zoom);
+        setAPAnchors(zoom, 0);
+        zoom.getChildren().add(ui);
+        setAPAnchors(ui, 0);
         
         // initialize ui drag behavior
 //        root.addEventFilter(MOUSE_PRESSED, e -> {
@@ -133,6 +142,20 @@ public class SwitchPane implements LayoutAggregator {
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, e-> {
             endUIDrag(e);
+        });
+        
+        root.addEventFilter(ScrollEvent.SCROLL, e-> {
+            if(GUI.GUI.isLayoutMode()) {
+                double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
+                       i = clip(0.2d,i,1d);
+                zoom(i);
+                e.consume();
+//                double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/20d;
+//                       i = clip(0.2d,i,1d);
+//                zoom.setScaleX(i);
+//                zoom.setScaleY(i);
+//                e.consume();
+            }
         });
         
 //        root.addEventFilter(MOUSE_RELEASED, e-> {
@@ -380,7 +403,11 @@ public class SwitchPane implements LayoutAggregator {
         uiDrag.setOnFinished( a -> addTab(toT));
         uiDrag.setToX(-getTabX(toT));
         uiDrag.play();
-    }    
+    }   
+    
+    public DoubleProperty translateProperty() {
+        return ui.translateXProperty();
+    }
     
 /******************************** SCROLLING ***********************************/
     
@@ -422,6 +449,35 @@ public class SwitchPane implements LayoutAggregator {
     public void setAlwaysAlignTabs(boolean val) {
         always_align = val;
         if(val) alignTabs();
+    }
+    
+/*********************************** ZOOMING **********************************/
+    
+    private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
+    
+    public void zoomIn() {
+//        z.setInterpolator(new CircularInterpolator(EASE_OUT));
+        zoom(1);
+    }
+    public void zoomOut() {
+        zoom(zoomScaleFactor);
+    }
+    
+    private void zoom(double d) {
+        if (d!=1) zoomScaleFactor = d;
+        z.stop();
+        z.setDuration(Duration.millis(GUI.GUI.duration_LM));
+        z.setToX(d);
+        z.setToY(d);
+        z.play();
+    }
+    
+    public boolean isZoomedOut() {
+        return zoom.getScaleX()!=1;
+    }
+    
+    public DoubleProperty zoomProperty() {
+        return zoom.scaleXProperty();
     }
     
 /******************************************************************************/

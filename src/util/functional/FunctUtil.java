@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -94,23 +96,15 @@ public class FunctUtil {
     }
     
     
-    
-    
-    public static<T,E> List<T> mapToList(Collection<E> col, Function<E,T> mapper) {
-        return col.stream().map(mapper).collect(Collectors.toList());
+    public static<E> Set<E> noDups(Collection<E> c) {
+        return new HashSet(c);
     }
     
-    public static<T,E> List<T> mapStoList(Stream<E> s, Function<E,T> mapper) {
-        return s.map(mapper).collect(Collectors.toList());
+    public static<E> Set<E> noDupsStable(Collection<E> c) {
+        return new LinkedHashSet(c);
     }
     
-    public static<T,E> Set<T> mapToSet(Collection<E> col, Function<E,T> mapper) {
-        return col.stream().map(mapper).collect(Collectors.toSet());
-    }
     
-    public static<T,E> Set<T> mapToSet(Stream<E> s, Function<E,T> mapper) {
-        return s.map(mapper).collect(Collectors.toSet());
-    }
     
 /****************************** collection -> list ****************************/
     
@@ -297,7 +291,6 @@ public class FunctUtil {
     public static<T> List<T> list(Collection<T> c, Predicate<T> f) {
         return c.stream().filter(f).collect(toList());
     }
-    
     
     public static<T,R> List<R> listM(T[] a, Function<T,R> m) {
         return Stream.of(a).map(m).collect(toList());

@@ -93,17 +93,17 @@ public final class TabArea extends PolyArea {
     
     /** @return active - currently displayed component */
     @Override
-    public Component getActiveComponent() {
+    public Widget getActiveWidget() {
         Tab t = tabPane.getSelectionModel().getSelectedItem();
-        return t == null ? null : (Component)t.getUserData();
+        return t == null ? null : (Widget)t.getUserData();
     }
     
     /**
      * @return singleton list containing active - currently displayed component
      */
     @Override
-    public List<Component> getActiveComponents() {
-        Component c = getActiveComponent();
+    public List<Widget> getActiveWidgets() {
+        Widget c = getActiveWidget();
         return c==null ? EMPTY_LIST : Collections.singletonList(c);
     }
     
@@ -192,7 +192,7 @@ public final class TabArea extends PolyArea {
     /** Refreshes the active component */
     @Override
     public void refresh() {
-        Component c = getActiveComponent();
+        Component c = getActiveWidget();
         if(c instanceof Widget) Widget.class.cast(c).getController().refresh();
         else if (c instanceof Container) Container.class.cast(c).load();
     }

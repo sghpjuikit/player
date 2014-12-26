@@ -31,7 +31,7 @@ import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
 import util.Log;
 import util.Parser.File.FileUtil;
-import util.Util;
+import static util.Util.capitalizeStrong;
 import util.access.Accessor;
 import util.access.AccessorEnum;
 
@@ -88,29 +88,6 @@ public class GUI {
     
     public static void initialize(){
         findSkins();
-    }
-    
-    /** 
-     * Sets layout mode on/off.
-     * <p>
-     * Note that {@link #isLayoutMode()} consistently returns FALSE at the time
-     * of entering and leaving the layout mode.
-     * @see #isLayoutMode()
-     */
-    public static void setLayoutMode(boolean val) {
-        // avoid pointless operation
-        if(alt_state==val) return;
-        // Note that we set the layout mode flag after invoking show() but
-        // before invoking hide().
-        // This is important to maintain consistency. See documentation.
-        if (val) {
-            LayoutManager.getLayouts().forEach(Layout::show);
-            alt_state = val;
-        } else {
-            alt_state = val;
-            LayoutManager.getLayouts().forEach(Layout::hide);
-        }
-        Action.Action.actionStream.push("Layout mode");
     }
     
     /**
@@ -175,10 +152,67 @@ public class GUI {
         skin.applyValue();
     }
     
+    /** 
+     * Sets layout mode on/off.
+     * <p>
+     * Note that {@link #isLayoutMode()} consistently returns FALSE at the time
+     * of entering and leaving the layout mode.
+     * @see #isLayoutMode()
+     */
+    public static void setLayoutMode(boolean val) {
+        // avoid pointless operation
+        if(alt_state==val) return;
+        // Note that we set the layout mode flag after invoking show() but
+        // before invoking hide().
+        // This is important to maintain consistency. See documentation.
+        if (val) {
+            LayoutManager.getLayouts().forEach(Layout::show);
+            alt_state = val;
+        } else {
+            alt_state = val;
+            LayoutManager.getLayouts().forEach(Layout::hide);
+        }
+        if(val) Action.Action.actionStream.push("Layout mode");
+    }
+    
+    public static void setZoomMode(boolean val) {
+        Window w = Window.getFocused();
+        if(w!=null) {
+            SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());
+            if(l.isZoomedOut() && !val) l.zoomOut();
+            if(!l.isZoomedOut() && val) {
+                l.zoomIn();
+                Action.Action.actionStream.push("Zoom mode");
+            }
+        }
+    }
+    
     /** Toggles layout mode. */
-    @IsAction(name = "Manage Layout", description = "Enables layout managment mode.", shortcut = "F8")
+    @IsAction(name = "Manage Layout", description = "Toggles layout mode on/off.")
     public static void toggleLayoutMode() {
         setLayoutMode(!alt_state);
+    }
+    
+    /** Toggles zoom mode. */
+    @IsAction(name = "Zoom Layout", description = "Toggles layout zoom in/out.")
+    public static void toggleZoomMode() {System.out.println("togle");
+        Window w = Window.getFocused();
+        if(w!=null) {
+            SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());System.out.println(l.isZoomedOut());
+            if(l.isZoomedOut()) l.zoomIn();
+            else l.zoomOut();
+        }
+    }
+    
+    public static void setLayoutNzoom(boolean v) {
+        setLayoutMode(v);
+        setZoomMode(v);
+    }
+    
+    @IsAction(name = "Manage Layout & Zoom", description = "Enables layout managment mode and zooms.", shortcut = "F8")
+    public static void toggleLayoutNzoom() {
+        toggleLayoutMode();
+        toggleZoomMode();
     }
     
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
@@ -260,8 +294,8 @@ public class GUI {
             Log.info(skins.size() + " skins found.");
         
         Log.info("Registering internal skins.");
-        skins.add(Util.capitalizeStrong(STYLESHEET_CASPIAN));
-        skins.add(Util.capitalizeStrong(STYLESHEET_MODENA));
+        skins.add(capitalizeStrong(STYLESHEET_CASPIAN));
+        skins.add(capitalizeStrong(STYLESHEET_MODENA));
         Log.info("    Skin Modena registered.");
         Log.info("    Skin Caspian registered.");
     }
@@ -280,17 +314,19 @@ public class GUI {
      * application location .../Skins/skinname/skinname.css
      * For any details regarding the mechanics behind the method see documentation
      * of that method.
-     * @param skinname name of the skin to apply.
+     * @param s name of the skin to apply.
      */
-    public static void setSkin(String skinname) {
-        if (skinname == null || skinname.isEmpty() || skinname.equalsIgnoreCase(STYLESHEET_MODENA)) {
+    public static void setSkin(String s) {
+        if (s == null || s.isEmpty()) throw new IllegalArgumentException();
+        
+        if (s.equalsIgnoreCase(STYLESHEET_MODENA)) {
             setSkinModena();
-        } else if (skinname.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
+        } else if (s.equalsIgnoreCase(STYLESHEET_CASPIAN)) {
             setSkinCaspian();
+        } else {
+            File skin_file = new File(App.SKIN_FOLDER().getPath(), s + separator + s + ".css");
+            setSkinExternal(skin_file);
         }
-        File skin_file = new File(App.SKIN_FOLDER().getPath(), 
-                                    skinname + separator + skinname + ".css");
-        setSkinExternal(skin_file);
     }
     /**
      * Changes application's skin.
@@ -309,7 +345,7 @@ public class GUI {
                 String url = file.toURI().toURL().toExternalForm();
                 // remove old skin
                 StyleManager.getInstance().removeUserAgentStylesheet(skinOldUrl);
-//                // set core skin
+                // set core skin
                 StyleManager.getInstance().setDefaultUserAgentStylesheet(DEF_SKIN);
                 // add new skin
                 StyleManager.getInstance().addUserAgentStylesheet(url);

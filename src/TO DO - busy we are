@@ -3,12 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- check, clean up, refactor, improve, widely adopt table state serialization
 - clean up library views + remove useless DB stuff & event streams
-- clean up Table & Collections packages
 - properly implement in-memory db, support CRUD
-- reduce memory footprint
-- javadoc new code
 
 - popover position jumps when drag starts
 - interrupt reading if double reading
@@ -17,7 +13,6 @@
 - window apply overlay on new window upon creation
 - windw header visible preference application is weird 4                        (?)
 - popover set arrow location automatically based on available screen space
-- playlist table header button implement properly column hiding
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
@@ -41,8 +36,8 @@
 - fix returning from docked mode exception
 - clean up Environment + more robust
 - explorer graphics support css skinning
-- full sorting suport for FilteredTable -> make API
 - enums with class bodies deserialistion parsing problems                       (?)
+- improve tray
 
 --------------------------------------------------------------------------------
 ------------------------ PERFECTION - the pain & OCD ---------------------------

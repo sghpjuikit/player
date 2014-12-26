@@ -139,17 +139,17 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             List<ColumnInfo> l = list(fields,f->f.isTypeStringRepresentable(),colStateFact);
             defColInfo = new TableColumnInfo();
             defColInfo.nameKeyMapper = keyNameColMapper;
-            defColInfo.columns.addAllE(l);
+            defColInfo.columns.addAll(l);
             // insert index column state
-            defColInfo.columns.values().forEach(t->t.position++);
-            defColInfo.columns.addE(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
+            defColInfo.columns.forEach(t->t.position++);
+            defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
             // leave sort order empty
             
             columnState = defColInfo;
             
             
             // build new table column menu
-            List<MenuItem> mm = listM(defColInfo.columns.values(),c->createmenuItem(c.name, 
+            List<MenuItem> mm = listM(defColInfo.columns,c->createmenuItem(c.name, 
                     a->setColumnVisible(c.name, !isColumnVisible(c.name))));
             columnMenu = new ContextMenu();
             columnMenu.getItems().addAll(mm);

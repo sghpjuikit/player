@@ -18,9 +18,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import static java.util.Collections.singletonList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
@@ -33,9 +31,11 @@ import static javafx.scene.input.KeyCombination.NO_MATCH;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
+import util.Dependency;
 import util.Log;
 import util.access.Accessor;
 import util.async.FxTimer;
+import util.collections.MapSet;
 import static util.functional.FunctUtil.do_NOTHING;
 
 /**
@@ -302,6 +302,7 @@ public final class Action extends Config<Action> implements Runnable {
         Window.windows.forEach( w -> 
             w.getStage().getScene().getAccelerators().remove(k));
     }
+    
     public void unregisterInScene(Scene s) {
         s.getAccelerators().remove(getKeysForLocalRegistering(this));
     }
@@ -519,24 +520,21 @@ public final class Action extends Config<Action> implements Runnable {
     }
     
     /** 
-     * Returns modifiable collection of actions mapped by their name. Actions
-     * can be added and removed.
-     * <p>
-     * Note that the name must be unique.
-     * 
-     * @return map of all actions.
+     * Returns modifiable collection of all actions mapped by their name. Actions
+     * can be added and removed without modification of the underlying collection.     * 
+     * @return all actions.
      */
     public static Collection<Action> getActions() {
-        return actions.values();
+        return new ArrayList(actions);
     }
     
     /**
-     * Returns the action to which the specified name is mapped, or null if 
-     * action does not exist.
-     * @param name
+     * Returns the action with specified name or null if no such action exists.
      * 
+     * @param name
      * @return action or null
      */
+    @Dependency("must use the same implementation as Action.getId()")
     public static Action getAction(String name) {
         return actions.get(name.hashCode());
     }
@@ -544,51 +542,50 @@ public final class Action extends Config<Action> implements Runnable {
 /************************ action helper methods *******************************/
     
     private static boolean isGlobalShortcutsSupported = JIntellitype.isJIntellitypeSupported();
-    private static final Map<Integer,Action> actions = gatherActions();
+    private static final MapSet<Integer,Action> actions = gatherActions();
     
     /** @return all actions of this application */
-    private static Map<Integer,Action> gatherActions() {
+    private static MapSet<Integer,Action> gatherActions() {
         List<Class<?>> cs = new ArrayList();
         
         // autodiscover all classes that can contain actions
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);
         
         // discover all actions
-        Map<Integer,Action> acts = new HashMap();
-                            acts.put(EMPTY.getID(), EMPTY);
+        MapSet<Integer,Action> out = new MapSet<>(Action::getID);
+                               out.add(EMPTY);
         Lookup method_lookup = MethodHandles.lookup();
         for (Class<?> man : cs) {
             for (Method m : man.getDeclaredMethods()) {
                 if (Modifier.isStatic(m.getModifiers())) {
                     for(IsAction a : m.getAnnotationsByType(IsAction.class)) {
-                        if (a != null) {
-                            if (m.getParameters().length > 0)
-                                throw new RuntimeException("Action Method must have 0 parameters!");
-                            
-                            // grab method
-                            MethodHandle mh;
-                            try {
-                                m.setAccessible(true);
-                                mh = method_lookup.unreflect(m);
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                            
-                            Runnable r = () -> {
-                                try {
-                                    mh.invokeExact();
-                                } catch (Throwable e) {
-                                    throw new RuntimeException("Error during running action.",e);
-                                }
-                            };
-                            Action act = new Action(a, r);
-                            acts.put(act.getID(), act);
+                        if (m.getParameters().length > 0)
+                            throw new RuntimeException("Action Method must have 0 parameters!");
+
+                        // grab method
+                        MethodHandle mh;
+                        try {
+                            m.setAccessible(true);
+                            mh = method_lookup.unreflect(m);
+                            m.setAccessible(false);
+                        } catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
                         }
+
+                        Runnable r = () -> {
+                            try {
+                                mh.invokeExact();
+                            } catch (Throwable e) {
+                                throw new RuntimeException("Error during running action.",e);
+                            }
+                        };
+                        Action ac = new Action(a, r);
+                        out.add(ac);
                     }
                 }
             }
         }
-        return acts;
+        return out;
     }
     
 /************************ shortcut helper methods *****************************/

@@ -16,8 +16,6 @@
 ------------------------------- OLD notes, clean up ----------------------------
 --------------------------------------------------------------------------------
 
-- ability to passivate widget - it autocloses after set amount of time. It
-  is within layout but not loaded - Big Layout support
 - support ui autoscroll when near edge while dragging something
 - support middle mouse ui scroll
 - add ability to show floating Node near cursor with an XY offset
@@ -43,7 +41,6 @@ FURTHER DOWN THE LIST FUNCTIONALITIES
 - playback ogg, flac
 
 APP
-- tray                                                                          (use awt & swing ?)
 - taskbar functionalities
 - associate with supported files
 

@@ -18,23 +18,20 @@ import javafx.scene.layout.GridPane;
 import util.functional.FunctUtil;
 
 /**
- * Configurable state transformer graphical control.
- * <p>
- * Generates fields to configure {@link Configurable} and displays an OK
- * button with customizable action.
+ * Configurable state transformer graphical control. Graphics to configure 
+ * {@link Configurable}.
  * <p>
  * When OK button is clicked all changed {@ConfigField}s with unapplied values
  * will be set and applied. Then the specified behavior is executed.
  * 
  * @param <T> Specifies generic type of Configurable for this component. Only
- * use it for singleton configurables or configurables which contain configs with
+ * use it for singleton configurables or configurables that contain configs with
  * the same value type.
- * 
+ * <p>
  * The advantage of using generic version is in accessing the values in the
  * OK button callback. The configurable is provided as a parameter and if this
  * object is generic it will provide correct configurable returning correct
- * values without casting. 
- * 
+ * values without type casting.
  * @see Configurable  
  * @author uranium
  */

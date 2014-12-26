@@ -84,7 +84,7 @@ public final class WidgetArea extends UniArea {
      * This implementation returns widget of this area.
      */
     @Override
-    public Component getActiveComponent() {
+    public Widget getActiveWidget() {
         return widget;
     }
     
@@ -94,7 +94,7 @@ public final class WidgetArea extends UniArea {
      * contains null.
      */
     @Override
-    public List<Component> getActiveComponents() {
+    public List<Widget> getActiveWidgets() {
         return Collections.singletonList(widget);
     }
     
@@ -102,7 +102,7 @@ public final class WidgetArea extends UniArea {
         Objects.requireNonNull(w,"widget must not be null");
         
         widget = w;
-        // feature awaits decisio - does this make sense? // no // yes
+        // does this make sense?
 //        if(w.isEmpty()) content.getStyleClass().clear();
 //        else content.getStyleClass().addAll(Area.bgr_STYLECLASS);
         // load widget

@@ -55,6 +55,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import static java.lang.Math.abs;
+import static java.lang.Math.signum;
+import static java.lang.Math.sqrt;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -104,7 +107,9 @@ import util.Log;
 import static util.Parser.File.Enviroment.browse;
 import util.Util;
 import static util.Util.createIcon;
+import static util.Util.setAPAnchors;
 import util.access.Accessor;
+import static util.functional.FunctUtil.find;
 
 /**
  * Window for application.
@@ -134,15 +139,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      * Get focused window. There is zero or one focused window in the application
      * at any given time.
      * <p>
-     * Use {@link #getActive()} for non null alternative that always returns a
-     * Window.
-     * 
+     * @see #getActive()
      * @return focused window or null if none focused.
      */
     public static Window getFocused() {
-        return windows.stream()
-                .filter(Window::isFocused).findAny().orElse(null);
+        return find(windows,Window::isFocused).orElse(null);
     }
+    
     /**
      * Same as {@link #getFocused()} but when none focused returns main window
      * instead of null.
@@ -152,13 +155,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      * <p>
      * Use when null must absolutely be avoided and the main window substitute 
      * for focused window will not break expected behavior and when this method
-     * can get called when app  has no focus (such as through global shortcut).
+     * can get called when app has no focus (such as through global shortcut).
      * 
      * @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
-        return windows.stream()
-                .filter(Window::isFocused).findAny().orElse(App.getWindow());
+        return find(windows,Window::isFocused).orElse(App.getWindow());
     }
     
 /******************************** Configs *************************************/
@@ -345,7 +347,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         windows.add(this);
         
         // set local shortcuts
-        Action.getActions().stream().filter(a->!a.isGlobal()).forEach(Action::register);
+        Action.getActions().stream().filter(a->!a.isGlobal()).forEach(a -> a.registerInScene(s.getScene()));
         
         // update coordinates for context manager
         root.addEventFilter(MOUSE_PRESSED,  e -> {
@@ -423,19 +425,26 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         layout_aggregator.getLayouts().values().forEach(Layout::load);
         
         if(la instanceof SwitchPane) {
+            double scaleFactor = 1.25; // to prevent running out of bgr when moving gui
             bgrImgLayer.translateXProperty().unbind();
             bgrImgLayer.setTranslateX(0);
-            bgrImgLayer.setScaleX(1.25);
-            bgrImgLayer.setScaleY(1.25);
+            bgrImgLayer.setScaleX(scaleFactor);
+            bgrImgLayer.setScaleY(scaleFactor);
             // scroll bgr along with the tabs
             // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
             // -try at: http://www.mathe-fa.de
-            ((SwitchPane)la).ui.translateXProperty().addListener((o,oldx,newV) -> {
+            ((SwitchPane)la).translateProperty().addListener((o,oldx,newV) -> {
                 double x = newV.doubleValue();
-                double space = bgrImgLayer.getWidth()*0.125;
-                double dir = Math.signum(x);
-                       x = Math.abs(x);
+                double space = bgrImgLayer.getWidth()*((scaleFactor-1)/2d);
+                double dir = signum(x);
+                       x = abs(x);
                 bgrImgLayer.setTranslateX(dir * space * (1-(1/(1+0.0005*x))));
+            });
+            ((SwitchPane)la).zoomProperty().addListener((o,oldx,newV) -> {
+                double x = newV.doubleValue();
+                       x = 1-(1-x)/5;
+                bgrImgLayer.setScaleX(scaleFactor * sqrt(sqrt(x)));
+                bgrImgLayer.setScaleY(scaleFactor * sqrt(sqrt(x)));
             });
             
             
@@ -712,8 +721,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     
     public void setBorderless(boolean v) {
-        if(v) Util.setAPAnchors(content, 0);
-        else Util.setAPAnchors(content, 25,5,5,5);
+        if(v) setAPAnchors(content, 0);
+        else setAPAnchors(content, 25,5,5,5);
         borders.setVisible(!v);
     }
     
@@ -852,12 +861,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private void consumeMouseEvent(MouseEvent e) {
         e.consume();
     }
-
+    
     @FXML  
     private void entireArea_OnKeyPressed(KeyEvent e) {  
         if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
             GUI.setLayoutMode(true);
-            
+//            SwitchPane.class.cast(layout_aggregator).zoomOut();
             showHeader(true);  
         }
     }  
@@ -866,6 +875,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private void entireArea_OnKeyReleased(KeyEvent e) {
         if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
             GUI.setLayoutMode(false);
+//            SwitchPane.class.cast(layout_aggregator).zoomIn();
             
             if(headerVisiblePreference){
                 if(isFullscreen()) {

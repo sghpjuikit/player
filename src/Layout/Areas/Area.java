@@ -79,14 +79,16 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     
     /** @return all oomponents wrapped in the area. By default returns all
      * components of the container associated with the area.*/
-    public List<Component> getAllComponents() {
-        return new ArrayList<>(container.getChildren().values());
+    public final List<Component> getAllComponents() {
+        return new ArrayList(container.getChildren().values());
     }
+    
     /** @return all active coponents - components that are being actively 
      * displayed. */
-    abstract public  List<Component> getActiveComponents();
+    abstract public  List<Widget> getActiveWidgets();
+    
     /** @return the primary active component. */
-    abstract public Component getActiveComponent();
+    abstract public Widget getActiveWidget();
     
     /**
      * Refresh area. Refreshes the content - wrapped components by calling their
@@ -98,7 +100,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
      * Default implementation refreshes all active widgets (ignores containers).
      */
     public void refresh() {
-        for(Component c: getActiveComponents()) {
+        for(Component c: getActiveWidgets()) {
             if(c instanceof Widget) 
                 ((Widget)c).getController().refresh();
         }
@@ -124,7 +126,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
      */
     public void detach() {
         // get first active component
-        Component c = getActiveComponent();
+        Component c = getActiveWidget();
         
         // detach into new window
         // create new window with no content (not even empty widget)

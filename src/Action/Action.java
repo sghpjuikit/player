@@ -350,7 +350,9 @@ public final class Action extends Config<Action> implements Runnable {
 
     /** {@inheritDoc} */
     @Override
-    public void applyValue(Action val) { }
+    public void applyValue(Action val) {
+        register();
+    }
 
     /** {@inheritDoc} */
     @Override

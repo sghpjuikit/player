@@ -50,6 +50,7 @@ import util.TODO;
 import static util.TODO.Purpose.READABILITY;
 import util.Util;
 import static util.Util.createmenuItem;
+import static util.Util.selectRows;
 
 /**
  * Playlist table GUI component.
@@ -207,7 +208,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             // this overrides default behavior where mousePressed deselects all but
             // the item that was clicked on
             if (selected_temp.contains(clicked_row)) {
-                Util.selectRows(selected_temp, getSelectionModel());
+                selectRows(selected_temp, getSelectionModel());
             }
             e.consume();
         });
@@ -228,7 +229,11 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         setOnMouseClicked( e -> {
             if (e.getY()<getFixedCellSize()) return;
             // play item on doubleclick
-            if (e.getButton() == PRIMARY) {     
+            if (e.getButton() == PRIMARY) { 
+                if (e.getClickCount() == 1) {
+                    if(getItems().isEmpty())
+                        PlaylistManager.addOrEnqueueFiles(true);
+                }
                 if (e.getClickCount() == 2) {
                     int i = getSelectionModel().getSelectedIndex();
                     int real_i = getItemsFiltered().getSourceIndex(i);
@@ -303,6 +308,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // reflect selection for whole application
         getSelectionModel().selectedItemProperty().addListener(selItemListener);
         getSelectionModel().getSelectedItems().addListener(selItemsListener);
+        
+        // set up a nice placeholder
+        setPlaceholder(new Label("Click or drag & drop files"));
         
         refresh();
     }

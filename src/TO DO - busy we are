@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- Player contorls  nullpointer when nothing plays on init()
 - clean up library views + remove useless DB stuff & event streams
 - properly implement in-memory db, support CRUD
 

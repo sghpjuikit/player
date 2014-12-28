@@ -159,7 +159,7 @@ public class GUI {
      * of entering and leaving the layout mode.
      * @see #isLayoutMode()
      */
-    public static void setLayoutMode(boolean val) { System.out.println("vvcvcvc");
+    public static void setLayoutMode(boolean val) {
         // avoid pointless operation
         if(alt_state==val) return;
         // Note that we set the layout mode flag after invoking show() but
@@ -209,7 +209,7 @@ public class GUI {
         setZoomMode(v);
     }
     
-    @IsAction(name = "Manage Layout & Zoom", description = "Enables layout managment mode and zooms.", shortcut = "F8", global = true)
+    @IsAction(name = "Manage Layout & Zoom", description = "Enables layout managment mode and zooms.", shortcut = "F8")
     public static void toggleLayoutNzoom() {
         toggleLayoutMode();
         toggleZoomMode();

@@ -314,7 +314,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     
     /** Initializes the controller class. */
-    private void initialize() {
+    private void initialize() {System.out.println("init");
         getStage().setScene(new Scene(root));
         getStage().setOpacity(windowOpacity.getValue());
         

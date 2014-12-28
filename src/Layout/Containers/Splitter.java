@@ -26,7 +26,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
-import javafx.util.Duration;
 import unused.SimplePositionable;
 import util.TODO;
 import static util.TODO.Purpose.UNIMPLEMENTED;
@@ -111,6 +110,14 @@ public final class Splitter implements ContainerNode {
         fadeOut = new FadeTransition(TIME, controlsRoot);
         fadeOut.setToValue(0);
         fadeOut.setOnFinished(e -> controls.getPane().setMouseTransparent(true));
+        // additional animations bound to the previous one
+        controlsRoot.opacityProperty().addListener((o,ov,nv) -> {
+            double d = nv.doubleValue()*0.1;
+            root_child1.setScaleX(1-d);
+            root_child1.setScaleY(1-d);
+            root_child2.setScaleX(1-d);
+            root_child2.setScaleY(1-d);
+        });
         
         // maintain controls position show if mouse close to divider
         // activate the handler only if this visible
@@ -185,7 +192,7 @@ public final class Splitter implements ContainerNode {
                     if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08)
                         runOnFX(this::applyPos);
                     else
-                        run(Duration.seconds(2),()->initialized=true);
+                        run(2000, ()->initialized=true);
                 }
             }
         });

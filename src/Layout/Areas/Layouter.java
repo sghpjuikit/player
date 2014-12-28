@@ -91,6 +91,8 @@ public final class Layouter implements ContainerNode {
                 e.consume();
             }
         });
+        
+        if(GUI.isLayoutMode()) show();
     }
 
 /****************************  functionality  *********************************/
@@ -193,6 +195,7 @@ public final class Layouter implements ContainerNode {
 //                animS.setOnFinished(null);
                 // this is the crucial part
                 container.addChild(index, f.create());
+                if(GUI.isLayoutMode()) container.show();
                 Action.Action.actionStream.push("New widget");
             });
             showControls(false);

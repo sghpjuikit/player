@@ -51,6 +51,7 @@ import static util.TODO.Purpose.READABILITY;
 import util.Util;
 import static util.Util.createmenuItem;
 import static util.Util.selectRows;
+import static util.Util.setAPAnchors;
 
 /**
  * Playlist table GUI component.
@@ -89,7 +90,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         
         // stupid workaround for having to put the tmp,tmp2 labels somewhere on the scenegrapgh...
         AnchorPane a = new AnchorPane(this, tmp,tmp2);
-        Util.setAPAnchors(this, 0);
+        setAPAnchors(this, 0);
         root.getChildren().add(a);
         VBox.setVgrow(a, Priority.ALWAYS);
         
@@ -312,7 +313,8 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // set up a nice placeholder
         setPlaceholder(new Label("Click or drag & drop files"));
         
-        refresh();
+//        refresh();
+        refreshColumn(columnIndex);
     }
     
 

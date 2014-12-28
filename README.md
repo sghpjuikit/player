@@ -58,13 +58,13 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 
 ![ScreenShot](/extra/screenshot3.png)
 
-# The Catch XXII
+## The Catch XXII
 
 - *Memory consumption* throughout my average use is about 500MB, but it depends. It can go from 200MB up to 1GB (rare cases when working with lots of high-resolution images). The effort to crack down on memory consumption is there, but its not there yet...
 - Some of the widgets or features are too **experimental**, confusing or outright do not work. It is a **work in progress**, so consider this early alpha version.
 - nothing im aware of
 
-# Download & Use
+## Download & Use
 
 Download link coming soon.
 
@@ -74,7 +74,7 @@ Tips:
 - Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 
 - Most of the controls like buttons have informative tooltips explaining their functionality. Mouse over the controls to display tooltips if you would like to know what each button does.
 
-# Contribution
+## Contribution
 
 In case you are interested in the development or in contribution, send mail to the address associated with this github account. I welcome you.
 
@@ -103,7 +103,7 @@ Proper manuals and HOWTOs will be provided later.
 A skin is a single css file that works the same way as if you are skinning a html web site. [a link](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
 The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder.
 
-### Credits & Licence
+## Credits & Licence
 
 You are free to use the application or make your own builds of the project for personal use.
 

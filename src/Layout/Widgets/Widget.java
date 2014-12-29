@@ -39,7 +39,7 @@ import util.Log;
  * 
  * @author uranium
  */
-public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable, WidgetInfo {
+public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable<Object>, WidgetInfo {
     
     // Name of the widget. Permanent. same as factory name
     // it needs to be declared to support deserialization

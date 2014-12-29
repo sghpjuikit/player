@@ -706,5 +706,27 @@ public interface Util {
             throw new RuntimeException(ex);
         }
     }
+    
+    /**
+     * Returns enum constants of an enum class in declared order. Works for 
+     * enums with class method
+     * bodies (for which Enum.getEnumConstants) does not work.
+     * @param <T>
+     * @param c
+     * @return 
+     */
+    public static <T> T[] getEnumConstants(Class c) {
+        // handle enums
+        if(c.isEnum()) return (T[]) c.getEnumConstants();
+
+        // handle enum with class method bodies (they are not recognized as enums)
+        else {
+            Class ec = c.getEnclosingClass();
+            if(ec!=null && ec.isEnum()) 
+                return (T[]) ec.getEnumConstants();
+            else 
+                throw new IllegalArgumentException("Class " + c + " is not an Enum.");
+        }
+    }
 
 }

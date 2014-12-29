@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import javafx.collections.transformation.FilteredList;
 import org.reactfx.util.Tuple3;
 import org.reactfx.util.Tuples;
+import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.filtering.Predicates;
@@ -29,7 +30,7 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
         setPrefPredicateSupplier(Predicates::getPrefPredicate);
         setPrefTypeSupplier(() -> Tuples.t(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
         if(prefFilterType instanceof Enum) {
-            F[] es = (F[]) prefFilterType.getClass().getEnumConstants();
+            F[] es = (F[]) getEnumConstants(prefFilterType.getClass());
             List<Tuple3<String,Class,F>> data = Stream.of(es)
                 .filter(FieldEnum::isTypeStringRepresentable)
                 .map(mf->Tuples.t(mf.toString(),mf.getType(),mf))

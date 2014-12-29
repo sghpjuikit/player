@@ -25,6 +25,18 @@ public class Log {
         //System.out.println("Debug: " + message);
     }
     
+    public static void deb(String message, Object o) {
+        String os = o.toString();
+        System.out.println("Debug: " + message.replaceAll("\\{\\}", os));
+    }
+    
+    public static void deb(String message, Object o1, Object o2) {
+        String o1s = o1.toString();
+        String o2s = o2.toString();
+        String m = message.replaceFirst("\\{\\}", o1s).replaceFirst("\\{\\}", o2s);
+        System.out.println("Debug: " + m);
+    }
+    
     /**
      * Log error.
      * @param message 

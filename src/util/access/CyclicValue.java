@@ -6,6 +6,8 @@
 
 package util.access;
 
+import static util.Util.getEnumConstants;
+
 /**
  *
  * @author Plutonium_
@@ -54,9 +56,7 @@ public interface CyclicValue<T> {
      * @return next cyclical enum constant according to its ordinal number.
      */
     public static <E extends Enum> E next(E val) {
-        Class c = val.getClass();
-        E vals[] = (E[])( c.isEnum() ?  c.getEnumConstants()
-                                     :  c.getEnclosingClass().getEnumConstants());
+        E vals[] = getEnumConstants(val.getClass());
         int index = (val.ordinal()+1) % vals.length;
         return vals[index];
     }
@@ -67,9 +67,7 @@ public interface CyclicValue<T> {
      * @return previous cyclical enum constant according to its ordinal number.
      */
     public static <E extends Enum> E previous(E val) {
-        Class c = val.getClass();
-        E vals[] = (E[])( c.isEnum() ?  c.getEnumConstants()
-                                     :  c.getEnclosingClass().getEnumConstants());
+        E vals[] = getEnumConstants(val.getClass());
         int ord = val.ordinal();
         int index = ord==0 ? vals.length-1 : ord-1;
         return vals[index];

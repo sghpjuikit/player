@@ -6,7 +6,8 @@
 
 package Configuration;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Defines a {@link Configurable} object which contains another Configurable as
@@ -18,12 +19,12 @@ import java.util.List;
  * New introduced method returns the internal sub configurable.
  * @author Plutonium_
  */
-public interface CompositeConfigurable extends Configurable {
+public interface CompositeConfigurable<T> extends Configurable<T> {
 
     /** {@inheritDoc} */
     @Override
-    public default List<Config> getFields() {
-        List<Config> l = Configurable.super.getFields();
+    public default Collection<Config<T>> getFields() {
+        Collection<Config<T>> l = new ArrayList(Configurable.super.getFields());
         if (getSubConfigurable()!=null)
             l.addAll(getSubConfigurable().getFields());
         return l;

@@ -30,6 +30,7 @@ import util.TODO;
 import static util.TODO.Purpose.FUNCTIONALITY;
 import static util.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 import static util.Util.createmenuItem;
+import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import static util.functional.FunctUtil.list;
@@ -135,7 +136,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public TableColumnInfo getDefaultColumnInfo() {
         if(defColInfo==null) {
             // generate column states
-            F[] fields = type.getEnumConstants();
+            F[] fields = getEnumConstants(type);
             List<ColumnInfo> l = list(fields,f->f.isTypeStringRepresentable(),colStateFact);
             defColInfo = new TableColumnInfo();
             defColInfo.nameKeyMapper = keyNameColMapper;

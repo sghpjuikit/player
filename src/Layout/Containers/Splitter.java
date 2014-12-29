@@ -14,6 +14,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -112,11 +113,15 @@ public final class Splitter implements ContainerNode {
         fadeOut.setOnFinished(e -> controls.getPane().setMouseTransparent(true));
         // additional animations bound to the previous one
         controlsRoot.opacityProperty().addListener((o,ov,nv) -> {
-            double d = nv.doubleValue()*0.1;
-            root_child1.setScaleX(1-d);
-            root_child1.setScaleY(1-d);
-            root_child2.setScaleX(1-d);
-            root_child2.setScaleY(1-d);
+            double d = nv.doubleValue();
+            // we use absolute positioning, to always produce gap of the width 2*30
+            if(splitPane.getOrientation()==HORIZONTAL) {
+                root_child1.setPadding(new Insets(0, d*30, 0, 0));
+                root_child2.setPadding(new Insets(0, 0, 0, d*30));
+            } else {
+                root_child1.setPadding(new Insets(0, 0, d*30, 0));
+                root_child2.setPadding(new Insets(d*30, 0, 0, 0));
+            }
         });
         
         // maintain controls position show if mouse close to divider

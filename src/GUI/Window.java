@@ -67,14 +67,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -89,12 +87,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import static javafx.scene.paint.Color.BLACK;
@@ -206,29 +200,25 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         if(gui_overlay_use_song) applyOverlayUseSongColor();
         else applyColorEffect(gui_overlay_color.getValue());
     }
-    private static void applyColorEffect(Color color) {
+    private static void applyColorEffect(Color c) {
         if(!App.isInitialized()) return;
         if(gui_overlay) {            
             // normalize color
-            if(gui_overlay_normalize)
-                color = Color.hsb(color.getHue(), 0.5, 0.5);
+            if(gui_overlay_normalize)  c = Color.hsb(c.getHue(), 0.5, 0.5);
             
-            final Color cl = color;
+            Color cl = c;
             // apply effect
-            windows.forEach( w -> {
-                w.colorEffectPane.setBlendMode(BlendMode.OVERLAY);
-                w.colorEffectPane.setBackground(new Background(new BackgroundFill(cl, CornerRadii.EMPTY, Insets.EMPTY)));
-                w.colorEffectPane.setOpacity(overlay_norm_factor);
-                w.colorEffectPane.setVisible(true);
-                
+            // IMPLEMENT
+            windows.forEach( w -> {                
+                // apply overlay_norm_factor
+                // overlay_norm_factor
 //                String s = ".root{ skin-main-color: rgb(" + (int)(cl.getRed()*255) + ","+ (int)(cl.getGreen()*255)+ ","+ (int)(cl.getBlue()*255)+ "); }";
 //                w.root.setStyle(s);System.out.println(s);
             });
 
         } else {
             // disable effect
-            windows.forEach( w ->
-                w.colorEffectPane.setVisible(false));
+            // IMPLEMENT
         }
     }
     
@@ -253,9 +243,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         }
         else {
             // remove and destroy listener
-            if(colorListener!=null)
+            if(colorListener!=null) {
                 playingItemMonitoring.unsubscribe();
-            colorListener=null;
+                colorListener=null;
+            }
             applyColorOverlay();
         }
     }
@@ -305,7 +296,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML Button pinB;
     @FXML Button miniB;
     @FXML Button minimizeB;
-    @FXML Pane colorEffectPane;
     @FXML AnchorPane bgrImgLayer;
     public @FXML AnchorPane overlayPane;
     
@@ -314,7 +304,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     
     /** Initializes the controller class. */
-    private void initialize() {System.out.println("init");
+    private void initialize() {
         getStage().setScene(new Scene(root));
         getStage().setOpacity(windowOpacity.getValue());
         

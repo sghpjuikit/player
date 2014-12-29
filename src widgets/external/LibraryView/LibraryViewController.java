@@ -26,6 +26,7 @@ import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -236,7 +237,7 @@ public class LibraryViewController extends FXMLController {
     }
 
     @Override
-    public List getFields() {
+    public Collection<Config<Object>> getFields() {
         // serialize column state when requested
         columnInfo = table.getColumnState();
         return super.getFields();

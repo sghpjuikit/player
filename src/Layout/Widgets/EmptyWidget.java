@@ -5,8 +5,8 @@
 package Layout.Widgets;
 
 import Configuration.Config;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 
@@ -35,7 +35,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     }
 
     @Override
-    public List<Config> getFields() {
+    public Collection<Config<Object>> getFields() {
     // cant use default implementation. it calls getFields on the controller
     // since this=this.controller -> StackOverflow
         return Collections.EMPTY_LIST;

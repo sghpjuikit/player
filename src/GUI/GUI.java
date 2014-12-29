@@ -171,6 +171,7 @@ public class GUI {
         } else {
             alt_state = val;
             LayoutManager.getLayouts().forEach(Layout::hide);
+            setZoomMode(false);
         }
         if(val) Action.Action.actionStream.push("Layout mode");
     }
@@ -195,12 +196,14 @@ public class GUI {
     
     /** Toggles zoom mode. */
     @IsAction(name = "Zoom Layout", description = "Toggles layout zoom in/out.")
-    public static void toggleZoomMode() {System.out.println("togle");
+    public static void toggleZoomMode() {
         Window w = Window.getFocused();
         if(w!=null) {
-            SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());System.out.println(l.isZoomedOut());
+            SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());
             if(l.isZoomedOut()) l.zoomIn();
-            else l.zoomOut();
+            else {
+                l.zoomOut();
+            }
         }
     }
     

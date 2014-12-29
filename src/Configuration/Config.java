@@ -1,14 +1,16 @@
 
 package Configuration;
 
-import java.util.Arrays;
+import static java.util.Arrays.asList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import util.Parser.ParserImpl.Parser;
 import util.Parser.StringParser;
+import util.TODO;
 import util.Util;
+import static util.Util.unPrimitivize;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
@@ -175,10 +177,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      */
     @Override
     public final String toS(T val) {
-//        if(val instanceof PrimitiveList) {
-//            PrimitiveList.class..stream().map(e -> Parser.toS(e)).collect(Collectors.joining("|"));
-//        } else
-            return Parser.toS(val);
+        return Parser.toS(val);
     }
     
     /**
@@ -195,14 +194,38 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
 /*************************** configurable methods *****************************/
 
     Supplier<List<T>> valueEnumerator;
+    private boolean init = false;
     
     public boolean isTypeEnumerable() {
+        if(!init && valueEnumerator==null) {
+            valueEnumerator = buildEnumEnumerator(getDefaultValue());
+            init = true;
+        }
         return valueEnumerator!=null;
     }
     
     @Override
     public List<T> enumerateValues() {
+        if(!init && valueEnumerator==null) {
+            valueEnumerator = buildEnumEnumerator(getDefaultValue());
+            init = true;
+        }
         return valueEnumerator.get();
+    }
+    
+    private static <T> Supplier<List<T>> buildEnumEnumerator( T v) {
+        // handle enums
+        Class c = v.getClass();
+        if(c.isEnum()) {
+            return () -> asList((T[]) Util.getEnumConstants(c));
+        // enums with class method bodies (they are not recognized as enums)
+        } else {
+            Class ec = c.getEnclosingClass();
+            if(ec!=null && ec.isEnum()) {
+                return () -> asList((T[]) ec.getEnumConstants());
+            } else
+                return null;
+        }
     }
     
 /*************************** configurable methods *****************************/
@@ -217,10 +240,12 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * Implementation details: returns self if name equals with parameter or null
      * otherwise
      * @param name
+     * @throws IllegalArgumentException if name doent equal name of this config.
      */
     @Override
     public final Config<T> getField(String name) {
-        return name.equals(getName()) ? this : null;
+        if(!name.equals(getName())) throw new IllegalArgumentException("Name mismatch");
+        else return this;
     }
 
     /**
@@ -237,7 +262,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     public final List<Config<T>> getFields() {
         return Collections.singletonList(this);
     }
-    
     
     
     
@@ -267,6 +291,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
          * @throws NullPointerException if val parameter null. The wrapped value must
          * no be null.
          */
+        @TODO(note = "make static map for valueEnumerators")
         ConfigBase(String name, String gui_name, T val, String category, String info, boolean editable, double min, double max) {
             Objects.requireNonNull(val);
             this.gui_name = gui_name;
@@ -277,18 +302,6 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             this.editable = editable;
             this.min = min;
             this.max = max;
-            
-            // handle enums as enumerable value
-            Class c = val.getClass();
-            if(c.isEnum()) {
-                valueEnumerator = () -> Arrays.asList((T[]) c.getEnumConstants());
-            // enums with class method bodies (they are not recognized as enums)
-            } else {
-                Class ec = c.getEnclosingClass();
-                if(ec!=null && ec.isEnum()) {
-                    valueEnumerator = () -> Arrays.asList((T[]) ec.getEnumConstants());
-                }
-            }
         }
 
         /**
@@ -350,9 +363,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         /** {@inheritDoc} */
         @Override
         public boolean isMinMax() {
-            return Number.class.isAssignableFrom(Util.unPrimitivize(getType())) &&
-                    !(Double.compare(min, Double.NaN)==0 ||
-                        Double.compare(max, Double.NaN)==0);
+            return !(Double.compare(min, Double.NaN)==0 || Double.compare(max, Double.NaN)==0) &&
+                    Number.class.isAssignableFrom(unPrimitivize(getType()));
         }
         
         /** {@inheritDoc} */

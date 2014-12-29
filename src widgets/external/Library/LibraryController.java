@@ -19,12 +19,13 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.InfoNode.TableInfo;
+import static GUI.objects.InfoNode.TableInfo.DEFAULT_TEXT_FACTORY;
+import GUI.objects.InfoNode.TaskInfo;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
-import GUI.objects.Table.TableInfo;
-import static GUI.objects.Table.TableInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -34,6 +35,7 @@ import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
+import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.List;
@@ -50,6 +52,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.ProgressIndicator;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
@@ -77,8 +80,8 @@ import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
 import static util.Util.consumeOnSecondaryButton;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
-import static util.async.Async.run;
 import static util.async.Async.runAsTask;
+import util.async.FxTimer;
 import static util.functional.FunctUtil.list;
 import static util.functional.FunctUtil.listM;
 import util.functional.Runner;
@@ -116,15 +119,14 @@ public class LibraryController extends FXMLController {
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
-    private final Label progressL = new Label();
+    private final TaskInfo taskInfo = new TaskInfo(new Label(), new ProgressIndicator());
+    private final FxTimer hideInfo = new FxTimer(Duration.seconds(5), 1, taskInfo::hideNunbind);
     private Subscription dbMonitor;
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
     @FXML MenuBar controlsBar;
-    
-    private final Duration hideDelay = Duration.seconds(5);
     private final Runner runOnce = new Runner(1);
     
     // configurables
@@ -174,7 +176,6 @@ public class LibraryController extends FXMLController {
         });
         columnInfo = table.getDefaultColumnInfo();
         
-        
         // context menu & play
         table.setOnMouseClicked( e -> {
             if (e.getY()<table.getFixedCellSize()) return;
@@ -223,10 +224,10 @@ public class LibraryController extends FXMLController {
         table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(table.getSelectedItemsCopy()));
         table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> Player.librarySelectedItemES.push(nv));
         
-        // progress label
-        progressL.setVisible(false);
+        // task information label
+        taskInfo.setVisible(false);        
         
-        // information label
+        // table information label
         TableInfo<Metadata> infoL = new TableInfo(new Label(), table);
         infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
@@ -235,7 +236,7 @@ public class LibraryController extends FXMLController {
         
         // controls bottom header
         Region padding = new Region();
-        HBox controls = new HBox(controlsBar,infoL.node,padding,progressL);
+        HBox controls = new HBox(controlsBar,infoL.node,padding,taskInfo.labeled, taskInfo.progressIndicator);
              controls.setSpacing(7);
              controls.setAlignment(Pos.CENTER_LEFT);
              controls.setPadding(new Insets(0,5,0,0));
@@ -295,7 +296,7 @@ public class LibraryController extends FXMLController {
         } else {
             files = Enviroment.chooseFiles("Add files to library", last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            File f = getCommonRoot(files);
+            File f = files==null ? null : getCommonRoot(files);
             if(f!=null) last_file=f;
         }
 
@@ -308,38 +309,30 @@ public class LibraryController extends FXMLController {
                                 if(succes & edit)
                                     WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
                                     
-                                run(hideDelay, () -> progressL.setVisible(false));
-                                progressL.textProperty().unbind();
+                                hideInfo.restart();
                             };
 
                             Task t = MetadataReader.readAaddMetadata(result,onEnd,false);
-                            progressL.textProperty().bind(t.messageProperty());
+                            taskInfo.showNbind(t);
                         } else {
-                            run(hideDelay, () -> progressL.setVisible(false));
-                            progressL.textProperty().unbind();
+                            hideInfo.restart();
                         }
                     });
-            
-            // display progress & hide on end
-            progressL.setVisible(true);
-            progressL.textProperty().bind(ts.messageProperty());
+            taskInfo.showNbind(ts);
         }
     }
     
     @FXML private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
-            progressL.textProperty().unbind();
-            run(hideDelay, () -> progressL.setVisible(false));
+            hideInfo.restart();
         });
-        // display progress & hide on end
-        progressL.setVisible(true);
-        progressL.textProperty().bind(t.messageProperty());
+       taskInfo.showNbind(t);
     }
     
 /********************************* CONFIGS ************************************/
     
     @Override
-    public List<Config> getFields() {
+    public Collection<Config<Object>> getFields() {
         // serialize column state when requested
         columnInfo = table.getColumnState();
         return super.getFields();

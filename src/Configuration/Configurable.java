@@ -1,9 +1,10 @@
 
 package Configuration;
 
+import static Configuration.Configuration.configsOf;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import javafx.beans.property.Property;
 import util.Util;
 
 /**
@@ -89,8 +90,8 @@ public interface Configurable<T> {
      * 
      * @return Configs of this configurable
      */
-    default public List<Config<T>> getFields() {
-        return new ArrayList(Configuration.getConfigsOf(getClass(), this, false, true).values());
+    default public Collection<Config<T>> getFields() {
+        return (Collection) configsOf(getClass(), this, false, true).values();
     }
     
     /**

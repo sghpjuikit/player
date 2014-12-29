@@ -200,7 +200,7 @@ public final class Action extends Config<Action> implements Runnable {
         
         if(!continuous) {
             lock = id;
-            System.out.println(System.currentTimeMillis());System.out.println("locking");
+//            System.out.println(System.currentTimeMillis());System.out.println("locking");
             locker.restart();
         }
         

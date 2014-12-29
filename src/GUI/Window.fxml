@@ -90,7 +90,7 @@
           </children>
         </HBox>
 </children></AnchorPane>
-    <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" onKeyPressed="#entireArea_OnKeyPressed" onKeyReleased="#entireArea_OnKeyReleased" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" /><Pane fx:id="colorEffectPane" mouseTransparent="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><AnchorPane fx:id="overlayPane" mouseTransparent="true" pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" onKeyPressed="#entireArea_OnKeyPressed" onKeyReleased="#entireArea_OnKeyReleased" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" /><AnchorPane fx:id="overlayPane" mouseTransparent="true" pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
   </children>
   <padding>
     <Insets />

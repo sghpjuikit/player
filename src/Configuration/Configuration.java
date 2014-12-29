@@ -42,7 +42,7 @@ public class Configuration {
     }
     
     private static void discoverConfigFieldsOf(Class clazz) {
-        configs.putAll(getConfigsOf(clazz, null, true, false));
+        configs.putAll(configsOf(clazz, null, true, false));
     }
     private static void discoverMethodsOf(Class cls) {
         for (Method m : cls.getDeclaredMethods()) {
@@ -73,7 +73,7 @@ public class Configuration {
         return a==null || a.value().isEmpty() ? c.getSimpleName() : a.value();
     }
     
-    static Map<String,Config> getConfigsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
+    static Map<String,Config> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
         // check arguments
         if(include_instance && instnc==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");

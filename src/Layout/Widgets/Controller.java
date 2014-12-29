@@ -48,7 +48,7 @@ import util.Closable;
  * 
  * @author uranium
  */
-public interface Controller<W extends Widget> extends Configurable, AbstractController<W>, Closable {
+public interface Controller<W extends Widget> extends Configurable<Object>, AbstractController<W>, Closable {
     
     /**
      * 

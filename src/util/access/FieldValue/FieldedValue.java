@@ -9,6 +9,7 @@ import static java.util.Arrays.asList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static util.Util.getEnumConstants;
 
 /**
  *
@@ -41,6 +42,6 @@ public interface FieldedValue<T, F extends FieldEnum<T>> {
      * @return all possible fields
      */
     default List<F> getFieldConstants() {
-        return asList((F[]) getMainField().getClass().getEnumConstants());
+        return asList((F[]) getEnumConstants(getClass()));
     }
 }

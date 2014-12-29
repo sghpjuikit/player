@@ -147,6 +147,10 @@ public class Visualisation extends AnchorPane implements Controller<ClassWidget>
         }
         animation.setAutoReverse(true);
         animation.setCycleCount(Animation.INDEFINITE);
+        
+//        CanvasParticleAnimater animater = new CanvasParticleAnimater(800, 600, new BallParticleRenderer());
+//        getChildren().add(animater.getCanvas());
+        
     }
  
     public void stop() {
@@ -174,16 +178,6 @@ public class Visualisation extends AnchorPane implements Controller<ClassWidget>
     @Override public ClassWidget getWidget() {
         return widget;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
 }

@@ -62,7 +62,7 @@ public class MetadataReader{
         Objects.requireNonNull(onEnd);
                 
         // create task
-        final Task<List<Metadata>> task = new SuccessTask<List<Metadata>>("Reading metadata", onEnd){
+        final Task<List<Metadata>> task = new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
@@ -269,7 +269,7 @@ public class MetadataReader{
         return run(task);
     }
     
-    public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){                
+    public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){
         // create task
         final Task<Void> task = new SuccessTask("Removing missing items from library",onEnd){
             private int all = 0;

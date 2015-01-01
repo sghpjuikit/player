@@ -14,11 +14,15 @@ import java.util.Objects;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import util.Closable;
+import static util.Util.setAPAnchors;
 
 /**
  * Graphical part of the container within layout.
@@ -41,11 +45,11 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
      * Never null.
      */
     public final T container;
-    /** The root Pane of this Area. Never null. */
+    /** The root of this Area. Never null. */
     public final AnchorPane root = new AnchorPane();
-    /** Activates controls */
-    @FXML public Region activator;
     AreaControls controls;
+    /** The root of activity content. Activity content contains custom content. */
+    public final StackPane activityPane;
     
     /**
      * 
@@ -75,6 +79,13 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
                     e.consume();
                 }
         });
+        
+        // load controls
+        activityPane = new StackPane();
+//        activityPane.setPickOnBounds(false);
+        root.getChildren().add(activityPane);
+        setAPAnchors(activityPane, 0d);
+        activityPane.toFront();
     }
     
     /** @return all oomponents wrapped in the area. By default returns all
@@ -194,7 +205,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     public boolean isLocked() {
         return container.isLocked();
     }
-    public boolean isUnderLock() {
+    public final boolean isUnderLock() {
         return container.isUnderLock();
     }
     @FXML
@@ -207,5 +218,21 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     }
     public void disableContent() {
         getContent().setMouseTransparent(true);
+    }
+    
+/**************************** activity node ***********************************/
+    
+    public final void setActivityVisible(boolean v) {
+        activityPane.setVisible(v);
+        activityPane.getStyleClass().addAll(bgr_STYLECLASS);
+        activityPane.pseudoClassStateChanged(draggedPSEUDOCLASS, v);
+        getContent().setOpacity(v ? 0.2 : 1);
+        getContent().setEffect(v ? new BoxBlur(2, 2, 1) : null);
+        getContent().setMouseTransparent(v);
+    }
+    
+    public final void setActivityContent(Node n) {
+        activityPane.getChildren().setAll(n);
+        StackPane.setAlignment(n, Pos.CENTER);
     }
 }

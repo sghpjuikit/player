@@ -127,21 +127,30 @@ public final class Splitter implements ContainerNode {
         // maintain controls position show if mouse close to divider
         // activate the handler only if this visible
         final double limit = 15; // distance for activation of the animation
+        final double act_width = 70; // length for activation area
         aaa = e -> {
+            double W = root.widthProperty().get();
+            double H = root.heightProperty().get();
             if (splitPane.getOrientation() == HORIZONTAL) {
-                double X = splitPane.getDividerPositions()[0] * root.widthProperty().get();
-                if (Math.abs(e.getX() - X) < limit)
-                    showControls();
-                else
-                if (Math.abs(e.getX() - X) > limit)
-                    hideControls();
+                double gap = (H-act_width)/2d;
+                double X = splitPane.getDividerPositions()[0] * W;
+                if(e.getY()>gap && e.getY()<H-gap) {
+                    if (Math.abs(e.getX() - X) < limit)
+                        showControls();
+                    else
+                    if (Math.abs(e.getX() - X) > limit)
+                        hideControls();
+                }
             } else {
-                double Y = splitPane.getDividerPositions()[0] * root.heightProperty().get();
-                if (Math.abs(e.getY() - Y) < limit)
-                    showControls();
-                else
-                if (Math.abs(e.getY() - Y) > limit)
-                    hideControls();
+                double gap = (W-act_width)/2d;
+                if(e.getX()>gap && e.getX()<W-gap) {
+                    double Y = splitPane.getDividerPositions()[0] * H;
+                    if (Math.abs(e.getY() - Y) < limit)
+                        showControls();
+                    else
+                    if (Math.abs(e.getY() - Y) > limit)
+                        hideControls();
+                }
             }
         };
         

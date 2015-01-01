@@ -2,7 +2,6 @@
 package LibraryView;
 
 import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
@@ -14,9 +13,8 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
-import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Table.FilteredTable;
-import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import Layout.Widgets.FXMLController;
@@ -25,7 +23,6 @@ import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +37,7 @@ import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.L;
@@ -116,7 +114,7 @@ public class LibraryViewController extends FXMLController {
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
-    public final Accessor<Integer> lvl = new Accessor<>(1, v -> {
+    public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         if(dbMonitor!=null) dbMonitor.unsubscribe();
         // listen for database changes to refresh library
         dbMonitor = DB.views.subscribe(v, (i,list) -> {
@@ -124,6 +122,8 @@ public class LibraryViewController extends FXMLController {
         });
         // initialize
         setItems(DB.views.getValue(v));
+        // store
+        table.setUserData(v);
     });
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<Metadata.Field>(CATEGORY, v -> {
@@ -154,11 +154,11 @@ public class LibraryViewController extends FXMLController {
         
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
-        table.setColumnStateFacory( f -> {System.out.println("building state " + f);
+        table.setColumnStateFacory( f -> {
             double w = f==VALUE ? 200 : 50;
             return new ColumnInfo(f.toString(), f.ordinal(), true, w);
         });
-        table.setColumnFactory( f -> {  System.out.println("building " + f);
+        table.setColumnFactory( f -> {
             Metadata.Field v = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(v));
             c.setCellValueFactory( cf -> {
@@ -171,23 +171,22 @@ public class LibraryViewController extends FXMLController {
             return c;
         });
         columnInfo = table.getDefaultColumnInfo();
-        columnInfo.columns.stream().forEach(c->System.out.println("DDDEF " + c));
         
         // context menu
         table.setOnMouseClicked( e -> {
             if (e.getY()<table.getFixedCellSize()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2)
-                    play(table.getSelectedItemsCopy());
+                    play();
             } else
             if(e.getButton()==SECONDARY)
-                contxt_menu.show(table, e);
+                contxt_menu.show(this,(TableView)table, e);
         });
         
         // key actions
         table.setOnKeyReleased( e -> {
             if (e.getCode() == ENTER)        // play first of the selected
-                play(table.getSelectedItems());
+                play();
             else if (e.getCode() == ESCAPE)         // deselect
                 table.getSelectionModel().clearSelection();
             else if (e.isControlDown() && e.getCode() == L)  // layout columns
@@ -277,48 +276,51 @@ public class LibraryViewController extends FXMLController {
     
     /** Sends event to next level. */
     private void forwardItems(List<Metadata> list) {
-        List<Metadata> forwardList;
+        DB.views.push(lvl.getValue()+1, filerList(list));
+    }
+    
+    private List<Metadata> filerList(List<Metadata> list) {
+        List<Metadata> l;
         if(table.getSelectionModel().isEmpty()) {
             // no selection -> fetch everything, this is simplified behavior as
             // filter might apply, in such case we should filter the items too
             // i fear of bad performance, say predicate compound of 2000 predicates or even more
-            forwardList = list;
+            l = list;
         } else {
             Predicate<Metadata> p = table.getSelectedItems().stream()
                     .map(MetadataGroup::toMetadataPredicate)
                     .reduce(Predicate::or)
                     .orElse(isFALSE);
-            forwardList = list.stream().filter(p).collect(toList());
+            l = list.stream().filter(p).collect(toList());
         }
-        DB.views.push(lvl.getValue()+1, forwardList);
+        return l;
     }
     
 /******************************** CONTEXT MENU ********************************/
     
-    private static final TableContextMenuInstance<MetadataGroup> contxt_menu = new TableContextMenuInstance<>(
+    private static final TableContextMenuRInstance<Metadata, LibraryViewController> contxt_menu = new TableContextMenuRInstance<>(
         () -> {
-            ContentContextMenu<List<MetadataGroup>> m = new ContentContextMenu();
+            ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             
             m.getItems().addAll(
                 createmenuItem("Play items", e -> play(m.getValue())),
-                createmenuItem("Enqueue items", e -> PlaylistManager.addItems(dbFetch(m.getValue()))),
-                createmenuItem("Update from file", e -> DB.updateItemsFromFile(dbFetch(m.getValue()))),
-                createmenuItem("Remove from library", e -> DB.removeItems(dbFetch(m.getValue()))),
-                createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(dbFetch(m.getValue())))));
+                createmenuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
+                createmenuItem("Update from file", e -> DB.updateItemsFromFile(m.getValue())),
+                createmenuItem("Remove from library", e -> DB.removeItems(m.getValue())),
+                createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))));
 //                createmenuItem("Edit the item/s in tag editor", e -> m.getV);
             return m;
-        },
-        (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
-    );
+        }, (menu, w) -> menu.setValue(w.filerList(DB.views.getValue(w.lvl.getValue()))));
     
-    private static List<Metadata> dbFetch(List<MetadataGroup> filters) {
-        return DB.getAllItemsWhere(filters.get(0).getField(), filters.get(0).getValue());
+    private static void play(List<Metadata> items) {
+        if(items.isEmpty()) return;
+        Playlist p = new Playlist();
+        items.stream().sorted().map(Metadata::toPlaylistItem).forEach(p::addItem);
+        PlaylistManager.playPlaylist(p);
     }
-    private static void play(List<MetadataGroup> filters) {
-        if(filters.isEmpty()) return;
-        List<PlaylistItem> to_play = new ArrayList();
-        dbFetch(filters).stream().map(Metadata::toPlaylistItem).forEach(to_play::add);
-        PlaylistManager.playPlaylist(new Playlist(to_play));
+    
+    private void play() {
+        play(filerList(DB.views.getValue(lvl.getValue())));
     }
     
 }

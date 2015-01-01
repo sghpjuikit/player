@@ -22,7 +22,7 @@ import static util.Parser.File.AudioFileFormat.mp3;
  *
  * @author Plutonium_
  */
-public abstract class MetaItem extends Item {
+public abstract class MetaItem<CI extends Item> extends Item<CI> {
 
     /** @return maximal value of the rating. */
     public int getRatingMax() {

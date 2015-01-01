@@ -32,7 +32,8 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
-import javafx.event.EventHandler;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
@@ -40,12 +41,14 @@ import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
+import org.reactfx.EventSource;
 import util.SingleInstance;
 import static util.Util.createIcon;
 
@@ -55,6 +58,9 @@ import static util.Util.createIcon;
  * @author Plutonium_
  */
 public final class AreaControls {
+    
+    private static final double activatorW = 20;
+    private static final double activatorH = 20;
     
     // we only need one instance for all areas
     private static final SingleInstance<PopOver<Text>,AreaControls> helpP = new SingleInstance<>(
@@ -182,40 +188,50 @@ public final class AreaControls {
         // - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
         // - the weak behavior must not work in strong mode
         
-        // show when area is hovered and in weak mode
-        area.activator.addEventFilter(MOUSE_ENTERED, e -> {
-            // avoid when locked and in strong mode
-            if (!area.isUnderLock() && !isShowingStrong && 
-                    // avoid pointless operation
-                    !isShowingWeak)
-                showWeak();
-        });
+        // weak show - activator behavior
+        BooleanProperty inside = new SimpleBooleanProperty(false);
+        // monitor mouse movement (as filter)
+        EventSource<MouseEvent> showS = new EventSource();
+        area.root.addEventFilter(MOUSE_MOVED, showS::push);
+        area.root.addEventFilter(MOUSE_ENTERED, showS::push);
+        area.root.addEventFilter(MOUSE_EXITED,e->inside.set(false));
+        // and check activator.mouse_enter events
+          // ignore when already showing, under lock or in strong mode
+        showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
+          // transform into IN/OUT boolean
+          .map(e -> root.getWidth()-activatorW<e.getX() && activatorH>e.getY())
+          // ignore when no change
+          .filter(in -> in != inside.get())
+          // or store new state on change
+          .hook(inside::set)
+          // ignore when not inside
+          .filter(in->in)
+          // activate weak layout mode
+          .subscribe(activating -> showWeak());
+
+        // weak hide - deactivator behavior
+        EventSource<MouseEvent> hideS = new EventSource();
+        deactivator.addEventFilter(MOUSE_EXITED,hideS::push);
+        deactivator2.addEventFilter(MOUSE_EXITED,hideS::push);
+        area.root.addEventFilter(MOUSE_EXITED,hideS::push);
+        
         // hide when no longer hovered and in weak mode
-        EventHandler<MouseEvent> closer = e -> {
-            // avoid when locked and in strong mode
-            if(!area.isUnderLock() && !isShowingStrong && 
-                // avoid pointless operation
-                isShowingWeak && 
-                    // but not when helpPoOver is visible
-                    // mouse entering the popup qualifies as root.mouseExited which we need
-                    // to avoid
-                    // now we need to handle hiding when popup closes
-                    (helpP.isNull() || !helpP.get().isShowing())
-                        // hide when none of the deactivators are hovered
-                        // need to translate the coordinates to scene-relative
-                        && !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
-                            && !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()))
-                hideWeak();
-            
-        };
-        deactivator.setOnMouseExited(closer);
-        deactivator2.setOnMouseExited(closer);
+             // ignore when alreadt not showing, under lock or in strong mode
+        hideS.filter(e -> isShowingWeak && !area.isUnderLock() && !isShowingStrong)
+             // but not when helpPoOver is visible
+             // mouse entering the popup qualifies as root.mouseExited which we need
+             // to avoid (now we need to handle hiding when popup closes)
+             .filter(e -> helpP.isNull() || !helpP.get().isShowing())
+             // only when the deactivators are !'hovered' 
+             // (Node.isHover() !work here) & we need to transform coords into scene-relative
+             .filter(e -> !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
+                          !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()))
+             .subscribe(e -> hideWeak());
+
         
         // hide on mouse exit from area
-        // same thing as above - need to take care of popup
-        // theoretically not needed but sometimes mouse exited deactivator does
-        // not get captured in fast movement. This additional handler fixes
-        // the issue
+        // sometimes mouse exited deactivator does not fire in fast movement
+        // same thing as above - need to take care of popup...
         area.root.addEventFilter(MOUSE_EXITED, e -> {
             if(isShowingWeak && !isShowingStrong && (helpP.isNull() || !helpP.get().isShowing()))
                 hide();
@@ -233,7 +249,6 @@ public final class AreaControls {
 
     void toggleLocked() {
         area.toggleLocked();
-        area.activator.setMouseTransparent(area.isUnderLock());
     }
 
     void settings() {
@@ -351,5 +366,6 @@ public final class AreaControls {
     public boolean isShowingWeak() {
         return isShowingWeak;
     }
+
     
 }

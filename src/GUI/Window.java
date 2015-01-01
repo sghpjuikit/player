@@ -56,13 +56,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import static java.lang.Math.abs;
+import static java.lang.Math.pow;
 import static java.lang.Math.signum;
-import static java.lang.Math.sqrt;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -466,59 +465,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             ((SwitchPane)la).zoomProperty().addListener((o,oldx,newV) -> {
                 double x = newV.doubleValue();
                        x = 1-(1-x)/5;
-                bgrImgLayer.setScaleX(scaleFactor * sqrt(sqrt(x)));
-                bgrImgLayer.setScaleY(scaleFactor * sqrt(sqrt(x)));
+                bgrImgLayer.setScaleX(scaleFactor * pow(x, 0.25));
+                bgrImgLayer.setScaleY(scaleFactor * pow(x, 0.25));
             });
-            
-            
-            
-            Platform.runLater(() -> {
-            
-//                for(int i=0; i<1500; i++) {
-//                    double x = Math.random()*overlayPane.getWidth();
-//                    double y = Math.random()*overlayPane.getHeight();
-//                    double dist = Math.random();
-//                    double rCoef = Math.pow(Math.random(), 1.8)+1;
-//                    double r = 0.8 + rCoef*dist;
-//                    Circle c = new Circle(r,Color.AQUA);
-////                           c.getStyleClass().add("particle");
-//    //                if(dist>0.7)
-//                        overlayPane.getChildren().add(c);
-//    //                else bgrImgLayer.getChildren().add(c);
-//
-//                    c.relocate(x, y);
-//                    c.setEffect(new BoxBlur(2*r,2*r, 1));
-//                    c.setOpacity(.7);
-//    //                c.setBlendMode(BlendMode.OVERLAY);
-//                    c.translateXProperty().bind(bgrImgLayer.translateXProperty().multiply(1+dist));
-//
-//                   FadeTransition ft = new FadeTransition(Duration.seconds(2),c);
-//                   ft.setAutoReverse(true);
-//                   ft.setCycleCount(Timeline.INDEFINITE);
-//                   ft.setFromValue(0.7);
-//                   ft.setToValue(0);
-//                   double randSign = Math.random()-0.5;
-//                   ft.setRate((0.2+Math.random()*0.8));
-//                   ft.play();
-//                }
-                
-                
-//                for(int i=0; i<500; i++) {
-//                    double x = Math.random()*overlayPane.getWidth();
-//                    double y = Math.random()*overlayPane.getHeight();
-//                    double dist = Math.random();
-//                    double r = 3*dist;
-//                    Circle c = new Circle(r, Color.AZURE);
-//                    overlayPane.getChildren().add(c);
-//                    c.relocate(x, y);
-//                    c.setEffect(new BoxBlur(r, r, 1));
-//                    c.setOpacity(0.5);
-//                    c.translateXProperty().bind(bgrImgLayer.translateXProperty().multiply(1+dist));
-//                }
-            });
-            
-            
-            
         }
     }
                 
@@ -614,10 +563,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         Label gitB = createIcon(GITHUB,13,"Open github project page for this application",
                 e -> browse(App.getGithubLink()));
         // github button - show all available FontAwesome icons in a popup
-        Label dirB = createIcon(CSS3,13,"Open application location (development tool)",
+        Label dirB = createIcon(CSS3,13,"Open css guide",
                 e -> browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
         // css button - show all available FontAwesome icons in a popup
-        Label cssB = createIcon(FOLDER,13,"Open css guide",
+        Label cssB = createIcon(FOLDER,13,"Open application location (development tool)",
                 e -> browse(App.getLocation().toURI()));
         // icon button - show all available FontAwesome icons in a popup
         Label iconsB = createIcon(IMAGE,13,"Icon browser (development tool)",null);
@@ -661,16 +610,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                   }
               });
         // lock layout button
-        Label lockB = createIcon(GUI.isLayoutLocked() ? UNLOCK : LOCK,13, 
+        Label lockB = createIcon(GUI.isLayoutLocked() ? LOCK : UNLOCK,13, 
                 GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout", null);
               lockB.setOnMouseClicked( e -> {
                   GUI.toggleLayoutLocked();
                   boolean lck = GUI.isLayoutLocked();
-                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"13");
+//                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"13");
                   lockB.getTooltip().setText(lck ? "Unlock widget layout" : "Lock widget layout");
               });
             // initialize proper icon
-        GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? UNLOCK : LOCK, "11"));
+        GUI.layoutLockedProperty().addListener( (o,ov,nv) -> AwesomeDude.setIcon(lockB, nv ? LOCK : UNLOCK, "13"));
         // help button - show hel information
         Label helpB = createIcon(INFO,13,"Help",null);
               helpB.setOnMouseClicked( e -> {

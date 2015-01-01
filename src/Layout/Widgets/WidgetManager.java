@@ -270,7 +270,7 @@ public final class WidgetManager {
         // get .fxml files
         try {
             Files.find(dir.toPath(), 2, (path,u) -> path.toString().endsWith(".fxml"))
-                    .forEach(p-> registerFactory(FileUtil.getName(p.toUri())));
+                 .forEach(f -> registerFactory(FileUtil.getName(f.toUri())));
         } catch(IOException e) {
             Log.err("Error during looking for widgets. Some widgets might not be available.");
         }
@@ -286,7 +286,7 @@ public final class WidgetManager {
             new FXMLWidgetFactory(name, source).register();
             Log.deb("registering " + name);
         } catch(MalformedURLException e) {
-            Log.err("Error registering wirget: " + name);
+            Log.err("Error registering widget: " + name);
         }
     }
 }

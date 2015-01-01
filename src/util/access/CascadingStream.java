@@ -37,13 +37,14 @@ public class CascadingStream<E> {
     }
     
     public Subscription subscribe(int i, BiConsumer<Integer,? super E> subscriber) {
-        link(i+1);
+        link(i);
         AccessibleStream<E> s = map.get(i);
         Consumer<? super E> mediatorSubscriber = e -> subscriber.accept(i, e);
         return s.subscribe(mediatorSubscriber);
     }
     
     private void link(int i) {
+        if(i<1) throw new IllegalArgumentException();
         AccessibleStream<E> s = map.get(i);
         if(s==null) {
             map.put(i, eventStreamFactory.get());
@@ -59,9 +60,14 @@ public class CascadingStream<E> {
     }
     
     public E getValue(int i) {
-        link(i+1);
+        link(i);
         AccessibleStream<E> s = map.get(i);
         requireNonNull(s);
         return s.getValue();
+    }
+    
+    /** @return highest active level */
+    public int getLastLvl() {
+        return map.size()-1;
     }
 }

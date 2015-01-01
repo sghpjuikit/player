@@ -3,6 +3,8 @@ package Layout.Widgets;
 
 import Configuration.Configurable;
 import Layout.Layout;
+import Layout.Widgets.Features.Feature;
+import javafx.scene.Node;
 import util.Closable;
 
 /**
@@ -123,4 +125,7 @@ public interface Controller<W extends Widget> extends Configurable<Object>, Abst
      */
     default boolean isEmpty() { return false; }
     
+    default public Node getActivityNode() {
+        return null;
+    }
 }

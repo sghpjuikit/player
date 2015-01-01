@@ -59,7 +59,7 @@ import util.access.FieldValue.FieldedValue;
  * into more generic ObjectProperty. It will cause XStream serializing
  * to malperform (java7)(needs more testing).
  */
-public final class PlaylistItem extends Item implements FieldedValue<PlaylistItem,PlaylistItem.Field>{
+public final class PlaylistItem extends Item<PlaylistItem> implements FieldedValue<PlaylistItem,PlaylistItem.Field>{
     
     private final SimpleObjectProperty<URI> uri;
     private final SimpleObjectProperty<FormattedDuration> time;
@@ -314,18 +314,11 @@ public final class PlaylistItem extends Item implements FieldedValue<PlaylistIte
 /******************************************************************************/
     
     /** 
-     * Compares by natural order. If the specified item is instance of this class
-     * the comparison will be done by name. <pre>Formally:
-     *     getName().compareToIgnoreCase(o.getName());
-     * </pre>
-     * Otherise the comparison will fall back to super class' implementation
+     * Compares by natural order - by name.
      */
     @Override
-    public int compareTo(Item o) {
-        if(o instanceof PlaylistItem)
-            return getName().compareToIgnoreCase(((PlaylistItem)o).getName());
-        else 
-            return super.compareTo(o);
+    public int compareTo(PlaylistItem o) {
+        return getName().compareToIgnoreCase(o.getName());
     }
     
     /**  @return Natural Comparator. Compares by name. Equivalent to natural

@@ -16,6 +16,7 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import static util.Util.setAPAnchors;
 
 /**
  * Implementation of Area for UniContainer.
@@ -40,11 +41,8 @@ public final class WidgetArea extends UniArea {
         }
         // load controls
         controls = new AreaControls(this);
-        root.getChildren().add(controls.root);
-        AnchorPane.setBottomAnchor(controls.root, 0.0);
-        AnchorPane.setTopAnchor(controls.root, 0.0);
-        AnchorPane.setLeftAnchor(controls.root, 0.0);
-        AnchorPane.setRightAnchor(controls.root, 0.0);
+        root.getChildren().addAll(controls.root);
+        setAPAnchors(controls.root, 0d);
         
         // support css styling
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
@@ -121,8 +119,16 @@ public final class WidgetArea extends UniArea {
         // set container properties (just in case)
         setPadding(container.properties.getD("padding"));
         setLocked(container.properties.getB("locked"));
+        
+        // set up activity node
+        Node an = w.getController().getActivityNode();
+        if(an!=null) {
+            an.setUserData(this);
+            setActivityContent(an);
+            setActivityVisible(false);
+        }
     }
-
+    
     @Override
     public void refresh() {
         widget.getController().refresh();

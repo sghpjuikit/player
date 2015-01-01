@@ -4,6 +4,9 @@ package GUI;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
+import AudioPlayer.tagging.ActionTask;
+import GUI.objects.InfoNode.TaskInfo;
+import GUI.objects.PopOver.PopOver;
 import Layout.Component;
 import Layout.Container;
 import java.io.File;
@@ -13,21 +16,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.EventHandler;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import main.App;
+import static org.atteo.evo.inflector.English.plural;
 import util.Log;
 import util.Parser.File.AudioFileFormat;
 import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.FileUtil;
 import util.Parser.File.ImageFileFormat;
+import util.async.Async;
+import util.functional.FunctUtil;
 
 /**
  *
@@ -180,7 +192,7 @@ public final class DragUtil {
      * @return true if contains at least 1 audio file, audio url, playlist or items 
      */
     public static boolean hasAudio(Dragboard d) {
-        return (d.hasFiles() && !FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
+        return (d.hasFiles() && FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
                         hasPlaylist() ||
                             hasItemList();
@@ -236,20 +248,100 @@ public final class DragUtil {
      * @param e
      * @param action 
      */
+    public static<T> Task<T> doWithImageItems(DragEvent e, Consumer<List<File>> action, BiConsumer<Boolean,T> onEnd) {
+        Dragboard d = e.getDragboard();
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+            String url = d.getUrl();
+            return Async.runAsTask("Downloading image",()->{
+                try {
+                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                    action.accept(singletonList(nf));
+                } catch (Exception ex) {
+                    Log.err(ex.getMessage());
+                }
+                return null;
+            },onEnd);
+        } else if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            return Async.runAsTask("Copying image",()->{
+                action.accept(FileUtil.getImageFiles(files));
+                return null;
+            },onEnd);
+        } else
+            throw new IllegalStateException("image content not found");
+    }
+    public static void doWithImageItems2(DragEvent e, TaskInfo i, Consumer<List<File>> action, Consumer<Boolean> onEnd) {
+        Dragboard d = e.getDragboard();
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+//            String url = d.getUrl();
+//            Async.runAsTask("Downloading image",()->{
+//                try {
+//                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+//                    action.accept(singletonList(nf));
+//                } catch (Exception ex) {
+//                    Log.err(ex.getMessage());
+//                }
+//                return null;
+//            },onEnd);
+        } else if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            String name = "Copying " + plural("image", files.size());
+            new ActionTask<>(name, ()->FileUtil.getImageFiles(files))
+                .setOnDone((ok,imgs) -> {
+                    if(ok) new ActionTask<>("C2")
+                            .setAction(()->action.accept(imgs))
+//                            .setOnClose(t->i.unbind())
+                            .setOnDone((ok_,result)->onEnd.accept(ok_))
+                            .useAnd(i::bind)
+                            .run(Async::executeCurr);
+                    else onEnd.accept(ok);
+                })
+                .useAnd(i::bind)
+//                .setOnClose(t->i.unbind())
+                .run(Async::executeBgr);
+        } else
+            throw new IllegalStateException("image content not found");
+    }
     public static void doWithImageItems(DragEvent e, Consumer<List<File>> action) {
         Dragboard d = e.getDragboard();
         
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {System.out.println(d.getUrl());
             String url = d.getUrl();
-            Platform.runLater(() -> {
-                try {
-                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
-                    action.accept(Arrays.asList(nf));
-                } catch (IOException ex) {
-                    Log.err(ex.getMessage());
-                }
-            });
-        } else if (d.hasFiles()) {
+//            Platform.runLater(() -> {
+//                try {
+//                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+//                    action.accept(singletonList(nf));
+//                } catch (Exception ex) {
+//                    Log.err(ex.getMessage());
+//                }
+//            });
+                
+                
+                
+                
+                    TaskInfo info = new TaskInfo(new Label(), new ProgressIndicator());
+                    Pane b = new VBox(8, info.labeled, info.progressIndicator);
+                    PopOver p = new PopOver("Handling images", b);
+                    Task t = Async.runAsTask("Obtaining image",()->{System.out.println("fffff");
+                        try {
+                            File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                            action.accept(singletonList(nf));
+                        } catch (Exception ex) {
+                            Log.err(ex.getMessage());
+                        }
+                        return null;
+                    }, (success,result)->{
+                        info.unbind();
+                        p.hide();
+                    });
+                    info.bind(t);
+                    p.show(PopOver.ScreenCentricPos.AppCenter);
+                    p.setOpacity(1);
+                    p.centerOnScreen();
+                
+                
+                
+        } else if (d.hasFiles()) {FunctUtil.toS(d.getFiles());
             action.accept(FileUtil.getImageFiles(d.getFiles()));
         }
     }
@@ -259,7 +351,7 @@ public final class DragUtil {
      * @return true if contains at least 1 img file, img url
      */
     public static boolean hasImage(Dragboard d) {
-        return (d.hasFiles() && FileUtil.getImageFiles(d.getFiles()).isEmpty()) ||
+        return (d.hasFiles() && !FileUtil.getImageFiles(d.getFiles()).isEmpty()) ||
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
     
@@ -286,4 +378,3 @@ public final class DragUtil {
         }
     }
 }
-

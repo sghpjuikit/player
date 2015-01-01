@@ -29,14 +29,26 @@ public final class Async {
      * @param action
      * @return task
      */
-    public static<Void> Task<Void> runAsTask(Runnable action) {
-        return run(new SuccessTask<Void>() {
+    public static Task<Void> runAsTask(Runnable action) {
+        return run(new SuccessTask<Void,SuccessTask>() {
             @Override
             protected Void call() throws Exception {
                 action.run();
                 return null;
             }
         });
+    }
+    
+    public static void executeCurr(Runnable r) {
+        r.run();
+    }
+    public static void executeBgr(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.start();
+    }
+    public static void executeFX(Runnable r) {
+        Platform.runLater(r);
     }
     
     /**

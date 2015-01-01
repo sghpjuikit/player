@@ -38,6 +38,7 @@ import java.io.File;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import javafx.beans.Observable;
@@ -143,7 +144,7 @@ public class LibraryController extends FXMLController {
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
-    public final Accessor<Integer> lvl = new Accessor<>(1, v -> {
+    public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         if(dbMonitor!=null) dbMonitor.unsubscribe();
         // listen for database changes to refresh library
         dbMonitor = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
@@ -172,6 +173,14 @@ public class LibraryController extends FXMLController {
             });
             c.setCellFactory(DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
             c.setUserData(f);
+            if(f==Metadata.Field.TRACK) {
+                c.setComparator((Comparator) new Comparator<Integer>() {
+                    @Override
+                    public int compare(Integer o1, Integer o2) {
+                        return Integer.compare(o1, o2);
+                    }
+                });
+            }
             return c;
         });
         columnInfo = table.getDefaultColumnInfo();

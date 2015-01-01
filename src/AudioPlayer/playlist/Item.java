@@ -17,10 +17,12 @@ import static util.Parser.File.AudioFileFormat.Use.PLAYBACK;
  * Playable item.
  * <p>
  * Object maintaining URI as an audio resource.
- * <p>
+ * 
+ * @param <CT> ComparableType. Subclasses should implements their own - self.
+ * 
  * @author uranium
  */
-public abstract class Item implements Comparable<Item> {
+public abstract class Item<CT extends Item> implements Comparable<CT> {
     
 
     
@@ -305,7 +307,7 @@ public abstract class Item implements Comparable<Item> {
      * @param i
      * @return 
      */
-    @Override public int compareTo(Item i) {
+    @Override public int compareTo(CT i) {
         return getURI().compareTo(i.getURI());
     }
     

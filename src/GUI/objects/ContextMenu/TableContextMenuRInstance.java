@@ -10,29 +10,31 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
+import util.SingleInstance;
 
 /**
  *
  * @author Plutonium_
  */
-public class TableContextMenuInstance<E> extends TableContextMenuRInstance<E,TableView<E>> {
+public class TableContextMenuRInstance<E,R> extends SingleInstance<ContentContextMenu<List<E>>,R> {
     
-    public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder) {
+    public TableContextMenuRInstance(Supplier<ContentContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, TableView<E>> mutator) {
+    public TableContextMenuRInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, R> mutator) {
         super(builder, mutator);
     }
     
     /**
-     * Equivalent to: {@code get(table).show(table, e)} . But called only if the
+     * Equivalent to: {@code get(mutator).show(table, e)} . But called only if the
      * table selection is not empty.
      * 
      * @param table
      * @param e 
      */
-    public void show(TableView<E> table, MouseEvent e) {
-        show(table, table, e);
+    public void show(R mutator, TableView<E> table, MouseEvent e) {
+        if(!table.getSelectionModel().isEmpty())
+            get(mutator).show(table, e);
     }
     
 }

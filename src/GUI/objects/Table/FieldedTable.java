@@ -11,6 +11,7 @@ import com.sun.javafx.scene.control.skin.TableViewSkinBase;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
@@ -21,7 +22,6 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
@@ -33,8 +33,8 @@ import static util.Util.createmenuItem;
 import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import static util.functional.FunctUtil.cmpareBy;
 import static util.functional.FunctUtil.list;
-import static util.functional.FunctUtil.listM;
 
 /**
  *
@@ -54,9 +54,6 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public FieldedTable(Class<F> type) {
         super();
         this.type = type;
-        
-        // 
-//        createDefaultSkin();
     }
     
     public void setColumnFactory(Callback<F,TableColumn<T,?>> columnFactory) {
@@ -150,10 +147,13 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             
             
             // build new table column menu
-            List<MenuItem> mm = listM(defColInfo.columns,c->createmenuItem(c.name, 
-                    a->setColumnVisible(c.name, !isColumnVisible(c.name))));
             columnMenu = new ContextMenu();
-            columnMenu.getItems().addAll(mm);
+//            columnMenu.getItems().addAll(mm);
+            defColInfo.columns.streamK()
+                    .sorted(cmpareBy(Entry::getKey))
+                    .map(Entry::getValue)
+                    .map(c->createmenuItem(c.name,a->setColumnVisible(c.name, !isColumnVisible(c.name))))
+                    .forEach(columnMenu.getItems()::add);
             // link table column menu
             Platform.runLater(()->{
                 TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();

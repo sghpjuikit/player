@@ -5,6 +5,7 @@
  */
 package util;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
@@ -17,6 +18,7 @@ import java.lang.annotation.Target;
  *
  * @author Plutonium_
  */
+@Documented
 @Retention(RetentionPolicy.SOURCE)
 @Repeatable(Dependencies.class)
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})

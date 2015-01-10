@@ -11,8 +11,9 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 /**
- *
- * @author Plutonium_
+ * Provides functional methods for object.
+ * 
+ * @param <O> Object - self type: {@code X extends Operable<X> }
  */
 public interface Operable<O> {
     

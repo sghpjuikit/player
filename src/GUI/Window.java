@@ -29,7 +29,6 @@ import Layout.WidgetImpl.LayoutManagerComponent;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
-import PseudoObjects.Maximized;
 import Serialization.SelfSerializator;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
@@ -722,42 +721,56 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private void appDragDo(MouseEvent e) {
         if(!app_drag || e.getButton()!=MouseButton.PRIMARY) return;
         
-        double SW = Screen.getPrimary().getBounds().getWidth(); //screen_width
-        double SH = Screen.getPrimary().getBounds().getHeight(); //screen_height
+        
         double X = e.getScreenX();
         double Y = e.getScreenY();
-        double SH5 = SH/5;
-        double SW5 = SW/5;
         
-        if (isMaximised() == Maximized.NONE)
+        // get screen
+        Screen screen = getScreen(X,Y);
+        
+        
+        double SWm = screen.getBounds().getMinX(); //screen_wbegin
+        double SHm = screen.getBounds().getMinY(); //screen_wbegin
+        double SW = screen.getBounds().getMaxX(); //screen_width
+        double SH = screen.getBounds().getMaxY(); //screen_height
+        double SW5 = screen.getBounds().getWidth()/5;
+        double SH5 = screen.getBounds().getHeight()/5;
+                
+        if (isMaximized() == Maximized.NONE)
             setXY(X - appX, Y - appY);
         
         // (imitate Aero Snap)
         Maximized to;
         
-        if (X <= 0 ) {
-            if (Y<SH5) to = Maximized.LEFT_TOP;
-            else if (Y>SH-SH5) to = Maximized.LEFT_BOTTOM;
-            else to = Maximized.LEFT;
-        } else if (X<SW5) {
-            if(Y<=0) to = Maximized.LEFT_TOP;
+        //left screen edge
+        if (X <= SWm +10) {
+            if (Y<SHm + SH5) to = Maximized.LEFT_TOP;
+            else if (Y<SH-SH5) to = Maximized.LEFT;
+            else to = Maximized.LEFT_BOTTOM;
+        // left screen part
+        } else if (X<SWm+SW5) {
+            if(Y<=SHm) to = Maximized.LEFT_TOP;
             else if (Y<SH-1) to = Maximized.NONE;
             else to = Maximized.LEFT_BOTTOM;
+        // middle screen
         } else if (X<SW-SW5) {
-            if(Y<=0) to = Maximized.ALL;
+            if(Y<=SHm) to = Maximized.ALL;
             else if (Y<SH-1) to = Maximized.NONE;
             else to = Maximized.NONE;
-        } else if (X<SW-1) {
-            if(Y<=0) to = Maximized.RIGHT_TOP;
+        // right screen part
+        } else if (X<SW-10) {
+            if(Y<=SHm) to = Maximized.RIGHT_TOP;
             else if (Y<SH-1) to = Maximized.NONE;
             else to = Maximized.RIGHT_BOTTOM;
+        // right screen edge
         } else {
-            if (Y<SH5) to = Maximized.RIGHT_TOP;
+            if (Y<SHm + SH5) to = Maximized.RIGHT_TOP;
             else if (Y<SH-SH5) to = Maximized.RIGHT;
             else to = Maximized.RIGHT_BOTTOM;
         }
-                
-        if(isMaximised() != to) setMaximized(to);
+        
+        setScreen(screen);
+        setMaximized(to);
     }
     private void appDragEnd(MouseEvent e) {
         app_drag = false;

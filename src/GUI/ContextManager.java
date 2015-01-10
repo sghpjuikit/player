@@ -8,7 +8,6 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
-import java.util.ArrayList;
 import java.util.Objects;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
@@ -50,7 +49,8 @@ public final class ContextManager {
         Window w = Window.create();
                w.setContent(widget);
                w.show();
-               w.setLocationCenter();
+               w.setScreen(Window.getActive().getScreen());
+               w.setXyCenter();
         return w;
     }
     

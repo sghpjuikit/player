@@ -308,7 +308,7 @@ public class LibraryViewController extends FXMLController {
                 createmenuItem("Update from file", e -> DB.updateItemsFromFile(m.getValue())),
                 createmenuItem("Remove from library", e -> DB.removeItems(m.getValue())),
                 createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))));
-//                createmenuItem("Edit the item/s in tag editor", e -> m.getV);
+//                createmenuItem("Edit the item/s in tag editor", e -> m.getValue().re);
             return m;
         }, (menu, w) -> menu.setValue(w.filerList(DB.views.getValue(w.lvl.getValue()))));
     

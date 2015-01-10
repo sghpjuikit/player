@@ -239,7 +239,7 @@ public class GUI {
     @IsAction(name = "Loop maximized state", description = "Switch to different maximized window states.", shortcut = "F3")
     public static void toggleMaximizedState() {
         Window w = Window.getActive();
-        w.setMaximized(w.isMaximised().next());
+        w.setMaximized(w.isMaximized().next());
     }
     
     @IsAction(name = "Fullscreen", description = "Switch fullscreen mode.", shortcut = "F12")

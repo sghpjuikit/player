@@ -9,14 +9,14 @@ package util.access;
 import javafx.beans.value.WritableValue;
 
 /**
- * Extension of {@link WritableValue), that supports {@link CyclicValue}. This
+ * Extension of {@link WritableValue), that supports {@link SequentialValue}. This
  * is a lightweight interface for objects with an access to a value.
  * <p>
  * Intended for object wrappers.
  * 
  * @author Plutonium_
  */
-public interface AccessibleValue<T> extends WritableValue<T>, CyclicValue<T> {
+public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T> {
     
     /**
      * Equivalent to calling {@link #setValue()} with {@link #next()};
@@ -42,7 +42,7 @@ public interface AccessibleValue<T> extends WritableValue<T>, CyclicValue<T> {
     /**
      * {@inheritDoc}
      * <p>
-     * Only available for {@link CyclicValue} types for which
+     * Only available for {@link SequentialValue} types for which
      * next value is returned, {@link Boolean}
      * which is equivalent to negation and {@link Enum} which return the next declared
      * enum constant. Otherwise does nothing.
@@ -50,32 +50,35 @@ public interface AccessibleValue<T> extends WritableValue<T>, CyclicValue<T> {
     @Override
     public default T next() {
         T val = getValue();
-        if(val instanceof CyclicValue)
-            return ((CyclicValue<T>)getValue()).next();
+        if(val instanceof SequentialValue)
+            return ((SequentialValue<T>)getValue()).next();
         else if(val instanceof Boolean)
-            return (T) CyclicValue.next(Boolean.class.cast(getValue()));
+            return (T) SequentialValue.next(Boolean.class.cast(getValue()));
         else if(val instanceof Enum)
-            return (T) CyclicValue.next(Enum.class.cast(getValue()));
+            return (T) SequentialValue.next(Enum.class.cast(getValue()));
         else return val;
     }
     
     /**
-     * {@inheritDoc}
+     * Only available for:
+     * <ul>
+     * <li> {@link SequentialValue} types for which previous value is returned
+     * <li> {@link Boolean} which is equivalent to negation
+     * <li> {@link Enum} which return the previous declared enum constant.
+     * </ul>
+     * Otherwise does nothing.
      * <p>
-     * Only available for {@link CyclicValue} types for which
-     * previous value is returned, {@link Boolean}
-     * which is equivalent to negation and {@link Enum} which return the previous declared
-     * enum constant. Otherwise does nothing.
+     * {@inheritDoc}
      */
     @Override
     public default T previous() {
         T val = getValue();
-        if(val instanceof CyclicValue)
-            return ((CyclicValue<T>)getValue()).previous();
+        if(val instanceof SequentialValue)
+            return ((SequentialValue<T>)getValue()).previous();
         else if(val instanceof Boolean)
-            return (T) CyclicValue.previous(Boolean.class.cast(getValue()));
+            return (T) SequentialValue.previous(Boolean.class.cast(getValue()));
         else if(val instanceof Enum)
-            return (T) CyclicValue.previous(Enum.class.cast(getValue()));
+            return (T) SequentialValue.previous(Enum.class.cast(getValue()));
         else return val;
     }
 }

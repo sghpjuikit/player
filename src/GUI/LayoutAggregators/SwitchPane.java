@@ -23,6 +23,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import util.Animation.Interpolators.CircularInterpolator;
+import static util.Animation.Interpolators.EasingMode.EASE_IN;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import static util.Util.clip;
 import static util.Util.setAPAnchors;
@@ -124,7 +125,7 @@ public class SwitchPane implements LayoutAggregator {
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
-                startUiDrag(e);
+                dragUiStart(e);
                 dragUi(e);
             }
             //if(e.isMiddleButtonDown())
@@ -133,7 +134,7 @@ public class SwitchPane implements LayoutAggregator {
         
         root.addEventFilter(MOUSE_CLICKED, e-> {
             if(e.getButton()==SECONDARY) {
-                endUIDrag(e);
+                dragUiEnd(e);
                 ui.setMouseTransparent(false);
             }
         });
@@ -141,7 +142,7 @@ public class SwitchPane implements LayoutAggregator {
         // if mouse exits the root (and quite possibly window) we can not
         // capture mouse release/click events so lets end the drag right there
         root.addEventFilter(MOUSE_EXITED, e-> {
-            endUIDrag(e);
+            dragUiEnd(e);
         });
         
         root.addEventFilter(ScrollEvent.SCROLL, e-> {
@@ -258,7 +259,7 @@ public class SwitchPane implements LayoutAggregator {
         nowX = ui.getTranslateX();
     });
     
-    private void startUiDrag(MouseEvent e) {
+    private void dragUiStart(MouseEvent e) {
         if(uiDragActive) return;//System.out.println("start");
         uiDrag.stop();
         uiStartX = e.getSceneX();
@@ -267,26 +268,26 @@ public class SwitchPane implements LayoutAggregator {
         measurePulser.restart();
         e.consume();
     }
-    private void endUIDrag(MouseEvent e) {
+    private void dragUiEnd(MouseEvent e) {
         if(!uiDragActive) return;//System.out.println("end");
         // stop drag
         uiDragActive = false;
         measurePulser.stop();
         // handle drag end
-        if(always_align)
+        if(always_align) {
+            uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
+                @Override protected double baseCurve(double x) {
+                    return Math.pow(2-2/(x+1), 0.4);
+                }
+            });
             alignNextTab(e);
-        else {
+        } else {
             // ease out manual drag animation
             double x = ui.getTranslateX();
             double traveled = lastX==0 ? e.getSceneX()-uiStartX : nowX-lastX;
             // simulate mass - the more traveled the longer ease out
             uiDrag.setToX(x + traveled * DRAG_INERTIA);
             uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
-//            uiDrag.setInterpolator(new CircularInterpolator(EASE_IN){
-//                @Override protected double baseCurve(double x) {
-//                    return Math.pow(2-2/(x+1), 0.4);
-//                }
-//            });
             // snap at the end of animation 
             uiDrag.setOnFinished( a -> {
                 int i = snapTabs();

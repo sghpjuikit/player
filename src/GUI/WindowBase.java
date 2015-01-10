@@ -1,10 +1,10 @@
 
 package GUI;
 
+import static GUI.WindowBase.Maximized.ALL;
+import static GUI.WindowBase.Maximized.NONE;
 import GUI.objects.Window.Resize;
-import PseudoObjects.Maximized;
-import static PseudoObjects.Maximized.ALL;
-import static PseudoObjects.Maximized.NONE;
+import static java.lang.Math.abs;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -15,10 +15,24 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.App;
+import util.Dependency;
+import util.TODO;
 import static util.async.Async.run;
 
 /**
  * Customized Stage, window of the application.
+ * <p>
+ * <p>
+ * Screen depended methods:
+ * <br>
+ * Several features are screen dependent (like maximization) as they behave
+ * differently per screen. Their methods are annotated with {@link Dependency} 
+ * annotation set to value SCREEN.
+ * <p>
+ * Prior to calling these methods, correct screen to this window has to be set.
+ * For example the window will maximize within its screen, so correct screen
+ * needs to be set first. The responsibility of deciding, which window is correct
+ * is left on the developer.
  */
 public class WindowBase {
     
@@ -42,6 +56,7 @@ public class WindowBase {
      * Needed during window initialization.
      * Doesnt affect content of the window.
      */
+    @Dependency("SCREEN needs to be set correctly")
     public void update() {        
         s.setOpacity(Window.windowOpacity.getValue());
         
@@ -59,8 +74,7 @@ public class WindowBase {
         // setFullscreen(FullProp.get())  produces a bug probably because the
         // window is not yet ready. Delay execution. Avoid the whole process
         // when the value is not true
-        if(FullProp.get())
-            run(222, ()->setFullscreen(true));
+        if(FullProp.get()) run(222, ()->setFullscreen(true));
     }
     /**
      * WARNING: Dont use the stage for positioning, maximizing and other
@@ -81,6 +95,20 @@ public class WindowBase {
     }
     public double getY() {
         return s.getY();
+    }
+    
+/******************************************************************************/
+    
+    private Screen screen = Screen.getPrimary();
+    
+    /** Sets screen to this window. It influences screen dependent features. */
+    public void setScreen(Screen scr) {
+        screen = scr;
+    }
+    
+    /** Gets screen of this window. It influences screen dependent features. */
+    public Screen getScreen() {
+        return screen;
     }
     
 /******************************************************************************/
@@ -183,7 +211,7 @@ public class WindowBase {
         setMinimized(!isMinimized());
     }
     /** @return the value of the property maximized. */
-    public Maximized isMaximised() {
+    public Maximized isMaximized() {
         return MaxProp.get();
     }
     /**
@@ -191,24 +219,28 @@ public class WindowBase {
      * in full screen mode this method is a no-op.
      * @param val 
      */
-    public void setMaximized(Maximized val) {        
-        if(isFullscreen()) return; // no-op if fullscreen
+    @Dependency("SCREEN")
+    public void setMaximized(Maximized val) {
+        // no-op if fullscreen
+        if(isFullscreen()) return;
         
         // prevent pointless change
-        Maximized old = isMaximised();
+        Maximized old = isMaximized();
         if(old==val) return;
         
         // remember window state if entering from non-mazimized state
         if(old==Maximized.NONE) {
             // this must not execute when val==NONE but that will not
-            // happen because: old==none and we return if old==val
+            // happen here
             WProp.set(s.getWidth());
             HProp.set(s.getHeight());
             XProp.set(s.getX());
             YProp.set(s.getY());
         }
+        // remember state
         MaxProp.set(val);
         
+        // apply
         switch (val) {
             case ALL:           maximizeAll();          break;
             case LEFT:          maximizeLeft();         break;
@@ -218,54 +250,59 @@ public class WindowBase {
             case LEFT_BOTTOM:   maximizeLeftBottom();   break;
             case RIGHT_BOTTOM:  maximizeRightBottom();  break;
             case NONE:          demaximize();           break;
-            default:
         }
     }
+    @Dependency("SCREEN")
     private void maximizeAll() {
-        s.setX(Screen.getPrimary().getBounds().getMinX());
-        s.setY(Screen.getPrimary().getBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getBounds().getWidth());
-        s.setHeight(Screen.getPrimary().getBounds().getHeight());
+        s.setX(screen.getBounds().getMinX());
+        s.setY(screen.getBounds().getMinY());
+        s.setWidth(screen.getBounds().getWidth());
+        s.setHeight(screen.getBounds().getHeight());
     }
+    @Dependency("SCREEN")
     private void maximizeRight() {
-        s.setX(Screen.getPrimary().getBounds().getMinX() + Screen.getPrimary().getBounds().getWidth()/2);
-        s.setY(Screen.getPrimary().getBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getBounds().getHeight());
+        s.setX(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2);
+        s.setY(screen.getBounds().getMinY());
+        s.setWidth(screen.getBounds().getWidth()/2);
+        s.setHeight(screen.getBounds().getHeight());
     }
+    @Dependency("SCREEN")
     private void maximizeLeft() {
-        s.setX(Screen.getPrimary().getBounds().getMinX());
-        s.setY(Screen.getPrimary().getBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getBounds().getHeight());
+        s.setX(screen.getBounds().getMinX());
+        s.setY(screen.getBounds().getMinY());
+        s.setWidth(screen.getBounds().getWidth()/2);
+        s.setHeight(screen.getBounds().getHeight());
     }
+    @Dependency("SCREEN")
     private void maximizeLeftTop() {
-        s.setX(Screen.getPrimary().getBounds().getMinX());
-        s.setY(Screen.getPrimary().getBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
+        s.setX(screen.getBounds().getMinX());
+        s.setY(screen.getBounds().getMinY());
+        s.setWidth(screen.getBounds().getWidth()/2);
+        s.setHeight(screen.getBounds().getHeight()/2);
     }
+    @Dependency("SCREEN")
     private void maximizeRightTop() {
-        s.setX(Screen.getPrimary().getBounds().getMinX() + Screen.getPrimary().getBounds().getWidth()/2);
-        s.setY(Screen.getPrimary().getBounds().getMinY());
-        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
+        s.setX(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2);
+        s.setY(screen.getBounds().getMinY());
+        s.setWidth(screen.getBounds().getWidth()/2);
+        s.setHeight(screen.getBounds().getHeight()/2);
     }
+    @Dependency("SCREEN")
     private void maximizeLeftBottom() {
-        s.setX(Screen.getPrimary().getBounds().getMinX());
-        s.setY(Screen.getPrimary().getBounds().getMinY() + Screen.getPrimary().getBounds().getHeight()/2);
-        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
+        s.setX(screen.getBounds().getMinX());
+        s.setY(screen.getBounds().getMinY() + screen.getBounds().getHeight()/2);
+        s.setWidth(screen.getBounds().getWidth()/2);
+        s.setHeight(screen.getBounds().getHeight()/2);
     }
+    @Dependency("SCREEN")
     private void maximizeRightBottom() {
-        s.setX(Screen.getPrimary().getBounds().getMinX() + Screen.getPrimary().getBounds().getWidth()/2);
-        s.setY(Screen.getPrimary().getBounds().getMinY() + Screen.getPrimary().getBounds().getHeight()/2);
-        s.setWidth(Screen.getPrimary().getBounds().getWidth()/2);
-        s.setHeight(Screen.getPrimary().getBounds().getHeight()/2);
+        s.setX(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2);
+        s.setY(screen.getBounds().getMinY() + screen.getBounds().getHeight()/2);
+        s.setWidth(screen.getBounds().getWidth()/2);
+        s.setHeight(screen.getBounds().getHeight()/2);
     }
-    
     private void demaximize() {
-        MaxProp.set(Maximized.NONE);
+        MaxProp.set(NONE);
         setSize(WProp.get(),HProp.get());
         setXY(XProp.get(),YProp.get());
     }
@@ -274,7 +311,7 @@ public class WindowBase {
     * NONE maximize states.
     */    
     public void toggleMaximize() {
-        setMaximized( isMaximised()==ALL ? Maximized.NONE : ALL);
+        setMaximized(isMaximized()==ALL ? NONE : ALL);
     }
     
     /** @return value of property fulscreen of this window */
@@ -306,17 +343,25 @@ public class WindowBase {
         s.setFullScreenExitHint(text);
     }
     
-    private void snapUp() {
-        s.setY(0);
+    /** Snaps this window to the top edge of this window's screen. */
+    @Dependency("SCREEN needs to be set correctly")
+    public void snapUp() {
+        s.setY(screen.getBounds().getMinY());
     }
+    /** Snaps this window to the bottom edge of this window's screen. */
+    @Dependency("SCREEN needs to be set correctly")
     private void snapDown() {
-        s.setY(Screen.getPrimary().getBounds().getHeight() - s.getHeight());
+        s.setY(screen.getBounds().getMaxY() - s.getHeight());
     }
+    /** Snaps this window to the left edge of this window's screen. */
+    @Dependency("SCREEN needs to be set correctly")
     private void snapLeft() {
-        s.setX(0);
+        s.setX(screen.getBounds().getMinX());
     }    
+    /** Snaps this window to the right edge of this window's screen. */
+    @Dependency("SCREEN needs to be set correctly")
     private void snapRight() {
-        s.setX(Screen.getPrimary().getBounds().getWidth() - s.getWidth());
+        s.setX(screen.getBounds().getMaxX() - s.getWidth());
     }
     
     /** @see #setX(double, boolean)  */
@@ -366,16 +411,29 @@ public class WindowBase {
         s.setX(x);
         s.setY(y);
         
-        if(snap) snap();
+        if(snap) {
+            screen = getScreen(x, y);
+            snap();
+        }
     }
     
-    /**
-     * 
-     */
-    public void setLocationCenter() {
-        double x = Screen.getPrimary().getBounds().getWidth()/2 - getWidth()/2;
-        double y = Screen.getPrimary().getBounds().getHeight()/2 - getHeight()/2;
+    /** Centers this window on ita screen. */
+    @Dependency("SCREEN needs to be set correctly")
+    public void setXyCenter() {
+        double x = screen.getBounds().getWidth()/2 - getWidth()/2;
+        double y = screen.getBounds().getHeight()/2 - getHeight()/2;
         setXY(x, y);
+    }
+    
+    public Screen getScreen(double x, double y) {
+        for (Screen scr : Screen.getScreens())
+            if (scr.getBounds().intersects(x,y,1,1)) {
+                return scr;
+                // unknown whether this affects functionality
+//                break;
+            }
+        // aboid null
+        return Screen.getPrimary();
     }
     
     /**
@@ -387,27 +445,31 @@ public class WindowBase {
      * Because convenience methods are provided that auto-snap on position
      * change, there is little use for calling this method externally.
      */
+    @TODO(purpose = TODO.Purpose.ILL_DEPENDENCY, note = "make auto screen detection")
+    @Dependency("SCREEN")
     public void snap() {
         // avoid snapping while resizing. It leads to unwanted behavior
-        if(isResizing()) return;
-        
-        double SW = Screen.getPrimary().getBounds().getWidth();
-        double SH = Screen.getPrimary().getBounds().getHeight();
+        // avoid when not desired
+        if(!GUI.snapping || isResizing()) return;
+
         double S = GUI.snapDistance;
         
         // snap to screen edges (x and y separately)
-        if (GUI.snapping) {  
-            // x snapping
-            if (Math.abs(s.getX())<S)
-                snapLeft();
-            else if (Math.abs(s.getX()+s.getWidth() - SW) < S)
-                snapRight();
-            // y snapping
-            if (Math.abs(s.getY())<S)
-                snapUp();
-            else if (Math.abs(s.getY()+s.getHeight() - SH) < S)
-                snapDown();
-        }
+        double SWm = screen.getBounds().getMinX();
+        double SHm = screen.getBounds().getMinY();
+        double SW = screen.getBounds().getMaxX();
+        double SH = screen.getBounds().getMaxY();
+        // x
+        if (abs(s.getX() - SWm) < S)
+            snapLeft();
+        else if (abs(s.getX()+s.getWidth() - SW) < S)
+            snapRight();
+        // y
+        if (abs(s.getY() - SHm) < S)
+            snapUp();
+        else if (abs(s.getY()+s.getHeight() - SH) < S)
+            snapDown();
+        
         
         // snap to other window edges
         for(Window w: Window.windows) {
@@ -416,19 +478,16 @@ public class WindowBase {
             double WYS = w.getY()+w.getHeight();
             double WYE = w.getY();
         
-            // snap to edges (x and y separately)
-            if (GUI.snapping) {  
-                // x snapping
-                if (Math.abs(WXS - s.getX())<S)
-                    s.setX(WXS);
-                else if (Math.abs(s.getX()+s.getWidth() - WXE) < S)
-                    s.setX(WXE - s.getWidth());
-                // y snapping
-                if (Math.abs(WYS - s.getY())<S)
-                    s.setY(WYS);
-                else if (Math.abs(s.getY()+s.getHeight() - WYE) < S)
-                    s.setY(WYE - s.getHeight());    
-            }
+            // x
+            if (Math.abs(WXS - s.getX())<S)
+                s.setX(WXS);
+            else if (Math.abs(s.getX()+s.getWidth() - WXE) < S)
+                s.setX(WXE - s.getWidth());
+            // y
+            if (Math.abs(WYS - s.getY())<S)
+                s.setY(WYS);
+            else if (Math.abs(s.getY()+s.getHeight() - WYE) < S)
+                s.setY(WYE - s.getHeight());    
         }
     }
     
@@ -463,9 +522,10 @@ public class WindowBase {
      * size divided by half and the location will be set so the window is
      * center aligned on the primary screen.
      */
-    public void setSizeAndLocationToInitial() {
-        double w = Screen.getPrimary().getBounds().getWidth()/2;
-        double h = Screen.getPrimary().getBounds().getHeight()/2;
+    @Dependency("SCREEN")
+    public void setXyNsizeToInitial() {
+        double w = screen.getBounds().getWidth()/2;
+        double h = screen.getBounds().getHeight()/2;
         setSize(w,h);
         setXY(w/2,h/2);
     }
@@ -508,6 +568,16 @@ public class WindowBase {
                   getStage().getScene().getRoot() == null));
     }
     
-    
+    /** State of window maximization. */
+    public static enum Maximized implements util.access.CyclicEnum<Maximized> {
+        ALL,
+        LEFT,
+        RIGHT,
+        LEFT_TOP,
+        RIGHT_TOP,
+        LEFT_BOTTOM,
+        RIGHT_BOTTOM,
+        NONE;
+    }
     
 }

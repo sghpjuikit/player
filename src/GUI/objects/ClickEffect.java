@@ -4,26 +4,31 @@ package GUI.objects;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ContextManager;
 import GUI.Window;
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.CacheHint;
+import javafx.scene.Scene;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
+import static javafx.stage.StageStyle.TRANSPARENT;
 import javafx.util.Duration;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import util.Log;
+import main.App;
+import util.TODO;
 
 /**
  * 
@@ -31,6 +36,7 @@ import util.Log;
  */
 @Immutable
 @IsConfigurable
+@TODO(purpose = TODO.Purpose.UNIMPLEMENTED, note = "make mouse transparent")
 public class ClickEffect {
     
     // configuration
@@ -69,13 +75,10 @@ public class ClickEffect {
     @AppliesConfig( "MAX_SCALE")
     @AppliesConfig( "DELAY")
     private static void applyEffectAttributes() {
+        if(App.isInitialized())
         pool.forEach(ClickEffect::apply);
     }
     
-    
-    // loading
-    private static final URL fxml = ClickEffect.class.getResource("ClickEffect.fxml");
-    private static final FXMLLoader fxmlLoader = new FXMLLoader(fxml);
     
     // pooling
     private static final List<ClickEffect> pool = new ArrayList();
@@ -94,6 +97,10 @@ public class ClickEffect {
         }
     }
     
+    public static ClickEffect createStandalone() {
+        return new ClickEffect();
+    }
+    
     /**
      * Run at specific coordinates. The graphics of the effect is centered - [0,0]
      * is at its center
@@ -107,59 +114,73 @@ public class ClickEffect {
     
     // handlers to display the effect, set to window's root
     private static final EventHandler<MouseEvent> clickHandler = e ->
-            run(e.getSceneX(), e.getSceneY());
+            run(e.getScreenX(), e.getScreenY());
+    
     private static final EventHandler<MouseEvent> trailHandler = e -> {
             counter = counter==100 ? 1 : counter+1;
             if (counter%(101-(int)effect_intensity) == 0)
-                run(e.getSceneX(), e.getSceneY());
+                run(e.getScreenX(), e.getScreenY());
         };
+    
 /******************************************************************************/
     
     // fields
-    private AnchorPane parent;
-    private final AnchorPane root = new AnchorPane();
+    private final Circle root = new Circle();
     private final FadeTransition fade = new FadeTransition();
     private final ScaleTransition scale = new ScaleTransition();
     private final ParallelTransition anim = new ParallelTransition(root,fade,scale);
     
     private ClickEffect() {
-        try {
-            fxmlLoader.setRoot(root);
-            fxmlLoader.setController(this);
-            fxmlLoader.load();
-            initialize();
-        } catch (IOException ex) {
-            Log.err("ClickEffect source data coudlnt be read.");
-        }
-    }
-    
-    private void initialize() {
+        root.setRadius(15);
+        root.setFill(null);
+        root.setEffect(new GaussianBlur(5.5));
+        root.setStroke(Color.AQUA);
+        root.setStrokeWidth(4.5);
+        
         root.setVisible(false);
         root.setCache(true);
         root.setCacheHint(CacheHint.SPEED);
-        anim.setOnFinished( e -> {
-            parent.getChildren().remove(root);
-            pool.add(this);
-        });
+        root.setMouseTransparent(true);
+        anim.setOnFinished( e ->pool.add(this));
+        
+        ((Pane) s.getScene().getRoot()).getChildren().add(root);
+        
         apply();
     }
     
-    private void play(double X, double Y) {
-        Window w = Window.getFocused();
-        if(w==null) return;
-        
-        parent = w.overlayPane;
-        parent.getChildren().add(root);
+    private static final Stage s;
+    static { 
+        AnchorPane root = new AnchorPane();
+                   root.setMouseTransparent(true);
+                   root.setStyle("-fx-background-color: null;");
+                   root.setPickOnBounds(false);
+        s = new Stage(TRANSPARENT);
+        s.initOwner(App.getWindowOwner().getStage());
+        s.setScene(new Scene(root));
+        s.setX(1);
+        s.setY(1);
+        s.setWidth(Screen.getPrimary().getBounds().getWidth()-2);
+        s.setHeight(Screen.getPrimary().getBounds().getHeight()-2);
+        s.setAlwaysOnTop(true);
+        s.getScene().setFill(null);
+//        s.show();
+    }
+    
+    private double scaleB = 1;
+    public ClickEffect setScale(double s) {
+        scaleB = s;
+        return this;
+    }
+    public void play(double X, double Y) {
         // center position on run
-        root.setLayoutX(X-(root.getWidth()/2));
-        root.setLayoutY(Y-(root.getHeight()/2));
-        
+        root.setLayoutX(X);
+        root.setLayoutY(Y);
         // run effect
         root.setVisible(true);
         anim.play();
     }
     
-    void apply() {
+    public void apply() {
         root.setBlendMode(blend_mode);
         anim.setDelay(Duration.millis(DELAY));
         
@@ -168,9 +189,9 @@ public class ClickEffect {
         fade.setToValue(0);
         
         scale.setDuration(Duration.millis(DURATION));
-        scale.setFromX(MIN_SCALE);
-        scale.setFromY(MIN_SCALE);
-        scale.setToX(MAX_SCALE);
-        scale.setToY(MAX_SCALE);
+        scale.setFromX(scaleB*MIN_SCALE);
+        scale.setFromY(scaleB*MIN_SCALE);
+        scale.setToX(scaleB*MAX_SCALE);
+        scale.setToY(scaleB*MAX_SCALE);
     }
 }

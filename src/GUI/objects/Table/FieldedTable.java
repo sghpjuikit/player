@@ -23,6 +23,7 @@ import javafx.application.Platform;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import util.Parser.ParserImpl.Parser;
@@ -57,7 +58,9 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     }
     
     public void setColumnFactory(Callback<F,TableColumn<T,?>> columnFactory) {
-        this.colFact = name -> "#".equals(name) ? buildIndexColumn() : columnFactory.call(Parser.fromS(type, keyNameColMapper.apply(name)));
+        colFact = name -> "#".equals(name) 
+            ? columnIndex 
+            : columnFactory.call(Parser.fromS(type, keyNameColMapper.apply(name)));
     }
     
     public Callback<String,TableColumn<T,?>> getColumnFactory() {
@@ -193,5 +196,36 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     public Optional<TableColumn<T,?>> getColumn(F f) {
         return getColumn(f.toString());
+    }
+    
+/************************************* SORT ***********************************/
+    
+    /**
+     * Sorts the items by the field. Sorting does not operate on table's sort
+     * order and is applied to items backing the table. Any sort order of 
+     * the table will be removed.
+     * <p>
+     * This is not a programmatic equivalent of sorting the table manually by
+     * clicking on their header (which operates through sort order).
+     * <p>
+     * Works even when field's respective column is invisible.
+     * <p>
+     * Note, that if the field must support sorting - return Comparable type.
+     * 
+     * @param field 
+     */
+    public void sortBy(F field) {
+        getSortOrder().clear();
+        getItems().sort(cmpareBy(p -> (Comparable) p.getField(field)));
+    }
+    
+    /**
+     * Sorts the items by the column.
+     * Same as {@link #sortBy(javafx.scene.control.TableColumn, 
+     * javafx.scene.control.TableColumn.SortType)}, but uses 
+     * {@link #getColumn(util.access.FieldValue.FieldEnum)} for column lookup.
+     */
+    public void sortBy(F field, SortType type) {
+        getColumn(field).ifPresent(c -> sortBy(c, type));
     }
 }

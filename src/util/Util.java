@@ -352,7 +352,7 @@ public interface Util {
      * number in absolute value.
      * Examples:  9 for 1-10, 99 for 10-99, 999 for nubmers 100-999, etc...
      */
-    public static int DecMin1(int n) {
+    public static int decMin1(int n) {
         // normally we would do the below
         // return n==0 ? 0 : (int) (pow(10, 1+digits(n))-1);
         // but why not make this perform faster
@@ -695,12 +695,12 @@ public interface Util {
      * @param e enum constant/instance
      * @param mapper function to apply on the constant
      */
-    public static<E extends Enum>void mapEnumConstant(Class<E> c, E e, Function<String, String> mapper) {
+    public static<E extends Enum>void mapEnumConstant(E e, Function<E, String> mapper) {
         try {
-            Field f = c.getSuperclass().getDeclaredFields()[0];
+            Field f = e.getClass().getSuperclass().getDeclaredFields()[0];
             f.setAccessible(true);
             String old = ((String)f.get(e));
-            f.set(e, mapper.apply(old));
+            f.set(e, mapper.apply(e));
             f.setAccessible(false);
         } catch (Exception ex) {
             throw new RuntimeException(ex);

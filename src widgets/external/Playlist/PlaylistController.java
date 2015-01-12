@@ -3,16 +3,21 @@ package Playlist;
 
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
+import static AudioPlayer.playlist.PlaylistItem.Field.ARTIST;
+import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
+import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
+import static AudioPlayer.playlist.PlaylistItem.Field.PATH;
+import static AudioPlayer.playlist.PlaylistItem.Field.TITLE;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.FormattedDuration;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
+import GUI.objects.InfoNode.TableInfo;
+import static GUI.objects.InfoNode.TableInfo.DEFAULT_TEXT_FACTORY;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Table.PlaylistTable;
-import GUI.objects.InfoNode.TableInfo;
-import static GUI.objects.InfoNode.TableInfo.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -131,7 +136,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         // information label
         TableInfo<PlaylistItem> infoL = new TableInfo(duration, table);
         infoL.textFactory = (all, list) -> {
-            double d = list.stream().mapToDouble(PlaylistItem::getTimeInMs).sum();
+            double d = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
             return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
         };
         
@@ -223,19 +228,19 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     }
     
     @FXML public void sortByName() {
-        table.sortByName();
+        table.sortBy(NAME);
     }
     @FXML public void sortByArtist() {
-        table.sortByArtist();
+        table.sortBy(ARTIST);
     }
     @FXML public void sortByLength() {
-        table.sortByLength();
+        table.sortBy(LENGTH);
     }
     @FXML public void sortByTitle() {
-        table.sortByTitle();
+        table.sortBy(TITLE);
     }
     @FXML public void sortByFilename() {
-        table.sortByLocation();
+        table.sortBy(PATH);
     }
     
     @FXML public void reverseOrder() {

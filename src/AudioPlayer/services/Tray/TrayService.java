@@ -32,7 +32,7 @@ import util.Log;
  * @author thedoctor
  */
 public class TrayService implements Service{
-    private File imgUrl = new File(App.getLocation(), "icon.png");
+    private File imgUrl = new File(App.getLocation(), "icon.jpg");
     private final List<Tuple2<String, Runnable>> menuActions = new ArrayList();
     private Runnable onClick;
     private int onDoubleClick = 1;

@@ -104,4 +104,27 @@ public class ImprovedTable<T> extends TableView<T> {
             }
         });
     }
+    
+/************************************ SORT ************************************/
+    
+    /**
+     * Sorts the items by the column. Sorting operates on table's sort
+     * order and items backing the table remain unchanged. Sort order of 
+     * the table is changed so specified column is primary sorting column and
+     * other columns remain unaffected.
+     * <p>
+     * This is a programmatic equivalent of sorting the table manually by
+     * clicking on columns' header (which operates through sort order).
+     * <p>
+     * Does not work when field's respective column is invisible - does nothing.
+     * <p>
+     * Note, that if the field must support sorting - return Comparable type.
+     * 
+     * @param field 
+     */
+    public void sortBy(TableColumn c, TableColumn.SortType type) {
+        getSortOrder().remove(c);
+        c.setSortType(type);
+        getSortOrder().add(0, c);
+    }
 }

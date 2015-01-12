@@ -1139,8 +1139,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         CUSTOM4,
         CUSTOM5;
             
-        Field() {
-            mapEnumConstant(Field.class, this, constant->capitalizeStrong(constant.replace('_', ' ')));
+        private Field() {
+            mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
         }
         
         /** {@inheritDoc} */

@@ -70,7 +70,6 @@ import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.Parser.File.AudioFileFormat;
 import util.Parser.File.AudioFileFormat.Use;
@@ -120,8 +119,8 @@ public class LibraryController extends FXMLController {
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
-    private final TaskInfo taskInfo = new TaskInfo(new Label(), new ProgressIndicator());
-    private final FxTimer hideInfo = new FxTimer(Duration.seconds(5), 1, taskInfo::hideNunbind);
+    private final TaskInfo taskInfo = new TaskInfo(null, new Label(), new ProgressIndicator());
+    private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private Subscription dbMonitor;
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     
@@ -245,7 +244,7 @@ public class LibraryController extends FXMLController {
         
         // controls bottom header
         Region padding = new Region();
-        HBox controls = new HBox(controlsBar,infoL.node,padding,taskInfo.labeled, taskInfo.progressIndicator);
+        HBox controls = new HBox(controlsBar,infoL.node,padding,taskInfo.message, taskInfo.progressIndicator);
              controls.setSpacing(7);
              controls.setAlignment(Pos.CENTER_LEFT);
              controls.setPadding(new Insets(0,5,0,0));

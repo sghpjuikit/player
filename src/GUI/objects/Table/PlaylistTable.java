@@ -5,6 +5,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
+import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
 import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
@@ -14,14 +15,16 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javafx.beans.Observable;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
@@ -31,7 +34,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TableView.ResizeFeatures;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -49,9 +51,12 @@ import util.Parser.File.Enviroment;
 import util.TODO;
 import static util.TODO.Purpose.READABILITY;
 import util.Util;
+import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
 import static util.Util.createmenuItem;
 import static util.Util.selectRows;
 import static util.Util.setAPAnchors;
+import static util.async.Async.run;
+import static util.functional.FunctUtil.cmpareBy;
 
 /**
  * Playlist table GUI component.
@@ -64,13 +69,13 @@ import static util.Util.setAPAnchors;
  */
 @TODO(purpose = READABILITY, note = "dragging duplicite code for empty table case")
 public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
+    
     // css styles for rows
     private static final PseudoClass playingRowCSS = PseudoClass.getPseudoClass("played");
     private static final PseudoClass corruptRowCSS = PseudoClass.getPseudoClass("corrupt");
     
-    private final TableColumn<PlaylistItem,String> columnName = new TableColumn("name");
-    private final TableColumn<PlaylistItem,FormattedDuration> columnTime = new TableColumn("time");
-    
+    private final TableColumn<PlaylistItem,String> columnName;
+    private final TableColumn<PlaylistItem,FormattedDuration> columnTime;
     private final Callback<TableView<PlaylistItem>,TableRow<PlaylistItem>> rowFactory;
     
     // selection helper variables
@@ -78,8 +83,8 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     ArrayList<Integer> selected_temp = new ArrayList<>();
     int clicked_row = -1;
     
-    // playing item observation listeners
-    Subscription playintItemMonitor = Player.playingtem.subscribeToChanges(o->refresh());
+    // playing item observation listeners, the playing item style update
+    Subscription playintItemMonitor = Player.playingtem.subscribeToChanges(o->refreshColumn(columnIndex));
     
     // invisible controls helping with resizing columns
     private Label tmp = new Label();
@@ -94,12 +99,37 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         root.getChildren().add(a);
         VBox.setVgrow(a, Priority.ALWAYS);
         
-        // initialize table gui
+        // initialize table
         setTableMenuButtonVisible(false);
         setFixedCellSize(GUI.font.getValue().getSize() + 5);
+        getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         
-        // initialize factories
-        rowFactory = p_table -> {
+        // initialize column factories
+        setColumnStateFacory( f -> {
+            boolean visible = f==NAME || f==LENGTH;
+            return new ColumnInfo(f.toString(), f.ordinal(), visible, 60);
+        });
+        setColumnFactory( f -> {
+            TableColumn<PlaylistItem,?> c = new TableColumn(f.toString());
+            if(f==NAME || f==LENGTH) {
+                c.setCellValueFactory(new PropertyValueFactory(f.name()));
+            } else {
+                c.setCellValueFactory( cf -> {
+                    if(cf.getValue()==null) return null;
+                    return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+                });
+            }
+            c.setCellFactory(DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
+            c.setUserData(f);
+            c.setResizable(true);
+            return c;
+        });
+        setColumnState(getDefaultColumnInfo());
+        columnName = (TableColumn) getColumn(NAME).get();
+        columnTime = (TableColumn) getColumn(LENGTH).get();
+        
+        // initialize row factories
+        rowFactory = t -> {
             TableRow<PlaylistItem> row = new TableRow<PlaylistItem>() {
                 private void updatePseudoclassState(PlaylistItem item, boolean empty) {
                     if (empty) return;
@@ -133,9 +163,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     super.layoutChildren();
                     updatePseudoclassState(getItem(), isEmpty());
                 }
-            };
-            
-            
+            };            
             // remember index of row that was clicked on
             row.setOnMousePressed( e -> {
                 // remember position for moving selected rows on mouse drag
@@ -156,47 +184,53 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             row.setOnDragDropped( e -> 
                 onDragDropped(e, row.isEmpty() ? getItems().size() : row.getIndex())
             );
+            
             return row;
         };
-        
-         // set table factories
-        columnName.setCellValueFactory(new PropertyValueFactory("name"));
-        columnTime.setCellValueFactory(new PropertyValueFactory("time"));
         setRowFactory(rowFactory);
         
-        // initialize table data
-        getColumns().setAll(columnIndex, columnName, columnTime);
-        getColumns().forEach( t -> t.setResizable(false));
-        getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        
         // resizing
-        tmp.setVisible(false);tmp2.setVisible(false);
-        setColumnResizePolicy( resize -> {
+        tmp.setVisible(false);
+        tmp2.setVisible(false);
+        setColumnResizePolicy( rf -> {
+            // handle column resize
+            if(rf!=null && rf.getColumn()!=null) {
+                if(getColumns().contains(columnName))
+                    columnName.setPrefWidth(columnName.getWidth()-rf.getDelta());
+                rf.getColumn().setPrefWidth(rf.getColumn().getWidth()+rf.getDelta());
+                return true;
+            }
+            // handle table resize
+            
             // table
             double W = getWidth();
 
             // column 1
             // need this weird method to get 9s as their are wide chars
             // (font isnt always proportional)
-            int s = isShowOriginalIndex() ? getItemsRaw().size() : getItems().size();
-            int i = Util.DecMin1(s);
-            tmp.setText(String.valueOf(i)+".");
-            tmp.setVisible(true);
-            double W1 = tmp.getWidth();
-            tmp.setVisible(false);
+            int s = getLastIndex();
+            int i = Util.decMin1(s);
+            tmp.setText(i + ".");
+            double W1 = tmp.getWidth() + 5; // 4 is enough
             // column 3
             tmp2.setText("00:00");
-            double W3 = tmp2.getWidth() + 4;
+            double W3 = tmp2.getWidth() + 5; // 4 is enough
             
             // slider
             double H = getItems().size()*getFixedCellSize();
-            double W4 = H > getHeight() ? 15 : 0;
+            double S = H > getHeight() ? 15 : 0;
 
             // gap to prevent horizontal slider to appear
             double G = 3;
-
+            
+            List<TableColumn> other = new ArrayList(getColumns());
+                              other.remove(columnIndex);
+                              other.remove(columnTime);
+                              other.remove(columnName);
+            double W4 = other.stream().mapToDouble(c->c.getWidth()).sum();
+            
             columnIndex.setPrefWidth(W1);
-            columnName.setPrefWidth(W-W1-W3-W4-G);
+            columnName.setPrefWidth(W-W1-W3-W4-S-G);
             columnTime.setPrefWidth(W3);
             return true;
         });
@@ -229,16 +263,19 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // handle click
         setOnMouseClicked( e -> {
             if (e.getY()<getFixedCellSize()) return;
-            // play item on doubleclick
             if (e.getButton() == PRIMARY) { 
+            // add new items if empty
                 if (e.getClickCount() == 1) {
                     if(getItems().isEmpty())
                         PlaylistManager.addOrEnqueueFiles(true);
                 }
+            // play item on doubleclick
                 if (e.getClickCount() == 2) {
-                    int i = getSelectionModel().getSelectedIndex();
-                    int real_i = getItemsFiltered().getSourceIndex(i);
-                    PlaylistManager.playItem(real_i);
+                    if(!getSelectionModel().isEmpty()) {
+                        int i = getSelectionModel().getSelectedIndex();
+                        int real_i = getItemsFiltered().getSourceIndex(i);
+                        PlaylistManager.playItem(real_i);
+                    }
                 }           
             } else
             // show contextmenu
@@ -313,37 +350,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // set up a nice placeholder
         setPlaceholder(new Label("Click or drag & drop files"));
         
-//        refresh();
         refreshColumn(columnIndex);
-    }
-    
-
-    
-/******************************************************************************/     
-    
-    public void enqueueItem(String url) {
-        PlaylistManager.addUrl(url);
-    }
-    public void enqueueItem(String url, int at) {
-        PlaylistManager.addUrl(url, at);
-    }
-    public void enqueueItems(List<URI> uris) {
-        PlaylistManager.addUris(uris); 
-    }
-    public void enqueueItems(List<URI> uris, int at) {
-        PlaylistManager.addUris(uris, at); 
-    }
-    
-    /**
-     * Refreshes the table.
-     * This method should be got rid of, but...
-     * Current implementation should have absolutely no negative performance impact
-     */
-    public void refresh() {
-        // force 'refresh'
-        setRowFactory(null);
-        setRowFactory(rowFactory);
-        getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0.0));
+        
+        // fix this up
+        getItems().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
+        getItemsFiltered().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
+        getItemsRaw().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
     }
     
     /** Clears resources like listeners for this table object. */
@@ -353,31 +365,24 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         getSelectionModel().getSelectedItems().removeListener(selItemsListener);
     }
     
-/************************************* DATA ***********************************/
-        
-    public void sortByName() {
-        getItemsSorted().comparatorProperty().unbind();
-        getItemsSorted().setComparator(PlaylistItem.getComparatorName());
-    }
-    public void sortByLength() {        
-        getItemsSorted().comparatorProperty().unbind();
-        getItemsSorted().setComparator(PlaylistItem.getComparatorTime());
-//        itemsS.comparatorProperty().bind(table.comparatorProperty());
-    }
-    public void sortByLocation() {
-        getItemsSorted().comparatorProperty().unbind();
-        getItemsSorted().setComparator(PlaylistItem.getComparatorURI());
-//        itemsS.comparatorProperty().bind(table.comparatorProperty());
-    }
-    public void sortByArtist() {
-        getItemsSorted().comparatorProperty().unbind();
-        getItemsSorted().setComparator(PlaylistItem.getComparatorArtist());
-//        itemsS.comparatorProperty().bind(table.comparatorProperty());
-    }
-    public void sortByTitle() {
-        getItemsSorted().comparatorProperty().unbind();
-        getItemsSorted().setComparator(PlaylistItem.getComparatorTitle());
-//        itemsS.comparatorProperty().bind(table.comparatorProperty());
+/************************************* SORT ***********************************/
+    
+    /**
+     * Sorts directly the playlist data, rather than just this table.
+     * <p>
+     * {@inheritDoc} */
+    @TODO(purpose = TODO.Purpose.ILL_DEPENDENCY, note = "Normally, we want to just"
+            + "sort getItemsRaw(), but then we get desynced with playlist, which"
+            + "can cause problems for index dependent operations."
+            + "Thats because filteredTable does not take observable list as input"
+            + "and has its own, thus separating it from PlaylistManager' data"
+            + "We need to decouple playlist tables (all are 'linked' now because"
+            + "of this) and remove PlaylistManager alltogether - modularize it"
+            + "into playlist tables only.")
+    @Override
+    public void sortBy(PlaylistItem.Field f) {
+        getSortOrder().clear();
+        PlaylistManager.getItems().sort(cmpareBy(p -> (Comparable) p.getField(f)));
     }
     
 /********************************** SELECTION *********************************/

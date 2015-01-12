@@ -46,7 +46,7 @@ public class WindowBase {
     Stage s = new Stage();
     
     public WindowBase() {
-        s.initStyle(StageStyle.UNDECORATED);
+        s.initStyle(StageStyle.TRANSPARENT);
         s.setFullScreenExitHint("");
         s.getIcons().add(App.getIcon());
     }

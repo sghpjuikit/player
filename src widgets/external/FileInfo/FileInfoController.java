@@ -12,10 +12,10 @@ import Configuration.IsConfig;
 import GUI.DragUtil;
 import static GUI.DragUtil.hasImage;
 import GUI.Panes.ImageFlowPane;
+import GUI.objects.ActionChooser;
 import GUI.objects.InfoNode.TaskInfo;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Rater.Rating;
-import GUI.objects.Text;
 import GUI.objects.Thumbnail;
 import Layout.Areas.Area;
 import Layout.Widgets.FXMLController;
@@ -32,7 +32,6 @@ import java.util.List;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
-import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.Node;
@@ -43,19 +42,16 @@ import javafx.scene.control.OverrunStyle;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
-import static javafx.scene.input.DragEvent.DRAG_ENTERED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.TextAlignment;
 import main.App;
 import org.reactfx.Subscription;
-import util.Parser.File.FileUtil;
+import static util.Parser.File.FileUtil.copyFileSafe;
+import static util.Parser.File.FileUtil.copyFiles;
 import util.Util;
-import static util.Util.createIcon;
 import util.access.Accessor;
 
 /**
@@ -247,7 +243,7 @@ public class FileInfoController extends FXMLController {
         
         
         // accept drag transfer
-//        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
+        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
 //        entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
 //        entireArea.setOnDragOver(e->{
 //            if (hasImage(e.getDragboard())) {
@@ -259,6 +255,7 @@ public class FileInfoController extends FXMLController {
         entireArea.setOnDragEntered(e->{
             if (hasImage(e.getDragboard())) {
                 ((Area)getActivityNode().getUserData()).setActivityVisible(true);
+                entireArea.getScene().getWindow().requestFocus();
 //                e.acceptTransferModes(TransferMode.ANY);
 //                e.consume();
             }
@@ -281,89 +278,36 @@ public class FileInfoController extends FXMLController {
             }
             if(data!=null && data.isFileBased() && DragUtil.hasImage(e.getDragboard())) {
                 
-//                    TaskInfo info = new TaskInfo(new Label(), new ProgressBar());
-//                    HBox b = new HBox(18, info.labeled, info.progressIndicator);
-//                    PopOver p = new PopOver("Handling images", b);
-//                            p.show(PopOver.ScreenCentricPos.AppCenter);
-//                            p.setOpacity(1);
-//                            p.centerOnScreen();
-//                    DragUtil.doWithImageItems(e, imgs -> {
-//                            if(thumb.getPane().contains(thumb.getPane().sceneToLocal(e.getSceneX(), e.getSceneY()))) {
-//                                if(!imgs.isEmpty()) {
-//                                    // copy files to displayed item's location & preserve old
-//                                    FileUtil.copyFileSafe(imgs.get(0), data.getLocation(), "cover");
-//                                    // refres picture
-//                                    Platform.runLater(cover_source::applyValue);
-//                                }
-//                            } else {
-//                                // copy files to displayed item's location
-//                                FileUtil.copyFiles(imgs, data.getLocation());
-//                            }
-//                        },(success,result)->{});
-////                        },(success,result)->p.hide());
-                    
-                    
-                    
-//                    TaskInfo info = new TaskInfo(new Label(), new ProgressIndicator());
-//                    HBox b = new HBox(8, info.labeled, info.progressIndicator);
-//                    PopOver p = new PopOver("Handling images", b);
-//                    Task t = DragUtil.doWithImageItems(e, imgs ->  {
-//                            if(thumb.getPane().contains(thumb.getPane().sceneToLocal(e.getSceneX(), e.getSceneY()))) {
-//                                if(!imgs.isEmpty()) {
-//                                    // copy files to displayed item's location & preserve old
-//                                    FileUtil.copyFileSafe(imgs.get(0), data.getLocation(), "cover");
-//                                    // refres picture
-//                                    Platform.runLater(cover_source::applyValue);
-//                                }
-//                            } else {
-//                                // copy files to displayed item's location
-//                                FileUtil.copyFiles(imgs, data.getLocation());
-//                            }
-//                        },(success,result)->{
-//                            info.unbind();
-//                            p.hide();
-//                        });
-//                    info.bind(t);
-//                    p.show(PopOver.ScreenCentricPos.AppCenter);
-//                    p.setOpacity(1);
-//                    p.centerOnScreen();
-                
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
             }
         });
         
-        Text descL = new Text();
-             descL.setTextAlignment(TextAlignment.CENTER);
-//             descL.wrappingWidthProperty().bind(actPane.widthProperty());
-//             descL.setWrappingWidthNatural(true);
-        copyB = createIcon(AwesomeIcon.PLUS, 80, "Copy", e->((Area)actPane.getUserData()).setActivityVisible(false));
-        copyB.scaleYProperty().bind(copyB.scaleXProperty());
-        copyB.addEventHandler(DRAG_ENTERED, e->descL.setText("Copy files to the location of the song in this widget."));
-        copyB.addEventHandler(DRAG_ENTERED, e->copyB.setScaleX(1.1));
-        copyB.setOnDragExited(e->copyB.setScaleX(1));
+        actPane = new ActionChooser();
+        actPane.setOnDragExited(e->((Area)actPane.getUserData()).setActivityVisible(false));
+        
+        Labeled copyB = actPane.addIcon(AwesomeIcon.PLUS_SQUARE, "Set as cover");
         copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         copyB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {                
-                TaskInfo info = new TaskInfo(new Label(), new ProgressBar());
-                HBox b = new HBox(18, info.labeled, info.progressIndicator);
+                TaskInfo info = new TaskInfo(null, new Label(), new ProgressBar());
+                HBox b = new HBox(18, info.message, info.progressIndicator);
                 PopOver p = new PopOver("Handling images", b);
                         p.show(PopOver.ScreenCentricPos.AppCenter);
-                        p.setOpacity(1);
                         p.centerOnScreen();
-                DragUtil.doWithImageItems(e, imgs -> {
+                DragUtil.doWithImages(e, info, 
+                    imgs -> {
                         int n = imgs.size();
                         if(n==1) {
                             // copy files to displayed item's location & preserve old
-                            FileUtil.copyFileSafe(imgs.get(0), data.getLocation(), "cover");
+                            copyFileSafe(imgs.get(0), data.getLocation(), "cover");
                             // refresh picture
                             Platform.runLater(cover_source::applyValue);
                         } else if (n>1) {
 
                         }
-                    },(success,result)->{});
-//                        },(success,result)->p.hide());
+                    },(success) -> p.hide());
                 
                 // end drag
                 ((Area)actPane.getUserData()).setActivityVisible(false);
@@ -371,24 +315,18 @@ public class FileInfoController extends FXMLController {
                 e.consume();
             }
         });
-        coverB = createIcon(AwesomeIcon.PLUS_SQUARE, 80, "Set as Cover", e->((Area)actPane.getUserData()).setActivityVisible(false));
-        coverB.scaleYProperty().bind(coverB.scaleXProperty());
-        coverB.addEventHandler(DRAG_ENTERED, e->descL.setText("Set file (first one if more) as cover for album (songs in the location of the song in this widget)."));
-        coverB.addEventHandler(DRAG_ENTERED, e->coverB.setScaleX(1.1));
-        coverB.setOnDragExited(e->coverB.setScaleX(1));
+        Labeled coverB = actPane.addIcon(AwesomeIcon.PLUS, "Copy to the location");
         coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         coverB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {                
-                TaskInfo info = new TaskInfo(new Label(), new ProgressBar());
-                HBox b = new HBox(18, info.labeled, info.progressIndicator);
+                TaskInfo info = new TaskInfo(null, new Label(), new ProgressBar());
+                HBox b = new HBox(18, info.message, info.progressIndicator);
                 PopOver p = new PopOver("Handling images", b);
                         p.show(PopOver.ScreenCentricPos.AppCenter);
-                        p.setOpacity(1);
                         p.centerOnScreen();
-                DragUtil.doWithImageItems(e,
-                        imgs -> FileUtil.copyFiles(imgs, data.getLocation()),
-                        (success,result)->{});
-//                        },(success,result)->p.hide());
+                DragUtil.doWithImages(e, info,
+                        imgs -> copyFiles(imgs, data.getLocation()),
+                        success -> p.hide());
                 
                 // end drag
                 ((Area)actPane.getUserData()).setActivityVisible(false);
@@ -396,23 +334,9 @@ public class FileInfoController extends FXMLController {
                 e.consume();
             }
         });
-        
-        
-        HBox h1 = new HBox(15, coverB, copyB);
-             h1.setAlignment(Pos.BOTTOM_CENTER);
-//        StackPane h2 = new StackPane(descL);
-//                  h2.setAlignment(TOP_CENTER);
-        actPane = new VBox(30);
-        descL.setWrappingWidth(150);
-//        descL.wrappingWidthProperty().bind(actPane.widthProperty());
-        actPane.setAlignment(Pos.CENTER);
-        actPane.getChildren().addAll(h1,descL);
-        actPane.setOnDragExited(e->((Area)actPane.getUserData()).setActivityVisible(false));
     }
     
-    private Labeled copyB;
-    private Labeled coverB;
-    private VBox actPane;
+    private ActionChooser actPane;
 
     @Override
     public Node getActivityNode() {

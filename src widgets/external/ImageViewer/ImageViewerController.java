@@ -237,8 +237,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             }
             if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {System.out.println("received img");
                 // grab images
-                    TaskInfo info = new TaskInfo(new Label(), new ProgressBar());
-                    HBox b = new HBox(8, info.labeled, info.progressIndicator);
+                    TaskInfo info = new TaskInfo(null, new Label(), new ProgressBar());
+                    HBox b = new HBox(8, info.message, info.progressIndicator);
                     PopOver p = new PopOver("Handling images", b);
                     Task t = Async.runAsTask(()->{System.out.println(Platform.isFxApplicationThread() + " dddd");
                         DragUtil.doWithImageItems(e, files -> {

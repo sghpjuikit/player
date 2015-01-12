@@ -30,6 +30,8 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
+import org.reactfx.BiEventSource;
+import org.reactfx.BiEventStream;
 import util.Parser.File.FileUtil;
 import static util.async.Async.run;
 
@@ -49,6 +51,8 @@ public class App extends Application {
     }
     
 /******************************************************************************/
+    
+    public static final BiEventStream<String,Object> event_bus = new BiEventSource();
     
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
@@ -122,16 +126,17 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         try {
             Action.startGlobalListening();
+            
+            // create hidden main window
+            windowOwner = Window.createWindowOwner();
+            windowOwner.show();
+            
             Configuration.load();           // must initialize first
-        
+            
             // initializing, the order is important
             Player.initialize();
             WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
-
-            // create hidden main window
-            windowOwner = Window.createWindowOwner();
-            windowOwner.show();
             
             // this might me deprecated
             // we need to initialize skin before windows do
@@ -182,6 +187,7 @@ public class App extends Application {
             showGuide = false;
             run(2222, () -> guide.start());
         }
+        
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         
@@ -270,7 +276,7 @@ public class App extends Application {
     
     /** @return image of the icon of the application. */
     public static Image getIcon() {
-        return new Image(new File("icon.png").toURI().toString());
+        return new Image(new File("icon.jpg").toURI().toString());
     }
     
     /** @return github link for project of this application. */

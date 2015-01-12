@@ -10,26 +10,30 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.ProgressIndicator;
 
 /**
- *  Provides information about the task and its progres.
- * 
- * @author Plutonium_
+ *  Provides information about the task and its progress.
  */
 public class TaskInfo implements InfoNode<Task> {
     
-    public Labeled labeled;
-    public ProgressIndicator progressIndicator;
-    
+    public final Labeled title;
+    public final Labeled message;
+    public final ProgressIndicator progressIndicator;
 
-    public TaskInfo(Labeled labeled, ProgressIndicator pi) {
-        this.labeled = labeled;
+    /**
+     * @param title title label. Use null if none.
+     * @param message message label. Use null if none.
+     * @param pi progress indicator. Use null if none.
+     */
+    public TaskInfo(Labeled title, Labeled message, ProgressIndicator pi) {
+        this.title = title;
+        this.message = message;
         this.progressIndicator = pi;
-        
     }
     
     /** {@inheritDoc} */
     @Override
     public void setVisible(boolean v) {
-        if(labeled!=null) labeled.setVisible(v);
+        if(title!=null) title.setVisible(v);
+        if(message!=null) message.setVisible(v);
         if(progressIndicator!=null) progressIndicator.setVisible(v);
     }
     
@@ -38,14 +42,16 @@ public class TaskInfo implements InfoNode<Task> {
     public void bind(Task t) {
         unbind();
         if(progressIndicator!=null) progressIndicator.progressProperty().bind(t.progressProperty());
-        if(labeled!=null) labeled.textProperty().bind(t.messageProperty());
+        if(title!=null) title.textProperty().bind(t.titleProperty());
+        if(message!=null) message.textProperty().bind(t.messageProperty());
     }
     
     /** {@inheritDoc} */
     @Override
     public void unbind() {
         if(progressIndicator!=null) progressIndicator.progressProperty().unbind();
-        if(labeled!=null) labeled.textProperty().unbind();
+        if(title!=null) title.textProperty().unbind();
+        if(message!=null) message.textProperty().unbind();
     }
     
 }

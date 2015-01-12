@@ -119,7 +119,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         SIZE;
         
         Field() {
-            mapEnumConstant(Field.class, this, constant->capitalizeStrong(constant.replace('_', ' ')));
+            mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
         }
         
         public String toString(MetadataGroup group) {

@@ -9,7 +9,6 @@ import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Comparator;
 import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -29,6 +28,8 @@ import util.Parser.File.AudioFileFormat;
 import util.Parser.File.AudioFileFormat.Use;
 import static util.Parser.File.AudioFileFormat.Use.APP;
 import util.Parser.File.FileUtil;
+import static util.Util.capitalizeStrong;
+import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 
@@ -93,10 +94,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * @param new_name
      * @param length of the item in miliseconds.
      */
-    public PlaylistItem(URI new_uri, String new_name, double length) {
+    public PlaylistItem(URI new_uri, String new_name, double _length) {
         uri = new SimpleObjectProperty<>(new_uri);
         name = new SimpleStringProperty(new_name);
-        time = new SimpleObjectProperty<>(new FormattedDuration(length));
+        time = new SimpleObjectProperty<>(new FormattedDuration(_length));
         updated = true;
     }
     
@@ -152,7 +153,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     }
     
     /** @return the time in millisecods. 0 if item wasnt updated yet. */
-    public double getTimeInMs() {
+    public double getTimeMs() {
         return time.get().toMillis();
     }
     
@@ -314,32 +315,13 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
 /******************************************************************************/
     
     /** 
-     * Compares by natural order - by name.
+     * Compares by name.
+     * <p>
+     * {@inheritDoc}
      */
     @Override
     public int compareTo(PlaylistItem o) {
         return getName().compareToIgnoreCase(o.getName());
-    }
-    
-    /**  @return Natural Comparator. Compares by name. Equivalent to natural
-      * order sort mechanism. Calls PlaylistItem's compareTo. */    
-    public static Comparator<PlaylistItem> getComparatorName() {
-        return (p1,p2) -> p1.getName().compareTo(p2.getName());
-    }
-    
-    /**  @return Comparator. Compares by length - time.  */    
-    public static Comparator<PlaylistItem> getComparatorTime() {
-        return (p1,p2) -> p1.getTime().compareTo(p2.getTime());
-    }
-    
-    /**  @return Comparator. Compares by artist.  */    
-    public static Comparator<PlaylistItem> getComparatorArtist() {
-        return (p1,p2) -> p1.getArtist().compareTo(p2.getArtist());
-    }
-    
-    /**  @return Comparator. Compares by title.  */    
-    public static Comparator<PlaylistItem> getComparatorTitle() {
-        return (p1,p2) -> p1.getTitle().compareTo(p2.getTitle());
     }
     
 /******************************************************************************/
@@ -395,7 +377,13 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         LENGTH,
         PATH,
         FORMAT;
-
+        
+        private Field() {
+            mapEnumConstant(this, constant -> constant.name().equalsIgnoreCase("LENGTH")
+                            ? "Time" 
+                            : capitalizeStrong(constant.name().replace('_', ' ')));
+        }
+        
         /**
          * Returns true.
          * <p>

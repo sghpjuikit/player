@@ -18,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -59,13 +60,13 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         // init final 1:1 container-area relationship
         Objects.requireNonNull(_container);
         container = _container;
-        
+
         // init properties
         container.properties.initProperty(Double.class, "padding", 0d);
         container.properties.initProperty(Boolean.class, "locked", false);
         
         // init behavior
-        root.setOnScroll(e -> {
+        root.addEventFilter(ScrollEvent.SCROLL,e -> {
             if(controls.isShowing()) {
                 if(e.getDeltaY()<0) collapse();
                 else if(e.getDeltaY()>0) expand();

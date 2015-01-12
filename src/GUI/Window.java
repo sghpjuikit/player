@@ -12,6 +12,7 @@ import Configuration.IsConfigurable;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
+import GUI.objects.ClickEffect;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Text;
 import static GUI.objects.Window.Resize.E;
@@ -48,6 +49,7 @@ import static de.jensd.fx.fontawesome.AwesomeIcon.GRADUATION_CAP;
 import static de.jensd.fx.fontawesome.AwesomeIcon.IMAGE;
 import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
 import static de.jensd.fx.fontawesome.AwesomeIcon.LOCK;
+import static de.jensd.fx.fontawesome.AwesomeIcon.TASKS;
 import static de.jensd.fx.fontawesome.AwesomeIcon.UNLOCK;
 import de.jensd.fx.fontawesome.test.IconsBrowser;
 import java.io.BufferedWriter;
@@ -65,6 +67,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -102,6 +105,7 @@ import util.Util;
 import static util.Util.createIcon;
 import static util.Util.setAPAnchors;
 import util.access.Accessor;
+import util.async.Async;
 import static util.functional.FunctUtil.find;
 
 /**
@@ -295,7 +299,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML Button miniB;
     @FXML Button minimizeB;
     @FXML AnchorPane bgrImgLayer;
-    public @FXML AnchorPane overlayPane;
     
     private Window() {
         super();
@@ -304,6 +307,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /** Initializes the controller class. */
     private void initialize() {
         getStage().setScene(new Scene(root));
+        getStage().getScene().setFill(Color.rgb(0, 0, 0, 0.01));
         getStage().setOpacity(windowOpacity.getValue());
         
         // clip the content to its bounds to prevent leaking out
@@ -312,7 +316,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         contentMask.heightProperty().bind(content.heightProperty());
         content.setClip(contentMask);
         
-//        bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
+        // normally we would bind bgr size, but we will bind it more dynamically later
+        // bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
         
         // avoid some instances of not closing properly
         s.setOnCloseRequest(e -> close());
@@ -644,8 +649,19 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                    App.guide.resume();
                    Action.actionStream.push("Guide resumed");
               });
-              
-        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,lockB,helpB,guideB);
+        
+        // manage layout button - sho layout manager in a popp
+        Label taskB = createIcon(TASKS,13,"Tasks",
+                e -> {
+                    Async.run(100, () -> {
+                        Node n = root.lookup("#taskB");
+                        Point2D b = n.localToScreen(n.getBoundsInLocal().getWidth()/2, n.getBoundsInLocal().getHeight()/2);
+                        ClickEffect ce = ClickEffect.createStandalone().setScale(33);
+                        ce.apply();ce.play(b.getX(), b.getY());
+                    });
+                });
+        taskB.setId("taskB");
+        leftHeaderBox.getChildren().addAll(gitB,cssB,dirB,iconsB,layB,propB,lastFMB,lockB,helpB,guideB,taskB);
     }
     
 /**************************** WINDOW MECHANICS ********************************/

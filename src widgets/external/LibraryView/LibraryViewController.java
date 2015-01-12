@@ -193,6 +193,13 @@ public class LibraryViewController extends FXMLController {
                 resizeMainColumn();
         });
         
+        // alleviates user from column resizing after layout changes
+        table.setColumnResizePolicy(rf->{
+            boolean b = TableView.UNCONSTRAINED_RESIZE_POLICY.call(rf);
+            resizeMainColumn();
+            return b;
+        });
+        
         // send selection changed events, do not use InvalidationListener
         table.getSelectionModel().getSelectedItems().addListener(
                 (Observable o) -> forwardItems(DB.views.getValue(lvl.getValue())));

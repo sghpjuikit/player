@@ -18,6 +18,7 @@ import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -270,34 +271,36 @@ public final class DragUtil {
         } else
             throw new IllegalStateException("image content not found");
     }
-    public static void doWithImageItems2(DragEvent e, TaskInfo i, Consumer<List<File>> action, Consumer<Boolean> onEnd) {
+    public static void doWithImages(DragEvent e, TaskInfo i, Consumer<List<File>> action, Consumer<Boolean> onEnd) {
+        requireNonNull(onEnd);
         Dragboard d = e.getDragboard();
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
-//            String url = d.getUrl();
-//            Async.runAsTask("Downloading image",()->{
-//                try {
-//                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
-//                    action.accept(singletonList(nf));
-//                } catch (Exception ex) {
-//                    Log.err(ex.getMessage());
-//                }
-//                return null;
-//            },onEnd);
+            String url = d.getUrl();
+            new ActionTask<>("Downloading image")
+                .setAction(()->{
+                    try {
+                        File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                        action.accept(singletonList(nf));
+                    } catch (Exception ex) {
+                        Log.err(ex.getMessage());
+                    }
+                })
+                .setOnDone((ok, result)->{
+                    onEnd.accept(ok);
+                    i.unbind();
+                })
+                .useAnd(i::bind)
+                .run(Async::executeBgr);
         } else if (d.hasFiles()) {
             List<File> files = d.getFiles();
             String name = "Copying " + plural("image", files.size());
-            new ActionTask<>(name, ()->FileUtil.getImageFiles(files))
-                .setOnDone((ok,imgs) -> {
-                    if(ok) new ActionTask<>("C2")
-                            .setAction(()->action.accept(imgs))
-//                            .setOnClose(t->i.unbind())
-                            .setOnDone((ok_,result)->onEnd.accept(ok_))
-                            .useAnd(i::bind)
-                            .run(Async::executeCurr);
-                    else onEnd.accept(ok);
-                })
+            new ActionTask<>(name)
+                .setAction(() -> action.accept(FileUtil.getImageFiles(files)))
+                .setOnDone((ok,result)->{
+                    i.unbind();
+                    onEnd.accept(ok);
+                 })
                 .useAnd(i::bind)
-//                .setOnClose(t->i.unbind())
                 .run(Async::executeBgr);
         } else
             throw new IllegalStateException("image content not found");
@@ -319,8 +322,8 @@ public final class DragUtil {
                 
                 
                 
-                    TaskInfo info = new TaskInfo(new Label(), new ProgressIndicator());
-                    Pane b = new VBox(8, info.labeled, info.progressIndicator);
+                    TaskInfo info = new TaskInfo(null, new Label(), new ProgressIndicator());
+                    Pane b = new VBox(8, info.message, info.progressIndicator);
                     PopOver p = new PopOver("Handling images", b);
                     Task t = Async.runAsTask("Obtaining image",()->{System.out.println("fffff");
                         try {

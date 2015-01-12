@@ -7,6 +7,7 @@ package GUI.objects.Table;
 
 import GUI.objects.FilterGenerator.TableFilterGenerator;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.function.Predicate;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,6 +28,7 @@ import static util.TODO.Severity.MEDIUM;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import static util.functional.FunctUtil.cmpareBy;
 
 /**
  * 
@@ -36,13 +38,14 @@ import util.access.FieldValue.FieldedValue;
  */
 public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends FieldedTable<T,F> {
     
-    private final ObservableList<T> allitems = FXCollections.observableArrayList();
-    private final FilteredList<T> filtereditems = new FilteredList(allitems);
-    private final SortedList<T> sortedItems = new SortedList(filtereditems);
+    private ObservableList<T> allitems = FXCollections.observableArrayList();
+    private FilteredList<T> filtereditems = new FilteredList(allitems);
+    private SortedList<T> sortedItems = new SortedList(filtereditems);
     public final TableFilterGenerator<T,F> searchBox;
     final VBox root = new VBox(this);
     
     private boolean show_original_index;
+    
     
     public FilteredTable(F initialVal) {
         super((Class<F>)initialVal.getClass());
@@ -126,7 +129,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     }
     
     /**
-     * Sets items to the table. If any filter is in effect, it will be aplied.
+     * Sets items to the table. If any filter is in effect, it will be applied.
      * <p>
      * Do not use {@link #setItems(javafx.collections.ObservableList)} or 
      * {@code getItems().setAll(new_items)} . It will cause the filters to stop
@@ -139,7 +142,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public void setItemsRaw(Collection<T> items) {
         allitems.setAll(items);
     }
-    
+
     /**
      * Equivalent to {@code (Predicate<T>) filtereditems.getPredicate();}
      * @return 
@@ -170,13 +173,21 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * will cause items to always be indexed from 1 to items.size. This has only
      * effect when filtering the table. 
      */
-    public void setShowOriginalIndex(boolean val) {
+    public final void setShowOriginalIndex(boolean val) {
         show_original_index = val;
         refreshColumn(columnIndex);
     }
     
-    public boolean isShowOriginalIndex() {
+    public final boolean isShowOriginalIndex() {
         return show_original_index;
+    }
+    
+    /** 
+     * Indexes range from 1 to n, where n can differ when filter is applied.
+     * Equivalent to: {@code isShowOriginalIndex ? getItemsRaw().size() : getItems().size(); }
+     * @return last index */
+    public final int getLastIndex() {
+        return show_original_index ? allitems.size() : getItems().size();
     }
     
     @Override
@@ -196,10 +207,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                     String txt;
                     if(zero_pad) {
                         int i = show_original_index ? filtereditems.getSourceIndex(j) : j;      // BUG HERE
-                            i++;
-                        int max = show_original_index ? allitems.size() : getItems().size();
-                            max++;
-                        txt = zeroPad(i, max, '0');
+                        txt = zeroPad(i+1, getLastIndex(), '0');
                     } else
                         txt = String.valueOf(j+1);
                     
@@ -209,5 +217,21 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         });
     }
     
+/************************************* SORT ***********************************/
     
+    /** {@inheritDoc} */
+    @Override
+    public void sortBy(F field) {
+        getSortOrder().clear();
+        allitems.sort(cmpareBy(p -> (Comparable) p.getField(field)));
+    }
+    
+    /***
+     * Sorts items using provided comparator. Any sort order is cleared.
+     * @param comparator 
+     */
+    public void sort(Comparator<T> comparator) {
+        getSortOrder().clear();
+        allitems.sorted(comparator);
+    }
 }

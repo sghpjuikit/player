@@ -31,6 +31,8 @@ import static javafx.scene.text.FontWeight.NORMAL;
 import main.App;
 import util.Log;
 import util.Parser.File.FileUtil;
+import util.TODO;
+import static util.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 import static util.Util.capitalizeStrong;
 import util.access.Accessor;
 import util.access.AccessorEnum;
@@ -46,7 +48,6 @@ public class GUI {
     private static final String DEF_SKIN = GUI.class.getResource("Skin/Skin.css").toExternalForm();
     private static String skinOldUrl = ""; // set to not sensible non null value
     private static boolean alt_state = false;
-    private static final List<String> skins = new ArrayList();
     
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
@@ -86,9 +87,7 @@ public class GUI {
         
 /******************************************************************************/
     
-    public static void initialize(){
-        findSkins();
-    }
+    public static void initialize() {}
     
     /**
      * Component might rely on this method to alter its behavior. For example
@@ -200,10 +199,10 @@ public class GUI {
         Window w = Window.getFocused();
         if(w!=null) {
             SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());
-            if(l.isZoomedOut()) l.zoomIn();
-            else {
+            if(l.isZoomedOut())
+                l.zoomIn();
+            else 
                 l.zoomOut();
-            }
         }
     }
     
@@ -214,8 +213,8 @@ public class GUI {
     
     @IsAction(name = "Manage Layout & Zoom", description = "Enables layout managment mode and zooms.", shortcut = "F8")
     public static void toggleLayoutNzoom() {
-        toggleLayoutMode();
         toggleZoomMode();
+        toggleLayoutMode();
     }
     
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
@@ -270,17 +269,19 @@ public class GUI {
      * Searches for .css files in skin folder and registers them as available
      * skins. Use on app start or to discover newly added layouts dynamically.
      */
-    public static void findSkins() {
+    @TODO(purpose = PERFORMANCE_OPTIMIZATION, note = "monitor folder instead")
+    public static List<String> getSkins() {
         // get + verify path
         File dir = App.SKIN_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
             Log.err("Search for skins failed." + dir.getPath() + " could not be accessed.");
-            return;
+            return EMPTY_LIST;
         }
         // find skin directories
         File[] dirs = dir.listFiles(File::isDirectory);
         // find & register skins
         Log.info("Registering external skins.");
+        List<String> skins = new ArrayList();
         skins.clear();
         for (File d: dirs) {
             String name = d.getName();
@@ -291,20 +292,14 @@ public class GUI {
             }
         }
         
-        if (skins.isEmpty())
-            Log.info("No skins found.");
-        else
-            Log.info(skins.size() + " skins found.");
-        
+        Log.info(skins.size() + " skins found.");
         Log.info("Registering internal skins.");
         skins.add(capitalizeStrong(STYLESHEET_CASPIAN));
         skins.add(capitalizeStrong(STYLESHEET_MODENA));
         Log.info("    Skin Modena registered.");
         Log.info("    Skin Caspian registered.");
-    }
-    
-    public static List<String> getSkins() {
-       return skins;
+        
+        return skins;
     }
     
 /*****************************  setter methods ********************************/

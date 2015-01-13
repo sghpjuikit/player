@@ -97,7 +97,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     
     /** @return all active coponents - components that are being actively 
      * displayed. */
-    abstract public  List<Widget> getActiveWidgets();
+    abstract public List<Widget> getActiveWidgets();
     
     /** @return the primary active component. */
     abstract public Widget getActiveWidget();

@@ -97,7 +97,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
                 // grab images
-                DragUtil.doWithImageItems(e, imgs -> {
+                DragUtil.doWithImages(e, imgs -> {
                     if(!imgs.isEmpty())
                         showImage(imgs.get(0));
                 });

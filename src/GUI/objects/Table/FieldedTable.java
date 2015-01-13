@@ -29,7 +29,6 @@ import javafx.util.Callback;
 import util.Parser.ParserImpl.Parser;
 import util.TODO;
 import static util.TODO.Purpose.FUNCTIONALITY;
-import static util.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 import static util.Util.createmenuItem;
 import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
@@ -99,11 +98,6 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         }
     }
 
-    @TODO(purpose = PERFORMANCE_OPTIMIZATION, note = "we always build the "
-            + "invisible columns as well. This is wrong. But otherwise, the"
-            + "table menu button would not list those columns and there would"
-            + "be no way to actually make them visible. Generate own table"
-            + "menu context menu to solve this.")
     public void setColumnState(TableColumnInfo state) {
         requireNonNull(state);
         

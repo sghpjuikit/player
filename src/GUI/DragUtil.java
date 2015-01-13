@@ -40,7 +40,6 @@ import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.FileUtil;
 import util.Parser.File.ImageFileFormat;
 import util.async.Async;
-import util.functional.FunctUtil;
 
 /**
  *
@@ -305,48 +304,17 @@ public final class DragUtil {
         } else
             throw new IllegalStateException("image content not found");
     }
-    public static void doWithImageItems(DragEvent e, Consumer<List<File>> action) {
-        Dragboard d = e.getDragboard();
-        
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {System.out.println(d.getUrl());
-            String url = d.getUrl();
-//            Platform.runLater(() -> {
-//                try {
-//                    File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
-//                    action.accept(singletonList(nf));
-//                } catch (Exception ex) {
-//                    Log.err(ex.getMessage());
-//                }
-//            });
-                
-                
-                
-                
-                    TaskInfo info = new TaskInfo(null, new Label(), new ProgressIndicator());
-                    Pane b = new VBox(8, info.message, info.progressIndicator);
-                    PopOver p = new PopOver("Handling images", b);
-                    Task t = Async.runAsTask("Obtaining image",()->{System.out.println("fffff");
-                        try {
-                            File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
-                            action.accept(singletonList(nf));
-                        } catch (Exception ex) {
-                            Log.err(ex.getMessage());
-                        }
-                        return null;
-                    }, (success,result)->{
-                        info.unbind();
-                        p.hide();
-                    });
-                    info.bind(t);
-                    p.show(PopOver.ScreenCentricPos.AppCenter);
-                    p.setOpacity(1);
-                    p.centerOnScreen();
-                
-                
-                
-        } else if (d.hasFiles()) {FunctUtil.toS(d.getFiles());
-            action.accept(FileUtil.getImageFiles(d.getFiles()));
-        }
+    public static void doWithImages(DragEvent e, Consumer<List<File>> action) {
+        // graphics
+        Pane b = new VBox(18);
+        PopOver p = new PopOver("Handling images", b);
+                p.show(PopOver.ScreenCentricPos.AppCenter);
+                p.setOpacity(1);
+                p.centerOnScreen();
+        TaskInfo info = new TaskInfo(p.getSkinn().getTitle(), new Label(), new ProgressIndicator());
+        b.getChildren().addAll(info.message, info.progressIndicator);
+        // execute
+        DragUtil.doWithImages(e, info, action, ok->p.hide());
     }
     
      /**

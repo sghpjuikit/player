@@ -6,6 +6,10 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Window;
 import Layout.Layout;
+import static java.lang.Double.NaN;
+import static java.lang.Double.max;
+import static java.lang.Double.min;
+import static java.lang.Math.signum;
 import java.util.HashMap;
 import java.util.Map;
 import static javafx.animation.Animation.INDEFINITE;
@@ -187,6 +191,18 @@ public class SwitchPane implements LayoutAggregator {
     
     public final Map<Integer,AnchorPane> tabs = new HashMap();
     
+    /** 
+     * Adds specified layout as new tab on the right side 
+     * 
+     * @return tab index
+     */
+    public int addTabToRight(Layout layout) {
+        int i = 0;
+        while(!layouts.containsKey(i)) i+=1;
+        addTab(i, layout);
+        return i;
+    }
+    
     public void addTab(int i, Layout layout) {
         // remove first
         removeTab(i);
@@ -200,7 +216,7 @@ public class SwitchPane implements LayoutAggregator {
     }
     
     /**
-     * Adds tab at specified position and initialized new empty layout. If tab
+     * Adds mew tab at specified position and initializes new empty layout. If tab
      * already exists this method is a no-op.
      * @param i 
      */
@@ -443,7 +459,7 @@ public class SwitchPane implements LayoutAggregator {
     }
     
     
-/******************************** PROPERTIES **********************************/
+/********************************** ALIGNING **********************************/
     
     private boolean always_align = true;
     
@@ -456,29 +472,44 @@ public class SwitchPane implements LayoutAggregator {
     
     private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
     
-    public void zoomIn() {
-//        z.setInterpolator(new CircularInterpolator(EASE_OUT));
-        zoom(1);
+    public void zoom(boolean v) {
+        z.setInterpolator(new CircularInterpolator(EASE_OUT));
+        zoomNoAcc(v ? zoomScaleFactor : 1);
     }
-    public void zoomOut() {
-        zoom(zoomScaleFactor);
+    
+    public boolean isZoomed() {
+        return zoom.getScaleX()!=1;
+    }
+    
+    public void toggleZoom() {
+        zoom(!isZoomed());
+    }
+    
+    public DoubleProperty zoomProperty() {
+        return zoom.scaleXProperty();
     }
     
     private void zoom(double d) {
+        if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");
+        // remember amount
         if (d!=1) zoomScaleFactor = d;
+        // play
         z.stop();
         z.setDuration(Duration.millis(GUI.GUI.duration_LM));
         z.setToX(d);
         z.setToY(d);
         z.play();
+        Action.Action.actionStream.push("Zoom mode");
     }
-    
-    public boolean isZoomedOut() {
-        return zoom.getScaleX()!=1;
-    }
-    
-    public DoubleProperty zoomProperty() {
-        return zoom.scaleXProperty();
+    private void zoomNoAcc(double d) {
+        if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");   
+        // calculate amount
+        double missed = Double.compare(NaN, z.getToX())==0 ? 0 : z.getToX() - zoom.getScaleX();
+               missed = signum(missed)==signum(d) ? missed : 0;
+        d += missed;
+        d = max(0.2,min(d,1));
+        // zoom normally
+        zoom(d);
     }
     
 /******************************************************************************/

@@ -8,14 +8,11 @@ package AudioPlayer.services.Database;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -128,65 +125,9 @@ public class DB {
         return query.getResultList();
     }
     
-    public static List<MetadataGroup> getAllGroups(Metadata.Field metadata_field) {
-        return getAllGroups(metadata_field, new HashMap<>());
-    } 
-    public static List<MetadataGroup> getAllGroups(Metadata.Field groupByField, Map<Metadata.Field,List<Object>> filters) {
-        List<MetadataGroup> result = new ArrayList();
-            
-//            filters.put(Metadata.Field.PUBLISHER, Collections.singletonList("Import"));
-
-        Accessor<String> filter = new Accessor("");
-
-        filters.forEach((field,values) -> {
-
-            if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
-
-            String f = field.isTypeNumber()
-                ? " WHERE p."+field.name().toLowerCase() + " = " + values.get(0).toString()
-                : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString() + "'";
-            filter.setValue(filter.getValue() + f);
-        });
-
-        String f = "p." + groupByField.toString().toLowerCase();
-        String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p " + filter.getValue() + " GROUP BY " + f;
-        System.out.println(q);
-        TypedQuery<Object[]> query = em.createQuery(q,Object[].class);
-        query.getResultList().stream().map(r->
-                // or some strange reason sum(length) returns long! not double below is the original line
-                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
-                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
-                new MetadataGroup( groupByField, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
-            )
-            .forEach(result::add);
-        
-//        Query qq = em.createQuery("SELECT p.album, COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p "
-//                + "WHERE p.artist = aa OR p.filesize >0"
-//                + "GROUP BY p.album");
-        
-        return result;
-//        EntityManager em = emf.createEntityManager();
-//        List<MetadataGroup> result = new ArrayList();
-//        try {
-//            String f = "p." + groupByField.toString().toLowerCase();
-//            String q = "SELECT " + f + ", COUNT(p), SUM(p.duration), SUM(p.filesize) FROM MetadataItem p GROUP BY " + f;
-//            //query = "SELECT p.FIELD, COUNT(p), SUM(p.length), SUM(p.filesize) FROM MetadataItem p GROUP BY p.FIELD");
-//            TypedQuery query = em.createQuery(q,Metadata.class);
-//            List<Object[]> rs = query.getResultList();
-//            rs.stream()
-//            .map(r->
-//                // or some strange reason sum(length) returns long! not double below is the original line
-//                //System.out.println(r[0]+" "+r[1].getClass()+" "+r[2].getClass()+" "+r[3].getClass());
-//                //return new MetadataGroup( metadata_field, r[0], (long)r[1], (long)r[1], (double)r[2], (long)r[3]);
-//                new MetadataGroup( groupByField, r[0], (long)r[1], (long)r[1], Double.valueOf(String.valueOf(r[2])), (long)r[3])
-//            )
-//            .forEach(result::add);
-//        }
-//        finally {
-//            em.close();
-//        }
-//        return result;
-    }
+//    public static List<MetadataGroup> getAllGroups(Metadata.Field metadata_field) {
+//        return getAllGroups(metadata_field, new HashMap<>());
+//    }
     
     private static void updateItems(List<Metadata> items) {
         em.getTransaction().begin();

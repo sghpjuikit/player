@@ -241,7 +241,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                     HBox b = new HBox(8, info.message, info.progressIndicator);
                     PopOver p = new PopOver("Handling images", b);
                     Task t = Async.runAsTask(()->{System.out.println(Platform.isFxApplicationThread() + " dddd");
-                        DragUtil.doWithImageItems(e, files -> {
+                        DragUtil.doWithImages(e, files -> {
                             // prevent copying displayed items
                             // the copyng itself prevents copying the files if source and
                             // destination is the same, but we obtained files recursively

@@ -98,7 +98,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         
         // sort & populate groups
         groups.values().stream()
-                .sorted(cmpareNoCase(g -> g.name()))
+                .sorted(cmpareNoCase(ConfigGroup::name))
                 .forEach(g -> accordion.getPanes().add(g.pane));
         
         // consume scroll event to prevent other scroll behavior // optional
@@ -113,7 +113,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     
     /** Set and apply values and refresh if needed (no need for hard refresh) */
     @FXML public void ok() {
-        configFields.forEach(ConfigField::applyNsetIfAvailable);
+        configFields.forEach(ConfigField::applyNsetIfNeed);
     }
     
     /** Set default app settings. */

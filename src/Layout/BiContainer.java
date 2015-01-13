@@ -68,16 +68,17 @@ abstract public class BiContainer extends Container {
      * @throws UnsupportedOperationException if component not Container type.
      */
     @Override
-    public void addChild(Integer index, Component c) {System.out.println("bicont " + index + " " + c);System.out.println(this);
+    public void addChild(Integer index, Component c) {
         if(index == null) return;
         
         if (index<1 || index>2)
             throw new IndexOutOfBoundsException("Index " + index + " not supported. Only null,1,2 values supported.");
         
         if(c!=null) {
-            if(!(c instanceof Container)) 
-                throw new UnsupportedOperationException("Non containers currently not supported");
-            Container.class.cast(c).parent = this;
+            if(c instanceof Container) Container.class.cast(c).parent = this;
+//            if(!(c instanceof Container)) 
+//                throw new UnsupportedOperationException("Non containers currently not supported");
+//            Container.class.cast(c).parent = this;
         }
         children.put(index, c);
         load();
@@ -91,5 +92,14 @@ abstract public class BiContainer extends Container {
         children.put(1, c2);
         children.put(2, c1);
         load();
+    }
+    
+    @Override
+    public Integer getEmptySpot() {
+        if(children.get(1)==null) return 1;
+        if(children.get(2)==null) return 2;
+        else return null;
+        // WTH does this not work
+//        return (children.get(1)==null) ? 1 : (children.get(2)==null) ? 2 : null;
     }
 }

@@ -4,6 +4,7 @@ package Layout.Areas;
 import Configuration.Configurable;
 import GUI.ContextManager;
 import GUI.DragUtil;
+import GUI.GUI;
 import GUI.Window;
 import Layout.Component;
 import Layout.Container;
@@ -88,7 +89,7 @@ public final class TabArea extends PolyArea {
         // return graphics to normal
         root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         
-        hide();
+        if(GUI.isLayoutMode()) show(); else hide();
     }
     
     /** @return active - currently displayed component */

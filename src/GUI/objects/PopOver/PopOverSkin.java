@@ -29,7 +29,6 @@ package GUI.objects.PopOver;
 import GUI.objects.PopOver.PopOver.ArrowLocation;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.DOT_CIRCLE_ALT;
 import static de.jensd.fx.fontawesome.AwesomeIcon.THUMB_TACK;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +43,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.Skin;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
@@ -119,7 +118,7 @@ public class PopOverSkin implements Skin<PopOver> {
         closeB.setTooltip(new Tooltip("Close"));
         closeB.getStyleClass().add("popover-closebutton");
         
-        pinB = AwesomeDude.createIconLabel(popOver.isAutoHide() ? THUMB_TACK : DOT_CIRCLE_ALT, "","11","11",CENTER);
+        pinB = AwesomeDude.createIconLabel(THUMB_TACK, "11");
         pinB.setOnMouseClicked( e -> {
             popOver.setAutoHide(!popOver.isAutoHide());
             e.consume();
@@ -127,9 +126,8 @@ public class PopOverSkin implements Skin<PopOver> {
         pinB.setTooltip(new Tooltip("Autohide"));
         pinB.getStyleClass().add("popover-closebutton");
         // maintain proper pinIcon icon
-        popOver.autoHideProperty().addListener((o,ov,nv) -> {
-            AwesomeDude.setIcon(pinB, nv ? THUMB_TACK : DOT_CIRCLE_ALT, "11");
-        });
+        pinB.setOpacity(popOver.isAutoHide() ? 0.4 : 1);
+        popOver.autoHideProperty().addListener((o,ov,nv) -> pinB.setOpacity(nv ? 0.4 : 1));
         
         headerControls = new HBox(closeB);
         headerControls.setSpacing(5);
@@ -290,8 +288,14 @@ public class PopOverSkin implements Skin<PopOver> {
         return content.getPadding();
     }
     
+    /** @return title label */
+    public Labeled getTitle() {
+        return title;
+    }
+    
     @Override
     public void dispose() {
+    
     }
 
     private boolean shouldHeaderBeVisible() {

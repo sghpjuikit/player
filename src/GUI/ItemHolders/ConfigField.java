@@ -5,20 +5,19 @@ import Action.Action;
 import Configuration.Config;
 import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
+import GUI.objects.CheckIcon;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.REPEAT;
+import static de.jensd.fx.fontawesome.AwesomeIcon.RECYCLE;
 import java.io.File;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -62,7 +61,7 @@ abstract public class ConfigField<T> {
     private final HBox box = new HBox();
     final Config<T> config;
     private boolean applyOnChange = true;
-    Button defB;
+    private Label defB;
     
     private ConfigField(Config<T> c) {
         config = c;
@@ -83,11 +82,11 @@ abstract public class ConfigField<T> {
                     // lazily build the button when requested
                     // we dont want hundreds of buttons we will never use anyway
                     if(defB==null) {
-                        defB = AwesomeDude.createIconButton(REPEAT, "", "11","10",GRAPHIC_ONLY);
+                        defB = AwesomeDude.createIconLabel(RECYCLE, "11");
                         defB.setOpacity(0);
                         defB.setOnMouseClicked( ee -> setNapplyDefault());
                         defB.getStyleClass().setAll("congfig-field-default-button");
-                        Tooltip.install(defB, new Tooltip("Set to default value."));
+                        defB.setTooltip(new Tooltip("Default value."));
                         box.getChildren().add(defB);
                         box.setPadding(Insets.EMPTY);
                     }
@@ -210,7 +209,7 @@ abstract public class ConfigField<T> {
      * @return whether any change occured. Occurs when change needs to be applied.
      * Equivalent to calling {@link #hasUnappliedValue()} method.
      */
-    public boolean applyNsetIfAvailable() {
+    public boolean applyNsetIfNeed() {
         if(hasUnappliedValue()) {
             config.setNapplyValue(getItem());
             refreshItem();
@@ -396,7 +395,7 @@ abstract public class ConfigField<T> {
             showOkButton(false);
         }
         private void apply() {
-            if(isApplyOnChange()) applyNsetIfAvailable();
+            if(isApplyOnChange()) applyNsetIfNeed();
         }
         private void showOkButton(boolean val) {
             if (val) txtF.setLeft(okB);
@@ -407,14 +406,14 @@ abstract public class ConfigField<T> {
     }
     
     private static final class BooleanField extends ConfigField<Boolean> {
-        CheckBox cBox;
+        CheckIcon cBox;
         
         private BooleanField(Config<Boolean> c) {
             super(c);
-            cBox = new CheckBox();
+            cBox = new CheckIcon();
             refreshItem();
             cBox.selectedProperty().addListener((o,ov,nv)->{
-                if(isApplyOnChange()) applyNsetIfAvailable();
+                if(isApplyOnChange()) applyNsetIfNeed();
             });
         }
         
@@ -438,12 +437,12 @@ abstract public class ConfigField<T> {
             // shouldnt. It appears when mouse clicks NOT on the thumb but on
             // the slider track instead and keeps dragging. valueChanging doesn
             // activate
-            slider.valueProperty().addListener( (o,ov,nv) -> {
+            slider.valueProperty().addListener((o,ov,nv) -> {
                 if(isApplyOnChange() && !slider.isValueChanging())
-                    applyNsetIfAvailable();
+                    applyNsetIfNeed();
             });
-            slider.setOnMouseReleased( e -> {
-                if(isApplyOnChange()) applyNsetIfAvailable();
+            slider.setOnMouseReleased(e -> {
+                if(isApplyOnChange()) applyNsetIfNeed();
             });
             
             // add scrolling support
@@ -492,7 +491,7 @@ abstract public class ConfigField<T> {
             cBox.setValue(c.getValue());
             
             cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
-                if(isApplyOnChange()) applyNsetIfAvailable();
+                if(isApplyOnChange()) applyNsetIfNeed();
             });
         }
         @Override public Object getItem() {
@@ -512,7 +511,7 @@ abstract public class ConfigField<T> {
     
     private static final class ShortcutField extends ConfigField<Action> {
         TextField txtF;
-        CheckBox glob;
+        CheckIcon glob;
         HBox group;
         String t="";
         Action a;
@@ -522,7 +521,7 @@ abstract public class ConfigField<T> {
             a = con.getValue();
             txtF = new TextField();
             txtF.setPromptText(a.getKeys());
-            txtF.setOnKeyReleased( e -> {
+            txtF.setOnKeyReleased(e -> {
                 KeyCode c = e.getCode();
                 // handle substraction
                 if (c==BACK_SPACE || c==DELETE) {
@@ -538,7 +537,7 @@ abstract public class ConfigField<T> {
                         txtF.setText(t);
                     }
                 } else if(c==ENTER) {
-                    if (isApplyOnChange()) applyNsetIfAvailable();
+                    if (isApplyOnChange()) applyNsetIfNeed();
                 } else if(c==ESCAPE) {
                     refreshItem();
                 // handle addition
@@ -560,13 +559,13 @@ abstract public class ConfigField<T> {
                 }
             });
             
-            glob = new CheckBox();
+            glob = new CheckIcon();
             glob.setSelected(a.isGlobal());
             glob.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
             glob.selectedProperty().addListener((o,ov,nv) -> {
-                if (isApplyOnChange()) applyNsetIfAvailable();
+                if (isApplyOnChange()) applyNsetIfNeed();
             });
-            group = new HBox(glob,txtF);
+            group = new HBox(5, glob,txtF);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
@@ -581,7 +580,7 @@ abstract public class ConfigField<T> {
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
         }
-        @Override public final boolean applyNsetIfAvailable() {
+        @Override public final boolean applyNsetIfNeed() {
             // its pointless to make new Action just for this
             // config.setNapplyValue(getItem()); 
             // rather operate on the Action manually
@@ -622,8 +621,8 @@ abstract public class ConfigField<T> {
         private ColorField(Config<Color> c) {
             super(c);
             refreshItem();
-            picker.valueProperty().addListener( (o,ov,nv) -> {
-                if(isApplyOnChange()) applyNsetIfAvailable();
+            picker.valueProperty().addListener((o,ov,nv) -> {
+                if(isApplyOnChange()) applyNsetIfNeed();
             });
         }
         
@@ -646,7 +645,7 @@ abstract public class ConfigField<T> {
             refreshItem();
             txtF.setOnItemChange((oldFont,newFont) -> {
                 if(!newFont.equals(oldFont)) {  // we shouldnt rely on Font.equals here
-                    applyNsetIfAvailable();
+                    applyNsetIfNeed();
                     txtF.setPromptText(new FontParser().toS(newFont));
                 }
                 txtF.setText(""); // always stay in prompt text more
@@ -672,7 +671,7 @@ abstract public class ConfigField<T> {
             refreshItem();
             txtF.setOnItemChange((oldFile,newFile) -> {
                 if(!newFile.equals(oldFile)) {
-                    applyNsetIfAvailable();
+                    applyNsetIfNeed();
                     txtF.setPromptText(new FileParser().toS(newFile));
                 }
                 txtF.setText(""); // always stay in prompt text more

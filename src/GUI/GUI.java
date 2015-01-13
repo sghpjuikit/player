@@ -177,14 +177,8 @@ public class GUI {
     
     public static void setZoomMode(boolean val) {
         Window w = Window.getFocused();
-        if(w!=null) {
-            SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());
-            if(l.isZoomedOut() && !val) l.zoomOut();
-            if(!l.isZoomedOut() && val) {
-                l.zoomIn();
-                Action.Action.actionStream.push("Zoom mode");
-            }
-        }
+        if(w!=null)
+            SwitchPane.class.cast(w.getLayoutAggregator()).zoom(val);
     }
     
     /** Toggles layout mode. */
@@ -197,13 +191,8 @@ public class GUI {
     @IsAction(name = "Zoom Layout", description = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
         Window w = Window.getFocused();
-        if(w!=null) {
-            SwitchPane l = SwitchPane.class.cast(w.getLayoutAggregator());
-            if(l.isZoomedOut())
-                l.zoomIn();
-            else 
-                l.zoomOut();
-        }
+        if(w!=null)
+            SwitchPane.class.cast(w.getLayoutAggregator()).toggleZoom();
     }
     
     public static void setLayoutNzoom(boolean v) {
@@ -213,8 +202,8 @@ public class GUI {
     
     @IsAction(name = "Manage Layout & Zoom", description = "Enables layout managment mode and zooms.", shortcut = "F8")
     public static void toggleLayoutNzoom() {
-        toggleZoomMode();
         toggleLayoutMode();
+        toggleZoomMode();
     }
     
     @IsAction(name = "Show/Hide application", description = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)

@@ -95,7 +95,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
     @FXML
     public void ok() {
         // set and apply values and refresh if needed
-        configFields.forEach(ConfigField::applyNsetIfAvailable);
+        configFields.forEach(ConfigField::applyNsetIfNeed);
         // always run the onOk procedure 
         if(onOK!=null) onOK.accept(configurable);
     }

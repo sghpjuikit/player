@@ -7,16 +7,29 @@
 package main;
 
 import Action.Action;
+import GUI.LayoutAggregators.SwitchPane;
+import GUI.Window;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Text;
+import Layout.BiContainer;
+import Layout.BiContainerPure;
+import Layout.Container;
+import Layout.Layout;
+import Layout.Widgets.WidgetManager;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.MUSIC;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
+import static javafx.geometry.Orientation.VERTICAL;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.VBox;
+import main.Guide.Hint;
 import org.reactfx.Subscription;
+import util.Util;
 import static util.async.Async.run;
 
 /**
@@ -25,39 +38,62 @@ import static util.async.Async.run;
  */
 public final class Guide {
     
-    private final List<String> actions = new ArrayList();
-    private final List<String> texts = new ArrayList();
+    private final List<Hint> hints = new ArrayList();
     private int at = -1;
-    private final PopOver<Text> popup = new PopOver(new Text());
+    private final Text text = new Text();
+    private final PopOver<VBox> p = new PopOver(new VBox(15,text));
     private Subscription action_monitoring;
-    Label infoL;
+    Label prevB, nextB, infoL;
     
     public Guide() {
-        popup.setAutoHide(false);
-        popup.setHideOnClick(false);
-        popup.setHideOnEscape(true);
-        popup.getSkinn().setContentPadding(new Insets(8));
-        popup.setArrowSize(0);
-        popup.setDetached(true);
-        popup.getContentNode().setWrappingWidth(300);
-        popup.getContentNode().prefWidth(300);
-        popup.setOnHidden(e -> run(20,() -> Action.actionStream.push("Guide closing")));
         
-        Label nextB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_RIGHT,"11");                     
+        p.setAutoHide(false);
+        p.setHideOnClick(false);
+        p.setHideOnEscape(true);
+        p.getSkinn().setContentPadding(new Insets(8));
+        p.setArrowSize(0);
+        p.setDetached(true);
+        p.setOnHidden(e -> run(20,() -> Action.actionStream.push("Guide closing")));
+        
+        text.setWrappingWidth(300);
+        text.prefWidth(300);
+        
+        nextB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_RIGHT,"11");                     
         nextB.setTooltip(new Tooltip("Cancel edit"));
         nextB.setOnMouseClicked( e -> {
             goToNext();
             e.consume();
         });
         infoL = new Label();
-        Label prevB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_LEFT,"11");                     
+        prevB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_LEFT,"11");                     
         prevB.setTooltip(new Tooltip("Cancel edit"));
         prevB.setOnMouseClicked( e -> {
             goToPrevious();
             e.consume();
         });
-        popup.getHeaderIcons().addAll(prevB,infoL,nextB);
+        p.getHeaderIcons().addAll(prevB,infoL,nextB);
         
+        addGuide("Intro", "Hi, this is automatic guide for this application. It will show you around. " +
+                "\n\nBut first some music, right?", Util.createIcon(MUSIC, 33, null, e->{
+                    // find spot
+                    SwitchPane la = (SwitchPane)Window.getFocused().getLayoutAggregator();
+                    Container con = la.getActive().getAllContainers().filter(c->c.getEmptySpot()!=null).findAny()
+                                    .orElse(la.getLayouts().values().stream().filter(c->c.getEmptySpot()!=null).findAny()
+                                    .orElse(null));
+                    if(con==null) {
+                        Layout l = new Layout();
+                        la.addTabToRight(l);
+                        con = l;
+                    }
+                    // prepare container
+                    BiContainer bc = new BiContainerPure(VERTICAL);
+                    con.addChild(con.getEmptySpot(), bc);
+                    // load widgets
+                    ((Container)bc.getChildren().get(1)).addChild(1,WidgetManager.getFactory("Playlist").create());
+                    ((Container)bc.getChildren().get(2)).addChild(1,WidgetManager.getFactory("PlayerControls").create());;
+                    // go to next
+                    Action.actionStream.push("Intro");
+                }));
         addGuide(" ", "Hi, this is automatic guide for this application. It will show you around. " +
                 "Completing a hint will display next one. You can navigate manually too." +
                 "\n\nShow next hint by clicking on the right arrow button in the header of this popup.");
@@ -112,22 +148,28 @@ public final class Guide {
             
     private void proceed() {
         if (at<0) at=0;
-        if (at<actions.size()) {
+        if (at<hints.size()) {
+            Hint h = hints.get(at);
             // the condition has 2 reasons
             // - avoids unneded show() call
             // - avoids relocating thepopupas a result of alignment with different popup size
             // - the popup size depends on the text
-            if (!popup.isShowing()) popup.show(PopOver.ScreenCentricPos.AppCenter);
-            infoL.setText((at+1) + "/" + actions.size());
-            popup.setTitle(actions.get(at).isEmpty() ? "Guide" : "Guide - " + actions.get(at));
-            popup.getContentNode().setText(texts.get(at));
+            if (!p.isShowing()) p.show(PopOver.ScreenCentricPos.AppCenter);
+            // progress
+            infoL.setText((at+1) + "/" + hints.size());
+            // title + text
+            p.setTitle(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
+            text.setText(h.text);
+            // graphics
+            p.getContentNode().getChildren().retainAll(text);
+            if(h.graphics!=null) p.getContentNode().getChildren().add(h.graphics);
         } else {
             stop();
         }
     }
     
     private void handleAction(String action) {
-        if (action.equals(actions.get(at))) goToNext();
+        if (hints.get(at).action.equals(action)) goToNext();
     }
     
     
@@ -137,7 +179,7 @@ public final class Guide {
     }
     
     public void stop() {
-        if (popup.isShowing()) popup.hideImmediatelly();
+        if (p.isShowing()) p.hideImmediatelly();
         if (action_monitoring!=null) {
             action_monitoring.unsubscribe();
             action_monitoring = null;
@@ -150,7 +192,7 @@ public final class Guide {
     }
     
     public void goToStart() {
-        if(actions.isEmpty()) return;
+        if(hints.isEmpty()) return;
         at = 0;
         proceed();
     }
@@ -164,7 +206,27 @@ public final class Guide {
     }
     
     public void addGuide(String action, String text) {
-        actions.add(action);
-        texts.add(text);
+        hints.add(new Hint(action, text));
+    }
+    public void addGuide(String action, String text, Node graphics) {
+        hints.add(new Hint(action, text, graphics));
+    }
+    
+    public static class Hint {
+        public final String text;
+        public final String action;
+        public final Node graphics;
+
+        public Hint(String action, String text) {
+            this.action = action;
+            this.text = text;
+            this.graphics = null;
+        }
+
+        public Hint(String action, String text, Node graphics) {
+            this.action = action;
+            this.text = text;
+            this.graphics = graphics;
+        }
     }
 }

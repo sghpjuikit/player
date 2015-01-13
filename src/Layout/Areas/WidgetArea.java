@@ -2,6 +2,7 @@
 package Layout.Areas;
 
 import GUI.DragUtil;
+import GUI.GUI;
 import Layout.Component;
 import Layout.UniContainer;
 import Layout.Widgets.Widget;
@@ -71,7 +72,7 @@ public final class WidgetArea extends UniArea {
             }
         });
         
-        controls.hide();
+        if(GUI.isLayoutMode()) show(); else hide();
     }
     
     /** @return currently active widget. */

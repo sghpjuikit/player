@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import util.TODO;
 
 /**
  * Implementation of {@link Container Container} containing multiple components.
@@ -121,4 +122,9 @@ public final class PolyContainer extends Container {
         gui.moveTab(from, to);
     }
     
+    @Override
+    @TODO(purpose = TODO.Purpose.UNIMPLEMENTED)
+    public Integer getEmptySpot() {
+        return null;
+    }
 }

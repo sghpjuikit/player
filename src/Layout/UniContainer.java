@@ -115,4 +115,9 @@ public class UniContainer extends Container {
         if (Objects.equals(c, child)) return 1;
         else return null;
     }    
+
+    @Override
+    public Integer getEmptySpot() {
+        return child==null ? 1 : null;
+    }
 }

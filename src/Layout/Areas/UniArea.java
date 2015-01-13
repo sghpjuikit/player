@@ -9,8 +9,7 @@ package Layout.Areas;
 import Layout.UniContainer;
 
 /**
- *
- * @author Plutonium_
+ * Area for one widget.
  */
 public abstract class UniArea extends Area<UniContainer>{
 

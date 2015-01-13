@@ -191,6 +191,9 @@ public abstract class Container extends Component implements AltState {
         return parent.indexOf(this);
     }
     
+    /** @return available index for child or null if none available. */
+    public abstract Integer getEmptySpot();
+    
     /**
      * Returns all components in layout map of which this is the root. In other 
      * words all children recursively. The root (this) is included in the list.

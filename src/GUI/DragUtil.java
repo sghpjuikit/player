@@ -5,21 +5,17 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.ActionTask;
-import GUI.virtual.InfoNode.InfoTask;
 import GUI.objects.PopOver.PopOver;
+import GUI.virtual.InfoNode.InfoTask;
 import Layout.Component;
 import Layout.Container;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import java.util.List;
 import static java.util.Objects.requireNonNull;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javafx.concurrent.Task;
@@ -171,7 +167,7 @@ public final class DragUtil {
         if (d.hasUrl()) {
             String url = d.getUrl();
             // watch out for non audio urls, we must filter those out, or
-            // we could couse subtle bugs
+            // we could cause subtle bugs
             if(AudioFileFormat.isSupported(url,Use.APP))
                 Optional.of(new SimpleItem(URI.create(url)))  // isnt this dangerous?
                         .filter(i->!i.isCorrupt(Use.APP)) // isnt this pointless?

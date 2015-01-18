@@ -39,11 +39,11 @@ import static javafx.geometry.NodeOrientation.INHERIT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -204,8 +204,8 @@ public class LibraryViewController extends FXMLController {
         });
         
         // alleviates user from column resizing after layout changes
-        table.setColumnResizePolicy(rf->{
-            boolean b = TableView.UNCONSTRAINED_RESIZE_POLICY.call(rf);
+        table.setColumnResizePolicy(resize -> {
+            boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             resizeMainColumn();
             return b;
         });
@@ -214,12 +214,13 @@ public class LibraryViewController extends FXMLController {
         table.getSelectionModel().getSelectedItems().addListener(
                 (Observable o) -> forwardItems(DB.views.getValue(lvl.getValue())));
         
-        // prevent scrol event to propagate up
-        root.setOnScroll(Event::consume);
+        // prevent volume change
+        table.setOnScroll(Event::consume);
         
         // prevent overly eager selection change
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
         table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
+        table.addEventFilter(MOUSE_CLICKED, consumeOnSecondaryButton);
     }
 
     
@@ -293,7 +294,8 @@ public class LibraryViewController extends FXMLController {
     
     /** Sends event to next level. */
     private void forwardItems(List<Metadata> list) {
-        DB.views.push(lvl.getValue()+1, filerList(list));
+        if(!lock)
+            DB.views.push(lvl.getValue()+1, filerList(list));
     }
     
     private List<Metadata> filerList(List<Metadata> list) {

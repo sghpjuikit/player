@@ -5,16 +5,18 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Notifier.NotifierManager;
 import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
 import main.App;
 import org.jaudiotagger.audio.AudioFile;
@@ -32,10 +34,7 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import util.Log;
 import util.Parser.File.AudioFileFormat;
-import static util.Parser.File.AudioFileFormat.flac;
-import static util.Parser.File.AudioFileFormat.mp3;
-import static util.Parser.File.AudioFileFormat.ogg;
-import static util.Parser.File.AudioFileFormat.wav;
+import static util.Parser.File.AudioFileFormat.*;
 import util.Parser.ParserImpl.ColorParser;
 import util.TODO;
 import static util.TODO.Purpose.FUNCTIONALITY;
@@ -52,12 +51,14 @@ import static util.TODO.Purpose.FUNCTIONALITY;
 @TODO(purpose = FUNCTIONALITY, note = "limit rating bounds value, multiple values, id3 popularimeter mail settings")
 public class MetadataWriter extends MetaItem {
     
-    private final File file;
-    private final AudioFile audioFile;
+    private File file;
+    private AudioFile audioFile;
     int fields_changed = 0;
-    private final BooleanProperty isWriting = new SimpleBooleanProperty(false);
+    private final ReadOnlyBooleanWrapper isWriting = new ReadOnlyBooleanWrapper(false);
+    public final ReadOnlyBooleanProperty writing = isWriting.getReadOnlyProperty();
 
     // dont provide access here
+    public MetadataWriter(){}
     private MetadataWriter(File file, AudioFile audioFile) {
         this.file = file;
         this.audioFile = audioFile;
@@ -70,11 +71,13 @@ public class MetadataWriter extends MetaItem {
      */
     public static MetadataWriter create(Item item) {
         if (!item.isFileBased()) throw new UnsupportedOperationException("Item must be file based");
-                
-        AudioFile f = readAudioFile(item.getFile());
-        if(f==null) return null;
-        else return new MetadataWriter(item.getFile(), f);
+        
+        MetadataWriter w = new MetadataWriter();
+                       w.reset(item);
+        return w.audioFile==null ? null : w;
     }
+    
+
     
     @Override
     public URI getURI() {
@@ -561,7 +564,10 @@ public class MetadataWriter extends MetaItem {
         Log.deb("Writing " + fields_changed + f + " to tag for: " + getURI() + ".");
         
         // do nothing if nothing to write
-        if (!hasFields()) return true;  
+        if (!hasFields()) {
+            MetadataWriter.this.reset();
+            return true;
+        }  
         
         try {
             // suspend playback if necessary
@@ -575,12 +581,12 @@ public class MetadataWriter extends MetaItem {
             Player.refreshItem(this);
             
             Log.deb("Saving tag for " + getURI() + " finished successfuly.");
+            MetadataWriter.this.reset();
             return true;
         } catch (CannotWriteException ex) {
             Log.err("Can not write to tag for file: " + audioFile.getFile().getPath());
+            MetadataWriter.this.reset();
             return false;
-        } finally {
-            reset();
         }
     }
     
@@ -606,26 +612,39 @@ public class MetadataWriter extends MetaItem {
      * method automatically.
      */
     public void reset() {
+        file = null;
+        audioFile = null;
         fields_changed = 0;
+        isWriting.set(false);
     }
     
-/*******************************************************************************/
-    
-    public boolean isWriting() {
-        return isWriting.getValue();
+    public void reset(Item i) {
+        AudioFile f = readAudioFile(i.getFile());
+        file = i.getFile();
+        audioFile = f;
+        fields_changed = 0;
+        isWriting.set(false);
     }
     
-    public ReadOnlyBooleanProperty isWritingProperty() {
-        return ReadOnlyBooleanProperty.readOnlyBooleanProperty(isWriting);
-    }
+/******************************************************************************/
     
-/*******************************************************************************/
+    public static void use(List<? extends Item> items, Consumer<MetadataWriter> applier) {
+        List<Item> changed = new ArrayList();
+        MetadataWriter w = new MetadataWriter();
+        for(Item i : items) {
+            w.reset(i);
+            applier.accept(w);
+            boolean ok = w.write();
+            if(ok) changed.add(i);
+        }
+        DB.updateItemsFromFile(changed);
+    }
     
     /**
      * Increments playcount of item by exactly one for specified item.
      * @param item to increment playcount of.
      */
-    public static void incrementPlaycount(Metadata item) {
+    public static void useToIncrPlaycount(Metadata item) {
         int count = item.getPlaycount() + 1;
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setPlaycount(String.valueOf(count));
@@ -635,17 +654,16 @@ public class MetadataWriter extends MetaItem {
     
     /**
      * Rates playing item and throws a notification.
-     * @param item to rate.
+     * @param item to useToRate.
      * @param rating <0-1> representing percentage of the rating, 0 being minimum
      * and 1 maximum possible rating for current item. Value outside range will
      * be ignored.
      */
-    public static void rate(Metadata item, double rating) {
+    public static void useToRate(Metadata item, double rating) {
         MetadataWriter writer = MetadataWriter.create(item);
                        writer.setRatingPercent(rating);
         if (writer.write())
             App.use(NotifierManager.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
-//            App.use(TrayService.class, s -> s.setNotification("","Song rating changed to: " + rating));
     }
-
+    
 }

@@ -16,7 +16,6 @@ import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.CUSTOM;
 import static PseudoObjects.ReadMode.PLAYING;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -151,8 +150,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public final Accessor<Boolean> theater_mode = new Accessor<>(false, this::applyTheaterMode);
     
     // non applied configurables
-    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
-    public Boolean changeReadModeOnTransfer = false;
     @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly or fast one after another")
     public long thumbnailReloadTime = 200l;
     @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
@@ -225,12 +222,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 // get first item
                 List<Item> items = DragUtil.getAudioItems(e);
                 // getMetadata, refresh
-                if (!items.isEmpty()) {
-                    // change mode if desired
-                    if (changeReadModeOnTransfer) readMode.setNapplyValue(CUSTOM);
-                    // set data
-                    dataChanged(items.get(0).getMetadata());
-                }
+                if (!items.isEmpty()) dataChanged(items.get(0).getMetadata());
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();

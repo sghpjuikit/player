@@ -380,7 +380,7 @@ public final class PLAYBACK implements Configurable {
      */
     public static void rate(double rating) {
         if (PlaylistManager.isItemPlaying())
-            MetadataWriter.rate(Player.playingtem.get(), rating);
+            MetadataWriter.useToRate(Player.playingtem.get(), rating);
     }
     
     /** Rate playing item 0/5. */

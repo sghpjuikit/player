@@ -10,29 +10,7 @@ import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
-import static AudioPlayer.tagging.Metadata.Field.ALBUM;
-import static AudioPlayer.tagging.Metadata.Field.ALBUM_ARTIST;
-import static AudioPlayer.tagging.Metadata.Field.ARTIST;
-import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
-import static AudioPlayer.tagging.Metadata.Field.COMMENT;
-import static AudioPlayer.tagging.Metadata.Field.COMPOSER;
-import static AudioPlayer.tagging.Metadata.Field.CUSTOM1;
-import static AudioPlayer.tagging.Metadata.Field.CUSTOM2;
-import static AudioPlayer.tagging.Metadata.Field.CUSTOM3;
-import static AudioPlayer.tagging.Metadata.Field.CUSTOM4;
-import static AudioPlayer.tagging.Metadata.Field.CUSTOM5;
-import static AudioPlayer.tagging.Metadata.Field.DISC;
-import static AudioPlayer.tagging.Metadata.Field.DISCS_TOTAL;
-import static AudioPlayer.tagging.Metadata.Field.GENRE;
-import static AudioPlayer.tagging.Metadata.Field.LYRICS;
-import static AudioPlayer.tagging.Metadata.Field.MOOD;
-import static AudioPlayer.tagging.Metadata.Field.PLAYCOUNT;
-import static AudioPlayer.tagging.Metadata.Field.PUBLISHER;
-import static AudioPlayer.tagging.Metadata.Field.RATING;
-import static AudioPlayer.tagging.Metadata.Field.RATING_RAW;
-import static AudioPlayer.tagging.Metadata.Field.TITLE;
-import static AudioPlayer.tagging.Metadata.Field.TRACKS_TOTAL;
-import static AudioPlayer.tagging.Metadata.Field.YEAR;
+import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
@@ -46,11 +24,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.CUSTOM;
-import static PseudoObjects.ReadMode.PLAYING;
-import static PseudoObjects.ReadMode.SELECTED_ANY;
-import static PseudoObjects.ReadMode.SELECTED_LIBRARY;
-import static PseudoObjects.ReadMode.SELECTED_PLAYLIST;
+import static PseudoObjects.ReadMode.*;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
@@ -74,18 +48,7 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Cursor;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputControl;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.*;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.DragEvent;
@@ -105,7 +68,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import main.App;
-import org.controlsfx.validation.ValidationResult;
+import static org.controlsfx.validation.ValidationResult.fromErrorIf;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.Subscription;
@@ -116,7 +79,7 @@ import util.Parser.File.Enviroment;
 import util.Parser.File.ImageFileFormat;
 import util.Parser.ParserImpl.ColorParser;
 import util.access.Accessor;
-import util.functional.impl.Validator;
+import static util.functional.impl.Validator.*;
 
 /**
  * TaggerController graphical component.
@@ -342,22 +305,15 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // associate color picker with custom1 field
         Custom1F.setEditable(false);
         ColorF.disableProperty().bind(Custom1F.disabledProperty());
-        ColorF.valueProperty().addListener( (o,ov,nv) -> {
-            Custom1F.setText(new ColorParser().toS(nv));
-        });
+        ColorF.valueProperty().addListener((o,ov,nv) -> Custom1F.setText(new ColorParser().toS(nv)));
         
-        // validating input
-        Validator<String> isPercent = Validator.IsBetween0And1();
-        Validator<String> isYear = Validator.isPastYearS();
-        Validator<String> isInt = Validator.isIntS();
-        
-        
+        // validating input        
         ValidationSupport val = new ValidationSupport();
         val.setValidationDecorator(new GraphicValidationDecoration());
             // year validation
-        val.registerValidator(YearF, (Control c, String text) -> ValidationResult.fromErrorIf(
+        val.registerValidator(YearF, (Control c, String text) -> fromErrorIf(
             YearF, "Year must be greater than 0 and not greater than current year.",
-            !text.isEmpty() && !isYear.test(text)
+            !text.isEmpty() && !isPastYearS.test(text)
         ));
             // cd validation
         DiscsTotalF.textProperty().addListener(o->{
@@ -365,15 +321,15 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             DiscF.setText("");old+="";
             DiscF.setText(old);
         });
-        val.registerValidator(DiscF, (Control c, String nv) -> ValidationResult.fromErrorIf(
+        val.registerValidator(DiscF, (Control c, String nv) -> fromErrorIf(
             DiscF, "Disc.",
-            !nv.isEmpty() && (!isInt.test(nv) || (isInt.test(nv)&&new Integer(nv)<0) ||
-                    (isInt.test(nv)&&(isInt.test(DiscsTotalF.getText())&& new Integer(nv)>Integer.parseInt(DiscsTotalF.getText())))
+            !nv.isEmpty() && (!isIntS.test(nv) || (isIntS.test(nv)&&new Integer(nv)<0) ||
+                    (isIntS.test(nv)&&(isIntS.test(DiscsTotalF.getText())&& new Integer(nv)>Integer.parseInt(DiscsTotalF.getText())))
                     )));
             // rating validation
-        val.registerValidator(RatingPF, (Control c, String nv) -> ValidationResult.fromErrorIf(
+        val.registerValidator(RatingPF, (Control c, String nv) -> fromErrorIf(
             RatingPF, "Rating must be between 0 and 1.",
-            !nv.isEmpty() && !isPercent.test(nv))
+            !nv.isEmpty() && !IsBetween0And1.test(nv))
         );
         
         // deselect text fields on click
@@ -467,11 +423,11 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // bind Rating values absolute<->relative when writing
         RatingF.setOnKeyReleased(e -> setPR());
         RatingF.setOnMousePressed(e -> setPR());
-        RatingPF.setOnKeyReleased(e-> setR());
-        RatingPF.setOnMousePressed(e-> setR());
+        RatingPF.setOnKeyReleased(e -> setR());
+        RatingPF.setOnMousePressed(e -> setR());
         
         // show metadata list
-        infoL.setOnMouseClicked( e -> showItemsPopup());
+        infoL.setOnMouseClicked(e -> showItemsPopup());
         infoL.setCursor(Cursor.HAND);
         
     }
@@ -579,36 +535,34 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         showProgressWriting();
         
         // writing
-        metas.stream().map(MetadataWriter::create).forEach( writer -> {
+        MetadataWriter.use(metas, w -> {
             // write to tag if field commitable
-            if ((boolean)TitleF.getUserData())        writer.setTitle(TitleF.getText());
-            if ((boolean)AlbumF.getUserData())        writer.setAlbum(AlbumF.getText());
-            if ((boolean)ArtistF.getUserData())       writer.setArtist(ArtistF.getText());
-            if ((boolean)AlbumArtistF.getUserData())  writer.setAlbum_artist(AlbumArtistF.getText());
-            if ((boolean)ComposerF.getUserData())     writer.setComposer(ComposerF.getText());
-            if ((boolean)PublisherF.getUserData())    writer.setPublisher(PublisherF.getText());
-            if ((boolean)TrackF.getUserData())        writer.setTrack(TrackF.getText());
-            if ((boolean)TracksTotalF.getUserData())  writer.setTracks_total(TracksTotalF.getText());
-            if ((boolean)DiscF.getUserData())         writer.setDisc(DiscF.getText());
-            if ((boolean)DiscsTotalF.getUserData())   writer.setDiscs_total(DiscF.getText());
-            if ((boolean)GenreF.getUserData())        writer.setGenre(GenreF.getText());
-            if ((boolean)CategoryF.getUserData())     writer.setCategory(CategoryF.getText());
-            if ((boolean)YearF.getUserData())         writer.setYear(YearF.getText());
-            if ((boolean)RatingF.getUserData())       writer.setRatingPercent(RatingPF.getText());
-            if ((boolean)PlaycountF.getUserData())    writer.setPlaycount(PlaycountF.getText());
-            if ((boolean)CommentF.getUserData())      writer.setComment(CommentF.getText());
-            if ((boolean)MoodF.getUserData())         writer.setMood(MoodF.getText());
+            if ((boolean)TitleF.getUserData())        w.setTitle(TitleF.getText());
+            if ((boolean)AlbumF.getUserData())        w.setAlbum(AlbumF.getText());
+            if ((boolean)ArtistF.getUserData())       w.setArtist(ArtistF.getText());
+            if ((boolean)AlbumArtistF.getUserData())  w.setAlbum_artist(AlbumArtistF.getText());
+            if ((boolean)ComposerF.getUserData())     w.setComposer(ComposerF.getText());
+            if ((boolean)PublisherF.getUserData())    w.setPublisher(PublisherF.getText());
+            if ((boolean)TrackF.getUserData())        w.setTrack(TrackF.getText());
+            if ((boolean)TracksTotalF.getUserData())  w.setTracks_total(TracksTotalF.getText());
+            if ((boolean)DiscF.getUserData())         w.setDisc(DiscF.getText());
+            if ((boolean)DiscsTotalF.getUserData())   w.setDiscs_total(DiscF.getText());
+            if ((boolean)GenreF.getUserData())        w.setGenre(GenreF.getText());
+            if ((boolean)CategoryF.getUserData())     w.setCategory(CategoryF.getText());
+            if ((boolean)YearF.getUserData())         w.setYear(YearF.getText());
+            if ((boolean)RatingF.getUserData())       w.setRatingPercent(RatingPF.getText());
+            if ((boolean)PlaycountF.getUserData())    w.setPlaycount(PlaycountF.getText());
+            if ((boolean)CommentF.getUserData())      w.setComment(CommentF.getText());
+            if ((boolean)MoodF.getUserData())         w.setMood(MoodF.getText());
             ColorF.setUserData(true);
-            if ((boolean)ColorF.getUserData())        writer.setColor(ColorF.getValue());
-            if ((boolean)Custom1F.getUserData())      writer.setCustom1(Custom1F.getText());
-            if ((boolean)Custom2F.getUserData())      writer.setCustom2(Custom2F.getText());
-            if ((boolean)Custom3F.getUserData())      writer.setCustom3(Custom3F.getText());
-            if ((boolean)Custom4F.getUserData())      writer.setCustom4(Custom4F.getText());
-            if ((boolean)Custom5F.getUserData())      writer.setCustom5(Custom5F.getText());
-            if ((boolean)LyricsA.getUserData())       writer.setLyrics(LyricsA.getText());
-            if ((boolean)CoverL.getUserData())        writer.setCover(new_cover_file);
-            
-            writer.write();
+            if ((boolean)ColorF.getUserData())        w.setColor(ColorF.getValue());
+            if ((boolean)Custom1F.getUserData())      w.setCustom1(Custom1F.getText());
+            if ((boolean)Custom2F.getUserData())      w.setCustom2(Custom2F.getText());
+            if ((boolean)Custom3F.getUserData())      w.setCustom3(Custom3F.getText());
+            if ((boolean)Custom4F.getUserData())      w.setCustom4(Custom4F.getText());
+            if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
+            if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
+            if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
         });
         
         // post writing

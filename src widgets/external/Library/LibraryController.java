@@ -2,11 +2,7 @@
 package Library;
 
 import AudioPlayer.Player;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.playlist.SimpleItem;
+import AudioPlayer.playlist.*;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
@@ -19,13 +15,13 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.virtual.InfoNode.InfoTable;
-import static GUI.virtual.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
-import GUI.virtual.InfoNode.InfoTask;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
+import GUI.virtual.InfoNode.InfoTable;
+import static GUI.virtual.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import GUI.virtual.InfoNode.InfoTask;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -50,16 +46,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import javafx.scene.control.TableColumn;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.KeyCode.DELETE;
-import static javafx.scene.input.KeyCode.ENTER;
-import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
@@ -76,9 +66,7 @@ import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.Enviroment;
 import util.Parser.File.FileUtil;
 import static util.Parser.File.FileUtil.getCommonRoot;
-import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
-import static util.Util.consumeOnSecondaryButton;
-import static util.Util.createmenuItem;
+import static util.Util.*;
 import util.access.Accessor;
 import static util.async.Async.runAsTask;
 import util.async.FxTimer;
@@ -221,8 +209,8 @@ public class LibraryController extends FXMLController {
             }
         });
         
-        // prevent scrol event to propagate up
-        root.setOnScroll(Event::consume);
+        // prevent volume change
+        table.setOnScroll(Event::consume);
         
         // prevent overly eager selection change
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);

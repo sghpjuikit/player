@@ -17,6 +17,7 @@ import org.jaudiotagger.audio.AudioFile;
 import util.Log;
 import util.Parser.File.AudioFileFormat.Use;
 import static util.async.Async.run;
+import static util.async.Async.runOnFX;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -252,9 +253,8 @@ public class MetadataReader{
                         updateProgress(completed, all);
                     }
                     em.getTransaction().commit();
-                    // emit library change to signal refresh
-                    // we need to run the event on apFX thread
-                    Platform.runLater(() -> DB.librarychange.push(null));
+                    // update library model
+                    runOnFX(DB::updateLib);
                 } catch (Exception e ) {
                     e.printStackTrace();
                 }
@@ -262,6 +262,7 @@ public class MetadataReader{
                 // update state
                 updateMessage(all,completed,skipped);
                 updateProgress(completed, all);
+                
                 return out;
             }
         };
@@ -278,8 +279,7 @@ public class MetadataReader{
             
             @Override 
             protected Void call() throws Exception {                    //long timeStart = System.currentTimeMillis();
-                EntityManager em = DB.em;
-                              em.getTransaction().begin();
+                DB.em.getTransaction().begin();
                 List<Metadata> library_items = DB.getAllItems();
                 all = library_items.size();
 
@@ -288,16 +288,16 @@ public class MetadataReader{
                     if (isCancelled()) break;
 
                     if(!m.getFile().exists()) {
-                        em.remove(m);
+                        DB.em.remove(m);
                         removed++;
                     }
                     updateMessage(all,completed,removed);
                     updateProgress(completed, all);
                 }
                 
-                em.getTransaction().commit();
-                
-                Platform.runLater(() -> DB.librarychange.push(null));
+                DB.em.getTransaction().commit();
+                // update library model
+                runOnFX(DB::updateLib);
                         
                 // update state
                 updateMessage(all,completed,removed);

@@ -39,7 +39,7 @@ public class PlaycountIncrementer {
             return;
         }
         // increment
-        MetadataWriter.incrementPlaycount(Player.playingtem.get());
+        MetadataWriter.useToIncrPlaycount(Player.playingtem.get());
         Log.info("Incrementing playount of played item.");
     };
     

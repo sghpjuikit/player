@@ -179,8 +179,6 @@ public class FileInfoController extends FXMLController {
     // manually applied configurable values
     
     // non appliable configurable values
-    @IsConfig(name = "Set custom item source on drag&drop", info = "Change read mode to CUSTOM when data are dragged to widget.")
-    public boolean changeReadModeOnTransfer = true;
     @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
     public boolean keepContentOnEmpty = true;
     
@@ -214,11 +212,11 @@ public class FileInfoController extends FXMLController {
             filesize, filename, format, bitrate, encoding, location);
         
         layout.addChild(tiles);
-        Util.setAPAnchors(tiles, 0);
+        Util.setAPAnchors(tiles, 3);
         
         
         // write metadata on rating change
-        rater.setOnRatingChanged( r -> MetadataWriter.rate(data, r));
+        rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
         
         // swap skin on right mouse click
         rater.setOnMouseClicked( e -> { 
@@ -262,18 +260,7 @@ public class FileInfoController extends FXMLController {
                 // get first item
                 List<Item> items = DragUtil.getAudioItems(e);
                 // getMetadata, refresh
-                if (!items.isEmpty()) {
-                    // change mode if desired
-                    if (changeReadModeOnTransfer) readMode.setNapplyValue(ReadMode.CUSTOM);
-                    // set data
-                    populateGui(items.get(0).getMetadata());
-                }
-                // end drag
-                e.setDropCompleted(true);
-                e.consume();
-            }
-            if(data!=null && data.isFileBased() && DragUtil.hasImage(e.getDragboard())) {
-                
+                if (!items.isEmpty()) populateGui(items.get(0).getMetadata());
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();

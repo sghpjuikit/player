@@ -4,8 +4,9 @@
 --------------------------------------------------------------------------------
 
 - Player contorls  nullpointer when nothing plays on init()
-- clean up library views + remove useless DB stuff & event streams
-- properly implement in-memory db, support CRUD
+- refresh item + tagging clean up reimplement properly
+- remove selected items monitoring for tagger
+- use action pane on widgets
 
 - popover position jumps when drag starts
 - support 'infos' - custom tagged extended comments like chapters - figure out
@@ -27,8 +28,6 @@
   that enlarges the file (and thus requires tmp file)
   it is possible that app doesnt have permission  to create tmp file where the lib
   is trying to do it.
-- lazy selected itemstream
-- preferred widget factories use map and implement setPreferred, enforce 1max, make config accessible via gui
 - ConfigFields enable input restriction (currently bugged)
 - fix returning from docked mode exception
 - clean up Environment + more robust
@@ -49,12 +48,12 @@
 --------------------------------------------------------------------------------
 
 GENERAL
-- deactivator position | size a bit off when loading first time & into small    (minor)
+- deactivator position | size a bit off when loading first time & into small    (still issue?, minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
 - playlist manual sorting does not work
 - Thumbnail borde rchanges size of the control - not good at all
-- Enviroment Dektop.browse() doesnt select files in explorer but opens them     (unsolvable?)
+- Enviromment Dektop.browse() doesnt select files in explorer but opens them    (unsolvable?)
 - playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
 - backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind
@@ -93,10 +92,8 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- library table cells sometimes invisible - not updated                         (medium, javaFX bug?)
-  mostly solved, but sometimes table is indeed empty
-  also 
-- initial table scroll reveals that rows are not created yet and the scroll     (still an issue? medium, javaFX bug?)
+- library view first row sometimes incorrect clip mask, reason: no idea
+- initial table scroll reveals that rows are not created yet and the scroll     (still issue? medium, javaFX bug?)
   jumps to end of table prematurely
 
 SOLVED (but the underlying cause still deserves attention)
@@ -138,8 +135,6 @@ SOLVED (but the underlying cause still deserves attention)
   cause: rgba (-fx-panel-color) for .header styleclass                          
   solution: use rgb color and apply -fx-opacity instead of alpha channel
   problem: css polution, dev might overlook header if he changes -fx-panel-color
-- playlist table index column resizing doesnt apply correct value, the method   (passable)
-  needs to be delayed. reason: unknown. solution: delayed execution
 - little bug with position slider on manual seeking                             (minor)
   cause: it takes a while for seek() to actually seek. During this time the
   seeker jumps back to back position
@@ -159,8 +154,9 @@ PROBLEMS
 --------------------------------------------------------------------------------
 
 CLEANUP
-- Serializator and serialization classes clean up
-- clean window code
+- Serializator and serialization
+- window manager
+- window color overlay effect
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them
@@ -176,7 +172,8 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - -||- sorting
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager
   & add support for tables to vind ObservableLists - decision to make
-  but clean playlist table need to override sorting method because of this
+  but fix playlist table need to override sorting method because of this
+- onTime events, make sur ethey fire correctly and dont degrade performance
 
 PERFORMANCE
 - layout reload mem leak - investigate                                          (major)
@@ -243,9 +240,3 @@ PERFORMANCE
   simple asynchronous code execution you will have ever used.
   Its also running on appFX thread - no bgr threads, no concurrency problems.
 
---------------------------------------------------------------------------------
----------------------- TESTING - what nobody wants to do -----------------------
---------------------------------------------------------------------------------
-
-- Layout loading into Container
-- onTime events, make sur ethey fire correctly and dont degrade performance

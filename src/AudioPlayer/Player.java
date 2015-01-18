@@ -95,7 +95,7 @@ public class Player {
         // update library
         if (DB.exists(item))
             DB.updateItemsFromFile(Collections.singletonList(item));
-
+        System.out.println(DB.exists(item) + " fff");
         // reload metadata if played right now
         if (playingtem.get().same(item))
             playingtem.update();

@@ -2311,7 +2311,7 @@
 .tree-view > .virtual-flow > .corner,
 .table-view > .virtual-flow > .corner,
 .tree-table-view > .virtual-flow > .corner {
-    -fx-background-color: transparent;
+    -fx-background-color: null;
 }
 /* standard cell */
 .list-cell,
@@ -2343,7 +2343,7 @@
 .tree-table-view:focused:row-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell:focused,
 .table-view:focused:cell-selection > .virtual-flow > .clipped-container > .sheet > .table-row-cell > .table-cell:focused,
 .tree-table-view:focused:cell-selection > .virtual-flow > .clipped-container > .sheet > .tree-table-row-cell > .tree-table-cell:focused {
-    -fx-background-color:  transparent;
+    -fx-background-color: null;
     /*-fx-background-insets: 0, 1, 2;*/
 }
 
@@ -2377,7 +2377,7 @@
 .tree-cell > .tree-disclosure-node > .arrow,
 .tree-table-row-cell > .tree-disclosure-node > .arrow {
 /*    -fx-background-color: -fx-text-background-color;*/
-    -fx-background-color: white;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.333333em 0.229em 0.333333em 0.229em; /* 4 */
     -fx-shape: "M 0 -3.5 L 4 0 L 0 3.5 z";
 }
@@ -2475,7 +2475,7 @@
 }
 .table-view .column-header .sort-order-dot,
 .tree-table-view .column-header .sort-order-dot {
-    -fx-background-color: -fx-mark-color;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.115em;
     -fx-background-radius: 0.115em;
 }
@@ -2511,7 +2511,7 @@
 /* Header Sort Arrows */
 .table-view /*> column-header-background > nested-column-header >*/ .arrow,
 .tree-table-view /*> column-header-background > nested-column-header >*/ .arrow {
-    -fx-background-color: white;
+    -fx-background-color: -fx-def-font-color;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
@@ -3230,18 +3230,19 @@
 /* Default headers style. Unrelated headers might use this class. Each of them
   should also have its own class defined in addition to this one. */
 .header {
-    // BUG FIX
+    // BUG FIX (deprecated, use on on reoccurrence)
     // cant use rgba() color (rgb with non 1 opacity) for header because it creates artefacts
     // for window header when mouse hovers over content inside it - a bug?
     // instead emulate the color by setting opacity manually
     // -fx-background-color: -fx-pane-color;
-    -fx-background-color: black; // emulate -fx-pane-color
-    -fx-opacity: 0.32;           // emulate -fx-pane-color
+    // -fx-background-color: black; // emulate -fx-pane-color
+    // -fx-opacity: 0.32;           // emulate -fx-pane-color
 }
 
 .darker {
     //-fx-background-color: -fx-color-darker;
 }
+
 .lighter {
     -fx-background-color: -fx-color-lighter;
     -fx-border-color: 
@@ -3261,13 +3262,19 @@
     /* We can also use bgr image (see below classes), but always fill some basic 
        color behind just in case.
        If no image is set or is partially transparent this color is the basic bgr. */
-    -fx-background-color: black;
+    //-fx-background-color: black;
+    //-fx-background-color: null;
 }
 .window:hover {
 }
 .window:focused {
 }
 .window:resized {
+}
+.window:moved {
+    -fx-background-radius: 5;
+}
+.window:fullscreen {
 }
 // empty layer right above background for brg-image. It is possible to use more
 // complex backgrounds by specifying both .background and .bgr-image while using
@@ -3486,16 +3493,9 @@
     // use for basic appearance like border or bgr styling
     -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
-
-  /* alternative below */  
-/* 
-    -fx-stroke: linear-gradient(to bottom, rgba(0,0,0, .3), rgba(0, 0, 0, .7)) ;
-    -fx-stroke-width: 0.5;
-    -fx-fill: rgba(255.0,255.0,255.0, .95);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.2), 10.0, 0.5, 2.0, 2.0);*/
 }
 .popover > .bgr:detached {
-    // if you wnat to change basic appearance in detached mode
+    // appearance in detached mode
 }
 
 // content - ranctangular area for the actual content of the popup
@@ -3698,10 +3698,10 @@
 // style for the button when rating is at min value
 // it is good to visually signal this to the user
 .rating > .container > .button:min {
-    -fx-effect: innershadow( three-pass-box, yellow, 2, 0.4, 0, 0);
+    -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4, 0, 0);
 }
 // style for the button when rating is at max value
 // it is good to visually signal this to the user
 .rating > .container > .button:max {
-    -fx-effect: innershadow( three-pass-box, yellow, 2, 0.4 ,0, 0);
+    -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4 ,0, 0);
 }

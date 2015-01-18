@@ -97,9 +97,13 @@ import static util.functional.FunctUtil.find;
 public class Window extends WindowBase implements SelfSerializator<Window> {
 
     /** Psududoclass active when this window is focused. Applied on root as '.window'. */
-    public static final PseudoClass focusedPseudoClass = PseudoClass.getPseudoClass("focused");
+    public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
     /** Psududoclass active when this window is resized. Applied on root as '.window'. */
-    public static final PseudoClass resizedPseudoClass = PseudoClass.getPseudoClass("resized");
+    public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
+    /** Psududoclass active when this window is moved. Applied on root as '.window'. */
+    public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
+    /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
+    public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
     
     public static final ArrayList<Window> windows = new ArrayList();
 
@@ -306,13 +310,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    if (e.getCode() == ESCAPE && isFullscreen()) setFullscreen(false);
 	});
 
-	// maintain :focused pseudoclass for .window styleclass
-	s.focusedProperty().addListener((o, ov, nv)
-	    -> root.pseudoClassStateChanged(focusedPseudoClass, nv));
-        
-	// maintain :resized pseudoclass for .window styleclass
-	resizing.addListener((o, ov, nv)
-            -> root.pseudoClassStateChanged(resizedPseudoClass, nv!=NONE));
+	// maintain custom pseudoclasses for .window styleclass
+	s.focusedProperty().addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
+	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
+	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
+	fullscreen.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
         
         // layout mode on resizing - experimental
         resizing.addListener((o,ov,nv) -> GUI.setLayoutMode(nv!=NONE));
@@ -390,7 +392,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	main = true;
 
 	setIcon(App.getIcon());
-	setTitle(App.getAppName());
+	// setTitle(App.getAppName());
 	setTitlePosition(Pos.CENTER_LEFT);
 	miniB.setVisible(true);
 	minimizeB.setVisible(true);
@@ -727,6 +729,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	if (e.getButton() != MouseButton.PRIMARY || resizing.get()!=Resize.NONE) return;
 
 	app_drag = true;
+        isMoving.set(true);
 	appX = e.getSceneX();
 	appY = e.getSceneY();
     }
@@ -781,6 +784,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     private void appDragEnd(MouseEvent e) {
 	app_drag = false;
+        isMoving.set(false);
     }
 
     /**

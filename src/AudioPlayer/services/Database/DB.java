@@ -20,7 +20,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import main.App;
-import org.reactfx.EventSource;
 import util.access.AccessibleStream;
 import util.access.Accessor;
 import util.access.CascadingStream;
@@ -78,26 +77,18 @@ public class DB {
         return em.find(Metadata.class, uri.toString());
     }
     
-    
-    public static void addItems(List<Metadata> items) {
-        if (items.isEmpty()) return;
-        
-        em.getTransaction().begin();
-        items.forEach( m -> {
-            if(em.find(Metadata.class, m.getId()) == null) em.persist(m);
-        });
-        em.getTransaction().commit();
-        
-        librarychange.push(null);
-    }
-    
     public static List<Metadata> getAllItems() {
-        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p", Metadata.class);
-        return query.getResultList();
+        return em.createQuery("SELECT p FROM MetadataItem p", Metadata.class)
+                 .getResultList();
     }
     
     public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
         return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
+    }
+    
+    public static List<String> getAllArtists() {
+        return em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class)
+                 .getResultList();
     }
     
     public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
@@ -120,27 +111,31 @@ public class DB {
 
         return result;
     }
-    public static List<String> getAllArtists() {
-        TypedQuery<String> query = em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class);
-        return query.getResultList();
+    
+    public static void addItems(List<Metadata> items) {
+        if (items.isEmpty()) return;
+        // add to db
+        em.getTransaction().begin();
+        items.forEach( m -> {
+            if(em.find(Metadata.class, m.getId()) == null) em.persist(m);
+        });
+        em.getTransaction().commit();
+       // update model
+        updateLib();
     }
     
-//    public static List<MetadataGroup> getAllGroups(Metadata.Field metadata_field) {
-//        return getAllGroups(metadata_field, new HashMap<>());
-//    }
-    
-
     public static void removeItems(List<Metadata> items) {
+        // remove in db
         em.getTransaction().begin();
         items.forEach( m -> {
             Metadata in_db = em.find(Metadata.class, m.getId());
             if(in_db != null) em.remove(in_db);
         });
         em.getTransaction().commit();
-    
-        
-//        librarychange.push(null);
+       // update model
+        updateLib();
     }
+    
     public static void updateItemsFromFile(List<? extends Item> items) {
         MetadataReader.readMetadata(items, (success,result) -> {
             if(success) updateItems(result);
@@ -153,14 +148,12 @@ public class DB {
         items.forEach(em::merge);
         em.getTransaction().commit();
         // update model
+        updateLib();
+    }
+
+    public static void updateLib() {
         views.push(1, getAllItems());
     }
-    
-    /**
-     * Fires on every remove, update, insert operation on the database.
-     */
-    public static final EventSource<Void> librarychange = new EventSource();
-
     
     public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
 }

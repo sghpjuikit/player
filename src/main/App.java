@@ -10,10 +10,7 @@ import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MoodManager;
-import Configuration.Config;
-import Configuration.Configuration;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import Configuration.*;
 import GUI.GUI;
 import GUI.Window;
 import GUI.WindowManager;
@@ -30,8 +27,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
-import org.reactfx.BiEventSource;
-import org.reactfx.BiEventStream;
+import org.reactfx.EventSource;
 import util.Parser.File.FileUtil;
 import static util.async.Async.run;
 
@@ -41,6 +37,7 @@ import static util.async.Async.run;
  */
 @IsConfigurable("General")
 public class App extends Application {
+
 
     /**
      * Starts program.
@@ -52,7 +49,21 @@ public class App extends Application {
     
 /******************************************************************************/
     
-    public static final BiEventStream<String,Object> event_bus = new BiEventSource();
+    /**
+     * Event source and stream for executed actions, providing their name. Use
+     * for notifications of running the action or executing additional behavior.
+     * <p>
+     * A use case could be an application wizard asking user to do something.
+     * The code in question simply notifies this stream of the name of action
+     * upon execution. The wizard would then monitor this stream
+     * and get notified if the expected action was executed.
+     * <p>
+     * Running an {@link Action} always fires an event.
+     * Supports custom actions. Simply push a String value into the stream.
+     */
+    public static final EventSource<String> actionStream = new EventSource();
+    
+/******************************************************************************/
     
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
@@ -66,13 +77,7 @@ public class App extends Application {
     private static App instance;
     public App() {
         instance = this;
-    }
-    
-//    /** Returns instance of this app singleton. */
-//    public static App getInstance() {
-//        return instance;
-//    }
-    
+    }    
     
 /*********************************** CONFIGS **********************************/
     

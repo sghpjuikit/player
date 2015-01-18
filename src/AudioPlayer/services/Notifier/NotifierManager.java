@@ -1,9 +1,11 @@
 
 package AudioPlayer.services.Notifier;
 
+import Action.Action;
+import Action.IsAction;
+import Action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.services.Service;
 import AudioPlayer.services.Service;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
@@ -21,20 +23,25 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
+import main.App;
 import org.reactfx.Subscription;
+import util.access.AccessorAction;
 
 /**
  * 
  * @author uranium
  */
 @IsConfigurable("Notification")
+@IsActionable
 public final class NotifierManager implements Service {
+    
+/*****************************   CONFIGURATION   ******************************/
     
     @IsConfig(name = "Show notifications.", info = "Turn notification on and off completely")
     public static boolean showNotification = true;
-    @IsConfig(name = "Show notifications about playback status")
+    @IsConfig(name = "Show playback status notifications")
     public static boolean showStatusNotification = true;
-    @IsConfig(name = "Show notifications about playing item")
+    @IsConfig(name = "Show no playing notifications")
     public static boolean showSongNotification = true;
     @IsConfig(name = "Notification autohide delay", info = "Time it takes for the notification to hide on its own")
     public static double notificationDuration = 2500;
@@ -44,18 +51,22 @@ public final class NotifierManager implements Service {
     public static double notifFadeTime = 500;
     @IsConfig(name = "Close notification when clicked anywhere.")
     public static boolean notifAutohide = true;
-    @IsConfig(name = "Close notification when clicked.")
-    public static boolean notifCloseOnClick = true;
-    @IsConfig(name = "Show application on notification click.")
-    public static boolean notifclickOpenApp = true;
     @IsConfig(name = "Notification position.")
     public static PopOver.ScreenCentricPos notifPos = PopOver.ScreenCentricPos.ScreenBottomRight;
+    @IsConfig(name = "On Left Click.")
+    public static final AccessorAction onClickL = new AccessorAction(Action.getAction("Show/Hide application"), null);
+    @IsConfig(name = "On Right Click.")
+    public static final AccessorAction onClickR = new AccessorAction(Action.getAction("Notification hide"), null);
     
-/******************************************************************************/
+    @IsAction(name = "Notification hide")
+    public static void hideNotif() {
+        App.use(NotifierManager.class, nm -> {
+            if(nm.isRunning()) nm.hideNotification();
+        });
+    }
     
-    private Notification n;
-    private Subscription playingItemMonitoring;
-
+/*******************************   SERVICE   **********************************/
+    
     /** {@inheritDoc} */
     @Override
     public void start() {
@@ -75,7 +86,7 @@ public final class NotifierManager implements Service {
     /** {@inheritDoc} */
     @Override
     public boolean isRunning() {
-        return n==null;
+        return n!=null;
     }
 
     /** {@inheritDoc} */
@@ -94,7 +105,7 @@ public final class NotifierManager implements Service {
     @Override
     public boolean isDependency() { return false; }
     
-/******************************************************************************/
+/*********************************   API   ************************************/
     
     /** Show notification for custom content. */
     public void showNotification(Node content, String title) {
@@ -105,7 +116,10 @@ public final class NotifierManager implements Service {
         showNotification(text, title, TEXT);
     }
     
-/******************************************************************************/
+/******************************** PRIVATE *************************************/
+    
+    private static Notification n;
+    private Subscription playingItemMonitoring;
     
     private void songChange(Metadata newI) {
         if (showSongNotification)
@@ -125,15 +139,20 @@ public final class NotifierManager implements Service {
             // build content
             n.setContent(content, title, type);
             // set properties (that could have changed from last time)
-            // avoid setting properties when not needed
-            if(n.isHideOnClick() != notifCloseOnClick) n.setHideOnClick(notifCloseOnClick);
-            if(n.isAutoHide() != notifAutohide) n.setAutoHide(notifAutohide);
-            if(n.isAnimated() != notifAnimated) n.setAnimated(notifAnimated);
+            n.setAutoHide(notifAutohide);
+            n.setAnimated(notifAnimated);
             n.setAnimDuration(Duration.millis(notifFadeTime));
             n.setDuration(Duration.millis(notificationDuration));
+            n.setOnClickL(onClickL.getValueAction());
+            n.setOnClickR(onClickR.getValueAction());
             // show
             n.show(notifPos);
         }
+    }
+    
+    private void hideNotification() {
+        if(!isRunning()) throw new IllegalStateException("Notification service not running");
+        n.hide();
     }
     
 }

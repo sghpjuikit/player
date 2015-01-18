@@ -5,18 +5,16 @@
  */
 package util.access.FieldValue;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
- *
- * @author Plutonium_
+ * Value that has can list its possible values, which it is restricted to.
  */
 public interface EnumerableValue<T> {
+    
     /**
      * Provides list of all currently available values. The list can change over
      * time.
-     * 
-     * @return 
      */
-    public List<T> enumerateValues();
+    public Collection<T> enumerateValues();
 }

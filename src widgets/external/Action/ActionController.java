@@ -7,14 +7,13 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
-import static java.util.stream.Collectors.toList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import util.access.Accessor;
-import util.access.AccessorEnum;
+import util.access.AccessorAction;
 
 /**
  *
@@ -36,19 +35,13 @@ public class ActionController extends FXMLController {
     
     @FXML private StackPane root;
     private final Label button = new Label("");
-    
     int size = 12;
     
     // configurables
     @IsConfig(name = "Icon", info = "Icon for the action button")
     public final Accessor<AwesomeIcon> icon = new Accessor<>(AwesomeIcon.GAMEPAD, v -> AwesomeDude.setIcon(button, v, String.valueOf(size)));
-    
     @IsConfig(name = "Action", info = "Action for the button.")
-    // not sure if string instead of action is good idea, but it is safer
-    public final AccessorEnum<String> action = new AccessorEnum(Action.EMPTY.getName(), v -> {},
-        () -> Action.getActions().stream().map(Action::getName).collect(toList())
-    );
-    
+    public final AccessorAction action = new AccessorAction(Action.EMPTY, null);
     @IsConfig(name = "Alignment", info = "Alignment of the button")
     public final Accessor<Pos> align = new Accessor<>(Pos.CENTER, v -> StackPane.setAlignment(button, v));
 

@@ -70,7 +70,7 @@ public class WindowManager {
             // if not available, make new one, set initial size
             if(miniWindow == null)  miniWindow = Window.create();
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
-            miniWindow.setResizable(false);
+            miniWindow.resizable.set(false);
             
             // create content
                 // layout

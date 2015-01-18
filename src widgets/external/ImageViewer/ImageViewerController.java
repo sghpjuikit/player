@@ -7,7 +7,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.objects.InfoNode.TaskInfo;
+import GUI.virtual.InfoNode.InfoTask;
 import GUI.objects.ItemInfo;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Thumbnail;
@@ -220,7 +220,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         // handle drag transfers
-        entireArea.setOnDragDropped( e -> {
+        entireArea.setOnDragDropped(e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
                 // get first item
                 List<Item> items = DragUtil.getAudioItems(e);
@@ -237,7 +237,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             }
             if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {System.out.println("received img");
                 // grab images
-                    TaskInfo info = new TaskInfo(null, new Label(), new ProgressBar());
+                    InfoTask info = new InfoTask(null, new Label(), new ProgressBar());
                     HBox b = new HBox(8, info.message, info.progressIndicator);
                     PopOver p = new PopOver("Handling images", b);
                     Task t = Async.runAsTask(()->{System.out.println(Platform.isFxApplicationThread() + " dddd");

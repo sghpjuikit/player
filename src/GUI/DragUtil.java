@@ -5,7 +5,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.ActionTask;
-import GUI.objects.InfoNode.TaskInfo;
+import GUI.virtual.InfoNode.InfoTask;
 import GUI.objects.PopOver.PopOver;
 import Layout.Component;
 import Layout.Container;
@@ -270,7 +270,7 @@ public final class DragUtil {
         } else
             throw new IllegalStateException("image content not found");
     }
-    public static void doWithImages(DragEvent e, TaskInfo i, Consumer<List<File>> action, Consumer<Boolean> onEnd) {
+    public static void doWithImages(DragEvent e, InfoTask i, Consumer<List<File>> action, Consumer<Boolean> onEnd) {
         requireNonNull(onEnd);
         Dragboard d = e.getDragboard();
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
@@ -311,7 +311,7 @@ public final class DragUtil {
                 p.show(PopOver.ScreenCentricPos.AppCenter);
                 p.setOpacity(1);
                 p.centerOnScreen();
-        TaskInfo info = new TaskInfo(p.getSkinn().getTitle(), new Label(), new ProgressIndicator());
+        InfoTask info = new InfoTask(p.getSkinn().getTitle(), new Label(), new ProgressIndicator());
         b.getChildren().addAll(info.message, info.progressIndicator);
         // execute
         DragUtil.doWithImages(e, info, action, ok->p.hide());

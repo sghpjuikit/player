@@ -3267,7 +3267,8 @@
 }
 .window:focused {
 }
-
+.window:resized {
+}
 // empty layer right above background for brg-image. It is possible to use more
 // complex backgrounds by specifying both .background and .bgr-image while using
 // sub 1 opacity
@@ -3327,6 +3328,11 @@
 .layouter-element {
 }
 
+/* HBox containing buttons within a header */
+.header-buttons {
+}
+
+/* button in a header-buttons box */
 .header-button {
     -fx-label-padding: 0;
     -fx-content-display: center;
@@ -3343,20 +3349,16 @@
     -fx-border-width: 0;
 }
 .header-button:hover {
-    -fx-background-color: rgba(250,250,250,0.25);
+    -fx-background-color: null;
     -fx-background-insets: 0;
     -fx-border: null;
     -fx-border-width: 0;
 }
 .header-button:pressed {
-    -fx-background-color: rgba(250,250,250,0.4);
+    -fx-background-color: null;
     -fx-background-insets: 0;
     -fx-border: null;
     -fx-border-width: 0;
-}
-
-/* HBox containing buttons within a header */
-.header-buttons {
 }
 
 .lighter-button {
@@ -3613,14 +3615,11 @@
     -fx-font-size: 0.9em;
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
-    //-icons-color: -fx-def-font-color;
-    //-fx-text-fill: -fx-def-font-color;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
+    -icons-color: -fx-def-font-color;
+    -fx-text-fill: -fx-def-font-color;
 }
  
 .congfig-field-default-button:pressed:hover {
-    -icons-color: black;
-    -fx-text-fill: black;
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
  

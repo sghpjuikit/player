@@ -129,17 +129,6 @@ public class DB {
 //        return getAllGroups(metadata_field, new HashMap<>());
 //    }
     
-    private static void updateItems(List<Metadata> items) {
-        em.getTransaction().begin();
-        items.forEach( m -> {
-//                Metadata in_db = em.find(Metadata.class, m.getId());
-//                if(in_db != null) 
-                em.merge(m);
-        });
-        em.getTransaction().commit();
-
-        librarychange.push(null);
-    }
 
     public static void removeItems(List<Metadata> items) {
         em.getTransaction().begin();
@@ -149,7 +138,8 @@ public class DB {
         });
         em.getTransaction().commit();
     
-        librarychange.push(null);
+        
+//        librarychange.push(null);
     }
     public static void updateItemsFromFile(List<? extends Item> items) {
         MetadataReader.readMetadata(items, (success,result) -> {
@@ -157,6 +147,14 @@ public class DB {
         });
     }
     
+    private static void updateItems(List<Metadata> items) {
+        // update db
+        em.getTransaction().begin();
+        items.forEach(em::merge);
+        em.getTransaction().commit();
+        // update model
+        views.push(1, getAllItems());
+    }
     
     /**
      * Fires on every remove, update, insert operation on the database.

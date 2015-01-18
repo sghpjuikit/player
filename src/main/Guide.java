@@ -53,7 +53,7 @@ public final class Guide {
         p.getSkinn().setContentPadding(new Insets(8));
         p.setArrowSize(0);
         p.setDetached(true);
-        p.setOnHidden(e -> run(20,() -> Action.actionStream.push("Guide closing")));
+        p.setOnHidden(e -> run(20,() -> App.actionStream.push("Guide closing")));
         
         text.setWrappingWidth(300);
         text.prefWidth(300);
@@ -92,7 +92,7 @@ public final class Guide {
                     ((Container)bc.getChildren().get(1)).addChild(1,WidgetManager.getFactory("Playlist").create());
                     ((Container)bc.getChildren().get(2)).addChild(1,WidgetManager.getFactory("PlayerControls").create());;
                     // go to next
-                    Action.actionStream.push("Intro");
+                    App.actionStream.push("Intro");
                 }));
         addGuide(" ", "Hi, this is automatic guide for this application. It will show you around. " +
                 "Completing a hint will display next one. You can navigate manually too." +
@@ -174,7 +174,7 @@ public final class Guide {
     
     
     public void start() {
-        action_monitoring = Action.actionStream.subscribe(this::handleAction);
+        action_monitoring = App.actionStream.subscribe(this::handleAction);
         goToStart();
     }
     

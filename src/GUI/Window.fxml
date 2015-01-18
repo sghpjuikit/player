@@ -62,7 +62,16 @@
 <tooltip>
 <Tooltip text="Toggle Mini" />
 </tooltip>
+</Button><Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T">
+<tooltip>
+<Tooltip text="Always on top" />
+</tooltip>
 </Button>
+            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleFullscreen" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="■">
+              <tooltip>
+                <Tooltip text="Fullscreen" />
+              </tooltip>
+            </Button>
             <Button fx:id="minimizeB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMinimize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="▁">
               <tooltip>
                 <Tooltip text="Minimize" />
@@ -71,15 +80,6 @@
             <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMaximize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="☐">
               <tooltip>
                 <Tooltip text="Maximize/Demaximize" />
-              </tooltip>
-            </Button><Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T">
-<tooltip>
-<Tooltip text="Always on top" />
-</tooltip>
-</Button>
-            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleFullscreen" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="■">
-              <tooltip>
-                <Tooltip text="Fullscreen" />
               </tooltip>
             </Button>
             <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="✕">
@@ -90,7 +90,7 @@
           </children>
         </HBox>
 </children></AnchorPane>
-    <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" onKeyPressed="#entireArea_OnKeyPressed" onKeyReleased="#entireArea_OnKeyReleased" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
+    <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
   </children>
   <padding>
     <Insets />

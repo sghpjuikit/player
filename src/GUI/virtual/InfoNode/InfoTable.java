@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.InfoNode;
+package GUI.virtual.InfoNode;
 
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
@@ -24,7 +24,7 @@ import static util.Util.copySelectedItems;
  * 
  * @author Plutonium_
  */
-public final class TableInfo<E> implements InfoNode<TableView<E>> {
+public final class InfoTable<E> implements InfoNode<TableView<E>> {
     
     /** Default text factory. Provides texts like: <pre>
      * 'All: 1 item'
@@ -57,7 +57,7 @@ public final class TableInfo<E> implements InfoNode<TableView<E>> {
             + "modification erros - INVSTIGATE if te issue still appears (some sort of IndexOutOfBounds in Table SortedList)")
     /** Sets the node and listeners to update the text automatically by monitoring
       * the table items and selection. */
-    public TableInfo(Labeled node, TableView<E> t) {
+    public InfoTable(Labeled node, TableView<E> t) {
         this.node = node;
         this.t = t;
         bind(t);

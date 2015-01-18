@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.Event;
@@ -38,9 +39,7 @@ import static javafx.geometry.NodeOrientation.INHERIT;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import static javafx.scene.input.KeyCode.ENTER;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyCode.L;
+import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
@@ -51,17 +50,12 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
 import org.reactfx.util.Tuples;
-import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
-import static util.Util.consumeOnSecondaryButton;
-import static util.Util.createmenuItem;
+import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
 import util.collections.Histogram;
 import util.collections.Tuple4;
-import static util.functional.FunctUtil.find;
-import static util.functional.FunctUtil.isFALSE;
-import static util.functional.FunctUtil.list;
-import static util.functional.FunctUtil.listM;
+import static util.functional.FunctUtil.*;
 import util.functional.Runner;
 
 /**
@@ -99,6 +93,7 @@ public class LibraryViewController extends FXMLController {
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
     private Subscription dbMonitor;
     private final Runner runOnce = new Runner(1);
+    private boolean lock = false;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -117,8 +112,23 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         if(dbMonitor!=null) dbMonitor.unsubscribe();
         // listen for database changes to refresh library
-        dbMonitor = DB.views.subscribe(v, (i,list) -> {
+        dbMonitor = DB.views.subscribe(v, (lvl,list) -> {
+            // remember selected
+            Set<Object> oldSel = table.getSelectedItems().stream()
+                                      .map(MetadataGroup::getValue).collect(toSet());
+            // prevent selection from propagating change
+            lock = true;
+            // update list
             setItems(list);
+            // update selected - restore every available old one
+            forEachIndexed(table.getItems(), (i,mg) -> {
+                if(oldSel.contains(mg.getValue()))
+                    table.getSelectionModel().select(i);
+            });
+            // enable propagation
+            lock = false;
+            // propagate in 1 event
+            forwardItems(filerList(list));
         });
         // initialize
         setItems(DB.views.getValue(v));

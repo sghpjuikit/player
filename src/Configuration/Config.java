@@ -2,6 +2,7 @@
 package Configuration;
 
 import static java.util.Arrays.asList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -193,7 +194,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     
 /*************************** configurable methods *****************************/
 
-    Supplier<List<T>> valueEnumerator;
+    Supplier<Collection<T>> valueEnumerator;
     private boolean init = false;
     
     public boolean isTypeEnumerable() {
@@ -205,7 +206,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
     
     @Override
-    public List<T> enumerateValues() {
+    public Collection<T> enumerateValues() {
         if(!init && valueEnumerator==null) {
             valueEnumerator = buildEnumEnumerator(getDefaultValue());
             init = true;
@@ -213,7 +214,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         return valueEnumerator.get();
     }
     
-    private static <T> Supplier<List<T>> buildEnumEnumerator( T v) {
+    private static <T> Supplier<Collection<T>> buildEnumEnumerator( T v) {
         // handle enums
         Class c = v.getClass();
         if(c.isEnum()) {

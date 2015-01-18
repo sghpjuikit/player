@@ -15,11 +15,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
 import static java.util.Collections.singletonList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -30,7 +27,6 @@ import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import main.App;
 import org.atteo.classindex.ClassIndex;
-import org.reactfx.EventSource;
 import util.Dependency;
 import util.Log;
 import util.access.Accessor;
@@ -228,7 +224,7 @@ public final class Action extends Config<Action> implements Runnable {
 //        
 //        if(canRun) {
             action.run();
-            actionStream.push(name);
+            App.actionStream.push(name);
 //        }
     }
     
@@ -620,23 +616,6 @@ public final class Action extends Config<Action> implements Runnable {
             else if(i==JIntellitype.APPCOMMAND_CLOSE) App.close();
         });
     };
-    
-/******************************************************************************/
-
-    /**
-     * Event source and stream for executed actions, providing their name. Use
-     * for notifications of running the action or executing additional behavior.
-     * <p>
-     * A use case could be an application wizard asking user to do something.
-     * The code in question simply notifies this stream of the name of action
-     * or uses custom string as id. The wizard would then monitor this stream
-     * and get notified if the expected action was executed.
-     * <p>
-     * Running an {@link Action} fires an event.
-     * Supports custom actions. Simply push a String value into the stream.
-     */
-    public static final EventSource<String> actionStream = new EventSource();
-    
     
 /****************************** CONFIGURATION *********************************/
     

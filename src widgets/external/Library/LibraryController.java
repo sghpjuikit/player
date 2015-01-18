@@ -19,9 +19,9 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.InfoNode.TableInfo;
-import static GUI.objects.InfoNode.TableInfo.DEFAULT_TEXT_FACTORY;
-import GUI.objects.InfoNode.TaskInfo;
+import GUI.virtual.InfoNode.InfoTable;
+import static GUI.virtual.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import GUI.virtual.InfoNode.InfoTask;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
@@ -119,7 +119,7 @@ public class LibraryController extends FXMLController {
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
-    private final TaskInfo taskInfo = new TaskInfo(null, new Label(), new ProgressIndicator());
+    private final InfoTask taskInfo = new InfoTask(null, new Label(), new ProgressIndicator());
     private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private Subscription dbMonitor;
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
@@ -236,7 +236,7 @@ public class LibraryController extends FXMLController {
         taskInfo.setVisible(false);        
         
         // table information label
-        TableInfo<Metadata> infoL = new TableInfo(new Label(), table);
+        InfoTable<Metadata> infoL = new InfoTable(new Label(), table);
         infoL.textFactory = (all, list) -> {
             double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
             return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);

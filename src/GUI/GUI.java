@@ -81,7 +81,7 @@ public class GUI {
     private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {
             super.set(v);
-            Action.Action.actionStream.push("Layout lock");
+            App.actionStream.push("Layout lock");
         }
     };
         
@@ -172,7 +172,7 @@ public class GUI {
             LayoutManager.getLayouts().forEach(Layout::hide);
             setZoomMode(false);
         }
-        if(val) Action.Action.actionStream.push("Layout mode");
+        if(val) App.actionStream.push("Layout mode");
     }
     
     public static void setZoomMode(boolean val) {

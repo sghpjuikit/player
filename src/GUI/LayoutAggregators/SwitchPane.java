@@ -6,9 +6,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Window;
 import Layout.Layout;
-import static java.lang.Double.NaN;
-import static java.lang.Double.max;
-import static java.lang.Double.min;
+import static java.lang.Double.*;
 import static java.lang.Math.signum;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,12 +18,11 @@ import javafx.beans.property.DoubleProperty;
 import javafx.scene.Parent;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
+import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_IN;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
@@ -499,7 +496,7 @@ public class SwitchPane implements LayoutAggregator {
         z.setToX(d);
         z.setToY(d);
         z.play();
-        Action.Action.actionStream.push("Zoom mode");
+        App.actionStream.push("Zoom mode");
     }
     private void zoomNoAcc(double d) {
         if(d<0 || d>1) throw new IllegalStateException("zooming interpolation out of 0-1 range");   

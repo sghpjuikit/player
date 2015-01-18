@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.InfoNode;
+package GUI.virtual.InfoNode;
 
 import javafx.concurrent.Task;
 import javafx.scene.control.Labeled;
@@ -12,7 +12,7 @@ import javafx.scene.control.ProgressIndicator;
 /**
  *  Provides information about the task and its progress.
  */
-public class TaskInfo implements InfoNode<Task> {
+public class InfoTask implements InfoNode<Task> {
     
     public final Labeled title;
     public final Labeled message;
@@ -23,7 +23,7 @@ public class TaskInfo implements InfoNode<Task> {
      * @param message message label. Use null if none.
      * @param pi progress indicator. Use null if none.
      */
-    public TaskInfo(Labeled title, Labeled message, ProgressIndicator pi) {
+    public InfoTask(Labeled title, Labeled message, ProgressIndicator pi) {
         this.title = title;
         this.message = message;
         this.progressIndicator = pi;

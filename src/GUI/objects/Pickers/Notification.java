@@ -2,7 +2,6 @@
 package GUI.objects.Pickers;
 
 import AudioPlayer.tagging.Metadata;
-import GUI.Window;
 import GUI.objects.ItemInfo;
 import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
 import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
@@ -17,37 +16,29 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
+import util.TODO;
 import util.async.FxTimer;
 
 /**
- *
- * @author uranium
+ * Notification popover.
  */
+@TODO(purpose = TODO.Purpose.PERFORMANCE_OPTIMIZATION, note = "use only one grahics")
 public class Notification extends PopOver {
         
     private ItemInfo songNotif;
     private final AnchorPane textNotif = new AnchorPane();  // text content
     private final FxTimer closer = new FxTimer(1000, 1, this::hide);
     
-    // properties   
-    private boolean openAppOnClick = true;
-    private Duration duration = Duration.seconds(5);
-    
     // content 
     @FXML private BorderPane textContainer;
     @FXML private Label titleText;
-    
-    private final EventHandler onClickHandler = e-> {
-        // if app minimized deminimize
-        if (isOpenAppOnClick()) {
-            Window w = Window.getActive();
-            if(w.isMinimized()) w.setMinimized(false);
-            else w.focus();
-        }
-    };
     
     public Notification() {
         setTitle("");
@@ -58,7 +49,7 @@ public class Notification extends PopOver {
         setArrowIndent(0);
         setCornerRadius(0);
         setAutoFix(false);
-        setAutoHide(true);
+        setAutoHide(false);
         buildContent();
     }
 
@@ -74,10 +65,6 @@ public class Notification extends PopOver {
         } catch (IOException e) {
             throw new RuntimeException("Notifier source data coudlnt be read.", e);
         }
-        
-        // close on click
-        songNotif.setOnMouseClicked(onClickHandler);
-        textNotif.setOnMouseClicked(onClickHandler);
     }
     
     @Override
@@ -132,6 +119,8 @@ public class Notification extends PopOver {
         }
         
     }
+    
+    private Duration duration = Duration.seconds(5);
 
     /**
      * Returns time this notification will remain visible. Default 5 seconds.
@@ -146,20 +135,46 @@ public class Notification extends PopOver {
     public void setDuration(Duration duration) {
         this.duration = duration;
     }
-
-    /**
-     * Returns whether click on this notification opens application. Default is
-     * true.
-     */
-    public boolean isOpenAppOnClick() {
-        return openAppOnClick;
+    
+    
+    private EventHandler<MouseEvent> onClickLH = null;
+    private EventHandler<MouseEvent> onClickRH = null;
+    
+    public void setOnClickL(Runnable onClickL) {
+        if(onClickLH!=null) {
+            songNotif.removeEventHandler(MOUSE_CLICKED, onClickLH);
+            textNotif.removeEventHandler(MOUSE_CLICKED, onClickLH);
+        }
+        
+        onClickLH = onClickL==null ? null : e -> {
+            if(e.getButton()==PRIMARY) {
+                onClickL.run();
+                e.consume();
+            }
+        };
+        
+        if(onClickLH!=null) {
+            songNotif.addEventHandler(MOUSE_CLICKED, onClickLH);
+            textNotif.addEventHandler(MOUSE_CLICKED, onClickLH);
+        }
     }
-
-    /**
-     * Sets whether click on this notification opens application
-     */
-    public void setOpenAppOnClick(boolean openAppOnClick) {
-        this.openAppOnClick = openAppOnClick;
+    public void setOnClickR(Runnable onClickR) {
+        if(onClickRH!=null) {
+            songNotif.removeEventHandler(MOUSE_CLICKED, onClickRH);
+            textNotif.removeEventHandler(MOUSE_CLICKED, onClickRH);
+        }
+        
+        onClickRH = onClickR==null ? null : e -> {
+            if(e.getButton()==SECONDARY) {
+                onClickR.run();
+                e.consume();
+            }
+        };
+        
+        if(onClickRH!=null) {
+            songNotif.addEventHandler(MOUSE_CLICKED, onClickRH);
+            textNotif.addEventHandler(MOUSE_CLICKED, onClickRH);
+        }
     }
 
     

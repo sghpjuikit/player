@@ -6,10 +6,7 @@ import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import main.App;
 import util.Log;
 import util.Parser.File.FileUtil;
@@ -73,9 +70,7 @@ public final class Serializattion {
             xstream.autodetectAnnotations(true);
             
             // doont forget to serialize widget properties as well
-            l.getAllWidgets()
-                    .filter(isNotNULL)
-                    .forEach(Widget::rememberConfigs);
+            l.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
             xstream.toXML(l, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + l.getName() + "' into the file: " + f.toPath());

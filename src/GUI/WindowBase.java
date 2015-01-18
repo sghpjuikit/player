@@ -5,12 +5,7 @@ import static GUI.WindowBase.Maximized.ALL;
 import static GUI.WindowBase.Maximized.NONE;
 import GUI.objects.Window.Resize;
 import static java.lang.Math.abs;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -40,10 +35,28 @@ public class WindowBase {
     final DoubleProperty HProp = new SimpleDoubleProperty(100);
     final DoubleProperty XProp = new SimpleDoubleProperty(0);
     final DoubleProperty YProp = new SimpleDoubleProperty(0);
-    final ObjectProperty<Maximized> MaxProp = new SimpleObjectProperty(NONE);
+    final ReadOnlyObjectWrapper<Maximized> MaxProp = new ReadOnlyObjectWrapper(NONE);
+    final ReadOnlyBooleanWrapper isMoving = new ReadOnlyBooleanWrapper(false);
+    final ReadOnlyObjectWrapper<Resize> isResizing = new ReadOnlyObjectWrapper(Resize.NONE);
     final BooleanProperty FullProp = new SimpleBooleanProperty(false);
     
     Stage s = new Stage();
+    
+    /** Indicates whether this window is always on top. Window always on top
+      * will not hide behind other windows. */
+    public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
+    /** Indicates whether this window is in fullscreen. */
+    public final ReadOnlyBooleanProperty fullscreen = s.fullScreenProperty();
+    /** Indicates whether this window is maximized. */
+    public final ReadOnlyObjectProperty<Maximized> maximized = MaxProp.getReadOnlyProperty();
+    /** Indicates whether the window is being moved. */
+    public final ReadOnlyBooleanProperty moving = isMoving.getReadOnlyProperty();
+    /** Indicates whether and how the window is being resized. */
+    public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
+    /** Defines whether this window is resizable. Programatically it is still 
+      * possible to change the size of the Stage. */
+    public final BooleanProperty resizable = s.resizableProperty();
+    
     
     public WindowBase() {
         s.initStyle(StageStyle.TRANSPARENT);
@@ -112,41 +125,6 @@ public class WindowBase {
     }
     
 /******************************************************************************/
-    
-    /**
-     * Indicates whether and how the window is being resized. Implementing is
-     * left up on subclass.
-     */
-    protected Resize is_being_resized = Resize.NONE;
-    
-    /**
-     * Property description:
-     * Defines whether the Stage is resizable or not by the user. Programatically
-     * you may still change the size of the Stage. This is a hint which allows
-     * the implementation to optionally make the Stage resizable by the user. 
-     * @return the value of the property resizable.
-     */
-    public boolean isResizable() {
-        return s.isResizable();
-    }
-    /**
-     * Sets the value of the property resizable.
-     * Property description:
-     * Defines whether the Stage is resizable or not by the user. Programatically
-     * you may still change the size of the Stage. This is a hint which allows
-     * the implementation to optionally make the Stage resizable by the user. 
-     * @param val 
-     */
-    public void setResizable(boolean val) {
-        s.setResizable(val);
-    }
-    /**
-     * Returns whether the window is being resized at this moment.
-     * @return 
-     */
-    public boolean isResizing() {
-        return is_being_resized != Resize.NONE;
-    }
     
     /**
      * The value of the property resizable
@@ -392,9 +370,9 @@ public class WindowBase {
     /**
      * Sets position of the window on the screen.
      * <p>
-     * Note: Always use methods provided in this class for resizing and never
-     * those in the Stage of this window.
-     * <p>
+ Note: Always use methods provided in this class for isResizing and never
+ those in the Stage of this window.
+ <p>
      * If the window is in full screen mode, this method is no-op.
      * 
      * @param x x coordinate for left upper corner
@@ -448,9 +426,9 @@ public class WindowBase {
     @TODO(purpose = TODO.Purpose.ILL_DEPENDENCY, note = "make auto screen detection")
     @Dependency("SCREEN")
     public void snap() {
-        // avoid snapping while resizing. It leads to unwanted behavior
+        // avoid snapping while isResizing. It leads to unwanted behavior
         // avoid when not desired
-        if(!GUI.snapping || isResizing()) return;
+        if(!GUI.snapping || resizing.get()!=Resize.NONE) return;
 
         double S = GUI.snapDistance;
         
@@ -494,22 +472,22 @@ public class WindowBase {
     /**
      * Sets size of the window.
      * Always use this over setWidth(), setHeight(). Not using this method will
-     * result in improper behavior during resizing - more specifically - the new
-     * size will not be remembered and the window will revert back to previous
-     * size during certain graphical operations like reposition.
-     * 
-     * Its not recommended to use this method for maximizing. Use maximize(),
-     * maximizeLeft(), maximizeRight() instead.
-     * 
-     * This method is weak solution to inability to override setWidth(),
-     * setHeight() methods of Stage.
-     * 
-     * If the window is in full screen mode or !isResizable(), this method is no-op.
+ result in improper behavior during isResizing - more specifically - the new
+ size will not be remembered and the window will revert back to previous
+ size during certain graphical operations like reposition.
+ 
+ Its not recommended to use this method for maximizing. Use maximize(),
+ maximizeLeft(), maximizeRight() instead.
+ 
+ This method is weak solution to inability to override setWidth(),
+ setHeight() methods of Stage.
+ 
+ If the window is in full screen mode or !isResizable(), this method is no-op.
      * @param width
      * @param height
      */
     public void setSize( double width, double height) {
-        if (isFullscreen() || !isResizable()) return;
+        if (isFullscreen()) return;
         s.setWidth(width);
         s.setHeight(height);
         WProp.set(s.getWidth());

@@ -25,6 +25,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
+import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import util.Util;
@@ -196,7 +197,7 @@ public final class Layouter implements ContainerNode {
                 // this is the crucial part
                 container.addChild(index, f.create());
                 if(GUI.isLayoutMode()) container.show();
-                Action.Action.actionStream.push("New widget");
+                App.actionStream.push("New widget");
             });
             showControls(false);
         });
@@ -218,7 +219,7 @@ public final class Layouter implements ContainerNode {
         if(e.getButton()!=PRIMARY) return;
         
         container.addChild(index, new BiContainerPure(HORIZONTAL));
-        Action.Action.actionStream.push("Divide layout");
+        App.actionStream.push("Divide layout");
 
         e.consume();
     }
@@ -227,7 +228,7 @@ public final class Layouter implements ContainerNode {
         if(e.getButton()!=PRIMARY) return;
         
         container.addChild(index, new BiContainerPure(VERTICAL));
-        Action.Action.actionStream.push("Divide layout");
+        App.actionStream.push("Divide layout");
         
         e.consume();
     }

@@ -238,8 +238,7 @@ abstract public class ConfigField<T> {
      * Creates ConfigFfield best suited for the specified Field.
      * @param f field for which the GUI will be created
      */
-    public static ConfigField create(Config f) {        
-        String name  = f.getName();
+    public static ConfigField create(Config f) {
         Class type = f.getType();
         
         ConfigField cf;
@@ -252,33 +251,34 @@ abstract public class ConfigField<T> {
         if (String.class.equals(Util.unPrimitivize(type)))
             cf = new GeneralField(f);
         else
-        if (Action.class.equals(Util.unPrimitivize(type)))
+        if (Action.class.equals(type))
             cf = new ShortcutField(f);
         else
         if (f.isMinMax())
             cf = new SliderField(f);
         else
-        if (Color.class.equals(Util.unPrimitivize(type)))
+        if (Color.class.equals(type))
             cf = new ColorField(f);
         else
-        if (File.class.equals(Util.unPrimitivize(type)))
+        if (File.class.equals(type))
             cf = new FileField(f);
         else
-        if (Font.class.equals(Util.unPrimitivize(type)))
+        if (Font.class.equals(type))
             cf = new FontField(f);
         else
-        if (Password.class.equals(Util.unPrimitivize(type)))
+        if (Password.class.equals(type))
             cf = new PasswordField(f);
         else
             cf = new GeneralField(f);
         
         cf.setEditable(f.isEditable());
+        
         if(!f.getInfo().isEmpty()) {
-            Tooltip tooltip = new Tooltip(f.getInfo());
-                    tooltip.setWrapText(true);
-                    tooltip.setMaxWidth(300);
-            cf.getLabel().setTooltip(tooltip);
-            Tooltip.install(cf.getNode(),tooltip);
+            Tooltip t = new Tooltip(f.getInfo());
+                    t.setWrapText(true);
+                    t.setMaxWidth(300);
+            cf.getLabel().setTooltip(t);
+            Tooltip.install(cf.getNode(),t);
         }
         
         return cf;

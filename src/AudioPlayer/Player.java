@@ -5,10 +5,8 @@ import AudioPlayer.Core.CurrentItem;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import PseudoObjects.ReadMode;
-import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.function.Consumer;
@@ -92,10 +90,10 @@ public class Player {
         // update all playlist items referring to this updated metadata
         PlaylistManager.updateItemsOf(item);
         
-        // update library
-        if (DB.exists(item))
-            DB.updateItemsFromFile(Collections.singletonList(item));
-        System.out.println(DB.exists(item) + " fff");
+//        // update library
+//        if (DB.exists(item))
+//            DB.updateItemsFromFile(Collections.singletonList(item));
+        
         // reload metadata if played right now
         if (playingtem.get().same(item))
             playingtem.update();

@@ -4,12 +4,16 @@ package Layout.Containers;
 import Configuration.PropertyMap;
 import GUI.GUI;
 import Layout.Areas.ContainerNode;
+import static Layout.Areas.Layouter.ANIM_DUR;
 import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
+import static javafx.animation.Interpolator.LINEAR;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -28,6 +32,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import unused.SimplePositionable;
+import util.Animation.Interpolators.CircularInterpolator;
+import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import util.TODO;
 import static util.TODO.Purpose.UNIMPLEMENTED;
 import static util.TODO.Severity.MEDIUM;
@@ -213,9 +219,19 @@ public final class Splitter implements ContainerNode {
 
             // close container if on right click it is empty
         splitPane.setOnMouseClicked( e -> {
-            if(e.getButton()==SECONDARY) {
-                if (con.getAllWidgets().count()==0)
-                    con.close();
+            if(e.getButton()==SECONDARY && GUI.isLayoutMode()) {
+                if (con.getAllWidgets().count()==0) {
+                    FadeTransition a1 = new FadeTransition(ANIM_DUR);
+                                   a1.setToValue(0);
+                                   a1.setInterpolator(LINEAR);
+                    ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
+                                    a2.setInterpolator(new CircularInterpolator(EASE_OUT));
+                                    a2.setToX(0);
+                                    a2.setToY(0);
+                    ParallelTransition pt = new ParallelTransition(root, a1, a2);
+                    pt.setOnFinished(a -> con.close());
+                    pt.play();
+                }
                 e.consume();
             }
         });

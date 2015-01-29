@@ -89,7 +89,7 @@ public final class TabArea extends PolyArea {
         // return graphics to normal
         root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         
-        if(GUI.isLayoutMode()) show(); else hide();
+        setShow(GUI.isLayoutMode());
     }
     
     /** @return active - currently displayed component */

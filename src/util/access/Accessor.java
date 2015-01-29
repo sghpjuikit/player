@@ -6,7 +6,7 @@
 
 package util.access;
 
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 
 /**
@@ -38,21 +38,21 @@ public class Accessor<T> implements ApplicableValue<T> {
      */
     @Override
     public T getValue() {
-        Objects.requireNonNull(value);
+        requireNonNull(value);
         return value;
     }
 
     /** {@inheritDoc} */
     @Override
     public final void setValue(T val) {
-        Objects.requireNonNull(val);
+        requireNonNull(val);
         value = val;
     }
     
     /** {@inheritDoc} */
     @Override
     public void applyValue(T val) {
-        Objects.requireNonNull(val);
+        requireNonNull(val);
         if (applier != null) applier.accept(val);
     }
     

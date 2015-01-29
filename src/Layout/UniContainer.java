@@ -56,8 +56,7 @@ public class UniContainer extends Container {
             out = graphics.getRoot();
         }
         else {
-//            if(!(graphics instanceof Layouter)) 
-                graphics = new Layouter(this,1);
+            graphics = new Layouter(this,1);
             out = graphics.getRoot();
         }
         
@@ -66,6 +65,7 @@ public class UniContainer extends Container {
         AnchorPane.setLeftAnchor(out, 0.0);
         AnchorPane.setRightAnchor(out, 0.0);
         AnchorPane.setTopAnchor(out, 0.0);
+        
         return out;
     }
     

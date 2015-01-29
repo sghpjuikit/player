@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.util.Objects;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
+import static javafx.animation.Interpolator.LINEAR;
+import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -19,8 +22,10 @@ import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -28,7 +33,7 @@ import javafx.util.Duration;
 import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import util.Util;
+import static util.Util.setAPAnchors;
 
 /**
  * @author uranium
@@ -39,15 +44,18 @@ import util.Util;
 @Layout.Widgets.Widget.Info
 public final class Layouter implements ContainerNode {
     
-    private static final Duration ANIM_DUR = Duration.millis(300);
-    private int index;              // hack (see to do API section, layouts)
+    public static final Duration ANIM_DUR = Duration.millis(300);
     
     private @FXML BorderPane controls;
     private @FXML AnchorPane root = new AnchorPane();
     private @FXML AnchorPane content;
-    private Container container; // why cant this be final??
-    private final FadeTransition anim;
-    private final ScaleTransition animS;
+    private final Container container;
+    private int index;              // hack (see to do API section, layouts)
+    
+    private final FadeTransition a1;
+    private final ScaleTransition a2;
+    private final EventHandler<MouseEvent> clickShowHider;
+    private final EventHandler<MouseEvent> exitHider;
     
     public Layouter(Container con, int index) {
         Objects.requireNonNull(con);
@@ -66,18 +74,15 @@ public final class Layouter implements ContainerNode {
         }
         
         Interpolator i = new CircularInterpolator(EASE_OUT);
-        anim = new FadeTransition(ANIM_DUR, content);
+        a1 = new FadeTransition(ANIM_DUR, content);
         // anim.setInterpolator(i); // use the LINEAR by defaul instead
-        animS = new ScaleTransition(ANIM_DUR, content);
-        animS.setInterpolator(i);
+        a2 = new ScaleTransition(ANIM_DUR, content);
+        a2.setInterpolator(i);
             // initialize state for animations
         content.setOpacity(0);
         content.setScaleX(0);
         content.setScaleY(0);
-        
-        // initialize mode
-        setWeakMode(false); // this needs to be called in constructor
-        
+                
         // prevent action & allow passing mouse events when not fully visible
         content.mouseTransparentProperty().bind(content.opacityProperty().isNotEqualTo(1));
         
@@ -93,7 +98,32 @@ public final class Layouter implements ContainerNode {
             }
         });
         
-        if(GUI.isLayoutMode()) show();
+        clickShowHider =  e -> {
+            if(e.getButton()==PRIMARY) {
+                if(!content.isMouseTransparent()) return;
+                // avoid when under lock
+                if(container.isUnderLock()) return;
+                // rely on the public show() implementation, not internal one
+                show();
+                e.consume();
+            }
+            if (e.getButton()==SECONDARY) {
+                if(!GUI.isLayoutMode()){
+                    hide();
+                    e.consume();
+                }
+            }
+        };
+        exitHider =  e -> {
+            // rely on the public show() implementation, not internal one
+            hide();
+            e.consume();
+        };
+        
+        // initialize mode
+        setWeakMode(true); // this needs to be called in constructor
+        // initialize show
+        setShow(GUI.isLayoutMode());
     }
 
 /****************************  functionality  *********************************/
@@ -111,29 +141,29 @@ public final class Layouter implements ContainerNode {
     }
     
     private void showControls(boolean val) {
-        anim.stop();
-        animS.stop();
+        a1.stop();
+        a2.stop();
         if (val) {
-            anim.setToValue(1);
-            animS.setToX(1);
-            animS.setToY(1);
+            a1.setToValue(1);
+            a2.setToX(1);
+            a2.setToY(1);
         } else {
-            anim.setToValue(0);
-            animS.setToX(0);
-            animS.setToY(0);
+            a1.setToValue(0);
+            a2.setToX(0);
+            a2.setToY(0);
             if(content.getChildren().size()>1 && !end) {
-                animS.setOnFinished( ae -> {
+                a2.setOnFinished( ae -> {
                     controls.setVisible(true);
                     content.getChildren().retainAll(controls);
-                    animS.setOnFinished(null);
+                    a2.setOnFinished(null);
                 });
             }
         }
-        anim.play();
-        animS.play();
+        a1.play();
+        a2.play();
     }
     
-    private boolean weakMode = false;
+    private boolean clickMode = true;
     
     /**
      * In normal mode the controls are displayed on mouse click
@@ -142,42 +172,29 @@ public final class Layouter implements ContainerNode {
      * @param val 
      */
     public void setWeakMode(boolean val) {
-        weakMode = val;
+        clickMode = val;
         
-        // always hide on mouse exit, but make sure it is initialized
+        // always hide on mouse exit, initialize
         if (root.getOnMouseExited()==null)
-            root.setOnMouseExited(controlsHider);
+            root.setOnMouseExited(exitHider);
         // swap handlers
         if(val) {
-            root.setOnMouseClicked(null);
-            root.setOnMouseEntered(controlsShower);
+            root.addEventFilter(MOUSE_CLICKED,clickShowHider);
+            root.removeEventFilter(MOUSE_ENTERED,clickShowHider);
         } else {
-            root.setOnMouseClicked(controlsShower);
-            root.setOnMouseEntered(null);
+            root.removeEventFilter(MOUSE_CLICKED,clickShowHider);
+            root.addEventFilter(MOUSE_ENTERED,clickShowHider);
         }
     }
     
     public void toggleWeakMode() {
-        weakMode = !weakMode;
+        clickMode = !clickMode;
     }
     public boolean isWeakMode() {
-        return weakMode;
+        return clickMode;
     }
     
-    private final EventHandler<MouseEvent> controlsShower =  e -> {
-        // avoid right click activation
-        if(e.getEventType().equals(MOUSE_CLICKED) && e.getButton()!=PRIMARY) return;
-        // avoid when under lock
-        if(container.isUnderLock()) return;
-        // rely on the public show() implementation, not internal one
-        show();
-        e.consume();
-    };
-    private final EventHandler<MouseEvent> controlsHider =  e -> {
-        // rely on the public show() implementation, not internal one
-        hide();
-        e.consume();
-    };
+
 
     // quick fix to prevent overwriting onFinished animation handler
     boolean end = false;
@@ -188,7 +205,7 @@ public final class Layouter implements ContainerNode {
         WidgetPicker w = new WidgetPicker();
         w.setOnSelect(f -> {
             end = true;
-            animS.setOnFinished( a -> {
+            a2.setOnFinished( a -> {
                 // actually not needed since layouter is removed when widget is
                 // loaded in the container in its place
 //                controls.setVisible(true);
@@ -202,13 +219,13 @@ public final class Layouter implements ContainerNode {
             showControls(false);
         });
         
-        animS.setOnFinished( ae -> {
+        a2.setOnFinished( ae -> {
             Node n = w.getNode();
             content.getChildren().add(n);
-            Util.setAPAnchors(n, 0);
+            setAPAnchors(n, 0);
             controls.setVisible(false);
             showControls(true);
-            animS.setOnFinished(null);
+            a2.setOnFinished(null);
         });
         showControls(false);
         
@@ -218,8 +235,10 @@ public final class Layouter implements ContainerNode {
     private void showSplitV(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        container.addChild(index, new BiContainerPure(HORIZONTAL));
-        App.actionStream.push("Divide layout");
+        closeAndDo(a -> {
+            container.addChild(index, new BiContainerPure(HORIZONTAL));
+            App.actionStream.push("Divide layout");
+        });
 
         e.consume();
     }
@@ -227,8 +246,10 @@ public final class Layouter implements ContainerNode {
     private void showSplitH(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        container.addChild(index, new BiContainerPure(VERTICAL));
-        App.actionStream.push("Divide layout");
+        closeAndDo(a -> {
+            container.addChild(index, new BiContainerPure(VERTICAL));
+            App.actionStream.push("Divide layout");
+        });
         
         e.consume();
     }
@@ -236,9 +257,22 @@ public final class Layouter implements ContainerNode {
     private void showTabs(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        container.addChild(index, new PolyContainer());
+        closeAndDo(a -> container.addChild(index, new PolyContainer()));
         
         e.consume();
+    }
+    
+    private void closeAndDo(EventHandler<ActionEvent> action) {
+        FadeTransition a1 = new FadeTransition(ANIM_DUR);
+                       a1.setToValue(0);
+                       a1.setInterpolator(LINEAR);
+        ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
+                        a2.setInterpolator(new CircularInterpolator(EASE_OUT));
+                        a2.setToX(0);
+                        a2.setToY(0);
+        ParallelTransition pt = new ParallelTransition(content, a1, a2);
+        pt.setOnFinished(action);
+        pt.play();
     }
     
     @Override

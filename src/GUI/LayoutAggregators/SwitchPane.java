@@ -103,7 +103,7 @@ public class SwitchPane implements LayoutAggregator {
         setAPAnchors(zoom, 0);
         zoom.getChildren().add(ui);
         setAPAnchors(ui, 0);
-        
+                
         // initialize ui drag behavior
 //        root.addEventFilter(MOUSE_PRESSED, e -> {
 //            if(e.getButton()==SECONDARY && genuineEvent) {

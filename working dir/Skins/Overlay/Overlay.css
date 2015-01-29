@@ -17,23 +17,22 @@
     -fx-sel-font-color: rgb(175, 175, 176);
     -fx-prompt-font-color: rgb(165, 165, 165);
     
-    -fx-pane-color: rgba(75,75,120,0.3);
+    //-fx-pane-color: rgba(75,75,120,0.3);
+    -fx-pane-color: rgba(30,30,50,0.5);
 }
 
 .block {
     -fx-background-color: -fx-pane-color;
 }
 
-
-.window > .brg-image {
-    -fx-opacity:0;
-    -fx-background-color: null;
+.window:moved {
+    -fx-background-color: -fx-pane-color;
+}
+.window:moved > .brg-image,
+.window:moved > .content {
+    -fx-opacity: 0.1;
 }
 
-
-.header {
-   -fx-background-color: derive(skin-main-color,10%);
-}
 .window:focused > .header {
     // lets signal which window has focus by altering the header border
     // improve this

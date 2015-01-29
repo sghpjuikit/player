@@ -380,7 +380,7 @@ public abstract class Container extends Component implements AltState {
      * its parents or under whole of GUI's.
      */
     public boolean isUnderLock() {
-        return isLocked() || (hasParent() && parent.isUnderLock()) || GUI.isLayoutLocked();
+        return isRoot() ? isLocked() || GUI.isLayoutLocked() : isLocked() || parent.isUnderLock();
     }
 
     @Override

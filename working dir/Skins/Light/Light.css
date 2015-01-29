@@ -20,6 +20,9 @@
 .window:fullscreen {
     -fx-background-radius: 0;
 }
-.header{
-    -fx-background-radius: 10 10 0 00;
+.window:moved {
+    -fx-background-radius: 10;
+}
+.block {
+    -fx-background-radius: 10 10 10 10;
 }

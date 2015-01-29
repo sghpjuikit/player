@@ -52,4 +52,9 @@ public interface AltState {
      * Transition to normal state.
      */
     public void hide();
+    
+    /** Invokes show() if true else hide(). */
+    public default void setShow(boolean v) {
+        if(v) show(); else hide();
+    }
 }

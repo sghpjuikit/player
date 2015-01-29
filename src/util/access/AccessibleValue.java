@@ -6,17 +6,22 @@
 
 package util.access;
 
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import javafx.beans.value.WritableValue;
+import util.functional.Operable;
 
 /**
  * Extension of {@link WritableValue), that supports {@link SequentialValue}. This
  * is a lightweight interface for objects with an access to a value.
  * <p>
  * Intended for object wrappers.
- * 
+
  * @author Plutonium_
  */
-public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T> {
+public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T>, Operable<T> {
     
     /**
      * Equivalent to calling {@link #setValue()} with {@link #next()};
@@ -81,4 +86,40 @@ public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T>
             return (T) SequentialValue.previous(Enum.class.cast(getValue()));
         else return val;
     }
+    
+/******************************************************************************/
+    
+    /** {@inheritDoc} */
+    @Override
+    public default T apply(UnaryOperator<T> op) {
+        return op.apply(getValue());
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public default <R> R apply(Function<T,R> op) {
+        return op.apply(getValue());
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public default T apply(T e, BinaryOperator<T> op) {
+        return op.apply(getValue(), e);
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public default void use(Consumer<T> op) {
+        op.accept(getValue());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public default T useAnd(Consumer<T> op) {
+        T v = getValue();
+        op.accept(v);
+        return v;
+    }
+    
+    
 }

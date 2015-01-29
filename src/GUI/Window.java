@@ -50,7 +50,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -58,6 +57,7 @@ import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -256,8 +256,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static Window createWindowOwner() {
 	Window w = new Window();
                w.getStage().initStyle(WindowManager.show_taskbar_icon ? TRANSPARENT : UTILITY);
-               w.s.setOpacity(0);
+//               w.s.setOpacity(0);
                w.s.setScene(new Scene(new Region()));
+               ((Region)w.s.getScene().getRoot()).setBackground(null);
+               w.s.getScene().setFill(null);
+               w.setSize(200, 200);
 	return w;
     }
 
@@ -332,9 +335,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	});
 
 	// app dragging
-	root.addEventHandler(DRAG_DETECTED, this::appDragStart);
-	root.addEventHandler(MOUSE_DRAGGED, this::appDragDo);
-	root.addEventHandler(MOUSE_RELEASED, this::appDragEnd);
+	root.addEventHandler(DRAG_DETECTED, this::moveStart);
+	root.addEventHandler(MOUSE_DRAGGED, this::moveDo);
+	root.addEventHandler(MOUSE_RELEASED, this::moveEnd);
 
 	// header double click maximize, show header on/off
 	root.setOnMouseClicked(e -> {
@@ -651,14 +654,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, helpB, guideB);//, taskB);
         // make right menu
 	IconBox right_icons = new IconBox(controls, RIGHT_TO_LEFT);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(0),CARET_UP, "13", CENTER);
+	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(0),CARET_UP, "13", GRAPHIC_ONLY);
 	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(1),SQUARE_ALT, "13", GRAPHIC_ONLY);
 	alwaysOnTop.addListener((o,ov,nv) -> AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(1),nv ? SQUARE : SQUARE_ALT, "13", GRAPHIC_ONLY));
 	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(2),EXPAND, "13", GRAPHIC_ONLY);
 	fullscreen.addListener((o,ov,nv) -> AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(2),nv ? COMPRESS : EXPAND, "13", GRAPHIC_ONLY));
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(3),MINUS_SQUARE_ALT, "13", CENTER);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(4),PLUS_SQUARE_ALT, "13", CENTER);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(5),CLOSE, "13", CENTER);
+	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(3),MINUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
+	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(4),PLUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
+	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(5),CLOSE, "13", GRAPHIC_ONLY);
         
     }
 
@@ -715,27 +718,24 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	WindowManager.toggleMini();
     }
 
-    /**
-     ******************************* DRAGGING   *****************************
-     */
+ /*********************************   MOVING   ********************************/
+    
     private double appX;
     private double appY;
-    private boolean app_drag = false;
 
-    private void appDragStart(MouseEvent e) {
+    private void moveStart(MouseEvent e) {
         // disable when being resized, resize starts at mouse pressed so
 	// it can not consume drag detected event and prevent dragging
 	// should be fixed
-	if (e.getButton() != MouseButton.PRIMARY || resizing.get()!=Resize.NONE) return;
-
-	app_drag = true;
+	if (e.getButton() != PRIMARY || resizing.get()!=Resize.NONE) return;
+        
         isMoving.set(true);
 	appX = e.getSceneX();
 	appY = e.getSceneY();
     }
 
-    private void appDragDo(MouseEvent e) {
-	if (!app_drag || e.getButton() != MouseButton.PRIMARY) return;
+    private void moveDo(MouseEvent e) {
+	if (!isMoving.get() || e.getButton() != PRIMARY) return;
 
 	double X = e.getScreenX();
 	double Y = e.getScreenY();
@@ -782,14 +782,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	setMaximized(to);
     }
 
-    private void appDragEnd(MouseEvent e) {
-	app_drag = false;
+    private void moveEnd(MouseEvent e) {
         isMoving.set(false);
     }
 
-    /**
-     ***************************** RESIZING    ******************************
-     */
+/*******************************    RESIZING  *********************************/
     @FXML
     private void border_onDragStart(MouseEvent e) {
         // start resize if allowed

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -51,9 +52,11 @@ import static util.TODO.Purpose.FUNCTIONALITY;
 @TODO(purpose = FUNCTIONALITY, note = "limit rating bounds value, multiple values, id3 popularimeter mail settings")
 public class MetadataWriter extends MetaItem {
     
+    // state
     private File file;
     private AudioFile audioFile;
-    int fields_changed = 0;
+    private int fields_changed = 0;
+    // properties
     private final ReadOnlyBooleanWrapper isWriting = new ReadOnlyBooleanWrapper(false);
     public final ReadOnlyBooleanProperty writing = isWriting.getReadOnlyProperty();
 
@@ -628,12 +631,16 @@ public class MetadataWriter extends MetaItem {
     
 /******************************************************************************/
     
-    public static void use(List<? extends Item> items, Consumer<MetadataWriter> applier) {
+    public static void use(Item item, Consumer<MetadataWriter> setter) {
+        use(singletonList(item), setter);
+    }
+    
+    public static void use(List<? extends Item> items, Consumer<MetadataWriter> setter) {
         List<Item> changed = new ArrayList();
         MetadataWriter w = new MetadataWriter();
         for(Item i : items) {
             w.reset(i);
-            applier.accept(w);
+            setter.accept(w);
             boolean ok = w.write();
             if(ok) changed.add(i);
         }
@@ -646,10 +653,12 @@ public class MetadataWriter extends MetaItem {
      */
     public static void useToIncrPlaycount(Metadata item) {
         int count = item.getPlaycount() + 1;
-        MetadataWriter writer = MetadataWriter.create(item);
-                       writer.setPlaycount(String.valueOf(count));
-        if (writer.write())
+        MetadataWriter w = MetadataWriter.create(item);
+                       w.setPlaycount(String.valueOf(count));
+        if (w.write()) {
             App.use(NotifierManager.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
+            DB.updateItemsFromFile(singletonList(item));
+        }
     }
     
     /**
@@ -660,10 +669,12 @@ public class MetadataWriter extends MetaItem {
      * be ignored.
      */
     public static void useToRate(Metadata item, double rating) {
-        MetadataWriter writer = MetadataWriter.create(item);
-                       writer.setRatingPercent(rating);
-        if (writer.write())
+        MetadataWriter w = MetadataWriter.create(item);
+                       w.setRatingPercent(rating);
+        if (w.write()) {
             App.use(NotifierManager.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
+            DB.updateItemsFromFile(singletonList(item));
+        }
     }
     
 }

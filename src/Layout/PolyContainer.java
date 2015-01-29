@@ -31,7 +31,9 @@ public final class PolyContainer extends Container {
     @Override
     public Node load() {
         // lazy-init gui
-        if (gui == null) gui = new TabArea(this);
+        if (gui == null) {
+            gui = new TabArea(this);
+        }
         
         // load gui
         root.getChildren().setAll(gui.getRoot());

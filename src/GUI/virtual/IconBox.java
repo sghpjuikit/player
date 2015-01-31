@@ -15,7 +15,7 @@ import javafx.scene.layout.HBox;
 
 /**
  Simple HBox wrapper for creating icon headers. Lines up the children centered 
- vertically and horizontally to the left or right side, given by node 
+ vertically and horizontally to the left or right side, by given node 
  orientation. 
  */
 public final class IconBox {

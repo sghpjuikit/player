@@ -84,7 +84,7 @@ public final class AreaControls {
 	    + "    Middle click : Set widget area size to max\n"
 	    + info;
 	    p.getContentNode().setText(text);
-            // for some reason we need to set this every time, which
+            // for some reason we need to put this every time, which
 	    // should not be the case, investigate
 	    p.getContentNode().setWrappingWidth(400);
             // we need to handle hiding this AreaControls when popup
@@ -298,7 +298,7 @@ public final class AreaControls {
 	contrAnim.stop();
 	contAnim.stop();
 	blurAnim.stop();
-	// set new values
+	// put new values
 	contrAnim.setToValue(1);
 	contAnim.setToValue(1 - GUI.opacity_LM);
 	blurAnim.setToZ(GUI.blur_LM);

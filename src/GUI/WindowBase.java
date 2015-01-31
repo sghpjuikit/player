@@ -59,7 +59,8 @@ public class WindowBase {
     
     
     public WindowBase() {
-        s.initStyle(StageStyle.TRANSPARENT);
+//        s.initStyle(StageStyle.TRANSPARENT);
+        s.initStyle(StageStyle.UNDECORATED);
         s.setFullScreenExitHint("");
         s.getIcons().add(App.getIcon());
     }

@@ -3,6 +3,11 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- implement colr skin change + use song color, using setStyle on main color
+- finish freeform container
+- library view save selection
+- library view play items use same order as library column sort order
+
 - Player contorls  nullpointer when nothing plays on init()
 - refresh item + tagging clean up reimplement properly
 - remove selected items monitoring for tagger
@@ -48,7 +53,10 @@
 --------------------------------------------------------------------------------
 
 GENERAL
-- deactivator position | size a bit off when loading first time & into small    (still issue?, minor)
+- transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
+  problem: transparent skins, mouse effects unsupported, windows as node
+           implementation impossible
+- deactivator position | size a bit off when loading first time & into small    (minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
 - playlist manual sorting does not work
@@ -84,7 +92,7 @@ GENERAL
   doest block another press which could have happened during that time
   solution: have an incrementing sequence unique per shortcut press - this is
   however kinda hard to implement and i dont think its worth the effort
-- some gif files throw array index out of bounds execption                      (internal javaFX bug)
+- some gif files throw array index out of bounds execption                      (still issue?, internal javaFX bug)
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
@@ -147,7 +155,6 @@ PROBLEMS
   fxmlFactory
 - get rid of layout aggregators
   deserializing and creating windows, or make it into a container?
-- circle context menu find some use for it
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
@@ -176,11 +183,12 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - onTime events, make sur ethey fire correctly and dont degrade performance
 
 PERFORMANCE
-- layout reload mem leak - investigate                                          (major)
-- skin memory consumptin investigate                                            (major)
-  it appears that the skin eats 40MB more of memory compared to Modena
+- transparent stage java low FPS bug                                            (major)
+- container & widget closing - implement & document properly, remove memleaks   (medium)
+- skin memory consumption investigate                                           (medium)
+  it appears that the skin eats lot more of memory compared to Modena
 - Container getAll Children/Containers/Widgets improve performance
-- configs memory - for example COnfigurator widget consumes about 50MB
+- configs memory - for example COnfigurator widget consumes about 40MB
 - scanning files & adding to library sometimes causes massive memory overhead
   (1,5GB for 8GB of audio files)
   cause: unknown, possible corrupted tag, messing up jAudotagger library

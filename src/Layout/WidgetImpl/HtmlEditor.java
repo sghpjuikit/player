@@ -33,7 +33,7 @@ public class HtmlEditor extends AnchorPane implements Controller<Widget>  {
         
         
         this.getChildren().add(editor);
-        Util.setAPAnchors(editor, 0);
+        Util.setAnchors(editor, 0);
     }
     
     

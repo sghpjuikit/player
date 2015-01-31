@@ -72,7 +72,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      * <p>
      * Do not use.
      * This method is not intended to be used outside of serialization context.
-     * @param new_name - name to set.
+     * @param new_name - name to put.
      * @throws IllegalArgumentException if name parameter null or empty
      */
     public void setName(String new_name) {
@@ -91,7 +91,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     public void setNameAndSave(String new_name) {
         if(new_name == null || new_name.isEmpty())
             throw new IllegalArgumentException("Name of the layout must not be null or empty string.");
-        // set name
+        // put name
         String old = name;
         name = new_name;
         // save new
@@ -128,7 +128,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     
     @Override
     public void setLocked(boolean val) {
-        properties.set("locked", val);
+        properties.put("locked", val);
     }
     
     /**
@@ -196,13 +196,13 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     }
     public Layout deserialize(File f) {
         Layout l = Serializattion.deserializeLayout(f);
-        l.properties.getMap().forEach(properties::set);
+        l.properties.forEach(properties::put);
         child = l.child;
         return this;
     }
     
     /**
-     * Get file this layout will sarialize as if not set otherwise. The file
+     * Get file this layout will sarialize as if not put otherwise. The file
      * should always be derived from the layouts name, Specifically name+".l".
      * 
      * @return 

@@ -199,7 +199,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         });
         
         // position thumbnail scroll pane & make sure it doesnt cover whole area
-        Util.setAPAnchors(thumb_root, 0);
+        Util.setAnchors(thumb_root, 0);
         entireArea.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         thumb_root.toFront();
         // prevent scrollpane from preventing show thumbnails change

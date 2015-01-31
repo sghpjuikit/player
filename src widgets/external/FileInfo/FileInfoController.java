@@ -212,7 +212,7 @@ public class FileInfoController extends FXMLController {
             filesize, filename, format, bitrate, encoding, location);
         
         layout.addChild(tiles);
-        Util.setAPAnchors(tiles, 3);
+        Util.setAnchors(tiles, 3);
         
         
         // write metadata on rating change

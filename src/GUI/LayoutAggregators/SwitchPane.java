@@ -27,7 +27,7 @@ import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_IN;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import static util.Util.clip;
-import static util.Util.setAPAnchors;
+import static util.Util.setAnchors;
 import util.async.FxTimer;
 
 /**
@@ -100,9 +100,9 @@ public class SwitchPane implements LayoutAggregator {
     public SwitchPane() {
         // set ui
         root.getChildren().add(zoom);
-        setAPAnchors(zoom, 0);
+        setAnchors(zoom, 0);
         zoom.getChildren().add(ui);
-        setAPAnchors(ui, 0);
+        setAnchors(ui, 0);
                 
         // initialize ui drag behavior
 //        root.addEventFilter(MOUSE_PRESSED, e -> {

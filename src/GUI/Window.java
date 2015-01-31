@@ -71,7 +71,7 @@ import util.Log;
 import static util.Parser.File.Enviroment.browse;
 import util.Util;
 import static util.Util.createIcon;
-import static util.Util.setAPAnchors;
+import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.functional.FunctUtil.find;
 
@@ -255,12 +255,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     public static Window createWindowOwner() {
 	Window w = new Window();
-               w.getStage().initStyle(WindowManager.show_taskbar_icon ? TRANSPARENT : UTILITY);
-//               w.s.setOpacity(0);
+//               w.getStage().initStyle(WindowManager.show_taskbar_icon ? TRANSPARENT : UTILITY);
+               w.getStage().initStyle(UNDECORATED);
+               w.s.setOpacity(0);
                w.s.setScene(new Scene(new Region()));
-               ((Region)w.s.getScene().getRoot()).setBackground(null);
-               w.s.getScene().setFill(null);
-               w.setSize(200, 200);
+//               ((Region)w.s.getScene().getRoot()).setBackground(null);
+//               w.s.getScene().setFill(null);
+               w.setSize(20, 20);
 	return w;
     }
 
@@ -408,7 +409,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public void setContent(Node n) {
 	content.getChildren().clear();
 	content.getChildren().add(n);
-	Util.setAPAnchors(n, 0);
+	Util.setAnchors(n, 0);
     }
 
     public void setContent(Component c) {
@@ -709,8 +710,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
 
     public void setBorderless(boolean v) {
-	if (v) setAPAnchors(content, 0);
-	else setAPAnchors(content, 25, 5, 5, 5);
+	if (v) setAnchors(content, 0);
+	else setAnchors(content, 25, 5, 5, 5);
 	borders.setVisible(!v);
     }
 

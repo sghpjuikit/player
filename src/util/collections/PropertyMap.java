@@ -3,46 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Configuration;
+package util.collections;
 
 import PseudoObjects.ReadMode;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import javafx.geometry.Orientation;
 
-/**
- * Storage for properties.
- * Supports serialization, therefore, even if type of object is not limited, it
- * is recommended to stick to basic values.
- * 
- * @author uranium
- */
-public final class PropertyMap {
-    private final Map<String, Object> map;
-    
-    public PropertyMap() {
-        map = new HashMap<>();
-    }
-    
-    /**
-     * @return unmodifiable version of this of this property map. Consider it 
-     * read only representation of this object.
-     */
-    public Map<String, Object> getMap() {
-        return Collections.unmodifiableMap(map);
-    }
-    
-    /**
-     * Returns true if this map contains no key-value mappings - no
-     * properties.
-     * @return 
-     */
-    public boolean isEmpty() {
-        return map.isEmpty();
-    }
-    
-/******************************************************************************/
+/** HashMap for properties with additional utility methods. */
+public final class PropertyMap extends HashMap<String, Object>{
     
     /**
      * Returns value of the property with specified name. If no such property is
@@ -57,30 +25,18 @@ public final class PropertyMap {
      * @return always value for given property.
      */
     public Object get(String name, Object default_value) {
-        map.putIfAbsent(name, default_value);
-        return map.get(name);
+        putIfAbsent(name, default_value);
+        return get(name);
     }
     
     /**
-     * Sets value of property with specified name. If it doesnt exist it is
-     * created, if it does, it is rewritten.
-     * @param name
-     * @param value 
-     */
-    public void set(String name, Object value) {
-        if (name == null || value == null) return;
-        map.put(name, value);
-    }
-    
-    /**
-     * Returns type of value with specified property name. If it doesnt exist,
-     * null is returned.
+     * Returns type of value with specified key. Null If it doesn't exist.
      * @param name
      * @return 
      */
     public Class<?> getType(String name) {
-        if(!map.containsKey(name)) return null;
-        return map.get(name).getClass();
+        if(!containsKey(name)) return null;
+        return get(name).getClass();
     }
     
 /******************************************************************************/
@@ -118,28 +74,28 @@ public final class PropertyMap {
     }
     
     public boolean getB(String key) {
-        return (boolean) map.get(key);
+        return (boolean) get(key);
     }    
     public double getD(String key) {
-        return (double) map.get(key);
-    }    
+        return (double) get(key);
+    }
     public int getI(String key) {
-        return (int) map.get(key);
+        return (int) get(key);
     }    
     public long getL(String key) {
-        return (long) map.get(key);
+        return (long) get(key);
     }    
     public float getF(String key) {
-        return (float) map.get(key);
+        return (float) get(key);
     }  
     public String getS(String key) {
-        return (String) map.get(key);
+        return (String) get(key);
     }
     public ReadMode getRM(String key) {
-        return (ReadMode) map.get(key);
+        return (ReadMode) get(key);
     }
     public Orientation getOriet(String key) {
-        return (Orientation) map.get(key);
-    }  
+        return (Orientation) get(key);
+    }
     
 }

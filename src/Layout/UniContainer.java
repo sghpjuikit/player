@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import static util.Util.setAnchors;
 
 
 /**
@@ -29,8 +30,8 @@ public class UniContainer extends Container {
     
     public UniContainer() {
     }
-    public UniContainer(AnchorPane _parent) {
-        root = _parent;
+    public UniContainer(AnchorPane root_pane) {
+        root = root_pane;
     }
 
     @Override
@@ -50,21 +51,17 @@ public class UniContainer extends Container {
         if (child instanceof Widget) {
             if (!(graphics instanceof WidgetArea)) {
                 removeGraphicsFromSceneGraph();
-                graphics = new WidgetArea(this);
+                graphics = new WidgetArea(this, 1);
             }
             WidgetArea.class.cast(graphics).loadWidget((Widget)child);
             out = graphics.getRoot();
-        }
-        else {
+        } else {
             graphics = new Layouter(this,1);
             out = graphics.getRoot();
         }
         
         root.getChildren().setAll(out);
-        AnchorPane.setBottomAnchor(out, 0.0);
-        AnchorPane.setLeftAnchor(out, 0.0);
-        AnchorPane.setRightAnchor(out, 0.0);
-        AnchorPane.setTopAnchor(out, 0.0);
+        setAnchors(out,0);
         
         return out;
     }

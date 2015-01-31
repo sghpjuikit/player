@@ -62,7 +62,7 @@ public final class TabArea extends PolyArea {
         // load controls
         controls = new AreaControls(this);
         root.getChildren().add(controls.root);
-        Util.setAPAnchors(controls.root, 0);
+        Util.setAnchors(controls.root, 0);
         
         // support drag from
         root.setOnDragDetected( e -> {
@@ -118,7 +118,7 @@ public final class TabArea extends PolyArea {
         if(cs.isEmpty()) return;
         
         int i = container.properties.getI("selected");
-        // process components -> turn into tab, set behavior, load lazily
+        // process components -> turn into tab, put behavior, load lazily
             // somehow null get through here, investigate, fix, document
         cs.stream().filter(isNotNULL).forEach(c -> {
             Tab t = buildTab(c,tabPane.getTabs().size());
@@ -164,7 +164,7 @@ public final class TabArea extends PolyArea {
         tabPane.getSelectionModel().select(i==null ? 0 : i);
         // remember new state
         int ii = tabPane.getSelectionModel().getSelectedIndex();
-        container.properties.set("selected", ii);
+        container.properties.put("selected", ii);
     }
     
     /** Purges all tabs. */
@@ -187,7 +187,7 @@ public final class TabArea extends PolyArea {
             controls.propB.setDisable(((Configurable)c).getFields().isEmpty());
         
         int ii = tabPane.getTabs().indexOf(t);
-        if(!selectionLock) container.properties.set("selected", ii);
+        if(!selectionLock) container.properties.put("selected", ii);
     }
     
     /** Refreshes the active component */
@@ -202,7 +202,7 @@ public final class TabArea extends PolyArea {
     public void detach() {
         // create new window with no content (not even empty widget)
         Window w = ContextManager.showWindow(null);
-               // set size to that of a source (also add header & border space)
+               // put size to that of a source (also add header & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
         Container c2 = w.getLayoutAggregator().getActive();
@@ -222,7 +222,7 @@ public final class TabArea extends PolyArea {
         tabPane.getTabs().remove(i);
         // create new window with the component as its content
         Window w = ContextManager.showWindow((Widget)c);
-               // set size to that of a source (also add header & border space)
+               // put size to that of a source (also add header & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
     }
     

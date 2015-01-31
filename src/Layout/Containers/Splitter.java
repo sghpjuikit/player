@@ -1,7 +1,7 @@
 
 package Layout.Containers;
 
-import Configuration.PropertyMap;
+import util.collections.PropertyMap;
 import GUI.GUI;
 import Layout.Areas.ContainerNode;
 import static Layout.Areas.Layouter.ANIM_DUR;
@@ -90,7 +90,7 @@ public final class Splitter implements ContainerNode {
         prop.initProperty(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
         prop.initProperty(Integer.class, "col", 0);
        
-        // set properties
+        // put properties
         splitPane.setOrientation(prop.getOriet("orient"));
         setAbsoluteSize(prop.getI("abs_size"));
         applyPos();
@@ -162,7 +162,7 @@ public final class Splitter implements ContainerNode {
         
         // activate animation if mouse if leaving area
         splitPane.addEventFilter(MOUSE_EXITED, e -> {
-            if (!splitPane.contains(e.getX(), e.getY())) // the contains check is necessary to avoid mouse over button = splitPane pane mouse exit
+            if (!splitPane.contains(e.getX(), e.getY())) // the containsKey check is necessary to avoid mouse over button = splitPane pane mouse exit
                 hideControls();
             e.consume();
         });
@@ -177,7 +177,7 @@ public final class Splitter implements ContainerNode {
             if(splitPane.isPressed()) {
                 // if the change is manual, remember it
                 // stores value lazily + avoids accidental value change & bugs
-                prop.set("pos", nv);
+                prop.put("pos", nv);
             // occurs as a result of node parent resizing
             } else {
                 // bug fix
@@ -193,7 +193,7 @@ public final class Splitter implements ContainerNode {
                     // a major unersponsiveness of the divider during resizing
                     
                     // the stored value is not affected which is good. But the gui
-                    // might not be be properly set on consequent resizes or on
+                    // might not be be properly put on consequent resizes or on
                     // near edge restoration (major problem)
                     
                     // enabling the below will fix it but produces a visual lag
@@ -280,7 +280,7 @@ public final class Splitter implements ContainerNode {
     }
     
 //    public void setOrientation(Orientation o) {
-//        prop.set("orient", o);
+//        prop.put("orient", o);
 //        splitPane.setOrientation(o);
 //    }
     /**
@@ -289,10 +289,10 @@ public final class Splitter implements ContainerNode {
     @FXML
     public void toggleOrientation() {
         if (splitPane.getOrientation() == HORIZONTAL) {
-            prop.set("orient", VERTICAL);
+            prop.put("orient", VERTICAL);
             splitPane.setOrientation(VERTICAL);
         } else {
-            prop.set("orient", HORIZONTAL);
+            prop.put("orient", HORIZONTAL);
             splitPane.setOrientation(HORIZONTAL);
         }
     }
@@ -327,7 +327,7 @@ public final class Splitter implements ContainerNode {
         } else
             throw new IllegalArgumentException("Only valiues 0,1,2 allowed here.");
         
-        prop.set("abs_size", i);
+        prop.put("abs_size", i);
     }
     public int getAbsoluteSize() {
         return prop.getI("abs_size");
@@ -368,7 +368,7 @@ public final class Splitter implements ContainerNode {
         setupCollapsed(getCollapsed());
     };
     public void setCollapsed(int i) {
-        prop.set("col", i);
+        prop.put("col", i);
         if(i==-1) {
             splitPane.orientationProperty().removeListener(orientListener);
             splitPane.orientationProperty().addListener(orientListener);

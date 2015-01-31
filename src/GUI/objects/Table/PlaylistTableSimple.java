@@ -47,7 +47,7 @@ public class PlaylistTableSimple extends AnchorPane {
         // initialize table gui
         table = new TableView();
         getChildren().add(table);
-        Util.setAPAnchors(table, 0);
+        Util.setAnchors(table, 0);
         
         //initiaize table columns
         final TableColumn<PlaylistItem, String> columnIndex = new TableColumn<>("item");

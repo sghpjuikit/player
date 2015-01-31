@@ -16,10 +16,8 @@ import javafx.scene.layout.Region;
  * Useful for certain layout operations and as a fill in for null.
  * <p>
  * Also its own Controller. Loading returns empty {@link Region}.
- *  
- * @author uranium
  */
-@Layout.Widgets.Widget.Info(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Empty",
@@ -40,7 +38,6 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     // since this=this.controller -> StackOverflow
         return Collections.EMPTY_LIST;
     }
-    
     
     @Override public Node loadInitial() {
         return new Region();

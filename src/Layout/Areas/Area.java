@@ -23,7 +23,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import util.Closable;
-import static util.Util.setAPAnchors;
+import static util.Util.setAnchors;
 
 /**
  * Graphical part of the container within layout.
@@ -49,7 +49,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     /** The root of this Area. Never null. */
     public final AnchorPane root = new AnchorPane();
     AreaControls controls;
-    /** The root of activity content. Activity content contains custom content. */
+    /** The root of activity content. Activity content containsKey custom content. */
     public final StackPane activityPane;
     
     /**
@@ -85,7 +85,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         activityPane = new StackPane();
 //        activityPane.setPickOnBounds(false);
         root.getChildren().add(activityPane);
-        setAPAnchors(activityPane, 0d);
+        setAnchors(activityPane, 0d);
         activityPane.toFront();
     }
     
@@ -143,7 +143,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         // detach into new window
         // create new window with no content (not even empty widget)
         Window w = ContextManager.showWindow(null);
-               // set size to that of a source (also add jeader & border space)
+               // put size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
         Layout c2 = w.getLayoutAggregator().getActive();
@@ -183,7 +183,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     public final void setPadding(double to) {
         // update properties if changed
         if(root.getPadding().getTop()!=to)
-            container.properties.set("padding", to);
+            container.properties.put("padding", to);
         root.setPadding(new Insets(to));
     }
     
@@ -214,9 +214,11 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         container.toggleLock();
     }    
     
+    /** Mouse transparent content false. */
     public void enableContent() {
         getContent().setMouseTransparent(false);
     }
+    /** Mouse transparent content true. */
     public void disableContent() {
         getContent().setMouseTransparent(true);
     }

@@ -6,7 +6,7 @@ import GUI.GUI;
 import GUI.objects.Pickers.WidgetPicker;
 import Layout.BiContainerPure;
 import Layout.Container;
-import Layout.PolyContainer;
+import Layout.FreeFormContainer;
 import java.io.IOException;
 import java.util.Objects;
 import javafx.animation.FadeTransition;
@@ -33,7 +33,7 @@ import javafx.util.Duration;
 import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import static util.Util.setAPAnchors;
+import static util.Util.setAnchors;
 
 /**
  * @author uranium
@@ -50,7 +50,7 @@ public final class Layouter implements ContainerNode {
     private @FXML AnchorPane root = new AnchorPane();
     private @FXML AnchorPane content;
     private final Container container;
-    private int index;              // hack (see to do API section, layouts)
+    private int index;
     
     private final FadeTransition a1;
     private final ScaleTransition a2;
@@ -222,7 +222,7 @@ public final class Layouter implements ContainerNode {
         a2.setOnFinished( ae -> {
             Node n = w.getNode();
             content.getChildren().add(n);
-            setAPAnchors(n, 0);
+            setAnchors(n, 0);
             controls.setVisible(false);
             showControls(true);
             a2.setOnFinished(null);
@@ -257,7 +257,8 @@ public final class Layouter implements ContainerNode {
     private void showTabs(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        closeAndDo(a -> container.addChild(index, new PolyContainer()));
+        closeAndDo(a -> container.addChild(index, new FreeFormContainer()));
+//        closeAndDo(a -> container.addChild(index, new PolyContainer()));
         
         e.consume();
     }

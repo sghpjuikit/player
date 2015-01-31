@@ -17,19 +17,20 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import static util.Util.setAPAnchors;
+import static util.Util.setAnchors;
 
 /**
  * Implementation of Area for UniContainer.
  */
-public final class WidgetArea extends UniArea {
+public final class WidgetArea extends Area<UniContainer> {
     
     @FXML private AnchorPane content;
     
     private Widget widget = Widget.EMPTY();     // never null
-    
-    public WidgetArea(UniContainer con) {
+    private final int index;
+    public WidgetArea(UniContainer con, int i) {
         super(con);
+        index = i;
         
         // load graphics
         try {
@@ -43,7 +44,7 @@ public final class WidgetArea extends UniArea {
         // load controls
         controls = new AreaControls(this);
         root.getChildren().addAll(controls.root);
-        setAPAnchors(controls.root, 0d);
+        setAnchors(controls.root, 0d);
         
         // support css styling
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
@@ -66,7 +67,7 @@ public final class WidgetArea extends UniArea {
         // handle drag onto
         root.setOnDragDropped( e -> {
             if (DragUtil.hasComponent()) {
-                container.swapChildren(1,DragUtil.getComponent());
+                container.swapChildren(index,DragUtil.getComponent());
                 e.setDropCompleted(true);
                 e.consume();
             }
@@ -90,7 +91,7 @@ public final class WidgetArea extends UniArea {
     /**
      * This implementation returns widget of this area.
      * @return singleton list of this area's only widget. Never null. Never
-     * contains null.
+ containsKey null.
      */
     @Override
     public List<Widget> getActiveWidgets() {
@@ -108,20 +109,17 @@ public final class WidgetArea extends UniArea {
         Node wNode = w.load();
         content.getChildren().clear();
         content.getChildren().add(wNode);
-        AnchorPane.setBottomAnchor(wNode, 0.0);
-        AnchorPane.setLeftAnchor(wNode, 0.0);
-        AnchorPane.setRightAnchor(wNode, 0.0);
-        AnchorPane.setTopAnchor(wNode, 0.0);
+        setAnchors(wNode,0);
         
-        // set controls to new widget
-        controls.title.setText(w.getName());                // set title
+        // put controls to new widget
+        controls.title.setText(w.getName());                // put title
         controls.propB.setDisable(w.getFields().isEmpty()); // disable properties button if empty settings
         
-        // set container properties (just in case)
+        // put container properties (just in case)
         setPadding(container.properties.getD("padding"));
         setLocked(container.properties.getB("locked"));
         
-        // set up activity node
+        // put up activity node
         Node an = w.getController().getActivityNode();
         if(an!=null) {
             an.setUserData(this);
@@ -137,7 +135,7 @@ public final class WidgetArea extends UniArea {
 
     @Override
     public void add(Component c) {
-        container.setChild(c);
+        container.addChild(1, c);
     }
     
     @Override
@@ -146,7 +144,5 @@ public final class WidgetArea extends UniArea {
     }
 
     @Override
-    public void close() {
-        // nothing to do
-    }
+    public void close() {}
 }

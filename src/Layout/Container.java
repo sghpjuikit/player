@@ -1,7 +1,7 @@
 
 package Layout;
 
-import Configuration.PropertyMap;
+import util.collections.PropertyMap;
 import GUI.DragUtil.WidgetTransfer;
 import GUI.GUI;
 import Layout.Areas.ContainerNode;
@@ -124,7 +124,6 @@ public abstract class Container extends Component implements AltState {
      * @param index of the child to remove. Null is ignored.
      */
     public void removeChild(Integer index) {
-        Log.deb("Removing component at "+ index + " from container");
         addChild(index, null);
     }
     
@@ -356,7 +355,7 @@ public abstract class Container extends Component implements AltState {
     
     /** Locks container. */
     public void setLocked(boolean val) {
-        properties.set("locked", val);
+        properties.put("locked", val);
     }
     /** Changes the lock on/off. */
     public void toggleLock() {

@@ -25,7 +25,7 @@ abstract public class BiContainer extends Container {
     Splitter graphics;
     
     public BiContainer(Orientation orientation) {
-        properties.set("orient", orientation);
+        properties.put("orient", orientation);
     }
     
     @Override

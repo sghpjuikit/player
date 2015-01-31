@@ -44,7 +44,7 @@ public class Spectrumator extends AnchorPane implements Controller<Widget>  {
         
         
         this.getChildren().add(spectr);
-        Util.setAPAnchors(spectr, 0);
+        Util.setAnchors(spectr, 0);
         
         // we only need to start listening once, so do it here rather than in
         // refresh(). In fact that would have an effect of multiplying the

@@ -377,14 +377,14 @@ public interface Util {
     
 /******************************** GRAPHICS ************************************/
     
-    public static void setAPAnchors(Node n, double a) {
+    public static void setAnchors(Node n, double a) {
         AnchorPane.setTopAnchor(n, a);
         AnchorPane.setRightAnchor(n, a);
         AnchorPane.setBottomAnchor(n, a);
         AnchorPane.setLeftAnchor(n, a);
     }
     
-    public static void setAPAnchors(Node n, double top, double right, double bottom, double left) {
+    public static void setAnchors(Node n, double top, double right, double bottom, double left) {
         AnchorPane.setTopAnchor(n, top);
         AnchorPane.setRightAnchor(n, right);
         AnchorPane.setBottomAnchor(n, bottom);

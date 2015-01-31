@@ -96,7 +96,7 @@ public class MovableWindow extends Movable {
     public void setContent(Node c) {
         content.getChildren().clear();
         content.getChildren().add(c);
-        Util.setAPAnchors(c, 0);
+        Util.setAnchors(c, 0);
         content.setEffect(null);
     }
     

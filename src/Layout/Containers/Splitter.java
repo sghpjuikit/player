@@ -1,10 +1,10 @@
 
 package Layout.Containers;
 
-import util.collections.PropertyMap;
 import GUI.GUI;
+import static GUI.GUI.ANIM_DUR;
+import static GUI.GUI.closeAndDo;
 import Layout.Areas.ContainerNode;
-import static Layout.Areas.Layouter.ANIM_DUR;
 import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
@@ -39,6 +39,7 @@ import static util.TODO.Purpose.UNIMPLEMENTED;
 import static util.TODO.Severity.MEDIUM;
 import static util.async.Async.run;
 import static util.async.Async.runOnFX;
+import util.collections.PropertyMap;
 
 /**
  * @author uranium
@@ -415,7 +416,7 @@ public final class Splitter implements ContainerNode {
     
     @FXML
     public void closeContainer() {
-        container.close();
+        closeAndDo(root, e -> container.close());
     }
     
     

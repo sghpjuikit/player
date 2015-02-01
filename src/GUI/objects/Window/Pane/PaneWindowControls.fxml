@@ -50,6 +50,7 @@
                   <String fx:value="header" />
                </styleClass>
             </StackPane>
+          <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" />
     <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">
 <cursor>
 <Cursor fx:constant="S_RESIZE" />
@@ -95,7 +96,6 @@
                </cursor>
             </Region>
 </children></AnchorPane>
-    <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" />
   </children>
   <padding>
     <Insets />

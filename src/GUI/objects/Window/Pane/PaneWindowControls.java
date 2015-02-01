@@ -41,6 +41,8 @@ public class PaneWindowControls extends WindowPane {
     public static final PseudoClass pcResized = PseudoClass.getPseudoClass("resized");
     /** Psududoclass active when this window is moved. Applied on root as '.window'. */
     public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
+    /** Psududoclass active when this window is focused. Applied on root as '.window'. */
+    public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
     
     @FXML public AnchorPane borders;
     @FXML public AnchorPane content;
@@ -74,6 +76,7 @@ public class PaneWindowControls extends WindowPane {
 	// maintain custom pseudoclasses for .window styleclass
 	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
 	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
+	focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
 
         installMovingBehavior(header);
         
@@ -235,7 +238,7 @@ public class PaneWindowControls extends WindowPane {
             else if ((Y < L))                 r = N;
             
             if(r!=NONE) {
-                isResizing.set(r);
+                _resizing.set(r);
                 e.consume();
             }
         }
@@ -244,19 +247,19 @@ public class PaneWindowControls extends WindowPane {
     @FXML
     private void border_onDragEnd(MouseEvent e) {
         // end resizing if active
-	if(isResizing.get()!=NONE) {
-            isResizing.set(NONE);
+	if(_resizing.get()!=NONE) {
+            _resizing.set(NONE);
             e.consume();
         }
     }
 
     @FXML
     private void border_onDragged(MouseEvent e) {
-        if(isResizing.get()!=NONE) {
+        if(_resizing.get()!=NONE) {
             Point2D b = root.getParent().screenToLocal(new Point2D(e.getScreenX(), e.getScreenY()));
             double X = x.get();
             double Y = y.get();
-            Resize r = isResizing.get();
+            Resize r = _resizing.get();
             if (r == SE) {
                 w.set(b.getX() - X);
                 h.set(b.getY() - Y);

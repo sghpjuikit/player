@@ -3,13 +3,14 @@ package GUI.objects.Pickers;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.StackPane;
@@ -42,11 +43,38 @@ public class Picker<E> {
     private final TilePane tiles = new TilePane();
     private final ScrollPane scroll = new ScrollPane(tiles);
     
-    private Consumer<E> onSelect = item -> {};
-    private ToStringConverter<E> converter = item -> item.toString();
-    private Supplier<Stream<E>> accumulator = () -> Stream.empty();
-    private Callback<E,Node> cellFactory = item -> {
-        String text = getConverter().toS(item);
+    /**
+     * Procedure executed when item is selected passing the item as parameter.
+     * Default implementation does nothing. Must not be null;
+     */
+    public Consumer<E> onSelect = item -> {};
+    /**
+     * Procedure executed when no item is selected. Invoked when user cancels
+     * the picking by right click.
+     * Default implementation does nothing. Must not be null;
+     * <p>
+     * For example one might want to close this picker when no item is selected.
+     */
+    public Runnable onCancel = () -> {};
+    /**
+     * Text factory.
+     * Creates string representation of the item.
+     * Default implementation uses item's toString() method.
+     * Must not be null.
+     */
+    public ToStringConverter<E> textCoverter = Object::toString;
+    /**
+     * Item supplier. Fetches the items as a stream. 
+     * Default implementation returns empty stream. Must not be null;
+     */
+    public Supplier<Stream<E>> itemSupply = Stream::empty;
+    /**
+     * Cell factory.
+     * Creates graphic representation of the item.
+     * @param cf cell factory. Must not be null;
+     */
+    public Callback<E,Node> cellFactory = item -> {
+        String text = textCoverter.toS(item);
         Label l = new Label(text);
         StackPane b = new StackPane(l);
         b.getStyleClass().setAll(CELL_STYLE_CLASS);
@@ -71,8 +99,14 @@ public class Picker<E> {
             // above cell width includes 1 gap width per element so substract it
             tiles.setPrefTileWidth(cell_width-EGAP);
         });
-//        scroll.setPadding(new Insets(0,0,EGAP,0));
         
+        scroll.setOnMouseClicked(e->{
+            if(e.getButton()==SECONDARY) {
+                onCancel.run();
+                e.consume();
+            }
+        });
+//        scroll.setPadding(new Insets(0,0,EGAP,0));
         scroll.setPannable(false);  // forbid mouse panning
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setPrefSize(-1,-1);  // leave resizable
@@ -87,89 +121,20 @@ public class Picker<E> {
     private void buildContent() {
         tiles.getChildren().clear(); 
         // get items
-        getAccumulator().get()
+        itemSupply.get()
             // & sort
-            .sorted(FunctUtil.cmpareNoCase(getConverter()::toS))
+            .sorted(FunctUtil.cmpareNoCase(textCoverter::toS))
             // & create cells
             .forEach( item -> {
-                Node cell = getCellFactory().call(item);
+                Node cell = cellFactory.call(item);
                      cell.setOnMouseClicked( e -> {
-                         getOnSelect().accept(item);
-                         e.consume();
+                         if(e.getButton()==PRIMARY) {
+                            onSelect.accept(item);
+                            e.consume();
+                         }
                      });
                 tiles.getChildren().add(cell);
             });
-    }
-    
-    /***
-     * Sets the method by which the items are converted to string.
-     * Default implementation uses item's toString() method.
-     * @param converter coverter. Must not be null;
-     */
-    public void setConverter(ToStringConverter<E> converter) {
-        Objects.requireNonNull(converter);
-        this.converter = converter;
-    }
-    
-    /**
-     * Returns converter. Never null.
-     * @see #setConverter(utilities.Parser.ToStringConverter)
-     */
-    public ToStringConverter<E> getConverter() {
-        return converter;
-    }
-    
-    /***
-     * Sets the procedure executed when item is selected. Default implementation
-     * does nothing.
-     * @param onSelect procedure. Must not be null;
-     */
-    public void setOnSelect(Consumer<E> onSelect) {
-        Objects.requireNonNull(onSelect);
-        this.onSelect = onSelect;
-    }
-    
-    /**
-     * Returns onSelect handler. Never null.
-     * @see #setOnSelect(utilities.functional.functor.UnProcedure) 
-     */
-    public Consumer<E> getOnSelect() {
-        return onSelect;
-    }
-    
-    /***
-     * Sets item supplier.
-     * Gathers the source items as a stream. Default implementation returns empty
-     * stream.
-     * @param acc supplier. Must not be null;
-     */
-    public void setAccumulator(Supplier<Stream<E>> acc) {
-        Objects.requireNonNull(acc);
-        this.accumulator = acc;
-    }
-    
-    /**
-     * Returns item supplier. Never null.
-     */
-    public Supplier<Stream<E>> getAccumulator() {
-        return accumulator;
-    }
-    
-    /***
-     * Sets cell factory.
-     * Creates graphic representation of the item.
-     * @param cf cell factory. Must not be null;
-     */
-    public void setCellFactory(Callback<E,Node> cf) {
-        Objects.requireNonNull(cf);
-        this.cellFactory = cf;
-    }
-    
-    /**
-     * Returns cell factory. Never null.
-     */
-    public Callback<E,Node> getCellFactory() {
-        return cellFactory;
     }
     
     public Node getNode() {

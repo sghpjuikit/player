@@ -5,6 +5,7 @@
  */
 package Layout;
 
+import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
 import Layout.Areas.FreeFormArea;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -27,15 +28,15 @@ public class FreeFormContainer extends Container {
     }
 
     @Override
-    public void addChild(Integer index, Component c) {
+    public void addChild(Integer index, Component c) {System.out.println("adding " + c + " to " + index );
         if(index == null) return;
                 
         if(c==null) {
-            throw  new IllegalArgumentException("Removing null child");
+            
         } else {
             if(c instanceof Container) {
                 Container.class.cast(c).parent = this;
-            } else throw new UnsupportedOperationException("Non containers currently not supported");
+            }
         }
         
         children.put(index, c);
@@ -67,6 +68,18 @@ public class FreeFormContainer extends Container {
     @Override
     public ContainerNode getGraphics() {
         return gui;
+    }
+
+    @Override
+    public void show() {
+        super.show();
+        if(gui !=null) gui.widgets.values().forEach(Area::show);
+    }
+
+    @Override
+    public void hide() {
+        super.hide();
+        if(gui !=null) gui.widgets.values().forEach(Area::hide);
     }
     
 }

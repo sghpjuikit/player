@@ -3,6 +3,8 @@ package Layout.Areas;
 
 import GUI.DragUtil;
 import GUI.GUI;
+import static GUI.GUI.ANIM_DUR;
+import static GUI.GUI.closeAndDo;
 import GUI.objects.Pickers.WidgetPicker;
 import Layout.BiContainerPure;
 import Layout.Container;
@@ -11,10 +13,7 @@ import java.io.IOException;
 import java.util.Objects;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
-import static javafx.animation.Interpolator.LINEAR;
-import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -29,7 +28,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.util.Duration;
 import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
@@ -43,8 +41,6 @@ import static util.Util.setAnchors;
  */
 @Layout.Widgets.Widget.Info
 public final class Layouter implements ContainerNode {
-    
-    public static final Duration ANIM_DUR = Duration.millis(300);
     
     private @FXML BorderPane controls;
     private @FXML AnchorPane root = new AnchorPane();
@@ -203,7 +199,7 @@ public final class Layouter implements ContainerNode {
         if(e.getButton()!=PRIMARY) return;
         
         WidgetPicker w = new WidgetPicker();
-        w.setOnSelect(f -> {
+        w.onSelect = factory -> {
             end = true;
             a2.setOnFinished( a -> {
                 // actually not needed since layouter is removed when widget is
@@ -212,12 +208,12 @@ public final class Layouter implements ContainerNode {
 //                content.getChildren().retainAll(controls);
 //                animS.setOnFinished(null);
                 // this is the crucial part
-                container.addChild(index, f.create());
+                container.addChild(index, factory.create());
                 if(GUI.isLayoutMode()) container.show();
                 App.actionStream.push("New widget");
             });
             showControls(false);
-        });
+        };
         
         a2.setOnFinished( ae -> {
             Node n = w.getNode();
@@ -235,45 +231,25 @@ public final class Layouter implements ContainerNode {
     private void showSplitV(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        closeAndDo(a -> {
-            container.addChild(index, new BiContainerPure(HORIZONTAL));
-            App.actionStream.push("Divide layout");
-        });
-
+        closeAndDo(content, a -> container.addChild(index, new BiContainerPure(HORIZONTAL)));
+        App.actionStream.push("Divide layout");
         e.consume();
     }
     @FXML
     private void showSplitH(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        closeAndDo(a -> {
-            container.addChild(index, new BiContainerPure(VERTICAL));
-            App.actionStream.push("Divide layout");
-        });
-        
+        closeAndDo(content, a -> container.addChild(index, new BiContainerPure(VERTICAL)));
+        App.actionStream.push("Divide layout");
         e.consume();
     }
     @FXML
     private void showTabs(MouseEvent e) {
         if(e.getButton()!=PRIMARY) return;
         
-        closeAndDo(a -> container.addChild(index, new FreeFormContainer()));
-//        closeAndDo(a -> container.addChild(index, new PolyContainer()));
-        
+        closeAndDo(content, a -> container.addChild(index, new FreeFormContainer()));
+//        closeAndDo(content, a -> container.addChild(index, new PolyContainer()));
         e.consume();
-    }
-    
-    private void closeAndDo(EventHandler<ActionEvent> action) {
-        FadeTransition a1 = new FadeTransition(ANIM_DUR);
-                       a1.setToValue(0);
-                       a1.setInterpolator(LINEAR);
-        ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
-                        a2.setInterpolator(new CircularInterpolator(EASE_OUT));
-                        a2.setToX(0);
-                        a2.setToY(0);
-        ParallelTransition pt = new ParallelTransition(content, a1, a2);
-        pt.setOnFinished(action);
-        pt.play();
     }
     
     @Override

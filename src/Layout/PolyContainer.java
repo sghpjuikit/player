@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javafx.scene.Node;
-import javafx.scene.layout.AnchorPane;
 import util.TODO;
+import static util.Util.setAnchors;
 
 /**
  * Implementation of {@link Container Container} containing multiple components.
@@ -36,11 +36,8 @@ public final class PolyContainer extends Container {
         }
         
         // load gui
-        root.getChildren().setAll(gui.getRoot());
-        AnchorPane.setBottomAnchor(gui.getRoot(), 0.0);
-        AnchorPane.setLeftAnchor(gui.getRoot(), 0.0);
-        AnchorPane.setRightAnchor(gui.getRoot(), 0.0);
-        AnchorPane.setTopAnchor(gui.getRoot(), 0.0);
+        root.getChildren().setAll(gui.root);
+        setAnchors(gui.root,0);
         
         // we need to initialize the tabs
         // no need to take car eof selection, since we do not change it
@@ -57,7 +54,7 @@ public final class PolyContainer extends Container {
         gui.addComponents(cs.values());
 //        gui.selectComponent(properties.getI("selected"));
         
-        return gui.getRoot();
+        return gui.root;
     }
 
     /** {@inheritDoc} */

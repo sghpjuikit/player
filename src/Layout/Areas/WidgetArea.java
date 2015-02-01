@@ -3,13 +3,14 @@ package Layout.Areas;
 
 import GUI.DragUtil;
 import GUI.GUI;
+import static GUI.GUI.openAndDo;
 import Layout.Component;
-import Layout.UniContainer;
+import Layout.Container;
 import Layout.Widgets.Widget;
 import java.io.IOException;
-import java.util.Collections;
+import static java.util.Collections.singletonList;
 import java.util.List;
-import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -22,20 +23,23 @@ import static util.Util.setAnchors;
 /**
  * Implementation of Area for UniContainer.
  */
-public final class WidgetArea extends Area<UniContainer> {
+public final class WidgetArea extends Area<Container> {
     
     @FXML private AnchorPane content;
     
     private Widget widget = Widget.EMPTY();     // never null
-    private final int index;
-    public WidgetArea(UniContainer con, int i) {
-        super(con);
-        index = i;
+    
+    /**
+     @param c container to make contract with
+     @param i index of the child within the container
+     */
+    public WidgetArea(Container c, int i) {
+        super(c,i);
         
         // load graphics
         try {
             FXMLLoader loader = new FXMLLoader(this.getClass().getResource("WidgetArea.fxml"));
-                       loader.setRoot(root);
+                       loader.setRoot(content_root);
                        loader.setController(this);
                        loader.load();
         } catch (IOException ex) {
@@ -43,7 +47,7 @@ public final class WidgetArea extends Area<UniContainer> {
         }
         // load controls
         controls = new AreaControls(this);
-        root.getChildren().addAll(controls.root);
+        content_root.getChildren().addAll(controls.root);
         setAnchors(controls.root, 0d);
         
         // support css styling
@@ -95,21 +99,20 @@ public final class WidgetArea extends Area<UniContainer> {
      */
     @Override
     public List<Widget> getActiveWidgets() {
-        return Collections.singletonList(widget);
+        return singletonList(widget);
     }
     
     public void loadWidget(Widget w) {
-        Objects.requireNonNull(w,"widget must not be null");
+        requireNonNull(w,"widget must not be null");
         
         widget = w;
-        // does this make sense?
-//        if(w.isEmpty()) content.getStyleClass().clear();
-//        else content.getStyleClass().addAll(Area.bgr_STYLECLASS);
+        
         // load widget
         Node wNode = w.load();
         content.getChildren().clear();
         content.getChildren().add(wNode);
         setAnchors(wNode,0);
+        openAndDo(content_root, null);
         
         // put controls to new widget
         controls.title.setText(w.getName());                // put title
@@ -135,7 +138,7 @@ public final class WidgetArea extends Area<UniContainer> {
 
     @Override
     public void add(Component c) {
-        container.addChild(1, c);
+        container.addChild(index, c);
     }
     
     @Override

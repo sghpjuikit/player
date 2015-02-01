@@ -16,11 +16,18 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
+import javafx.animation.FadeTransition;
+import static javafx.animation.Interpolator.LINEAR;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import static javafx.scene.text.FontPosture.ITALIC;
@@ -28,7 +35,10 @@ import static javafx.scene.text.FontPosture.REGULAR;
 import javafx.scene.text.FontWeight;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
+import javafx.util.Duration;
 import main.App;
+import util.Animation.Interpolators.CircularInterpolator;
+import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import util.Log;
 import util.Parser.File.FileUtil;
 import util.TODO;
@@ -403,5 +413,45 @@ public class GUI {
                 );
             });
         }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    public static final Duration ANIM_DUR = Duration.millis(300);
+    
+    public static void closeAndDo(Node n, EventHandler<ActionEvent> action) {
+        FadeTransition a1 = new FadeTransition(ANIM_DUR);
+                       a1.setToValue(1);
+                       a1.setToValue(0);
+                       a1.setInterpolator(LINEAR);
+        ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
+                        a2.setInterpolator(new CircularInterpolator(EASE_OUT));
+                        a2.setToX(1);
+                        a2.setToY(1);
+                        a2.setToX(0);
+                        a2.setToY(0);
+        ParallelTransition pt = new ParallelTransition(n, a1, a2);
+        pt.setOnFinished(action);
+        pt.play();
+    }
+    public static void openAndDo(Node n, EventHandler<ActionEvent> action) {
+        FadeTransition a1 = new FadeTransition(ANIM_DUR);
+                       a1.setFromValue(0);
+                       a1.setToValue(1);
+                       a1.setInterpolator(LINEAR);
+        ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
+                        a2.setInterpolator(new CircularInterpolator(EASE_OUT));
+                        a2.setFromX(0);
+                        a2.setFromY(0);
+                        a2.setToX(1);
+                        a2.setToY(1);
+        ParallelTransition pt = new ParallelTransition(n, a1, a2);
+        pt.setOnFinished(action);
+        pt.play();
     }
 }

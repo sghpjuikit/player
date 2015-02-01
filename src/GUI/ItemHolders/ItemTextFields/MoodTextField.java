@@ -61,10 +61,10 @@ public class MoodTextField extends ItemTextField<String> {
     void onDialogAction() {
         MoodPicker mood_picker = getCM();
         ContextPopOver pp = new ContextPopOver(mood_picker.getNode());
-        mood_picker.setOnSelect(mood -> {
+        mood_picker.onSelect = mood -> {
             setValue(mood);
             pp.hide();
-        });
+        };
         pp.show(this, pos);
     }
 

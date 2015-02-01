@@ -15,8 +15,8 @@ import Layout.PolyContainer;
  */
 public abstract class PolyArea extends Area<PolyContainer>{
 
-    public PolyArea(PolyContainer _container) {
-        super(_container);
+    public PolyArea(PolyContainer _container, Integer i) {
+        super(_container, i);
     }
     
     abstract public void removeComponent(Component c);

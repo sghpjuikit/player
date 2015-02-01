@@ -6,7 +6,7 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.Notifier.NotifierManager;
+import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
@@ -656,7 +656,7 @@ public class MetadataWriter extends MetaItem {
         MetadataWriter w = MetadataWriter.create(item);
                        w.setPlaycount(String.valueOf(count));
         if (w.write()) {
-            App.use(NotifierManager.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
+            App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
             DB.updateItemsFromFile(singletonList(item));
         }
     }
@@ -672,7 +672,7 @@ public class MetadataWriter extends MetaItem {
         MetadataWriter w = MetadataWriter.create(item);
                        w.setRatingPercent(rating);
         if (w.write()) {
-            App.use(NotifierManager.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
+            App.use(Notifier.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
             DB.updateItemsFromFile(singletonList(item));
         }
     }

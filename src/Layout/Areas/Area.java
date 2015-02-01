@@ -41,29 +41,35 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     public static final PseudoClass draggedPSEUDOCLASS = PseudoClass.getPseudoClass("dragged");
     public static final List<String> bgr_STYLECLASS = Arrays.asList("area", "block");
     
-    /**
-     * Container this are is associated with. The relationship can not be changed.
-     * Never null.
-     */
+    /** Container this are is associated with. The relationship can not be 
+      changed. */
     public final T container;
-    /** The root of this Area. Never null. */
+    /** Index of the child, the area is for or null if for many. Decides whether
+      the area belongs to the specific child, or whole container. */
+    public final Integer index;
+    public final AnchorPane content_root = new AnchorPane();
+    /** The root of this area. */
     public final AnchorPane root = new AnchorPane();
     AreaControls controls;
-    /** The root of activity content. Activity content containsKey custom content. */
+    /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
     
     /**
-     * 
-     * @param _container must not be null
+     * @param c container to make contract with
+     * @param i index of the child, the area is for or null if for many
      */
-    public Area(T _container) {
+    public Area(T c, Integer i) {
         // init final 1:1 container-area relationship
-        Objects.requireNonNull(_container);
-        container = _container;
-
+        Objects.requireNonNull(c);
+        container = c;
+        index = i;
+        
+        root.getChildren().addAll(content_root);
+        setAnchors(content_root, 0d);
+        
         // init properties
-        container.properties.initProperty(Double.class, "padding", 0d);
-        container.properties.initProperty(Boolean.class, "locked", false);
+        c.properties.initProperty(Double.class, "padding", 0d);
+        c.properties.initProperty(Boolean.class, "locked", false);
         
         // init behavior
         root.addEventFilter(ScrollEvent.SCROLL,e -> {
@@ -83,8 +89,8 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         
         // load controls
         activityPane = new StackPane();
-//        activityPane.setPickOnBounds(false);
-        root.getChildren().add(activityPane);
+        activityPane.setPickOnBounds(false);
+        content_root.getChildren().add(activityPane);
         setAnchors(activityPane, 0d);
         activityPane.toFront();
     }
@@ -212,15 +218,6 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     @FXML
     public void toggleLocked() {
         container.toggleLock();
-    }    
-    
-    /** Mouse transparent content false. */
-    public void enableContent() {
-        getContent().setMouseTransparent(false);
-    }
-    /** Mouse transparent content true. */
-    public void disableContent() {
-        getContent().setMouseTransparent(true);
     }
     
 /**************************** activity node ***********************************/

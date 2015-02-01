@@ -5,7 +5,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Notifier.NotifierManager;
+import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;
@@ -568,7 +568,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // post writing
         hideProgress();
         writing = false;
-        App.use(NotifierManager.class, s->s.showTextNotification("Tagging complete", "Tagger"));
+        App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
         read(metas);
     }
     

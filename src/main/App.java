@@ -5,7 +5,7 @@ import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.Notifier.NotifierManager;
+import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.Tray.TrayService;
@@ -180,7 +180,7 @@ public class App extends Application {
         TrayService ts = new TrayService();
                     ts.setOnTrayClick(GUI::toggleMinimize);
         services.addService(ts);
-        services.addService(new NotifierManager());
+        services.addService(new Notifier());
         
         services.getAllServices()
                 .filter(s->!s.isDependency()).filter(Service::isSupported)
@@ -205,7 +205,7 @@ public class App extends Application {
 //        App.getInstance().getParameters().getNamed().forEach( (t,tt) -> s.add(t+" "+tt) );
 //        
 //        String t = s.stream().collect(Collectors.joining("/n"));
-//        NotifierManager.showTextNotification(t , "");
+//        Notifier.showTextNotification(t , "");
 //        System.out.println("GGGGG " + t);
     }
  
@@ -249,7 +249,7 @@ public class App extends Application {
     }
     
     public static<S extends Service> void use(Class<S> type, Consumer<S> action) {
-        services.getService(type).ifPresent(action);
+        services.getService(type).filter(Service::isRunning).ifPresent(action);
     }
     
     /**

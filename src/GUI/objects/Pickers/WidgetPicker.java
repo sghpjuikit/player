@@ -9,17 +9,13 @@ package GUI.objects.Pickers;
 import Layout.Widgets.WidgetFactory;
 import Layout.Widgets.WidgetManager;
 
-/**
- *
- * @author Plutonium_
- */
+/** Widget factory picker. */
 public class WidgetPicker extends Picker<WidgetFactory>{
 
     public WidgetPicker() {
         super();
-        
-        setAccumulator(WidgetManager::getFactories);
-        setConverter(wf -> wf.name());
+        itemSupply = WidgetManager::getFactories;
+        textCoverter = WidgetFactory::name;
     }
     
 }

@@ -377,6 +377,7 @@ public interface Util {
     
 /******************************** GRAPHICS ************************************/
     
+    /** Sets anchors for given node within its parent AnchorPane. */
     public static void setAnchors(Node n, double a) {
         AnchorPane.setTopAnchor(n, a);
         AnchorPane.setRightAnchor(n, a);
@@ -384,6 +385,7 @@ public interface Util {
         AnchorPane.setLeftAnchor(n, a);
     }
     
+    /** Sets anchors for given node within its parent AnchorPane. */
     public static void setAnchors(Node n, double top, double right, double bottom, double left) {
         AnchorPane.setTopAnchor(n, top);
         AnchorPane.setRightAnchor(n, right);

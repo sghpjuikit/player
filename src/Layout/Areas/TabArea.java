@@ -12,8 +12,7 @@ import Layout.PolyContainer;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.*;
 import java.util.List;
 import java.util.Objects;
 import javafx.fxml.FXML;
@@ -27,7 +26,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import util.Log;
-import util.Util;
+import static util.Util.setAnchors;
 import static util.functional.FunctUtil.isNotNULL;
 
 /**
@@ -38,15 +37,15 @@ public final class TabArea extends PolyArea {
     private @FXML TabPane tabPane;
     private @FXML AnchorPane content;
     
-    public TabArea(PolyContainer _container) {
-        super(_container);
+    public TabArea(PolyContainer c) {
+        super(c, null);
         
         // init properties
         container.properties.initProperty(Integer.class, "selected", -1);
         
         root.setMinSize(0,0);
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("TabbedArea.fxml"));
-        fxmlLoader.setRoot(root);
+        fxmlLoader.setRoot(content_root);
         fxmlLoader.setController(this);
         try {
             fxmlLoader.load();
@@ -61,8 +60,8 @@ public final class TabArea extends PolyArea {
         
         // load controls
         controls = new AreaControls(this);
-        root.getChildren().add(controls.root);
-        Util.setAnchors(controls.root, 0);
+        content_root.getChildren().add(controls.root);
+        setAnchors(controls.root, 0);
         
         // support drag from
         root.setOnDragDetected( e -> {
@@ -105,13 +104,13 @@ public final class TabArea extends PolyArea {
     @Override
     public List<Widget> getActiveWidgets() {
         Widget c = getActiveWidget();
-        return c==null ? EMPTY_LIST : Collections.singletonList(c);
+        return c==null ? EMPTY_LIST : singletonList(c);
     }
     
     
     @Override
     public void add(Component c) {
-        addComponents(Collections.singleton(c));
+        addComponents(singleton(c));
     }
     
     public void addComponents(Collection<Component> cs) {

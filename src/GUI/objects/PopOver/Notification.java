@@ -1,12 +1,12 @@
 
-package GUI.objects.Pickers;
+package GUI.objects.PopOver;
 
 import AudioPlayer.tagging.Metadata;
 import GUI.objects.ItemInfo;
-import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
-import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
-import static GUI.objects.Pickers.Notification.NotificationType.SONG;
-import static GUI.objects.Pickers.Notification.NotificationType.TEXT;
+import static GUI.objects.PopOver.Notification.NotificationType.OTHER;
+import static GUI.objects.PopOver.Notification.NotificationType.PLAYBACK_STATUS;
+import static GUI.objects.PopOver.Notification.NotificationType.SONG;
+import static GUI.objects.PopOver.Notification.NotificationType.TEXT;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.ScreenCentricPos;
 import GUI.objects.Text;

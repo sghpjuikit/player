@@ -1,15 +1,15 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
+ * To change this license header, changeWidget License Headers in Project Properties.
+ * To change this template file, changeWidget Tools | Templates
  * and open the template in the editor.
  */
 package Layout.Areas;
 
 import GUI.GUI;
+import static GUI.GUI.closeAndDo;
+import static GUI.GUI.openAndDo;
 import GUI.objects.Pickers.WidgetPicker;
-import GUI.objects.PopOver.ContextPopOver;
 import GUI.objects.PopOver.PopOver;
-import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
 import Layout.BiContainer;
@@ -39,6 +39,7 @@ import main.App;
 import org.reactfx.EventSource;
 import util.SingleInstance;
 import static util.Util.createIcon;
+import static util.Util.setAnchors;
 
 /**
  FXML Controller class
@@ -140,7 +141,7 @@ public final class AreaControls {
 	    App.actionStream.push("Close widget");
 	});
 	Label detachB = createIcon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", e -> detach());
-	Label changeB = createIcon(TH_LARGE, 12, "Change widget", e -> choose());
+	Label changeB = createIcon(TH_LARGE, 12, "Change widget", e -> changeWidget());
 	propB = createIcon(COGS, 12, "Settings", e -> settings());
 	Label lockB = createIcon(area.isLocked() ? UNLOCK : LOCK, 12,
 	    area.isLocked() ? "Unlock widget layout" : "Lock widget layout", null);
@@ -242,34 +243,49 @@ public final class AreaControls {
 	SimpleConfigurator sc = new SimpleConfigurator(w);
 	PopOver p = new PopOver(sc);
 		p.setTitle(w.getName() + " Settings");
-		p.setArrowSize(0); // unfortunately autofix breaks the arrow functionality, turn it off
+		p.setArrowSize(0); // unfortunately autofix breaks the arrow position, turn off
 		p.setAutoFix(true); // we need autofix here
 		p.setAutoHide(true);
 		p.show(propB);
     }
 
-    // this method is basiclly the main source of new components
-    void choose() {
-	WidgetPicker w = new WidgetPicker();
-	ContextPopOver p = new ContextPopOver(w.getNode());
-	w.setOnSelect(factory -> {
-            // area has full responsibility over adding the newly created component
-	    // to the layout graph, but note that it is role of a container so
-	    // each area implementation should delegate to container
-	    // NOTE: this should be actually all implemented here like this:
-	    // get first empty index for new component -> container.add(...)
-	    area.add(factory.create());
-	    p.hide();
-	});
-	p.show(propB, NodeCentricPos.Center);
+    void changeWidget() {
+        closeAndDo(area.content_root, e -> {
+            WidgetPicker w = new WidgetPicker();
+            w.onCancel = () -> {
+                closeAndDo(w.getNode(), ae -> {
+                    area.root.getChildren().remove(w.getNode());
+                    
+                    openAndDo(area.content_root, null);
+                });
+            };
+            w.onSelect = factory -> {
+                closeAndDo(w.getNode(), ae -> {
+                    area.root.getChildren().remove(w.getNode());
+                    // load widget
+                    area.add(factory.create());
+                    
+                    openAndDo(area.content_root,null);
+                });
+            };
+            area.root.getChildren().add(w.getNode());
+            setAnchors(w.getNode(), 0);
+            
+            openAndDo(w.getNode(), null);
+        });
     }
-
+    
     void detach() {
 	area.detach();
     }
 
     void close() {
-	area.container.close();
+        // if area belongs to the container, close container
+        if (area.index==null) 
+            closeAndDo(area.container.getGraphics().getRoot(), e -> area.container.close());
+        // if area belongs to the child, close child only
+        else 
+            closeAndDo(area.content_root, e -> area.container.removeChild(area.index));
     }
 
     private void toggleAbsSize() {
@@ -307,7 +323,7 @@ public final class AreaControls {
 	if (GUI.opacity_layoutMode) contAnim.play();
 	if (GUI.blur_layoutMode) blurAnim.play();
 	// handle graphics
-	area.disableContent();
+	area.getContent().setMouseTransparent(true);
 	root.setMouseTransparent(false);
 	updateAbsB();
     }
@@ -323,7 +339,7 @@ public final class AreaControls {
 	contrAnim.play();
 	if (GUI.opacity_layoutMode) contAnim.play();
 	if (GUI.blur_layoutMode) blurAnim.play();
-	area.enableContent();
+	area.getContent().setMouseTransparent(false);
 	root.setMouseTransparent(true);
 	// hide help popup if open
 	if (!helpP.isNull() && helpP.get().isShowing()) helpP.get().hide();

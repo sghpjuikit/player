@@ -9,6 +9,8 @@ import GUI.WindowBase.Maximized;
 import static GUI.WindowBase.Maximized.ALL;
 import GUI.objects.Window.Resize;
 import javafx.beans.property.*;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
 import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
@@ -27,20 +29,21 @@ public class WindowPane {
     private double _y = 100;
     private double _w = 0;
     private double _h = 0;
-    protected final ReadOnlyObjectWrapper<Resize> isResizing = new ReadOnlyObjectWrapper(Resize.NONE);
-    protected final ReadOnlyBooleanWrapper _isMoving = new ReadOnlyBooleanWrapper(false);
+    protected final ReadOnlyObjectWrapper<Resize> _resizing = new ReadOnlyObjectWrapper(Resize.NONE);
+    protected final ReadOnlyBooleanWrapper _moving = new ReadOnlyBooleanWrapper(false);
+    private final ReadOnlyBooleanWrapper _focused = new ReadOnlyBooleanWrapper(false);
     protected final ReadOnlyBooleanWrapper _fullscreen = new ReadOnlyBooleanWrapper(false);
     
     public final DoubleProperty x = new SimpleDoubleProperty(50) {
         @Override public void set(double nv) {
-            double v = offScreenXMap(nv);
+            double v = offscreenFixOn.get() ? offScreenXMap(nv) : nv;
             super.set(v);
             root.setLayoutX(v);
         }
     };
     public final DoubleProperty y = new SimpleDoubleProperty(50) {
         @Override public void set(double nv) {
-            double v = offScreenYMap(nv);
+            double v = offscreenFixOn.get() ? offScreenYMap(nv) : nv;
             super.set(v);
             root.setLayoutY(v);
         }
@@ -49,29 +52,38 @@ public class WindowPane {
     public final DoubleProperty h = root.prefHeightProperty();
     public final BooleanProperty visible = root.visibleProperty();
     public final DoubleProperty opacity = root.opacityProperty();
-    
     /** Indicates whether this window is maximized. */
     public final ObjectProperty<Maximized> maximized = new SimpleObjectProperty(Maximized.NONE);
     /** Defines whether this window is resizable. */
     public final BooleanProperty movable = new SimpleBooleanProperty(true);
     /** Indicates whether the window is being moved. */
-    public final ReadOnlyBooleanProperty moving = _isMoving.getReadOnlyProperty();
+    public final ReadOnlyBooleanProperty moving = _moving.getReadOnlyProperty();
     /** Indicates whether and how the window is being resized. */
-    public final ReadOnlyObjectProperty<Resize> resizing = isResizing.getReadOnlyProperty();
+    public final ReadOnlyObjectProperty<Resize> resizing = _resizing.getReadOnlyProperty();
     /** Defines whether this window is resizable. */
     public final BooleanProperty resizable = new SimpleBooleanProperty(true);
-    
-    public final DoubleProperty offScreenFixOFFSET = new SimpleDoubleProperty(0);
-    
+    public final BooleanProperty offscreenFixOn = new SimpleBooleanProperty(true);
+    public final DoubleProperty offScreenFixOffset = new SimpleDoubleProperty(0);
+    public final ReadOnlyBooleanProperty focused = _focused.getReadOnlyProperty();
+        
     
     public WindowPane(AnchorPane own) {
         owner = own;
+        
+        root.addEventFilter(MOUSE_PRESSED, e -> {
+            root.toFront();
+        });        
     }
     
+    private final ListChangeListener<Node> focusListener = (Change<? extends Node> c) -> {
+        int i = c.getList().size();
+        _focused.set(i==0 ? false : c.getList().get(i-1)==root);
+    };
     
     /** Opens this window. Must not be invoked when already open. */
     public void open() {
         owner.getChildren().add(root);
+        owner.getChildren().addListener(focusListener);
     }
     
     /** @return whether this window is open. */
@@ -81,7 +93,8 @@ public class WindowPane {
     
     /** Closes this window. */
     public void close() {
-       owner.getChildren().remove(root);
+        owner.getChildren().removeListener(focusListener);
+        owner.getChildren().remove(root);
     }
     
     
@@ -109,7 +122,7 @@ public class WindowPane {
         n.addEventFilter(DRAG_DETECTED, e -> {
             if (maximized.get()==ALL || !movable.get() || e.getButton()!=PRIMARY)
                 return;
-            _isMoving.set(true);
+            _moving.set(true);
             startX = x.get() - e.getSceneX();
             startY = y.get() - e.getSceneY();
         });
@@ -122,24 +135,24 @@ public class WindowPane {
         });
         // move on drag - left button - ecluding content area
         n.addEventHandler(MOUSE_RELEASED, e -> {
-            if(_isMoving.get())
-                _isMoving.set(false);
+            if(_moving.get())
+                _moving.set(false);
         });
     }
     
     
     private double offScreenXMap(double d) {
         if (d < 0)
-            return offScreenFixOFFSET.get();
+            return offScreenFixOffset.get();
         if (d + w.get() > owner.getWidth())
-            return owner.getWidth() - w.get() - offScreenFixOFFSET.get();
+            return owner.getWidth() - w.get() - offScreenFixOffset.get();
         return d;
     }
     private double offScreenYMap(double d) {
         if (d < 0)
-            return offScreenFixOFFSET.get();
+            return offScreenFixOffset.get();
         if (d + h.get() > owner.getHeight())
-            return owner.getHeight() - h.get() - offScreenFixOFFSET.get();
+            return owner.getHeight() - h.get() - offScreenFixOffset.get();
         return d;
     }
     

@@ -10,18 +10,14 @@ import AudioPlayer.services.Service;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.objects.Pickers.Notification;
-import GUI.objects.Pickers.Notification.NotificationType;
-import static GUI.objects.Pickers.Notification.NotificationType.OTHER;
-import static GUI.objects.Pickers.Notification.NotificationType.PLAYBACK_STATUS;
-import static GUI.objects.Pickers.Notification.NotificationType.SONG;
-import static GUI.objects.Pickers.Notification.NotificationType.TEXT;
+import GUI.objects.PopOver.Notification;
+import GUI.objects.PopOver.Notification.NotificationType;
+import static GUI.objects.PopOver.Notification.NotificationType.*;
 import GUI.objects.PopOver.PopOver;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomRight;
 import javafx.scene.Node;
 import javafx.scene.media.MediaPlayer.Status;
-import static javafx.scene.media.MediaPlayer.Status.PAUSED;
-import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+import static javafx.scene.media.MediaPlayer.Status.*;
 import javafx.util.Duration;
 import main.App;
 import org.reactfx.Subscription;
@@ -33,7 +29,7 @@ import util.access.AccessorAction;
  */
 @IsConfigurable("Notification")
 @IsActionable
-public final class NotifierManager implements Service {
+public final class Notifier implements Service {
     
 /*****************************   CONFIGURATION   ******************************/
     
@@ -52,17 +48,19 @@ public final class NotifierManager implements Service {
     @IsConfig(name = "Close notification when clicked anywhere.")
     public static boolean notifAutohide = true;
     @IsConfig(name = "Notification position.")
-    public static PopOver.ScreenCentricPos notifPos = PopOver.ScreenCentricPos.ScreenBottomRight;
+    public static PopOver.ScreenCentricPos notifPos = ScreenBottomRight;
     @IsConfig(name = "On Left Click.")
     public static final AccessorAction onClickL = new AccessorAction(Action.getAction("Show/Hide application"), null);
     @IsConfig(name = "On Right Click.")
     public static final AccessorAction onClickR = new AccessorAction(Action.getAction("Notification hide"), null);
     
     @IsAction(name = "Notification hide")
-    public static void hideNotif() {
-        App.use(NotifierManager.class, nm -> {
-            if(nm.isRunning()) nm.hideNotification();
-        });
+    public static void notifHide() {
+        App.use(Notifier.class, Notifier::hideNotification);
+    }
+    @IsAction(name = "Notify now playing", global = true, shortcut = "ALT + N")
+    public static void notifNowPlaying() {
+        App.use(Notifier.class, nm -> nm.playbackChange(PLAYBACK.getStatus()));
     }
     
 /*******************************   SERVICE   **********************************/
@@ -76,7 +74,7 @@ public final class NotifierManager implements Service {
         // show notification on playback status change
         PLAYBACK.statusProperty().addListener((o,ov,nv) -> {
             if (nv == PAUSED || nv ==PLAYING || nv == STOPPED)
-                playbackStatusChange(nv);
+                playbackChange(nv);
         });
         
         // show notification on song change
@@ -126,7 +124,7 @@ public final class NotifierManager implements Service {
             showNotification(newI , "New Song", SONG);
     }
     
-    private void playbackStatusChange(Status newS) {
+    private void playbackChange(Status newS) {
         if (!showStatusNotification || newS == null) return;
         
         Metadata m = Player.playingtem.get();
@@ -151,7 +149,6 @@ public final class NotifierManager implements Service {
     }
     
     private void hideNotification() {
-        if(!isRunning()) throw new IllegalStateException("Notification service not running");
         n.hide();
     }
     

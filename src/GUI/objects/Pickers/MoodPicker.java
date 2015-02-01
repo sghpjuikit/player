@@ -8,16 +8,12 @@ package GUI.objects.Pickers;
 
 import AudioPlayer.tagging.MoodManager;
 
-/**
- * Mood picker pop up.
- * <p>
- * @author Plutonium_
- */
+/** Mood picker. */
 public class MoodPicker extends Picker<String> {
 
     public MoodPicker() {
         super();
-        setAccumulator(MoodManager.moods::stream);
+        itemSupply = MoodManager.moods::stream;
     }
     
 }

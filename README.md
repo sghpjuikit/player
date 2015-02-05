@@ -32,14 +32,14 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 - ### extensibility & modularity
 
   Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or even popup windows. New widgets can be added for anything. Some of the existing widgets are:
-  FileInfo - shows cover and tag information about the song
+  FileInfo - shows cover and information about the song
   Tagger - for tagging
   Library - actually broken down to 2 widgets to further separate the functionality
-  ImageViewer - for images associated with the songs, supports subfolders when discovering the images
+  ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
   Explorer - simple file system browser. Currently slow for big folders.
   Settings - rich configurations, including custom shortcuts
   
-  There is plan for visualisations, cover downloading and some more cools ideas like song graphs.
+  There is plan for visualisations, cover downloading and some more cool ideas like song graphs.
   
 - ### gui
 
@@ -50,7 +50,7 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 - ### global & media hotkeys
 - ### skin support
 
-  All it takes is a single css file to completely change everything. Well... Thats the goal anyway. 
+  Css file completely skins entire application.
 
 ## Screenshots
 
@@ -90,7 +90,7 @@ There are several areas that one can contribute to:
 - testing - simply run the application from IDE and report bugs ?
 - design - logos, overal app motives and spreading the word (no, not yet...)
 
-### Developing
+### Development
 
 The provided files are
 - source files
@@ -99,7 +99,7 @@ The provided files are
 
 In order to successfully build and run the application the working directory should be set up in the project's settings in the IDE to: '/working dir'. All libraries in the 'extra/lib' must be imported in the project.
 
-In order to be able to develope and use widgets (even those included in this project already) '/src widgets' directory must be included as a source location for source files in project properties.
+In order to be able to develop and use widgets (even those included in this project already) '/src widgets' directory must be included as a source location for source files in project properties.
 
 Proper manuals and HOWTOs will be provided later.
 

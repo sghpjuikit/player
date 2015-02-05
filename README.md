@@ -11,7 +11,7 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
   
 - ###media library 
   
-  Application creates a library for song metadata. The database has small footprint (roughly about 10MB for 20000 files). The library can handly lots of songs and provides powerfull tables to display them. Songs can be multi-level ordered by any attribute. They can be filtered out by multiple attributes at once at each table. The tables can be linked to each other arbitrarily. Besides song table, there is also table that displays song groups, again per any song attribute (authors, genres, years, comments, rating, anything...). Custom defined values for GENRE, with auto-complete functionality when typing
+  Application creates a library for song metadata. The database has small footprint (roughly about 10MB for 20000 files). The library can handle lots of songs and provides powerfull tables to display them. Songs can be ordered by any and multiple attributes. They can be filtered out by multiple attributes at once at each table. The tables can be linked to each other arbitrarily. Besides song table, there is also table that displays song groups, again per any song attribute (authors, genres, years, comments, rating, anything...). GENRE values can be predefined and provide auto-complete functionality when typing
 
 - ###tag editing
 
@@ -23,7 +23,7 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
   
   **Chapters** are comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments can be decently long (the upper value remains a mystery, but surpasses 500 characters (for all chapters together) and probably by a large margin - possibly up to 16MB).
   
-  **Cover** is fully upported. The image in tag can be easily extracted by drag and drop as standalone picture (the other way works too).
+  **Cover** is fully upported. The image in tag can be easily imported/exported by drag and drop.
 
 - ### portability 
 
@@ -32,25 +32,28 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 - ### extensibility & modularity
 
   Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or even popup windows. New widgets can be added for anything. Some of the existing widgets are:
-  FileInfo - shows cover and information about the song
+  FileInfo - shows cover and information about the song with set/download cover on drag & drop
   Tagger - for tagging
   Library - actually broken down to 2 widgets to further separate the functionality
   ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
   Explorer - simple file system browser. Currently slow for big folders.
   Settings - rich configurations, including custom shortcuts
   
-  There is plan for visualisations, cover downloading and some more cool ideas like song graphs.
+  There is plan for visualisations and some more cool ideas like song graphs.
   
 - ### gui
 
-  The gui allows custom layouts by providing the ability to divide layouts into containers for widgets. Window can contain multiple layouts similar to virtual desktops. The layouts are easily accessible by dragging the gui horizontally. This provides virtually infinitely large and fast to navigate working space. The application supports multiple windows like this, which themselves and as higher level layout.
+  The gui allows custom layouts by providing the ability to divide layouts into containers for widgets. Window can contain multiple layouts similar to virtual desktops. The layouts are easily accessible by dragging the gui horizontally. This provides virtually infinitely large and convenient to navigate working space. The application supports multiple windows like this, which themselves form a higher level layout.
   
   The windows have docking (to other windows or screen edges) feature, and also auto-resize when put into cscreen edges and corners (altogether 7 different modes). There is (so far imperfect) support for system tray, taskbar, fullscreen mode and mini mode as a docked bar snapped to the edge of the screen.
   
 - ### global & media hotkeys
+
+  Support for custom shortcuts for number of actions, in-app and global, as well as media keys.
+
 - ### skin support
 
-  Css file completely skins entire application.
+  Css file completely skins entire application. Support for skin discovery, skin change and reload without requiring application restart. Skins are easy to create (edit file) and apply (hit F6 reload), with plenty of documentation.
 
 ## Screenshots
 

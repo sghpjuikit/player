@@ -27,7 +27,7 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 
 - ### portability 
 
-  The application does not require installation and runs from anywhere. It is self-contained, which means it does not require java to be installed on the system at all. It is executable as exe and can be used like any other application. So far only Windows is supported, but it should work under Linux and Mac shold as well (untested).
+  The application does not require installation and runs from anywhere. It is self-contained, which means it does not require java to be installed on the system at all. It is executable as exe and can be used like any other application.
   
 - ### extensibility & modularity
 
@@ -60,7 +60,7 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 
 ## The Catch XXII
 
-- *Memory consumption* throughout my average use is about 500MB, but it depends. It can go from 200MB up to 1GB (rare cases when working with lots of high-resolution images). The effort to crack down on memory consumption is there, but its not there yet...
+- *Memory consumption* can get a bit high. On (my) average use is about 250MB, but it depends on use case, platform and other factors, like 32bit vs 64bit java (64bit effectively doubles needed memory - so it is advised to stay away from it)
 - Some of the widgets or features are too **experimental**, confusing or outright do not work. It is a **work in progress**, so consider this early alpha version.
 - nothing im aware of
 
@@ -69,6 +69,11 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 Download link coming soon.
 
 Starting the application for the first time will run an automatic guide, that will guide you through the basics of the application. Nothing invasive, it can be closed forever very easily, but it does provide some context to the features of the application, so i **recomment the guide**.
+
+Platforms:
+- Windows
+- Linux (not fully tested, no support for global shortcuts)
+- Mac (untested).
 
 Tips:
 - Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 
@@ -112,4 +117,4 @@ informed before taking any actions that could result in publicizing or sharing t
 
 The project makes use of work of sevaral other individuals (with their permission), who will be properly credited later as well.
 
-Al Psy Congroo
+El Psy Congroo

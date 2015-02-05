@@ -29,7 +29,7 @@ import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
-import util.Log;
+import util.dev.Log;
 import static util.Parser.File.AudioFileFormat.Use.PLAYBACK;
 import util.Parser.File.Enviroment;
 

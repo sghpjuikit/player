@@ -30,7 +30,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import main.App;
 import static org.atteo.evo.inflector.English.plural;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.AudioFileFormat;
 import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.FileUtil;

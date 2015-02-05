@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioPlayer.tagging;
+package util.units;
 
 import javafx.util.Duration;
-import util.Dependency;
+import util.dev.Dependency;
 import util.Util;
 
 /**

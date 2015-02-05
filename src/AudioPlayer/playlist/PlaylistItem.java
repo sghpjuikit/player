@@ -5,7 +5,7 @@
  */
 package AudioPlayer.playlist;
 
-import AudioPlayer.tagging.FormattedDuration;
+import util.units.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import java.io.IOException;
 import java.net.URI;
@@ -23,7 +23,7 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.AudioFileFormat;
 import util.Parser.File.AudioFileFormat.Use;
 import static util.Parser.File.AudioFileFormat.Use.APP;

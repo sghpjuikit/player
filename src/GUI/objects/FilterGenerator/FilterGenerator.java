@@ -19,11 +19,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.util.Callback;
-import org.reactfx.util.Tuple2;
-import org.reactfx.util.Tuple3;
 import util.Parser.ParserImpl.Parser;
 import util.Util;
 import static util.Util.unPrimitivize;
+import util.collections.Tuple2;
+import util.collections.Tuple3;
 
 /**
  *

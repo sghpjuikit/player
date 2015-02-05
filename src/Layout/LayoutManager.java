@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import main.App;
 import util.Parser.File.FileUtil;
-import util.Log;
+import util.dev.Log;
 
 /**
  * @author uranium

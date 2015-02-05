@@ -31,7 +31,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import main.App;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.AudioFileFormat.Use;
 import util.Util;
 import static util.functional.FunctUtil.isNotNULL;

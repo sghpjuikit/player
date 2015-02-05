@@ -2,11 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioPlayer.tagging;
+package util.units;
 
 import static java.lang.Integer.parseInt;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import util.Dependency;
+import util.dev.Dependency;
 import static util.Util.shouldBeEmpty;
 
 /**

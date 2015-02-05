@@ -26,8 +26,8 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.util.Callback;
-import org.reactfx.util.Tuple2;
-import org.reactfx.util.Tuples;
+import util.collections.Tuple2;
+import static util.collections.Tuples.tuple;
 
 /**
  *
@@ -273,7 +273,7 @@ public class FunctUtil {
         int i=0;
         Stream.Builder<Tuple2<Integer,T>> b = Stream.builder();
         for(T item : c) {
-            b.accept(Tuples.t(i, item));
+            b.accept(tuple(i, item));
             i++;
         }
         return b.build();

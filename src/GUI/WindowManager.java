@@ -31,7 +31,7 @@ import javafx.stage.Screen;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import main.App;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.FileUtil;
 
 /**

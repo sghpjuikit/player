@@ -60,13 +60,13 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import main.App;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.Enviroment;
 import util.Parser.File.FileUtil;
 import util.Parser.File.ImageFileFormat;
 import util.SingleInstance;
-import util.TODO;
-import static util.TODO.Purpose.FUNCTIONALITY;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import util.Util;
 import static util.Util.createmenuItem;
 

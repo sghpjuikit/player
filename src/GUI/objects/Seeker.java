@@ -7,7 +7,6 @@ import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.PopOver.PopOver;
-import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,16 +29,16 @@ import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
+import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
-import util.Log;
+import util.dev.Dependency;
+import util.dev.Log;
+import static util.Util.createIcon;
 import static util.async.Async.run;
 import util.async.FxTimer;
 
@@ -75,10 +74,7 @@ public final class Seeker extends AnchorPane {
         initializeC();
     }
     
-    /**
-     * Should be run automatically. Dont invoke this method in constructor - it
-     * would run twice.
-     */
+    @Dependency("Public because of FXMLLoader. Runs automatically. Dont use.")
     public void initializeC() {
         this.setMinSize(0,0);
         this.setMaxSize(USE_COMPUTED_SIZE,15);
@@ -386,20 +382,15 @@ public final class Seeker extends AnchorPane {
                 content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 content.autosize();
                 // buttons
-                editB = AwesomeDude.createIconLabel(AwesomeIcon.PENCIL,"11");
-                editB.setOnMouseClicked( e -> {
+                editB = createIcon(AwesomeIcon.PENCIL, 11, "Edit chapter", e -> {
                     startEdit();
                     e.consume();
                 });
-                editB.setTooltip(new Tooltip("Edit chapter"));
-                commitB = AwesomeDude.createIconLabel(AwesomeIcon.CHECK,"11");
-                commitB.setOnMouseClicked( e -> {
+                commitB = createIcon(AwesomeIcon.CHECK, 11, "Confirm changes", e -> {
                     commitEdit();
                     e.consume();
                 });
-                commitB.setTooltip(new Tooltip("Confirm changes"));
-                delB = AwesomeDude.createIconLabel(AwesomeIcon.TRASH_ALT,"11");                     
-                delB.setOnMouseClicked( e -> {
+                delB = createIcon(AwesomeIcon.TRASH_ALT, 11, "Remove chapter", e -> {
                      Metadata m = Player.playingtem.get();
 //                     // avoid removing chapter that does not exist
 //                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
@@ -409,14 +400,32 @@ public final class Seeker extends AnchorPane {
                                     mw.write();
                      e.consume();
                 });
-                delB.setTooltip(new Tooltip("Remove chapter"));
-                cancelB = AwesomeDude.createIconLabel(AwesomeIcon.REPLY,"11");                     
-                cancelB.setOnMouseClicked( e -> {
+                cancelB = createIcon(AwesomeIcon.REPLY, 11, "Cancel edit", e -> {
                     cancelEdit();
                     e.consume();
                 });
-                cancelB.setTooltip(new Tooltip("Cancel edit"));
-                Label helpB = AwesomeDude.createIconLabel(AwesomeIcon.INFO,"11");                     
+                Label nextB = createIcon(AwesomeIcon.CHEVRON_RIGHT, 11, "Next chapter", e -> {
+                    int i = Seeker.this.chapters.indexOf(this) + 1;
+                    if(Seeker.this.chapters.size()>i){
+                        hidePopup();
+                        Seeker.this.chapters.get(i).showPopup();
+                    }
+                    e.consume();
+                });
+                Label prevB = createIcon(AwesomeIcon.CHEVRON_LEFT, 11, "Previous chapter", e -> {
+                    int i = Seeker.this.chapters.indexOf(this) - 1;
+                    if(0<=i){
+                        hidePopup();
+                        Seeker.this.chapters.get(i).showPopup();
+                    }
+                    e.consume();
+                });
+                int i = Seeker.this.chapters.indexOf(this);
+                if(Seeker.this.chapters.size()-1 == i)
+                    nextB.setDisable(true);
+                if(0 == i)
+                    prevB.setDisable(true);
+                Label helpB = createIcon(AwesomeIcon.INFO, 11, "Help", null);                    
                 helpB.setOnMouseClicked( e -> {
                     // build help content for help popup if not yet built
                     // with this we avoid constructing multuple popups
@@ -431,8 +440,6 @@ public final class Seeker extends AnchorPane {
                     helpP.show(helpB);
                     e.consume();
                 });
-                helpB.setTooltip(new Tooltip("Help"));
-                
                 // popup
                 p = new PopOver(content);
                 p.getSkinn().setContentPadding(new Insets(8));
@@ -445,7 +452,7 @@ public final class Seeker extends AnchorPane {
                     if (editOn) cancelEdit();
                     end.play();
                 });
-                p.getHeaderIcons().addAll(editB,delB,helpB);
+                p.getHeaderIcons().addAll(prevB, nextB, editB, delB, helpB);
                 content.setOnMouseClicked( e -> {
                     // if info popup displayed close it and act as if content is
                     // mouse transparent to prevent any action

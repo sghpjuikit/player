@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-import util.Log;
+import util.dev.Log;
 import static util.functional.FunctUtil.isNotNULL;
 
 /**

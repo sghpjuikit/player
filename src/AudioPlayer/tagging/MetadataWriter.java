@@ -33,12 +33,12 @@ import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.AudioFileFormat;
 import static util.Parser.File.AudioFileFormat.*;
 import util.Parser.ParserImpl.ColorParser;
-import util.TODO;
-import static util.TODO.Purpose.FUNCTIONALITY;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
 
 /**
  * 

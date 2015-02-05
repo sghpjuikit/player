@@ -10,8 +10,8 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.App;
-import util.Dependency;
-import util.TODO;
+import util.dev.Dependency;
+import util.dev.TODO;
 import static util.async.Async.run;
 
 /**

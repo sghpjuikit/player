@@ -3,21 +3,17 @@ package Playlist;
 
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
-import static AudioPlayer.playlist.PlaylistItem.Field.ARTIST;
-import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
-import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
-import static AudioPlayer.playlist.PlaylistItem.Field.PATH;
-import static AudioPlayer.playlist.PlaylistItem.Field.TITLE;
+import static AudioPlayer.playlist.PlaylistItem.Field.*;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.tagging.FormattedDuration;
+import util.units.FormattedDuration;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import GUI.virtual.InfoNode.InfoTable;
-import static GUI.virtual.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Table.PlaylistTable;
+import GUI.virtual.InfoNode.InfoTable;
+import static GUI.virtual.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -260,10 +256,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         if(table.getItemsFiltered().isEmpty()) return;
         
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
-        MapConfigurable cs = new MapConfigurable(
+        MapConfigurable mc = new MapConfigurable(
                 new ValueConfig("Name", initialName),
                 new ValueConfig("Category", "Listening to..."));
-        SimpleConfigurator sc = new SimpleConfigurator<String>(cs, c -> {
+        SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
             String name = c.getField("Name").getValue();
             NamedPlaylist p = new NamedPlaylist(name, table.getItems());
                           p.addCategory("Listening to...");
@@ -278,9 +274,9 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public void saveSelectedAsPlaylist() {
         if(table.getSelectedItems().isEmpty()) return;
         
-        MapConfigurable mc = new MapConfigurable();
-                        mc.addField(new ValueConfig("Name", "My Playlist"));
-                        mc.addField(new ValueConfig("Category", "Custom"));
+        MapConfigurable mc = new MapConfigurable(
+                        new ValueConfig("Name", "My Playlist"),
+                        new ValueConfig("Category", "Custom"));
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
             String name = c.getField("Name").getValue();
             String category = c.getField("Category").getValue();

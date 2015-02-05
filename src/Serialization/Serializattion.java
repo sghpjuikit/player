@@ -8,7 +8,7 @@ import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import java.io.*;
 import main.App;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.FileUtil;
 import static util.functional.FunctUtil.isNotNULL;
 

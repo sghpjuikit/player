@@ -13,9 +13,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import util.TODO;
-import static util.TODO.Purpose.UNIMPLEMENTED;
-import static util.TODO.Severity.SEVERE;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.UNIMPLEMENTED;
+import static util.dev.TODO.Severity.SEVERE;
 
 /**
  * {@link Set} backed by {@link HashMap} using provided key mapper for identity 

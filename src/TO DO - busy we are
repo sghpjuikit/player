@@ -4,7 +4,8 @@
 --------------------------------------------------------------------------------
 
 - implement colr skin change + use song color, using setStyle on main color
-- finish freeform container
+- window snap window/owner
+- window snap padding
 - library view save selection
 - library view play items use same order as library column sort order
 

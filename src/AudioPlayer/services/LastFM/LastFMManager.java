@@ -16,11 +16,7 @@ import Configuration.IsConfigurable;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
 import GUI.objects.SimpleConfigurator;
-import de.umass.lastfm.Authenticator;
-import de.umass.lastfm.Caller;
-import de.umass.lastfm.Result;
-import de.umass.lastfm.Session;
-import de.umass.lastfm.Track;
+import de.umass.lastfm.*;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.function.Consumer;
 import java.util.prefs.Preferences;
@@ -28,10 +24,10 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import util.Log;
+import util.dev.Log;
 import util.Password;
-import util.TODO;
-import static util.TODO.Purpose.UNIMPLEMENTED;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 
 /**
  *
@@ -125,14 +121,11 @@ public class LastFMManager {
     
     
     public static SimpleConfigurator getLastFMconfig(){
-        return new SimpleConfigurator<>(
-            new MapConfigurable(
-                new ValueConfig("Username", LastFMManager.acquireUserName()),
-                new ValueConfig("Password", LastFMManager.acquirePassword())                                  
-            ), 
-            vc -> LastFMManager.saveLogin(
-               (String)vc.getField("Username").getValue(),
-               (Password)vc.getField("Password").getValue())                                     
+        return new SimpleConfigurator<String>(
+            new MapConfigurable(new ValueConfig("name", acquireUserName()),
+                                new ValueConfig("pwd", acquirePassword())), 
+            c -> saveLogin(c.getField("name").getValue(), 
+                           new Password(c.getField("pwd").getValue()))                                     
         );    
 
     }

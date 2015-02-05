@@ -12,9 +12,7 @@ import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.awt.Desktop;
-import static java.awt.Desktop.Action.BROWSE;
-import static java.awt.Desktop.Action.EDIT;
-import static java.awt.Desktop.Action.OPEN;
+import static java.awt.Desktop.Action.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -26,12 +24,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import main.App;
-import util.Log;
 import util.Parser.File.AudioFileFormat.Use;
-import util.TODO;
-import static util.TODO.Purpose.FUNCTIONALITY;
-import static util.TODO.Severity.MEDIUM;
 import util.Util;
+import util.dev.Log;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.dev.TODO.Severity.MEDIUM;
 
 /**
  * Provides methods to handle external often platform specific tasks. Browsing
@@ -192,12 +190,12 @@ public class Enviroment {
         if(dir) {
             DirectoryChooser c = new DirectoryChooser();
             c.setTitle(title);
-            c.setInitialDirectory(Util.getExistingParent(initial));
+            c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
             return c.showDialog(w);
         } else {
             FileChooser c = new FileChooser();
             c.setTitle(title);
-            c.setInitialDirectory(Util.getExistingParent(initial));
+            c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
             if (exts !=null) c.getExtensionFilters().addAll(exts);
             return c.showOpenDialog(w);
         }
@@ -206,7 +204,7 @@ public class Enviroment {
     public static List<File> chooseFiles(String title, File initial, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
-        c.setInitialDirectory(Util.getExistingParent(initial));
+        c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         return c.showOpenMultipleDialog(w);
     }
@@ -214,7 +212,7 @@ public class Enviroment {
     public static void saveFile(String title, File initial, String initialName, Window w, ExtensionFilter... exts) {
         FileChooser c = new FileChooser();
         c.setTitle(title);
-        c.setInitialDirectory(Util.getExistingParent(initial));
+        c.setInitialDirectory(Util.getExistingParent(initial,App.getLocation()));
         c.setInitialFileName(title);
         if (exts !=null) c.getExtensionFilters().addAll(exts);
         c.showSaveDialog(w);

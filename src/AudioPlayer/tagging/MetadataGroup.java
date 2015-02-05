@@ -6,6 +6,8 @@
 
 package AudioPlayer.tagging;
 
+import util.units.FileSize;
+import util.units.FormattedDuration;
 import java.util.function.Predicate;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import static util.Util.capitalizeStrong;

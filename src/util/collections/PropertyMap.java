@@ -5,7 +5,6 @@
  */
 package util.collections;
 
-import PseudoObjects.ReadMode;
 import java.util.HashMap;
 import javafx.geometry.Orientation;
 
@@ -90,9 +89,6 @@ public final class PropertyMap extends HashMap<String, Object>{
     }  
     public String getS(String key) {
         return (String) get(key);
-    }
-    public ReadMode getRM(String key) {
-        return (ReadMode) get(key);
     }
     public Orientation getOriet(String key) {
         return (Orientation) get(key);

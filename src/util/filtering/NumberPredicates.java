@@ -10,9 +10,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
-import org.reactfx.util.Tuple2;
-import org.reactfx.util.Tuples;
 import util.SteroidObject;
+import util.collections.Tuple2;
+import static util.collections.Tuples.tuple;
 
 /**
  *
@@ -44,6 +44,6 @@ public enum NumberPredicates implements SteroidObject{
     
     public Tuple2<String, BiPredicate<Number, Number>> predicate(Class<Number> type) {
         if (!ps.containsKey(type.hashCode())) throw new RuntimeException("illegal class parameter");
-        return Tuples.t(toStringEnum(), (BiPredicate<Number,Number>) ps.get(type.hashCode()));
+        return tuple(toStringEnum(), (BiPredicate<Number,Number>) ps.get(type.hashCode()));
     }
 }

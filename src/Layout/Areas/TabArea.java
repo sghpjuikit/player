@@ -25,7 +25,7 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
-import util.Log;
+import util.dev.Log;
 import static util.Util.setAnchors;
 import static util.functional.FunctUtil.isNotNULL;
 

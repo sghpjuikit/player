@@ -13,6 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.dev.TODO.Severity.CRITICAL;
 
 /**
  *
@@ -21,7 +24,6 @@ import org.reactfx.Subscription;
 public class CascadingStream<E> {
     
     public static final Supplier<EventStream<?>> DEFAULT_EVENT_STREAM_FACTORY = () -> new AccessibleStream(EMPTY_LIST);
-//    public static final Supplier<EventStream<?>> DEFAULT_EVENT_STREAM_FACTORY = () -> new EventSource();
     
     HashMap<Integer,AccessibleStream<E>> map = new HashMap();
     public Supplier<AccessibleStream<E>> eventStreamFactory = (Supplier)DEFAULT_EVENT_STREAM_FACTORY;
@@ -51,6 +53,7 @@ public class CascadingStream<E> {
             if(i>1) link(i-1);
         }
     }
+    @TODO(severity = CRITICAL, purpose = FUNCTIONALITY)
     private void unlink(int i) {
         AccessibleStream<E> s = map.get(i);
 //        if(s!=null) {

@@ -66,15 +66,7 @@
     <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="-1.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
 <cursor>
 <Cursor fx:constant="W_RESIZE" />
-</cursor></Region><Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
-<cursor>
-<Cursor fx:constant="SE_RESIZE" />
-</cursor>
-</Region><Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
-<cursor>
-<Cursor fx:constant="SW_RESIZE" />
-</cursor>
-</Region>
+</cursor></Region>
             <Region layoutX="10.0" layoutY="10.0" onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                <cursor>
                   <Cursor fx:constant="NW_RESIZE" />
@@ -93,6 +85,26 @@
             <Region layoutX="40.0" layoutY="40.0" onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <cursor>
                   <Cursor fx:constant="NE_RESIZE" />
+               </cursor>
+            </Region>
+            <Region layoutX="10.0" layoutY="10.0" onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+               <cursor>
+                  <Cursor fx:constant="SW_RESIZE" />
+               </cursor>
+            </Region>
+            <Region layoutX="20.0" layoutY="20.0" onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+               <cursor>
+                  <Cursor fx:constant="SW_RESIZE" />
+               </cursor>
+            </Region>
+            <Region layoutX="30.0" layoutY="30.0" onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <cursor>
+                  <Cursor fx:constant="SE_RESIZE" />
+               </cursor>
+            </Region>
+            <Region layoutX="40.0" layoutY="40.0" onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+               <cursor>
+                  <Cursor fx:constant="SE_RESIZE" />
                </cursor>
             </Region>
 </children></AnchorPane>

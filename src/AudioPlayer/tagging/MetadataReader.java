@@ -14,7 +14,7 @@ import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.AudioFileFormat.Use;
 import static util.async.Async.run;
 import static util.async.Async.runOnFX;

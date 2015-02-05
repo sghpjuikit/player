@@ -5,17 +5,17 @@
  */
 package util.filtering;
 
-import AudioPlayer.tagging.Bitrate;
-import AudioPlayer.tagging.FileSize;
-import AudioPlayer.tagging.FormattedDuration;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
-import org.reactfx.util.Tuple2;
-import org.reactfx.util.Tuples;
+import util.collections.Tuple2;
+import static util.collections.Tuples.tuple;
+import util.units.Bitrate;
+import util.units.FileSize;
+import util.units.FormattedDuration;
 
 /**
  *
@@ -81,9 +81,9 @@ public class Predicates {
     public static<T> void registerPredicate(Class<T> c, String name, BiPredicate<T,T> p, boolean pref) {
         List<Tuple2<String,BiPredicate>> ps = predicates.get(c);
         if (ps==null) ps = new ArrayList();
-        ps.add(Tuples.t(name, p));
+        ps.add(tuple(name, p));
         predicates.put(c, ps);
-        if(pref) prefpredicates.put(c, Tuples.t(name, p));
+        if(pref) prefpredicates.put(c, tuple(name, p));
     }
     
     public static List<Tuple2<String,BiPredicate>> getPredicates(Class c) {

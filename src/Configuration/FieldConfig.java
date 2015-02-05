@@ -10,7 +10,7 @@ import Configuration.Config.ConfigBase;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.util.Objects;
-import util.Log;
+import util.dev.Log;
 
 /**
  * Class level {@link Config}.

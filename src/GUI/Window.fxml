@@ -8,91 +8,103 @@
 <?import javafx.scene.layout.*?>
 
 <fx:root id="AnchorPane" fx:id="root" prefHeight="111.0" prefWidth="111.0" snapToPixel="false" styleClass="window" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-  <children><AnchorPane fx:id="bgrImgLayer" mouseTransparent="true" styleClass="brg-image" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><AnchorPane fx:id="borders" styleClass="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<children>
-        <Region fx:id="lBorder" mouseTransparent="true" prefWidth="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
-        <Region fx:id="rBorder" mouseTransparent="true" prefWidth="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" /><Region mouseTransparent="true" prefHeight="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
-    <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">
-<cursor>
-<Cursor fx:constant="S_RESIZE" />
-</cursor></Region>
-    <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0" AnchorPane.topAnchor="0.0">
-<cursor>
-<Cursor fx:constant="V_RESIZE" />
-</cursor></Region>
-    <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="-1.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<cursor>
-<Cursor fx:constant="E_RESIZE" />
-</cursor></Region>
-    <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="-1.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
-<cursor>
-<Cursor fx:constant="W_RESIZE" />
-</cursor></Region><Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
-<cursor>
-<Cursor fx:constant="SE_RESIZE" />
-</cursor>
-</Region><Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
-<cursor>
-<Cursor fx:constant="NW_RESIZE" />
-</cursor>
-</Region><Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
-<cursor>
-<Cursor fx:constant="SW_RESIZE" />
-</cursor>
-</Region><Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<cursor>
-<Cursor fx:constant="NE_RESIZE" />
-</cursor>
-</Region>
-  <BorderPane fx:id="header" mouseTransparent="true" prefHeight="25.0" styleClass="block,header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<opaqueInsets>
-<Insets />
-</opaqueInsets>
-<padding>
-<Insets left="5.0" right="5.0" />
-</padding></BorderPane><HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="5.0" AnchorPane.leftAnchor="4.0" AnchorPane.topAnchor="4.0" BorderPane.alignment="CENTER">
-<children>
-  <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" /><Label fx:id="titleL" BorderPane.alignment="CENTER">
-<BorderPane.margin>
-<Insets left="10.0" />
-</BorderPane.margin></Label>
-</children></HBox>
-        <HBox fx:id="controls" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="5.0" visible="true" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0">
-          <children><Button fx:id="miniB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMini" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T" visible="false">
-<tooltip>
-<Tooltip text="Toggle Mini" />
-</tooltip>
-</Button><Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T">
-<tooltip>
-<Tooltip text="Always on top" />
-</tooltip>
-</Button>
-            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleFullscreen" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="■">
-              <tooltip>
-                <Tooltip text="Fullscreen" />
-              </tooltip>
-            </Button>
-            <Button fx:id="minimizeB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMinimize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="▁">
-              <tooltip>
-                <Tooltip text="Minimize" />
-              </tooltip>
-            </Button>
-            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMaximize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="☐">
-              <tooltip>
-                <Tooltip text="Maximize/Demaximize" />
-              </tooltip>
-            </Button>
-            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="✕">
-              <tooltip>
-                <Tooltip text="Close" />
-              </tooltip>
-            </Button>
-          </children>
-        </HBox>
-</children></AnchorPane>
-    <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
-  </children>
-  <padding>
-    <Insets />
-  </padding>
+    <children>
+        <AnchorPane fx:id="bgrImgLayer" mouseTransparent="true" styleClass="brg-image" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <AnchorPane fx:id="borders" styleClass="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Region fx:id="lBorder" mouseTransparent="true" prefWidth="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
+                <Region fx:id="rBorder" mouseTransparent="true" prefWidth="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" /><Region mouseTransparent="true" prefHeight="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
+                <BorderPane fx:id="header" prefHeight="25.0" styleClass="block,header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <opaqueInsets>
+                        <Insets />
+                    </opaqueInsets>
+                    <padding>
+                        <Insets left="5.0" right="5.0" />
+                    </padding>
+                </BorderPane>
+                <HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="5.0" AnchorPane.leftAnchor="4.0" AnchorPane.topAnchor="4.0" BorderPane.alignment="CENTER">
+                    <children>
+                        <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" /><Label fx:id="titleL" BorderPane.alignment="CENTER">
+                        <BorderPane.margin>
+                            <Insets left="10.0" />
+                        </BorderPane.margin></Label>
+                    </children>
+                </HBox>
+                <HBox fx:id="controls" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="5.0" visible="true" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0">
+                    <children>
+                        <Button fx:id="miniB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMini" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T" visible="false">
+                        <tooltip>
+                            <Tooltip text="Toggle Mini" />
+                        </tooltip>
+                        </Button><Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T">
+                        <tooltip>
+                        <Tooltip text="Always on top" />
+                        </tooltip>
+                        </Button>
+                            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleFullscreen" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="■">
+                              <tooltip>
+                                <Tooltip text="Fullscreen" />
+                              </tooltip>
+                            </Button>
+                            <Button fx:id="minimizeB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMinimize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="▁">
+                              <tooltip>
+                                <Tooltip text="Minimize" />
+                              </tooltip>
+                            </Button>
+                            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMaximize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="☐">
+                              <tooltip>
+                                <Tooltip text="Maximize/Demaximize" />
+                              </tooltip>
+                            </Button>
+                            <Button minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="✕">
+                              <tooltip>
+                                <Tooltip text="Close" />
+                              </tooltip>
+                            </Button>
+                    </children>
+                </HBox>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">
+                    <cursor>
+                    <Cursor fx:constant="S_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0" AnchorPane.topAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="V_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="-1.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="E_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="-1.0" prefWidth="4.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="W_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="SE_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="NW_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="SW_RESIZE" />
+                    </cursor>
+                </Region>
+                <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="18.0" prefWidth="18.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <cursor>
+                    <Cursor fx:constant="NE_RESIZE" />
+                    </cursor>
+                </Region>
+            </children>
+        </AnchorPane>
+        <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
+    </children>
 </fx:root>

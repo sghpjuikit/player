@@ -2,7 +2,7 @@
 package AudioPlayer.playback;
 
 import javafx.util.Duration;
-import util.Log;
+import util.dev.Log;
 
 /**
  *

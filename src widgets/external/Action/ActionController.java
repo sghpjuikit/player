@@ -1,15 +1,18 @@
 
 package Action;
 
+import static Action.Action.EMPTY;
 import Configuration.IsConfig;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeIcon.GAMEPAD;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import util.access.Accessor;
@@ -39,18 +42,17 @@ public class ActionController extends FXMLController {
     
     // configurables
     @IsConfig(name = "Icon", info = "Icon for the action button")
-    public final Accessor<AwesomeIcon> icon = new Accessor<>(AwesomeIcon.GAMEPAD, v -> AwesomeDude.setIcon(button, v, String.valueOf(size)));
+    public final Accessor<AwesomeIcon> icon = new Accessor<>(GAMEPAD, v -> AwesomeDude.setIcon(button, v, String.valueOf(size)));
     @IsConfig(name = "Action", info = "Action for the button.")
-    public final AccessorAction action = new AccessorAction(Action.EMPTY, null);
+    public final AccessorAction action = new AccessorAction(EMPTY, button::setOnMouseClicked);
     @IsConfig(name = "Alignment", info = "Alignment of the button")
-    public final Accessor<Pos> align = new Accessor<>(Pos.CENTER, v -> StackPane.setAlignment(button, v));
+    public final Accessor<Pos> align = new Accessor<>(CENTER, v -> StackPane.setAlignment(button, v));
 
     
     @Override
     public void init() {
         root.getChildren().add(button);
         root.setOnScroll(Event::consume);
-        button.setOnMouseClicked(e-> Action.getAction(action.getValue()).run());
         button.setOnScroll(e -> {
             size += (int)e.getTextDeltaY();
             AwesomeDude.setIcon(button, icon.getValue(), String.valueOf(size));

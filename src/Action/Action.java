@@ -15,20 +15,22 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import static java.util.Collections.singletonList;
 import java.util.*;
+import static java.util.Collections.singletonList;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+import javafx.scene.input.MouseEvent;
 import main.App;
 import org.atteo.classindex.ClassIndex;
-import util.Dependency;
-import util.Log;
+import util.dev.Dependency;
+import util.dev.Log;
 import util.access.Accessor;
 import util.async.FxTimer;
 import util.collections.MapSet;
@@ -48,11 +50,9 @@ import static util.functional.FunctUtil.do_NOTHING;
  * into actions and provide shortcuts for execution of the underlying behavior.
  * <p>
  * Additionally, actions can be configured and their state serialized.
- * <p>
- * @author uranium
  */
 @IsConfigurable
-public final class Action extends Config<Action> implements Runnable {
+public final class Action extends Config<Action> implements Runnable, EventHandler<MouseEvent> {
     
     /** Action that does nothing. Use where null inappropriate. */
     public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", false, false);
@@ -226,6 +226,13 @@ public final class Action extends Config<Action> implements Runnable {
             action.run();
             App.actionStream.push(name);
 //        }
+    }
+
+    /** Invokes {@link #run()} and consumes event. */
+    @Override
+    public void handle(MouseEvent e) {
+        run();
+        e.consume();
     }
     
     /**
@@ -589,7 +596,7 @@ public final class Action extends Config<Action> implements Runnable {
 /************************ shortcut helper methods *****************************/
 
     // lock
-     private static FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
+     private static final FxTimer locker = new FxTimer(80, 1, () -> lock = -1);
 //    private static final FxTimer locker = FxTimer.create(Duration.millis(500), Action::unlock);
     private static int lock = -1;
 //    private static void unlock() {System.out.println(System.currentTimeMillis() +" unlocking");
@@ -598,7 +605,7 @@ public final class Action extends Config<Action> implements Runnable {
 
     //shortcut running
     // this listener is running ever 33ms when any registered shortcut is pressed
-    private static final HotkeyListener global_listener = id -> {System.out.println(System.currentTimeMillis() + " s");
+    private static final HotkeyListener global_listener = id -> {
         Log.deb("Global shortcut " + actions.get(id).getName() + " captured.");
         actions.get(id).run();
         locker.restart();

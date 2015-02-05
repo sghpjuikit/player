@@ -4,6 +4,7 @@
  */
 package util;
 
+import util.dev.Log;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.awt.Dimension;
@@ -37,7 +38,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
-import main.App;
 import org.jaudiotagger.tag.images.Artwork;
 import util.Parser.File.FileUtil;
 
@@ -352,10 +352,10 @@ public interface Util {
      * Returns file itself if exists or its existing parent recursively. If
      * null or no parent exists, returns application location.
      */
-    public static File getExistingParent(File f) {
-        if (f==null) return App.getLocation();
+    public static File getExistingParent(File f, File defaultFile) {
+        if (f==null) return defaultFile;
         if (f.exists()) return f;
-        else return getExistingParent(f.getParentFile());
+        else return getExistingParent(f.getParentFile(), defaultFile);
     }
     
     /** @return {@code max(min,min(i,max))} */

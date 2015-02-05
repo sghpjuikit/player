@@ -12,9 +12,9 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
 import static org.atteo.evo.inflector.English.plural;
-import util.TODO;
-import static util.TODO.Purpose.BUG;
-import static util.TODO.Severity.LOW;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.BUG;
+import static util.dev.TODO.Severity.LOW;
 import static util.Util.copySelectedItems;
 
 /**

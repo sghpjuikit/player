@@ -1,6 +1,7 @@
 
 package GUI.objects;
 
+import Configuration.Config;
 import Configuration.Configurable;
 import GUI.ItemHolders.ConfigField;
 import com.sun.glass.ui.Screen;
@@ -15,7 +16,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import util.functional.FunctUtil;
+import static util.functional.FunctUtil.cmpareNoCase;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure 
@@ -44,21 +45,25 @@ public class SimpleConfigurator<T> extends AnchorPane {
     private final double anchor;
     private final List<ConfigField<T>> configFields = new ArrayList();
     private final Configurable<T> configurable;
-    private final Consumer<Configurable<T>>  onOK;
+    /**
+     * Procedure executed when user finishes the configuring. 
+     * Invoked when ok button is pressed.
+     * Default implementation does nothing. Must not be null.
+     * <p>
+     * For example one might want to close this control when no item is selected.
+     */
+    public Consumer<Configurable<T>> onOK = c -> {};
 
     /**
-     * @param configurable configurable object
-     * @param on_OK OK button click action. Set null if none. This
-     * parameter also affects visibility of the OK button. It is only visible if
-     * there is an action to execute.
-     * The procedure provides the Configurable of this configurator as a 
-     * parameter to access the configs.
+     * @param c configurable object
+     * @param on_OK OK button click action. Null if none. Affects visibility
+     * of the OK button. It is only visible if there is an action to execute.
      */
-    public SimpleConfigurator(Configurable<T> configurable, Consumer<Configurable<T>> on_OK) {
-        Objects.requireNonNull(configurable);
+    public SimpleConfigurator(Configurable<T> c, Consumer<Configurable<T>> on_OK) {
+        Objects.requireNonNull(c);
         
-        this.configurable = configurable;
-        this.onOK = on_OK;
+        configurable = c;
+        onOK = on_OK==null ? cg -> {} : on_OK;
         
         FXMLLoader fxmlLoader = new FXMLLoader(SimpleConfigurator.class.getResource("SimpleConfigurator.fxml"));
         fxmlLoader.setRoot(this);
@@ -71,18 +76,19 @@ public class SimpleConfigurator<T> extends AnchorPane {
         
         fieldsPane.setMaxHeight(Screen.getMainScreen().getVisibleHeight()*0.7);
         anchor = AnchorPane.getBottomAnchor(fieldsPane);
-        setOkbVisible(on_OK!=null);
+        setOkButtonVisible(on_OK!=null);
         
         // set configs
         configFields.clear();
         fields.getChildren().clear();
-        configurable.getFields().stream().sorted(FunctUtil.cmpareNoCase(f -> f.getGuiName())).forEach( f -> {
-            if (f.isEditable()) {                   // ignore noneditabe    
-                ConfigField cf = ConfigField.create(f);                 // create
-                configFields.add(cf);                                   // add
-                fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
-                fields.add(cf.getControl(), 1, configFields.size()-1);
-            }
+        c.getFields().stream()
+         .sorted(cmpareNoCase(Config::getGuiName))
+         .filter(Config::isEditable)
+         .forEach( f -> { 
+            ConfigField cf = ConfigField.create(f);                 // create
+            configFields.add(cf);                                   // add
+            fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
+            fields.add(cf.getControl(), 1, configFields.size()-1);
         });
     }
     
@@ -96,17 +102,14 @@ public class SimpleConfigurator<T> extends AnchorPane {
     public void ok() {
         // set and apply values and refresh if needed
         configFields.forEach(ConfigField::applyNsetIfNeed);
-        // always run the onOk procedure 
-        if(onOK!=null) onOK.accept(configurable);
+        onOK.accept(configurable);
     }
     
     public Configurable getConfigurable() {
         return configurable;
     }
     
-/******************************* HELPER METHODS *******************************/
-    
-    private void setOkbVisible(boolean val) {
+    public final void setOkButtonVisible(boolean val) {
         buttonPane.setVisible(val);
         AnchorPane.setBottomAnchor(fieldsPane, val ? anchor : 0d);
     }

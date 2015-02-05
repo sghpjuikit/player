@@ -29,8 +29,7 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import static javafx.scene.paint.Color.BLACK;
 import javafx.scene.shape.Rectangle;
-import util.Log;
-import util.Util;
+import util.dev.Log;
 import static util.Util.setAnchors;
 
 /**
@@ -114,7 +113,7 @@ public class PaneWindowControls extends WindowPane {
     public void setContent(Node n) {
 	content.getChildren().clear();
 	content.getChildren().add(n);
-	Util.setAnchors(n, 0);
+	setAnchors(n, 0);
     }
 
     public void setContent(Component c) {

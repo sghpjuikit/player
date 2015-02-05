@@ -4,7 +4,7 @@
  */
 package AudioPlayer.tagging.Chapters;
 
-import AudioPlayer.tagging.FormattedDuration;
+import util.units.FormattedDuration;
 import java.util.Objects;
 import javafx.util.Duration;
 

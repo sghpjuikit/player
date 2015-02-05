@@ -5,6 +5,7 @@ import Action.IsAction;
 import Action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import static GUI.GUI.OpenStrategy.INSIDE;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
 import Layout.Layout;
@@ -16,6 +17,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
+import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import static javafx.animation.Interpolator.LINEAR;
 import javafx.animation.ParallelTransition;
@@ -39,10 +41,10 @@ import javafx.util.Duration;
 import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.FileUtil;
-import util.TODO;
-import static util.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 import static util.Util.capitalizeStrong;
 import util.access.Accessor;
 import util.access.AccessorEnum;
@@ -94,7 +96,9 @@ public class GUI {
             App.actionStream.push("Layout lock");
         }
     };
-        
+    @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
+    public static OpenStrategy open_strategy = INSIDE;
+    
 /******************************************************************************/
     
     public static void initialize() {}
@@ -425,21 +429,16 @@ public class GUI {
     public static final Duration ANIM_DUR = Duration.millis(300);
     
     public static void closeAndDo(Node n, EventHandler<ActionEvent> action) {
-        FadeTransition a1 = new FadeTransition(ANIM_DUR);
-                       a1.setToValue(1);
-                       a1.setToValue(0);
-                       a1.setInterpolator(LINEAR);
-        ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
-                        a2.setInterpolator(new CircularInterpolator(EASE_OUT));
-                        a2.setToX(1);
-                        a2.setToY(1);
-                        a2.setToX(0);
-                        a2.setToY(0);
-        ParallelTransition pt = new ParallelTransition(n, a1, a2);
-        pt.setOnFinished(action);
-        pt.play();
+        Animation a = buildAnimation(n, action);
+                  a.setRate(-1);
+                  a.playFrom(ANIM_DUR);
     }
     public static void openAndDo(Node n, EventHandler<ActionEvent> action) {
+        Animation a = buildAnimation(n, action);
+                  a.play();
+    }
+    
+    private static Animation buildAnimation(Node n, EventHandler<ActionEvent> action) {
         FadeTransition a1 = new FadeTransition(ANIM_DUR);
                        a1.setFromValue(0);
                        a1.setToValue(1);
@@ -450,8 +449,12 @@ public class GUI {
                         a2.setFromY(0);
                         a2.setToX(1);
                         a2.setToY(1);
-        ParallelTransition pt = new ParallelTransition(n, a1, a2);
-        pt.setOnFinished(action);
-        pt.play();
+        Animation pt = new ParallelTransition(n, a1, a2);
+                  pt.setOnFinished(action);
+        return pt;
+    }
+    
+    public static enum OpenStrategy {
+        POPUP, INSIDE;
     }
 }

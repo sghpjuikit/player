@@ -4,7 +4,7 @@ package Library;
 import AudioPlayer.Player;
 import AudioPlayer.playlist.*;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.tagging.FormattedDuration;
+import util.units.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.Field.PATH;
 import static AudioPlayer.tagging.Metadata.Field.TITLE;

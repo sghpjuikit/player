@@ -14,7 +14,7 @@ import GUI.objects.PopOver.Notification;
 import GUI.objects.PopOver.Notification.NotificationType;
 import static GUI.objects.PopOver.Notification.NotificationType.*;
 import GUI.objects.PopOver.PopOver;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomRight;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopRight;
 import javafx.scene.Node;
 import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.*;
@@ -48,7 +48,7 @@ public final class Notifier implements Service {
     @IsConfig(name = "Close notification when clicked anywhere.")
     public static boolean notifAutohide = true;
     @IsConfig(name = "Notification position.")
-    public static PopOver.ScreenCentricPos notifPos = ScreenBottomRight;
+    public static PopOver.ScreenCentricPos notifPos = ScreenTopRight;
     @IsConfig(name = "On Left Click.")
     public static final AccessorAction onClickL = new AccessorAction(Action.getAction("Show/Hide application"), null);
     @IsConfig(name = "On Right Click.")
@@ -128,7 +128,7 @@ public final class Notifier implements Service {
         if (!showStatusNotification || newS == null) return;
         
         Metadata m = Player.playingtem.get();
-        String text = "Playback change : " + PLAYBACK.getStatus().toString();
+        String text = "Playback change : " + PLAYBACK.getStatus();
         showNotification(m, text, PLAYBACK_STATUS);
     }
     

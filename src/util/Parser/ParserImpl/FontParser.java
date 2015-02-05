@@ -4,7 +4,7 @@ package util.Parser.ParserImpl;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import util.Log;
+import util.dev.Log;
 import util.Parser.StringParser;
 
 /**

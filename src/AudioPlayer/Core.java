@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.reactfx.Subscription;
 import util.async.FxTimer;
-import util.Log;
+import util.dev.Log;
 import util.access.AccessibleStream;
 
 /**

@@ -73,7 +73,7 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.Subscription;
 import util.InputConstraints;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.AudioFileFormat.Use;
 import util.Parser.File.Enviroment;
 import util.Parser.File.ImageFileFormat;

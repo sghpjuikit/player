@@ -9,11 +9,11 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.collections.transformation.FilteredList;
-import org.reactfx.util.Tuple3;
-import org.reactfx.util.Tuples;
 import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import util.collections.Tuple3;
+import static util.collections.Tuples.tuple;
 import util.filtering.Predicates;
 import static util.functional.FunctUtil.cmpareBy;
 
@@ -28,12 +28,12 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
         setOnFilterChange(table_list::setPredicate);
         setPredicateSupplier(Predicates::getPredicates);
         setPrefPredicateSupplier(Predicates::getPrefPredicate);
-        setPrefTypeSupplier(() -> Tuples.t(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
+        setPrefTypeSupplier(() -> tuple(prefFilterType.toString(), prefFilterType.getType(), prefFilterType));
         if(prefFilterType instanceof Enum) {
             F[] es = (F[]) getEnumConstants(prefFilterType.getClass());
             List<Tuple3<String,Class,F>> data = Stream.of(es)
                 .filter(FieldEnum::isTypeStringRepresentable)
-                .map(mf->Tuples.t(mf.toString(),mf.getType(),mf))
+                .map(mf->tuple(mf.toString(),mf.getType(),mf))
                 .sorted(cmpareBy(e->e._1))
                 .collect(toList());
             setData(data);

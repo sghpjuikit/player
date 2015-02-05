@@ -17,7 +17,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
-import util.Log;
+import util.dev.Log;
 import util.access.Accessor;
 import static util.functional.FunctUtil.cmpareNoCase;
 

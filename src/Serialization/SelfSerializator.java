@@ -8,7 +8,7 @@ package Serialization;
 
 import java.io.File;
 import java.io.IOException;
-import util.Log;
+import util.dev.Log;
 
 /**
  *

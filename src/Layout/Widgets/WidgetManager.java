@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import main.App;
-import util.Log;
+import util.dev.Log;
 import util.Parser.File.FileUtil;
 
 /**

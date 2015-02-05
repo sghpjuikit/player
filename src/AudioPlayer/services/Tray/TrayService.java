@@ -25,7 +25,7 @@ import javax.imageio.ImageIO;
 import main.App;
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuples;
-import util.Log;
+import util.dev.Log;
 
 /**
  *

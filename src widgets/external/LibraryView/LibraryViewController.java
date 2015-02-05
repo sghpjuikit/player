@@ -49,12 +49,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
-import org.reactfx.util.Tuples;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
 import util.collections.Histogram;
-import util.collections.Tuple4;
+import util.collections.TupleM4;
+import static util.collections.Tuples.tuple;
 import static util.functional.FunctUtil.*;
 import util.functional.Runner;
 
@@ -145,8 +145,8 @@ public class LibraryViewController extends FXMLController {
                 c.setCellValueFactory((Callback)t.getCellValueFactory());
             });
             // update filters
-            table.getSearchBox().setPrefTypeSupplier(() -> Tuples.t(VALUE.toString(v), VALUE.getType(v), VALUE));
-            table.getSearchBox().setData(listM(MetadataGroup.Field.values(), mgf->Tuples.t(mgf.toString(v),mgf.getType(v),mgf)));
+            table.getSearchBox().setPrefTypeSupplier(() -> tuple(VALUE.toString(v), VALUE.getType(v), VALUE));
+            table.getSearchBox().setData(listM(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(v),mgf.getType(v),mgf)));
             // repopulate
             setItems(DB.views.getValue(lvl.getValue()));
         },
@@ -270,14 +270,14 @@ public class LibraryViewController extends FXMLController {
     
 /******************************** PRIVATE API **********************************/
     
-    private final Histogram<Object, Metadata, Tuple4<Long,Set<String>,Double,Long>> h = new Histogram();
+    private final Histogram<Object, Metadata, TupleM4<Long,Set<String>,Double,Long>> h = new Histogram();
     
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
         Field f = fieldFilter.getValue();
         // make histogram
         h.keyMapper = metadata -> metadata.getField(f);
-        h.histogramFactory = () -> new Tuple4(0l,new HashSet(),0d,0l);
+        h.histogramFactory = () -> new TupleM4(0l,new HashSet(),0d,0l);
         h.elementAccumulator = (hist,metadata) -> {
             hist.a++;
             hist.b.add(metadata.getAlbum());

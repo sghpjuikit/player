@@ -46,6 +46,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -58,6 +59,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -67,7 +69,7 @@ import javafx.stage.Screen;
 import static javafx.stage.StageStyle.*;
 import main.App;
 import org.reactfx.Subscription;
-import util.Log;
+import util.dev.Log;
 import static util.Parser.File.Enviroment.browse;
 import util.Util;
 import static util.Util.createIcon;
@@ -336,16 +338,17 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	});
 
 	// app dragging
-	root.addEventHandler(DRAG_DETECTED, this::moveStart);
-	root.addEventHandler(MOUSE_DRAGGED, this::moveDo);
-	root.addEventHandler(MOUSE_RELEASED, this::moveEnd);
+	header.addEventHandler(DRAG_DETECTED, this::moveStart);
+	header.addEventHandler(MOUSE_DRAGGED, this::moveDo);
+	header.addEventHandler(MOUSE_RELEASED, this::moveEnd);
 
 	// header double click maximize, show header on/off
-	root.setOnMouseClicked(e -> {
-	    if (e.getButton() == MouseButton.PRIMARY)
+        header.setMouseTransparent(false);
+	header.setOnMouseClicked(e -> {
+	    if (e.getButton() == PRIMARY)
 		if (e.getClickCount() == 2)
 		    toggleMaximize();
-	    if (e.getButton() == MouseButton.SECONDARY)
+	    if (e.getButton() == SECONDARY)
 		if (e.getClickCount() == 2)
 		    setHeaderVisible(!headerVisible);
 	});
@@ -729,6 +732,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// it can not consume drag detected event and prevent dragging
 	// should be fixed
 	if (e.getButton() != PRIMARY || resizing.get()!=Resize.NONE) return;
+        if(header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
         
         isMoving.set(true);
 	appX = e.getSceneX();

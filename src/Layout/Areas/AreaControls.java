@@ -6,6 +6,8 @@
 package Layout.Areas;
 
 import GUI.GUI;
+import static GUI.GUI.OpenStrategy.INSIDE;
+import static GUI.GUI.OpenStrategy.POPUP;
 import static GUI.GUI.closeAndDo;
 import static GUI.GUI.openAndDo;
 import GUI.objects.Pickers.WidgetPicker;
@@ -30,6 +32,7 @@ import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.*;
@@ -236,17 +239,36 @@ public final class AreaControls {
 	area.toggleLocked();
     }
 
+
+
+    
     void settings() {
 	if (area.getActiveWidgets().isEmpty()) return;
-	Widget w = (Widget) area.getActiveWidgets().get(0);
-
-	SimpleConfigurator sc = new SimpleConfigurator(w);
-	PopOver p = new PopOver(sc);
-		p.setTitle(w.getName() + " Settings");
-		p.setArrowSize(0); // unfortunately autofix breaks the arrow position, turn off
-		p.setAutoFix(true); // we need autofix here
-		p.setAutoHide(true);
-		p.show(propB);
+        
+        if(GUI.open_strategy==POPUP) {
+            Widget w = (Widget) area.getActiveWidgets().get(0);
+            SimpleConfigurator sc = new SimpleConfigurator(w);
+            PopOver p = new PopOver(sc);
+                    p.setTitle(w.getName() + " Settings");
+                    p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
+                    p.setAutoFix(true); // we need autofix here, because the popup can get rather big
+                    p.setAutoHide(true);
+                    p.show(propB);
+            sc.onOK = c -> p.hide();
+        } else 
+        if (GUI.open_strategy==INSIDE) {
+            closeAndDo(area.content_root, e -> {
+                Widget w = (Widget) area.getActiveWidgets().get(0);
+                SimpleConfigurator sc = new SimpleConfigurator(w);
+                sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
+                sc.setOnMouseClicked(me->{ if(me.getButton()==SECONDARY) sc.ok(); });
+                sc.setOkButtonVisible(false);
+                sc.onOK = c -> closeAndDo(sc, a -> openAndDo(area.content_root, null));
+                area.root.getChildren().add(sc);
+                setAnchors(sc, 0);
+                openAndDo(sc, null);
+            });
+        }
     }
 
     void changeWidget() {
@@ -367,5 +389,4 @@ public final class AreaControls {
     public boolean isShowingWeak() {
 	return isShowingWeak;
     }
-
 }

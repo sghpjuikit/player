@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.Node;
-import util.Log;
+import util.dev.Log;
 
 /**
  * Widget is an abstract representation of graphical component that works like

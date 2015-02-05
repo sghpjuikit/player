@@ -3,7 +3,7 @@ package AudioPlayer.playlist;
 
 import AudioPlayer.Player;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.tagging.FileSize;
+import util.units.FileSize;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;

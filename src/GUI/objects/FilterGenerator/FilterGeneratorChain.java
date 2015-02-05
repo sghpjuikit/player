@@ -9,11 +9,7 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -21,10 +17,10 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-import org.reactfx.util.Tuple2;
-import org.reactfx.util.Tuple3;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import util.collections.Tuple2;
+import util.collections.Tuple3;
 import static util.functional.FunctUtil.isTRUE;
 
 /**

@@ -1,18 +1,19 @@
 
-package GUI;
+package GUI.objects.Window.stage;
 
-import static GUI.WindowBase.Maximized.ALL;
-import static GUI.WindowBase.Maximized.NONE;
+import GUI.GUI;
 import GUI.objects.Window.Resize;
+import static GUI.objects.Window.stage.WindowBase.Maximized.ALL;
+import static GUI.objects.Window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
 import javafx.beans.property.*;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.App;
+import static util.async.Async.run;
 import util.dev.Dependency;
 import util.dev.TODO;
-import static util.async.Async.run;
 
 /**
  * Customized Stage, window of the application.
@@ -88,7 +89,7 @@ public class WindowBase {
         // setFullscreen(FullProp.get())  produces a bug probably because the
         // window is not yet ready. Delay execution. Avoid the whole process
         // when the value is not true
-        if(FullProp.get()) run(222, ()->setFullscreen(true));
+        if(FullProp.get()) run(322, ()->setFullscreen(true));
     }
     /**
      * WARNING: Dont use the stage for positioning, maximizing and other

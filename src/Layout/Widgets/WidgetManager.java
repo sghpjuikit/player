@@ -1,7 +1,7 @@
 
 package Layout.Widgets;
 
-import GUI.ContextManager;
+import GUI.objects.Window.stage.ContextManager;
 import Layout.LayoutManager;
 import Layout.WidgetImpl.Configurator;
 import Layout.WidgetImpl.HtmlEditor;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import main.App;
 import util.dev.Log;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 
 /**
  * Handles operations with Widgets.

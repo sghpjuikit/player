@@ -9,16 +9,17 @@ import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.Metadata.Field;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.ItemHolders.ItemTextFields.MoodTextField;
+import GUI.objects.GraphicalTextField;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
+import GUI.objects.Text;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
@@ -29,12 +30,11 @@ import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
-import java.util.List;
-import java.util.Objects;
+import static java.util.Collections.singletonList;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -49,36 +49,31 @@ import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
+import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
+import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import main.App;
-import static org.controlsfx.validation.ValidationResult.fromErrorIf;
-import org.controlsfx.validation.ValidationSupport;
-import org.controlsfx.validation.decoration.GraphicValidationDecoration;
+import static org.atteo.evo.inflector.English.plural;
+import org.controlsfx.control.textfield.CustomTextField;
 import org.reactfx.Subscription;
+import util.File.AudioFileFormat;
+import util.File.AudioFileFormat.Use;
+import util.File.Enviroment;
+import util.File.ImageFileFormat;
 import util.InputConstraints;
-import util.dev.Log;
-import util.Parser.File.AudioFileFormat.Use;
-import util.Parser.File.Enviroment;
-import util.Parser.File.ImageFileFormat;
 import util.Parser.ParserImpl.ColorParser;
+import static util.Util.createIcon;
 import util.access.Accessor;
+import util.dev.Log;
 import static util.functional.impl.Validator.*;
 
 /**
@@ -111,30 +106,30 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @FXML AnchorPane entireArea;
     @FXML ScrollPane scrollPaneContent;
     @FXML GridPane grid;
-    @FXML TextField TitleF;
-    @FXML TextField AlbumF;
-    @FXML TextField ArtistF;
-    @FXML TextField AlbumArtistF;
-    @FXML TextField ComposerF;
-    @FXML TextField PublisherF;
-    @FXML TextField TrackF;
-    @FXML TextField TracksTotalF;
-    @FXML TextField DiscF;
-    @FXML TextField DiscsTotalF;
-    @FXML TextField GenreF;
-    @FXML TextField CategoryF;
-    @FXML TextField YearF;
-    @FXML TextField RatingF;
-    @FXML TextField RatingPF;
-    @FXML TextField PlaycountF;
-    @FXML TextField CommentF;
+    @FXML CustomTextField TitleF;
+    @FXML CustomTextField AlbumF;
+    @FXML CustomTextField ArtistF;
+    @FXML CustomTextField AlbumArtistF;
+    @FXML CustomTextField ComposerF;
+    @FXML CustomTextField PublisherF;
+    @FXML CustomTextField TrackF;
+    @FXML CustomTextField TracksTotalF;
+    @FXML CustomTextField DiscF;
+    @FXML CustomTextField DiscsTotalF;
+    @FXML CustomTextField GenreF;
+    @FXML CustomTextField CategoryF;
+    @FXML CustomTextField YearF;
+    @FXML CustomTextField RatingF;
+    @FXML CustomTextField RatingPF;
+    @FXML CustomTextField PlaycountF;
+    @FXML CustomTextField CommentF;
           MoodTextField MoodF = new MoodTextField();
     @FXML ColorPicker ColorF;
-    @FXML TextField Custom1F;
-    @FXML TextField Custom2F;
-    @FXML TextField Custom3F;
-    @FXML TextField Custom4F;
-    @FXML TextField Custom5F;
+    @FXML CustomTextField Custom1F;
+    @FXML CustomTextField Custom2F;
+    @FXML CustomTextField Custom3F;
+    @FXML CustomTextField Custom4F;
+    @FXML CustomTextField Custom5F;
     @FXML TextArea LyricsA;
     @FXML BorderPane coverContainer;
     @FXML Label CoverL;
@@ -155,14 +150,15 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data chagnge during writing
     Task<List<Metadata>> metaReader;
-    
+    private final List<Validation> validators = new ArrayList();
+        
     // listeners
     private Subscription playingItemMonitoring;
     private Subscription selectedItemsMonitoring;
     private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> 
             read(selectedItems);
     private final Consumer<Metadata> playingListener = item ->
-            read(Collections.singletonList(item));
+            read(singletonList(item));
     
     // properties
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
@@ -284,15 +280,15 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         fields.add(new TagField(AlbumArtistF,ALBUM_ARTIST));
         fields.add(new TagField(ComposerF,COMPOSER));
         fields.add(new TagField(PublisherF,PUBLISHER));
-        fields.add(new TagField(TrackF,Field.TRACK));
-        fields.add(new TagField(TracksTotalF,TRACKS_TOTAL));
-        fields.add(new TagField(DiscF,DISC));
-        fields.add(new TagField(DiscsTotalF,DISCS_TOTAL));
+        fields.add(new TagField(TrackF,TRACK,isIntS));
+        fields.add(new TagField(TracksTotalF,TRACKS_TOTAL,isIntS));
+        fields.add(new TagField(DiscF,DISC,isIntS));
+        fields.add(new TagField(DiscsTotalF,DISCS_TOTAL,isIntS));
         fields.add(new TagField(GenreF,GENRE));
         fields.add(new TagField(CategoryF,CATEGORY));
-        fields.add(new TagField(YearF,YEAR));
+        fields.add(new TagField(YearF,YEAR,isPastYearS));
         fields.add(new TagField(RatingF,RATING_RAW));
-        fields.add(new TagField(RatingPF,RATING));
+        fields.add(new TagField(RatingPF,RATING,IsBetween0And1));
         fields.add(new TagField(PlaycountF,PLAYCOUNT));
         fields.add(new TagField(CommentF,COMMENT));
         fields.add(new TagField(MoodF,MOOD));
@@ -307,31 +303,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         ColorF.disableProperty().bind(Custom1F.disabledProperty());
         ColorF.valueProperty().addListener((o,ov,nv) -> Custom1F.setText(new ColorParser().toS(nv)));
         
-        // validating input        
-        ValidationSupport val = new ValidationSupport();
-        val.setValidationDecorator(new GraphicValidationDecoration());
-            // year validation
-        val.registerValidator(YearF, (Control c, String text) -> fromErrorIf(
-            YearF, "Year must be greater than 0 and not greater than current year.",
-            !text.isEmpty() && !isPastYearS.test(text)
-        ));
-            // cd validation
-        DiscsTotalF.textProperty().addListener(o->{
-            String old = DiscF.getText();
-            DiscF.setText("");old+="";
-            DiscF.setText(old);
-        });
-        val.registerValidator(DiscF, (Control c, String nv) -> fromErrorIf(
-            DiscF, "Disc.",
-            !nv.isEmpty() && (!isIntS.test(nv) || (isIntS.test(nv)&&new Integer(nv)<0) ||
-                    (isIntS.test(nv)&&(isIntS.test(DiscsTotalF.getText())&& new Integer(nv)>Integer.parseInt(DiscsTotalF.getText())))
-                    )));
-            // rating validation
-        val.registerValidator(RatingPF, (Control c, String nv) -> fromErrorIf(
-            RatingPF, "Rating must be between 0 and 1.",
-            !nv.isEmpty() && !IsBetween0And1.test(nv))
-        );
-        
+
         // deselect text fields on click
         entireArea.setOnMousePressed( e -> {
             entireArea.requestFocus();
@@ -432,6 +404,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
     }
     
+
+    
     private void setR() {
         if (RatingPF.getText()==null || RatingPF.getText().isEmpty()) {
             RatingF.setPromptText("");
@@ -530,6 +504,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     public void write() {
         if (loader != null && loader.isRunning()) return;
         
+        Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
+        if(v!=null) {
+            PopOver p = new PopOver(new Text(v.text));
+            p.show(PopOver.ScreenCentricPos.AppCenter);
+            return;
+        }
+        
         // pre
         writing = true;
         showProgressWriting();
@@ -599,197 +580,50 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         fields.forEach(TagField::enable);
         CoverV.getPane().setDisable(false);
         
-        // initializing checkers for multiple values
-            //0 = no value in all items       write "no assigned value"
-            //1 = same value in all items     write actual value
-            //2 = multiple value in all items write "multiple value"
-        int Title = 0;
-        int Album = 0;
-        int Artist = 0;
-        int AlbumArtist = 0;
-        int Composer = 0;
-        int Publisher = 0;
-        int Track = 0;
-        int TracksTotal = 0;
-        int Disc = 0;
-        int DiscsTotal = 0;
-        int Genre = 0;
-        int Category = 0;
-        int Year = 0;
-        int Rating = 0;
-        int Playcount = 0;
-        int Comment = 0;
-        int Mood = 0;
-        int Custom1 = 0;
-        int Custom2 = 0;
-        int Custom3 = 0;
-        int Custom4 = 0;
-        int Custom5 = 0;
-        int Lyrics = 0;
-        int Cov = 0;
-        String TitleS = "";
-        String AlbumS = "";
-        String ArtistS = "";
-        String AlbumArtistS = "";
-        String ComposerS = "";
-        String PublisherS = "";
-        String TrackS = "";
-        String TracksTotalS = "";
-        String DiscS = "";
-        String DiscsTotalS = "";
-        String GenreS = "";
-        String CategoryS = "";
-        String YearS = "";
-        String RatingS = "";
-        String RatingPS = "";
-        String PlaycountS = "";
-        String CommentS = "";
-        String MoodS = "";
-        String Custom1S = "";
-        String Custom2S = "";
-        String Custom3S = "";
-        String Custom4S = "";
-        String Custom5S = "";
-        String LyricsS = "";
-        String CovInfoS = "";
+        // histogram init
+        fields.forEach(TagField::histogramInit);
+        // handle cover separately
+        int coverI = 0;
+        String covDesS = "";
         Cover CovS = null;
+        Set<AudioFileFormat> formats = new HashSet();
         
-        // check multiple values to determine general field values
-        // the condition goes like this (for every field):
-        // -- initializes at 0 = no value streak
-        // -- if first value not empty -> break no value streak, start same value streak, otherwise continue
-        //    (either all will be empty(0) or all will be same(1) - either way first value determines 0/1 streak)
-        // -- if empty streak and (non first) value not empty -> conclusion = multiple values
-        //    (empty and non empty values = multiple)
-        // -- if same value streak and different value -> conclusion = multiple values
-        // -- otherwise this ends as no value or same streak decided by 1st value
+        // histogram do
         for(Metadata m: items) {
             int i = items.indexOf(m);
-            if (i==0 && !m.getTitle().isEmpty())                                { Title = 1; TitleS = m.getTitle(); }
-            if (Title == 0 && i != 0 && !m.getTitle().isEmpty())                { Title = 2; TitleS = m.getTitle(); }
-            if (Title == 1 && !m.getTitle().equals(TitleS))                     { Title = 2; }
-            if (i==0 && !m.getAlbum().isEmpty())                                { Album = 1; AlbumS = m.getAlbum(); }
-            if (Album == 0 && i != 0 && !m.getAlbum().isEmpty())                { Album = 2; AlbumS = m.getAlbum(); }
-            if (Album == 1 && !m.getAlbum().equals(AlbumS))                     { Album = 2; }
-            if (i==0 && !m.getArtist().isEmpty())                               { Artist = 1; ArtistS = m.getArtist(); }
-            if (Artist == 0 && i != 0 && !m.getArtist().isEmpty())              { Artist = 2; ArtistS = m.getArtist(); }
-            if (Artist == 1 && !m.getArtist().equals(ArtistS))                  { Artist = 2; }
-            if (i==0 && !m.getAlbumArtist().isEmpty())                          { AlbumArtist = 1; AlbumArtistS = m.getAlbumArtist(); }
-            if (AlbumArtist == 0 && i != 0 && !m.getAlbumArtist().isEmpty())    { AlbumArtist = 2; AlbumArtistS = m.getAlbumArtist(); }
-            if (AlbumArtist == 1 && !m.getAlbumArtist().equals(AlbumArtistS))   { AlbumArtist = 2; }
-            if (i==0 && !m.getComposer().isEmpty())                             { Composer = 1; ComposerS = m.getComposer(); }
-            if (Composer == 0 && i != 0 && !m.getComposer().isEmpty())          { Composer = 2; ComposerS = m.getComposer(); }
-            if (Composer == 1 && !m.getComposer().equals(ComposerS))            { Composer = 2; }
-            if (i==0 && !m.getPublisher().isEmpty())                            { Publisher = 1; PublisherS = m.getPublisher(); }
-            if (Publisher == 0 && i != 0 && !m.getPublisher().isEmpty())        { Publisher = 2; PublisherS = m.getPublisher(); }
-            if (Publisher == 1 && !m.getPublisher().equals(PublisherS))         { Publisher = 2; }
-            if (i==0 && !m.getTrackAsS().isEmpty())                             { Track = 1; TrackS = m.getTrackAsS(); }
-            if (Track == 0 && i != 0 && !m.getTrackAsS().isEmpty())             { Track = 2; TrackS = m.getTrackAsS(); }
-            if (Track == 1 && !m.getTrackAsS().equals(TrackS))                  { Track = 2; }
-            if (i==0 && !m.getTracksTotalAsS().isEmpty())                       { TracksTotal = 1; TracksTotalS = m.getTracksTotalAsS(); }
-            if (TracksTotal == 0 && i != 0 && !m.getTracksTotalAsS().isEmpty()) { TracksTotal = 2; TracksTotalS = m.getTracksTotalAsS(); }
-            if (TracksTotal == 1 && !m.getTracksTotalAsS().equals(TracksTotalS)){ TracksTotal = 2; }
-            if (i==0 && !m.getDiscAsS().isEmpty())                              { Disc = 1; DiscS = m.getDiscAsS(); }
-            if (Disc == 0 && i != 0 && !m.getDiscAsS().isEmpty())               { Disc = 2; DiscS = m.getDiscAsS(); }
-            if (Disc == 1 && !m.getDiscAsS().equals(DiscS))                     { Disc = 2; }
-            if (i==0 && !m.getDiscsTotalAsS().isEmpty())                        { DiscsTotal = 1; DiscsTotalS = m.getDiscsTotalAsS(); }
-            if (DiscsTotal == 0 && i != 0 && !m.getDiscsTotalAsS().isEmpty())   { DiscsTotal = 2; DiscsTotalS = m.getDiscsTotalAsS(); }
-            if (DiscsTotal == 1 && !m.getDiscsTotalAsS().equals(DiscsTotalS))   { DiscsTotal = 2; }
-            if (i==0 && !m.getGenre().isEmpty())                                { Genre = 1; GenreS = m.getGenre(); }
-            if (Genre == 0 && i != 0 && !m.getGenre().isEmpty())                { Genre = 2; GenreS = m.getGenre(); }
-            if (Genre == 1 && !m.getGenre().equals(GenreS))                     { Genre = 2; }
-            if (i==0 && !m.getCategory().isEmpty())                             { Category = 1; CategoryS = m.getCategory(); }
-            if (Category == 0 && i != 0 && !m.getCategory().isEmpty())          { Category = 2; CategoryS = m.getCategory(); }
-            if (Category == 1 && !m.getCategory().equals(CategoryS))            { Category = 2; }
-            if (i==0 && !m.getYear().isEmpty())                                 { Year = 1; YearS = m.getYear(); }
-            if (Year == 0 && i != 0 && m.getYear().isEmpty())                   { Year = 2; YearS = m.getYear(); }
-            if (Year == 1 && !m.getYear().equals(YearS))                        { Year = 2; }
-            if (i==0 && !m.getRatingPercentAsString().isEmpty())                { Rating = 1; RatingPS = m.getRatingPercentAsString(); RatingS = m.getRatingAsString();}
-            if (Rating == 0 && i !=0 && !m.getRatingPercentAsString().isEmpty()){ Rating = 2; RatingPS = m.getRatingPercentAsString(); RatingS = m.getRatingAsString();}
-            if (Rating == 1 && !m.getRatingPercentAsString().equals(RatingPS))  { Rating = 2; }
-            if (i==0 && !m.getPlaycountAsString().isEmpty())                    { Playcount = 1; PlaycountS = m.getPlaycountAsString(); }
-            if (Playcount == 0 && i != 0 && !m.getPlaycountAsString().isEmpty()){ Playcount = 2; PlaycountS = m.getPlaycountAsString(); }
-            if (Playcount == 1 && !m.getPlaycountAsString().equals(PlaycountS)) { Playcount = 2; }
-            if (i==0 && !m.getComment().isEmpty())                              { Comment = 1; CommentS = m.getComment(); }
-            if (Comment == 0 && i != 0 && !m.getComment().isEmpty())            { Comment = 2; CommentS = m.getComment(); }
-            if (Comment == 1 && !m.getComment().equals(CommentS))               { Comment = 2; }
-            if (i==0 && !m.getMood().isEmpty())                                 { Mood = 1; MoodS = m.getMood(); }
-            if (Mood == 0 && i != 0 && !m.getMood().isEmpty())                  { Mood = 2; MoodS = m.getMood(); }
-            if (Mood == 1 && !m.getMood().equals(MoodS))                        { Mood = 2; }
-            if (i==0 && !m.getCustom1().isEmpty())                              { Custom1 = 1; Custom1S = m.getCustom1(); }
-            if (Custom1 == 0 && i != 0 && !m.getCustom1().isEmpty())            { Custom1 = 2; Custom1S = m.getCustom1(); }
-            if (Custom1 == 1 && !m.getCustom1().equals(Custom1S))               { Custom1 = 2; }
-            if (i==0 && !m.getCustom2().isEmpty())                              { Custom2 = 1; Custom2S = m.getCustom2(); }
-            if (Custom2 == 0 && i != 0 && !m.getCustom2().isEmpty())            { Custom2 = 2; Custom2S = m.getCustom2(); }
-            if (Custom2 == 1 && !m.getCustom2().equals(Custom2S))               { Custom2 = 2; }
-            if (i==0 && !m.getCustom3().isEmpty())                              { Custom3 = 1; Custom3S = m.getCustom3(); }
-            if (Custom3 == 0 && i != 0 && !m.getCustom3().isEmpty())            { Custom3 = 2; Custom3S = m.getCustom3(); }
-            if (Custom3 == 1 && !m.getCustom3().equals(Custom3S))               { Custom3 = 2; }
-            if (i==0 && !m.getCustom4().isEmpty())                              { Custom4 = 1; Custom4S = m.getCustom4(); }
-            if (Custom4 == 0 && i != 0 && !m.getCustom4().isEmpty())            { Custom4 = 2; Custom4S = m.getCustom4(); }
-            if (Custom4 == 1 && !m.getCustom4().equals(Custom4S))               { Custom4 = 2; }
-            if (i==0 && !m.getCustom5().isEmpty())                              { Custom5 = 1; Custom5S = m.getCustom5(); }
-            if (Custom5 == 0 && i != 0 && !m.getCustom5().isEmpty())            { Custom5 = 2; Custom5S = m.getCustom5(); }
-            if (Custom5 == 1 && !m.getCustom5().equals(Custom5S))               { Custom5 = 2; }
-            if (i==0 && !m.getLyrics().isEmpty())                               { Lyrics = 1; LyricsS = m.getLyrics(); }
-            if (Lyrics == 0 && i != 0 && !m.getLyrics().isEmpty())              { Lyrics = 2; LyricsS = m.getLyrics(); }
-            if (Lyrics == 1 && !m.getLyrics().equals(LyricsS))                  { Lyrics = 2; }
+            fields.forEach(f -> f.histogramDo(m, i));
+            formats.add(m.getFormat());
+            // handle cover separately
             Cover c = m.getCover(TAG);
-            if (i==0 && !c.isEmpty())                                           { Cov = 1; CovS = c; CovInfoS = c.getDestription(); }
-            if (Cov == 0 && i != 0 && !c.isEmpty())                             { Cov = 2; CovS = c; CovInfoS = c.getDestription(); }
-            if (Cov == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))  { Cov = 2; }
+            if (i==0 && !c.isEmpty())                                           
+                { coverI = 1; CovS = c; covDesS = c.getDestription(); }
+            if (coverI == 0 && i != 0 && !c.isEmpty())                          
+                { coverI = 2; CovS = c; covDesS = c.getDestription(); }
+            if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
+                coverI = 2;
         }
         
-        // set fields prompt text
-        setPromptText(TitleF, Title, TitleS);
-        setPromptText(AlbumF, Album, AlbumS);
-        setPromptText(AlbumArtistF, AlbumArtist, AlbumArtistS);
-        setPromptText(ArtistF, Artist, ArtistS);
-        setPromptText(ComposerF, Composer, ComposerS);
-        setPromptText(PublisherF, Publisher, PublisherS);
-        setPromptText(TrackF, Track, TrackS);
-        setPromptText(TracksTotalF, TracksTotal, TracksTotalS);
-        setPromptText(DiscF, Disc, DiscS);
-        setPromptText(DiscsTotalF, DiscsTotal, DiscsTotalS);
-        setPromptText(GenreF, Genre, GenreS);
-        setPromptText(CategoryF, Category, CategoryS);
-        setPromptText(YearF, Year, YearS);
-        setPromptText(RatingF, Rating, RatingS);
-        setPromptText(RatingPF, Rating, RatingPS);
-        setPromptText(PlaycountF, Playcount, PlaycountS);
-        setPromptText(CommentF, Comment, CommentS);
-        setPromptText(MoodF, Mood, MoodS);
-        setPromptText(Custom1F, Custom1, Custom1S);
-        setPromptText(Custom2F, Custom2, Custom2S);
-        setPromptText(Custom3F, Custom3, Custom3S);
-        setPromptText(Custom4F, Custom4, Custom4S);
-        setPromptText(Custom5F, Custom5, Custom5S);
-        setPromptText(LyricsA, Lyrics, LyricsS);
-        fields.forEach(TagField::rememberPromptText);
-        // set color value
-        Color c = new ColorParser().fromS(Custom1S);
-        ColorF.setValue(c==null ? Color.WHITE : c);
-                
-        // set image info
-             if (Cov == 0)    CoverL.setText(TAG_NO_VALUE);
-        else if (Cov == 1)    CoverL.setText(CovInfoS);
-        else if (Cov == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
-             
-        // set image
-        if (Cov == 1)         CoverV.loadImage(CovS.getImage());
-        else                  CoverV.loadImage((Image)null);
-        
+        // histogram end - set fields prompt text
+        fields.forEach(f -> f.histogramEnd(formats));
+        // handle cover separately
+            // set image info
+             if (coverI == 0)    CoverL.setText(TAG_NO_VALUE);
+        else if (coverI == 1)    CoverL.setText(covDesS);
+        else if (coverI == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
+            // set image
+        if (coverI == 1)         CoverV.loadImage(CovS.getImage());
+        else                     CoverV.loadImage((Image)null);
+
         // enable/disable playcount field
-        PlaycountF.setDisable(!allow_playcount_change.getValue());
+        if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
         
         // set info
-        if (items.size()==1) infoL.setText("Single item loaded");
-        else if (items.size() >1) infoL.setText(items.size() + " items loaded");      
+        infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");      
     }
     
     private void showProgressReading() {
 //        progressI.progressProperty().bind(loader.progressProperty());
-        progressI.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        progressI.setProgress(INDETERMINATE_PROGRESS);
         progressPane.setVisible(true);
         // add blur effect to content to hint inaccessibility
         // note: dont apply on root it would also blur the progres indicator!
@@ -799,7 +633,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     }
     private void showProgressWriting() {
 //        progressI.progressProperty().unbind();
-        progressI.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+        progressI.setProgress(INDETERMINATE_PROGRESS);
         progressPane.setVisible(true);
         // add blur effect to content to hint inaccessibility
         // note: dont apply on root it would also blur the progres indicator!
@@ -832,11 +666,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             CoverL.setUserData(true);
         }
     }
-    private void setPromptText(TextInputControl control, int type, String s) {
-        if (type == 0)        control.setPromptText(TAG_NO_VALUE);
-        else if (type == 1)   control.setPromptText(s);
-        else if (type == 2)   control.setPromptText(TAG_MULTIPLE_VALUE);
-    }
+
     
     
 /******************************************************************************/
@@ -845,9 +675,33 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         private final TextInputControl c;
         private final Metadata.Field f;
         
+        public String histogramS;
+        public int histogramI;
+        
         public TagField(TextInputControl control, Metadata.Field field) {
+            this(control, field, null);
+        }
+        public TagField(TextInputControl control, Metadata.Field field, Predicate<String> valCond) {
             c = control;
             f = field;
+            
+            c.getStyleClass().setAll(GraphicalTextField.getTextFieldStyleClass());
+            c.setMinSize(0, 0);
+            c.setPrefSize(-1, -1);
+            
+            if(valCond!=null && c instanceof CustomTextField) {
+                Validation v = new Validation(c, valCond , field + " field doeas not contain valid text.");
+                validators.add(v);
+                Label l = createIcon(AwesomeIcon.EXCLAMATION_TRIANGLE, 11, null, null);
+                CustomTextField cf = (CustomTextField)c;
+                c.textProperty().addListener((o,ov,nv) -> {
+                    boolean b = v.isValid();
+                    l.setVisible(!b);
+                    if(b) if(cf.getRight()==l) cf.setRight(new Region());
+                    else if(cf.getRight()!=l) cf.setRight(l);
+                });
+            }
+            
             emptyContent();
             
             // restrain input
@@ -855,7 +709,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
             
             // if not commitable yet, enable commitable & set text to tag value on click
-            c.setOnMouseClicked( e -> OnMouseClicked() );
+            c.setOnMouseClicked(this::OnMouseClicked);
             
             // disable commitable if empty and backspace key pressed
             c.setOnKeyPressed( e -> {
@@ -863,17 +717,23 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                     OnBackspacePressed();
             });
         }
-        void enable() { c.setDisable(false); }
-        void disable() { c.setDisable(true); }
+        void enable() { 
+            c.setDisable(false);
+        }
+        void disable() {
+            c.setDisable(true);
+        }
+        public void setEnabled(Collection<AudioFileFormat> formats) {
+            boolean v = formats.stream().map(frm->frm.isTagWriteSupported(f))
+                               .reduce(Boolean::logicalAnd).orElse(false);
+            c.setDisable(!v);
+        }
         void emptyContent() {
             c.setText("");              // set empty
             c.setPromptText("");        // set empty
             c.setUserData(false);       // set uncommitable
             c.setDisable(true);         // set disabled
             c.setId("");                // set empty prompt text backup
-        }
-        void rememberPromptText() {
-            c.setId(c.getPromptText());
         }
         void onLooseFocus() {
             if (c.getText().equals(c.getId())) {
@@ -882,10 +742,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 c.setPromptText(c.getId());
             }
         }
-        void OnMouseClicked() {
+        void OnMouseClicked(MouseEvent e) {
             if (!(boolean)c.getUserData()) {
                 c.setUserData(true);
-                c.setText(c.getId());
+                c.setText("");
                 c.setPromptText("");
                 c.selectAll();
             }
@@ -908,6 +768,76 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         void setVerticalAlignment(Pos alignment) {
             if (c instanceof TextField)
                 ((TextField)c).setAlignment(alignment);
+        }
+        
+        //-------------
+        
+        public void histogramInit() {
+            // initializing checkers for multiple values
+                //0 = no value in all items       write "no assigned value"
+                //1 = same value in all items     write actual value
+                //2 = multiple value in all items write "multiple value"
+            histogramI = 0;
+            histogramS = "";
+        }
+        public void histogramDo(Metadata m, int i) {
+            // check multiple values to determine general field values
+            // the condition goes like this (for every field):
+            // -- initializes at 0 = no value streak
+            // -- if first value not empty -> break no value streak, start same value streak, otherwise continue
+            //    (either all will be empty(0) or all will be same(1) - either way first value determines 0/1 streak)
+            // -- if empty streak and (non first) value not empty -> conclusion = multiple values
+            //    (empty and non empty values = multiple)
+            // -- if same value streak and different value -> conclusion = multiple values
+            // -- otherwise this ends as no value or same streak decided by 1st value
+            boolean empty = m.isFieldEmpty(f);
+            if (i==0 && !empty) { 
+                histogramI = 1;
+                histogramS = String.valueOf(m.getField(f));
+            }
+            if (histogramI == 0 && i != 0 && !empty) { 
+                histogramI = 2;
+                histogramS = String.valueOf(m.getField(f));
+            }
+            if (histogramI == 1 && !String.valueOf(m.getField(f)).equals(histogramS)) { 
+                histogramI = 2;
+            }
+        }
+        public void histogramEnd(Collection<AudioFileFormat> formats) {
+            if      (histogramI == 0)   c.setPromptText(TAG_NO_VALUE);
+            else if (histogramI == 1)   c.setPromptText(histogramS);
+            else if (histogramI == 2)   c.setPromptText(TAG_MULTIPLE_VALUE);
+            
+            if(f==CUSTOM1) {
+                ColorF.setValue(new ColorParser().fromS(histogramS));                
+            }
+            
+            // remember prompt text
+            c.setId(c.getPromptText());
+            // disable if unsuported
+            setEnabled(formats);
+        }
+    }
+
+    
+    
+    public final class Validation {
+        public final TextInputControl field;
+        public final Predicate<String> condition;
+        public final String text;
+
+        public Validation(TextInputControl field, Predicate<String> condition, String text) {
+            this.field = field;
+            this.condition = condition;
+            this.text = text;
+        }
+        
+        public boolean isValid() {
+            String s = field.getText();
+            return s.isEmpty() || condition.test(s);
+        }
+        public boolean isInValid() {
+            return !isValid();
         }
     }
     
@@ -1047,6 +977,4 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             }
         }
     };
-    
-    
 }

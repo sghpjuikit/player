@@ -7,7 +7,8 @@ import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
 import GUI.objects.CheckIcon;
 import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.fontawesome.AwesomeDude.createIconButton;
+import static de.jensd.fx.fontawesome.AwesomeIcon.CHECK;
 import static de.jensd.fx.fontawesome.AwesomeIcon.RECYCLE;
 import java.io.File;
 import javafx.animation.FadeTransition;
@@ -15,6 +16,7 @@ import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
@@ -302,7 +304,7 @@ abstract public class ConfigField<T> {
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField txtF = new CustomTextField();
         final boolean allow_empty; // only for string
-        Button okBL= AwesomeDude.createIconButton(AwesomeIcon.CHECK, "", "15","15",ContentDisplay.GRAPHIC_ONLY);
+        Button okBL= createIconButton(CHECK, "", "15","15",GRAPHIC_ONLY);
         AnchorPane okB = new AnchorPane(okBL);
    
         
@@ -317,7 +319,7 @@ abstract public class ConfigField<T> {
             
             okBL.getStyleClass().setAll("congfig-field-ok-button");
             Tooltip.install(okB, new Tooltip("Apply value."));
-            // unfortunately the icon buttonis not aligned well, need to fix that
+            // unfortunately the icon button is not aligned well, need to fix that
             AnchorPane.setBottomAnchor(okBL, 3d);
             AnchorPane.setLeftAnchor(okBL, 8d);
             

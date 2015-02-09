@@ -33,10 +33,10 @@ import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
-import util.dev.Log;
-import util.Parser.File.AudioFileFormat;
-import static util.Parser.File.AudioFileFormat.*;
+import util.File.AudioFileFormat;
+import static util.File.AudioFileFormat.*;
 import util.Parser.ParserImpl.ColorParser;
+import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 
@@ -259,7 +259,8 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
-            default: throw new AssertionError(f + " in default switch value.");
+            case m4a:   Log.info("Unsupported operation."); break;
+            default: throw new AssertionError("corrupted switch statement");
         } 
     }
     
@@ -334,7 +335,8 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
-            default: throw new AssertionError(f + " in default switch value.");
+            case m4a:   Log.info("Unsupported operation."); break;
+            default: throw new AssertionError("corrupted switch statement");
         } 
     }
     
@@ -369,7 +371,8 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
-            default: throw new AssertionError(f + " in default switch value.");
+            case m4a:   Log.info("Unsupported operation."); break;
+            default: throw new AssertionError("corrupted switch statement");
         }        
     }
     
@@ -405,7 +408,8 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
-            default: throw new AssertionError(f + " in default switch value.");
+            case m4a:   Log.info("Unsupported operation."); break;
+            default: throw new AssertionError("corrupted switch statement");
         }
     }
     private void seUserPopmID3(String val) {

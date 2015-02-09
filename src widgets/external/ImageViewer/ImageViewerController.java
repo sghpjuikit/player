@@ -50,7 +50,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 import util.Util;
 import util.access.Accessor;
 import util.async.Async;

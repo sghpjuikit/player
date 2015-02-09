@@ -34,12 +34,12 @@ import javafx.scene.layout.TilePane;
 import unused.SimplePositionable;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.UNIMPLEMENTED;
-import static util.dev.TODO.Severity.MEDIUM;
 import static util.async.Async.run;
 import static util.async.Async.runOnFX;
 import util.collections.PropertyMap;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.UNIMPLEMENTED;
+import static util.dev.TODO.Severity.MEDIUM;
 
 /**
  * @author uranium
@@ -416,7 +416,7 @@ public final class Splitter implements ContainerNode {
     
     @FXML
     public void closeContainer() {
-        closeAndDo(root, e -> container.close());
+        closeAndDo(root, container::close);
     }
     
     

@@ -1,6 +1,7 @@
 
-package GUI;
+package GUI.objects.Window.stage;
 
+import GUI.objects.Window.stage.Window;
 import Configuration.IsConfigurable;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;

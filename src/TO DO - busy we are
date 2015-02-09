@@ -2,7 +2,7 @@
 --------------------------------------------------------------------------------
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
-
+- make class map that gets value by any class -> super class recursively
 - implement colr skin change + use song color, using setStyle on main color
 - window snap window/owner
 - window snap padding
@@ -60,7 +60,6 @@ GENERAL
 - deactivator position | size a bit off when loading first time & into small    (minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
-- playlist manual sorting does not work
 - Thumbnail borde rchanges size of the control - not good at all
 - Enviromment Dektop.browse() doesnt select files in explorer but opens them    (unsolvable?)
 - playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
@@ -79,7 +78,7 @@ GENERAL
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 - tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug)
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug)
-- Configurator group title alignment doesnt get applied on refresh              (javaFX bug)
+- Configurator group title alignment doesnt get applied on refresh              (still issue? javaFX bug)
 - context menu position sometimes off (even default ones). The cause must be
   its parent Node not initializing size correctly
 - some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug)
@@ -140,10 +139,6 @@ SOLVED (but the underlying cause still deserves attention)
   main window this way doesnt execute the necessary actions. Also, with the
   hidden owner window app wont close as one window remains open
   solution: have onCloseRequest event execute close()
-- bgr artefacts for window header buttons and icons
-  cause: rgba (-fx-panel-color) for .header styleclass                          
-  solution: use rgb color and apply -fx-opacity instead of alpha channel
-  problem: css polution, dev might overlook header if he changes -fx-panel-color
 - little bug with position slider on manual seeking                             (minor)
   cause: it takes a while for seek() to actually seek. During this time the
   seeker jumps back to back position
@@ -170,7 +165,7 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them
 - file format discovery. Unite Image and Audio types add category               (not needed)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
-- Notification class unite contents, remove enum                                (lot of code + fxml duplicity)
+- Notification class unite contents, remove enum (lot of code + fxml duplicity)
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
@@ -240,12 +235,3 @@ PERFORMANCE
   to specify whether mouse event that closes the popup should have any further
   effect on the application. In my opinion having it set to true (default) is 
   rather annoying.
-
---------------------------------------------------------------------------------
---------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer goodies ---------
---------------------------------------------------------------------------------
-
-- need to run code after specific delay? use utilities.FxTimer. By far the most
-  simple asynchronous code execution you will have ever used.
-  Its also running on appFX thread - no bgr threads, no concurrency problems.
-

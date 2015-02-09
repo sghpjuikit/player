@@ -257,13 +257,13 @@ public final class AreaControls {
             sc.onOK = c -> p.hide();
         } else 
         if (GUI.open_strategy==INSIDE) {
-            closeAndDo(area.content_root, e -> {
+            closeAndDo(area.content_root, () -> {
                 Widget w = (Widget) area.getActiveWidgets().get(0);
                 SimpleConfigurator sc = new SimpleConfigurator(w);
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
                 sc.setOnMouseClicked(me->{ if(me.getButton()==SECONDARY) sc.ok(); });
                 sc.setOkButtonVisible(false);
-                sc.onOK = c -> closeAndDo(sc, a -> openAndDo(area.content_root, null));
+                sc.onOK = c -> closeAndDo(sc, () -> openAndDo(area.content_root, null));
                 area.root.getChildren().add(sc);
                 setAnchors(sc, 0);
                 openAndDo(sc, null);
@@ -272,29 +272,60 @@ public final class AreaControls {
     }
 
     void changeWidget() {
-        closeAndDo(area.content_root, e -> {
+        if(GUI.open_strategy==POPUP) {
             WidgetPicker w = new WidgetPicker();
-            w.onCancel = () -> {
-                closeAndDo(w.getNode(), ae -> {
-                    area.root.getChildren().remove(w.getNode());
-                    
-                    openAndDo(area.content_root, null);
-                });
-            };
+            PopOver p = new PopOver(w.getNode());
+                    p.setTitle("Change widget");
+                    p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
+                    p.setAutoFix(true); // we need autofix here, because the popup can get rather big
+                    p.setAutoHide(true);
+                    p.show(propB);
+            w.onCancel = p::hide;
             w.onSelect = factory -> {
-                closeAndDo(w.getNode(), ae -> {
+                closeAndDo(w.getNode(), () -> {
                     area.root.getChildren().remove(w.getNode());
                     // load widget
                     area.add(factory.create());
-                    
+
                     openAndDo(area.content_root,null);
                 });
             };
-            area.root.getChildren().add(w.getNode());
-            setAnchors(w.getNode(), 0);
-            
-            openAndDo(w.getNode(), null);
-        });
+        } else 
+        if (GUI.open_strategy==INSIDE) {
+            closeAndDo(area.content_root, () -> {
+                WidgetPicker w = new WidgetPicker();
+                w.onCancel = () -> {
+                    closeAndDo(w.root, () -> {
+                        area.root.getChildren().remove(w.root);
+                        Layouter l = new Layouter(area.container, area.index);
+                        area.root.getChildren().add(l.root);
+                        setAnchors(l.root, 0);
+//                        openAndDo(l.getRoot(), null);
+                        l.show();
+                        l.cp.onCancel = () -> {
+                            closeAndDo(l.root, () -> {
+                                area.root.getChildren().remove(l.root);
+                                openAndDo(area.content_root,null);
+                            });
+                        
+                        };
+                    });
+                };
+                w.onSelect = factory -> {
+                    closeAndDo(w.root, () -> {
+                        area.root.getChildren().remove(w.root);
+                        // load widget
+                        area.add(factory.create());
+
+//                        openAndDo(area.content_root,null);
+                    });
+                };
+                area.root.getChildren().add(w.getNode());
+                setAnchors(w.getNode(), 0);
+
+                openAndDo(w.getNode(), null);
+            });
+        }
     }
     
     void detach() {
@@ -304,10 +335,10 @@ public final class AreaControls {
     void close() {
         // if area belongs to the container, close container
         if (area.index==null) 
-            closeAndDo(area.container.getGraphics().getRoot(), e -> area.container.close());
+            closeAndDo(area.container.getGraphics().getRoot(), area.container::close);
         // if area belongs to the child, close child only
         else 
-            closeAndDo(area.content_root, e -> area.container.removeChild(area.index));
+            closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
     }
 
     private void toggleAbsSize() {

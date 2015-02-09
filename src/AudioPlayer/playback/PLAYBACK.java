@@ -30,8 +30,8 @@ import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
 import util.dev.Log;
-import static util.Parser.File.AudioFileFormat.Use.PLAYBACK;
-import util.Parser.File.Enviroment;
+import static util.File.AudioFileFormat.Use.PLAYBACK;
+import util.File.Enviroment;
 
 /**
  * Provides methods for playback.

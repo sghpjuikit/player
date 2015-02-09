@@ -8,6 +8,7 @@ import Configuration.IsConfigurable;
 import static GUI.GUI.OpenStrategy.INSIDE;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
+import GUI.objects.Window.stage.Window;
 import Layout.Layout;
 import Layout.LayoutManager;
 import com.sun.javafx.css.StyleManager;
@@ -27,8 +28,6 @@ import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -41,13 +40,13 @@ import javafx.util.Duration;
 import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
-import util.dev.Log;
-import util.Parser.File.FileUtil;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
+import util.File.FileUtil;
 import static util.Util.capitalizeStrong;
 import util.access.Accessor;
 import util.access.AccessorEnum;
+import util.dev.Log;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 
 /**
  *
@@ -428,17 +427,19 @@ public class GUI {
     
     public static final Duration ANIM_DUR = Duration.millis(300);
     
-    public static void closeAndDo(Node n, EventHandler<ActionEvent> action) {
+    public static void closeAndDo(Node n, Runnable action) {
+        double pos = n.getScaleX()==1 ? 0 : n.getScaleX();
         Animation a = buildAnimation(n, action);
                   a.setRate(-1);
-                  a.playFrom(ANIM_DUR);
+                  a.playFrom(ANIM_DUR.subtract(ANIM_DUR.multiply(pos)));
     }
-    public static void openAndDo(Node n, EventHandler<ActionEvent> action) {
+    public static void openAndDo(Node n, Runnable action) {
+        double pos = n.getScaleX()==1 ? 0 : n.getScaleX();
         Animation a = buildAnimation(n, action);
-                  a.play();
+                  a.playFrom(ANIM_DUR.multiply(pos));
     }
     
-    private static Animation buildAnimation(Node n, EventHandler<ActionEvent> action) {
+    private static Animation buildAnimation(Node n, Runnable action) {
         FadeTransition a1 = new FadeTransition(ANIM_DUR);
                        a1.setFromValue(0);
                        a1.setToValue(1);
@@ -450,7 +451,7 @@ public class GUI {
                         a2.setToX(1);
                         a2.setToY(1);
         Animation pt = new ParallelTransition(n, a1, a2);
-                  pt.setOnFinished(action);
+                  pt.setOnFinished(action==null ? null : e->action.run());
         return pt;
     }
     

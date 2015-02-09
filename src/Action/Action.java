@@ -6,7 +6,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.Window;
+import GUI.objects.Window.stage.Window;
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;

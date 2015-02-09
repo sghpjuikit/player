@@ -26,7 +26,7 @@
  */
 package GUI.objects.PopOver;
 
-import GUI.WindowBase;
+import GUI.objects.Window.stage.WindowBase;
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomLeft;
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomRight;
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenCenter;
@@ -476,7 +476,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenCentricPos pos) {
         setArrowSize(0); // disable arrow
-        showThis(null, GUI.Window.getActive().getStage());
+        showThis(null, GUI.objects.Window.stage.Window.getActive().getStage());
         position(pos.calcX(this), pos.calcY(this));
         
         if(pos==ScreenBottomLeft || pos==ScreenBottomRight || pos==ScreenCenter 

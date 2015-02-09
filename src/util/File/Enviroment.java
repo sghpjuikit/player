@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.Parser.File;
+package util.File;
 
 import AudioPlayer.playlist.PlaylistManager;
 import GUI.GUI;
@@ -24,7 +24,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import main.App;
-import util.Parser.File.AudioFileFormat.Use;
+import util.File.AudioFileFormat.Use;
 import util.Util;
 import util.dev.Log;
 import util.dev.TODO;

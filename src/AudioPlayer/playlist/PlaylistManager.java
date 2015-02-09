@@ -31,10 +31,10 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import main.App;
-import util.Parser.File.AudioFileFormat;
-import util.Parser.File.AudioFileFormat.Use;
-import util.Parser.File.Enviroment;
-import util.Parser.File.FileUtil;
+import util.File.AudioFileFormat;
+import util.File.AudioFileFormat.Use;
+import util.File.Enviroment;
+import util.File.FileUtil;
 import util.access.AccessibleStream;
 
 /**

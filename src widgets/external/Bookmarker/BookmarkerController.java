@@ -40,7 +40,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
-import util.Parser.File.Enviroment;
+import util.File.Enviroment;
 import util.Util;
 import static util.Util.createmenuItem;
 import util.access.Accessor;

@@ -1,13 +1,12 @@
-package GUI;
+package GUI.objects.Window.stage;
 
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.LastFM.LastFMManager;
 import AudioPlayer.tagging.Metadata;
-import Configuration.AppliesConfig;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
+import Configuration.*;
+import GUI.GUI;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
@@ -69,12 +68,14 @@ import javafx.stage.Screen;
 import static javafx.stage.StageStyle.*;
 import main.App;
 import org.reactfx.Subscription;
-import util.dev.Log;
-import static util.Parser.File.Enviroment.browse;
+import static util.File.Enviroment.browse;
 import util.Util;
 import static util.Util.createIcon;
 import static util.Util.setAnchors;
 import util.access.Accessor;
+import util.dev.Log;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.BUG;
 import static util.functional.FunctUtil.find;
 
 /**
@@ -93,7 +94,7 @@ import static util.functional.FunctUtil.find;
             w.setLocationCenter();
  </pre>
  <p>
- @author plutonium_, simdimdim
+ @author plutonium
  */
 @IsConfigurable
 public class Window extends WindowBase implements SelfSerializator<Window> {
@@ -901,7 +902,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	public boolean canConvert(Class type) {
 	    return Window.class.equals(type);
 	}
-
+        
+        @TODO(purpose = BUG, note = "fullscreen deserialization bug in WindowBase")
 	@Override
 	public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
 	    Window w = (Window) value;
@@ -924,10 +926,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    writer.setValue(w.MaxProp.getValue().toString());
 	    writer.endNode();
 	    writer.startNode("fullscreen");
-	    writer.setValue(w.FullProp.getValue().toString());
+//	    writer.setValue(w.FullProp.getValue().toString());
+	    writer.setValue(Boolean.FALSE.toString());
 	    writer.endNode();
 	    writer.startNode("resizable");
-	    writer.setValue(w.s.resizableProperty().getValue().toString());
+	    writer.setValue(w.resizable.getValue().toString());
 	    writer.endNode();
 	    writer.startNode("alwaysOnTop");
 	    writer.setValue(w.s.alwaysOnTopProperty().getValue().toString());
@@ -967,7 +970,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    w.FullProp.set(Boolean.parseBoolean(reader.getValue()));
 	    reader.moveUp();
 	    reader.moveDown();
-	    w.s.setResizable(Boolean.parseBoolean(reader.getValue()));
+	    w.resizable.set(Boolean.parseBoolean(reader.getValue()));
 	    reader.moveUp();
 	    reader.moveDown();
 	    w.setAlwaysOnTop(Boolean.parseBoolean(reader.getValue()));

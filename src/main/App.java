@@ -12,8 +12,8 @@ import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.*;
 import GUI.GUI;
-import GUI.Window;
-import GUI.WindowManager;
+import GUI.objects.Window.stage.Window;
+import GUI.objects.Window.stage.WindowManager;
 import Layout.Widgets.WidgetManager;
 import Library.BookmarkManager;
 import java.io.File;
@@ -28,7 +28,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
 import org.reactfx.EventSource;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 import static util.async.Async.run;
 
 

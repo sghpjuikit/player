@@ -31,10 +31,10 @@ import javafx.scene.layout.VBox;
 import main.App;
 import static org.atteo.evo.inflector.English.plural;
 import util.dev.Log;
-import util.Parser.File.AudioFileFormat;
-import util.Parser.File.AudioFileFormat.Use;
-import util.Parser.File.FileUtil;
-import util.Parser.File.ImageFileFormat;
+import util.File.AudioFileFormat;
+import util.File.AudioFileFormat.Use;
+import util.File.FileUtil;
+import util.File.ImageFileFormat;
 import util.async.Async;
 
 /**

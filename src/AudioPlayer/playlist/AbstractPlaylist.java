@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.util.Duration;
-import static util.Parser.File.AudioFileFormat.Use.PLAYBACK;
+import static util.File.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Playlist handles PlaylistItem groups and provides methods for easy

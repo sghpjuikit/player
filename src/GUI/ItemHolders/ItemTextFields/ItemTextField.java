@@ -69,7 +69,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
         
         setEditable(false);
         
-        //set same cass style as TextField
+        //set same css style as TextField
         getStyleClass().setAll(STYLECLASS());
     }
     

@@ -47,7 +47,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
-import util.Parser.File.Enviroment;
+import util.File.Enviroment;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import util.Util;

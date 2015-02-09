@@ -3,30 +3,26 @@ package Layout.Areas;
 
 import GUI.DragUtil;
 import GUI.GUI;
-import static GUI.GUI.ANIM_DUR;
-import static GUI.GUI.closeAndDo;
-import GUI.objects.Pickers.WidgetPicker;
+import static GUI.GUI.*;
+import GUI.objects.Pickers.*;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.FreeFormContainer;
-import java.io.IOException;
+import Layout.PolyContainer;
 import java.util.Objects;
+import java.util.stream.Stream;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
+import static javafx.animation.Interpolator.LINEAR;
 import javafx.animation.ScaleTransition;
 import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
-import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
@@ -42,11 +38,11 @@ import static util.Util.setAnchors;
 @Layout.Widgets.Widget.Info
 public final class Layouter implements ContainerNode {
     
-    private @FXML BorderPane controls;
-    private @FXML AnchorPane root = new AnchorPane();
-    private @FXML AnchorPane content;
     private final Container container;
-    private int index;
+    private final int index;
+    
+    public final Picker<String> cp = new Picker();
+    public final AnchorPane root = new AnchorPane(cp.root);
     
     private final FadeTransition a1;
     private final ScaleTransition a2;
@@ -59,28 +55,37 @@ public final class Layouter implements ContainerNode {
         this.index = index;
         this.container = con;
         
-        FXMLLoader fxmlLoader = new FXMLLoader(Layouter.class.getResource("Layouter.fxml"));
-        fxmlLoader.setRoot(root);
-        fxmlLoader.setController(this);
-
-        try {
-            fxmlLoader.load();
-        } catch (IOException exception) {
-            throw new RuntimeException(exception);
-        }
+        cp.onSelect = layout -> {
+            switch(layout) {
+                case "Split Vertical" : closeAndDo(cp.root, this::showSplitV);
+                                        break;
+                case "Split Horizontal" : closeAndDo(cp.root, this::showSplitH);
+                                        break;
+                case "Widget" : closeAndDo(cp.root, this::showWidgetArea);
+                                break;
+                case "Tabs"   : closeAndDo(cp.root, this::showTabs);
+                                break;
+                case "FreeForm" : closeAndDo(cp.root, this::showFreeform);
+                                  break;
+            }
+        };
+        cp.onCancel = this::hide;
+        cp.textCoverter = text -> text;
+        cp.itemSupply = () -> Stream.of("Split Vertical", "Split Horizontal",
+                                        "Widget", "Tabs", "FreeForm");
+        cp.buildContent();
+        
+        setAnchors(cp.root, 0);
         
         Interpolator i = new CircularInterpolator(EASE_OUT);
-        a1 = new FadeTransition(ANIM_DUR, content);
-        // anim.setInterpolator(i); // use the LINEAR by defaul instead
-        a2 = new ScaleTransition(ANIM_DUR, content);
+        a1 = new FadeTransition(ANIM_DUR, cp.root);
+        a1.setInterpolator(LINEAR);
+        a2 = new ScaleTransition(ANIM_DUR, cp.root);
         a2.setInterpolator(i);
-            // initialize state for animations
-        content.setOpacity(0);
-        content.setScaleX(0);
-        content.setScaleY(0);
-                
-        // prevent action & allow passing mouse events when not fully visible
-        content.mouseTransparentProperty().bind(content.opacityProperty().isNotEqualTo(1));
+        
+        cp.root.setOpacity(0);
+        cp.root.setScaleX(0);
+        cp.root.setScaleY(0);
         
         // do not support drag from - no content
         // but accept drag onto
@@ -96,25 +101,21 @@ public final class Layouter implements ContainerNode {
         
         clickShowHider =  e -> {
             if(e.getButton()==PRIMARY) {
-                if(!content.isMouseTransparent()) return;
+                if(cp.root.getOpacity()!=0) return;
                 // avoid when under lock
                 if(container.isUnderLock()) return;
                 // rely on the public show() implementation, not internal one
                 show();
                 e.consume();
             }
-            if (e.getButton()==SECONDARY) {
-                if(!GUI.isLayoutMode()){
-                    hide();
-                    e.consume();
-                }
-            }
+
         };
-        exitHider =  e -> {
-            // rely on the public show() implementation, not internal one
-            hide();
-            e.consume();
-        };
+        exitHider =  e -> cp.onCancel.run();
+//        exitHider =  e -> {
+//            // rely on the public show() implementation, not internal one
+//            cp.onCancel.run();
+//            e.consume();
+//        };
         
         // initialize mode
         setWeakMode(true); // this needs to be called in constructor
@@ -127,6 +128,7 @@ public final class Layouter implements ContainerNode {
     @Override
     public void show() {
         showControls(true);
+//        openAndDo(cp.root, null);
     }
 
     @Override
@@ -134,6 +136,7 @@ public final class Layouter implements ContainerNode {
         // prevent leaving layout mode when layout mode active
         if(GUI.isLayoutMode())return;
         showControls(false);
+//        closeAndDo(cp.root, null);
     }
     
     private void showControls(boolean val) {
@@ -147,13 +150,6 @@ public final class Layouter implements ContainerNode {
             a1.setToValue(0);
             a2.setToX(0);
             a2.setToY(0);
-            if(content.getChildren().size()>1 && !end) {
-                a2.setOnFinished( ae -> {
-                    controls.setVisible(true);
-                    content.getChildren().retainAll(controls);
-                    a2.setOnFinished(null);
-                });
-            }
         }
         a1.play();
         a2.play();
@@ -175,11 +171,11 @@ public final class Layouter implements ContainerNode {
             root.setOnMouseExited(exitHider);
         // swap handlers
         if(val) {
-            root.addEventFilter(MOUSE_CLICKED,clickShowHider);
-            root.removeEventFilter(MOUSE_ENTERED,clickShowHider);
+            root.addEventHandler(MOUSE_CLICKED,clickShowHider);
+            root.removeEventHandler(MOUSE_ENTERED,clickShowHider);
         } else {
-            root.removeEventFilter(MOUSE_CLICKED,clickShowHider);
-            root.addEventFilter(MOUSE_ENTERED,clickShowHider);
+            root.addEventHandler(MOUSE_CLICKED,clickShowHider);
+            root.removeEventHandler(MOUSE_ENTERED,clickShowHider);
         }
     }
     
@@ -191,65 +187,40 @@ public final class Layouter implements ContainerNode {
     }
     
 
-
-    // quick fix to prevent overwriting onFinished animation handler
-    boolean end = false;
-    @FXML
-    private void showWidgetArea(MouseEvent e) {
-        if(e.getButton()!=PRIMARY) return;
-        
+    private void showWidgetArea() {
         WidgetPicker w = new WidgetPicker();
         w.onSelect = factory -> {
-            end = true;
-            a2.setOnFinished( a -> {
-                // actually not needed since layouter is removed when widget is
-                // loaded in the container in its place
-//                controls.setVisible(true);
-//                content.getChildren().retainAll(controls);
-//                animS.setOnFinished(null);
+            closeAndDo(w.root, () -> {
+                root.getChildren().remove(w.root);
+                root.setOnMouseExited(null);
                 // this is the crucial part
                 container.addChild(index, factory.create());
                 if(GUI.isLayoutMode()) container.show();
                 App.actionStream.push("New widget");
             });
-            showControls(false);
         };
-        
-        a2.setOnFinished( ae -> {
-            Node n = w.getNode();
-            content.getChildren().add(n);
-            setAnchors(n, 0);
-            controls.setVisible(false);
-            showControls(true);
-            a2.setOnFinished(null);
+        w.onCancel = () -> closeAndDo(w.root, () -> {
+            root.getChildren().remove(w.root);
+            showControls(GUI.isLayoutMode());
         });
-        showControls(false);
-        
-        e.consume();
+        w.buildContent();
+        root.getChildren().add(w.root);
+        setAnchors(w.root, 0);
+        openAndDo(w.root, null);
     }
-    @FXML
-    private void showSplitV(MouseEvent e) {
-        if(e.getButton()!=PRIMARY) return;
-        
-        closeAndDo(content, a -> container.addChild(index, new BiContainerPure(HORIZONTAL)));
+    private void showSplitV() {
+        container.addChild(index, new BiContainerPure(HORIZONTAL));
         App.actionStream.push("Divide layout");
-        e.consume();
     }
-    @FXML
-    private void showSplitH(MouseEvent e) {
-        if(e.getButton()!=PRIMARY) return;
-        
-        closeAndDo(content, a -> container.addChild(index, new BiContainerPure(VERTICAL)));
+    private void showSplitH() {
+        container.addChild(index, new BiContainerPure(VERTICAL));
         App.actionStream.push("Divide layout");
-        e.consume();
     }
-    @FXML
-    private void showTabs(MouseEvent e) {
-        if(e.getButton()!=PRIMARY) return;
-        
-        closeAndDo(content, a -> container.addChild(index, new FreeFormContainer()));
-//        closeAndDo(content, a -> container.addChild(index, new PolyContainer()));
-        e.consume();
+    private void showTabs() {
+        container.addChild(index, new PolyContainer());
+    }
+    private void showFreeform() {
+        container.addChild(index, new FreeFormContainer());
     }
     
     @Override
@@ -257,5 +228,3 @@ public final class Layouter implements ContainerNode {
         return root;
     }
 }
-
-

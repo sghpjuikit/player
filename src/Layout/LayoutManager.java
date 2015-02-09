@@ -2,14 +2,14 @@
 package Layout;
 
 import Configuration.Configurable;
-import GUI.ContextManager;
-import GUI.Window;
+import GUI.objects.Window.stage.ContextManager;
+import GUI.objects.Window.stage.Window;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 import main.App;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 import util.dev.Log;
 
 /**

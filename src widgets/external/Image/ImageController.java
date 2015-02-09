@@ -18,7 +18,7 @@ import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-import util.Parser.File.ImageFileFormat;
+import util.File.ImageFileFormat;
 import util.access.Accessor;
 import util.async.FxTimer;
 

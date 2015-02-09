@@ -9,9 +9,9 @@ import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
-import util.Parser.File.AudioFileFormat;
-import util.Parser.File.AudioFileFormat.Use;
-import static util.Parser.File.AudioFileFormat.Use.PLAYBACK;
+import util.File.AudioFileFormat;
+import util.File.AudioFileFormat.Use;
+import static util.File.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Playable item.

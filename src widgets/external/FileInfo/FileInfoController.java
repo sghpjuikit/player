@@ -45,8 +45,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import main.App;
 import org.reactfx.Subscription;
-import static util.Parser.File.FileUtil.copyFileSafe;
-import static util.Parser.File.FileUtil.copyFiles;
+import static util.File.FileUtil.copyFileSafe;
+import static util.File.FileUtil.copyFiles;
 import util.Util;
 import util.access.Accessor;
 

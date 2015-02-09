@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.Parser.File;
+package util.File;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -32,7 +32,7 @@ import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import main.App;
 import util.dev.Log;
-import util.Parser.File.AudioFileFormat.Use;
+import util.File.AudioFileFormat.Use;
 import util.Util;
 import static util.functional.FunctUtil.isNotNULL;
 

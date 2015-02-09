@@ -7,7 +7,7 @@
 package GUI.ItemHolders.ItemTextFields;
 
 import java.io.File;
-import util.Parser.File.Enviroment;
+import util.File.Enviroment;
 import util.Parser.ParserImpl.FileParser;
 import util.Parser.StringParser;
 

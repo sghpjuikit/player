@@ -46,8 +46,8 @@ import static javafx.scene.paint.Color.CADETBLUE;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
-import util.Parser.File.Enviroment;
-import util.Parser.File.FileUtil;
+import util.File.Enviroment;
+import util.File.FileUtil;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
 

@@ -18,7 +18,7 @@ import javafx.beans.value.WritableValue;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.dev.Log;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 import static util.Util.getAllFields;
 
 /**

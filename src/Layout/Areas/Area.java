@@ -1,8 +1,8 @@
 
 package Layout.Areas;
 
-import GUI.ContextManager;
-import GUI.Window;
+import GUI.objects.Window.stage.ContextManager;
+import GUI.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Container;
 import Layout.Layout;

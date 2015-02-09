@@ -5,8 +5,8 @@
  */
 package GUI.objects.Window.Pane;
 
-import GUI.WindowBase.Maximized;
-import static GUI.WindowBase.Maximized.ALL;
+import GUI.objects.Window.stage.WindowBase.Maximized;
+import static GUI.objects.Window.stage.WindowBase.Maximized.ALL;
 import GUI.objects.Window.Resize;
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;

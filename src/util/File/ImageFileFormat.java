@@ -5,7 +5,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.Parser.File;
+package util.File;
 
 import java.io.File;
 import java.net.URI;

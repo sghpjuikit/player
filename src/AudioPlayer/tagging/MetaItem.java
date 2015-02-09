@@ -16,7 +16,7 @@ import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 import util.dev.Log;
-import static util.Parser.File.AudioFileFormat.mp3;
+import static util.File.AudioFileFormat.mp3;
 
 /**
  *

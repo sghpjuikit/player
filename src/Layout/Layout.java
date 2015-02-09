@@ -13,7 +13,7 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
 import main.App;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 
 /**
  * @author uranium

@@ -5,17 +5,8 @@
  */
 package util.functional;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -24,6 +15,7 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.iterate;
 import java.util.stream.Stream;
 import javafx.util.Callback;
 import util.collections.Tuple2;
@@ -318,5 +310,11 @@ public class FunctUtil {
     public static<T> List<T> split(String txt, String regex, Function<String,T> factory) {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).map(factory).collect(toList());
+    }
+    
+    
+    
+    public static int findFirstEmpty(Map<Integer, ?> m, int from) {
+        return iterate(from, i -> i+1).filter(i->m.get(i)==null).findFirst().getAsInt();
     }
 }

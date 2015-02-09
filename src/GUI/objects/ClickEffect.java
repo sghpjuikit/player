@@ -4,7 +4,7 @@ package GUI.objects;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.Window;
+import GUI.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.FadeTransition;

@@ -39,7 +39,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import org.jaudiotagger.tag.images.Artwork;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 
 /** 
  * Provides static utility methods for various purposes. 

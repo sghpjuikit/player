@@ -2,9 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.Parser.File;
+package util.File;
 
 import AudioPlayer.playlist.Item;
+import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.Field.*;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -24,6 +26,7 @@ public enum AudioFileFormat {
     ogg,
     flac,
     wav,
+    m4a,
     UNKNOWN;
     
     /**
@@ -42,6 +45,18 @@ public enum AudioFileFormat {
     
     public FileChooser.ExtensionFilter toExtFilter() {
         return new FileChooser.ExtensionFilter(toString(), toExt());
+    }
+    
+    /** Returns whether writing the field to tag for this format is supported. */
+    public boolean isTagWriteSupported(Metadata.Field f) {
+        switch(this) {
+            case mp3 : return true;
+            case wav : return false;
+            case ogg : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
+            case flac : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
+            case m4a : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
+            default: throw new AssertionError("corrupted switch statement");
+        }
     }
     
     /**

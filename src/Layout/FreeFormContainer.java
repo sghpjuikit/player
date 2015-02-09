@@ -40,13 +40,13 @@ public class FreeFormContainer extends Container {
         }
         
         children.put(index, c);
-        load();
+        gui.loadWindow(index, c);
         initialize();
     }
 
     @Override
     public void removeChild(Integer index) {
-        gui.removeWindow(index);
+        gui.closeWindow(index);
         children.remove(index);
     }
     

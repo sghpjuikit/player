@@ -4,7 +4,7 @@ package GUI.LayoutAggregators;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.Window;
+import GUI.objects.Window.stage.Window;
 import Layout.Layout;
 import static java.lang.Double.*;
 import static java.lang.Math.signum;

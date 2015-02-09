@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI;
+package GUI.objects.Window.stage;
 
 import Action.IsAction;
 import Action.IsActionable;
@@ -32,7 +32,7 @@ import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import main.App;
 import util.dev.Log;
-import util.Parser.File.FileUtil;
+import util.File.FileUtil;
 
 /**
  *

@@ -20,11 +20,9 @@ import static util.functional.FunctUtil.listM;
  * For example histogram of numbers
  * 
  * @param <K> key
- * @param <E> element. Typically same as type of collection element.
+ * @param <E> element. Typically a collection element.
  * @param <H> histogram element. Denotes the statistics for element. Mostly
  * a value object - like Pair or Tuple of certain arity.
- * 
- * @author Plutonium_
  */
 public final class Histogram<K,E,H> extends HashMap<K,H>{
     private static final long serialVersionUID = 190L;

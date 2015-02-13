@@ -57,9 +57,6 @@ import Configuration.IsConfig;
 import GUI.Traits.EditableTrait;
 import GUI.Traits.ScaleOnHoverTrait;
 import GUI.Traits.SkinTrait;
-import java.io.File;
-import static java.io.File.separator;
-import static java.util.Collections.singletonList;
 import java.util.function.Consumer;
 import javafx.beans.property.*;
 import javafx.geometry.Orientation;
@@ -68,7 +65,6 @@ import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.util.Duration;
-import main.App;
 
 /**
  * A control for allowing users to provide a rating. This control supports
@@ -188,8 +184,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
         setRating(rating);
         installScaleOnHover();
         
-//        getStylesheets().setAll(getUserAgentStylesheet()); // prevent skin change
-        getStylesheets().setAll(singletonList(new File(App.getLocation(),"controls"+separator+"Rating"+separator+"min.css").getAbsolutePath())); // prevent skin change
+//        getStylesheets().setAll(getUserAgentStylesheet()); // prevent skin change // unnecessary and evil
     }
     
     /***************************************************************************
@@ -225,6 +220,9 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     /** Sets the current rating value in stars.  */
     public final void setRating(double value) {
        ratingProperty().set(value);
+    }
+    public final void setRatingP(double value) {
+       ratingProperty().set(value*getMax());
     }
     
     /** Returns the current rating value in stars. */

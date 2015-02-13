@@ -8,12 +8,7 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 
@@ -22,15 +17,15 @@ import javafx.util.Duration;
  */
 public final class PlaybackState {
     private UUID id;
-    private final VolumeProperty volume;
-    private final BalanceProperty balance;
-    private final ObjectProperty<PlayingItemSelector.LoopMode> loopMode;
-    private final ObjectProperty<MediaPlayer.Status> status;
-    private final ObjectProperty<Duration> duration;
-    private final ObjectProperty<Duration> currentTime;
-    private final ObjectProperty<Duration> realTime;
-    private final BooleanProperty mute;
-    private final DoubleProperty rate;
+    public final VolumeProperty volume;
+    public final BalanceProperty balance;
+    public final ObjectProperty<PlayingItemSelector.LoopMode> loopMode;
+    public final ObjectProperty<MediaPlayer.Status> status;
+    public final ObjectProperty<Duration> duration;
+    public final ObjectProperty<Duration> currentTime;
+    public final ObjectProperty<Duration> realTime;
+    public final BooleanProperty mute;
+    public final DoubleProperty rate;
     
     private int played_item_index;
     private URI played_item;
@@ -52,121 +47,7 @@ public final class PlaybackState {
         this(UUID.randomUUID());
     }
 
-    public double getVolume() {
-        return volume.get();
-    }
-
-    public void setVolume(Volume val) {
-        volume.set(val);
-    }
-
-    public void setVolume(double val) {
-        volume.set(val);
-    }
-
-    public DoubleProperty volumeProperty() {
-        return volume.volumeProperty();
-    }
-    
-    public double getBalance() {
-        return balance.get();
-    }
-
-    public void setBalance(double val) {
-        balance.set(val);
-    }
-    
-    public void setBalance(Balance val) {
-        balance.set(val);
-    }
-    
-    public DoubleProperty balanceProperty() {
-        return balance.balanceProperty();
-    }
-    
-    public PlayingItemSelector.LoopMode getLoopMode() {
-        return loopMode.get();
-    }
-
-    public void setLoopMode(PlayingItemSelector.LoopMode val) {
-        loopMode.set(val);
-    }
-
-    public ObjectProperty<PlayingItemSelector.LoopMode> loopModeProperty() {
-        return loopMode;
-    }
-
-    public MediaPlayer.Status getStatus() {
-        return status.get();
-    }
-
-    public void setStatus(MediaPlayer.Status val) {
-        status.set(val);
-    }
-
-    public ObjectProperty<MediaPlayer.Status> statusProperty() {
-        return status;
-    }
-
-    public Duration getCurrentTime() {
-        return currentTime.get();
-    }
-
-    public void setCurrentTime(Duration val) {
-        currentTime.set(val);
-    }
-
-    public ObjectProperty<Duration> currentTimeProperty() {
-        return currentTime;
-    }
-    
-    public Duration getRealTime() {
-        return realTime.get();
-    }
-
-    public void setRealTime(Duration val) {
-        realTime.set(val);
-    }
-
-    public ObjectProperty<Duration> realTimeProperty() {
-        return realTime;
-    }
-
-    public Duration getDuration() {
-        return duration.get();
-    }
-
-    public void setDuration(Duration val) {
-        duration.set(val);
-    }
-
-    public ObjectProperty<Duration> durationProperty() {
-        return duration;
-    }
-
-    public boolean getMute() {
-        return mute.get();
-    }
-
-    public void setMute(boolean val) {
-        mute.set(val);
-    }
-
-    public BooleanProperty muteProperty() {
-        return mute;
-    }
-
-    public double getRate() {
-        return rate.get();
-    }
-
-    public void setRate(double val) {
-        rate.set(val);
-    }
-
-    public DoubleProperty rateProperty() {
-        return rate;
-    }
+   
 
     public UUID getId() {
         return id;
@@ -179,18 +60,18 @@ public final class PlaybackState {
     public void change(PlaybackState to) {
         if (to == null) return;
         id = to.getId();
-        volume.set(to.getVolume());
-        balance.set(to.getBalance());
-        loopMode.set(to.getLoopMode());
+        volume.set(to.volume.get());
+        balance.set(to.balance.get());
+        loopMode.set(to.loopMode.get());
         status.unbind();
-        status.set(to.getStatus());
+        status.set(to.status.get());
         duration.unbind();
-        duration.set(to.getDuration());
+        duration.set(to.duration.get());
         currentTime.unbind();
-        currentTime.set(to.getCurrentTime());
-        realTime.set(to.getRealTime());
-        mute.set(to.getMute());
-        rate.set(to.getRate());
+        currentTime.set(to.currentTime.get());
+        realTime.set(to.realTime.get());
+        mute.set(to.mute.get());
+        rate.set(to.rate.get());
     }
     
     @Override
@@ -214,16 +95,16 @@ public final class PlaybackState {
     @Override
     public String toString() {
         String out = "";
-        out = out + "Id: " + this.id.toString() + "\n";
-        out = out + "Total Time: " + this.getDuration().toString() + "\n";
-        out = out + "Current Time: " + this.getCurrentTime().toString() + "\n";
-        out = out + "Real Time: " + this.getRealTime().toString() + "\n";
-        out = out + "Volume: " + this.getVolume() + "\n";
-        out = out + "Balance: " + this.getBalance() + "\n";
-        out = out + "Rate: " + this.getRate() + "\n";
-        out = out + "Mute: " + this.getMute() + "\n";
-        out = out + "Playback Status: " + this.getStatus().toString() + "\n";
-        out = out + "Loop Mode: " + this.getLoopMode().toString() + "\n";
+                out = out + "Id: " + this.id.toString() + "\n";
+                out = out + "Total Time: " + duration.get().toString() + "\n";
+                out = out + "Current Time: " + currentTime.get().toString() + "\n";
+                out = out + "Real Time: " + realTime.get().toString() + "\n";
+                out = out + "Volume: " + volume + "\n";
+                out = out + "Balance: " + balance + "\n";
+                out = out + "Rate: " + rate + "\n";
+                out = out + "Mute: " + mute + "\n";
+                out = out + "Playback Status: " + status.get().toString() + "\n";
+                out = out + "Loop Mode: " + loopMode.get().toString() + "\n";
         return out;
     }
     

@@ -375,7 +375,7 @@ public class FileInfoController extends FXMLController {
             gap2.setText(" ");
             rating.setText("rating: "       + m.getRatingAsString());
             playcount.setText("playcount: " + m.getPlaycountAsString());
-            comment.setText("comment: "     + m.getComment());
+            comment.setText("comment: "     + "");//m.getComment().replace("\n", " ; "));
             category.setText("category: "   + m.getCategory());
             gap3.setText(" ");
             filesize.setText("filesize: "   + m.getFilesize().toString());

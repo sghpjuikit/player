@@ -511,7 +511,9 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
      * because bgr listening thread will not close.
      */
     public static void stopGlobalListening() {
-        JIntellitype.getInstance().cleanUp();
+        if(isGlobalShortcutsSupported()) {
+            JIntellitype.getInstance().cleanUp();
+        }
     }
 
     /** 

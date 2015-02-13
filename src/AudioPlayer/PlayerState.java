@@ -65,7 +65,7 @@ public final class PlayerState {
     public void serialize() {
         try {
             playlists.forEach(PlaylistState::suspend);
-            playback.setRealTime(PLAYBACK.getRealTime());
+            playback.realTime.set(PLAYBACK.getRealTime());
             suspendPlayback();
             playback_id = playback.getId();
             playlist_id = UUID.fromString(playlist.getId().toString()); // without string conversion serialization errored out... weird

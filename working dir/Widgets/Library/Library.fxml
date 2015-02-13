@@ -15,6 +15,7 @@
     <Menu fx:id="remMenu" mnemonicParsing="false" text="-">
       <items>
         <MenuItem mnemonicParsing="false" onAction="#removeInvalid" text="Remove invalid items" />
+                  <MenuItem mnemonicParsing="false" onAction="#removeAll" text="Remove all items" />
       </items>
     </Menu>
   </menus>

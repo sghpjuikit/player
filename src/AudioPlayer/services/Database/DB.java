@@ -154,6 +154,9 @@ public class DB {
     public static void updateLib() {
         views.push(1, getAllItems());
     }
+    public static void clearLib() {
+        views.push(1, EMPTY_LIST);
+    }
     
     public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
 }

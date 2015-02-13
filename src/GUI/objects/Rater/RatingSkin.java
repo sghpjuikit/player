@@ -29,18 +29,20 @@ package GUI.objects.Rater;
 
 import com.sun.javafx.Utils;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Orientation;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import static util.Util.createIcon;
 
 /**
  *
@@ -241,7 +243,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         double x = w/control.getMax()*rating;
         double y = h/control.getMax()*rating;
         
-//        System.out.println(x + " " + y + " " + w + " " + h);                   //DEBUG
+//        System.out.println(x + " " + y + " " + w + " " + h);                  //DEBUG
         
         if (isVertical()) {
             forgroundClipRect.relocate(0, h - y);
@@ -267,11 +269,12 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     }
         
     private Node createButton() {
-        Region btn = new Region();
-               btn.getStyleClass().add("button");
-               btn.setOnMouseMoved(mouseMoveHandler);
-               btn.setOnMouseClicked(mouseClickHandler);
-        return btn;
+        Label l = createIcon(AwesomeIcon.STAR, 10, null, null);
+//        Label l = new Label();
+               l.getStyleClass().add("rating-button");
+               l.setOnMouseMoved(mouseMoveHandler);
+               l.setOnMouseClicked(mouseClickHandler);
+        return l;
     }
     
     private boolean isVertical() {

@@ -5,8 +5,8 @@
  */
 package Serialization;
 
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.playback.PlaybackState;
+import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
@@ -29,62 +29,62 @@ public class PlaylistStateConverter implements Converter {
     public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
         PlaybackState state = (PlaybackState) value;
         writer.startNode("volume");
-        writer.setValue(String.valueOf(state.getVolume()));
+        writer.setValue(String.valueOf(state.volume.get()));
         writer.endNode();
         writer.startNode("balance");
-        writer.setValue(String.valueOf(state.getBalance()));
+        writer.setValue(String.valueOf(state.balance.get()));
         writer.endNode();
         writer.startNode("loopMode");
-        writer.setValue(String.valueOf(state.getLoopMode()));
+        writer.setValue(String.valueOf(state.loopMode.get()));
         writer.endNode();
         writer.startNode("status");
-        writer.setValue(String.valueOf(state.getStatus()));
+        writer.setValue(String.valueOf(state.status.get()));
         writer.endNode();
         writer.startNode("duration");
-        writer.setValue(String.valueOf(state.getDuration()));
+        writer.setValue(String.valueOf(state.duration.get()));
         writer.endNode();
         writer.startNode("currentTime");
-        writer.setValue(String.valueOf(state.getCurrentTime()));
+        writer.setValue(String.valueOf(state.currentTime.get()));
         writer.endNode();
         writer.startNode("realTime");
-        writer.setValue(String.valueOf(state.getRealTime()));
+        writer.setValue(String.valueOf(state.realTime.get()));
         writer.endNode();
         writer.startNode("mute");
-        writer.setValue(String.valueOf(state.getMute()));
+        writer.setValue(String.valueOf(state.mute.get()));
         writer.endNode();
         writer.startNode("rate");
-        writer.setValue(String.valueOf(state.getRate()));
+        writer.setValue(String.valueOf(state.rate.get()));
         writer.endNode();
     }
     @Override
     public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) {
         PlaybackState s = PlaybackState.getDefault();
         reader.moveDown();
-        s.setVolume(Double.parseDouble(reader.getValue()));
+        s.volume.set(Double.parseDouble(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setBalance(Double.parseDouble(reader.getValue()));
+        s.balance.set(Double.parseDouble(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setLoopMode(PlayingItemSelector.LoopMode.valueOf(reader.getValue()));
+        s.loopMode.set(PlayingItemSelector.LoopMode.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setStatus(Status.valueOf(reader.getValue()));
+        s.status.set(Status.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setDuration(Duration.valueOf(reader.getValue()));
+        s.duration.set(Duration.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setCurrentTime(Duration.valueOf(reader.getValue()));
+        s.currentTime.set(Duration.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setRealTime(Duration.valueOf(reader.getValue()));
+        s.realTime.set(Duration.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setMute(Boolean.valueOf(reader.getValue()));
+        s.mute.set(Boolean.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.setRate(Double.valueOf(reader.getValue()));
+        s.rate.set(Double.valueOf(reader.getValue()));
         reader.moveUp();
         return s;
     }

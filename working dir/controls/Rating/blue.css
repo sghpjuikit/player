@@ -3,21 +3,22 @@
     Created on : Feb 4, 2014, 7:27:01 PM
     Author     : uranium
 */
-
+/*
 .rating > .container {
     -fx-spacing: 2;
 }
-.rating > .container > .button {
+.rating-button {
     -fx-background-color: null;
     -fx-border-color: null;
     -fx-background-image: url("rating_unselected-star.png");
-    -fx-background-size: 12;
-    -fx-padding: 6 6; 
+    -fx-background-size: 10;
+    -fx-padding: 5; 
     -fx-background-image-repeat: no-repeat;
 }
-.rating > .container > .button.strong {
+.rating-button.strong {
     -fx-background-image: url("rating_selected-star_(blue).png");
+    -fx-background-image-repeat: no-repeat;
 }
-.rating > .container > .button:hover {
+.rating-button:hover {
     -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.3) , 4, 0.0 , 0 , 0 );
-}
+}*/

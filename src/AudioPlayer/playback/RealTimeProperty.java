@@ -49,7 +49,7 @@ public final class RealTimeProperty {
         PLAYBACK.addOnPlaybackStart(eventExecutor);
     }
     
-    void synchroRealTime_onPlayed() {
+    public void synchroRealTime_onPlayed() {
         real_seek = ZERO;
         curr_sek = ZERO;
         count = 0;
@@ -57,7 +57,7 @@ public final class RealTimeProperty {
         eventDistributorPulse.restart();
     }
     
-    void synchroRealTime_onStopped() {
+    public void synchroRealTime_onStopped() {
         real_seek = Duration.ZERO;
         curr_sek = Duration.ZERO;
         count = 0;
@@ -65,11 +65,11 @@ public final class RealTimeProperty {
         eventExecutor.run();
     }
     
-    void synchroRealTime_onPreSeeked() {
+    public void synchroRealTime_onPreSeeked() {
         real_seek = realTime.get();
     }
     
-    void synchroRealTime_onPostSeeked(Duration duration) {
+    public void synchroRealTime_onPostSeeked(Duration duration) {
         curr_sek = duration;
         eventExecutor.run();
     }

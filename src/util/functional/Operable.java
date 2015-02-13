@@ -9,6 +9,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 /**
  * Provides functional methods for object.
@@ -36,6 +37,10 @@ public interface Operable<O> {
     public default O useAnd(Consumer<O> op) {
         op.accept((O)this);
         return (O) this;
+    }
+    
+    public default boolean isIn(O os) {
+        return Stream.of(os).anyMatch(o->o==this);
     }
     
     

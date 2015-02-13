@@ -4,6 +4,7 @@ package AudioPlayer.playback;
 import Action.IsAction;
 import Action.IsActionable;
 import AudioPlayer.Player;
+import AudioPlayer.playback.MediaSupport.GeneralPlayer;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
@@ -15,26 +16,21 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.media.AudioSpectrumListener;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
-import util.dev.Log;
-import static util.File.AudioFileFormat.Use.PLAYBACK;
 import util.File.Enviroment;
 
 /**
- * Provides methods for playback.
+ * Provides methods for player.
  */
 @IsActionable
 @IsConfigurable("Playback")
@@ -50,21 +46,16 @@ public final class PLAYBACK implements Configurable {
     @IsConfig(name="Seek fraction", info = "Relative time in fracton of song's length to seek forward/backward by.", min=0, max=1)
     public static double seekUnitP = 0.05;
     
-    private static final PlaybackState state = Player.state.playback;
-    static MediaPlayer playback;
-    private static final PlaybackCore core = new PlaybackCore();
-    
-    private static final RealTimeProperty realTime = 
-            new RealTimeProperty(state.durationProperty(), state.currentTimeProperty());
-    
+    public static final PlaybackState state = Player.state.playback;
+    static GeneralPlayer player = new GeneralPlayer();
     
     /** Initializes the Playback. */
     public static void initialize() {
-        realTime.initialize();
+        player.realTime.initialize();
         
-        // add end of playback behavior
-        core.addOnPlaybackEnd(() -> {
-            switch (state.getLoopMode()) {
+        // add end of player behavior
+        addOnPlaybackEnd(() -> {
+            switch (state.loopMode.get()) {
                 case OFF:       stop();
                                 break;
                 case PLAYLIST:  PlaylistManager.playNextItem();
@@ -82,19 +73,19 @@ public final class PLAYBACK implements Configurable {
         if (PlaylistManager.getPlayingItem()==null) return;
         
         if (continuePlaybackPaused)
-            state.setStatus(Status.PAUSED);
+            state.status.set(Status.PAUSED);
         
-        // create playback
-        createPlayback(PlaylistManager.getPlayingItem().getURI().toString());
-        if (state.getStatus() == PAUSED || state.getStatus() == PLAYING) {
-            seek(state.getCurrentTime());
+        // create player
+        player.createPlayback(PlaylistManager.getPlayingItem().getURI().toString(), state);
+        if (state.status.get()== PAUSED || state.status.get()==PLAYING) {
+            seek(state.currentTime.get());
         }
     }
     
     public static void suspend() {
-        state.setRealTime(getRealTime());
+        state.realTime.set(getRealTime());
         Player.state.serialize();
-        destroyPlayback();
+        player.dispose();
     }
     public static void activate() {
 //        Player.state.
@@ -102,7 +93,7 @@ public final class PLAYBACK implements Configurable {
 /******************************************************************************/
     
     /**
-     * Starts playback of item.
+     * Starts player of item.
      * It is safe to assume that application will have updated currently played
      * item after this method is invoked. The same is not guaranteed for cached
      * metadata of this item.
@@ -113,78 +104,39 @@ public final class PLAYBACK implements Configurable {
      * @param item to play
      */
     public static void play(PlaylistItem item) {
-        // properly end previous
-        destroyPlayback();
-        // handle corrupted
-        if (item.isCorrupt(PLAYBACK)) { 
-            PlaylistManager.playItem(item); // will handle 'corruptness' within playlist
-            return;
-        }
-        // play
-        createPlayback(item.getURI().toString());
-        playback.play();
-        
-        realTime.synchroRealTime_onPlayed();
-        // fire playing item change event
-        Player.playingtem.itemChanged(item);
-        PlaylistManager.setPlayingItem(item);
-        core.playbackStartDistributor.run();
+        player.play(item);
     }
     
-    /** Resumes playback, if file is being played. Otherwise does nothing. */
+    /** Resumes player, if file is being played. Otherwise does nothing. */
     @IsAction(name = "Resume", description = "Resumes playback, if file is being played.", shortcut = "", global = true)
     public static void resume() {
-        if (playback.getMedia() == null) return;
-        playback.play();
+        player.resume();
     }
     
-    /** Pauses playback, if already paused, does nothing. */
+    /** Pauses player, if already paused, does nothing. */
     @IsAction(name = "Pause", description = "Pauses playback, if file is being played.", shortcut = "", global = true)
     public static void pause() {
-        if (playback.getMedia() == null) return;
-        playback.pause();
+        player.pause();
     }
     
-    /** Pauses/resumes playback, if file is being played. Otherwise does nothing. */
+    /** Pauses/resumes player, if file is being played. Otherwise does nothing. */
     @IsAction(name = "Pause/resume", description = "Pauses/resumes playback, if file is being played.", shortcut = "ALT+S", global = true)
     public static void pause_resume() {
-        if (playback == null || playback.getMedia() == null) return;
-
-        if (playback.getStatus() == PLAYING)
-            pause();
-        else
-            resume();
+        player.pause_resume();
     }
     
-    /** Stops playback. */
+    /** Stops player. */
     @IsAction(name = "Stop", description = "Stops playback.", shortcut = "ALT+F", global = true)
     public static void stop() {
-        if (playback == null) return;
-        
-        playback.stop();
-        realTime.synchroRealTime_onStopped();
+        player.stop();
     }
     
-    /** Seeks playback to position specified by duration parameter. */
+    /** Seeks player to position specified by duration parameter. */
     public static void seek(Duration duration) {
-        if (playback == null) return;
-        
-        if (playback.getStatus() == STOPPED) {
-            pause();
-        }
-        
-        if (playback.getStatus() == PLAYING || playback.getStatus() == PAUSED) {
-            realTime.synchroRealTime_onPreSeeked();
-            playback.seek(duration);
-            realTime.synchroRealTime_onPostSeeked(duration);
-            core.needs_seek = false;
-        } else {
-            core.needs_seek = true;
-            core.seekTo = duration;
-        }
+        player.seek(duration);
     }
 
-    /** Seeks playback to position specified by percent value 0-1. */
+    /** Seeks player to position specified by percent value 0-1. */
     public static void seek(double at) {
         if(at<0 ||at>1) throw new IllegalArgumentException("Seek value must be 0-1");
         seek(getTotalTime().multiply(at));
@@ -225,7 +177,7 @@ public final class PLAYBACK implements Configurable {
 /******************************************************************************/
     
     public static double getVolume() {
-        return state.getVolume();
+        return state.volume.get();
     }
     
     public static double getVolumeMin() {
@@ -237,7 +189,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static void setVolume(double value) {
-        state.setVolume(value);
+        state.volume.set(value);
     }
 
     /** Increment volume by elementary unit. */
@@ -253,11 +205,11 @@ public final class PLAYBACK implements Configurable {
     }
    
     public static DoubleProperty volumeProperty() {
-        return state.volumeProperty();
+        return state.volume.volumeProperty();
     }
     
     public static double getBalance() {
-        return state.getBalance();
+        return state.balance.get();
     }
     
     public static double getBalanceMin() {
@@ -269,15 +221,15 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static void setBalance(double value) {
-        state.setBalance(value);
+        state.balance.set(value);
     }
     
     public static DoubleProperty balanceProperty() {
-        return state.balanceProperty();
+        return state.balance.balanceProperty();
     }
     
     public static PlayingItemSelector.LoopMode getLoopMode() {
-        return state.getLoopMode();
+        return state.loopMode.get();
     }
     
     @IsAction(name = "Toggle looping", description = "Switch between playlist looping mode.", shortcut = "ALT+L")
@@ -286,36 +238,36 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static void setLoopMode(LoopMode mode) {
-        state.setLoopMode(mode);
+        state.loopMode.set(mode);
         PlaylistManager.playingItemSelector.setSelector(mode.selector());
     }
     
     public static ObjectProperty<LoopMode> loopModeProperty() {
-        return state.loopModeProperty();
+        return state.loopMode;
     }
    
     public static MediaPlayer.Status getStatus() {
-        return state.getStatus();
+        return state.status.get();
     }   
     
     public static ObjectProperty<Status> statusProperty() {
-        return state.statusProperty();
+        return state.status;
     }    
     
     public static Duration getCurrentTime() {
-        return state.getCurrentTime();
+        return state.currentTime.get();
     }
     
     public static ObjectProperty<Duration> currentTimeProperty() {
-        return state.currentTimeProperty();
+        return state.currentTime;
     }
     
     public static Duration getRealTime() {
-        return realTime.get();
+        return player.realTime.get();
     }
     
     public static RealTimeProperty realTimeProperty() {
-        return realTime;
+        return player.realTime;
     }
     
     public static Duration getRemainingTime() {
@@ -323,11 +275,11 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static Duration getTotalTime() {
-        return state.getDuration();
+        return state.duration.get() ;
     }
     
     public static ObjectProperty<Duration> totalTimeProperty() {
-        return state.durationProperty();
+        return state.duration;
     }
     
     public static double getPosition() {
@@ -339,27 +291,27 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static double getRate() {
-        return state.getRate();
+        return state.rate.get();
     }
 
     public static void setRate(double value) {
-        state.setRate(value);
+        state.rate.set(value);
     }
     
     public static DoubleProperty rateProperty() {
-        return state.rateProperty();
+        return state.rate;
     }   
     
     public static boolean isMute() {
-        return state.getMute();
+        return state.mute.get();
     }
     
     public static boolean getMute() {
-        return state.getMute();
+        return state.mute.get();
     }
 
     public static void setMute(boolean value) {
-        state.setMute(value);
+        state.mute.set(value);
     }
     
     /** Switches between on/off state for mute property. */
@@ -370,7 +322,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static BooleanProperty muteProperty() {
-        return state.muteProperty();
+        return state.mute;
     }
     
     /**
@@ -419,196 +371,91 @@ public final class PLAYBACK implements Configurable {
         Item i = PlaylistManager.getPlayingItem();
         Enviroment.browse(i==null ? null : i.getURI());
     }
-    
-/******************************************************************************/
 
+//********************************** ON START *********************************/
+
+    private static final List<Runnable> onStartHandlers = new ArrayList<>();
+    
+    public static final Runnable playbackStartDistributor = () -> onStartHandlers.forEach(Runnable::run);
     /**
      * Add behavior to behave every time song starts playing. Seeking to 
-     * time 0 dosnt activate this event.
+     * time 0 doesn't activate this event.
      * It is not safe to assume that application's information on currently played
      * item will be updated before this event. Therefore using cached information
      * like can result in misbehavior due to outdated information.
      * @param b 
      */
-    public static void addOnPlaybackStart(Runnable b)
-        { core.addOnPlaybackStart(b); }
+    public static void addOnPlaybackStart(Runnable b) {
+        onStartHandlers.add(b);
+    }
+    
     /**
      * Remove behavior that executes when item starts playing.
      * @param b 
      */
-    public static void removeOnPlaybackStart(Runnable b)
-        { core.removeOnPlaybackStart(b); }
+    public static void removeOnPlaybackStart(Runnable b) {
+        onStartHandlers.remove(b);
+    }
+    
+//********************************** ON END ***********************************/
+
+    private static final List<Runnable> onEndHandlers = new ArrayList<>();
+    
+    public static final Runnable playbackEndDistributor = () -> onEndHandlers.forEach(Runnable::run);
     /**
-     * Add behavior that will execute when item playback ends.
+     * Add behavior that will execute when item player ends.
      * It is safe to use in-app cache of currently played item inside
      * the behavior parameter. Application's information will still apply during
      * playbackEnd event;
      * @param b 
      */
-    public static void addOnPlaybackEnd(Runnable b) 
-        { core.addOnPlaybackEnd(b); }
+    public static void addOnPlaybackEnd(Runnable b) {
+        onEndHandlers.add(b);
+    }
+    
     /**
-     * Remove behavior that executes when item playback ends.
+     * Remove behavior that executes when item player ends.
      * @param b 
      */
-    public static void removeOnPlaybackEnd(Runnable b)
-        { core.removeOnPlaybackEnd(b); }
+    public static void removeOnPlaybackEnd(Runnable b) {
+        onEndHandlers.remove(b);
+    }
+    
+//******************************* SPECTRUM ************************************/
+    
+    private static final List<AudioSpectrumListener> spectrumListeners = new ArrayList<>();
+    /**
+     * Only one spectrum listener is allowed per player (MediaPlayer) object. Here
+     * reregistering and ditributing of the event is handled.
+     * Playback has main spectrum listener registered only if there is at least one
+     * listener registered in the listener list.
+     */
+    public final static AudioSpectrumListener spectrumListenerDistributor = (double d, double d1, float[] floats, float[] floats1) -> {
+        // distribute event to all listeners
+        spectrumListeners.forEach(l->l.spectrumDataUpdate(d, d1, floats, floats1));
+    };
+    
     /**
      * Set audio spectrum listener to listen to spectrum changes.
      * Spectrum listener allows real-time observation of frequency bands of
      * played item.
      * @param l The listener.
      */
-    public static void addAudioSpectrumListener(AudioSpectrumListener l) 
-        { core.addAudioSpectrumListener(l); }
+    public static void addAudioSpectrumListener(AudioSpectrumListener l) {
+        spectrumListeners.add(l);
+        if(spectrumListeners.size()==1)
+            if(player.playback!=null)
+                player.playback.setAudioSpectrumListener(spectrumListenerDistributor);
+    }
+    
     /**
      * Removes audio spectrum listener. 
      * @param l The listener.
      */
-    public static void removeAudioSpectrumListener(AudioSpectrumListener l)
-        { core.removeAudioSpectrumListener(l); }
-    
-/******************************************************************************/
-    
-    /**
-     * Creates playback of specified file initialized to current
-     * playback state.
-     * The resource is URI.toString() - string representation of the URI
-     * @param resource that will be assigned to player and played.
-     */
-    private static void createPlayback(String resource){
-        Media media;
-        try {
-            media = new Media(resource);
-        } catch (MediaException e) {
-            Log.err(e.getLocalizedMessage());
-            stop();
-            return;
-        }
-        
-        playback = new MediaPlayer(media);
-        
-        // debug
-        // these two have no effect, unless something is wrong
-        // if seeking out of sync with current value (WHICH IT IS!!)
-        // setStopTime might stop the song prematurely
-        // playback.setStartTime(ZERO);
-        // playback.setStopTime(playback.getTotalDuration());
-        
-        
-        playback.setAudioSpectrumInterval(0.1);
-        playback.setAudioSpectrumNumBands(64);
-//        playback.setAudioSpectrumThreshold(i) // ? what val is ok?
-
-        // bind (not read only) values: global -> new playback (automatic initialization)
-        playback.volumeProperty().bind(state.volumeProperty());
-        playback.balanceProperty().bind(state.balanceProperty());
-        playback.muteProperty().bind(state.muteProperty());
-        playback.rateProperty().bind(state.rateProperty());
-        realTime.real_seek = state.getRealTime();
-        realTime.curr_sek = Duration.ZERO;
-        // register listener/event distributors
-        playback.setAudioSpectrumListener(core.spectrumListenerDistributor);
-        playback.setOnEndOfMedia(core.playbackEndDistributor);
-        
-        // handle binding of state to player
-        // handle seeking when player in invalid statuses (seek when status becomes valid)
-        playback.statusProperty().addListener(new ChangeListener<Status>() {
-            @Override
-            public void changed(ObservableValue<? extends Status> o, Status oldV, Status newV) {
-                if (newV == PLAYING || newV == PAUSED || newV == STOPPED) {
-                    // bind (read only) values: new playback -> global (manual initialization)
-                    state.currentTimeProperty().bind(playback.currentTimeProperty());
-                    state.durationProperty().bind(playback.cycleDurationProperty());
-                    state.statusProperty().bind(playback.statusProperty());
-                    // make one time only
-                    playback.statusProperty().removeListener(this);
-                }
-            }
-        });
-        playback.statusProperty().addListener(new ChangeListener<Status>() {
-            @Override
-            public void changed(ObservableValue<? extends Status> o, Status oldV, Status newV) {
-                if (newV == Status.PLAYING || newV == PAUSED ) {
-                    if (core.needs_seek) {
-                        seek(core.seekTo);
-                    }
-                    // make one time only
-                    playback.statusProperty().removeListener(this);
-                }
-            }
-        });
-            
-            
-//this can be substitued for the Listeners above // i just wanted to separate code           
-//        playback.setOnPlaying(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (core.needs_bind) {
-//                    // bind (read only) values: new playback -> global (manual initialization)
-//                    activeState.currentTimeProperty().bind(playback.currentTimeProperty());
-//                    activeState.totalTimeProperty().bind(playback.cycleDurationProperty());
-//                    activeState.statusProperty().bind(playback.statusProperty());
-//                }
-//                if (core.needs_seek) {
-//                    seek(core.seekTo);
-//                }
-//            }
-//        });
-//        playback.setOnPaused(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (core.needs_bind) {
-//                    // bind (read only) values: new playback -> global (manual initialization)
-//                    activeState.currentTimeProperty().bind(playback.currentTimeProperty());
-//                    activeState.totalTimeProperty().bind(playback.cycleDurationProperty());
-//                    activeState.statusProperty().bind(playback.statusProperty());
-//                }
-//                if (core.needs_seek) {
-//                    seek(core.seekTo);
-//                }
-//            }
-//        });
-//        playback.setOnStopped(new Runnable() {
-//            @Override
-//            public void run() {
-//                if (core.needs_bind) {
-//                    // bind (read only) values: new playback -> global (manual initialization)
-//                    activeState.currentTimeProperty().bind(playback.currentTimeProperty());
-//                    activeState.totalTimeProperty().bind(playback.cycleDurationProperty());
-//                    activeState.statusProperty().bind(playback.statusProperty());
-//                }
-//            }
-//        });
-        
-        // initialize (read only) values
-            //status && duration(auto)(item_length) && current time (auto)(0)
-        if (state.getStatus() == MediaPlayer.Status.PLAYING) {
-            playback.play();
-        } else
-        if (state.getStatus() == MediaPlayer.Status.PAUSED) {
-            playback.pause();
-        } else {
-            playback.stop();
-        }
-    }
-    
-    /**
-     * Closes playback.
-     * Prevents 'double playback'.
-     */
-    private static void destroyPlayback() {
-        if (playback == null) return;
-        playback.volumeProperty().unbind();
-        playback.balanceProperty().unbind();
-        playback.muteProperty().unbind();
-        playback.rateProperty().unbind();
-        state.currentTimeProperty().unbind();
-        state.durationProperty().unbind();
-        state.statusProperty().unbind();
-        playback.stop();
-        playback.dispose();
-//        playback = null;
-        core.needs_bind = true;
+    public static void removeAudioSpectrumListener(AudioSpectrumListener l) {
+        spectrumListeners.remove(l);
+        if(spectrumListeners.isEmpty())
+            if(player.playback!=null)
+                player.playback.setAudioSpectrumListener(null);
     }
 }

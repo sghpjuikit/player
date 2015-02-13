@@ -37,7 +37,6 @@ import static java.util.Collections.singletonList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
-import static javafx.application.Platform.runLater;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
@@ -131,6 +130,8 @@ public class LibraryController extends FXMLController {
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
     @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    @IsConfig(name = "Rating style", info = "Defines the rating column graphics.")
+    public final Accessor<RatingStyle> rating_style = new Accessor<>(RatingStyle.STARS, v -> table.getColumn(RATING).ifPresent(table::refreshColumn));
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
@@ -174,34 +175,7 @@ public class LibraryController extends FXMLController {
                         return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
                     });
             c.setCellFactory(f==RATING
-                ? (Callback)new Callback<TableColumn<Metadata, Double>, TableCell<Metadata, Double>>() {
-                        @Override
-                        public TableCell<Metadata, Double> call(TableColumn<Metadata, Double> param) {
-//                                    Rating r = new Rating();
-                            TableCell<Metadata, Double> c = new TableCell<Metadata,Double>() {
-//                                {
-//                                    setGraphic(null);
-//                                }
-
-                                @Override
-                                protected void updateItem(Double item, boolean empty) {
-                                    super.updateItem(item, empty);
-                                    if(empty) {
-//                                        setGraphic(null);
-//                                        ((Rating)getGraphic()).setRating(0);
-                                    } else {
-                                        runLater(()->{
-                                        if(getGraphic()==null) setGraphic(new Rating());
-                                        ((Rating)getGraphic()).setRating(item);
-                                        });
-                                    }
-                                    
-                                }
-                                
-                            };
-                            return c;
-                        }
-                    }
+                ? (Callback)tf -> rating_style.getValue().cell()
                 : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
             c.setUserData(f);
             if(f==Metadata.Field.TRACK || f==Metadata.Field.DISC || 
@@ -379,6 +353,9 @@ public class LibraryController extends FXMLController {
         });
        taskInfo.showNbind(t);
     }
+    @FXML private void removeAll() {
+//        DB.clearLib();
+    }
     
 /********************************* CONFIGS ************************************/
     
@@ -432,4 +409,58 @@ public class LibraryController extends FXMLController {
         },
         (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
+    
+    public static enum RatingStyle {
+        STARS,
+        BAR,
+        NUMBER;
+        
+        public TableCell<Metadata,?> cell() {
+            switch(this) {
+                case STARS:
+                    Rating r = new Rating();
+                    return new TableCell<Metadata,Double>(){
+                        @Override
+                        protected void updateItem(Double item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if(empty) {
+                                setGraphic(null);
+                            } else {
+                                if(getGraphic()==null) setGraphic(r);
+                                r.setRatingP(item);
+                            }
+                        }
+                    };
+                case BAR:
+                    ProgressBar p = new ProgressBar();
+                    return new TableCell<Metadata,Double>(){
+                        @Override
+                        protected void updateItem(Double item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if(empty) {
+                                setGraphic(null);
+                            } else {
+                                if(getGraphic()==null) setGraphic(p);
+                                p.setProgress(item);
+                            }
+                        }
+                    };
+                case NUMBER:
+                    return new TableCell<Metadata,Double>(){
+                        @Override
+                        protected void updateItem(Double item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if(empty) {
+                                setText(null);
+                            } else {
+                                String s = item.toString();
+                                if(s.length()>4) s=s.substring(0, 4);
+                                setText(s);
+                            }
+                        }
+                    };
+                default: throw new AssertionError("illegal switch satement: " + this);
+            }
+        }
+    }
 }

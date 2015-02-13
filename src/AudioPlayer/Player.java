@@ -8,6 +8,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import PseudoObjects.ReadMode;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.function.Consumer;
 import org.reactfx.EventStreams;
@@ -50,6 +51,9 @@ public class Player {
             case SELECTED_ANY:      subscription = selectedItemES.subscribe(action);
                                     action.accept(selectedItemES.getValue());
                                     break;
+            case ANY:               subscription = anyItemES.subscribe(action);
+                                    action.accept(anyItemES.getValue());
+                                    break;
             case CUSTOM:            subscription = null;
                                     break;
             default: throw new AssertionError("Illegal switch value: " + source);
@@ -79,7 +83,9 @@ public class Player {
     };
     public static final AccessibleStream<List<Metadata>> playlistSelectedItemsES = new AccessibleStream(EMPTY_LIST);
     public static final AccessibleStream<Metadata> selectedItemES = new AccessibleStream(null, EventStreams.merge(librarySelectedItemES,playlistSelectedItemES));
+    public static final AccessibleStream<Metadata> anyItemES = new AccessibleStream(null, EventStreams.merge(librarySelectedItemES,playlistSelectedItemES,playingtem.itemUpdatedES));
     public static final AccessibleStream<List<Metadata>> selectedItemsES = new AccessibleStream(EMPTY_LIST, EventStreams.merge(librarySelectedItemsES,playlistSelectedItemsES));
+    public static final AccessibleStream<List<Metadata>> anyItemsES = new AccessibleStream(EMPTY_LIST, EventStreams.merge(librarySelectedItemsES,playlistSelectedItemsES.map(m->singletonList(m))));
     
     /** 
      * Refreshes the given item for the whole application. Use when metadata of

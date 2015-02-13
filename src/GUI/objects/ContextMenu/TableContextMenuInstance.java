@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TableView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 
 /**
@@ -32,6 +33,10 @@ public class TableContextMenuInstance<E> extends TableContextMenuRInstance<E,Tab
      * @param e 
      */
     public void show(TableView<E> table, MouseEvent e) {
+        show(table, table, e);
+    }
+    
+    public void show(TableView<E> table, ContextMenuEvent e) {
         show(table, table, e);
     }
     

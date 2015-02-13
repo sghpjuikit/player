@@ -4,7 +4,6 @@
  */
 package util;
 
-import util.dev.Log;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.awt.Dimension;
@@ -40,6 +39,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import org.jaudiotagger.tag.images.Artwork;
 import util.File.FileUtil;
+import util.dev.Log;
 
 /** 
  * Provides static utility methods for various purposes. 
@@ -198,6 +198,16 @@ public interface Util {
      */
     public static String capitalizeStrong(String s) {
         return s.isEmpty() ? "" : s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
+    
+    /** 
+     * Converts enum constant to 'human readable' string. 
+     * first letter upper case, 
+     * other letters lower case, 
+     * '_' into ' '
+     */
+    public static String enumToHuman(Enum e) {
+        return capitalizeStrong(e.name().replace('_', ' '));
     }
     
     /**
@@ -682,7 +692,6 @@ public interface Util {
         try {
             Field f = e.getClass().getSuperclass().getDeclaredFields()[0];
             f.setAccessible(true);
-            String old = ((String)f.get(e));
             f.set(e, mapper.apply(e));
             f.setAccessible(false);
         } catch (Exception ex) {

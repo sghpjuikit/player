@@ -1,4 +1,4 @@
- 
+
 package LibraryView;
 
 import AudioPlayer.playlist.Playlist;
@@ -40,6 +40,7 @@ import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
+import javafx.scene.input.ContextMenuEvent;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -184,7 +185,7 @@ public class LibraryViewController extends FXMLController {
         
         // context menu
         table.setOnMouseClicked( e -> {
-            if (e.getY()<table.getFixedCellSize()) return;
+            if (e.getY()<table.getTableHeaderHeight()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2)
                     play();
@@ -214,13 +215,14 @@ public class LibraryViewController extends FXMLController {
         table.getSelectionModel().getSelectedItems().addListener(
                 (Observable o) -> forwardItems(DB.views.getValue(lvl.getValue())));
         
-        // prevent volume change
-        table.setOnScroll(Event::consume);
-        
-        // prevent overly eager selection change
+        // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
         table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
         table.addEventFilter(MOUSE_CLICKED, consumeOnSecondaryButton);
+        // prevent context menu changing selection despite the above
+        table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
+        // prevent volume change
+        table.setOnScroll(Event::consume);
     }
 
     

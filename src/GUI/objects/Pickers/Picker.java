@@ -82,7 +82,7 @@ public class Picker<E> {
         Label l = new Label(text);
         StackPane b = new StackPane(l);
         b.getStyleClass().setAll(CELL_STYLE_CLASS);
-        b.setMinSize(50, 20);
+        b.setMinSize(80, 25);
         return b;
     };
     
@@ -156,22 +156,5 @@ public class Picker<E> {
             ((Region)n).setPrefWidth(cell_width);
             ((Region)n).setPrefHeight(cell_height);
         });
-//        int gap = 5;
-//        final int columns = clip(1,(int) floor(width/100), 5);
-//        int rows = (int) ceil(tiles.getChildren().size()/(double)columns);
-//        double W = rows*(50+gap)>height ? width-15 : width; // take care of scrollbar
-//        
-//        double sumgap = (columns-1) * gap;  // n elements have n-1 gaps
-//        final double cell_width = (W-sumgap)/columns;
-//        final double cell_height = (height-sumgap)/rows;
-//
-//        forEachIndexed(tiles.getChildren(), (i,n) -> {
-//            double x = i%columns * (cell_width+gap);
-//            double y = i/columns * (cell_height+gap);
-//            n.setLayoutX(x);
-//            n.setLayoutY(y);
-//            ((Region)n).setPrefWidth(cell_width);
-//            ((Region)n).setPrefHeight(cell_height);
-//        });
     }
 }

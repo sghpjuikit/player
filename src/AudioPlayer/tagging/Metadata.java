@@ -50,6 +50,8 @@ import util.File.ImageFileFormat;
 import util.Parser.ParserImpl.ColorParser;
 import util.Util;
 import static util.Util.*;
+import static util.Util.emptifyString;
+import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.dev.Log;
@@ -57,6 +59,7 @@ import util.dev.TODO;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
+import util.units.NofX;
 
 /**
  * Information about audio file.
@@ -220,9 +223,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         
         AudioHeader header = aFile.getAudioHeader();
         
-        // format and encoding type are switched in jaudiotagger library...
         bitrate = new Bitrate((int)header.getBitRateAsNumber()).getValue();
         duration = 1000 * header.getTrackLength();
+        // format and encoding type are switched in jaudiotagger library...
         encoding = emptifyString(header.getFormat());
         channels = emptifyString(header.getChannels());
         sample_rate = emptifyString(header.getSampleRate());
@@ -341,23 +344,20 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                 // all is good until the tag is actually damaged and the int can really
                 // overflow during conversion and we get ArithmeticException
                 // so we catch it and ignore the value (personally id throw custom
-                // exception anf handled in in upper layers eventually showing a dialog
-                // asking the user to fix the tags by rewriting it - but this is good
-                // enough - plus, both rating & playcount are likely to be changed soon
+                // exception and handled it in upper layers eventually showing a dialog
+                // asking the user to fix the tags by rewriting it
                 try {
                     rating = Math.toIntExact(rat);
-                } catch (ArithmeticException e)
-                    {}
+                } catch (ArithmeticException e){}
 
                 try {
                     playcount = Math.toIntExact(cou);
-                } catch (ArithmeticException e) 
-                    {}
+                } catch (ArithmeticException e) {}
             }
         }
         
         // we obtain publisher
-        publisher = Util.emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
+        publisher = emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
     private void loadSpecificFieldsWAV() {
         rating = -1;
@@ -453,7 +453,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      */
     @MetadataFieldMethod(Field.ENCODING)
     public String getEncodingType() {
-        // format and encoding type are switched in jaudiotagger library...
         return encoding;
     }
     
@@ -575,19 +574,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * @return track album order information.
      */
     @MetadataFieldMethod(Field.TRACK_INFO)
-    public String getTrackInfo() {
-        if (track!=-1 && tracks_total!=-1) {
-            return track+"/"+tracks_total;
-        } else
-        if (track!=-1 && tracks_total==-1) {
-            return track+"/?";
-        } else        
-        if (track==-1 && tracks_total!=-1) {
-            return "?/"+tracks_total;
-        } else {
-        //if (track==-1 && tracks_total==-1) {
-            return "?/?";
-        }
+    public NofX getTrackInfo() {
+        return new NofX(track, tracks_total);
     }
     
     /** @return the disc, -1 if empty. */
@@ -626,19 +614,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * @return disc information.
      */
     @MetadataFieldMethod(Field.DISCS_INFO)
-    public String getDiscInfo() {
-        if (disc!=-1 && discs_total!=-1) {
-            return disc+"/"+discs_total;
-        } else
-        if (disc!=-1 && discs_total==-1) {
-            return disc+"/?";
-        } else        
-        if (disc==-1 && discs_total!=-1) {
-            return "?/"+discs_total;
-        } else {
-        //if (disc.isEmpty() && discs_total.isEmpty()) {
-            return "?/?";
-        }
+    public NofX getDiscInfo() {
+        return new NofX(disc, discs_total);
     }
     
     /** @return the genre, "" if empty. */
@@ -667,7 +644,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                         ? c 
                         : new FileCover(getCoverFromDirAsFile(), "");
             }
-            default: throw new AssertionError(source + " in default switch value.");
+            default: throw new AssertionError("Corrupted switch statement");
         }
     }
     
@@ -1143,7 +1120,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         CUSTOM5;
             
         private Field() {
-            mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
+            mapEnumConstant(this, Util::enumToHuman);
         }
         
         /** {@inheritDoc} */
@@ -1172,7 +1149,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         }
     }
     
-    @Retention(RetentionPolicy.SOURCE) // we do not make use of this now, stay at source lvl
+    @Retention(RetentionPolicy.SOURCE) // !used now, stay at source lvl
     @Target(ElementType.METHOD) 
     public static @interface MetadataFieldMethod {
         Field value();

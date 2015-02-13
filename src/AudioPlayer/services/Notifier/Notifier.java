@@ -1,7 +1,6 @@
 
 package AudioPlayer.services.Notifier;
 
-import Action.Action;
 import Action.IsAction;
 import Action.IsActionable;
 import AudioPlayer.Player;
@@ -50,15 +49,15 @@ public final class Notifier implements Service {
     @IsConfig(name = "Notification position.")
     public static PopOver.ScreenCentricPos notifPos = ScreenTopRight;
     @IsConfig(name = "On Left Click.")
-    public static final AccessorAction onClickL = new AccessorAction(Action.getAction("Show/Hide application"), null);
+    public static final AccessorAction onClickL = new AccessorAction("Show application", null);
     @IsConfig(name = "On Right Click.")
-    public static final AccessorAction onClickR = new AccessorAction(Action.getAction("Notification hide"), null);
+    public static final AccessorAction onClickR = new AccessorAction("Notification hide", null);
     
     @IsAction(name = "Notification hide")
     public static void notifHide() {
         App.use(Notifier.class, Notifier::hideNotification);
     }
-    @IsAction(name = "Notify now playing", global = true, shortcut = "ALT + N")
+    @IsAction(name = "Notify now playing", description = "Shows notification about currently playing song.", global = true, shortcut = "ALT + N")
     public static void notifNowPlaying() {
         App.use(Notifier.class, nm -> nm.playbackChange(PLAYBACK.getStatus()));
     }

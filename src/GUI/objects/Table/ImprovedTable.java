@@ -12,6 +12,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import util.Util;
 import static util.async.Async.run;
@@ -48,6 +49,16 @@ public class ImprovedTable<T> extends TableView<T> {
     public void setHeaderVisible(boolean val) {
         if(val) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
         else    getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
+    }
+    
+    public boolean isTableHeaderVisible() {
+        Pane header = (Pane)lookup("TableHeaderRow");
+        return header==null ? true : header.isVisible();
+    }
+    
+    public double getTableHeaderHeight() {
+        Pane header = (Pane)lookup("TableHeaderRow");
+        return header==null ? getFixedCellSize() : header.getHeight();
     }
     
     /** Returns selected items. */

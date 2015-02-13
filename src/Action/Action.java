@@ -29,11 +29,11 @@ import static javafx.scene.input.KeyCombination.NO_MATCH;
 import javafx.scene.input.MouseEvent;
 import main.App;
 import org.atteo.classindex.ClassIndex;
-import util.dev.Dependency;
-import util.dev.Log;
 import util.access.Accessor;
 import util.async.FxTimer;
 import util.collections.MapSet;
+import util.dev.Dependency;
+import util.dev.Log;
 import static util.functional.FunctUtil.do_NOTHING;
 
 /**
@@ -260,7 +260,7 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
     }
     public void unregister() {                                                  // Log.deb("Attempting to unregister shortcut " + name);
         // unregister both local and global to prevent illegal states
-        unregisterGlobal();
+        if (isGlobalShortcutsSupported()) unregisterGlobal();
         unregisterInApp();
     }
     
@@ -534,14 +534,17 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
     }
     
     /**
-     * Returns the action with specified name or null if no such action exists.
-     * 
-     * @param name
-     * @return action or null
+     Returns the action with specified name.
+     
+     @param name
+     @return action. Never null.
+     @throws IllegalArgumentException if no such action 
      */
     @Dependency("must use the same implementation as Action.getId()")
     public static Action getAction(String name) {
-        return actions.get(name.hashCode());
+        Action a = actions.get(name.hashCode());
+        if(a==null) throw new IllegalArgumentException("No such action: " + name);
+        return a;
     }
     
 /************************ action helper methods *******************************/

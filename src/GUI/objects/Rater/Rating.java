@@ -50,8 +50,6 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * @author Martin Polakovic (edited by)
  */
 package GUI.objects.Rater;
 
@@ -59,21 +57,18 @@ import Configuration.IsConfig;
 import GUI.Traits.EditableTrait;
 import GUI.Traits.ScaleOnHoverTrait;
 import GUI.Traits.SkinTrait;
+import java.io.File;
+import static java.io.File.separator;
+import static java.util.Collections.singletonList;
 import java.util.function.Consumer;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.util.Duration;
+import main.App;
 
 /**
  * A control for allowing users to provide a rating. This control supports
@@ -193,7 +188,8 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
         setRating(rating);
         installScaleOnHover();
         
-        getStylesheets().setAll(getUserAgentStylesheet()); // prevent skin change
+//        getStylesheets().setAll(getUserAgentStylesheet()); // prevent skin change
+        getStylesheets().setAll(singletonList(new File(App.getLocation(),"controls"+separator+"Rating"+separator+"min.css").getAbsolutePath())); // prevent skin change
     }
     
     /***************************************************************************
@@ -211,7 +207,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     @Override public String getUserAgentStylesheet() {
         if (skinIndexProperty().get()==-1) return super.getUserAgentStylesheet();
         else return getSkins().get(skinIndexProperty().get());
-    }    
+    }
        
     /***************************************************************************
      * 

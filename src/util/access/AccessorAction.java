@@ -18,12 +18,13 @@ import static util.functional.FunctUtil.listM;
         + "this class is unneeded. It involves separating toS and toString methods. Research.")
 public class AccessorAction extends AccessorEnum<String> {
     
-    private AccessorAction(String val, Consumer<String> applier) {
-        super(val, applier, () -> listM(Action.getActions(), Action::getName));
-    }
     
     public AccessorAction(Action a, Consumer<Action> applier) {
-        this(a.getName(), applier==null ? null : name -> applier.accept(Action.getAction(name)));
+        super(a.getName(), applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> listM(Action.getActions(), Action::getName));
+    }
+    
+    public AccessorAction(String action_name, Consumer<Action> applier) {
+        super(action_name, applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> listM(Action.getActions(), Action::getName));
     }
     
     public Action getValueAction() {

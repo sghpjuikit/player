@@ -1,19 +1,22 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- *//*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package PseudoObjects;
+
+import util.Util;
+import static util.Util.*;
+import static util.Util.mapEnumConstant;
 
 /**
  * 
  */
 public enum ReadMode {
-    SELECTED_PLAYLIST,
     PLAYING,
+    SELECTED_PLAYLIST,
     SELECTED_LIBRARY,
     SELECTED_ANY,
+    ANY,
     CUSTOM;
+    
+    private ReadMode() {
+        mapEnumConstant(this, Util::enumToHuman);
+    }
 }

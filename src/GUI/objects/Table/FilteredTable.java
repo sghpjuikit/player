@@ -22,12 +22,12 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.BUG;
-import static util.dev.TODO.Severity.MEDIUM;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.BUG;
+import static util.dev.TODO.Severity.MEDIUM;
 import static util.functional.FunctUtil.cmpareBy;
 
 /**

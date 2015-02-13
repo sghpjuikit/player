@@ -28,7 +28,7 @@ public class FreeFormContainer extends Container {
     }
 
     @Override
-    public void addChild(Integer index, Component c) {System.out.println("adding " + c + " to " + index );
+    public void addChild(Integer index, Component c) {
         if(index == null) return;
                 
         if(c==null) {

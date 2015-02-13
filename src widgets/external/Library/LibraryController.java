@@ -4,10 +4,8 @@ package Library;
 import AudioPlayer.Player;
 import AudioPlayer.playlist.*;
 import AudioPlayer.services.Database.DB;
-import util.units.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.Field.PATH;
-import static AudioPlayer.tagging.Metadata.Field.TITLE;
+import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
@@ -15,6 +13,7 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.Rater.Rating;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
@@ -31,12 +30,14 @@ import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
+import static java.lang.Math.floor;
 import java.util.Collection;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
+import static javafx.application.Platform.runLater;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
@@ -48,18 +49,19 @@ import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.util.Callback;
 import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
@@ -73,6 +75,7 @@ import util.async.FxTimer;
 import static util.functional.FunctUtil.list;
 import static util.functional.FunctUtil.listM;
 import util.functional.Runner;
+import util.units.FormattedDuration;
 
 /**
  *
@@ -154,13 +157,55 @@ public class LibraryController extends FXMLController {
         });
         table.setColumnFactory( f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
-            c.setCellValueFactory( cf -> {
-                if(cf.getValue()==null) return null;
-                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
-            });
-            c.setCellFactory(DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
+            c.setCellValueFactory( f==RATING 
+                ? cf -> {
+                        if(cf.getValue()==null) return null;
+                        String s = cf.getValue().getRatingPercentAsString();
+                        if(s.length()>4) s = s.substring(0,4);
+                        return new ReadOnlyObjectWrapper(s);
+                    }
+                : cf -> {
+                        if(cf.getValue()==null) return null;
+                        return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+                    }
+            );
+            c.setCellValueFactory(cf -> {
+                        if(cf.getValue()==null) return null;
+                        return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+                    });
+            c.setCellFactory(f==RATING
+                ? (Callback)new Callback<TableColumn<Metadata, Double>, TableCell<Metadata, Double>>() {
+                        @Override
+                        public TableCell<Metadata, Double> call(TableColumn<Metadata, Double> param) {
+//                                    Rating r = new Rating();
+                            TableCell<Metadata, Double> c = new TableCell<Metadata,Double>() {
+//                                {
+//                                    setGraphic(null);
+//                                }
+
+                                @Override
+                                protected void updateItem(Double item, boolean empty) {
+                                    super.updateItem(item, empty);
+                                    if(empty) {
+//                                        setGraphic(null);
+//                                        ((Rating)getGraphic()).setRating(0);
+                                    } else {
+                                        runLater(()->{
+                                        if(getGraphic()==null) setGraphic(new Rating());
+                                        ((Rating)getGraphic()).setRating(item);
+                                        });
+                                    }
+                                    
+                                }
+                                
+                            };
+                            return c;
+                        }
+                    }
+                : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
             c.setUserData(f);
-            if(f==Metadata.Field.TRACK) {
+            if(f==Metadata.Field.TRACK || f==Metadata.Field.DISC || 
+               f==Metadata.Field.TRACKS_TOTAL || f==Metadata.Field.DISCS_TOTAL) {
                 c.setComparator((Comparator) new Comparator<Integer>() {
                     @Override
                     public int compare(Integer o1, Integer o2) {
@@ -172,9 +217,11 @@ public class LibraryController extends FXMLController {
         });
         columnInfo = table.getDefaultColumnInfo();
         
+        
+        
         // context menu & play
-        table.setOnMouseClicked( e -> {
-            if (e.getY()<table.getFixedCellSize()) return;
+        table.addEventHandler(MOUSE_CLICKED, e -> {
+            if (table.isTableHeaderVisible() && e.getY()<table.getTableHeaderHeight()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2) {
                     Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylistItem));
@@ -182,7 +229,14 @@ public class LibraryController extends FXMLController {
                 }
             } else
             if(e.getButton()==SECONDARY) {
+                // prepare selection for context menu
+                double h = table.isTableHeaderVisible() ? e.getY() - table.getTableHeaderHeight() : e.getY();
+                int i = (int)floor(h/table.getFixedCellSize()); // row index
+                if(!table.getSelectionModel().isSelected(i))
+                    table.getSelectionModel().clearAndSelect(i);
+                // show context menu
                 contxt_menu.show(table, e);
+                e.consume();
             }
         });
         
@@ -209,12 +263,13 @@ public class LibraryController extends FXMLController {
             }
         });
         
-        // prevent volume change
-        table.setOnScroll(Event::consume);
-        
-        // prevent overly eager selection change
+        // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
         table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
+        // prevent context menu changing selection despite the above
+        table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
+        // prevent volume change
+        table.setOnScroll(Event::consume);
         
         // update selected items for application
         table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(table.getSelectedItemsCopy()));

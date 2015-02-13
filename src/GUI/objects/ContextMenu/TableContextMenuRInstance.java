@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import javafx.scene.control.TableView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import util.SingleInstance;
 
@@ -33,6 +34,10 @@ public class TableContextMenuRInstance<E,R> extends SingleInstance<ContentContex
      * @param e 
      */
     public void show(R mutator, TableView<E> table, MouseEvent e) {
+        if(!table.getSelectionModel().isEmpty())
+            get(mutator).show(table, e);
+    }
+    public void show(R mutator, TableView<E> table, ContextMenuEvent e) {
         if(!table.getSelectionModel().isEmpty())
             get(mutator).show(table, e);
     }

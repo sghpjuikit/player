@@ -9,7 +9,6 @@ import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
 import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
-import util.units.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import GUI.DragUtil;
 import GUI.GUI;
@@ -20,6 +19,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.io.File;
+import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,35 +28,26 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
-import javafx.event.EventHandler;
-import javafx.scene.control.Label;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.event.*;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
+import javafx.scene.input.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import javafx.scene.input.TransferMode;
+import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import org.reactfx.Subscription;
 import util.File.Enviroment;
+import util.Util;
+import static util.Util.*;
+import static util.async.Async.run;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
-import util.Util;
-import static util.Util.DEFAULT_ALIGNED_CELL_FACTORY;
-import static util.Util.createmenuItem;
-import static util.Util.selectRows;
-import static util.Util.setAnchors;
-import static util.async.Async.run;
 import static util.functional.FunctUtil.cmpareBy;
+import util.units.FormattedDuration;
 
 /**
  * Playlist table GUI component.
@@ -81,7 +72,6 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     // selection helper variables
     double last;
     ArrayList<Integer> selected_temp = new ArrayList<>();
-    int clicked_row = -1;
     
     // playing item observation listeners, the playing item style update
     Subscription playintItemMonitor = Player.playingtem.subscribeToChanges(o->refreshColumn(columnIndex));
@@ -92,7 +82,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     
     public PlaylistTable () {
         super(NAME);
-        
+            
         // stupid workaround for having to put the tmp,tmp2 labels somewhere on the scenegrapgh...
         AnchorPane a = new AnchorPane(this, tmp,tmp2);
         setAnchors(this, 0);
@@ -163,17 +153,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     super.layoutChildren();
                     updatePseudoclassState(getItem(), isEmpty());
                 }
-            };            
-            // remember index of row that was clicked on
+            };
             row.setOnMousePressed( e -> {
                 // remember position for moving selected rows on mouse drag
                 last = e.getScreenY();
-            
-                if (row.getItem() == null)
-//                    selectNone();
-                    clicked_row = -1;
-                else
-                    clicked_row = row.getIndex();
             });
             // clear table selection on mouse released if no item
             row.setOnMouseReleased( e -> {
@@ -235,53 +218,40 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             return true;
         });
         
-        // handle selection
-        setOnMousePressed( e -> {
-            if (e.getY()<getFixedCellSize()) return;
-            if (e.getButton() != PRIMARY) return;
-            // reselect items from remembered state
-            // this overrides default behavior where mousePressed deselects all but
-            // the item that was clicked on
-            if (selected_temp.contains(clicked_row)) {
-                selectRows(selected_temp, getSelectionModel());
-            }
-            e.consume();
-        });
-        // handle selection
-        setOnMouseReleased( e -> {
-            if (e.getY()<getFixedCellSize()) return;
-            if (e.getButton() != PRIMARY) return;
-            // remember the indexes of selected rows
-            // clone (! not copy), copying would mean that change to selected items
-            // would change the remembered indexes too
-            selected_temp.clear();
-            for(Integer i: getSelectionModel().getSelectedIndices()) {
-                selected_temp.add(i);
-            }
-            e.consume();
-        });
+        // prevent selection change on right click
+        addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
+        addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
+        // prevent context menu changing selection despite the above
+        addEventFilter(ContextMenuEvent.ANY, Event::consume);
+        
         // handle click
-        setOnMouseClicked( e -> {
-            if (e.getY()<getFixedCellSize()) return;
+        addEventHandler(MOUSE_CLICKED, e -> {
+            if (isTableHeaderVisible() && e.getY()<getTableHeaderHeight()) return;
             if (e.getButton() == PRIMARY) { 
-            // add new items if empty
+                // add new items if empty
                 if (e.getClickCount() == 1) {
                     if(getItems().isEmpty())
                         PlaylistManager.addOrEnqueueFiles(true);
                 }
-            // play item on doubleclick
+                // play item on doubleclick
                 if (e.getClickCount() == 2) {
                     if(!getSelectionModel().isEmpty()) {
                         int i = getSelectionModel().getSelectedIndex();
-                        int real_i = getItemsFiltered().getSourceIndex(i);
-                        PlaylistManager.playItem(real_i);
+                        int j = getItemsFiltered().getSourceIndex(i);
+                        PlaylistManager.playItem(j);
                     }
                 }           
             } else
-            // show contextmenu
-            if (e.getButton() == SECONDARY)
+            if(e.getButton()==SECONDARY) {
+                // prepare selection for context menu
+                double h = isTableHeaderVisible() ? e.getY() - getTableHeaderHeight() : e.getY();
+                int i = (int)floor(h/getFixedCellSize()); // row index
+                if(!getSelectionModel().isSelected(i))
+                    getSelectionModel().clearAndSelect(i);
+                // show context menu
                 contxt_menu.show(this, e);
-            
+                e.consume();
+            }
             e.consume();
         });
         
@@ -289,10 +259,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         setOnMouseDragged( e -> {
             if (e.getButton()!=MouseButton.PRIMARY) return;
             
-            double ROW = getFixedCellSize();
-            double diff = e.getScreenY()- last;
+            double h = getFixedCellSize();
+            double dist = e.getScreenY()- last;
             
-            int by = (int) (diff/ROW);
+            int by = (int) (dist/h);
             if (by >= 1 || by <= -1) {
                 last = e.getScreenY();
                 moveSelectedItems(by);
@@ -357,7 +327,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         getItemsFiltered().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
         getItemsRaw().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
     }
-    
+
     /** Clears resources like listeners for this table object. */
     public void clearResources() {
         playintItemMonitor.unsubscribe();
@@ -467,7 +437,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     }
     
 /****************************** CONTEXT MENU **********************************/
-
+    
     private static final TableContextMenuInstance<PlaylistItem> contxt_menu = new TableContextMenuInstance<> (
         () -> {
             ContentContextMenu<List<PlaylistItem>> m = new ContentContextMenu();

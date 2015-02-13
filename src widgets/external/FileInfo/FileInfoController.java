@@ -113,7 +113,7 @@ public class FileInfoController extends FXMLController {
     public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth(), tiles.getHeight()));
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
-    @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
+    @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings+")
     public final Accessor<Boolean> editableRating = new Accessor<>(App.allowRatingChange, rater::setEditable);
     @IsConfig(name = "Rating stars number", info = "Number of stars for rating. Rating value is recalculated accordingly. Defaults to application settings")
     public final Accessor<Integer> maxRating = new Accessor<>(App.maxRating, rater::setMax);
@@ -123,7 +123,7 @@ public class FileInfoController extends FXMLController {
     public final Accessor<Boolean> hoverRating = new Accessor<>(App.hoverRating, rater::setUpdateOnHover);
     @IsConfig(name = "Rating skin", info = "Rating skin.", editable = false)
     public final Accessor<String> rating_skin = new Accessor<>("",rater::setSkinCurrent);
-    @IsConfig(name = "Overrun style", info = "Style of clipping fields' text when outside of the area.")
+    @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
     public final Accessor<OverrunStyle> overrun_style = new Accessor<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
     @IsConfig(name = "Show cover", info = "Show cover.")
     public final Accessor<Boolean> showCover = new Accessor<>(true, this::setCoverVisible);
@@ -133,7 +133,7 @@ public class FileInfoController extends FXMLController {
     public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.bindObservedMetadata(v,dataMonitoring, this::populateGui));
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
-    @IsConfig(name = "Separate fields by group", info = "Separate fields by gap to group them.")
+    @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
     public final Accessor<Boolean> groupFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show title", info = "Show this field.")
     public final Accessor<Boolean> showTitle = new Accessor<>(true, v -> setVisibility());

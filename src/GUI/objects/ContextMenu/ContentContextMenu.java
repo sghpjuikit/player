@@ -9,6 +9,7 @@ package GUI.objects.ContextMenu;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
 import util.access.AccessibleValue;
 
@@ -59,6 +60,10 @@ public class ContentContextMenu<E> extends ContextMenu implements AccessibleValu
      * @param e 
      */
     public void show(Node n, MouseEvent e) {
+        super.show(n.getScene().getWindow(), e.getScreenX(), e.getScreenY());
+    }
+    
+    public void show(Node n, ContextMenuEvent e) {
         super.show(n.getScene().getWindow(), e.getScreenX(), e.getScreenY());
     }
 }

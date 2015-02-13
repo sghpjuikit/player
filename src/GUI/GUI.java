@@ -18,11 +18,8 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
+import javafx.animation.*;
 import static javafx.animation.Interpolator.LINEAR;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
@@ -226,6 +223,21 @@ public class GUI {
             Window.getActive().focus();
         else
             Window.getActive().toggleMinimize();
+    }
+    
+    @IsAction(name = "Show application", description = "Shows application.", global = true)
+    public static void showApp() {
+        if(App.getWindowOwner().isMinimized()) 
+            Window.getActive().setMinimized(false);
+        else {
+            if(Window.getFocused()==null)
+                Window.getActive().focus();
+        }
+    }
+    
+    @IsAction(name = "Hide application", description = "Hides application.", global = true)
+    public static void hideApp() {
+        Window.getActive().minimize();
     }
     
     public static void toggleMinimize() {

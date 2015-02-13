@@ -59,6 +59,7 @@ import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
 import main.App;
@@ -68,6 +69,7 @@ import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Enviroment;
+import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.Parser.ParserImpl.ColorParser;
@@ -202,6 +204,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         } else
         if (v==SELECTED_ANY){
             selectedItemsMonitoring = Player.selectedItemsES.subscribe(list->{
+                this.allitems.setAll(list);
+                populate(list);
+            });
+        } else
+        if (v==ANY){
+            selectedItemsMonitoring = Player.anyItemsES.subscribe(list->{
                 this.allitems.setAll(list);
                 populate(list);
             });
@@ -445,9 +453,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         popupPos.applyValue();
         readMode.applyValue();
     }
-    
-
-
     
     /**
      * This widget is empty if it has no data.
@@ -723,7 +728,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         void disable() {
             c.setDisable(true);
         }
-        public void setEnabled(Collection<AudioFileFormat> formats) {
+        public void setSupported(Collection<AudioFileFormat> formats) {
             boolean v = formats.stream().map(frm->frm.isTagWriteSupported(f))
                                .reduce(Boolean::logicalAnd).orElse(false);
             c.setDisable(!v);
@@ -804,18 +809,20 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             }
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
+            if(f==CUSTOM1) {
+                Color c = new ColorParser().fromS(histogramS);
+                ColorF.setValue(c==null ? EMPTY_COLOR : c);   
+                Custom1F.setText("");
+            }
+            
             if      (histogramI == 0)   c.setPromptText(TAG_NO_VALUE);
             else if (histogramI == 1)   c.setPromptText(histogramS);
             else if (histogramI == 2)   c.setPromptText(TAG_MULTIPLE_VALUE);
             
-            if(f==CUSTOM1) {
-                ColorF.setValue(new ColorParser().fromS(histogramS));                
-            }
-            
             // remember prompt text
             c.setId(c.getPromptText());
             // disable if unsuported
-            setEnabled(formats);
+            setSupported(formats);
         }
     }
 

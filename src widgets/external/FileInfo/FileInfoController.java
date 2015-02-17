@@ -116,7 +116,7 @@ public class FileInfoController extends FXMLController {
     @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings+")
     public final Accessor<Boolean> editableRating = new Accessor<>(App.allowRatingChange, rater::setEditable);
     @IsConfig(name = "Rating stars number", info = "Number of stars for rating. Rating value is recalculated accordingly. Defaults to application settings")
-    public final Accessor<Integer> maxRating = new Accessor<>(App.maxRating, rater::setMax);
+    public final Accessor<Integer> maxRating = new Accessor<>(App.maxRating.get(), rater::setMax);
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating. Defaults to application settings")
     public final Accessor<Boolean> partialRating = new Accessor<>(App.partialRating, rater::setPartialRating);
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering. Defaults to application settings")
@@ -130,7 +130,7 @@ public class FileInfoController extends FXMLController {
     @IsConfig(name = "Show fields", info = "Show fields.")
     public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setShowContent(v));
     @IsConfig(name = "Item source", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.bindObservedMetadata(v,dataMonitoring, this::populateGui));
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring, this::populateGui));
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")

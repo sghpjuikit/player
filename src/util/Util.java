@@ -543,8 +543,9 @@ public interface Util {
     }
     
     public static Label createIcon(AwesomeIcon icon, int size, String tooltip, EventHandler<MouseEvent> onClick) {
-        Label i = AwesomeDude.createIconLabel(icon,"",String.valueOf(size)+"px",String.valueOf(GUI.GUI.font.getValue().getSize()),CENTER);
-              i.setOnMouseClicked(onClick);
+        Label i = icon==null ? new Label() : 
+            AwesomeDude.createIconLabel(icon,"",String.valueOf(size)+"px",String.valueOf(GUI.GUI.font.getValue().getSize()),CENTER);
+        i.setOnMouseClicked(onClick);
         if(tooltip!=null && !tooltip.isEmpty()) i.setTooltip(new Tooltip(tooltip));
         return i;
     }

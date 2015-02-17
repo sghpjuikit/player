@@ -12,10 +12,10 @@ import Layout.Container;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import javafx.concurrent.Task;
@@ -30,12 +30,13 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import main.App;
 import static org.atteo.evo.inflector.English.plural;
-import util.dev.Log;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
+import static util.File.FileUtil.getFilesAudio;
 import util.File.ImageFileFormat;
 import util.async.Async;
+import util.dev.Log;
 
 /**
  *
@@ -158,11 +159,10 @@ public final class DragUtil {
      */
     public static List<Item> getAudioItems(DragEvent e) {
         Dragboard d = e.getDragboard();
-        ArrayList<Item> out = new ArrayList();
+        ArrayList<Item> o = new ArrayList();
         
         if (d.hasFiles()) {
-            FileUtil.getAudioFiles(d.getFiles(),Use.APP,0)
-                    .stream().map(SimpleItem::new).forEach(out::add);
+            getFilesAudio(d.getFiles(),Use.APP,0).map(SimpleItem::new).forEach(o::add);
         } else
         if (d.hasUrl()) {
             String url = d.getUrl();
@@ -171,16 +171,16 @@ public final class DragUtil {
             if(AudioFileFormat.isSupported(url,Use.APP))
                 Optional.of(new SimpleItem(URI.create(url)))  // isnt this dangerous?
                         .filter(i->!i.isCorrupt(Use.APP)) // isnt this pointless?
-                        .ifPresent(out::add);
+                        .ifPresent(o::add);
         } else
         if (hasPlaylist()) {
-            out.addAll(getPlaylist().getItems());
+            o.addAll(getPlaylist().getItems());
         } else 
         if (hasItemList()) {
-            out.addAll(getItemsList());
+            o.addAll(getItemsList());
         }
         
-        return out;
+        return o;
     }
     
      /**

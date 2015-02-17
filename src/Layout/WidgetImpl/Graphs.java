@@ -454,25 +454,25 @@ public final class Graphs extends AnchorPane implements Controller<Widget>  {
 //            double byX = e.getX() - chart.getWidth()/2;
 //            double byY = e.getY() - chart.getHeight()/2;
 //            
-//            List<Node> nodes1 = (List) series1.getData().stream().map(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
+//            List<Node> nodes1 = (List) series1.getData().stream().mapB(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
 //            nodes1.forEach(n->{
 //                n.setTranslateX(byX/10);
 //                n.setTranslateY(byY/10);
 //            });
 //            
-//            List<Node> nodes2 = (List) series2.getData().stream().map(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
+//            List<Node> nodes2 = (List) series2.getData().stream().mapB(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
 //            nodes2.forEach(n->{
 //                n.setTranslateX(byX/15);
 //                n.setTranslateY(byY/15);
 //            });
 //            
-//            List<Node> nodes3 = (List) series3.getData().stream().map(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
+//            List<Node> nodes3 = (List) series3.getData().stream().mapB(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
 //            nodes3.forEach(n->{
 //                n.setTranslateX(byX/12);
 //                n.setTranslateY(byY/15);
 //            });
 //            
-//            List<Node> nodes4 = (List) series4.getData().stream().map(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
+//            List<Node> nodes4 = (List) series4.getData().stream().mapB(n->((XYChart.Data)n).getNode()).collect(Collectors.toList());
 //            nodes4.forEach(n->{
 //                n.setTranslateX(byX/18);
 //                n.setTranslateY(byY/18);

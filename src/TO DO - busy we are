@@ -4,8 +4,6 @@
 --------------------------------------------------------------------------------
 - make class map that gets value by any class -> super class recursively
 - implement colr skin change + use song color, using setStyle on main color
-- window snap window/owner
-- window snap padding
 - library view save selection
 - library view play items use same order as library column sort order
 

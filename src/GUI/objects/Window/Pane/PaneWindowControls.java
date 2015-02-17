@@ -29,8 +29,8 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import static javafx.scene.paint.Color.BLACK;
 import javafx.scene.shape.Rectangle;
-import util.dev.Log;
 import static util.Util.setAnchors;
+import util.dev.Log;
 
 /**
  */
@@ -77,7 +77,7 @@ public class PaneWindowControls extends WindowPane {
 	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 	focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
 
-        installMovingBehavior(header);
+//        moveOnDragOf(header);
         
         header.setOnMousePressed(Event::consume);
         header.setOnMouseClicked(Event::consume);
@@ -141,8 +141,6 @@ public class PaneWindowControls extends WindowPane {
 
 /***************************    HEADER & BORDER    ****************************/
     @FXML private StackPane header;
-    @FXML private Region lBorder;
-    @FXML private Region rBorder;
     @FXML private ImageView iconI;
     @FXML private Label titleL;
     @FXML private HBox leftHeaderBox;
@@ -165,19 +163,12 @@ public class PaneWindowControls extends WindowPane {
     }
 
     private void showHeader(boolean val) {
-	controls.setVisible(val);
-	leftHeaderBox.setVisible(val);
+	header.setVisible(val);
 	if (val) {
-	    header.setPrefHeight(25);
 	    AnchorPane.setTopAnchor(content, 25d);
-	    AnchorPane.setTopAnchor(lBorder, 25d);
-	    AnchorPane.setTopAnchor(rBorder, 25d);
 	    setBorderless(!val);
 	} else {
-	    header.setPrefHeight(5);
-	    AnchorPane.setTopAnchor(content, 5d);
-	    AnchorPane.setTopAnchor(lBorder, 5d);
-	    AnchorPane.setTopAnchor(rBorder, 5d);
+	    AnchorPane.setTopAnchor(content, 0d);
 	}
     }
 

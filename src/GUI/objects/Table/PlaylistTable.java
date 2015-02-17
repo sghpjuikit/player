@@ -201,7 +201,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             
             // slider
             double H = getItems().size()*getFixedCellSize();
-            double S = H > getHeight() ? 15 : 0;
+            double S = H > getHeight()-getTableHeaderHeight() ? 15 : 0;
 
             // gap to prevent horizontal slider to appear
             double G = 3;
@@ -322,7 +322,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         
         refreshColumn(columnIndex);
         
+        // maintain columns width
         // fix this up
+        heightProperty().addListener(o -> getColumnResizePolicy().call(null));
         getItems().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
         getItemsFiltered().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
         getItemsRaw().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));

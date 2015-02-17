@@ -14,9 +14,6 @@ import static java.util.Objects.requireNonNull;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import static util.Util.setAnchors;
 
@@ -53,17 +50,17 @@ public final class WidgetArea extends Area<Container> {
         // support css styling
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
-        // support drag from
-        root.setOnDragDetected( e -> {
-            // disallow in normal mode & primary button drag only
-            if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
-                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(container,widget,db);
-                // signal dragging graphically with css
-                content.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
-                e.consume();
-            }
-        });
+//        // support drag from
+//        root.setOnDragDetected( e -> {
+//            // disallow in normal mode & primary button drag only
+//            if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
+//                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+//                DragUtil.setComponent(container,widget,db);
+//                // signal dragging graphically with css
+//                content.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+//                e.consume();
+//            }
+//        });
         // return graphics to normal
         root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         // accept drag onto

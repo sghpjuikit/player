@@ -34,8 +34,8 @@ import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Enviroment;
-import util.File.FileUtil;
-import util.access.AccessibleStream;
+import static util.File.FileUtil.getFilesAudio;
+import util.reactive.ValueEventSource;
 
 /**
  * Provides unified handling to everything playlist related in the application
@@ -52,11 +52,11 @@ public class PlaylistManager implements Configurable {
     /**
      * Last selected item on playlist or null if none.
      */
-    public static final AccessibleStream<PlaylistItem> selectedItemES = new AccessibleStream(null);
+    public static final ValueEventSource<PlaylistItem> selectedItemES = new ValueEventSource(null);
     /**
      * Selected items on playlist or empty list if none.
      */
-    public static final AccessibleStream<List<PlaylistItem>> selectedItemsES = new AccessibleStream(EMPTY_LIST);
+    public static final ValueEventSource<List<PlaylistItem>> selectedItemsES = new ValueEventSource(EMPTY_LIST);
     
     /**
      * Initialize state from last session
@@ -586,8 +586,7 @@ public class PlaylistManager implements Configurable {
         if (dir != null) {
             browse = dir;
             List<URI> queue = new ArrayList<>();
-            List<File> files = FileUtil.getAudioFiles(dir, Use.APP, folder_depth);
-            files.forEach(f -> queue.add(f.toURI()));
+            getFilesAudio(dir, Use.APP, folder_depth).forEach(f -> queue.add(f.toURI()));
             
             if(add) addUris(queue);
             else {

@@ -32,12 +32,11 @@ import de.jensd.fx.fontawesome.AwesomeIcon;
 import java.io.File;
 import static java.lang.Math.floor;
 import java.util.Collection;
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
-import javafx.beans.Observable;
+import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -61,12 +60,15 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import main.App;
+import static org.reactfx.EventStreams.changesOf;
+import static org.reactfx.EventStreams.nonNullValuesOf;
 import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Enviroment;
-import util.File.FileUtil;
 import static util.File.FileUtil.getCommonRoot;
+import static util.File.FileUtil.getFilesAudio;
 import static util.Util.*;
 import util.access.Accessor;
 import static util.async.Async.runAsTask;
@@ -111,7 +113,9 @@ public class LibraryController extends FXMLController {
     private @FXML VBox content;
     private final InfoTask taskInfo = new InfoTask(null, new Label(), new ProgressIndicator());
     private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
-    private Subscription dbMonitor;
+    private Subscription monitor1;
+    private Subscription monitor2;
+    private Subscription monitor3;
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     
     @FXML Menu addMenu;
@@ -136,9 +140,9 @@ public class LibraryController extends FXMLController {
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
-        if(dbMonitor!=null) dbMonitor.unsubscribe();
+        if(monitor1!=null) monitor1.unsubscribe();
         // listen for database changes to refresh library
-        dbMonitor = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
+        monitor1 = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
         // initialize
         table.setItemsRaw(DB.views.getValue(v));
     });
@@ -246,8 +250,8 @@ public class LibraryController extends FXMLController {
         table.setOnScroll(Event::consume);
         
         // update selected items for application
-        table.getSelectionModel().getSelectedItems().addListener( (Observable o) -> Player.librarySelectedItemsES.push(table.getSelectedItemsCopy()));
-        table.getSelectionModel().selectedItemProperty().addListener( (o,ov,nv) -> Player.librarySelectedItemES.push(nv));
+        monitor2 = Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty()));
+        monitor3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
         
         // task information label
         taskInfo.setVisible(false);        
@@ -290,7 +294,9 @@ public class LibraryController extends FXMLController {
     @Override
     public void close() {
         // stop listening
-        dbMonitor.unsubscribe();
+        monitor1.unsubscribe();
+        monitor2.unsubscribe();
+        monitor3.unsubscribe();
     }
     
     
@@ -312,22 +318,34 @@ public class LibraryController extends FXMLController {
     
     private void addNedit(boolean edit, boolean dir) {
         // get files
-        List<File> files;
+        Stream<File> files;
         if(dir) {
             File f = Enviroment.chooseFile("Add folder to library", true, last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            files = f==null ? EMPTY_LIST : singletonList(f);
+            files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
             if (f!=null) last_file = f;
         } else {
-            files = Enviroment.chooseFiles("Add files to library", last_file,
+            List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            File f = files==null ? null : getCommonRoot(files);
+            files = fs.stream();
+            File f = files==null ? null : getCommonRoot(fs);
             if(f!=null) last_file=f;
         }
+//        if(dir) {
+//            File f = Enviroment.chooseFile("Add folder to library", true, last_file,
+//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
+//            files = f==null ? EMPTY_LIST : singletonList(f);
+//            if (f!=null) last_file = f;
+//        } else {
+//            files = Enviroment.chooseFiles("Add files to library", last_file,
+//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
+//            File f = files==null ? null : getCommonRoot(files);
+//            if(f!=null) last_file=f;
+//        }
 
         if(files!=null) {
             Task ts = runAsTask("Discovering files",
-                    () -> listM(FileUtil.getAudioFiles(files,Use.APP,6), SimpleItem::new),
+                    () -> files.map(SimpleItem::new).collect(toList()),
                     (success,result) -> {
                         if (success) {
                             BiConsumer<Boolean,List<Metadata>> onEnd = (succes,added) -> {
@@ -354,7 +372,7 @@ public class LibraryController extends FXMLController {
        taskInfo.showNbind(t);
     }
     @FXML private void removeAll() {
-//        DB.clearLib();
+        DB.clearLib();
     }
     
 /********************************* CONFIGS ************************************/
@@ -418,8 +436,11 @@ public class LibraryController extends FXMLController {
         public TableCell<Metadata,?> cell() {
             switch(this) {
                 case STARS:
-                    Rating r = new Rating();
                     return new TableCell<Metadata,Double>(){
+                        Rating r = new Rating();
+                        {
+                            r.max.bind(App.maxRating);
+                        }
                         @Override
                         protected void updateItem(Double item, boolean empty) {
                             super.updateItem(item, empty);
@@ -432,8 +453,8 @@ public class LibraryController extends FXMLController {
                         }
                     };
                 case BAR:
-                    ProgressBar p = new ProgressBar();
                     return new TableCell<Metadata,Double>(){
+                        ProgressBar p = new ProgressBar();
                         @Override
                         protected void updateItem(Double item, boolean empty) {
                             super.updateItem(item, empty);

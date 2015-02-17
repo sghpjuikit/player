@@ -48,9 +48,9 @@ public final class Notifier implements Service {
     public static boolean notifAutohide = true;
     @IsConfig(name = "Notification position.")
     public static PopOver.ScreenCentricPos notifPos = ScreenTopRight;
-    @IsConfig(name = "On Left Click.")
+    @IsConfig(name = "On left click.")
     public static final AccessorAction onClickL = new AccessorAction("Show application", null);
-    @IsConfig(name = "On Right Click.")
+    @IsConfig(name = "On right click.")
     public static final AccessorAction onClickR = new AccessorAction("Notification hide", null);
     
     @IsAction(name = "Notification hide")

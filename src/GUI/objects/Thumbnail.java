@@ -19,12 +19,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashMap;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -35,40 +30,27 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
+import javafx.scene.input.*;
 import static javafx.scene.input.DataFormat.FILES;
-import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.MIDDLE;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseButton.*;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import static javafx.scene.paint.Color.BLACK;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import main.App;
-import util.dev.Log;
 import util.File.Enviroment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.SingleInstance;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import util.Util;
 import static util.Util.createmenuItem;
+import util.dev.Log;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
 
 /**
  * Thumbnail.
@@ -386,6 +368,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                 HashMap<DataFormat,Object> c = new HashMap();
                 c.put(FILES, Collections.singletonList(img_file));
                 db.setContent(c);
+                e.consume();
             }
         };
     }

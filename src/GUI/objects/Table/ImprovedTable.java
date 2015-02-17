@@ -51,11 +51,13 @@ public class ImprovedTable<T> extends TableView<T> {
         else    getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
     }
     
+    /** @return visibility of columns header. Default true. */
     public boolean isTableHeaderVisible() {
         Pane header = (Pane)lookup("TableHeaderRow");
         return header==null ? true : header.isVisible();
     }
     
+    /** @return height of columns header or 0 if invisible. */
     public double getTableHeaderHeight() {
         Pane header = (Pane)lookup("TableHeaderRow");
         return header==null ? getFixedCellSize() : header.getHeight();
@@ -66,7 +68,7 @@ public class ImprovedTable<T> extends TableView<T> {
         return getSelectionModel().getSelectedItems();
     }
     
-    /** Returns copy of selected items (to prevent modification). */
+    /** @return copy of selected items (to prevent modification). */
     public List<T> getSelectedItemsCopy() {
         return new ArrayList(getSelectionModel().getSelectedItems());
     }

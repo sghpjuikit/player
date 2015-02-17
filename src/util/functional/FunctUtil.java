@@ -87,16 +87,29 @@ public class FunctUtil {
         return (a,b) -> toStringConverter.call(a).compareToIgnoreCase(toStringConverter.call(b));
     }
     
-    
+    /** @return set of elements of provided collection with no duplicates. Order undefined. */
     public static<E> Set<E> noDups(Collection<E> c) {
         return new HashSet(c);
     }
     
+    /** @return set of elements of provided collection with no duplicates. Retains order. */
     public static<E> Set<E> noDupsStable(Collection<E> c) {
         return new LinkedHashSet(c);
     }
     
     
+    
+/******************************* object -> object *****************************/
+    
+    public static <IN,OUT> Function<IN,OUT> mapC(Predicate<? super IN> cond, OUT y, OUT n) {
+        return in -> cond.test(in) ? y : n;
+    }
+    public static <OUT> Function<Boolean,OUT> mapB(OUT y, OUT n) {
+        return in -> in ? y : n;
+    }
+    public static <OUT> Function<? extends Object,OUT> mapNulls(OUT y) {
+        return (Function) in -> in==null ? y : in;
+    }
     
 /****************************** collection -> list ****************************/
     
@@ -216,9 +229,9 @@ public class FunctUtil {
      * Returns stream of elements mapped by the mapper from index-element pairs 
      * of specified collection. Indexes start at 0.
      * <p>
-     * Functionally equivalent to: List.stream().map(item->new Pair(item,list.indexOf(item))).map(pair->mapper.map(p))
-     * but avoiding the notion of a Pair or Touple, and without any collection
-     * traversal to get indexes.
+ Functionally equivalent to: List.stream().mapB(item->new Pair(item,list.indexOf(item))).mapB(pair->mapper.mapB(p))
+ but avoiding the notion of a Pair or Touple, and without any collection
+ traversal to get indexes.
      * 
      * @param <T> element type
      * @param <R> result type

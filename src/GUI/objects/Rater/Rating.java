@@ -244,10 +244,9 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
         return getRating()/getMax();
     }
     
-    // --- Max
-    private IntegerProperty max = new SimpleIntegerProperty(this, "max", 5);
-    
     /** The maximum-allowed rating value. */
+    public final IntegerProperty max = new SimpleIntegerProperty(this, "max", 5);
+    
     public final IntegerProperty maxProperty() {
         return max;
     }

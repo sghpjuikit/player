@@ -303,9 +303,8 @@ public class LibraryViewController extends FXMLController {
     private List<Metadata> filerList(List<Metadata> list) {
         List<Metadata> l;
         if(table.getSelectionModel().isEmpty()) {
-            // no selection -> fetch everything, this is simplified behavior as
-            // filter might apply, in such case we should filter the items too
-            // i fear of bad performance, say predicate compound of 2000 predicates or even more
+            // no selection -> fetch everything, optimalization
+            // same as filtering out nothing
             l = list;
         } else {
             Predicate<Metadata> p = table.getSelectedItems().stream()

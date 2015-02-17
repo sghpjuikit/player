@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 import org.reactfx.Subscription;
 import util.async.FxTimer;
 import util.dev.Log;
-import util.access.AccessibleStream;
+import util.reactive.ValueEventSourceN;
 
 /**
  *
@@ -24,8 +24,6 @@ import util.access.AccessibleStream;
  */
 final class Core {
     
-    
-
     void initialize(){
         PlaylistManager.selectedItemES.subscribe(this::selectedItemToMetadata);
         PlaylistManager.selectedItemsES.subscribe(this::selectedItemsToMetadata);
@@ -36,8 +34,8 @@ final class Core {
     public static class CurrentItem {
         Metadata val = EMPTY;
         Metadata nextMetadataCache = EMPTY;
-        AccessibleStream<Metadata> itemPlayedES = new AccessibleStream(EMPTY);
-        AccessibleStream<Metadata> itemUpdatedES = new AccessibleStream(EMPTY);
+        ValueEventSourceN<Metadata> itemPlayedES = new ValueEventSourceN(EMPTY);
+        ValueEventSourceN<Metadata> itemUpdatedES = new ValueEventSourceN(EMPTY);
         private final FxTimer nextCachePreloader = new FxTimer(400, 1, () -> preloadNext());
         
         /**

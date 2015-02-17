@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -86,8 +88,8 @@ public class App extends Application {
     
     @IsConfig(info = "Preffered editability of rating controls. This value is overridable.")
     public static boolean allowRatingChange = true;
-    @IsConfig(info = "Preffered number of elements in rating control. This value is overridable.")
-    public static int maxRating = 5;
+    @IsConfig(info = "Preffered number of elements in rating control. This value is overridable.", min = 1, max = 10)
+    public static final IntegerProperty maxRating = new SimpleIntegerProperty(5);
     @IsConfig(info = "Preffered value for partial values in rating controls. This value is overridable.")
     public static boolean partialRating = true;
     @IsConfig(info = "Preffered hoverability of rating controls. This value is overridable.")

@@ -7,10 +7,10 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.virtual.InfoNode.InfoTask;
 import GUI.objects.ItemInfo;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Thumbnail;
+import GUI.virtual.InfoNode.InfoTask;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
@@ -24,6 +24,7 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -51,6 +52,7 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.File.FileUtil;
+import static util.File.FileUtil.getFilesImage;
 import util.Util;
 import util.access.Accessor;
 import util.async.Async;
@@ -105,7 +107,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     // auto applied cnfigurables
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.bindObservedMetadata(v,dataMonitoring,this::dataChanged));
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring,this::dataChanged));
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final Accessor<Double> thumbSize = new Accessor<>(Thumbnail.default_Thumbnail_Size,v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
@@ -361,8 +363,9 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 @Override protected Void call() throws Exception {
                     int ai = active_image;
                     // discover files
-                    List<File> files = folder.get()==null ? EMPTY_LIST
-                            :FileUtil.getImageFilesRecursive(folder.get(),folderTreeDepth, thumbsLimit);
+                    List<File> files = folder.get()==null 
+                        ? EMPTY_LIST
+                        : getFilesImage(folder.get(),folderTreeDepth).limit(thumbsLimit).collect(toList());
                     if(files.isEmpty()) {
                         setImage(-1);
                     } else {

@@ -33,7 +33,7 @@ import org.controlsfx.control.textfield.CustomTextField;
 import util.Parser.ParserImpl.FileParser;
 import util.Parser.ParserImpl.FontParser;
 import util.Password;
-import util.Util;
+import static util.Util.unPrimitivize;
 import static util.async.Async.run;
 import static util.functional.FunctUtil.cmpareBy;
 
@@ -234,10 +234,10 @@ abstract public class ConfigField<T> {
         if (f.isTypeEnumerable())
             cf = new EnumertionField(f);
         else
-        if (Boolean.class.equals(Util.unPrimitivize(type)))
+        if (Boolean.class.equals(unPrimitivize(type)))
             cf = new BooleanField(f);
         else 
-        if (String.class.equals(Util.unPrimitivize(type)))
+        if (String.class.equals(type))
             cf = new GeneralField(f);
         else
         if (Action.class.equals(type))
@@ -267,7 +267,8 @@ abstract public class ConfigField<T> {
                     t.setWrapText(true);
                     t.setMaxWidth(300);
             cf.getLabel().setTooltip(t);
-            Tooltip.install(cf.getNode(),t);
+            if(!cf.getClass().isInstance(ShortcutField.class))
+                Tooltip.install(cf.getNode(),t);
         }
         
         return cf;
@@ -419,14 +420,26 @@ abstract public class ConfigField<T> {
     
     private static final class SliderField extends ConfigField<Number> {
         Slider slider;
+        Label cur, min, max;
+        HBox box;
         private SliderField(Config<Number> c) {
             super(c);
-            slider = new Slider(c.getMin(),c.getMax(),c.getValue().doubleValue());
+            double v = c.getValue().doubleValue();
+            
+            min = new Label(String.valueOf(c.getMin()));
+            max = new Label(String.valueOf(c.getMax()));
+            
+            slider = new Slider(c.getMin(),c.getMax(),v);
+            cur = new Label(getItem().toString());
+            cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it
             // shouldnt. It appears when mouse clicks NOT on the thumb but on
             // the slider track instead and keeps dragging. valueChanging doesn
             // activate
             slider.valueProperty().addListener((o,ov,nv) -> {
+                // also bug with snap to tick, which doesnt work on mouse drag
+                // so we use getItem() which returns correct value
+                cur.setText(getItem().toString());
                 if(isApplyOnChange() && !slider.isValueChanging())
                     applyNsetIfNeed();
             });
@@ -441,18 +454,35 @@ abstract public class ConfigField<T> {
                 else slider.decrement();
                 e.consume();
             });
-
-//            control.setShowTickMarks(true);
-//            control.setShowTickLabels(true);
-//            control.setMajorTickUnit((max-min)/2);
-//            control.setSnapToTicks(true);
+            slider.setMinWidth(-1);
+            slider.setPrefWidth(-1);
+            slider.setMaxWidth(-1);
+            
+            
+            box = new HBox(min,slider,max);
+            box.setAlignment(CENTER_LEFT);
+            box.setSpacing(5);
+            
+            Class<? extends Number> type = unPrimitivize(config.getType());
+            if(Integer.class.equals(type) || type.equals(Long.class)) {
+                box.getChildren().add(0,cur);
+                slider.setMajorTickUnit(1);
+                slider.setSnapToTicks(true);
+            }
         }
         
-        @Override public Control getNode() {
-            return slider;
+        @Override public Node getNode() {
+            return box;
         }
         @Override public Number getItem() {
-            return slider.getValue();
+            Double d = slider.getValue();
+            Class<? extends Number> type = unPrimitivize(config.getType());
+            if(Integer.class.equals(type)) return d.intValue();
+            if(Double.class.equals(type)) return d;
+            if(Float.class.equals(type)) return d.floatValue();
+            if(Long.class.equals(type)) return d.longValue();
+            if(Short.class.equals(type)) return d.shortValue();
+            throw new IllegalStateException("wrong number type: " + type);
         }
         @Override public void refreshItem() {
             slider.setValue(config.getValue().doubleValue());

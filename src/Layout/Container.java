@@ -28,15 +28,15 @@ import static util.functional.FunctUtil.isNotNULL;
  * behavior such as loading itself and its content and supporting layout
  * operations requiring the awarenes of the component within layout hierarchy.
  * <p>
- * Containers are not graphical components, Containers wrap them. This creates
- * an abstraction layer that allows for defining layout hierarchy - layout maps
- * separately from scene-graph - the graphical hierarchy.
- * Layout map is complete hierarchical structure of Components spanning from
- * single Container called root.
- * <p>
- * Containers need to be lightweight wrappers able to be serialized so its layout
- * map can be later be reconstructed during/by deserialization.
- * <p>
+ Containers are not graphical components, Containers wrap them. This creates
+ an abstraction layer that allows for defining layout hierarchy - layout maps
+ separately from scene-graph - the graphical hierarchy.
+ Layout mapB is complete hierarchical structure of Components spanning from
+ single Container called root.
+ <p>
+ Containers need to be lightweight wrappers able to be serialized so its layout
+ mapB can be later be reconstructed during/by deserialization.
+ <p>
  * The children of the container are indexed in order to identify their position
  * within the container. How the indexes are interpreted is left up on the container's
  * implementation logic. The children collection is implemented as Map<Integer,
@@ -47,22 +47,22 @@ import static util.functional.FunctUtil.isNotNULL;
  * Note the difference between containing and able to contain! The pure and leaf
  * containers can have their own class implementation.
  * <p>
- * Container implementation (extending class) must handle
- * - adding the child to its child map (includes the index interpretation)
- * - removing previously assigned children
- * - reload itself so the layout change trasforms into graphical change.
- * NOTE: invalid index (for example out of range) must be ignored for some
- * behavior to work correctly.This is because indexOf() method returns invalid (but still number)
- * index if component is not found. Therefore such index must be ignored.
+ Container implementation (extending class) must handle
+ - adding the child to its child mapB (includes the index interpretation)
+ - removing previously assigned children
+ - reload itself so the layout change trasforms into graphical change.
+ NOTE: invalid index (for example out of range) must be ignored for some
+ behavior to work correctly.This is because indexOf() method returns invalid (but still number)
+ index if component is not found. Therefore such index must be ignored.
  */
 public abstract class Container extends Component implements AltState {
     
     /*
-     * Property map - map of properties. The map serves as unified property
+     * Property mapB - mapB of properties. The mapB serves as unified property
      * storage mechanism to allow easy manipulation (serialization, etc) of
      * properties.
      * Its responsibility of the wrapped component to maintain updated state
-     * reflecting the properties in the map.
+     * reflecting the properties in the mapB.
      */
     public final PropertyMap properties = new PropertyMap();
     @XStreamOmitField
@@ -194,7 +194,7 @@ public abstract class Container extends Component implements AltState {
     public abstract Integer getEmptySpot();
     
     /**
-     * Returns all components in layout map of which this is the root. In other 
+     * Returns all components in layout mapB of which this is the root. In other 
      * words all children recursively. The root (this) is included in the list.
      * @return 
      */
@@ -210,7 +210,7 @@ public abstract class Container extends Component implements AltState {
         return out.stream();
     }
     /**
-     * Returns all widgets in layout map of which this is the root. In other words
+     * Returns all widgets in layout mapB of which this is the root. In other words
      * all widget children recursively.
      * @return 
      */
@@ -226,7 +226,7 @@ public abstract class Container extends Component implements AltState {
         return out.stream();
     }
     /**
-     * Returns all containers in layout map of which this is the root. In other words
+     * Returns all containers in layout mapB of which this is the root. In other words
      * all container children recursively. The root (this) is included in the list.
      * @return 
      */
@@ -265,10 +265,10 @@ public abstract class Container extends Component implements AltState {
     /**
      * Closes this container and its content. Can not be undone.
      * <p>
-     * In practice, this removes this container from layout map (as a child from
-     * its parent container) and from scene graph (all its graphics will be
-     * removed).
-     * <p>
+ In practice, this removes this container from layout mapB (as a child from
+ its parent container) and from scene graph (all its graphics will be
+ removed).
+ <p>
      * This has an effect of closing the whole layout branch spanning from this
      * container.
      * <p>

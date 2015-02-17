@@ -20,9 +20,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import main.App;
-import util.access.AccessibleStream;
 import util.access.Accessor;
-import util.access.CascadingStream;
+import util.reactive.CascadingStream;
 
 /**
  *
@@ -36,7 +35,6 @@ public class DB {
     public static void start() {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
-        views.eventStreamFactory = () -> new AccessibleStream(EMPTY_LIST);
         views.push(1, getAllItems());
     }
     

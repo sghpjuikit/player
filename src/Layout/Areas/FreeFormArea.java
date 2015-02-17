@@ -97,6 +97,7 @@ public class FreeFormArea implements ContainerNode {
             WidgetArea wa = new WidgetArea(container, i);
                        wa.loadWidget((Widget)cm);
                        widgets.put(i,wa);
+                       w.moveOnDragOf(w.content);
             n = wa.root;
         } else {
             BooleanProperty tmp = new SimpleBooleanProperty(true);
@@ -144,6 +145,7 @@ public class FreeFormArea implements ContainerNode {
     }
     private PaneWindowControls buidWindow(int i) {
         PaneWindowControls w = new PaneWindowControls(root);
+        w.setHeaderVisible(false);
         w.offscreenFixOn.set(false);
         // initial size/pos
         w.open();

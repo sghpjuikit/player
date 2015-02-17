@@ -4,14 +4,7 @@
  */
 package util.File;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -19,21 +12,17 @@ import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 import main.App;
-import util.dev.Log;
 import util.File.AudioFileFormat.Use;
 import util.Util;
+import util.dev.Log;
 import static util.functional.FunctUtil.isNotNULL;
 
 /**
@@ -188,52 +177,52 @@ public final class FileUtil {
     }
     
     /**
-     * Constructs list of image files found in the folder. Filters out files with extension
-     * different than supported. To see what extensions are supported check ImageFileFormat
-     * class.
-     * @param dir - directory.
-     * @return
-     * Empty list if parameter not a valid directory or no results. Never null.
+     @param depth the maximum number of levels of directories to visit. A value
+     of 0 means that only the starting file is visited. Integer.MAX_VALUE
+     may be used to indicate that all levels should be visited.
      */
-    public static List<File> getImageFiles(File dir, int maxF) {
-        return getImageFilesRecursive(dir, 0, maxF);
-    }
-    
-    /**
-     * Constructs list of image files found in the folder and subfolders. Looks 
-     * through the folder tree recursively, respecting the maxDepth parameter.
-     * Provided directory will always be included in the search.
-     * 
-     * Filters out files with extension different than supported. To see what extensions are
-     * supported check ImageFileFormat class.
-     * 
-     * @param dir - directory.
-     * @param maxDepth - depth for recursive search. Depth 0 represents current 
-     * directory only (which would be searched through). Negative value has the
-     * same effect as 0 - provided directory only.
-     * @return
-     * Empty list if parameter not a valid directory or no results. Never null.
-     */
-    public static List<File> getImageFilesRecursive(File dir, int maxDepth, int maxF) {
-        if (!isValidDirectory(dir) || maxF==0) return new ArrayList<>();
-        
-        int needF = maxF==-1 ? -1 : Math.max(0, maxF);
-        List<File> out = new ArrayList<>();
-        File[] files = dir.listFiles();
-        for (File f: files) {
-            // stop reading if limit reached
-            if(needF==0) break;
-            
-            if(ImageFileFormat.isSupported(f.toURI())) {
-                out.add(f);
-                needF--;
-            }
-            if (maxDepth>=1 && f.isDirectory() && isValidDirectory(f)) {
-                out.addAll(getImageFilesRecursive(f, maxDepth-1, needF));
-                needF = maxF==-1 ? -1 : Math.max(0, maxF-out.size());
+    public static Stream<File> getFilesAudio(File dir, Use use, int depth) {
+        if(dir.isDirectory()) {
+            try {
+                return Files.walk(dir.toPath(),depth).map(Path::toFile)
+                            .filter(f->AudioFileFormat.isSupported(f,use));
+            } catch (IOException ex) {
+                return Stream.empty();
             }
         }
-        return out;
+        
+        if(dir.isFile()) {
+            if(AudioFileFormat.isSupported(dir,use))
+                return Stream.of(dir);
+        }
+        
+        return Stream.empty();
+    }
+    
+    public static Stream<File> getFilesAudio(List<File> files, Use use, int depth) {
+        return files.stream().flatMap(f -> getFilesAudio(f, use, depth));
+    }
+    
+    public static Stream<File> getFilesImage(File dir, int depth) {
+        if(dir.isDirectory()) {
+            try {
+                return Files.walk(dir.toPath(),depth).map(Path::toFile)
+                            .filter(ImageFileFormat::isSupported);
+            } catch (IOException ex) {
+                return Stream.empty();
+            }
+        }
+        
+        if(dir.isFile()) {
+            if(ImageFileFormat.isSupported(dir))
+                return Stream.of(dir);
+        }
+        
+        return Stream.empty();
+    }
+    
+    public static Stream<File> getFilesImage(List<File> files, int depth) {
+        return files.stream().flatMap(f -> getFilesImage(f, depth));
     }
     
     /**
@@ -251,80 +240,6 @@ public final class FileUtil {
             }
         }
         return list;
-    }
-
-    /**
-     * Constructs list of audio files found in the folder. Filters out files with extension
-     * different than supported. To see what extensions are supported check ImageFileFormat
-     * class.
-     * @param dir - directory
-     * @return
-     * List of audio files or empty list if parameter not a valid directory or no
-     * results. Never null.
-     */
-    public static List<File> getAudioFiles(File dir, Use use) {
-        return getAudioFiles(dir, use, 0);
-    }
-    /**
-     * Constructs list of audio files found in the folder and subfolders. Looks 
-     * through the folder tree recursively respecting the maxDepth parameter.
-     * <p>
-     * Filters out files with extension different than supported. To see what extensions are
-     * supported check AudioFileFormat class.
-     * 
-     * @param dir - directory.
-     * @param maxDepth - depth for recursive search. Depth 0 represents current 
-     * directory only (which would be searched through). Negative value will
-     * result in an empty list.
-     * @return Empty list if parameter not a valid directory or no results. Never
-     * null.
-     */
-    public static List<File> getAudioFiles(File dir, Use use, int maxDepth) {
-        if (!isValidDirectory(dir)) return new ArrayList<>(); 
-        
-        List<File> out = new ArrayList<>();
-        File[] files = dir.listFiles();
-        for (File f: files) {
-            if(AudioFileFormat.isSupported(f.toURI(),use))
-                out.add(f);
-            if (maxDepth>0 && f.isDirectory() && isValidDirectory(f))
-                out.addAll(getAudioFiles(f, use, maxDepth-1));
-        }
-        return out;
-    }
-    /**
-     * Filters out all but supported audio files. Directories will be searched
-     * recursively.
-     * @param files list of files and directories to filter
-     * @param maxDepth - depth for recursive search. Depth 0 represents 
-     * directory only (which would be searched through). Negative value has the
-     * will cause all directories to be ignored.
-     * @return Empty list if parameter not a valid directory or no results. Never
-     * null.
-     */
-    public static List<File> getAudioFiles(List<File> files, Use use, int maxDepth) {
-        ArrayList<File> out = new ArrayList<>();
-        for(File f: files) {
-            if(AudioFileFormat.isSupported(f.toURI(),use))
-                out.add(f);
-            if ( maxDepth>=0 && f.isDirectory()) {
-                for(File ff: getAudioFiles(f, use, maxDepth))
-                    out.add(ff);
-            }
-        }
-        return out;
-    }
-    /** 
-     * Filters out all but supported audio files. Directories will be ignored.
-     * @param files list of files and directories to filter
-     * Equivalent to : getAudioFiles(files,0);
-     */
-    public static List<File> getAudioFiles(List<File> files, Use use) {
-        return getAudioFiles(files, use, -1);
-    }
-    
-    public static List<File> getAudioFilesR(List<File> files, Use use) {
-        return getAudioFiles(files, use, Integer.MAX_VALUE);
     }
     
     /**

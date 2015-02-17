@@ -55,6 +55,7 @@ public enum AudioFileFormat {
             case ogg : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
             case flac : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
             case m4a : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
+            case UNKNOWN : return false;
             default: throw new AssertionError("corrupted switch statement");
         }
     }

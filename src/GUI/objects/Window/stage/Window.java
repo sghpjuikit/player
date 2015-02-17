@@ -31,6 +31,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import static de.jensd.fx.fontawesome.AwesomeIcon.*;
 import de.jensd.fx.fontawesome.test.IconsBrowser;
 import java.io.*;
@@ -77,6 +78,8 @@ import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.FunctUtil.find;
+import static util.functional.FunctUtil.mapB;
+import static util.reactive.Util.maintain;
 
 /**
  Window for application.
@@ -247,7 +250,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                        l.setController(w);
                        l.load();
 	    w.initialize();
-	    w.minimizeB.setVisible(false);
+	    w.minimB.setVisible(false);
 
 	    return w;
 	} catch (IOException ex) {
@@ -281,8 +284,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML private HBox controls;
 
     @FXML Button pinB;
-    @FXML Button miniB;
-    @FXML Button minimizeB;
+    @FXML Button miniB; 
+    @FXML Button ontopB; 
+    @FXML Button fullscrB; 
+    @FXML Button minimB; 
+    @FXML Button maximB; 
+    @FXML Button closeB; 
     @FXML AnchorPane bgrImgLayer;
 
     private Window() {
@@ -403,7 +410,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// setTitle(App.getAppName());
 	setTitlePosition(Pos.CENTER_LEFT);
 	miniB.setVisible(true);
-	minimizeB.setVisible(true);
+	minimB.setVisible(true);
 	App.window = this;
     }
 
@@ -581,15 +588,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	Image lastFMon = Util.loadImage(new File("lastFMon.png"), 30);
 	Image lastFMoff = Util.loadImage(new File("lastFMoff.png"), 30);
 	ImageView lastFMview = new ImageView();
-	lastFMview.setFitHeight(15);
-	lastFMview.setFitWidth(15);
-	lastFMview.setPreserveRatio(true);
-	// maintain proper icon
-	ChangeListener<Boolean> fmlistener = (o, ov, nv)
-	    -> lastFMview.setImage(nv ? lastFMon : lastFMoff);
-	LastFMManager.scrobblingEnabledProperty().addListener(fmlistener);
-	// initialize proper icon
-	fmlistener.changed(null, false, LastFMManager.getScrobblingEnabled());
+                  lastFMview.setFitHeight(15);
+                  lastFMview.setFitWidth(15);
+                  lastFMview.setPreserveRatio(true);        
+        maintain(LastFMManager.scrobblingEnabledProperty(), mapB(lastFMon,lastFMoff), lastFMview::setImage);
 
 	Label lastFMB = new Label("", lastFMview);
 	lastFMB.setTooltip(new Tooltip("LastFM"));
@@ -606,17 +608,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
 	});
 	// lock layout button
-	Label lockB = createIcon(GUI.isLayoutLocked() ? LOCK : UNLOCK, 13,
-	    GUI.isLayoutLocked() ? "Unlock widget layout" : "Lock widget layout", null);
-	lockB.setOnMouseClicked(e -> {
-	    GUI.toggleLayoutLocked();
-	    boolean lck = GUI.isLayoutLocked();
-//                  AwesomeDude.setIcon(lockB,lck ? UNLOCK : LOCK,"13");
-	    lockB.getTooltip().setText(lck ? "Unlock widget layout" : "Lock widget layout");
-	});
-	// initialize proper icon
-	GUI.layoutLockedProperty().addListener((o, ov, nv) -> AwesomeDude.setIcon(lockB, nv ? LOCK : UNLOCK, "13"));
-	// help button - show hel information
+	Label lockB = new Label();
+        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), i->icon(lockB,i));
+	lockB.setOnMouseClicked(e -> GUI.toggleLayoutLocked());
+        lockB.setTooltip(new Tooltip("Lock layout on/off"));
+	// help button - show help information
 	Label helpB = createIcon(INFO, 13, "Help", null);
 	helpB.setOnMouseClicked(e -> {
 	    PopOver<Text> helpP = PopOver.createHelpPopOver(
@@ -659,22 +655,24 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, helpB, guideB);//, taskB);
         // make right menu
 	IconBox right_icons = new IconBox(controls, RIGHT_TO_LEFT);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(0),CARET_UP, "13", GRAPHIC_ONLY);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(1),SQUARE_ALT, "13", GRAPHIC_ONLY);
-	alwaysOnTop.addListener((o,ov,nv) -> AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(1),nv ? SQUARE : SQUARE_ALT, "13", GRAPHIC_ONLY));
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(2),EXPAND, "13", GRAPHIC_ONLY);
-	fullscreen.addListener((o,ov,nv) -> AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(2),nv ? COMPRESS : EXPAND, "13", GRAPHIC_ONLY));
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(3),MINUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(4),PLUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
-	AwesomeDude.setIcon((Labeled)right_icons.box.getChildren().get(5),CLOSE, "13", GRAPHIC_ONLY);
-        
+        icon(miniB,CARET_UP);
+        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), i->icon(ontopB,i));
+        maintain(fullscreen, mapB(COMPRESS,EXPAND), i->icon(fullscrB,i));
+        icon(minimB,MINUS_SQUARE_ALT);
+        icon(maximB,PLUS_SQUARE_ALT);
+        icon(closeB,CLOSE);        
     }
+
+    private void icon(Labeled l, AwesomeIcon i) {
+        AwesomeDude.setIcon(l, i, "13", GRAPHIC_ONLY);
+    }
+
 
     /**
      ************************** WINDOW MECHANICS *******************************
      */
     @Override
-    public void close() {
+    public void close() {System.out.println(main);
 	// serialize windows if this is main app window
 	if (main) WindowManager.serialize();
         // after serialisation, close content it could prevent app closing

@@ -30,6 +30,7 @@ import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.MEDIUM;
+import static util.functional.FunctUtil.list;
 
 /**
  * Provides methods to handle external often platform specific tasks. Browsing
@@ -169,8 +170,8 @@ public class Enviroment {
             openIn(files.get(0), inApp);
         } else {
             if(inApp) {
-                List<File> audio = FileUtil.getAudioFiles(files, Use.PLAYBACK);
-                List<File> images = FileUtil.getImageFiles(files);
+                List<File> audio = list(files, f->AudioFileFormat.isSupported(f, Use.PLAYBACK));
+                List<File> images = list(files, f->ImageFileFormat.isSupported(f));
 
                 if(!audio.isEmpty())
                     PlaylistManager.addUris(audio.stream().map(f->f.toURI()).collect(Collectors.toList()));

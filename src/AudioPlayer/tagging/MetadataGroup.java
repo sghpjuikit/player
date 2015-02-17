@@ -6,14 +6,14 @@
 
 package AudioPlayer.tagging;
 
-import util.units.FileSize;
-import util.units.FormattedDuration;
 import java.util.function.Predicate;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import util.units.FileSize;
+import util.units.FormattedDuration;
 
 /**
  * Simple transfer class for result of a database query, that groups items by
@@ -101,7 +101,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     }
     
     public Predicate<Metadata> toMetadataPredicate() {
-        return m->m.getField(getField()).equals(getValue());
+        return m->m.getField(field).equals(value);
     }
 
     @Override

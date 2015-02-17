@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
+import static java.util.stream.Collectors.toList;
 import javafx.animation.*;
 import static javafx.animation.Interpolator.LINEAR;
 import javafx.application.Application;
@@ -400,7 +401,7 @@ public class GUI {
     public static List<File> getGuiImages() {
         File location = new File(App.SKIN_FOLDER(), skin + separator + "Images");
         if(FileUtil.isValidDirectory(location)) {
-            return FileUtil.getImageFiles(location, -1);
+            return FileUtil.getFilesImage(location, 0).collect(toList());
         } else {
             Log.deb("Can not access skin directory: " + location.getPath());
             return EMPTY_LIST;

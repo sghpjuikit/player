@@ -38,7 +38,7 @@ public final class PLAYBACK implements Configurable {
     @IsConfig(name="Remember playback state", info = "Continue last remembered playback when application starts.")
     public static boolean continuePlaybackOnStart = true;
     @IsConfig(name="Pause playback on start", info = "Continue last remembered playback paused on application start.")
-    public static boolean continuePlaybackPaused = false;    
+    public static boolean continuePlaybackPaused = false;
     @IsConfig(name="Seek relative to length", info = "Seeks forward.backward by fraction of song's length instead of fixed time unit.")
     public static boolean seekPercent = true;    
     @IsConfig(name="Seek time unit", info = "Fixed time unit in milliseconds to jump, when seeking forward/backward.")

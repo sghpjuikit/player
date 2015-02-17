@@ -5,9 +5,11 @@
  */
 package GUI.objects.Window.Pane;
 
+import GUI.objects.Window.Resize;
 import GUI.objects.Window.stage.WindowBase.Maximized;
 import static GUI.objects.Window.stage.WindowBase.Maximized.ALL;
-import GUI.objects.Window.Resize;
+import static java.lang.Math.abs;
+import java.util.List;
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
@@ -15,6 +17,7 @@ import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 
 /**
  <p>
@@ -36,14 +39,26 @@ public class WindowPane {
     
     public final DoubleProperty x = new SimpleDoubleProperty(50) {
         @Override public void set(double nv) {
-            double v = offscreenFixOn.get() ? offScreenXMap(nv) : nv;
+            double v = nv;
+            if(snappable.get()) {
+                v = mapSnap(v, v+w.get(), w.get(), owner.getWidth());
+                v = mapSnapX(v, v+w.get(), w.get(), owner.getChildren());
+            }
+            if(offscreenFixOn.get())
+                v = offScreenXMap(v);
             super.set(v);
             root.setLayoutX(v);
         }
     };
     public final DoubleProperty y = new SimpleDoubleProperty(50) {
         @Override public void set(double nv) {
-            double v = offscreenFixOn.get() ? offScreenYMap(nv) : nv;
+            double v = nv;
+            if(snappable.get()) {
+                v = mapSnap(v, v+h.get(), h.get(), owner.getHeight());
+                v = mapSnapY(v, v+h.get(), h.get(), owner.getChildren());
+            }
+            if(offscreenFixOn.get())
+                v = offScreenYMap(v);
             super.set(v);
             root.setLayoutY(v);
         }
@@ -62,6 +77,7 @@ public class WindowPane {
     public final ReadOnlyObjectProperty<Resize> resizing = _resizing.getReadOnlyProperty();
     /** Defines whether this window is resizable. */
     public final BooleanProperty resizable = new SimpleBooleanProperty(true);
+    public final BooleanProperty snappable = new SimpleBooleanProperty(true);
     public final BooleanProperty offscreenFixOn = new SimpleBooleanProperty(true);
     public final DoubleProperty offScreenFixOffset = new SimpleDoubleProperty(0);
     public final ReadOnlyBooleanProperty focused = _focused.getReadOnlyProperty();
@@ -117,9 +133,10 @@ public class WindowPane {
      * Default moving behavior supports move by mouse drag by bgr and ctrl+right
      * click mouse drag anywhere
      */
-    public void installMovingBehavior(Node n) {
+    public void moveOnDragOf(Node n) {
         // remember coords on pressed
-        n.addEventFilter(DRAG_DETECTED, e -> {
+        n.addEventHandler(DRAG_DETECTED, e -> {
+            e.consume();
             if (maximized.get()==ALL || !movable.get() || e.getButton()!=PRIMARY)
                 return;
             _moving.set(true);
@@ -127,16 +144,18 @@ public class WindowPane {
             startY = y.get() - e.getSceneY();
         });
         // move on drag - right button + ctrl - whole window
-        n.addEventFilter(MOUSE_DRAGGED, e -> {
+        n.addEventHandler(MOUSE_DRAGGED, e -> {
             if (moving.get()) {
                 x.set(startX + e.getSceneX());
                 y.set(startY + e.getSceneY());
             }
+            e.consume();
         });
         // move on drag - left button - ecluding content area
         n.addEventHandler(MOUSE_RELEASED, e -> {
             if(_moving.get())
                 _moving.set(false);
+            e.consume();
         });
     }
     
@@ -156,6 +175,39 @@ public class WindowPane {
         return d;
     }
     
+    private double mapSnap(double x, double right, double w, double owner_width) {
+        if (abs(x)<5)
+            return 0;
+        if (abs(right-owner_width)<5)
+            return owner_width - w;
+        return x;
+    }
+    private double mapSnapX(double x, double right, double wi, List<Node> windows) {
+        for(Node n : windows) {
+            if(n == this.root) continue;
+            
+            double wr = n.getLayoutX()+((Pane)n).getWidth(); 
+            if(abs(x-wr)<5)
+                return wr;
+            
+            if(abs(x+w.get()-n.getLayoutX())<5)
+                return n.getLayoutX()-w.get();
+        }
+        return x;
+    }
+    private double mapSnapY(double y, double right, double w, List<Node> windows) {
+        for(Node n : windows) {
+            if(n == this.root) continue;
+            
+            double wr = n.getLayoutY()+((Pane)n).getHeight();
+            if(abs(y-wr)<5)
+                return wr;
+            
+            if(abs(y+h.get()-n.getLayoutY())<5)
+                return n.getLayoutY()-h.get();
+        }
+        return y;
+    }
 }
 
 

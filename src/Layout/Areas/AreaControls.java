@@ -5,6 +5,7 @@
  */
 package Layout.Areas;
 
+import GUI.DragUtil;
 import GUI.GUI;
 import static GUI.GUI.OpenStrategy.INSIDE;
 import static GUI.GUI.OpenStrategy.POPUP;
@@ -14,6 +15,7 @@ import GUI.objects.Pickers.WidgetPicker;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
+import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Container;
 import Layout.Containers.Splitter;
@@ -32,9 +34,12 @@ import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
+import javafx.scene.input.Dragboard;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.*;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import javafx.util.Duration;
@@ -159,11 +164,22 @@ public final class AreaControls {
 	    toggleAbsSize();
 	    updateAbsB();
 	});
-
+        Label dragB = createIcon(MAIL_REPLY, 12, "Move widget by dragging", null);
+        dragB.setOnDragDetected( e -> {
+            // disallow in normal mode & primary button drag only
+            if (isShowingWeak && e.getButton()==PRIMARY) {
+                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+                DragUtil.setComponent(area.container,area.getActiveWidget(),db);
+                // signal dragging graphically with css
+                area.getContent().pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                e.consume();
+            }
+        });
+        
 	// build header
 	header_buttons.setNodeOrientation(RIGHT_TO_LEFT);
 	header_buttons.setAlignment(Pos.CENTER_LEFT);
-	header_buttons.getChildren().addAll(closeB, detachB, changeB, propB, refreshB, lockB, absB, infoB);
+	header_buttons.getChildren().addAll(closeB, detachB, changeB, propB, refreshB, lockB, absB, dragB, infoB);
 
 	// build animations
 	contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), root);

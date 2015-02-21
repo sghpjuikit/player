@@ -19,11 +19,11 @@ import org.reactfx.util.Tuples;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.DOCUMENTATION;
 import util.collections.MapSet;
-import static util.functional.FunctUtil.find;
-import static util.functional.FunctUtil.listM;
-import static util.functional.FunctUtil.split;
-import static util.functional.FunctUtil.toIndexedStream;
-import static util.functional.FunctUtil.toS;
+import static util.functional.Util.find;
+import static util.functional.Util.listM;
+import static util.functional.Util.split;
+import static util.functional.Util.toIndexedStream;
+import static util.functional.Util.toS;
 
 /**
  *

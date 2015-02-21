@@ -1,11 +1,14 @@
 
 package Layout;
 
-import Layout.Containers.Splitter;
+import Layout.Areas.Splitter;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
 import java.util.Map;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
+import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 
 /**
@@ -24,8 +27,12 @@ abstract public class BiContainer extends Container {
     @XStreamOmitField
     Splitter graphics;
     
-    public BiContainer(Orientation orientation) {
-        properties.put("orient", orientation);
+    /** Orientation of this container. */
+    public final ObjectProperty<Orientation> orientation = new SimpleObjectProperty(VERTICAL);
+
+    
+    public BiContainer(Orientation o) {
+        orientation.set(o);
     }
     
     @Override
@@ -102,4 +109,5 @@ abstract public class BiContainer extends Container {
         // WTH does this not work
 //        return (children.get(1)==null) ? 1 : (children.get(2)==null) ? 2 : null;
     }
+
 }

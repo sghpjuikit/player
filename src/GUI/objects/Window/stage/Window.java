@@ -10,6 +10,7 @@ import GUI.GUI;
 import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
+import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Text;
 import GUI.objects.Window.Resize;
@@ -71,14 +72,13 @@ import main.App;
 import org.reactfx.Subscription;
 import static util.File.Enviroment.browse;
 import util.Util;
-import static util.Util.createIcon;
 import static util.Util.setAnchors;
 import util.access.Accessor;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
-import static util.functional.FunctUtil.find;
-import static util.functional.FunctUtil.mapB;
+import static util.functional.Util.find;
+import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
 
 /**
@@ -566,22 +566,22 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	leftHeaderBox.getChildren().remove(iconI);
 
 	// github button - show all available FontAwesome icons in a popup
-	Label gitB = createIcon(GITHUB, 13, "Open github project page for this application",
+	Icon gitB = new Icon(GITHUB, 13, "Open github project page for this application",
 	    e -> browse(App.getGithubLink()));
 	// github button - show all available FontAwesome icons in a popup
-	Label dirB = createIcon(CSS3, 13, "Open css guide",
+	Icon dirB = new Icon(CSS3, 13, "Open css guide",
 	    e -> browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
 	// css button - show all available FontAwesome icons in a popup
-	Label cssB = createIcon(FOLDER, 13, "Open application location (development tool)",
+	Icon cssB = new Icon(FOLDER, 13, "Open application location (development tool)",
 	    e -> browse(App.getLocation().toURI()));
 	// icon button - show all available FontAwesome icons in a popup
-	Label iconsB = createIcon(IMAGE, 13, "Icon browser (development tool)", null);
-	iconsB.setOnMouseClicked(e -> new PopOver(new IconsBrowser()).show(iconsB));
+	Icon iconsB = new Icon(IMAGE, 13, "Icon browser (development tool)", 
+            e -> new PopOver(new IconsBrowser()).show((Node)e.getSource()));
 	// settings button - show application settings in a popup
-	Label propB = createIcon(GEARS, 13, "Application settings",
+	Icon propB = new Icon(GEARS, 13, "Application settings",
 	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NOLAYOUT));
 	// manage layout button - sho layout manager in a popp
-	Label layB = createIcon(COLUMNS, 13, "Manage layouts",
+	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
         // lasFm button - show basic lastFm settings and toggle scrobbling on/off 
 	// create graphics once
@@ -608,12 +608,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
 	});
 	// lock layout button
-	Label lockB = new Label();
-        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), i->icon(lockB,i));
-	lockB.setOnMouseClicked(e -> GUI.toggleLayoutLocked());
-        lockB.setTooltip(new Tooltip("Lock layout on/off"));
+	Icon lockB = new Icon(null, 13, "Lock layout on/off", e -> GUI.toggleLayoutLocked());
+        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB.icon);
 	// help button - show help information
-	Label helpB = createIcon(INFO, 13, "Help", null);
+	Icon helpB = new Icon(INFO, 13, "Help");
 	helpB.setOnMouseClicked(e -> {
 	    PopOver<Text> helpP = PopOver.createHelpPopOver(
 		"Available actions:\n"
@@ -633,7 +631,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    App.actionStream.push("Layout info popup");
 	});
 	// guide button - sho layout manager in a popp
-	Label guideB = createIcon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
+	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
 	    App.guide.resume();
 	    App.actionStream.push("Guide resumed");
 	});
@@ -652,7 +650,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	
 	// make left menu
 	IconBox left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
-	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, helpB, guideB);//, taskB);
         // make right menu
 	IconBox right_icons = new IconBox(controls, RIGHT_TO_LEFT);
         icon(miniB,CARET_UP);
@@ -660,7 +657,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         maintain(fullscreen, mapB(COMPRESS,EXPAND), i->icon(fullscrB,i));
         icon(minimB,MINUS_SQUARE_ALT);
         icon(maximB,PLUS_SQUARE_ALT);
-        icon(closeB,CLOSE);        
+        icon(closeB,CLOSE);
+	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, helpB, guideB);//, taskB);
     }
 
     private void icon(Labeled l, AwesomeIcon i) {

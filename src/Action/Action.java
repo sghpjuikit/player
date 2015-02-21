@@ -34,7 +34,7 @@ import util.async.FxTimer;
 import util.collections.MapSet;
 import util.dev.Dependency;
 import util.dev.Log;
-import static util.functional.FunctUtil.do_NOTHING;
+import static util.functional.Util.do_NOTHING;
 
 /**
  * Encapsulates application behavior.

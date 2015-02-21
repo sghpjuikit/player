@@ -28,7 +28,7 @@ import util.access.FieldValue.FieldedValue;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Severity.MEDIUM;
-import static util.functional.FunctUtil.cmpareBy;
+import static util.functional.Util.cmpareBy;
 
 /**
  * 

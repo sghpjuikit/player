@@ -23,7 +23,7 @@ import main.App;
 import util.File.AudioFileFormat.Use;
 import util.Util;
 import util.dev.Log;
-import static util.functional.FunctUtil.isNotNULL;
+import static util.functional.Util.isNotNULL;
 
 /**
  * Provides file operations.

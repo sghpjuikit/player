@@ -3,14 +3,15 @@ package Serialization;
 
 import Layout.Layout;
 import Layout.Widgets.Widget;
+import Serialization.xstream.*;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import java.io.*;
 import main.App;
-import util.dev.Log;
 import util.File.FileUtil;
-import static util.functional.FunctUtil.isNotNULL;
+import util.dev.Log;
+import static util.functional.Util.isNotNULL;
 
 /**
  * Serializes objects.
@@ -44,9 +45,9 @@ public final class Serializattion {
     
     private Object deserialize(Class<Layout> type, File f) {
         try {
-            XStream xstream = new XStream(new DomDriver());
-                    xstream.autodetectAnnotations(true);
-            Layout l = (Layout) xstream.fromXML(f);
+            XStream x = new XStreamFX(new DomDriver());
+                    x.autodetectAnnotations(true);
+            Layout l = (Layout) x.fromXML(f);
                    l.setName(FileUtil.getName(f));
             return l;
         } catch (ClassCastException | StreamException ex) {
@@ -66,12 +67,12 @@ public final class Serializattion {
     }
     public static void serialize(Layout l, File f) {
         try {
-            XStream xstream = new XStream(new DomDriver());
-            xstream.autodetectAnnotations(true);
+            XStream x = new XStreamFX(new DomDriver());
+            x.autodetectAnnotations(true);
             
-            // doont forget to serialize widget properties as well
+            // dont forget to serialize widget properties as well
             l.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
-            xstream.toXML(l, new BufferedWriter(new FileWriter(f)));
+            x.toXML(l, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + l.getName() + "' into the file: " + f.toPath());
         }

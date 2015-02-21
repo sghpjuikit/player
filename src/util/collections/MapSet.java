@@ -5,12 +5,8 @@
  */
 package util.collections;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import util.dev.TODO;
@@ -102,12 +98,12 @@ public class MapSet<K,E> implements Set<E> {
 
     @Override
     public boolean retainAll(Collection<?> c) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -115,8 +111,17 @@ public class MapSet<K,E> implements Set<E> {
         m.clear();
     }
     
-    public Stream<Entry<K,E>> streamK() {
+    /** @return this.entrySet().stream() */
+    public Stream<Entry<K,E>> streamE() {
         return m.entrySet().stream();
+    }
+    /** @return this.keySet().stream() */
+    public Stream<K> streamK() {
+        return m.keySet().stream();
+    }
+    /** @return this.values().stream() */
+    public Stream<E> streamV() {
+        return m.values().stream();
     }
     
 }

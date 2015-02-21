@@ -19,7 +19,7 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
 import util.dev.Log;
 import util.access.Accessor;
-import static util.functional.FunctUtil.cmpareNoCase;
+import static util.functional.Util.cmpareNoCase;
 
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",

@@ -16,7 +16,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import static util.functional.FunctUtil.cmpareNoCase;
+import static util.functional.Util.cmpareNoCase;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure 

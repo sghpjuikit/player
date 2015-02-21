@@ -76,6 +76,7 @@ import util.Parser.ParserImpl.ColorParser;
 import static util.Util.createIcon;
 import util.access.Accessor;
 import util.dev.Log;
+import static util.functional.Util.isIn;
 import static util.functional.impl.Validator.*;
 
 /**
@@ -751,6 +752,9 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if (!(boolean)c.getUserData()) {
                 c.setUserData(true);
                 c.setText("");
+                c.setText("");
+                c.setText(isIn(c.getPromptText(), TAG_NO_VALUE, TAG_MULTIPLE_VALUE)
+                                ? "" : c.getPromptText());
                 c.setPromptText("");
                 c.selectAll();
             }

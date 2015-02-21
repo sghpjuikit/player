@@ -44,7 +44,7 @@ import util.File.Enviroment;
 import util.Util;
 import static util.Util.createmenuItem;
 import util.access.Accessor;
-import static util.functional.FunctUtil.cmpareBy;
+import static util.functional.Util.cmpareBy;
 
 
 /**

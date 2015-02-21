@@ -21,7 +21,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
-import static util.functional.FunctUtil.isTRUE;
+import static util.functional.Util.isTRUE;
 
 /**
  *

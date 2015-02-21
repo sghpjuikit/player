@@ -30,7 +30,7 @@ import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.MEDIUM;
-import static util.functional.FunctUtil.list;
+import static util.functional.Util.list;
 
 /**
  * Provides methods to handle external often platform specific tasks. Browsing

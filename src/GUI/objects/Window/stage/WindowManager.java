@@ -31,8 +31,8 @@ import javafx.stage.Screen;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import main.App;
-import util.dev.Log;
 import util.File.FileUtil;
+import util.dev.Log;
 
 /**
  *
@@ -75,7 +75,7 @@ public class WindowManager {
             // create content
                 // layout
             Layout l = new Layout();
-                   l.setLocked(true);
+                   l.locked.set(true);
                 // layout wrapper
             SimpleWithMenuAgregator la= new SimpleWithMenuAgregator(l);
                 // window control buttons

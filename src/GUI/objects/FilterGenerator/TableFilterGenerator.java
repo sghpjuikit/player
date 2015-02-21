@@ -15,7 +15,7 @@ import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple3;
 import static util.collections.Tuples.tuple;
 import util.filtering.Predicates;
-import static util.functional.FunctUtil.cmpareBy;
+import static util.functional.Util.cmpareBy;
 
 /**
  *

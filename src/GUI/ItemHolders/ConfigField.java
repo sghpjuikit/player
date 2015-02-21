@@ -35,7 +35,7 @@ import util.Parser.ParserImpl.FontParser;
 import util.Password;
 import static util.Util.unPrimitivize;
 import static util.async.Async.run;
-import static util.functional.FunctUtil.cmpareBy;
+import static util.functional.Util.cmpareBy;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.

@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import static util.functional.FunctUtil.listM;
+import static util.functional.Util.listM;
 
 /**
  * Histogram of H for elements E by their property P (key).

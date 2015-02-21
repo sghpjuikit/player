@@ -17,7 +17,6 @@ import util.File.FileUtil;
 
 /**
  * @author uranium
- * 
  */
 public final class Layout extends UniContainer implements Serializes, SerializesFile {
     @XStreamOmitField
@@ -55,7 +54,6 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      */
     public Layout(String new_name) {
         setName(new_name);
-        properties.initProperty(Boolean.class, "locked", false);
     }
     
     /** 
@@ -119,16 +117,6 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      */
     public boolean isActive() {
         return LayoutManager.getLayouts().anyMatch(l->l.equals(this));
-    }
-    
-    @Override
-    public boolean isLocked() {
-        return properties.getB("locked");
-    }
-    
-    @Override
-    public void setLocked(boolean val) {
-        properties.put("locked", val);
     }
     
     /**

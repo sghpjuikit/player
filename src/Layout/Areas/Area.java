@@ -69,7 +69,6 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         
         // init properties
         c.properties.initProperty(Double.class, "padding", 0d);
-        c.properties.initProperty(Boolean.class, "locked", false);
         
         // init behavior
         root.addEventFilter(ScrollEvent.SCROLL,e -> {
@@ -207,17 +206,17 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     }
     @FXML
     public void setLocked(boolean val) {
-        container.setLocked(val);
+        container.locked.set(val);
     }
     public boolean isLocked() {
-        return container.isLocked();
+        return container.locked.get();
     }
     public final boolean isUnderLock() {
         return container.isUnderLock();
     }
     @FXML
     public void toggleLocked() {
-        container.toggleLock();
+        container.locked.set(!container.locked.get());
     }
     
 /**************************** activity node ***********************************/

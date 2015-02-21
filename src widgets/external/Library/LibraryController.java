@@ -73,8 +73,8 @@ import static util.Util.*;
 import util.access.Accessor;
 import static util.async.Async.runAsTask;
 import util.async.FxTimer;
-import static util.functional.FunctUtil.list;
-import static util.functional.FunctUtil.listM;
+import static util.functional.Util.list;
+import static util.functional.Util.listM;
 import util.functional.Runner;
 import util.units.FormattedDuration;
 
@@ -331,17 +331,6 @@ public class LibraryController extends FXMLController {
             File f = files==null ? null : getCommonRoot(fs);
             if(f!=null) last_file=f;
         }
-//        if(dir) {
-//            File f = Enviroment.chooseFile("Add folder to library", true, last_file,
-//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-//            files = f==null ? EMPTY_LIST : singletonList(f);
-//            if (f!=null) last_file = f;
-//        } else {
-//            files = Enviroment.chooseFiles("Add files to library", last_file,
-//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-//            File f = files==null ? null : getCommonRoot(files);
-//            if(f!=null) last_file=f;
-//        }
 
         if(files!=null) {
             Task ts = runAsTask("Discovering files",

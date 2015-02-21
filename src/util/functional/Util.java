@@ -25,7 +25,7 @@ import static util.collections.Tuples.tuple;
  *
  * @author Plutonium_
  */
-public class FunctUtil {
+public class Util {
     
     /** Predicate returning true if object is not null. */
     public static final Predicate<Object> isNotNULL = Objects::nonNull;
@@ -38,6 +38,10 @@ public class FunctUtil {
     
     /** Predicate returning false.*/
     public static final Predicate isFALSE = o -> false;
+    
+    public static <E> boolean isIn(E o, E... es) {
+        return Stream.of(es).anyMatch(e -> o.equals(e));
+    }
     
     /** Runnable that does nothing.  () -> {}; */
     public static final Runnable do_NOTHING = () -> {};
@@ -107,8 +111,8 @@ public class FunctUtil {
     public static <OUT> Function<Boolean,OUT> mapB(OUT y, OUT n) {
         return in -> in ? y : n;
     }
-    public static <OUT> Function<? extends Object,OUT> mapNulls(OUT y) {
-        return (Function) in -> in==null ? y : in;
+    public static <NN> Function<? extends Object,NN> mapNulls(NN non_null) {
+        return (Function) in -> in==null ? non_null : in;
     }
     
 /****************************** collection -> list ****************************/

@@ -56,7 +56,7 @@ import util.access.AccessorEnum;
 import util.collections.Histogram;
 import util.collections.TupleM4;
 import static util.collections.Tuples.tuple;
-import static util.functional.FunctUtil.*;
+import static util.functional.Util.*;
 import util.functional.Runner;
 
 /**

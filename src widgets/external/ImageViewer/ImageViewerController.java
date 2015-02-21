@@ -57,7 +57,7 @@ import util.Util;
 import util.access.Accessor;
 import util.async.Async;
 import util.async.FxTimer;
-import static util.functional.FunctUtil.forEachIndexedStream;
+import static util.functional.Util.forEachIndexedStream;
 
 /**
  * 

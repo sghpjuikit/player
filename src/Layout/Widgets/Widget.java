@@ -7,12 +7,14 @@ import Configuration.IsConfig;
 import Layout.Component;
 import Layout.Widgets.Features.Feature;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import java.io.ObjectStreamException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
+import static java.util.Objects.requireNonNull;
 import javafx.scene.Node;
 import util.dev.Log;
 
@@ -44,11 +46,14 @@ public abstract class Widget<C extends Controller> extends Component implements 
     // Name of the widget. Permanent. same as factory name
     // it needs to be declared to support deserialization
     final String name;
-    private @XStreamOmitField WidgetFactory factory;
+    @XStreamOmitField
+    private WidgetFactory factory;
     
-    @XStreamOmitField C controller;
+    @XStreamOmitField
+    C controller;
     // cache gui to avoid loading more than once
-    @XStreamOmitField private Node root;  
+    @XStreamOmitField
+    private Node root;  
     
     // configuration
     @XStreamOmitField
@@ -59,17 +64,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
     @XStreamOmitField
     @IsConfig(name = "Is ignored", info = "Ignore this widget if there is a request.")
     private boolean forbid_use = false;
-    
-//    @XStreamOmitField
-//    @IsConfig(name = "Is preferred type", info = "Prefer this widget's type among types with the same functionality. "
-//            + "For example sets which widget type out of all that can display image will be used.")
-//    private final FunctAccessor<Boolean> preferredFactory = new FunctAccessor<>(
-//            getFactory()::setPreferred, getFactory()::isPreferred
-//            , v -> {
-//                if (v) WidgetManager.getFactories().forEach(f->f.setPreferred(false));
-//                getFactory().setPreferred(v);
-//            }
-//    );
     
     // list of properties of the widget to provide serialisation support since
     // controller doesnt serialise - this is unwanted and should be handled better
@@ -148,16 +142,16 @@ public abstract class Widget<C extends Controller> extends Component implements 
      */
     @Override
     public final Node load() {
-        // if widget has already loaded once, return
-        // 1 attaching root to the scenegraph will automatically remove it
+        // - loads only once
+        // - attaching root to the scenegraph will automatically remove it
         //   from its old location
-        // 2 this guarantees that widget loads only once, which means:
+        // - this guarantees that widget loads only once, which means:
         //   - graphics will be constructed only once
         //   - -||- controller, controller will always be in control of
         //     the correct graphics - normally we would have to load both
         //     graphics and controller multiple times because we can not
         //     assign new graphics to old controller
-        // 3 entire state of the widget is intact with the exception of
+        // - entire state of the widget is intact with the exception of
         //   initial load at deserialisation.
         //   This also makes deserialisation the only time when configs
         //   need to be taken care of manually
@@ -211,10 +205,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     /** @return factory that produces this widget */
     public WidgetFactory getFactory() {
-        // unfortunately deserializing the widget will not restore factory
-        // we need to initialize it lazily manually
-        if (factory==null) factory = WidgetManager.getFactory(name);
-        assert factory!=null;
         return factory;
     }
     
@@ -272,6 +262,29 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return new EmptyWidget();
     }
     
+    /**
+    * There is one major flaw in XStream. Unfortunately it has no way of
+    * telling if a field or attribute should get any default value if not
+    * present in the xml file. Because constructor is not being invoked we
+    * cannot set the value there. Neither setting the value in field definition
+    * will work. The resulting instance will always have zero or null values in
+    * the fields.
+    *
+    * The only way of setting the desired default value is using the following
+    * method. It is called during deserialization process and here we can check
+    * if the field value is null. If yes it means that it's tag is not present
+    * and we can set the default value if needed.
+    *
+    * @return this
+    * @throws ObjectStreamException
+    */
+    private Object readResolve() throws ObjectStreamException {
+        if (factory==null) factory = WidgetManager.getFactory(name);
+        
+        // make sure
+        requireNonNull(factory);
+        return this;
+    }
     
 
     /**

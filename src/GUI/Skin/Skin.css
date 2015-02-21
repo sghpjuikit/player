@@ -3733,3 +3733,14 @@
 .rating-button:max {
     -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4 ,0, 0);
 }*/
+
+
+
+
+.icon {
+    icon: "CLOSE";
+}
+
+.icon:hover {
+    icon: "LOCK";
+}

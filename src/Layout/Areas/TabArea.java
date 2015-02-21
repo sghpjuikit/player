@@ -27,7 +27,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import util.dev.Log;
 import static util.Util.setAnchors;
-import static util.functional.FunctUtil.isNotNULL;
+import static util.functional.Util.isNotNULL;
 
 /**
  * Implementation of PolyArea.

@@ -1,7 +1,6 @@
 
 package Layout;
 
-import util.collections.PropertyMap;
 import GUI.DragUtil.WidgetTransfer;
 import GUI.GUI;
 import Layout.Areas.ContainerNode;
@@ -13,10 +12,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import util.collections.PropertyMap;
 import util.dev.Log;
-import static util.functional.FunctUtil.isNotNULL;
+import static util.functional.Util.isNotNULL;
 
 /**
  * @author uranium
@@ -69,6 +71,18 @@ public abstract class Container extends Component implements AltState {
     AnchorPane root;
     @XStreamOmitField
     Container parent;
+    
+    /**
+     * Whether the container is locked. The effect of lock is not implicit and
+     * might vary. Generally, the container becomes immune against certain
+     * layout changes.
+     * <p>
+     * Note that the method {@link #isUnderLock()} may be better fit for use,
+     * because unlocked container can still be under lock from any of its parents.
+     *
+     * @return true if this container is locked.
+     */
+    public final BooleanProperty locked = new SimpleBooleanProperty(false);
     
     /** {@inheritDoc} */
     @Override
@@ -352,34 +366,13 @@ public abstract class Container extends Component implements AltState {
     }
     
 /******************************************************************************/
-    
-    /** Locks container. */
-    public void setLocked(boolean val) {
-        properties.put("locked", val);
-    }
-    /** Changes the lock on/off. */
-    public void toggleLock() {
-        setLocked(!isLocked());
-    }
+
     /**
-     * Whether the container is locked. The effect of lock is not implicit and
-     * might vary. Generally, the container becomes immune against certain
-     * changes.
-     * <p>
-     * Note that the method {@link #isUnderLock()} may be better fit for use.
-     * This method has use mostly internally.
-     * @return true if this container is locked. Note that container can still
-     * be under lock from its parent 
-     */
-    public boolean isLocked() {
-        return (Boolean) properties.get("locked", false);
-    }
-    /**
-     * @return true if this container is under locked either its own or one of 
+     * @return true if this container is under lock either its own or one of 
      * its parents or under whole of GUI's.
      */
     public boolean isUnderLock() {
-        return isRoot() ? isLocked() || GUI.isLayoutLocked() : isLocked() || parent.isUnderLock();
+        return isRoot() ? locked.get() || GUI.isLayoutLocked() : locked.get() || parent.isUnderLock();
     }
 
     @Override
@@ -416,4 +409,5 @@ public abstract class Container extends Component implements AltState {
                      .map(AltState.class::cast)
                      .forEach(AltState::hide);
     }
+    
 }

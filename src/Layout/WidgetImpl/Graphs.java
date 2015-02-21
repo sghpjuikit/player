@@ -31,7 +31,7 @@ import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
-import static util.functional.FunctUtil.isNotNULL;
+import static util.functional.Util.isNotNULL;
 
 /**
  *

@@ -1,19 +1,18 @@
 
-package Layout.Containers;
+package Layout.Areas;
 
+import GUI.DragUtil;
 import GUI.GUI;
-import static GUI.GUI.ANIM_DUR;
 import static GUI.GUI.closeAndDo;
-import Layout.Areas.ContainerNode;
+import GUI.objects.Icon;
+import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
+import static de.jensd.fx.fontawesome.AwesomeIcon.*;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
-import static javafx.animation.Interpolator.LINEAR;
-import javafx.animation.ParallelTransition;
-import javafx.animation.ScaleTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -24,26 +23,30 @@ import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.Dragboard;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
 import unused.SimplePositionable;
-import util.Animation.Interpolators.CircularInterpolator;
-import static util.Animation.Interpolators.EasingMode.EASE_OUT;
+import static util.Util.setAnchors;
+import static util.access.SequentialValue.next;
 import static util.async.Async.run;
 import static util.async.Async.runOnFX;
 import util.collections.PropertyMap;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Severity.MEDIUM;
+import static util.functional.Util.mapB;
+import static util.reactive.Util.maintain;
 
 /**
  * @author uranium
- *
  */
 @TODO(purpose = UNIMPLEMENTED, severity = MEDIUM,
       note = "resizing when collapsed slow response & boilerplate code")
@@ -58,9 +61,9 @@ public final class Splitter implements ContainerNode {
     @FXML TilePane collapseBox;
     
     SimplePositionable controls;
-    BiContainer container;
+    private final BiContainer container;
     
-    private final PropertyMap prop;         // for easy access to container's props
+    private final PropertyMap prop;
     private final FadeTransition fadeIn;
     private final FadeTransition fadeOut;
 
@@ -71,9 +74,9 @@ public final class Splitter implements ContainerNode {
         splitPane.getDividers().get(0).setPosition(prop.getD("pos"));
     }
     
-    public Splitter(BiContainer con) {
-        container = con;
-        prop = con.properties;
+    public Splitter(BiContainer c) {
+        container = c;
+        prop = c.properties;
         
         // load graphics
         FXMLLoader fxmlLoader = new FXMLLoader(Splitter.class.getResource("Splitter.fxml"));
@@ -87,12 +90,12 @@ public final class Splitter implements ContainerNode {
         
         // initialize properties
         prop.initProperty(Double.class, "pos", 0.5d);
-        prop.initProperty(Orientation.class, "orient", VERTICAL);
         prop.initProperty(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
         prop.initProperty(Integer.class, "col", 0);
        
+        // maintain proper orientation
+        maintain(container.orientation, splitPane.orientationProperty());
         // put properties
-        splitPane.setOrientation(prop.getOriet("orient"));
         setAbsoluteSize(prop.getI("abs_size"));
         applyPos();
         setupCollapsed(getCollapsed());
@@ -123,11 +126,11 @@ public final class Splitter implements ContainerNode {
             double d = nv.doubleValue();
             // we use absolute positioning, to always produce gap of the width 2*30
             if(splitPane.getOrientation()==HORIZONTAL) {
-                root_child1.setPadding(new Insets(0, d*30, 0, 0));
-                root_child2.setPadding(new Insets(0, 0, 0, d*30));
+                root_child1.setPadding(new Insets(0, d*20, 0, 0));
+                root_child2.setPadding(new Insets(0, 0, 0, d*20));
             } else {
-                root_child1.setPadding(new Insets(0, 0, d*30, 0));
-                root_child2.setPadding(new Insets(d*30, 0, 0, 0));
+                root_child1.setPadding(new Insets(0, 0, d*20, 0));
+                root_child2.setPadding(new Insets(d*20, 0, 0, 0));
             }
         });
         
@@ -169,9 +172,7 @@ public final class Splitter implements ContainerNode {
         });
         
         // maintain controls orientation 
-        splitPane.orientationProperty().addListener(o->refreshControlsOrientation());
-        // init controls orientation
-        refreshControlsOrientation();
+        maintain(splitPane.orientationProperty(), this::refreshControlsOrientation);
                 
         splitPane.getDividers().get(0).positionProperty().addListener((o,ov,nv) -> {
             // occurs when user drags the divider
@@ -218,24 +219,40 @@ public final class Splitter implements ContainerNode {
             }
         });
 
-            // close container if on right click it is empty
+        // close container if on right click it is empty
         splitPane.setOnMouseClicked( e -> {
             if(e.getButton()==SECONDARY && GUI.isLayoutMode()) {
-                if (con.getAllWidgets().count()==0) {
-                    FadeTransition a1 = new FadeTransition(ANIM_DUR);
-                                   a1.setToValue(0);
-                                   a1.setInterpolator(LINEAR);
-                    ScaleTransition a2 = new ScaleTransition(ANIM_DUR);
-                                    a2.setInterpolator(new CircularInterpolator(EASE_OUT));
-                                    a2.setToX(0);
-                                    a2.setToY(0);
-                    ParallelTransition pt = new ParallelTransition(root, a1, a2);
-                    pt.setOnFinished(a -> con.close());
-                    pt.play();
-                }
+                if (c.getAllWidgets().count()==0)
+                    closeAndDo(root, c::close);
                 e.consume();
             }
         });
+        
+        // controls
+        Icon infoB = new Icon(INFO, 12, "Help");
+        Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
+        dragB.setOnDragDetected( e -> {
+            if (e.getButton()==PRIMARY) { //// primary button drag only
+                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+                DragUtil.setComponent(container.getParent(),container,db);
+                // signal dragging graphically with css
+                root.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                e.consume();
+            }
+        });
+        Icon lockB = new Icon(LOCK, 12, "Lock container", this::toggleLocked);
+        maintain(c.locked,mapB(LOCK,UNLOCK), lockB.icon);
+        Icon absB = new Icon(CHAIN, 12, "Switch proportionally resizable content", this::toggleAbsoluteSize);
+        Icon switchB = new Icon(EXCHANGE, 12, "Swap content", this::switchChildren);
+        Icon orienB = new Icon(MAGIC, 12, "Change orientation", this::toggleOrientation);
+        maintain(c.orientation,o->o==VERTICAL ? ARROWS_V : ARROWS_H, orienB.icon);
+        Icon closeB = new Icon(CLOSE, 12, "Close container", ()->closeAndDo(root, container::close));
+        Icon coll1B = new Icon(ARROW_RIGHT, 10, "Collapse", this::toggleCollapsed1);
+        maintain(c.orientation,o->o==VERTICAL ? ARROW_RIGHT : ARROW_DOWN, coll1B.icon);
+        Icon coll2B = new Icon(ARROW_LEFT, 10, "Collapse", this::toggleCollapsed2);
+        maintain(c.orientation,o->o==VERTICAL ? ARROW_LEFT : ARROW_UP, coll2B.icon);
+        collapseBox.getChildren().setAll(coll1B,coll2B);
+        controlsBox.getChildren().setAll(infoB,dragB,absB,collapseBox,lockB,orienB,switchB,closeB);
         
         hideControls();
     }
@@ -255,10 +272,7 @@ public final class Splitter implements ContainerNode {
             
             
         r.getChildren().setAll(content);
-        AnchorPane.setBottomAnchor(content, 0.0);
-        AnchorPane.setLeftAnchor(content, 0.0);
-        AnchorPane.setTopAnchor(content, 0.0);
-        AnchorPane.setRightAnchor(content, 0.0);
+        setAnchors(content,0);
     }
     
     public void setChild1(Component w) {
@@ -280,22 +294,12 @@ public final class Splitter implements ContainerNode {
         return root;
     }
     
-//    public void setOrientation(Orientation o) {
-//        prop.put("orient", o);
-//        splitPane.setOrientation(o);
-//    }
     /**
      * Toggle orientation between vertical/horizontal.
      */
     @FXML
     public void toggleOrientation() {
-        if (splitPane.getOrientation() == HORIZONTAL) {
-            prop.put("orient", VERTICAL);
-            splitPane.setOrientation(VERTICAL);
-        } else {
-            prop.put("orient", HORIZONTAL);
-            splitPane.setOrientation(HORIZONTAL);
-        }
+        container.orientation.set(next(splitPane.getOrientation()));
     }
     
 /*********************************** ABS SIZE *********************************/
@@ -308,30 +312,35 @@ public final class Splitter implements ContainerNode {
         int i = getAbsoluteSize();
             i = i==2 ? 0 : i+1;
         setAbsoluteSize(i);
+        
     }
     public void toggleAbsoluteSizeFor(int i) {
-            int is = getAbsoluteSize();
-            setAbsoluteSize(is==i ? 0 : i);
+            setAbsoluteSize(getAbsoluteSize()==i ? 0 : i);
     }
     public void setAbsoluteSize(int i) {
-        if(i==0) {
-            SplitPane.setResizableWithParent(root_child1, true);
-            SplitPane.setResizableWithParent(root_child2, true);
-        } else
-        if(i==1) {
-            SplitPane.setResizableWithParent(root_child1, false);
-            SplitPane.setResizableWithParent(root_child2, true);
-        } else
-        if(i==2) {
-            SplitPane.setResizableWithParent(root_child1, true);
-            SplitPane.setResizableWithParent(root_child2, false);
-        } else
+        if(i<0 || i>2)
             throw new IllegalArgumentException("Only valiues 0,1,2 allowed here.");
         
+        SplitPane.setResizableWithParent(root_child1, i!=1);
+        SplitPane.setResizableWithParent(root_child2, i!=2);
+        
         prop.put("abs_size", i);
+        
+        updateAbsB(container.getChildren().get(1));
+        updateAbsB(container.getChildren().get(2));
     }
     public int getAbsoluteSize() {
         return prop.getI("abs_size");
+    }
+    
+    private void updateAbsB(Component cmp) {
+        if(cmp instanceof Container) {
+            Container c = (Container)cmp;
+            Component w = ((Container)cmp).getChildren().get(1);
+            if(w instanceof Widget && c.getGraphics() instanceof Area) {
+                ((Area)c.getGraphics()).controls.updateAbsB();
+            }
+        }
     }
     
 /********************************** COLLAPSING ********************************/
@@ -350,13 +359,11 @@ public final class Splitter implements ContainerNode {
     }
     /** Collapse on/off to the left or top depending on the orientation. */
     public void toggleCollapsed1() {
-        if (isCollapsed()) setCollapsed(0);
-        else setCollapsed(-1);
+        setCollapsed(isCollapsed() ? 0 : -1);
     }
     /** Collapse on/off to the right or bottom depending on the orientation. */
     public void toggleCollapsed2() {
-        if (isCollapsed()) setCollapsed(0);
-        else setCollapsed(1);
+        setCollapsed(isCollapsed() ? 0 : 1);
     }
     public boolean isCollapsed() {
         return getCollapsed() != 0;
@@ -432,7 +439,7 @@ public final class Splitter implements ContainerNode {
     
     @FXML
     public void toggleLocked() {
-        container.toggleLock();
+        container.locked.set(!container.locked.get());
     }
     
     @Override
@@ -448,7 +455,6 @@ public final class Splitter implements ContainerNode {
     }
     
     
-    
     private void positionControls() {
         if (splitPane.getOrientation() == VERTICAL) {
             double X = splitPane.getWidth()/2;
@@ -460,8 +466,8 @@ public final class Splitter implements ContainerNode {
             controls.relocate(X-controls.getWidth()/2, Y-controls.getHeight()/2);
         }
     }
-    private void refreshControlsOrientation() {
-        if(splitPane.getOrientation() == HORIZONTAL) {
+    private void refreshControlsOrientation(Orientation o) {
+        if(o == HORIZONTAL) {
             controlsBox.setOrientation(VERTICAL);
             collapseBox.setOrientation(HORIZONTAL);
         } else {

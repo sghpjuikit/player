@@ -8,7 +8,7 @@ package util.access;
 import Action.Action;
 import java.util.function.Consumer;
 import util.dev.TODO;
-import static util.functional.FunctUtil.listM;
+import static util.functional.Util.listM;
 
 /**
  * Accessor for Action. Lists all available actions. ComboBox should be used as

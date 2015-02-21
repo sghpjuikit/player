@@ -18,7 +18,6 @@ import GUI.objects.Text;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Container;
-import Layout.Containers.Splitter;
 import Layout.Widgets.Features.Feature;
 import Layout.Widgets.Widget;
 import de.jensd.fx.fontawesome.AwesomeDude;
@@ -160,14 +159,13 @@ public final class AreaControls {
 	    App.actionStream.push("Widget layout lock");
 	});
 	Label refreshB = createIcon(REFRESH, 12, "Refresh widget", e -> refreshWidget());
-	absB = createIcon(LINK, 12, "Toggle absolute size", e -> {
+	absB = createIcon(LINK, 12, "Resize widget proportionally", e -> {
 	    toggleAbsSize();
 	    updateAbsB();
 	});
         Label dragB = createIcon(MAIL_REPLY, 12, "Move widget by dragging", null);
         dragB.setOnDragDetected( e -> {
-            // disallow in normal mode & primary button drag only
-            if (isShowingWeak && e.getButton()==PRIMARY) {
+            if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(area.container,area.getActiveWidget(),db);
                 // signal dragging graphically with css
@@ -365,7 +363,7 @@ public final class AreaControls {
 	}
     }
 
-    private void updateAbsB() {
+    void updateAbsB() {
 	Container c = area.container.getParent();
 	if (c != null && c instanceof BiContainer) {
 	    boolean l = c.properties.getI("abs_size") == area.container.indexInParent();

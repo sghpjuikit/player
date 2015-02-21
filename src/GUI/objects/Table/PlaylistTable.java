@@ -46,7 +46,7 @@ import static util.Util.*;
 import static util.async.Async.run;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
-import static util.functional.FunctUtil.cmpareBy;
+import static util.functional.Util.cmpareBy;
 import util.units.FormattedDuration;
 
 /**

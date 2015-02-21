@@ -12,18 +12,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import main.App;
-import util.dev.Log;
 import util.File.Enviroment;
-import static util.functional.FunctUtil.toCSList;
+import util.dev.Log;
+import static util.functional.Util.toCSList;
 
 /**
  *
@@ -103,7 +99,7 @@ public final class LayoutManagerComponent {
         if (!isSelected()) return;
         
         Layout l = getSelectedLayout();
-               l.setLocked(lockedChB.isSelected());
+               l.locked.set(lockedChB.isSelected());
                if (!nameF.getText().isEmpty()) l.setName(nameF.getText());
                l.serialize();
                l.makeSnapshot();
@@ -146,7 +142,7 @@ public final class LayoutManagerComponent {
     private void displayInfo(Layout l) {                
         nameF.setText("");
         nameF.setPromptText(l.getName());
-        lockedChB.setSelected(l.isLocked());
+        lockedChB.setSelected(l.locked.get());
         
         List<String> w_names = new ArrayList();
         // get children counts by counting leaf Components

@@ -21,8 +21,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import util.Parser.ToStringConverter;
-import util.functional.FunctUtil;
-import static util.functional.FunctUtil.forEachIndexed;
+import util.functional.Util;
+import static util.functional.Util.forEachIndexed;
 
 /**
  * Generic item picker.
@@ -113,7 +113,7 @@ public class Picker<E> {
         // get items
         itemSupply.get()
             // & sort
-            .sorted(FunctUtil.cmpareNoCase(textCoverter::toS))
+            .sorted(Util.cmpareNoCase(textCoverter::toS))
             // & create cells
             .forEach( item -> {
                 Node cell = cellFactory.call(item);

@@ -117,7 +117,6 @@ public final class WidgetArea extends Area<Container> {
         
         // put container properties (just in case)
         setPadding(container.properties.getD("padding"));
-        setLocked(container.properties.getB("locked"));
         
         // put up activity node
         Node an = w.getController().getActivityNode();

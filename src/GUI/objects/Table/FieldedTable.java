@@ -11,7 +11,6 @@ import com.sun.javafx.scene.control.skin.TableViewSkinBase;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
@@ -27,14 +26,14 @@ import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import util.Parser.ParserImpl.Parser;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.Util.createmenuItem;
 import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
-import static util.functional.FunctUtil.cmpareBy;
-import static util.functional.FunctUtil.list;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.functional.Util.cmpareBy;
+import static util.functional.Util.list;
 
 /**
  *
@@ -145,10 +144,8 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             
             // build new table column menu
             columnMenu = new ContextMenu();
-//            columnMenu.getItems().addAll(mm);
-            defColInfo.columns.streamK()
-                    .sorted(cmpareBy(Entry::getKey))
-                    .map(Entry::getValue)
+            defColInfo.columns.streamV()
+                    .sorted(cmpareBy(c->c.name))
                     .map(c->createmenuItem(c.name,a->setColumnVisible(c.name, !isColumnVisible(c.name))))
                     .forEach(columnMenu.getItems()::add);
             // link table column menu
@@ -185,7 +182,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     }
     
     public Optional<TableColumn<T,?>> getColumn(String name) {
-        return getColumn(c->name.equals(c.getText()));
+        return getColumn(c->keyNameColMapper.apply(name).equals(keyNameColMapper.apply(c.getText())));
     }
     
     public Optional<TableColumn<T,?>> getColumn(F f) {

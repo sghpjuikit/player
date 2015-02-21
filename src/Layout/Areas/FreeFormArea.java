@@ -22,7 +22,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import static util.Util.setAnchors;
-import static util.functional.FunctUtil.findFirstEmpty;
+import static util.functional.Util.findFirstEmpty;
 
 /**
  <p>

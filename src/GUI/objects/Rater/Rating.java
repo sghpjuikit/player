@@ -59,7 +59,6 @@ import GUI.Traits.ScaleOnHoverTrait;
 import GUI.Traits.SkinTrait;
 import java.util.function.Consumer;
 import javafx.beans.property.*;
-import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Control;
@@ -219,10 +218,11 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     
     /** Sets the current rating value in stars.  */
     public final void setRating(double value) {
-       ratingProperty().set(value);
+       rating.set(value);
     }
+    
     public final void setRatingP(double value) {
-       ratingProperty().set(value*getMax());
+       rating.set(value*getMax());
     }
     
     /** Returns the current rating value in stars. */
@@ -261,33 +261,6 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
         return max.get();
     }
     
-    
-    // --- Orientation
-    /**
-     * The {@link Orientation} of the {@code Rating} - this can either be 
-     * horizontal or vertical.
-     */
-    public final ObjectProperty<Orientation> orientationProperty() {
-        return orientation;
-    }
-    private ObjectProperty<Orientation> orientation = new SimpleObjectProperty<>(this, "orientation", Orientation.HORIZONTAL);
-    
-    /**
-     * Sets the {@link Orientation} of the {@code Rating} - this can either be 
-     * horizontal or vertical.
-     */
-    public final void setOrientation(Orientation value) {
-        orientationProperty().set(value);
-    };
-    
-    /**
-     * Returns the {@link Orientation} of the {@code Rating} - this can either 
-     * be horizontal or vertical.
-     */
-    public final Orientation getOrientation() {
-        return orientation.get();
-    }
-
     
     // --- partial rating
     /**

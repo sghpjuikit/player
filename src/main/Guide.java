@@ -8,24 +8,22 @@ package main;
 
 import Action.Action;
 import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.Window.stage.Window;
+import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Text;
+import GUI.objects.Window.stage.Window;
 import Layout.BiContainer;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.WidgetManager;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.MUSIC;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;
 import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import main.Guide.Hint;
 import org.reactfx.Subscription;
@@ -52,25 +50,15 @@ public final class Guide {
         p.setHideOnEscape(true);
         p.getSkinn().setContentPadding(new Insets(8));
         p.setArrowSize(0);
-        p.setDetached(true);
+        p.detached.set(true);
         p.setOnHidden(e -> run(20,() -> App.actionStream.push("Guide closing")));
         
         text.setWrappingWidth(300);
         text.prefWidth(300);
         
-        nextB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_RIGHT,"11");                     
-        nextB.setTooltip(new Tooltip("Cancel edit"));
-        nextB.setOnMouseClicked( e -> {
-            goToNext();
-            e.consume();
-        });
+        nextB = new Icon(ARROW_RIGHT,11,"Next",this::goToNext);
         infoL = new Label();
-        prevB = AwesomeDude.createIconLabel(AwesomeIcon.ARROW_LEFT,"11");                     
-        prevB.setTooltip(new Tooltip("Cancel edit"));
-        prevB.setOnMouseClicked( e -> {
-            goToPrevious();
-            e.consume();
-        });
+        prevB = new Icon(ARROW_LEFT,11,"Previus",this::goToPrevious);
         p.getHeaderIcons().addAll(prevB,infoL,nextB);
         
         addGuide("Intro", "Hi, this is automatic guide for this application. It will show you around. " +
@@ -158,7 +146,7 @@ public final class Guide {
             // progress
             infoL.setText((at+1) + "/" + hints.size());
             // title + text
-            p.setTitle(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
+            p.title.set(h.action.isEmpty() ? "Guide" : "Guide - " + h.action);
             text.setText(h.text);
             // graphics
             p.getContentNode().getChildren().retainAll(text);

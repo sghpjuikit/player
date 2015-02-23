@@ -5,7 +5,6 @@ import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
 import static AudioPlayer.playlist.PlaylistItem.Field.*;
 import AudioPlayer.playlist.PlaylistManager;
-import util.units.FormattedDuration;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
@@ -20,10 +19,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.ERASER;
-import static de.jensd.fx.fontawesome.AwesomeIcon.FILTER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.Collection;
 import java.util.Date;
 import javafx.beans.InvalidationListener;
@@ -44,6 +40,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import static util.Util.consumeOnSecondaryButton;
 import util.access.Accessor;
+import util.graphics.Icons;
+import util.units.FormattedDuration;
 
 /**
  * Playlist FXML Controller class
@@ -151,10 +149,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         remMenu.setText("");
         selMenu.setText("");
         orderMenu.setText("");
-        AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
-        AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
-        AwesomeDude.setIcon(selMenu, AwesomeIcon.CROP, "11", "11");
-        AwesomeDude.setIcon(orderMenu, AwesomeIcon.NAVICON, "11", "11");
+        Icons.setIcon(addMenu, PLUS, "11", "11");
+        Icons.setIcon(remMenu, MINUS, "11", "11");
+        Icons.setIcon(selMenu, CROP, "11", "11");
+        Icons.setIcon(orderMenu, NAVICON, "11", "11");
     }
 
     @Override
@@ -266,7 +264,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                           p.serialize();
         });
         PopOver p = new PopOver(sc);
-                p.setTitle("Save playlist as...");
+                p.title.set("Save playlist as...");
                 p.show(PopOver.ScreenCentricPos.AppCenter);
     }
     
@@ -285,7 +283,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                           p.serialize();
         });
         PopOver p = new PopOver(sc);
-                p.setTitle("Save selected items as...");
+                p.title.set("Save selected items as...");
                 p.show(PopOver.ScreenCentricPos.AppCenter);
     }
     

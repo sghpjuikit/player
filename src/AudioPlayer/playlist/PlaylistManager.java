@@ -10,11 +10,11 @@ import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Configuration.ValueConfig;
+import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Text;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeIcon.INFO;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.INFO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -27,7 +27,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import main.App;
@@ -631,8 +630,8 @@ public class PlaylistManager implements Configurable {
         VBox cnt = new VBox(t1,t2);
              cnt.setSpacing(8);
         VBox.setMargin(t2, new Insets(0, 0, 0, 20));
-        Label infoB = AwesomeDude.createIconLabel(INFO, "", "11", "11", ContentDisplay.CENTER);
-              infoB.setTooltip(new Tooltip("Help"));
+        Label infoB =  new Icon(INFO, 11, "Help");
+              infoB.setContentDisplay(ContentDisplay.CENTER);
               infoB.setOnMouseClicked( e -> {
                 PopOver helpP = PopOver.createHelpPopOver("");
                         helpP.setContentNode(cnt);
@@ -647,7 +646,7 @@ public class PlaylistManager implements Configurable {
         PopOver p = new PopOver(title, content);
                 p.getHeaderIcons().add(infoB);
                 p.show(PopOver.ScreenCentricPos.AppCenter);
-                p.setDetached(true);
+                p.detached.set(true);
     }
 
 }

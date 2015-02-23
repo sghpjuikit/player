@@ -16,10 +16,7 @@ import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
-import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_DOWN;
-import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_OFF;
-import static de.jensd.fx.fontawesome.AwesomeIcon.VOLUME_UP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.List;
 import javafx.beans.InvalidationListener;
@@ -81,17 +78,17 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label channelsL;
     
     @FXML HBox playButtons;
-    FadeButton p1 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
-    FadeButton f2 = new FadeButton(AwesomeIcon.FAST_BACKWARD,25);
-    FadeButton f3 = new FadeButton(AwesomeIcon.PLAY,25);
-    FadeButton f4 = new FadeButton(AwesomeIcon.FAST_FORWARD,25);
-    FadeButton f5 = new FadeButton(AwesomeIcon.ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
-    FadeButton f6 = new FadeButton(AwesomeIcon.STOP,25);
-    FadeButton muteB = new FadeButton(AwesomeIcon.VOLUME_UP,15);
-    FadeButton addB = new FadeButton(AwesomeIcon.PLUS_SQUARE_ALT,10);
+    FadeButton p1 = new FadeButton(ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
+    FadeButton f2 = new FadeButton(FAST_BACKWARD,25);
+    FadeButton f3 = new FadeButton(PLAY,25);
+    FadeButton f4 = new FadeButton(FAST_FORWARD,25);
+    FadeButton f5 = new FadeButton(ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
+    FadeButton f6 = new FadeButton(STOP,25);
+    FadeButton muteB = new FadeButton(VOLUME_UP,15);
+    FadeButton addB = new FadeButton(PLUS_SQUARE_ALT,10);
     
     @FXML HBox infoBox;
-    FadeButton loopB = new FadeButton(AwesomeIcon.RANDOM,14);
+    FadeButton loopB = new FadeButton(RANDOM,14);
     
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
@@ -303,24 +300,24 @@ public class PlayerControlsController extends FXMLController implements Playback
             status.setText(newStatus.toString()); 
 
             if (newStatus == Status.PLAYING) {
-                f3.setIcon(AwesomeIcon.PAUSE);
+                f3.setIcon(PAUSE);
             } else {
-                f3.setIcon(AwesomeIcon.PLAY);
+                f3.setIcon(PLAY);
             }
         }
     }
     private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
-            case OFF:       loopB.setIcon(AwesomeIcon.ALIGN_CENTER); // linear
+            case OFF:       loopB.setIcon(ALIGN_CENTER); // linear
                             Tooltip.install(loopB, new Tooltip("Loop mode: off"));
                             break;
-            case PLAYLIST:  loopB.setIcon(AwesomeIcon.REORDER);     // linear playlist
+            case PLAYLIST:  loopB.setIcon(REORDER);     // linear playlist
                             Tooltip.install(loopB, new Tooltip("Loop mode: loop playlist"));
                             break;
-            case SONG:      loopB.setIcon(AwesomeIcon.REPEAT);      // point
+            case SONG:      loopB.setIcon(REPEAT);      // point
                             Tooltip.install(loopB, new Tooltip("Loop mode: loop song"));
                             break;
-            case RANDOM:    loopB.setIcon(AwesomeIcon.RANDOM);      // random
+            case RANDOM:    loopB.setIcon(RANDOM);      // random
                             Tooltip.install(loopB, new Tooltip("Play mode: random"));
                             break;
         }

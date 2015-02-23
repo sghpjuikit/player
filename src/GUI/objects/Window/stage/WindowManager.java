@@ -16,7 +16,7 @@ import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.FadeButton;
 import Layout.Layout;
 import Layout.Widgets.WidgetManager;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,19 +79,19 @@ public class WindowManager {
                 // layout wrapper
             SimpleWithMenuAgregator la= new SimpleWithMenuAgregator(l);
                 // window control buttons
-            FadeButton closeB = new FadeButton(AwesomeIcon.TIMES, 15);
+            FadeButton closeB = new FadeButton(TIMES, 15);
                        closeB.setOnMouseClicked( e -> {
                            App.close(); // closing the window is not enogh
                            e.consume();
                        });
                        Tooltip.install(closeB, new Tooltip("Close"));
-            FadeButton onTopB = new FadeButton(AwesomeIcon.STOP, 15);
+            FadeButton onTopB = new FadeButton(STOP, 15);
                        onTopB.setOnMouseClicked( e -> {
                            miniWindow.toggleAlwaysOnTOp();
                            e.consume();
                        });
                        Tooltip.install(onTopB, new Tooltip("Toggle on top"));
-            FadeButton toggleMiniB = new FadeButton(AwesomeIcon.CARET_UP, 15);
+            FadeButton toggleMiniB = new FadeButton(CARET_UP, 15);
                        toggleMiniB.setOnMouseClicked( e -> {
                            toggleMini();
                            e.consume();

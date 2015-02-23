@@ -6,9 +6,8 @@ import Configuration.IsConfig;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.GAMEPAD;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -17,6 +16,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import util.access.Accessor;
 import util.access.AccessorAction;
+import util.graphics.Icons;
 
 /**
  *
@@ -42,7 +42,7 @@ public class ActionController extends FXMLController {
     
     // configurables
     @IsConfig(name = "Icon", info = "Icon for the action button")
-    public final Accessor<AwesomeIcon> icon = new Accessor<>(GAMEPAD, v -> AwesomeDude.setIcon(button, v, String.valueOf(size)));
+    public final Accessor<FontAwesomeIconName> icon = new Accessor<>(GAMEPAD, v -> Icons.setIcon(button, v, String.valueOf(size)));
     @IsConfig(name = "Action", info = "Action for the button.")
     public final AccessorAction action = new AccessorAction(EMPTY, button::setOnMouseClicked);
     @IsConfig(name = "Alignment", info = "Alignment of the button")
@@ -55,7 +55,7 @@ public class ActionController extends FXMLController {
         root.setOnScroll(Event::consume);
         button.setOnScroll(e -> {
             size += (int)e.getTextDeltaY();
-            AwesomeDude.setIcon(button, icon.getValue(), String.valueOf(size));
+            Icons.setIcon(button, icon.getValue(), String.valueOf(size));
         });
     }
 

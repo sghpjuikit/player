@@ -13,10 +13,8 @@ import GUI.objects.ContextMenu.TreeContextMenuInstance;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeIcon.CSS3;
-import static de.jensd.fx.fontawesome.AwesomeIcon.GE;
-import static de.jensd.fx.fontawesome.AwesomeIcon.PAINT_BRUSH;
+import de.jensd.fx.glyphs.GlyphsDude;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -31,14 +29,9 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseButton;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.scene.input.TransferMode.MOVE;
 import javafx.scene.layout.AnchorPane;
@@ -182,11 +175,11 @@ public class ExplorerController extends FXMLController {
     private static Node makeIcon(Path p) {
         File f = p.toFile();
         if(p.toString().endsWith(".css"))
-            return AwesomeDude.createIconLabel(CSS3,"11");
+            return GlyphsDude.createIcon(CSS3,"11");
         if((f.isDirectory() && App.SKIN_FOLDER().equals(p.toFile().getParentFile())) || FileUtil.isValidSkinFile(p.toFile()))
-            return AwesomeDude.createIconLabel(PAINT_BRUSH,"11");
+            return GlyphsDude.createIcon(PAINT_BRUSH,"11");
         if((f.isDirectory() && App.WIDGET_FOLDER().equals(p.toFile().getParentFile())) || FileUtil.isValidWidgetFile(p.toFile()))
-            return AwesomeDude.createIconLabel(GE,"11");
+            return GlyphsDude.createIcon(GE,"11");
         
         if(f.isFile()) return new Circle(2.5, CADETBLUE);
         else return new Rectangle(5, 5, CADETBLUE);

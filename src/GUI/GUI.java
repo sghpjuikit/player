@@ -56,8 +56,8 @@ public class GUI {
     
     private static final String DEF_SKIN = GUI.class.getResource("Skin/Skin.css").toExternalForm();
     private static String skinOldUrl = ""; // set to not sensible non null value
-    private static boolean alt_state = false;
-    
+    public static final BooleanProperty layout_mode = new SimpleBooleanProperty(false);
+        
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
     public static final AccessorEnum<String> skin = new AccessorEnum<>("Default", GUI::setSkin, GUI::getSkins);
@@ -117,7 +117,7 @@ public class GUI {
      * @return whether layout mode was on or not.
      */
     public static boolean isLayoutMode() {
-        return alt_state;
+        return layout_mode.get();
     }
     
     public static BooleanProperty layoutLockedProperty() {
@@ -171,15 +171,15 @@ public class GUI {
      */
     public static void setLayoutMode(boolean val) {
         // avoid pointless operation
-        if(alt_state==val) return;
+        if(layout_mode.get()==val) return;
         // Note that we set the layout mode flag after invoking show() but
         // before invoking hide().
         // This is important to maintain consistency. See documentation.
         if (val) {
             LayoutManager.getLayouts().forEach(Layout::show);
-            alt_state = val;
+            layout_mode.set(val);
         } else {
-            alt_state = val;
+            layout_mode.set(val);
             LayoutManager.getLayouts().forEach(Layout::hide);
             setZoomMode(false);
         }
@@ -195,7 +195,7 @@ public class GUI {
     /** Toggles layout mode. */
     @IsAction(name = "Manage Layout", description = "Toggles layout mode on/off.")
     public static void toggleLayoutMode() {
-        setLayoutMode(!alt_state);
+        setLayoutMode(!layout_mode.get());
     }
     
     /** Toggles zoom mode. */

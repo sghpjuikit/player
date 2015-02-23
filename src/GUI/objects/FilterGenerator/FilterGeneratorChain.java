@@ -5,8 +5,10 @@
  */
 package GUI.objects.FilterGenerator;
 
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import GUI.objects.Icon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
@@ -97,8 +99,8 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
             getChildren().remove(getChildren().get(i));
     }
     
-    public void setButton(AwesomeIcon icon, Tooltip t, EventHandler<MouseEvent> action) {
-        Label rem = AwesomeDude.createIconLabel(icon, "13");
+    public void setButton(FontAwesomeIconName icon, Tooltip t, EventHandler<MouseEvent> action) {
+        Label rem =  new Icon(icon, 13);
               rem.setOnMouseClicked(action);
               rem.setPadding(new Insets(0, 3, 0, 5));
               rem.setTooltip(t);
@@ -113,8 +115,8 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         g.setPrefTypeSupplier(prefTypeSupplier);
         g.setPrefPredicateSupplier(prefpredicateSupplier);
         g.setData(data);
-        Label rem = AwesomeDude.createIconLabel(AwesomeIcon.MINUS, "13");
-        Label add = AwesomeDude.createIconLabel(AwesomeIcon.PLUS, "13");
+        Label rem = new Icon(MINUS, 13);
+        Label add = new Icon(PLUS, 13);
         rem.setOnMouseClicked(e -> {
             generators.remove(g);
             getChildren().setAll(generators);

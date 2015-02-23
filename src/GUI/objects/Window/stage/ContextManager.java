@@ -1,14 +1,13 @@
 
 package GUI.objects.Window.stage;
 
-import GUI.objects.Window.stage.Window;
 import Configuration.IsConfigurable;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeIcon.COGS;
+import static de.jensd.fx.glyphs.GlyphsDude.createIconLabel;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.COGS;
 import java.util.Objects;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
@@ -59,12 +58,12 @@ public final class ContextManager {
         Objects.requireNonNull(w);
         
         // build popup content
-        Label propB = AwesomeDude.createIconLabel(COGS,"","12","12",CENTER);
+        Label propB = createIconLabel(COGS,"","12","12",CENTER);
               propB.setTooltip(new Tooltip("Settings"));
               propB.setOnMouseClicked( e -> {
                   SimpleConfigurator c = new SimpleConfigurator(w);
                   PopOver ph = new PopOver(c);
-                          ph.setTitle(w.getName() + " Settings");
+                          ph.title.set(w.getName() + " Settings");
                           ph.setAutoFix(false);
                           ph.setAutoHide(true);
                           ph.show(propB);
@@ -72,7 +71,7 @@ public final class ContextManager {
               });
         // build popup
         PopOver p = new PopOver(w.load());
-                p.setTitle(w.name());
+                p.title.set(w.name());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
                 p.show(Window.getActive().getStage(),getX(),getY());
@@ -86,7 +85,7 @@ public final class ContextManager {
         Objects.requireNonNull(title);  // we could use null, but disallow
         
         PopOver p = new PopOver(content);
-                p.setTitle(title);
+                p.title.set(title);
                 p.setAutoFix(false);
                 p.show(Window.getActive().getStage(),getX(),getY());
         return p;

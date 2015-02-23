@@ -6,10 +6,10 @@ import Configuration.Config;
 import GUI.ItemHolders.ItemTextFields.FileTextField;
 import GUI.ItemHolders.ItemTextFields.FontTextField;
 import GUI.objects.CheckIcon;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeDude.createIconButton;
-import static de.jensd.fx.fontawesome.AwesomeIcon.CHECK;
-import static de.jensd.fx.fontawesome.AwesomeIcon.RECYCLE;
+import GUI.objects.Icon;
+import static de.jensd.fx.glyphs.GlyphsDude.createIconButton;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.CHECK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.RECYCLE;
 import java.io.File;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
@@ -72,11 +72,9 @@ abstract public class ConfigField<T> {
                     // lazily build the button when requested
                     // we dont want hundreds of buttons we will never use anyway
                     if(defB==null) {
-                        defB = AwesomeDude.createIconLabel(RECYCLE, "11");
+                        defB = new Icon(RECYCLE, 11, "Default value", this::setNapplyDefault);
                         defB.setOpacity(0);
-                        defB.setOnMouseClicked( ee -> setNapplyDefault());
                         defB.getStyleClass().setAll("congfig-field-default-button");
-                        defB.setTooltip(new Tooltip("Default value."));
                         box.getChildren().add(defB);
                         box.setPadding(Insets.EMPTY);
                     }

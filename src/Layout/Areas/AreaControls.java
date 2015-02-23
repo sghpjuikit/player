@@ -11,6 +11,7 @@ import static GUI.GUI.OpenStrategy.INSIDE;
 import static GUI.GUI.OpenStrategy.POPUP;
 import static GUI.GUI.closeAndDo;
 import static GUI.GUI.openAndDo;
+import GUI.objects.Icon;
 import GUI.objects.Pickers.WidgetPicker;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
@@ -20,8 +21,7 @@ import Layout.BiContainer;
 import Layout.Container;
 import Layout.Widgets.Features.Feature;
 import Layout.Widgets.Widget;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeIcon.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
@@ -31,6 +31,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.Dragboard;
@@ -109,7 +110,7 @@ public final class AreaControls {
     @FXML public Label title;
     public Label propB;
     @FXML TilePane header_buttons;
-    Label absB;
+    Icon absB;
 
     // animations // dont initialize here or make final
     private final FadeTransition contrAnim;
@@ -150,16 +151,15 @@ public final class AreaControls {
 	Label detachB = createIcon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", e -> detach());
 	Label changeB = createIcon(TH_LARGE, 12, "Change widget", e -> changeWidget());
 	propB = createIcon(COGS, 12, "Settings", e -> settings());
-	Label lockB = createIcon(area.isLocked() ? UNLOCK : LOCK, 12,
-	    area.isLocked() ? "Unlock widget layout" : "Lock widget layout", null);
+	Icon lockB = new Icon(area.isLocked() ? UNLOCK : LOCK, 12,
+	    area.isLocked() ? "Unlock widget layout" : "Lock/unlock widget layout");
 	lockB.setOnMouseClicked(e -> {
 	    toggleLocked();
-	    AwesomeDude.setIcon(lockB, area.isLocked() ? UNLOCK : LOCK, "12");
-	    lockB.getTooltip().setText(area.isLocked() ? "Unlock widget layout" : "Lock widget layout");
+            lockB.icon.setValue(area.isLocked() ? LOCK : UNLOCK);
 	    App.actionStream.push("Widget layout lock");
 	});
 	Label refreshB = createIcon(REFRESH, 12, "Refresh widget", e -> refreshWidget());
-	absB = createIcon(LINK, 12, "Resize widget proportionally", e -> {
+	absB = new Icon(LINK, 12, "Resize widget proportionally", e -> {
 	    toggleAbsSize();
 	    updateAbsB();
 	});
@@ -263,7 +263,7 @@ public final class AreaControls {
             Widget w = (Widget) area.getActiveWidgets().get(0);
             SimpleConfigurator sc = new SimpleConfigurator(w);
             PopOver p = new PopOver(sc);
-                    p.setTitle(w.getName() + " Settings");
+                    p.title.set(w.getName() + " Settings");
                     p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
                     p.setAutoFix(true); // we need autofix here, because the popup can get rather big
                     p.setAutoHide(true);
@@ -289,7 +289,7 @@ public final class AreaControls {
         if(GUI.open_strategy==POPUP) {
             WidgetPicker w = new WidgetPicker();
             PopOver p = new PopOver(w.getNode());
-                    p.setTitle("Change widget");
+                    p.title.set("Change widget");
                     p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
                     p.setAutoFix(true); // we need autofix here, because the popup can get rather big
                     p.setAutoHide(true);
@@ -367,7 +367,7 @@ public final class AreaControls {
 	Container c = area.container.getParent();
 	if (c != null && c instanceof BiContainer) {
 	    boolean l = c.properties.getI("abs_size") == area.container.indexInParent();
-	    AwesomeDude.setIcon(absB, l ? UNLINK : LINK, "12");
+            absB.icon.setValue(l ? UNLINK : LINK);
 	    if (!header_buttons.getChildren().contains(absB))
 		header_buttons.getChildren().add(6, absB);
 	} else
@@ -375,7 +375,13 @@ public final class AreaControls {
     }
 
     private void showWeak() {
-	//set state
+        Node n = area.getActiveWidget().getController().getActivityNode();
+        if(n!=null && !root.getChildren().contains(n)) {
+            root.getChildren().add(n);
+            setAnchors(n, 0);
+            n.toBack();
+        }
+        //set state
 	isShowingWeak = true;
 	// stop animations if active
 	contrAnim.stop();
@@ -396,6 +402,8 @@ public final class AreaControls {
     }
 
     private void hideWeak() {
+        Node n = area.getActiveWidget().getController().getActivityNode();
+        if(n!=null) root.getChildren().remove(n);
 	isShowingWeak = false;
 	contrAnim.stop();
 	contAnim.stop();

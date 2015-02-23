@@ -7,7 +7,7 @@ import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.PopOver.PopOver;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +36,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
-import util.dev.Dependency;
-import util.dev.Log;
 import static util.Util.createIcon;
 import static util.async.Async.run;
 import util.async.FxTimer;
+import util.dev.Dependency;
+import util.dev.Log;
 
 /**
  * 
@@ -258,7 +258,7 @@ public final class Seeker extends AnchorPane {
     
     private class AddChapButton {
         Popup p;
-        FadeButton l = new FadeButton(AwesomeIcon.PLUS_CIRCLE, 18);
+        FadeButton l = new FadeButton(PLUS_CIRCLE, 18);
         Slider s;
         FadeTransition ft = new FadeTransition(Duration.millis(250), l);
         
@@ -382,15 +382,15 @@ public final class Seeker extends AnchorPane {
                 content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 content.autosize();
                 // buttons
-                editB = createIcon(AwesomeIcon.PENCIL, 11, "Edit chapter", e -> {
+                editB = createIcon(PENCIL, 11, "Edit chapter", e -> {
                     startEdit();
                     e.consume();
                 });
-                commitB = createIcon(AwesomeIcon.CHECK, 11, "Confirm changes", e -> {
+                commitB = createIcon(CHECK, 11, "Confirm changes", e -> {
                     commitEdit();
                     e.consume();
                 });
-                delB = createIcon(AwesomeIcon.TRASH_ALT, 11, "Remove chapter", e -> {
+                delB = createIcon(TRASH_ALT, 11, "Remove chapter", e -> {
                      Metadata m = Player.playingtem.get();
 //                     // avoid removing chapter that does not exist
 //                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
@@ -400,11 +400,11 @@ public final class Seeker extends AnchorPane {
                                     mw.write();
                      e.consume();
                 });
-                cancelB = createIcon(AwesomeIcon.REPLY, 11, "Cancel edit", e -> {
+                cancelB = createIcon(REPLY, 11, "Cancel edit", e -> {
                     cancelEdit();
                     e.consume();
                 });
-                Label nextB = createIcon(AwesomeIcon.CHEVRON_RIGHT, 11, "Next chapter", e -> {
+                Label nextB = createIcon(CHEVRON_RIGHT, 11, "Next chapter", e -> {
                     int i = Seeker.this.chapters.indexOf(this) + 1;
                     if(Seeker.this.chapters.size()>i){
                         hidePopup();
@@ -412,7 +412,7 @@ public final class Seeker extends AnchorPane {
                     }
                     e.consume();
                 });
-                Label prevB = createIcon(AwesomeIcon.CHEVRON_LEFT, 11, "Previous chapter", e -> {
+                Label prevB = createIcon(CHEVRON_LEFT, 11, "Previous chapter", e -> {
                     int i = Seeker.this.chapters.indexOf(this) - 1;
                     if(0<=i){
                         hidePopup();
@@ -425,7 +425,7 @@ public final class Seeker extends AnchorPane {
                     nextB.setDisable(true);
                 if(0 == i)
                     prevB.setDisable(true);
-                Label helpB = createIcon(AwesomeIcon.INFO, 11, "Help", null);                    
+                Label helpB = createIcon(INFO, 11, "Help", null);                    
                 helpB.setOnMouseClicked( e -> {
                     // build help content for help popup if not yet built
                     // with this we avoid constructing multuple popups
@@ -447,7 +447,7 @@ public final class Seeker extends AnchorPane {
                 p.setHideOnEscape(true);
                 p.setHideOnClick(false); // we will emulate it on our own
                 p.setAutoFix(false);
-                p.setTitle(c.getTime().toString());
+                p.title.set(c.getTime().toString());
                 p.setOnHidden( e -> {
                     if (editOn) cancelEdit();
                     end.play();

@@ -6,8 +6,7 @@
 
 package GUI.objects;
 
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.animation.FadeTransition;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
@@ -25,9 +24,9 @@ public class FadeButton extends StackPane {
     FadeTransition in = new FadeTransition();
     FadeTransition out = new FadeTransition();
     
-    public FadeButton(AwesomeIcon icon, int size) {
-        normal = AwesomeDude.createIconLabel(icon, String.valueOf(size));
-        hover = AwesomeDude.createIconLabel(icon, String.valueOf(size));
+    public FadeButton(FontAwesomeIconName icon, int size) {
+        normal = new Icon(icon, size);
+        hover = new Icon(icon, size);
         
         normal.getStyleClass().setAll("fade-button");
         normal.getStyleClass().setAll("fade-button-normal");
@@ -61,7 +60,7 @@ public class FadeButton extends StackPane {
         });
     }
     
-    public void setIcon(AwesomeIcon icon) {
+    public void setIcon(FontAwesomeIconName icon) {
           normal.setText(icon.toString());
           hover.setText(icon.toString());
     }

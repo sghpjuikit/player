@@ -1,4 +1,4 @@
-package com.dooapp.xstreamfx;
+package Serialization.xstream;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.collections.CollectionConverter;

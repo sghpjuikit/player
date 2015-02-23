@@ -20,7 +20,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
@@ -34,6 +34,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
+import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.OverrunStyle;
@@ -176,11 +177,9 @@ public class FileInfoController extends FXMLController {
     @IsConfig(name = "Show location", info = "Show this field.")
     public final Accessor<Boolean> showlocation = new Accessor<>(true, v -> setVisibility());
     
-    // manually applied configurable values
-    
     // non appliable configurable values
-    @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
-    public boolean keepContentOnEmpty = true;
+    @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
+    public boolean keepContentOnEmpty = false;
     
     @Override
     public void init() {        
@@ -270,7 +269,7 @@ public class FileInfoController extends FXMLController {
         actPane = new ActionChooser();
         actPane.setOnDragExited(e->((Area)actPane.getUserData()).setActivityVisible(false));
         
-        Labeled copyB = actPane.addIcon(AwesomeIcon.PLUS_SQUARE, "Set as cover");
+        Labeled copyB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
         copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         copyB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) { 
@@ -293,7 +292,7 @@ public class FileInfoController extends FXMLController {
                 e.consume();
             }
         });
-        Labeled coverB = actPane.addIcon(AwesomeIcon.PLUS, "Copy to the location");
+        Labeled coverB = actPane.addIcon(PLUS, "Copy to the location");
         coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         coverB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {  
@@ -304,6 +303,17 @@ public class FileInfoController extends FXMLController {
                 e.setDropCompleted(true);
                 e.consume();
             }
+        });
+        Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
+                lvlB.setContentDisplay(CENTER);
+        lvlB.setOnMouseClicked(e -> {
+            if(e.getButton()==PRIMARY) {  
+                lvlB.setText("2");
+            }
+            if(e.getButton()==SECONDARY) {  
+                lvlB.setText("0");
+            }
+            e.consume();
         });
     }
     
@@ -346,7 +356,7 @@ public class FileInfoController extends FXMLController {
     
     private void populateGui(Metadata m) {
         // prevent refreshing location if shouldnt
-        if(keepContentOnEmpty && m==null) return;
+        if(keepContentOnEmpty && m==Metadata.EMPTY) return;
         
         // remember data
         data = m;
@@ -375,7 +385,7 @@ public class FileInfoController extends FXMLController {
             gap2.setText(" ");
             rating.setText("rating: "       + m.getRatingAsString());
             playcount.setText("playcount: " + m.getPlaycountAsString());
-            comment.setText("comment: "     + "");//m.getComment().replace("\n", " ; "));
+            comment.setText("comment: "     + "");
             category.setText("category: "   + m.getCategory());
             gap3.setText(" ");
             filesize.setText("filesize: "   + m.getFilesize().toString());
@@ -429,7 +439,7 @@ public class FileInfoController extends FXMLController {
             visible_labels.stream().filter(l->{
                     // filter out nonempty
                     String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
-                    return content.isEmpty() || 
+                    return content.isEmpty() ||
                              content.equalsIgnoreCase("?/?") ||
                                content.equalsIgnoreCase("n/a") || 
                                  content.equalsIgnoreCase("unknown");

@@ -27,8 +27,7 @@ import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.io.File;
 import static java.lang.Math.floor;
 import java.util.Collection;
@@ -37,6 +36,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+import static javafx.application.Platform.runLater;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -73,9 +73,10 @@ import static util.Util.*;
 import util.access.Accessor;
 import static util.async.Async.runAsTask;
 import util.async.FxTimer;
+import util.functional.Runner;
 import static util.functional.Util.list;
 import static util.functional.Util.listM;
-import util.functional.Runner;
+import util.graphics.Icons;
 import util.units.FormattedDuration;
 
 /**
@@ -273,8 +274,8 @@ public class LibraryController extends FXMLController {
         
         addMenu.setText("");
         remMenu.setText("");
-        AwesomeDude.setIcon(addMenu, AwesomeIcon.PLUS, "11", "11");
-        AwesomeDude.setIcon(remMenu, AwesomeIcon.MINUS, "11", "11");
+        Icons.setIcon(addMenu, FontAwesomeIconName.PLUS, "11", "11");
+        Icons.setIcon(remMenu, FontAwesomeIconName.MINUS, "11", "11");
         
         
         content.getChildren().addAll(table.getRoot(), controls);
@@ -404,7 +405,7 @@ public class LibraryController extends FXMLController {
                 }),
                 createmenuItem("Edit the item/s in tag editor", e -> {
                     List<Metadata> items = m.getValue();
-                    WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(items));
+                    WidgetManager.use(TaggingFeature.class, NOLAYOUT ,w->w.read(items));
                 }),
                 createmenuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
@@ -426,9 +427,12 @@ public class LibraryController extends FXMLController {
             switch(this) {
                 case STARS:
                     return new TableCell<Metadata,Double>(){
-                        Rating r = new Rating();
+                        Rating r = new Rating(App.maxRating.get(), 0);
                         {
+                            setAlignment(Pos.CENTER);
                             r.max.bind(App.maxRating);
+//                            r.setRatingP(1);
+//                            EventStreams.nonNullValuesOf(itemProperty()).subscribe(r::setRatingP);
                         }
                         @Override
                         protected void updateItem(Double item, boolean empty) {
@@ -437,7 +441,11 @@ public class LibraryController extends FXMLController {
                                 setGraphic(null);
                             } else {
                                 if(getGraphic()==null) setGraphic(r);
-                                r.setRatingP(item);
+                                // when rating is 1 (100%) cells wont get updated
+                                // really bad workaround but the only that works for now
+                                runLater(() -> runLater(() -> r.setRatingP(item)));
+                                // the normal approach
+                                // r.setRatingP(item);
                             }
                         }
                     };

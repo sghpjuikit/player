@@ -21,20 +21,14 @@ public final class XStreamFX extends XStream {
         registerPropertyConverters(this);
     }
 
-    /**
-     * Utility to configure a xStream with JavaFX property converters.<br>
-     * <br>
-     * Created at 17/09/11 11:18.<br>
-     *
-     * @author Antoine Mischler <antoine@dooapp.com>
-     */
-    public static void registerPropertyConverters(XStream xStream) {
-        xStream.registerConverter(new StringPropertyConverter(xStream.getMapper()));
-        xStream.registerConverter(new BooleanPropertyConverter(xStream.getMapper()));
-        xStream.registerConverter(new ObjectPropertyConverter(xStream.getMapper()));
-        xStream.registerConverter(new DoublePropertyConverter(xStream.getMapper()));
-        xStream.registerConverter(new LongPropertyConverter(xStream.getMapper()));
-        xStream.registerConverter(new IntegerPropertyConverter(xStream.getMapper()));
-        xStream.registerConverter(new com.dooapp.xstreamfx.ObservableListConverter(xStream.getMapper()));
+    /** Registers javaFX property converters to provided xstream */
+    public static void registerPropertyConverters(XStream x) {
+        x.registerConverter(new StringPropertyConverter(x.getMapper()));
+        x.registerConverter(new BooleanPropertyConverter(x.getMapper()));
+        x.registerConverter(new ObjectPropertyConverter(x.getMapper()));
+        x.registerConverter(new DoublePropertyConverter(x.getMapper()));
+        x.registerConverter(new LongPropertyConverter(x.getMapper()));
+        x.registerConverter(new IntegerPropertyConverter(x.getMapper()));
+        x.registerConverter(new ObservableListConverter(x.getMapper()));
     }
 }

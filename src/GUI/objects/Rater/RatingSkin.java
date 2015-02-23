@@ -27,26 +27,26 @@
 
 package GUI.objects.Rater;
 
-import com.sun.javafx.Utils;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR_ALT;
 import static java.lang.Math.ceil;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import static javafx.geometry.Orientation.VERTICAL;
 import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
-import static util.Util.createIcon;
+import javafx.scene.text.Text;
+import static util.Util.clip;
+import util.graphics.Icons;
 
 /**
  *
@@ -60,18 +60,17 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     // the container for the traditional rating control. If updateOnHover and
     // partialClipping are disabled, this will show a combination of strong
     // and non-strong graphics, depending on the current rating value
-    private Pane backgroundContainer;
-    // the container for the strong graphics which may be partially clipped.
-    // Note that this only exists if updateOnHover or partialClipping is enabled.
-    private Pane foregroundContainer;
+    private HBox backgroundContainer = new HBox();
+    // the container for the strong graphics which may be partially clipped
+    private HBox foregroundContainer = new HBox();
     // clip mask
     private Rectangle forgroundClipRect;
     
     private double rating = 0;
-    // tmp value for restoring old rating after hovering ends
     private double old_rating;
     
     private final EventHandler<MouseEvent> mouseMoveHandler = e -> {
+        e.consume();
         if (!getSkinnable().isUpdateOnHover() || !getSkinnable().isEditable())
             return;
         
@@ -80,6 +79,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     };
     
     private final EventHandler<MouseEvent> mouseClickHandler = e-> {
+        e.consume();
         if (!getSkinnable().isEditable() || e.getButton()==SECONDARY) 
             return;
         
@@ -94,8 +94,6 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     
 
     
-
-    
     public RatingSkin(Rating control) {
         super(control, new RatingBehavior(control));
         
@@ -105,68 +103,49 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         
         registerChangeListener(control.ratingProperty(), "RATING");
         registerChangeListener(control.maxProperty(), "MAX");
-        registerChangeListener(control.orientationProperty(), "ORIENTATION");
         registerChangeListener(control.updateOnHoverProperty(), "UPDATE_ON_HOVER");
         registerChangeListener(control.partialRatingProperty(), "PARTIAL_RATING");
         
         // remember rating and return to old after mouse hover ends
         getSkinnable().addEventHandler(MOUSE_ENTERED, e -> {
+            e.consume();
             if (getSkinnable().isUpdateOnHover())
                 old_rating = getSkinnable().getRating();
         });
         getSkinnable().addEventHandler(MOUSE_EXITED, e -> {
+            e.consume();
             if (getSkinnable().isUpdateOnHover())
                 updateRating(old_rating);
         });
         getSkinnable().ratingProperty().addListener((o,ov,nv)->updateRating(nv.doubleValue()));
     }
     
-    @Override protected void handleControlPropertyChanged(String p) {
+    @Override 
+    protected void handleControlPropertyChanged(String p) {
         super.handleControlPropertyChanged(p);
         
         if (p == "RATING" || p == "PARTIAL_RATING" || p == "UPDATE_ON_HOVER") ;
-        else if (p == "MAX" || p == "ORIENTATION") recreateButtons();
+        else if (p == "MAX") recreateButtons();
         
         updateRating(getSkinnable().getRating());
     }
     
     private void recreateButtons() {
-        backgroundContainer = null;
-        foregroundContainer = null;
-        
-        backgroundContainer = isVertical() ? new VBox() : new HBox();
-        backgroundContainer.getStyleClass().add("container");
-        getChildren().setAll(backgroundContainer);
-        
-        foregroundContainer = isVertical() ? new VBox() : new HBox();
-        foregroundContainer.getStyleClass().add("container");
+        backgroundContainer = new HBox();
+        backgroundContainer.setAlignment(Pos.CENTER);
+        foregroundContainer = new HBox();
+        foregroundContainer.setAlignment(Pos.CENTER);
         foregroundContainer.setMouseTransparent(true);
-        getChildren().add(foregroundContainer);
+        getChildren().setAll(backgroundContainer, foregroundContainer);
 
         forgroundClipRect = new Rectangle();
         foregroundContainer.setClip(forgroundClipRect);
-        
-        for (int index = 0; index <= getSkinnable().getMax(); index++) {
-            Node backgroundNode = createButton(AwesomeIcon.STAR_ALT);
-            
-            if (index > 0) {
-                if (isVertical()) {
-                    backgroundContainer.getChildren().add(0,backgroundNode);
-                } else {
-                    backgroundContainer.getChildren().add(backgroundNode);
-                }
-
-                Node foregroundNode = createButton(AwesomeIcon.STAR);
-                     foregroundNode.getStyleClass().add(SELECTED);
-                     foregroundNode.setMouseTransparent(true);
-
-                if (isVertical()) {
-                    foregroundContainer.getChildren().add(0,foregroundNode);
-                } else {
-                    foregroundContainer.getChildren().add(foregroundNode);
-                }
-            }
-        }
+        Node b = createButton(STAR_ALT);
+        Node f = createButton(STAR);
+        f.getStyleClass().add(SELECTED);
+        f.setMouseTransparent(true);
+        foregroundContainer.getChildren().add(f);
+        backgroundContainer.getChildren().add(b);
     }
     
     // returns rating based on scene relative mouse position
@@ -180,13 +159,13 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         double h = control.getHeight() - leftpad - toppad;
         double x = b.getX()-leftpad;
         double y = b.getY()-toppad;        
-               x = Utils.clamp(0, x, w);
-               y = Utils.clamp(0, y, h);
+               x = clip(0, x, w);
+               y = clip(0, y, h);
                
         // calculate the new value
-        double nv = (isVertical()) ? ((h-y)/h)*max : (x/w)*max;
+        double nv = (x/w)*max;
                // need to make absolutely sure we dont get out of legal value bounds
-               nv = Utils.clamp(0,nv,max);
+               nv = clip(0,nv,max);
                
         // ceil double to int if needed
         if (!getSkinnable().isPartialRating()) nv = ceil(nv);
@@ -215,14 +194,8 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         double x = w/control.getMax()*rating;
         double y = h/control.getMax()*rating;
         
-        if (isVertical()) {
-            forgroundClipRect.relocate(0, h - y);
-            forgroundClipRect.setWidth(control.getWidth());
-            forgroundClipRect.setHeight(y);
-        } else {
-            forgroundClipRect.setWidth(x);
-            forgroundClipRect.setHeight(control.getHeight());
-        }
+        forgroundClipRect.setWidth(x);
+        forgroundClipRect.setHeight(control.getHeight());
         
         boolean isMaxed = rating==1*getSkinnable().getMax();
         foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,isMaxed));
@@ -230,20 +203,14 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         backgroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(min,is0));
     }
         
-    private Node createButton(AwesomeIcon icon) {
-        Label l = createIcon(icon, 10, null, null);
-        l.setCache(true);
-        l.setCacheShape(true);
-        l.setCacheHint(CacheHint.SPEED);
-//        Label l = new Label();
-               l.getStyleClass().add("rating-button");
-               l.setOnMouseMoved(mouseMoveHandler);
-               l.setOnMouseClicked(mouseClickHandler);
+    private Node createButton(FontAwesomeIconName icon) {
+        Text l = Icons.createIcon(icon, getSkinnable().getMax(), 10);
+             l.setCache(true);
+             l.setCacheHint(CacheHint.SPEED);
+             l.getStyleClass().add("rating-button");
+             l.setOnMouseMoved(mouseMoveHandler);
+             l.setOnMouseClicked(mouseClickHandler);
         return l;
-    }
-    
-    private boolean isVertical() {
-        return getSkinnable().getOrientation() == VERTICAL;
     }
     
     @Override protected double computeMaxWidth(double height, double topInset, double rightInset, double bottomInset, double leftInset) {

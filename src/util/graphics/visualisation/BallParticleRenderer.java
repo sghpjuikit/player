@@ -6,7 +6,7 @@
  * Courtesy of Bembrick Software Labs in the interest of promoting JavaFX.
  */
 
-package util.graphics;
+package util.graphics.visualisation;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;

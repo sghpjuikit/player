@@ -5,33 +5,33 @@
  */
 package GUI.objects;
 
-import de.jensd.fx.fontawesome.AwesomeDude;
-import static de.jensd.fx.fontawesome.AwesomeIcon.TOGGLE_ALTN;
-import static de.jensd.fx.fontawesome.AwesomeIcon.TOGGLE_OFF;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TOGGLE_OFF;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TOGGLE_ON;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.control.Label;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static util.functional.Util.mapB;
+import static util.reactive.Util.maintain;
 
 /**
  * Very simple alternative CheckBox control.
  */
-public class CheckIcon extends Label {
+public class CheckIcon extends Icon {
     
     private final BooleanProperty s = new SimpleBooleanProperty();
     
     public CheckIcon() {
-        s.addListener((o,ov,nv)->AwesomeDude.setIcon(this, nv ? TOGGLE_ALTN : TOGGLE_OFF, "12"));
-        s.set(true);
+        this(true);
+    }
+    
+    public CheckIcon(boolean selected) {
+        s.addListener((o,ov,nv)->icon.setValue(nv ? TOGGLE_ON : TOGGLE_OFF));
+        s.set(selected);
         addEventHandler(MOUSE_CLICKED, e -> {
             s.set(!s.get());
             e.consume();
         });
-    }
-    
-    public CheckIcon(boolean selected) {
-        this();
-        this.s.set(selected);
+        maintain(s,mapB(TOGGLE_ON,TOGGLE_OFF),icon);
     }
     
     // we want to be code-compatible with CheckBox for easy code change

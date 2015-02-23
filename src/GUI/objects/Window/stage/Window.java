@@ -31,10 +31,9 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.*;
-import de.jensd.fx.fontawesome.test.IconsBrowser;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
 import java.io.*;
 import static java.lang.Math.*;
 import java.net.URI;
@@ -79,6 +78,7 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.find;
 import static util.functional.Util.mapB;
+import util.graphics.Icons;
 import static util.reactive.Util.maintain;
 
 /**
@@ -576,25 +576,20 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    e -> browse(App.getLocation().toURI()));
 	// icon button - show all available FontAwesome icons in a popup
 	Icon iconsB = new Icon(IMAGE, 13, "Icon browser (development tool)", 
-            e -> new PopOver(new IconsBrowser()).show((Node)e.getSource()));
+            e -> {
+                Pane g = new GlyphsBrowser(); g.setPrefHeight(700);
+                new PopOver(g).show((Node)e.getSource());
+            });
+//            e -> new PopOver(new GlyphsBrowser()).show((Node)e.getSource()));
 	// settings button - show application settings in a popup
 	Icon propB = new Icon(GEARS, 13, "Application settings",
 	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NOLAYOUT));
 	// manage layout button - sho layout manager in a popp
 	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
-        // lasFm button - show basic lastFm settings and toggle scrobbling on/off 
-	// create graphics once
-	Image lastFMon = Util.loadImage(new File("lastFMon.png"), 30);
-	Image lastFMoff = Util.loadImage(new File("lastFMoff.png"), 30);
-	ImageView lastFMview = new ImageView();
-                  lastFMview.setFitHeight(15);
-                  lastFMview.setFitWidth(15);
-                  lastFMview.setPreserveRatio(true);        
-        maintain(LastFMManager.scrobblingEnabledProperty(), mapB(lastFMon,lastFMoff), lastFMview::setImage);
-
-	Label lastFMB = new Label("", lastFMview);
-	lastFMB.setTooltip(new Tooltip("LastFM"));
+        // lasFm button - show basic lastFm settings and toggle scrobbling
+	Icon lastFMB = new Icon(null, 13, "LastFM");
+        maintain(LastFMManager.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB.icon);
 	lastFMB.setOnMouseClicked(e -> {
 	    if (e.getButton() == MouseButton.PRIMARY)
 		if (LastFMManager.getScrobblingEnabled())
@@ -608,8 +603,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
 	});
 	// lock layout button
-	Icon lockB = new Icon(null, 13, "Lock layout on/off", e -> GUI.toggleLayoutLocked());
+	Icon lockB = new Icon(null, 13, "Lock layout", e -> GUI.toggleLayoutLocked());
         maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB.icon);
+	// layout mode button
+	Icon lmB = new Icon(null, 13, "Layout mode", e -> GUI.toggleLayoutNzoom());
+        maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB.icon);
 	// help button - show help information
 	Icon helpB = new Icon(INFO, 13, "Help");
 	helpB.setOnMouseClicked(e -> {
@@ -652,17 +650,17 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	IconBox left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
         // make right menu
 	IconBox right_icons = new IconBox(controls, RIGHT_TO_LEFT);
-        icon(miniB,CARET_UP);
+        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), i->icon(miniB,i));
         maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), i->icon(ontopB,i));
         maintain(fullscreen, mapB(COMPRESS,EXPAND), i->icon(fullscrB,i));
-        icon(minimB,MINUS_SQUARE_ALT);
-        icon(maximB,PLUS_SQUARE_ALT);
+        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), i->icon(minimB,i));
+        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), i->icon(maximB,i));
         icon(closeB,CLOSE);
-	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, helpB, guideB);//, taskB);
+	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, lmB, guideB, helpB);//, taskB);
     }
 
-    private void icon(Labeled l, AwesomeIcon i) {
-        AwesomeDude.setIcon(l, i, "13", GRAPHIC_ONLY);
+    private void icon(Labeled l, FontAwesomeIconName i) {
+        Icons.setIcon(l, i, "13", GRAPHIC_ONLY);
     }
 
 

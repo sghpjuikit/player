@@ -5,16 +5,17 @@
  */
 package GUI.objects;
 
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Labeled;
 import static javafx.scene.input.DragEvent.DRAG_ENTERED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
@@ -58,14 +59,30 @@ public class ActionChooser extends StackPane {
         });
     }
 
-    public Labeled addIcon(AwesomeIcon icon, String descriptn) {
-        Labeled l = AwesomeDude.createIconLabel(icon, descriptn, String.valueOf(icon_size), "13", ContentDisplay.TOP);
-//        Labeled l = createIcon(icon, icon_size, descriptn, null);
+    public Icon addIcon(FontAwesomeIconName icon, String descriptn) {
+        return addIcon(icon, descriptn, false);
+    }
+    public Icon addIcon(FontAwesomeIconName icon, String descriptn, boolean drag_activated) {
+        return addIcon(icon, descriptn, descriptn, drag_activated);
+    }
+    public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn, boolean drag_activated) {
+        Icon l = new Icon(icon, icon_size, descriptn);
+        l.setContentDisplay(ContentDisplay.TOP);
+        l.setFont(new Font(l.getFont().getName(), 13));
+        l.setText(text);
+        
         l.scaleYProperty().bind(l.scaleXProperty());
-        l.addEventHandler(DRAG_ENTERED, e -> description.setText(descriptn));
-        l.addEventHandler(DRAG_EXITED, e -> description.setText(""));
-        l.addEventHandler(DRAG_ENTERED, e -> l.setScaleX(1.1));
-        l.addEventHandler(DRAG_EXITED, e -> l.setScaleX(1));
+        if(drag_activated) {
+            l.addEventHandler(DRAG_ENTERED, e -> description.setText(descriptn));
+            l.addEventHandler(DRAG_EXITED, e -> description.setText(""));
+            l.addEventHandler(DRAG_ENTERED, e -> l.setScaleX(1.1));
+            l.addEventHandler(DRAG_EXITED, e -> l.setScaleX(1));
+        } else {
+            l.addEventHandler(MOUSE_ENTERED, e -> description.setText(descriptn));
+            l.addEventHandler(MOUSE_EXITED, e -> description.setText(""));
+            l.addEventHandler(MOUSE_ENTERED, e -> l.setScaleX(1.1));
+            l.addEventHandler(MOUSE_EXITED, e -> l.setScaleX(1));
+        }
         actionBox.getChildren().add(l);
         return l;
     }

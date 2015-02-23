@@ -6,21 +6,26 @@
  * Courtesy of Bembrick Software Labs in the interest of promoting JavaFX.
  */
 
-package util.graphics;
+package util.graphics.visualisation;
 
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.image.Image;
 
 /**
- * A <code>TextParticleRenderer</code> is an implementation of the particle renderer that renders each particle as a
- * simple coloured text string.
+ * A <code>ImageParticleRenderer</code> is an implementation of the particle renderer that renders each particle as a
+ * scaled image.
  * 
  * @author Felix Bembrick (@Lucan1d)
  * @version 1.0 August 2013
  */
-public class TextParticleRenderer implements ParticleRenderer {
+public class ImageParticleRenderer implements ParticleRenderer {
+
+	/**
+	 * The image to be rendered.
+	 */
+	private static final Image image = new Image(ImageParticleRenderer.class.getResourceAsStream("duke.png"));
 
 	/*
 	 * @see com.bembrick.javafx.ParticleRenderer#getNumberOfParticles()
@@ -28,8 +33,7 @@ public class TextParticleRenderer implements ParticleRenderer {
 	@Override
 	public int getNumberOfParticles() {
 
-		// There seem to be major performance issues with stroking text but filling text is fast so the recommended
-		// number of particles is quite high.
+		// Image rendering performance is excellent so we can support a large number of particles..
 		return 1000;
 	}
 
@@ -41,6 +45,11 @@ public class TextParticleRenderer implements ParticleRenderer {
 
 		// Set an alpha level across all rendering for the <code>Canvas</code> to apply a translucent effect.
 		canvas.getGraphicsContext2D().setGlobalAlpha(0.7);
+
+		// Apply a Gaussian Blur to the entire <code>Canvas</code> for a cool, soft effect.
+		final GaussianBlur blur = new GaussianBlur();
+		blur.setRadius(2d);
+		canvas.setEffect(blur);
 	}
 
 	/*
@@ -50,14 +59,7 @@ public class TextParticleRenderer implements ParticleRenderer {
 	@Override
 	public void render(final GraphicsContext gc, final Particle p) {
 
-		// Set the font to be used for rendering text across the <code>Canvas</code> with a size dependent on the radius
-		// of the particle.
-		gc.setFont(Font.font("Arial", FontPosture.REGULAR, p.getR() / 2));
-
-		// Set the current stroke colour to that of the particle.
-		gc.setFill(p.getColour());
-
-		// Render the text by stroking it with the current stroke colour at the particle's current coordinates.
-		gc.fillText("JavaFX", p.getX(), p.getY()); //$NON-NLS-1$
+		// Draw an image at the particle's coordinates and scale it based on the radius of the particle.
+		gc.drawImage(image, p.getX(), p.getY(), p.getR() * 2, p.getR() * 2);
 	}
 }

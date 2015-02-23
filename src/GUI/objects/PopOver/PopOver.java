@@ -26,44 +26,27 @@
  */
 package GUI.objects.PopOver;
 
-import GUI.objects.Window.stage.WindowBase;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomLeft;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenBottomRight;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenCenter;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopLeft;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopRight;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.*;
 import GUI.objects.Text;
+import GUI.objects.Window.stage.WindowBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
-import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
+import javafx.geometry.*;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.PopupControl;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static javafx.scene.input.MouseEvent.*;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -219,10 +202,10 @@ public class PopOver<N extends Node> extends PopupControl {
              t.setWrappingWidthNatural(true);               
         PopOver<Text> p = new PopOver(t);
                       p.getSkinn().setContentPadding(new Insets(8));
-                      p.setTitle("Help");
+                      p.title.set("Help");
                       p.setAutoHide(true);
                       p.setHideOnClick(true);
-                      p.setDetachable(false);
+                      p.detachable.set(false);
         return p;
     }
     
@@ -272,9 +255,9 @@ public class PopOver<N extends Node> extends PopupControl {
      * Sets autoFix and consumeAutoHidingEvents to false.
      * @param content shown by the pop over
      */
-    public PopOver(String title, N content) {
+    public PopOver(String titl, N content) {
         this();
-        setTitle(title);
+        title.set(titl);
         setContentNode(content);
     }
     
@@ -335,7 +318,7 @@ public class PopOver<N extends Node> extends PopupControl {
      */
     @Override
     public void hide() {
-        if (!isDetached()) {
+        if (!detached.get()) {
             if (isAnimated()) fadeOut();
             else hideImmediatelly();
         }
@@ -388,7 +371,7 @@ public class PopOver<N extends Node> extends PopupControl {
         }
         else this.ownerWindow = ownerWindow;
         
-        setDetached(false);
+        detached.set(false);
         
         // show the popup
         super.show(ownerWindow,0,0);
@@ -403,7 +386,7 @@ public class PopOver<N extends Node> extends PopupControl {
         // we fix this here, because we need default hide() implementation to
         // not close detached popup
         getScene().addEventHandler(KEY_PRESSED, e -> {
-            if(e.getCode()==ESCAPE && isHideOnEscape() && isDetached()) 
+            if(e.getCode()==ESCAPE && isHideOnEscape() && detached.get()) 
                 hideStrong();
         });
     }
@@ -1196,6 +1179,7 @@ public class PopOver<N extends Node> extends PopupControl {
     private EventHandler<MouseEvent> hideOnClick;
     
 /******************************************************************************/
+    
     public void setParentPopup(PopOver popover) {
         popover.addEventFilter(WindowEvent.WINDOW_HIDING, e -> {
             if(this != null && this.isShowing())
@@ -1207,95 +1191,26 @@ public class PopOver<N extends Node> extends PopupControl {
     }
 /******************************** DETACHING ***********************************/
     
-    /**
-     * Detaches the pop over from the owning node. The pop over will no longer
-     * display an arrow pointing at the owner node.
-     */
-    public final void detach() {
-        if (isDetachable()) setDetached(true);
-    }
 
-    private final BooleanProperty detachable = new SimpleBooleanProperty(this,"detachable", true);
-    private final BooleanProperty detached = new SimpleBooleanProperty(this,"detached", false);
+    /** Determines whether the pop over can be detached. */
+    public final BooleanProperty detachable = new SimpleBooleanProperty(this, "detachable", true);
     
-    /** Determines if the pop over is detachable at all. */
-    public final BooleanProperty detachableProperty() {
-        return detachable;
-    }
-
-    /**
-     * Sets the value of the detachable property.
-     * @param detachable if true then the user can detach / tear off the pop over
-     * @see #detachableProperty()
-     */
-    public final void setDetachable(boolean detachable) {
-        detachableProperty().set(detachable);
-    }
-
-    /**
-     * Returns the value of the detachable property.
-     * @return true if the user is allowed to detach / tear off the pop over
-     * @see #detachableProperty()
-     */
-    public final boolean isDetachable() {
-        return detachableProperty().get();
-    }
+    /** Denotes whether this popover is detached. Popover detached from the 
+     * owning node. The pop over will no longer display an arrow pointing at the
+     * owner node.*/
+    public final BooleanProperty detached = new SimpleBooleanProperty(this, "detached", false);
     
-    /**
-     * Determines whether the pop over is detached from the owning node or not.
-     * A detached pop over no longer shows an arrow pointing at the owner and
-     * features its own title bar.
-     * @return the detached property
-     */
-    public final BooleanProperty detachedProperty() {
-        return detached;
-    }
 
-    /**
-     * Sets the value of the detached property.
-     * @param detached if true the pop over will change its apperance to "detached"
-     * mode
-     * @see #detachedProperty();
-     */
-    public final void setDetached(boolean detached) {
-        detachedProperty().set(detached);
-    }
-
-    /**
-     * Returns the value of the detached property.
-     * @return true if the pop over is currently detached.
-     * @see #detachedProperty();
-     */
-    public final boolean isDetached() {
-        return detachedProperty().get();
-    }
-
-    private final StringProperty title = new SimpleStringProperty(this,"detachedTitle", "");
-    private final ObjectProperty<Pos> titlePos = new SimpleObjectProperty(this,"titlePos",null);
-        
-    /**
-     * Stores the title text. Default "".
-     * @return the detached title property
-     */
-    public final StringProperty titleProperty() {
-        return title;
-    }
-
-    /**
-     * @see #titleProperty()
-     * @return the title text
-     */
-    public final String getTitle() {
-        return titleProperty().get();
-    }
-
-    /**
-     * Sets the title text.
-     * @see #titleProperty()
-     */
-    public final void setTitle(String title) {
-        titleProperty().set(title==null ? "" : title);
-    }    
+    /** Title text. Default "". */
+    public final StringProperty title = new SimpleStringProperty(this, "title", "");
+    
+    /** Header visibility. Default true. Header contains title and icons. */
+    public final BooleanProperty headerVisible = new SimpleBooleanProperty(true);
+    
+    /** Title position within the header. Default CENTER_LEFT. */
+//    public final ObjectProperty<Pos> titlePos = new SimpleObjectProperty(this,"titlePos",Pos.CENTER_LEFT);
+ 
+    
     
     private ObservableList<Node> headerContent = null;
     

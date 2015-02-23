@@ -5,8 +5,8 @@
  */
 package GUI.objects;
 
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import de.jensd.fx.glyphs.GlyphIconName;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.util.List;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -16,6 +16,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import util.graphics.Icons;
 
 /**
  <p>
@@ -24,20 +25,20 @@ import javafx.scene.input.MouseEvent;
 public class Icon extends Label {
     
     private static final StyleablePropertyFactory<Icon> FACTORY = new StyleablePropertyFactory(Label.getClassCssMetaData());
-    private static final CssMetaData<Icon, AwesomeIcon> ICON_CMD = FACTORY.createEnumCssMetaData(AwesomeIcon.class, "icon", i -> i.icon);
+    private static final CssMetaData<Icon, FontAwesomeIconName> ICON_CMD = FACTORY.createEnumCssMetaData(FontAwesomeIconName.class, "icon", i -> i.icon);
     
     
     
-    public final StyleableProperty<AwesomeIcon> icon = new SimpleStyleableObjectProperty<AwesomeIcon>(ICON_CMD, this, "icon") {
-        @Override public void set(AwesomeIcon v) {
+    public final StyleableProperty<FontAwesomeIconName> icon = new SimpleStyleableObjectProperty<FontAwesomeIconName>(ICON_CMD, this, "icon") {
+        @Override public void set(FontAwesomeIconName v) {
             super.set(v);
-            AwesomeDude.setIcon(Icon.this, v, String.valueOf(icon_size.get()));
+            Icons.setIcon(Icon.this, v, String.valueOf(icon_size.get()));
         }
     };
     
-     public ObservableValue<AwesomeIcon> iconProperty() { return ( ObservableValue<AwesomeIcon>)icon; }
-     public final AwesomeIcon getIcon() { return icon.getValue(); }
-     public final void setIcon(AwesomeIcon isSelected) { icon.setValue(isSelected); }
+     public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
+     public final GlyphIconName getIcon() { return icon.getValue(); }
+     public final void setIcon(FontAwesomeIconName isSelected) { icon.setValue(isSelected); }
     
     
     public final IntegerProperty icon_size = new SimpleIntegerProperty(11);
@@ -45,22 +46,25 @@ public class Icon extends Label {
     public Icon() {
         getStyleClass().add("icon");
     }
-    public Icon(AwesomeIcon i) {
+    public Icon(FontAwesomeIconName i) {
         icon.setValue(i);
         getStyleClass().add("icon");
     }
-    public Icon(AwesomeIcon i, int size, String tooltip) {
+    public Icon(FontAwesomeIconName i, int size, String tooltip) {
         this(i, size, tooltip, (EventHandler)null);
     }
-    public Icon(AwesomeIcon ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
+    public Icon(FontAwesomeIconName i, int size) {
+        this(i, size, null, (EventHandler)null);
+    }
+    public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
         icon_size.set(size);
         if(ico!=null) icon.setValue(ico);
         if(tooltip!=null && !tooltip.isEmpty()) setTooltip(new Tooltip(tooltip));
         if(onClick!=null) setOnMouseClicked(onClick);
         getStyleClass().add("icon");
     }
-    public Icon(AwesomeIcon ico, int size, String tooltip, Runnable onClick) {
-        this(ico, size, tooltip, onClick==null ? null : e -> onClick.run());
+    public Icon(FontAwesomeIconName ico, int size, String tooltip, Runnable onClick) {
+        this(ico, size, tooltip, onClick==null ? null : e -> { onClick.run(); e.consume(); });
     }
     
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {

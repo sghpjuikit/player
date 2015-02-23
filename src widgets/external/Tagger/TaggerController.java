@@ -16,6 +16,7 @@ import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.ItemHolders.ItemTextFields.MoodTextField;
 import GUI.objects.GraphicalTextField;
+import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
@@ -26,9 +27,8 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.*;
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
-import static de.jensd.fx.fontawesome.AwesomeIcon.TAGS;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
@@ -73,11 +73,11 @@ import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.Parser.ParserImpl.ColorParser;
-import static util.Util.createIcon;
 import util.access.Accessor;
 import util.dev.Log;
 import static util.functional.Util.isIn;
 import static util.functional.impl.Validator.*;
+import util.graphics.Icons;
 
 /**
  * TaggerController graphical component.
@@ -299,7 +299,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         fields.add(new TagField(RatingF,RATING_RAW));
         fields.add(new TagField(RatingPF,RATING,IsBetween0And1));
         fields.add(new TagField(PlaycountF,PLAYCOUNT));
-        fields.add(new TagField(CommentF,COMMENT));
+        fields.add(new TagField(CommentF,Metadata.Field.COMMENT));
         fields.add(new TagField(MoodF,MOOD));
         fields.add(new TagField(Custom1F,CUSTOM1));
         fields.add(new TagField(Custom2F,CUSTOM2));
@@ -581,7 +581,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         if (empty) return;
         
         // set info label graphics
-        AwesomeDude.setIcon(infoL, items.size()==1 ? AwesomeIcon.TAG : TAGS);
+        Icons.setIcon(infoL, items.size()==1 ? FontAwesomeIconName.TAG : TAGS);
         
         fields.forEach(TagField::enable);
         CoverV.getPane().setDisable(false);
@@ -698,7 +698,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if(valCond!=null && c instanceof CustomTextField) {
                 Validation v = new Validation(c, valCond , field + " field doeas not contain valid text.");
                 validators.add(v);
-                Label l = createIcon(AwesomeIcon.EXCLAMATION_TRIANGLE, 11, null, null);
+                Label l = new Icon(EXCLAMATION_TRIANGLE, 11);
                 CustomTextField cf = (CustomTextField)c;
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
@@ -872,7 +872,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
            
         
         // build content controls
-        Label helpB = AwesomeDude.createIconLabel(AwesomeIcon.INFO,"11");                     
+        Label helpB = new Icon(INFO,11);                     
         helpB.setOnMouseClicked( e -> {
             // build help content for help popup if not yet built
             // with this we avoid constructing multuple popups
@@ -890,7 +890,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             e.consume();
         });
         helpB.setTooltip(new Tooltip("Help"));
-        Label editSwitchB = AwesomeDude.createIconLabel(AwesomeIcon.PENCIL,"11");                     
+        Label editSwitchB = new Icon(PENCIL,11);                     
         editSwitchB.setOnMouseClicked( e -> {
             // switch factories
             list.setCellFactory(list.getCellFactory().equals(defCellFactory)
@@ -902,7 +902,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         // build popup
         PopOver p = new PopOver(list);
-                p.setTitle("Active Items");
+                p.title.set("Active Items");
                 p.getHeaderIcons().addAll(editSwitchB,helpB);
                 p.show(infoL);
         return p;

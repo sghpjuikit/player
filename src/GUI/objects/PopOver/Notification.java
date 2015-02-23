@@ -3,11 +3,7 @@ package GUI.objects.PopOver;
 
 import AudioPlayer.tagging.Metadata;
 import GUI.objects.ItemInfo;
-import static GUI.objects.PopOver.Notification.NotificationType.OTHER;
-import static GUI.objects.PopOver.Notification.NotificationType.PLAYBACK_STATUS;
-import static GUI.objects.PopOver.Notification.NotificationType.SONG;
-import static GUI.objects.PopOver.Notification.NotificationType.TEXT;
-import GUI.objects.PopOver.PopOver;
+import static GUI.objects.PopOver.Notification.NotificationType.*;
 import GUI.objects.PopOver.PopOver.ScreenCentricPos;
 import GUI.objects.Text;
 import java.io.IOException;
@@ -23,8 +19,8 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
-import util.dev.TODO;
 import util.async.FxTimer;
+import util.dev.TODO;
 
 /**
  * Notification popover.
@@ -41,9 +37,10 @@ public class Notification extends PopOver {
     @FXML private Label titleText;
     
     public Notification() {
-        setTitle("");
-        setDetached(false);
-        setDetachable(false);
+        headerVisible.set(false);
+        title.set("");
+        detached.set(false);
+        detachable.set(false);
         setHideOnEscape(false);
         setArrowSize(0);
         setArrowIndent(0);

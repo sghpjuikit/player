@@ -4,8 +4,8 @@
  */
 package util;
 
-import de.jensd.fx.fontawesome.AwesomeDude;
-import de.jensd.fx.fontawesome.AwesomeIcon;
+import de.jensd.fx.glyphs.GlyphsDude;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -542,9 +542,9 @@ public interface Util {
         return i;
     }
     
-    public static Label createIcon(AwesomeIcon icon, int size, String tooltip, EventHandler<MouseEvent> onClick) {
+    public static Label createIcon(FontAwesomeIconName icon, int size, String tooltip, EventHandler<MouseEvent> onClick) {
         Label i = icon==null ? new Label() : 
-            AwesomeDude.createIconLabel(icon,"",String.valueOf(size)+"px",String.valueOf(GUI.GUI.font.getValue().getSize()),CENTER);
+            GlyphsDude.createIconLabel(icon,"",String.valueOf(size)+"px",String.valueOf(GUI.GUI.font.getValue().getSize()),CENTER);
         i.setOnMouseClicked(onClick);
         if(tooltip!=null && !tooltip.isEmpty()) i.setTooltip(new Tooltip(tooltip));
         return i;

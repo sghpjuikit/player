@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.ObservableList;
@@ -438,6 +439,10 @@ public class PlaylistManager implements Configurable {
      * @param item
      */
     public static void playItem(PlaylistItem item) {
+        playItem(item, playingItemSelector::getNext);
+    }
+    
+    private static void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> alt_supplier) {
         if (item != null && playlist.contains(item)) {
             if (item.isNotPlayable()) {
                 // prevent infinite check loop when whole playlist corrupted (checks once per playlsit size)
@@ -445,7 +450,7 @@ public class PlaylistManager implements Configurable {
                     PLAYBACK.stop();
                     return;
                 }
-                playItem(getNextItem(item));
+                playItem(alt_supplier.apply(item));
             } else
                 PLAYBACK.play(item);
         }
@@ -466,13 +471,13 @@ public class PlaylistManager implements Configurable {
     /** Plays next item on playlist according to its selector logic.*/
     @IsAction(name = "Play next", description = "Plays next item on playlist.", shortcut = "ALT+Z", global = true)
     public static void playNextItem() {
-        playItem(playingItemSelector.getNextPlaying());
+        playItem(playingItemSelector.getNextPlaying(), playingItemSelector::getNext);
     }
     
     /** Plays previous item on playlist according to its selector logic.*/
     @IsAction(name = "Play previous", description = "Plays previous item on playlist.", shortcut = "ALT+BACK_SLASH", global = true)
     public static void playPreviousItem() {
-        playItem(playingItemSelector.getPreviousPlaying());
+        playItem(playingItemSelector.getPreviousPlaying(), playingItemSelector::getPrevious);
     }
     
     /**

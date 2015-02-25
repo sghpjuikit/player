@@ -27,12 +27,15 @@ import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -64,36 +67,8 @@ public final class AreaControls {
     private static final SingleInstance<PopOver<Text>, AreaControls> helpP = new SingleInstance<>(
 	() -> PopOver.createHelpPopOver(""),
 	(p, ac) -> {
-	    Widget w = ac.area.getActiveWidget();
-	    String info = "";
-	    if (w != null) {
-		info += "\n\nWidget: " + w.name();
-		if (!w.description().isEmpty())
-		    info += "\n\n" + w.description();
-		if (!w.notes().isEmpty()) info += "\n\n" + w.notes();
-		if (!w.howto().isEmpty()) info += "\n\n" + w.howto();
-		String f = (w.getController() instanceof Feature)
-		    ? Feature.class.cast(w.getController()).getFeatureName()
-		    : "-";
-		info += "\n\nFeatures: " + f;
-	    }
-
-	    String text = "Available actions:\n"
-	    + "    Close : Closes the widget\n"
-	    + "    Detach : Opens the widget in new window\n"
-	    + "    Change : Opens widget chooser to pick new widget\n"
-	    + "    Settings : Opens settings for the widget if available\n"
-	    + "    Refresh : Refreshes the widget\n"
-	    + "    Lock : Forbids entering layout mode on mouse hover\n"
-	    + "    Press ALT : Toggles layout mode\n"
-	    + "    Drag & Drop header : Drags widget to other area\n"
-	    + "\n"
-	    + "Available actions in layout mode:\n"
-	    + "    Drag & Drop : Drags widget to other area\n"
-	    + "    Sroll : Changes widget area size\n"
-	    + "    Middle click : Set widget area size to max\n"
-	    + info;
-	    p.getContentNode().setText(text);
+            // set text
+	    p.getContentNode().setText(ac.getWindgetInfo());
             // for some reason we need to put this every time, which
 	    // should not be the case, investigate
 	    p.getContentNode().setWrappingWidth(400);
@@ -111,7 +86,7 @@ public final class AreaControls {
     @FXML public Label title;
     public Label propB;
     @FXML TilePane header_buttons;
-    Icon absB;
+    Icon infoB, absB;
 
     // animations // dont initialize here or make final
     private final FadeTransition contrAnim;
@@ -140,10 +115,7 @@ public final class AreaControls {
 	header_buttons.setMinWidth(15);
 
 	// build header buttons
-	Icon infoB = new Icon(INFO, 12, "Help", e -> {
-	    helpP.get(this).show((Node)e.getSource());
-	    App.actionStream.push("Widget info");
-	});
+	infoB = new Icon(INFO, 12, "Help", this::showInfo);
 	Icon closeB = new Icon(TIMES, 12, "Close widget", e -> {
 	    close();
 	    App.actionStream.push("Close widget");
@@ -341,6 +313,31 @@ public final class AreaControls {
         }
     }
     
+    void showInfo() {
+        if(GUI.open_strategy==POPUP) {
+            helpP.get(this).show(infoB);
+        } else 
+        if (GUI.open_strategy==INSIDE) {
+            closeAndDo(area.content_root, ()->{
+                Text t = new Text(getWindgetInfo());
+                     t.setMouseTransparent(true);
+                ScrollPane s = new ScrollPane(t);
+                s.setPadding(new Insets(15));
+                s.getStyleClass().addAll(Area.bgr_STYLECLASS);
+                s.addEventFilter(MOUSE_PRESSED, Event::consume);
+                s.addEventFilter(MOUSE_RELEASED, Event::consume);
+                s.addEventFilter(MOUSE_CLICKED, e -> {
+                    if(e.getButton()==SECONDARY)
+                        closeAndDo(s, () -> openAndDo(area.content_root, null));
+                });
+                area.root.getChildren().add(s);
+                setAnchors(s, 0);
+                openAndDo(s, null);
+            });
+        }
+        App.actionStream.push("Widget info");
+    }
+    
     void detach() {
 	area.detach();
     }
@@ -441,4 +438,40 @@ public final class AreaControls {
     public boolean isShowingWeak() {
 	return isShowingWeak;
     }
+    
+    
+/******************************************************************************/
+
+    public String getWindgetInfo() {
+        Widget w = area.getActiveWidget();
+        String info = "";
+        if (w != null) {
+            info += "\n\nWidget: " + w.name();
+            if (!w.description().isEmpty())
+                info += "\n\n" + w.description();
+            if (!w.notes().isEmpty()) info += "\n\n" + w.notes();
+            if (!w.howto().isEmpty()) info += "\n\n" + w.howto();
+            String f = (w.getController() instanceof Feature)
+                ? Feature.class.cast(w.getController()).getFeatureName()
+                : "-";
+            info += "\n\nFeatures: " + f;
+        }
+
+        return "Available actions:\n"
+             + "    Close : Closes the widget\n"
+             + "    Detach : Opens the widget in new window\n"
+             + "    Change : Opens widget chooser to pick new widget\n"
+             + "    Settings : Opens settings for the widget if available\n"
+             + "    Refresh : Refreshes the widget\n"
+             + "    Lock : Forbids entering layout mode on mouse hover\n"
+             + "    Press ALT : Toggles layout mode\n"
+             + "    Drag & Drop header : Drags widget to other area\n"
+             + "\n"
+             + "Available actions in layout mode:\n"
+             + "    Drag & Drop : Drags widget to other area\n"
+             + "    Sroll : Changes widget area size\n"
+             + "    Middle click : Set widget area size to max\n"
+             + info;
+    }
+    
 }

@@ -10,22 +10,19 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
+import GUI.objects.Icon;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
-import java.io.File;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.List;
-import javafx.beans.InvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
@@ -33,37 +30,37 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.Util;
 import util.access.Accessor;
+import static util.reactive.Util.maintain;
 
-/**
- * Playback Controller class
- * <p>
- * @author uranium
- */
-@Widget.Info(name = "Tiny")
+/** FXMLController for widget. */
+@Widget.Info(
+    name = "Playback Mini",
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    howto = "Available actions:\n" +
+            "    Control Playback\n" +
+            "    Drop audio files : Adds or plays the files\n",
+    description = "Controls playback.",
+    notes = "",
+    version = "1",
+    year = "2015",
+    group = Widget.Group.PLAYBACK
+)
 public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
     
+    // gui
     @FXML AnchorPane root;
     @FXML BorderPane seekerPane;
-    @FXML ImageView revind;
-    @FXML ImageView previous;
-    @FXML ImageView play;    
-    @FXML ImageView next;
-    @FXML ImageView forward;
+    @FXML HBox controlBox;
+    @FXML HBox volBox;
     @FXML Slider volume;
-    Seeker seeker = new Seeker();
     @FXML Label currTime;
-    @FXML ImageView mute;
     @FXML Label titleL;
     @FXML Label artistL;
-    
-    Image pauseImg;
-    Image playImg;
-    Image loopOFFImg;
-    Image loopALLImg;
-    Image loopONEImg;
-    Image muteOFFImg;
-    Image muteONImg;
-    
+    Seeker seeker = new Seeker();
+    Icon prevB, playB, stopB, nextB, volB;
+    // dpendencies that should be disposed of - listeners, etc
+    Subscription d1,d2,d3,d4,d5;
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
@@ -75,48 +72,37 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
-//    @IsConfig(name = "a")
-//    public LoopMode lm = PlayingItemSelector.LoopMode.OFF;
     
     @Override
     public void init() {
-        
+        // make volume
         volume.setMin(PLAYBACK.getVolumeMin());
         volume.setMax(PLAYBACK.getVolumeMax());
         volume.setValue(PLAYBACK.getVolume());
         volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
-        
+        // make seeker
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
         seeker.setChapterSnapDistance(GUI.snapDistance);
         seekerPane.setCenter(seeker);
-//        BorderPane.setAlignment(seeker, Pos.CENTER);
+        // make icons
+        prevB = new Icon(STEP_BACKWARD, 14, null, PlaylistManager::playPreviousItem);
+        playB = new Icon(null, 14, null, PLAYBACK::pause_resume);
+        stopB = new Icon(STOP, 14, null, PLAYBACK::stop);
+        nextB = new Icon(STEP_FORWARD, 14, null, PlaylistManager::playNextItem);
+        controlBox.getChildren().addAll(prevB,playB,stopB,nextB);
+        volB = new Icon(null, 14, null, PLAYBACK::toggleMute);
+        volBox.getChildren().add(0,volB);
         
-        // load resources
-        pauseImg   = new Image(getResource("pause.png").toURI().toString());
-        playImg    = new Image(getResource("play.png").toURI().toString());
-        loopOFFImg = new Image(getResource("loopOFF.png").toURI().toString());
-        loopALLImg = new Image(getResource("loopALL.png").toURI().toString());
-        loopONEImg = new Image(getResource("loopONE.png").toURI().toString());
-        muteOFFImg = new Image(getResource("muteOFF.png").toURI().toString());
-        muteONImg  = new Image(getResource("muteON.png").toURI().toString());
+        // monitor properties and update graphics + initialize
+        d1 = maintain(PLAYBACK.volumeProperty(), v->muteChanged(PLAYBACK.isMute(), v.doubleValue()));
+        d2 = maintain(PLAYBACK.muteProperty(), m->muteChanged(m, PLAYBACK.getVolume()));
+        d3 = maintain(PLAYBACK.statusProperty(), this::statusChanged);
+        d4 = Player.playingtem.subscribeToUpdates(this::playbackItemChanged);  // add listener
+             playbackItemChanged(Player.playingtem.get());                     // init value    
+        d5 = maintain(PLAYBACK.currentTimeProperty(),t->currentTimeChanged());
         
-        
-        // set updating + initialize manually
-        playingItemMonitoring = Player.playingtem.subscribeToUpdates(this::playbackItemChanged);  // add listener
-        playbackItemChanged(Player.playingtem.get());            // init value
-        
-        PLAYBACK.statusProperty().addListener(statusListener);          // add listener
-        statusChanged(PLAYBACK.getStatus());                            // init value
-        
-        PLAYBACK.muteProperty().addListener(muteListener);              // add listener
-        muteChanged(PLAYBACK.getMute());                                // init value
-        
-        PLAYBACK.currentTimeProperty().addListener(currTimeListener);   // add listener
-        currTimeListener.invalidated(null);                             // init value
-        
-        // support drag transfer
+        // audio drag
         root.setOnDragOver(DragUtil.audioDragAccepthandler);
-        // handle drag transfer
         root.setOnDragDropped( e -> {
             if (DragUtil.hasAudio(e.getDragboard())) {
                 // get items
@@ -126,8 +112,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 e.consume();
                 // handle result
                 if(playDropped) {
-                    PlaylistManager.playPlaylist(new Playlist(
-                            items.stream().map(Item::getURI), true));
+                    PlaylistManager.playPlaylist(new Playlist(items.stream().map(Item::getURI), true));
                 } else {
                     PlaylistManager.addItems(items);
                 }
@@ -141,69 +126,21 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     @Override
     public void close() {
         // remove listeners
-        playingItemMonitoring.unsubscribe();
-        PLAYBACK.statusProperty().removeListener(statusListener);       
-        PLAYBACK.muteProperty().removeListener(muteListener);
-        PLAYBACK.currentTimeProperty().removeListener(currTimeListener);
+        d1.unsubscribe();
+        d2.unsubscribe();
+        d3.unsubscribe();
+        d4.unsubscribe();
+        d5.unsubscribe();
         seeker.unbindTime();
         volume.valueProperty().unbind();
     }
     
 /******************************************************************************/
-    
-    private void playFile(File file) {
-         PlaylistManager.addUri(file.toURI());
-         PlaylistManager.playLastItem();
-    }
-    @FXML private void play_pause() {
-         PLAYBACK.pause_resume();
-    }
-    
-    @FXML private void stop() {
-         PLAYBACK.stop();
-    }
-    
-    @FXML private void next() {
-        PlaylistManager.playNextItem();
-    }
-    
-    @FXML private void previous() {
-        PlaylistManager.playPreviousItem();
-    }
-    
-    @FXML private void forward() {
-        PLAYBACK.seekForward();
-    }
-    
-    @FXML private void rewind() {
-        PLAYBACK.seekBackward();
-    }
-    
-    @FXML private void cycleLoopMode() {
-        PLAYBACK.toggleLoopMode();
-    }
-    
-    @FXML private void cycleMute() {
-        PLAYBACK.toggleMute();
-    }
-    
+        
     @FXML private void cycleElapsed() {
         elapsedTime = !elapsedTime;
         currentTimeChanged();
     }
-    
-    @FXML
-    private void consumeMouseEvent(MouseEvent event) {
-        event.consume(); // for example to prevent dragging application on some areas
-    }
-
-/******************************************************************************/
-    
-    Subscription playingItemMonitoring;
-    private final ChangeListener<Status> statusListener = (o,ov,nv)-> statusChanged(nv);
-    private final ChangeListener<Boolean> muteListener = (o,ov,nv)-> muteChanged(nv);
-    private final InvalidationListener currTimeListener = o -> currentTimeChanged();
-    
     
     private void playbackItemChanged(Metadata nv) {
         if(nv!=null) {
@@ -215,21 +152,17 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     private void statusChanged(Status status) {
         if (status == null || status == UNKNOWN ) {
             seeker.setDisable(true);
-            play.setImage(playImg);
+            playB.icon.setValue(PLAY);
         } else if (status == PLAYING) {
             seeker.setDisable(false);
-            play.setImage(pauseImg);
+            playB.icon.setValue(PAUSE);
         } else {
             seeker.setDisable(false);
-            play.setImage(playImg);
+            playB.icon.setValue(PLAY);
         }
     }
-    private void muteChanged(boolean new_mode) {
-        if (new_mode) {
-            mute.setImage(muteOFFImg);
-        } else {
-            mute.setImage(muteONImg);
-        }
+    private void muteChanged(boolean mute, double vol) {
+        volB.icon.setValue(mute ? VOLUME_OFF : vol>.5 ? VOLUME_UP : VOLUME_DOWN);
     }
     private void currentTimeChanged() {
         // update label

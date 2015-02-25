@@ -89,7 +89,7 @@ public class App extends Application {
     
 /*********************************** CONFIGS **********************************/
     
-    @IsConfig(name = "Show guide when on app start", info = "Automatically show "
+    @IsConfig(name = "Show guide on app start", info = "Automatically show "
      + "guide hints next time application starts up. Automatically set to false afterwards.")
     public static boolean showGuide = true;
     

@@ -8,50 +8,13 @@
 
 <AnchorPane id="AnchorPane" fx:id="root" prefHeight="20.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-<right><HBox alignment="CENTER_RIGHT" spacing="10.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER_RIGHT">
+<right><HBox fx:id="volBox" alignment="CENTER_RIGHT" spacing="10.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER_RIGHT">
 <children>
-                    <ImageView fx:id="mute" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#cycleMute" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@muteOFF.png" />
-                      </image>
-                    </ImageView>
                     <Slider fx:id="volume" prefWidth="80.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 </children></HBox>
 </right>
 <left><HBox alignment="CENTER" fillHeight="false" spacing="15.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER">
-<children><HBox alignment="CENTER" spacing="5.0" BorderPane.alignment="CENTER">
-<children>
-                    <ImageView fx:id="previous" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#previous" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@previous.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="rewind" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#rewind" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="0" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@rewind.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="play" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#play_pause" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@play.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fitHeight="15.0" fitWidth="15.0" onMouseClicked="#stop" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@stop.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="forward" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#forward" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="5" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@forward.png" />
-                      </image>
-                    </ImageView>
-                    <ImageView fx:id="next" fitHeight="15.0" fitWidth="15.0" onMouseClicked="#next" pickOnBounds="true" preserveRatio="true" styleClass="image-view" GridPane.columnIndex="4" GridPane.halignment="CENTER" GridPane.rowIndex="0" GridPane.valignment="CENTER">
-                      <image>
-                        <Image preserveRatio="false" smooth="false" url="@next.png" />
-                      </image>
-                    </ImageView>
-</children></HBox><HBox alignment="CENTER" spacing="5.0">
+<children><HBox fx:id="controlBox" alignment="CENTER" fillHeight="false" spacing="3.0" BorderPane.alignment="CENTER" /><HBox alignment="CENTER" spacing="5.0">
 <children><Label id="" fx:id="currTime" onMouseClicked="#cycleElapsed" pickOnBounds="true" text="00:00" />
                 <Label fx:id="artistL" text="Artist" GridPane.columnIndex="0" GridPane.rowIndex="1" /><Label text="-" />
                 <Label fx:id="titleL" text="Title" GridPane.columnIndex="0" GridPane.rowIndex="0" />
@@ -70,4 +33,7 @@
 </children></AnchorPane>
 </center></BorderPane>
   </children>
+   <padding>
+      <Insets left="5.0" right="5.0" />
+   </padding>
 </AnchorPane>

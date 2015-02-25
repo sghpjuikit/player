@@ -84,7 +84,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         
     /** {@inheritDoc} */
     @Override
-    public String name() { return name; }
+    public String name() { return getFactory().name(); }
         
     /** {@inheritDoc} */
     @Override

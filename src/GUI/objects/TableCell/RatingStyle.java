@@ -67,6 +67,9 @@ public enum RatingStyle implements RatingCellFactory {
                 };
             case NUMBER:
                 return new TableCell<Metadata,Double>(){
+                    {
+                        setAlignment(Pos.CENTER_RIGHT);
+                    }
                     @Override
                     protected void updateItem(Double item, boolean empty) {
                         super.updateItem(item, empty);

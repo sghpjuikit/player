@@ -101,7 +101,7 @@ public class PlayingItemSelector {
      */
     public PlaylistItem getNextNoFilter(PlaylistItem current) {
         if(current==null || !playlist.contains(current)) return null;
-        return selector.next(playlist.size(), PlaylistManager.indexOfPlaying(), current, playlist);
+        return selector.next(playlist.size(), playlist.indexOf(current), current, playlist);
     }
     /**
      * Returns playlist item preceding the one specified according to current
@@ -112,7 +112,7 @@ public class PlayingItemSelector {
      */
     public PlaylistItem getPreviousNoFilter(PlaylistItem current) {
         if(current==null || !playlist.contains(current)) return null;
-        return selector.previous(playlist.size(), PlaylistManager.indexOfPlaying(), current, playlist);
+        return selector.previous(playlist.size(), playlist.indexOf(current), current, playlist);
     }
     
     public PlaylistItem getNext(Predicate<PlaylistItem> filter, PlaylistItem current) {

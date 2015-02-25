@@ -63,8 +63,7 @@ import util.units.FormattedDuration;
             "    Press ESC : Clear selection & filter\n" +
             "    Type : Searches for item - applies filter\n" +
             "    Filter button : Uses filter for playback\n" +
-            "    Click column : Changes sort order - ascending,\n" +
-            "                   descending, none\n" +
+            "    Click column : Changes sort order - ascending, descending, none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n" +
             "    Drag column : Changes column order\n" +
             "    Menu bar : Opens additional actions\n",

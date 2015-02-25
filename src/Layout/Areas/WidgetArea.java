@@ -112,7 +112,7 @@ public final class WidgetArea extends Area<Container> {
         openAndDo(content_root, null);
         
         // put controls to new widget
-        controls.title.setText(w.getName());                // put title
+        controls.title.setText(w.name());                // put title
         controls.propB.setDisable(w.getFields().isEmpty()); // disable properties button if empty settings
         
         // put container properties (just in case)

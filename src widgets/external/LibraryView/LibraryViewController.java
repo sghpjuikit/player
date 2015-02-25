@@ -17,6 +17,7 @@ import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
+import GUI.objects.TableCell.RatingStyle;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -171,18 +172,19 @@ public class LibraryViewController extends FXMLController {
             boolean v = f!= AVG_RATING || f!= YEAR;
             return new ColumnInfo(f.toString(), f.ordinal(), v, w);
         });
-        table.setColumnFactory( f -> {
-            Metadata.Field v = fieldFilter.getValue();
-            TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(v));
+        table.setColumnFactory( mgf -> {
+            Metadata.Field mf = fieldFilter.getValue();
+            TableColumn<MetadataGroup,?> c = new TableColumn(mgf.toString(mf));
             c.setCellValueFactory( cf -> {
                 if(cf.getValue()==null) return null;
-                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+                return new ReadOnlyObjectWrapper(cf.getValue().getField(mgf));
             });
-            String no_val = f==VALUE ? "<none>" : "";
-            c.setCellFactory(f==AVG_RATING 
+            String no_val = mgf==VALUE ? "<none>" : "";
+            c.setCellFactory(mgf==AVG_RATING 
                 ? (Callback) App.ratingCell.getValue()
-                : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(v), no_val));
-            c.setUserData(f);
+                : mgf==W_RATING ? (Callback)RatingStyle.NUMBER 
+                : DEFAULT_ALIGNED_CELL_FACTORY(mgf.getType(mf), no_val));
+            c.setUserData(mgf);
             return c;
         });
         // maintain rating column cell style

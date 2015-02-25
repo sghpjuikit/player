@@ -16,6 +16,7 @@ import Layout.Widgets.Features.Feature;
 public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     
     final String name;
+    final String gui_name;
     final String description;
     final String version;
     final String author;
@@ -49,12 +50,11 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         this.controller_class = controller_class;
         
         // init info
-            // grab Controller's class and its annotation
+            // grab Controller's class and its annotation or get default
         Widget.Info i = controller_class.getAnnotation(Widget.Info.class);
-            // initialize default value if n/a
         if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
         
-//        name = i.name(); // ignore this for now to not break name contract
+        gui_name = i.name().isEmpty() ? name : i.name();
         description = i.description();
         version = i.version();
         author = i.author();
@@ -117,7 +117,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
 
     /** {@inheritDoc} */
     @Override
-    public String name() { return name; }
+    public String name() { return gui_name; }
 
     /** {@inheritDoc} */
     @Override

@@ -44,7 +44,7 @@ import util.access.Accessor;
  * @author uranium
  */
 @Widget.Info(
-    name = "Playback Control",
+    name = "Playback",
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     howto = "Available actions:\n" +
@@ -56,7 +56,7 @@ import util.access.Accessor;
     notes = "",
     version = "0.8",
     year = "2014",
-    group = Widget.Group.TAGGER
+    group = Widget.Group.PLAYBACK
 )
 public class PlayerControlsController extends FXMLController implements PlaybackFeature {
     

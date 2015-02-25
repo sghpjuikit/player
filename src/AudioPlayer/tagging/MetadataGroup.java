@@ -36,6 +36,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     private final double length;
     private final long size;
     private final double avg_rating;
+    private final double weigh_rating;
     private final String year;
     
     public MetadataGroup(Metadata.Field field, Object value, long item_count, 
@@ -48,6 +49,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         this.length = length;
         this.size = filesize_sum;
         this.avg_rating = avg_rating;
+        this.weigh_rating = avg_rating*item_count;
         this.year = year;
     }
     
@@ -90,6 +92,9 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     public double getAvgRating() {
         return avg_rating;
     }
+    public double getWeighRating() {
+        return weigh_rating;
+    }
     
     public String getYear() {
         return year;
@@ -105,6 +110,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             case LENGTH : return getLength(); 
             case SIZE : return getFileSize();
             case AVG_RATING : return getAvgRating();
+            case W_RATING : return getWeighRating();
             case YEAR : return getYear();
         }
         throw new AssertionError();
@@ -124,8 +130,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     public String toString() {
         return getField() + ": " + getValue() + ", items: " + getItemCount() + 
                 ", albums: " + getAlbumCount() + ", length: " + getLength() + 
-                ", size: " + getFileSize()+ ", avgrating: " + getAvgRating() + 
-                ", year: " + getYear();
+                ", size: " + getFileSize()+ ", avgrating: " + getAvgRating() +
+                ", wighted rating: " + getWeighRating()+ ", year: " + getYear();
     }
     
 /***************************** COMPANION CLASS ********************************/
@@ -137,6 +143,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         LENGTH,
         SIZE,
         AVG_RATING,
+        W_RATING,
         YEAR;
         
         Field() {
@@ -157,6 +164,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             if(LENGTH.name().equals(s)) return LENGTH;
             if(SIZE.name().equals(s)) return SIZE;
             if(AVG_RATING.name().equals(s)) return AVG_RATING;
+            if(W_RATING.name().equals(s)) return W_RATING;
             if(YEAR.name().equals(s)) return YEAR;
             else return VALUE;
         }
@@ -171,6 +179,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
                 case LENGTH : return FormattedDuration.class; 
                 case SIZE : return FileSize.class;
                 case AVG_RATING : return double.class;
+                case W_RATING : return double.class;
                 case YEAR : return String.class;
             }
             throw new AssertionError();

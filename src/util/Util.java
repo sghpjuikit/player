@@ -4,8 +4,6 @@
  */
 package util;
 
-import de.jensd.fx.glyphs.GlyphsDude;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +21,6 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.TableView.TableViewSelectionModel;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
@@ -539,14 +536,6 @@ public interface Util {
     public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> actionHandler) {
         MenuItem i = new MenuItem(text);
                  i.setOnAction(actionHandler);
-        return i;
-    }
-    
-    public static Label createIcon(FontAwesomeIconName icon, int size, String tooltip, EventHandler<MouseEvent> onClick) {
-        Label i = icon==null ? new Label() : 
-            GlyphsDude.createIconLabel(icon,"",String.valueOf(size)+"px",String.valueOf(GUI.GUI.font.getValue().getSize()),CENTER);
-        i.setOnMouseClicked(onClick);
-        if(tooltip!=null && !tooltip.isEmpty()) i.setTooltip(new Tooltip(tooltip));
         return i;
     }
     

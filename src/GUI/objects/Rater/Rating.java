@@ -144,12 +144,6 @@ import javafx.util.Duration;
  */
 public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait, SkinTrait {
     
-    /***************************************************************************
-     * 
-     * Constructors
-     * 
-     **************************************************************************/
-    
     /**
      * Creates a default instance with a minimum rating of 0 and a maximum 
      * rating of 5.
@@ -162,10 +156,10 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
      * Creates a default instance with a minimum rating of 0 and a maximum rating
      * as provided by the argument.
      * 
-     * @param max The maximum allowed rating value.
+     * @param icons The maximum allowed rating value.
      */
-    public Rating(int max) {
-        this(max, 0);
+    public Rating(int icons) {
+        this(icons, 0);
     }
     
     /**
@@ -176,10 +170,10 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
      * @param max The maximum allowed rating value.
      * @param rating
      */
-    public Rating(int max, double rating) {
+    public Rating(int icons, double rating) {
         getStyleClass().setAll("rating");
         
-        setMax(max);
+        max.set(icons);
         setRating(rating);
         installScaleOnHover();
         
@@ -222,7 +216,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     }
     
     public final void setRatingP(double value) {
-       rating.set(value*getMax());
+       rating.set(value*max.get());
     }
     
     /** Returns the current rating value in stars. */
@@ -238,31 +232,16 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
      * @return 
      */
     public double getRatingTagValue(double maxRating) {
-        return getRating()*maxRating/getMax();
+        return getRating()*maxRating/max.get();
     }
     public double getRatingPercent() {
-        return getRating()/getMax();
+        return getRating()/max.get();
     }
+    
     
     /** The maximum-allowed rating value. */
     public final IntegerProperty max = new SimpleIntegerProperty(this, "max", 5);
-    
-    public final IntegerProperty maxProperty() {
-        return max;
-    }
-    
-    /**  Sets the maximum-allowed rating value. */
-    public final void setMax(int value) {
-       maxProperty().set(value);
-    }
-
-    /** Returns the maximum-allowed rating value. */
-    public final int getMax() {
-        return max.get();
-    }
-    
-    
-    // --- partial rating
+        
     /**
      * If true this allows for users to set a rating as a floating point value.
      * In other words, the range of the rating 'stars' can be thought of as a
@@ -270,55 +249,15 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
      * as the new rating value. If this is false the more typical approach is used
      * where the selected 'star' is used as the rating.
      */
-    public final BooleanProperty partialRatingProperty() {
-        return partialRating;
-    }
-    private BooleanProperty partialRating = new SimpleBooleanProperty(this, "partialRating", false);
+    public final BooleanProperty partialRating = new SimpleBooleanProperty(this, "partialRating", false);
     
     /**
-     * Sets whether {@link #partialRatingProperty() partial rating} support is
-     * enabled or not.
-     */
-    public final void setPartialRating(boolean value) {
-        partialRatingProperty().set(value);
-    }
-    
-    /**
-     * Returns whether {@link #partialRatingProperty() partial rating} support is
-     * enabled or not.
-     */
-    public final boolean isPartialRating() {
-        return partialRating.get();
-    }
-
-    
-    // --- update on hover
-    /**
-     * If true this allows for the {@link #ratingProperty() rating property} to
-     * be updated simply by the user hovering their mouse over the control. If
+     * If true this allows for the rating property to be updated by the user 
+     * hovering their mouse over the control. If
      * false the user is required to click on their preferred rating to register
      * the new rating with this control.
      */
-    public final BooleanProperty updateOnHoverProperty() {
-        return updateOnHover;
-    }
-    private BooleanProperty updateOnHover = new SimpleBooleanProperty(this, "updateOnHover", false);
-    
-    /**
-     * Sets whether {@link #updateOnHoverProperty() update on hover} support is
-     * enabled or not.
-     */
-    public final void setUpdateOnHover(boolean value) {
-        updateOnHoverProperty().set(value);
-    }
-    
-    /**
-     * Returns whether {@link #updateOnHoverProperty() update on hover} support is
-     * enabled or not.
-     */
-    public final boolean isUpdateOnHover() {
-        return updateOnHover.get();
-    }
+    public final BooleanProperty updateOnHover = new SimpleBooleanProperty(this, "updateOnHover", false);
     
     
     /***************************************************************************
@@ -333,7 +272,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     public BooleanProperty editableProperty() {
         return editable;
     }
-    private BooleanProperty editable = new SimpleBooleanProperty(this, "editable", true);
+    public final BooleanProperty editable = new SimpleBooleanProperty(this, "editable", true);
     
     // --- scale on hover
     @Override

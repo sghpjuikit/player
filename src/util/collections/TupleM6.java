@@ -10,32 +10,38 @@ import java.util.Objects;
 /**
  * Mutable tuple.
  */
-public final class TupleM4<A,B,C,D> {
+public final class TupleM6<A,B,C,D, E, F> {
 
     public A a;
     public B b;
     public C c;
     public D d;
+    public E e;
+    public F f;
     
-    public TupleM4(A a, B b, C c, D d) {
-        set(a, b, c, d);
+    public TupleM6(A a, B b, C c, D d, E e, F f) {
+        set(a, b, c, d, e, f);
     }
     
-    public void set(A a, B b, C c, D d) {
+    public void set(A a, B b, C c, D d, E e, F f) {
         this.a = a;
         this.b = b;
         this.c = c;
         this.d = d;
+        this.e = e;
+        this.f = f;
     }
     
     @Override
     public boolean equals(Object o) {
-        if(o instanceof TupleM4) {
-            TupleM4 that = (TupleM4) o;
+        if(o instanceof TupleM6) {
+            TupleM6 that = (TupleM6) o;
             return Objects.equals(this.a, that.a) &&
                    Objects.equals(this.b, that.b) &&
                    Objects.equals(this.c, that.c) &&
-                   Objects.equals(this.d, that.d);
+                   Objects.equals(this.d, that.d) &&
+                   Objects.equals(this.e, that.e) &&
+                   Objects.equals(this.f, that.f);
         } else {
             return false;
         }
@@ -43,7 +49,7 @@ public final class TupleM4<A,B,C,D> {
 
     @Override
     public int hashCode() {
-        return Objects.hash(a,b,c,d);
+        return Objects.hash(a,b,c,d,e,f);
     }
 
     @Override
@@ -51,7 +57,9 @@ public final class TupleM4<A,B,C,D> {
         return "(" + Objects.toString(a) + ", "
                    + Objects.toString(b) + ", "
                    + Objects.toString(c) + ", "
-                   + Objects.toString(d)
+                   + Objects.toString(d) + ", "
+                   + Objects.toString(e) + ", "
+                   + Objects.toString(f)
                    + ")";
     }
 }

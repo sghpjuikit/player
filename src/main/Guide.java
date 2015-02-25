@@ -27,7 +27,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import main.Guide.Hint;
 import org.reactfx.Subscription;
-import static util.Util.createIcon;
 import static util.async.Async.run;
 
 /**
@@ -62,7 +61,7 @@ public final class Guide {
         p.getHeaderIcons().addAll(prevB,infoL,nextB);
         
         addGuide("Intro", "Hi, this is automatic guide for this application. It will show you around. " +
-                "\n\nBut first some music, right?", createIcon(MUSIC, 33, null, e->{
+                "\n\nBut first some music, right?", new Icon(MUSIC, 33, null, e->{
                     // find spot
                     SwitchPane la = (SwitchPane)Window.getFocused().getLayoutAggregator();
                     Container con = la.getActive().getAllContainers().filter(c->c.getEmptySpot()!=null).findAny()

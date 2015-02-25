@@ -46,8 +46,9 @@ import javafx.util.Duration;
 import main.App;
 import org.reactfx.EventSource;
 import util.SingleInstance;
-import static util.Util.createIcon;
 import static util.Util.setAnchors;
+import static util.functional.Util.mapB;
+import static util.reactive.Util.maintain;
 
 /**
  FXML Controller class
@@ -139,31 +140,29 @@ public final class AreaControls {
 	header_buttons.setMinWidth(15);
 
 	// build header buttons
-	Label infoB = createIcon(INFO, 12, "Help", null);
-	infoB.setOnMouseClicked(e -> {
-	    helpP.get(this).show(infoB);
+	Icon infoB = new Icon(INFO, 12, "Help", e -> {
+	    helpP.get(this).show((Node)e.getSource());
 	    App.actionStream.push("Widget info");
 	});
-	Label closeB = createIcon(TIMES, 12, "Close widget", e -> {
+	Icon closeB = new Icon(TIMES, 12, "Close widget", e -> {
 	    close();
 	    App.actionStream.push("Close widget");
 	});
-	Label detachB = createIcon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", e -> detach());
-	Label changeB = createIcon(TH_LARGE, 12, "Change widget", e -> changeWidget());
-	propB = createIcon(COGS, 12, "Settings", e -> settings());
-	Icon lockB = new Icon(area.isLocked() ? UNLOCK : LOCK, 12,
-	    area.isLocked() ? "Unlock widget layout" : "Lock/unlock widget layout");
+	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", this::detach);
+	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", this::changeWidget);
+	propB = new Icon(COGS, 12, "Settings", this::settings);
+	Icon lockB = new Icon(null, 12, "Lock widget layout");
+        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB.icon);
 	lockB.setOnMouseClicked(e -> {
 	    toggleLocked();
-            lockB.icon.setValue(area.isLocked() ? LOCK : UNLOCK);
 	    App.actionStream.push("Widget layout lock");
 	});
-	Label refreshB = createIcon(REFRESH, 12, "Refresh widget", e -> refreshWidget());
+	Icon refreshB = new Icon(REFRESH, 12, "Refresh widget", this::refreshWidget);
 	absB = new Icon(LINK, 12, "Resize widget proportionally", e -> {
 	    toggleAbsSize();
 	    updateAbsB();
 	});
-        Label dragB = createIcon(MAIL_REPLY, 12, "Move widget by dragging", null);
+        Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
         dragB.setOnDragDetected( e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);

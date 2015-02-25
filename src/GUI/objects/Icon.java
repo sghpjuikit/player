@@ -13,6 +13,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.css.*;
 import javafx.event.EventHandler;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
@@ -30,7 +31,7 @@ public class Icon extends Label {
     
     
     public final StyleableProperty<FontAwesomeIconName> icon = new SimpleStyleableObjectProperty<FontAwesomeIconName>(ICON_CMD, this, "icon") {
-        @Override public void set(FontAwesomeIconName v) {
+        public void set(FontAwesomeIconName v) {
             super.set(v);
             Icons.setIcon(Icon.this, v, String.valueOf(icon_size.get()));
         }
@@ -41,22 +42,27 @@ public class Icon extends Label {
      public final void setIcon(FontAwesomeIconName isSelected) { icon.setValue(isSelected); }
     
     
-    public final IntegerProperty icon_size = new SimpleIntegerProperty(11);
+    public final IntegerProperty icon_size = new SimpleIntegerProperty() {
+        public void set(int nv) {
+            super.set(nv);
+            setPrefSize(nv, nv);
+        }
+    };
 
     public Icon() {
-        getStyleClass().add("icon");
+        this(null,12);
     }
     public Icon(FontAwesomeIconName i) {
-        icon.setValue(i);
-        getStyleClass().add("icon");
-    }
-    public Icon(FontAwesomeIconName i, int size, String tooltip) {
-        this(i, size, tooltip, (EventHandler)null);
+        this(i, 12);
     }
     public Icon(FontAwesomeIconName i, int size) {
         this(i, size, null, (EventHandler)null);
     }
+    public Icon(FontAwesomeIconName i, int size, String tooltip) {
+        this(i, size, tooltip, (EventHandler)null);
+    }
     public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
+        setContentDisplay(ContentDisplay.CENTER);
         icon_size.set(size);
         if(ico!=null) icon.setValue(ico);
         if(tooltip!=null && !tooltip.isEmpty()) setTooltip(new Tooltip(tooltip));

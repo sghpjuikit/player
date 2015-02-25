@@ -35,14 +35,20 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     private final long albums;
     private final double length;
     private final long size;
+    private final double avg_rating;
+    private final String year;
     
-    public MetadataGroup(Metadata.Field field, Object value, long item_count, long album_count, double length, long filesize_sum) {
+    public MetadataGroup(Metadata.Field field, Object value, long item_count, 
+                         long album_count, double length, long filesize_sum, 
+                         double avg_rating, String year) {
         this.field = field;
         this.value = value;
         this.items = item_count;
         this.albums = album_count;
         this.length = length;
         this.size = filesize_sum;
+        this.avg_rating = avg_rating;
+        this.year = year;
     }
     
     public Metadata.Field getField() {
@@ -81,6 +87,14 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         return size;
     }
     
+    public double getAvgRating() {
+        return avg_rating;
+    }
+    
+    public String getYear() {
+        return year;
+    }
+    
     /** {@inheritDoc} */
     @Override
     public Object getField(Field field) {
@@ -90,6 +104,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             case ALBUMS : return getAlbumCount(); 
             case LENGTH : return getLength(); 
             case SIZE : return getFileSize();
+            case AVG_RATING : return getAvgRating();
+            case YEAR : return getYear();
         }
         throw new AssertionError();
     }
@@ -108,7 +124,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     public String toString() {
         return getField() + ": " + getValue() + ", items: " + getItemCount() + 
                 ", albums: " + getAlbumCount() + ", length: " + getLength() + 
-                ", size: " + getFileSize();
+                ", size: " + getFileSize()+ ", avgrating: " + getAvgRating() + 
+                ", year: " + getYear();
     }
     
 /***************************** COMPANION CLASS ********************************/
@@ -118,7 +135,9 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         ITEMS,
         ALBUMS,
         LENGTH,
-        SIZE;
+        SIZE,
+        AVG_RATING,
+        YEAR;
         
         Field() {
             mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
@@ -137,6 +156,8 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             if(ALBUMS.name().equals(s)) return ALBUMS;
             if(LENGTH.name().equals(s)) return LENGTH;
             if(SIZE.name().equals(s)) return SIZE;
+            if(AVG_RATING.name().equals(s)) return AVG_RATING;
+            if(YEAR.name().equals(s)) return YEAR;
             else return VALUE;
         }
         
@@ -148,20 +169,15 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
                 case ITEMS : return long.class; 
                 case ALBUMS : return long.class; 
                 case LENGTH : return FormattedDuration.class; 
-                case SIZE : return FileSize.class; 
+                case SIZE : return FileSize.class;
+                case AVG_RATING : return double.class;
+                case YEAR : return String.class;
             }
             throw new AssertionError();
         }
         
         public Class getType(Metadata.Field field) {
-            switch(this) {
-                case VALUE : return field.getType();
-                case ITEMS : return long.class; 
-                case ALBUMS : return long.class; 
-                case LENGTH : return FormattedDuration.class; 
-                case SIZE : return FileSize.class; 
-            }
-            throw new AssertionError();
+            return (this==VALUE) ? field.getType() : getType();
         }
         
     }

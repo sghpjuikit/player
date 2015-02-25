@@ -13,7 +13,6 @@ import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.Rater.Rating;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
@@ -36,7 +35,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
-import static javafx.application.Platform.runLater;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -135,8 +133,6 @@ public class LibraryController extends FXMLController {
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
     @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
-    @IsConfig(name = "Rating style", info = "Defines the rating column graphics.")
-    public final Accessor<RatingStyle> rating_style = new Accessor<>(RatingStyle.STARS, v -> table.getColumn(RATING).ifPresent(table::refreshColumn));
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
@@ -180,7 +176,7 @@ public class LibraryController extends FXMLController {
                         return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
                     });
             c.setCellFactory(f==RATING
-                ? (Callback)tf -> rating_style.getValue().cell()
+                ? (Callback)App.ratingCell.getValue()
                 : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
             c.setUserData(f);
             if(f==Metadata.Field.TRACK || f==Metadata.Field.DISC || 
@@ -194,6 +190,8 @@ public class LibraryController extends FXMLController {
             }
             return c;
         });
+        // maintain rating column cell style
+        App.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         columnInfo = table.getDefaultColumnInfo();
         
         
@@ -417,68 +415,4 @@ public class LibraryController extends FXMLController {
         },
         (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
-    
-    public static enum RatingStyle {
-        STARS,
-        BAR,
-        NUMBER;
-        
-        public TableCell<Metadata,?> cell() {
-            switch(this) {
-                case STARS:
-                    return new TableCell<Metadata,Double>(){
-                        Rating r = new Rating(App.maxRating.get(), 0);
-                        {
-                            setAlignment(Pos.CENTER);
-                            r.max.bind(App.maxRating);
-//                            r.setRatingP(1);
-//                            EventStreams.nonNullValuesOf(itemProperty()).subscribe(r::setRatingP);
-                        }
-                        @Override
-                        protected void updateItem(Double item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if(empty) {
-                                setGraphic(null);
-                            } else {
-                                if(getGraphic()==null) setGraphic(r);
-                                // when rating is 1 (100%) cells wont get updated
-                                // really bad workaround but the only that works for now
-                                runLater(() -> runLater(() -> r.setRatingP(item)));
-                                // the normal approach
-                                // r.setRatingP(item);
-                            }
-                        }
-                    };
-                case BAR:
-                    return new TableCell<Metadata,Double>(){
-                        ProgressBar p = new ProgressBar();
-                        @Override
-                        protected void updateItem(Double item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if(empty) {
-                                setGraphic(null);
-                            } else {
-                                if(getGraphic()==null) setGraphic(p);
-                                p.setProgress(item);
-                            }
-                        }
-                    };
-                case NUMBER:
-                    return new TableCell<Metadata,Double>(){
-                        @Override
-                        protected void updateItem(Double item, boolean empty) {
-                            super.updateItem(item, empty);
-                            if(empty) {
-                                setText(null);
-                            } else {
-                                String s = item.toString();
-                                if(s.length()>4) s=s.substring(0, 4);
-                                setText(s);
-                            }
-                        }
-                    };
-                default: throw new AssertionError("illegal switch satement: " + this);
-            }
-        }
-    }
 }

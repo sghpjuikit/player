@@ -61,7 +61,7 @@
     
     /*global variables*/
     -fx-def-font-color: rgb(190, 190, 195);
-    -fx-def-font-color-hover: rgb(200,220,210);
+    -fx-def-font-color-hover: rgb(235,235,230);
     -fx-sel-font-color: rgb(175, 175, 176);
     -fx-prompt-font-color: rgb(165, 165, 165);
     -fx-color-darker: rgba(0,0,0,0.2);
@@ -3599,14 +3599,24 @@
 }
 
 
-// all icons created with AwesomeDude library
-// most of the buttons with an icon in the application
-.awesome {
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
+// application icons. specifically: icons usin glyph fonts and also graphics of
+// an Icon with 'icon' styleclass
+// the icons true class is Text
+.glyph {
+    -fx-fill: -fx-def-font-color;
 }
-.awesome:hover {
-    -fx-text-fill: -fx-def-font-color-hover;
+.glyph:hover {
+    -fx-fill: -fx-def-font-color-hover;
+}
+
+// Icon class
+// see also .glyph
+.icon {
+    icon: "CLOSE";
+}
+
+.icon:hover {
+    icon: "LOCK";
 }
 
 // the following are all subtypes of .awesome
@@ -3737,10 +3747,3 @@
 
 
 
-.icon {
-    icon: "CLOSE";
-}
-
-.icon:hover {
-    icon: "LOCK";
-}

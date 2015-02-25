@@ -6,6 +6,8 @@
 
 package util.access;
 
+import java.util.function.Consumer;
+
 /**
  *
  * @author Plutonium_
@@ -29,16 +31,24 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
     public void applyValue(T val);
     
     /**
-     * Applies contained value. Equivalent to calling {@link #applyValue(java.lang.Object)}
-     * with value of {@link #getValue()}
+     * Applies contained value using the applier.
+     * Equivalent to {@code applyValue(getValue()); }.
      */
     public default void applyValue() {
         applyValue(getValue());
     }
     
     /**
-     * Equivalent to calling {@link #setValue()} and {@link #applyValue()}
-     * subsequently.
+     * Applies contained value using provided applier. 
+     * Equivalent to calling {@code applier.accept(getValue()); }.
+     */
+    public default void setNapplyValue(Consumer<T> applier) {
+        applier.accept(getValue());
+    }
+    
+    /**
+     * Sets value and applies using the applier.
+     * Equivalent to {@code setValue(val); applyValue(); }.
      */
     public default void setNapplyValue(T val) {
         setValue(val);

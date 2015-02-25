@@ -8,7 +8,7 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
 import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import AudioPlayer.tagging.MetadataGroup;
-import static AudioPlayer.tagging.MetadataGroup.Field.VALUE;
+import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.GUI;
@@ -49,15 +49,16 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import main.App;
 import org.reactfx.Subscription;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
 import util.collections.Histogram;
-import util.collections.TupleM4;
+import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
-import static util.functional.Util.*;
 import util.functional.Runner;
+import static util.functional.Util.*;
 
 /**
  *
@@ -167,7 +168,8 @@ public class LibraryViewController extends FXMLController {
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
         table.setColumnStateFacory( f -> {
             double w = f==VALUE ? 200 : 50;
-            return new ColumnInfo(f.toString(), f.ordinal(), true, w);
+            boolean v = f!= AVG_RATING || f!= YEAR;
+            return new ColumnInfo(f.toString(), f.ordinal(), v, w);
         });
         table.setColumnFactory( f -> {
             Metadata.Field v = fieldFilter.getValue();
@@ -177,10 +179,14 @@ public class LibraryViewController extends FXMLController {
                 return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
             });
             String no_val = f==VALUE ? "<none>" : "";
-            c.setCellFactory(DEFAULT_ALIGNED_CELL_FACTORY(f.getType(v), no_val));
+            c.setCellFactory(f==AVG_RATING 
+                ? (Callback) App.ratingCell.getValue()
+                : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(v), no_val));
             c.setUserData(f);
             return c;
         });
+        // maintain rating column cell style
+        App.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         columnInfo = table.getDefaultColumnInfo();
         
         // context menu
@@ -272,24 +278,27 @@ public class LibraryViewController extends FXMLController {
     
 /******************************** PRIVATE API **********************************/
     
-    private final Histogram<Object, Metadata, TupleM4<Long,Set<String>,Double,Long>> h = new Histogram();
+    private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,String>> h = new Histogram();
     
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
         Field f = fieldFilter.getValue();
         // make histogram
         h.keyMapper = metadata -> metadata.getField(f);
-        h.histogramFactory = () -> new TupleM4(0l,new HashSet(),0d,0l);
+        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
         h.elementAccumulator = (hist,metadata) -> {
             hist.a++;
             hist.b.add(metadata.getAlbum());
             hist.c += metadata.getLengthInMs();
             hist.d += metadata.getFilesizeInB();
+            hist.e += metadata.getRatingPercent();
+            if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
+                hist.f = hist.f==null ? metadata.getYear() : "...";
         };
         h.clear();
         h.accumulate(list);
         // read histogram
-        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d)));
+        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
         // pass down the chain
         forwardItems(list);
     }

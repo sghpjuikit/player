@@ -12,6 +12,9 @@ import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.*;
 import GUI.GUI;
+import GUI.objects.TableCell.RatingCellFactory;
+import GUI.objects.TableCell.RatingStyle;
+import static GUI.objects.TableCell.RatingStyle.STARS;
 import GUI.objects.Window.stage.Window;
 import GUI.objects.Window.stage.WindowManager;
 import Layout.Widgets.WidgetManager;
@@ -23,7 +26,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
@@ -31,6 +36,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
 import org.reactfx.EventSource;
 import util.File.FileUtil;
+import util.access.AccessorEnum;
 import static util.async.Async.run;
 
 
@@ -83,17 +89,20 @@ public class App extends Application {
     
 /*********************************** CONFIGS **********************************/
     
-    @IsConfig(name = "Show guide when on app start", info = "Automatically show guide hints next time application starts up. Automatically set to false afterwards.")
+    @IsConfig(name = "Show guide when on app start", info = "Automatically show "
+     + "guide hints next time application starts up. Automatically set to false afterwards.")
     public static boolean showGuide = true;
     
-    @IsConfig(info = "Preffered editability of rating controls. This value is overridable.")
-    public static boolean allowRatingChange = true;
-    @IsConfig(info = "Preffered number of elements in rating control. This value is overridable.", min = 1, max = 10)
+    @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
+    public static final AccessorEnum<RatingCellFactory> ratingCell = new AccessorEnum<>(() -> RatingStyle.values(),STARS);
+    @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
     public static final IntegerProperty maxRating = new SimpleIntegerProperty(5);
-    @IsConfig(info = "Preffered value for partial values in rating controls. This value is overridable.")
-    public static boolean partialRating = true;
-    @IsConfig(info = "Preffered hoverability of rating controls. This value is overridable.")
-    public static boolean hoverRating = true;
+    @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
+    public static final BooleanProperty partialRating = new SimpleBooleanProperty(true);
+    @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings")
+    public static final BooleanProperty allowRatingChange = new SimpleBooleanProperty(true);
+    @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
+    public static final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
     
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public static String TAG_NO_VALUE = "-- no assigned value --";

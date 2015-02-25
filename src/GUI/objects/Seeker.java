@@ -21,6 +21,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
@@ -36,7 +37,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
-import static util.Util.createIcon;
 import static util.async.Async.run;
 import util.async.FxTimer;
 import util.dev.Dependency;
@@ -323,10 +323,10 @@ public final class Seeker extends AnchorPane {
         StackPane content;
         Text message;
         TextArea ta;    // edit text area
-        Label editB;    // start edit button
-        Label commitB;  // apply edit button
-        Label delB;     // delete chapter button
-        Label cancelB;  // cancel button
+        Icon editB;    // start edit button
+        Icon commitB;  // apply edit button
+        Icon delB;     // delete chapter button
+        Icon cancelB;  // cancel button
         private PopOver p;      // main chapter popup
         private PopOver helpP;  // help popup
         private final ScaleTransition start;
@@ -382,15 +382,9 @@ public final class Seeker extends AnchorPane {
                 content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 content.autosize();
                 // buttons
-                editB = createIcon(PENCIL, 11, "Edit chapter", e -> {
-                    startEdit();
-                    e.consume();
-                });
-                commitB = createIcon(CHECK, 11, "Confirm changes", e -> {
-                    commitEdit();
-                    e.consume();
-                });
-                delB = createIcon(TRASH_ALT, 11, "Remove chapter", e -> {
+                editB = new Icon(PENCIL, 11, "Edit chapter", this::startEdit);
+                commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
+                delB = new Icon(TRASH_ALT, 11, "Remove chapter", e -> {
                      Metadata m = Player.playingtem.get();
 //                     // avoid removing chapter that does not exist
 //                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
@@ -400,33 +394,27 @@ public final class Seeker extends AnchorPane {
                                     mw.write();
                      e.consume();
                 });
-                cancelB = createIcon(REPLY, 11, "Cancel edit", e -> {
-                    cancelEdit();
-                    e.consume();
-                });
-                Label nextB = createIcon(CHEVRON_RIGHT, 11, "Next chapter", e -> {
+                cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
+                Icon nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
                     int i = Seeker.this.chapters.indexOf(this) + 1;
                     if(Seeker.this.chapters.size()>i){
                         hidePopup();
                         Seeker.this.chapters.get(i).showPopup();
                     }
-                    e.consume();
                 });
-                Label prevB = createIcon(CHEVRON_LEFT, 11, "Previous chapter", e -> {
+                Icon prevB = new Icon(CHEVRON_LEFT, 11, "Previous chapter", () -> {
                     int i = Seeker.this.chapters.indexOf(this) - 1;
                     if(0<=i){
                         hidePopup();
                         Seeker.this.chapters.get(i).showPopup();
                     }
-                    e.consume();
                 });
                 int i = Seeker.this.chapters.indexOf(this);
                 if(Seeker.this.chapters.size()-1 == i)
                     nextB.setDisable(true);
                 if(0 == i)
                     prevB.setDisable(true);
-                Label helpB = createIcon(INFO, 11, "Help", null);                    
-                helpB.setOnMouseClicked( e -> {
+                Label helpB = new Icon(INFO, 11, "Help", e -> {
                     // build help content for help popup if not yet built
                     // with this we avoid constructing multuple popups
                     if(helpP == null) {
@@ -437,7 +425,7 @@ public final class Seeker extends AnchorPane {
                                    "Escape : Cancel edit";
                         helpP = PopOver.createHelpPopOver(t);
                     }
-                    helpP.show(helpB);
+                    helpP.show((Node)e.getSource());
                     e.consume();
                 });
                 // popup

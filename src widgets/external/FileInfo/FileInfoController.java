@@ -114,16 +114,6 @@ public class FileInfoController extends FXMLController {
     public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth(), tiles.getHeight()));
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
-    @IsConfig(name = "Rating editable", info = "Allow change of rating. Defaults to application settings+")
-    public final Accessor<Boolean> editableRating = new Accessor<>(App.allowRatingChange, rater::setEditable);
-    @IsConfig(name = "Rating stars number", info = "Number of stars for rating. Rating value is recalculated accordingly. Defaults to application settings")
-    public final Accessor<Integer> maxRating = new Accessor<>(App.maxRating.get(), rater::setMax);
-    @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating. Defaults to application settings")
-    public final Accessor<Boolean> partialRating = new Accessor<>(App.partialRating, rater::setPartialRating);
-    @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering. Defaults to application settings")
-    public final Accessor<Boolean> hoverRating = new Accessor<>(App.hoverRating, rater::setUpdateOnHover);
-    @IsConfig(name = "Rating skin", info = "Rating skin.", editable = false)
-    public final Accessor<String> rating_skin = new Accessor<>("",rater::setSkinCurrent);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
     public final Accessor<OverrunStyle> overrun_style = new Accessor<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
     @IsConfig(name = "Show cover", info = "Show cover.")
@@ -179,7 +169,7 @@ public class FileInfoController extends FXMLController {
     
     // non appliable configurable values
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
-    public boolean keepContentOnEmpty = false;
+    public boolean allowNoContent = false;
     
     @Override
     public void init() {        
@@ -214,15 +204,17 @@ public class FileInfoController extends FXMLController {
         Util.setAnchors(tiles, 3);
         
         
+        // bind rating to app configs
+        rater.max.bind(App.maxRating);
+        rater.partialRating.bind(App.partialRating);
+        rater.updateOnHover.bind(App.hoverRating);
+        rater.editable.bind(App.allowRatingChange);
         // write metadata on rating change
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
-        
         // swap skin on right mouse click
         rater.setOnMouseClicked( e -> { 
             if (e.getButton() == SECONDARY) rater.toggleSkin(); 
         });
-        // remember changed rating
-        rater.setOnSkinChanged(rating_skin::setValue);
         // hide rating if empty
         rater.visibleProperty().bind(rating.disabledProperty().not());
         
@@ -337,11 +329,6 @@ public class FileInfoController extends FXMLController {
         readMode.applyValue();
         minColumnWidth.applyValue();
         cover_source.applyValue();
-        editableRating.applyValue();
-        maxRating.applyValue();
-        partialRating.applyValue();
-        hoverRating.applyValue();
-        rating_skin.applyValue();
         overrun_style.applyValue();
         showCover.applyValue();
         showFields.applyValue();
@@ -356,7 +343,7 @@ public class FileInfoController extends FXMLController {
     
     private void populateGui(Metadata m) {
         // prevent refreshing location if shouldnt
-        if(keepContentOnEmpty && m==Metadata.EMPTY) return;
+        if(!allowNoContent && m==Metadata.EMPTY) return;
         
         // remember data
         data = m;
@@ -368,7 +355,7 @@ public class FileInfoController extends FXMLController {
             setCover(cover_source.getValue());
 
             // set rating
-            rater.setRating(m.getRatingToStars(rater.getMax()));
+            rater.setRating(m.getRatingToStars(rater.max.get()));
 
             // set other fields
             title.setText("title: "         + m.getTitle());

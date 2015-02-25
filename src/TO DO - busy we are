@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 - make class map that gets value by any class -> super class recursively
+- rating class clean up
+- annotation for name of plugin objects
+- plugin discovery/load use above structure
 - implement colr skin change + use song color, using setStyle on main color
 - library view save selection
 - library view play items use same order as library column sort order
@@ -32,7 +35,6 @@
   that enlarges the file (and thus requires tmp file)
   it is possible that app doesnt have permission  to create tmp file where the lib
   is trying to do it.
-- ConfigFields enable input restriction (currently bugged)
 - fix returning from docked mode exception
 - clean up Environment + more robust
 - explorer graphics support css skinning

@@ -2,18 +2,15 @@
 package GUI.objects.Window.stage;
 
 import Configuration.IsConfigurable;
+import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
-import static de.jensd.fx.glyphs.GlyphsDude.createIconLabel;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.COGS;
 import java.util.Objects;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
-import static javafx.scene.control.ContentDisplay.CENTER;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.WritableImage;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 
@@ -58,15 +55,13 @@ public final class ContextManager {
         Objects.requireNonNull(w);
         
         // build popup content
-        Label propB = createIconLabel(COGS,"","12","12",CENTER);
-              propB.setTooltip(new Tooltip("Settings"));
-              propB.setOnMouseClicked( e -> {
+        Icon propB = new Icon(COGS,12,"Settings", e -> {
                   SimpleConfigurator c = new SimpleConfigurator(w);
                   PopOver ph = new PopOver(c);
                           ph.title.set(w.getName() + " Settings");
                           ph.setAutoFix(false);
                           ph.setAutoHide(true);
-                          ph.show(propB);
+                          ph.show((Node)e.getSource());
                   e.consume();
               });
         // build popup

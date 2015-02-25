@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.application.Platform;
+import static javafx.application.Platform.runLater;
 import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableColumn;
@@ -149,7 +149,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                     .map(c->createmenuItem(c.name,a->setColumnVisible(c.name, !isColumnVisible(c.name))))
                     .forEach(columnMenu.getItems()::add);
             // link table column menu
-            Platform.runLater(()->{
+            runLater(()->{
                 TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
                 try {
                     // cornerRegion is the context menu button

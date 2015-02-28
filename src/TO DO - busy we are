@@ -2,15 +2,15 @@
 --------------------------------------------------------------------------------
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
-- make class map that gets value by any class -> super class recursively
 - rating class clean up
 - annotation for name of plugin objects
-- plugin discovery/load use above structure
+- plugin discovery/load
 - implement colr skin change + use song color, using setStyle on main color
 - library view save selection
 - library view play items use same order as library column sort order
 
 - Player contorls  nullpointer when nothing plays on init()
+- seeker nullpointer when quickly invoking next item
 - refresh item + tagging clean up reimplement properly
 - remove selected items monitoring for tagger
 - use action pane on widgets
@@ -35,7 +35,6 @@
   that enlarges the file (and thus requires tmp file)
   it is possible that app doesnt have permission  to create tmp file where the lib
   is trying to do it.
-- fix returning from docked mode exception
 - clean up Environment + more robust
 - explorer graphics support css skinning
 - enums with class bodies deserialistion parsing problems                       (?)
@@ -100,7 +99,7 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- library view first row sometimes incorrect clip mask, reason: no idea
+- library view first row sometimes incorrect clip mask, reason: bad refresh     (javaFX bug)
 - initial table scroll reveals that rows are not created yet and the scroll     (still issue? medium, javaFX bug?)
   jumps to end of table prematurely
 

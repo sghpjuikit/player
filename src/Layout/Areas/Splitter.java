@@ -444,13 +444,13 @@ public final class Splitter implements ContainerNode {
     
     @Override
     public void show() {
-        showControls();
+//        showControls();
         splitPane.addEventFilter(MOUSE_MOVED,aaa);
     }
 
     @Override
     public void hide() {
-        hideControls();
+//        hideControls();
         splitPane.removeEventFilter(MOUSE_MOVED,aaa);
     }
     

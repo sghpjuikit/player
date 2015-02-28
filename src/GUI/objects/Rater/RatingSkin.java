@@ -137,7 +137,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         foregroundContainer.setAlignment(Pos.CENTER);
         foregroundContainer.setMouseTransparent(true);
         getChildren().setAll(backgroundContainer, foregroundContainer);
-
+        
         forgroundClipRect = new Rectangle();
         foregroundContainer.setClip(forgroundClipRect);
         Node b = createButton(STAR_ALT);

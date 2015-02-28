@@ -20,7 +20,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
-import util.Parser.ToStringConverter;
+import util.parsing.ToStringConverter;
 import util.functional.Util;
 import static util.functional.Util.forEachIndexed;
 

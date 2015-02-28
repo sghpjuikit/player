@@ -11,6 +11,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -220,7 +221,10 @@ public final class Seeker extends AnchorPane {
     private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty();
     private final ChangeListener<Duration> positionUpdater = (o,ov,nv) -> {
         if (!canUpdate) return;
-        
+        requireNonNull(currentTime);
+        requireNonNull(currentTime.get());
+        requireNonNull(totalTime);
+        requireNonNull(totalTime.get());
         double newPos = currentTime.get().toMillis()/totalTime.get().toMillis();
         // turn on if you want discrete§ mode 
 //        double unit = 1;

@@ -35,7 +35,7 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
-import util.Parser.ParserImpl.ColorParser;
+import util.parsing.ParserImpl.ColorParser;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;

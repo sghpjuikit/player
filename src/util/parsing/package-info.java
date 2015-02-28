@@ -4,7 +4,5 @@
  * and open the template in the editor.
  */
 
-/**
- * This package contains String-Object Parser obejcts.
- */
-package util.Parser;
+/** This package provides String-Object converting facilities. */
+package util.parsing;

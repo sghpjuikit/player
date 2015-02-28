@@ -17,7 +17,7 @@ import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
-import GUI.objects.TableCell.RatingStyle;
+import GUI.objects.TableCell.NumberRatingCellFactory;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -182,7 +182,7 @@ public class LibraryViewController extends FXMLController {
             String no_val = mgf==VALUE ? "<none>" : "";
             c.setCellFactory(mgf==AVG_RATING 
                 ? (Callback) App.ratingCell.getValue()
-                : mgf==W_RATING ? (Callback)RatingStyle.NUMBER 
+                : mgf==W_RATING ? (Callback)new NumberRatingCellFactory()
                 : DEFAULT_ALIGNED_CELL_FACTORY(mgf.getType(mf), no_val));
             c.setUserData(mgf);
             return c;

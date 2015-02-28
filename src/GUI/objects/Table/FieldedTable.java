@@ -25,7 +25,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-import util.Parser.ParserImpl.Parser;
+import util.parsing.ParserImpl.Parser;
 import static util.Util.createmenuItem;
 import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;

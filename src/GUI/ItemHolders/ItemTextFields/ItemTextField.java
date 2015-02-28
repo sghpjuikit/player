@@ -15,7 +15,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
-import util.Parser.StringParser;
+import util.parsing.StringParser;
 import util.access.AccessibleValue;
 
 /**

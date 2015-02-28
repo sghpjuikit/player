@@ -11,11 +11,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiPredicate;
+import static util.Util.isNonEmptyPalindrome;
 import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
+import util.units.NofX;
 
 /**
  *
@@ -40,6 +42,9 @@ public class Predicates {
         registerPredicate(FileSize.class, "Not more", (x,y) -> x.compareTo(y)<=0);
         registerPredicate(FileSize.class, "Is not", (x,y) -> x.compareTo(y)!=0);
         registerPredicate(FileSize.class, "Not less", (x,y) -> x.compareTo(y)>=0);
+        registerPredicate(FileSize.class, "Is unknown", (x,y) -> x.inBytes()==-1);
+        registerPredicate(FileSize.class, "Is known", (x,y) -> x.inBytes()>-1);
+        registerPredicate(FileSize.class, "Is from the future", (x,y) -> x.inGBytes()==1.21);
         
         registerPredicate(String.class, "Is",(text,b) -> text.equals(b));
         registerPredicate(String.class, "Contains", (text,b) -> text.contains(b));
@@ -59,6 +64,18 @@ public class Predicates {
         registerPredicate(String.class, "Not ends with (no case)", (text,b) -> !text.toLowerCase().endsWith(b.toLowerCase()));
         registerPredicate(String.class, "Not starts with (no case)", (text,b) -> !text.toLowerCase().startsWith(b.toLowerCase()));
         registerPredicate(String.class, "Not matches regular expression", (text,b) -> !text.matches(b));
+        registerPredicate(String.class, "More", (x,y) -> x.compareTo(y)>0);
+        registerPredicate(String.class, "Less", (x,y) -> x.compareTo(y)<0);
+        registerPredicate(String.class, "Not more", (x,y) -> x.compareTo(y)<=0);
+        registerPredicate(String.class, "Not less", (x,y) -> x.compareTo(y)>=0);
+        registerPredicate(String.class, "Longer than", (x,y) -> x.length()>Integer.parseInt(y));
+        registerPredicate(String.class, "Shorter than", (x,y) -> x.length()<Integer.parseInt(y));
+        registerPredicate(String.class, "Not longer than", (x,y) -> x.length()<=Integer.parseInt(y));
+        registerPredicate(String.class, "Not shorter than", (x,y) -> x.length()>=Integer.parseInt(y));
+        registerPredicate(String.class, "Long exactly", (x,y) -> x.length()==Integer.parseInt(y));
+        registerPredicate(String.class, "Is empty", (x,y) -> x.isEmpty());
+        registerPredicate(String.class, "Is funny", (x,y) -> x.contains("fun") && x.contains("y"));
+        registerPredicate(String.class, "Is palindrome", (x,y) -> isNonEmptyPalindrome(x));
         
         registerPredicate(Bitrate.class, "More", (x,y) -> x.compareTo(y)>0, true);
         registerPredicate(Bitrate.class, "Is", (x,y) -> x.compareTo(y)==0);
@@ -66,6 +83,10 @@ public class Predicates {
         registerPredicate(Bitrate.class, "Not more", (x,y) -> x.compareTo(y)<=0);
         registerPredicate(Bitrate.class, "Is not", (x,y) -> x.compareTo(y)!=0);
         registerPredicate(Bitrate.class, "Not less", (x,y) -> x.compareTo(y)>=0);
+        registerPredicate(Bitrate.class, "Is good", (x,y) -> x.getValue()>=320);
+        registerPredicate(Bitrate.class, "Is bad", (x,y) -> x.getValue()<=128);
+        registerPredicate(Bitrate.class, "Is unknown", (x,y) -> x.getValue()==-1);
+        registerPredicate(Bitrate.class, "Is known", (x,y) -> x.getValue()>-1);
         
         registerPredicate(FormattedDuration.class, "Less", (x,y) -> x.compareTo(y)<0);
         registerPredicate(FormattedDuration.class, "Is", (x,y) ->  x.compareTo(y)==0);
@@ -73,6 +94,13 @@ public class Predicates {
         registerPredicate(FormattedDuration.class, "Not less", (x,y) -> x.compareTo(y)>=0);
         registerPredicate(FormattedDuration.class, "Is not", (x,y) ->  x.compareTo(y)!=0);
         registerPredicate(FormattedDuration.class, "Not more", (x,y) ->  x.compareTo(y)<=0);
+        
+        registerPredicate(NofX.class, "Less", (x,y) -> x.compareTo(y)<0);
+        registerPredicate(NofX.class, "Is", (x,y) ->  x.compareTo(y)==0);
+        registerPredicate(NofX.class, "More", (x,y) ->  x.compareTo(y)>0, true);
+        registerPredicate(NofX.class, "Not less", (x,y) -> x.compareTo(y)>=0);
+        registerPredicate(NofX.class, "Is not", (x,y) ->  x.compareTo(y)!=0);
+        registerPredicate(NofX.class, "Not more", (x,y) ->  x.compareTo(y)<=0);
     }
     
     public static<T> void registerPredicate(Class<T> c, String name, BiPredicate<T,T> p) {

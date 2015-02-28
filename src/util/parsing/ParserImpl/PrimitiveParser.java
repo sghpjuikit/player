@@ -4,11 +4,11 @@
  * and open the template in the editor.
  */
 
-package util.Parser.ParserImpl;
+package util.parsing.ParserImpl;
 
 import java.util.Collection;
 import java.util.HashSet;
-import util.Parser.ObjectStringParser;
+import util.parsing.ObjectStringParser;
 
 /**
  *

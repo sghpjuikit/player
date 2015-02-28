@@ -4,9 +4,9 @@
  * and open the template in the editor.
  */
 
-package util.Parser.ParserImpl;
+package util.parsing.ParserImpl;
 
-import util.Parser.StringParser;
+import util.parsing.StringParser;
 
 /**
  * String to String type of parser. For use in rare cases for generic types.

@@ -12,9 +12,7 @@ import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.*;
 import GUI.GUI;
-import GUI.objects.TableCell.RatingCellFactory;
-import GUI.objects.TableCell.RatingStyle;
-import static GUI.objects.TableCell.RatingStyle.STARS;
+import GUI.objects.TableCell.*;
 import GUI.objects.Window.stage.Window;
 import GUI.objects.Window.stage.WindowManager;
 import Layout.Widgets.WidgetManager;
@@ -38,6 +36,7 @@ import org.reactfx.EventSource;
 import util.File.FileUtil;
 import util.access.AccessorEnum;
 import static util.async.Async.run;
+import util.plugin.PluginMap;
 
 
 /**
@@ -81,6 +80,7 @@ public class App extends Application {
     private boolean initialized = false;
     
     private static final ServiceManager services = new ServiceManager();
+    private static PluginMap plugins = new PluginMap();
     
     private static App instance;
     public App() {
@@ -94,7 +94,8 @@ public class App extends Application {
     public static boolean showGuide = true;
     
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
-    public static final AccessorEnum<RatingCellFactory> ratingCell = new AccessorEnum<>(() -> RatingStyle.values(),STARS);
+    public static final AccessorEnum<RatingCellFactory> ratingCell = new AccessorEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
+//    public static final AccessorEnum<RatingCellFactory> ratingCell = new AccessorEnum<>(() -> RatingStyle.values(),STARS);
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
     public static final IntegerProperty maxRating = new SimpleIntegerProperty(5);
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")
@@ -146,6 +147,13 @@ public class App extends Application {
             // create hidden main window
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
+            
+            // plugins
+            plugins.registerPluginType(RatingCellFactory.class);
+            plugins.registerPlugin(TextStarRatingCellFactory.class);
+            plugins.registerPlugin(BarRatingCellFactory.class);
+            plugins.registerPlugin(NumberRatingCellFactory.class);
+            plugins.registerPlugin(RatingRatingCellFactory.class);
             
             Configuration.load();           // must initialize first
             
@@ -203,7 +211,6 @@ public class App extends Application {
             showGuide = false;
             run(2222, () -> guide.start());
         }
-        
         
         // playing with parameters/ works, but how do i pass param when executing this from windows?
         

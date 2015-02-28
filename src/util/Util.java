@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import static java.lang.Math.*;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -43,7 +44,7 @@ import util.dev.Log;
  * 
  * @author _Plutonium
  */
-public interface Util {
+public class Util {
     
     /**
      * Method equivalent to object's equal method, but if both objects are null
@@ -205,6 +206,17 @@ public interface Util {
      */
     public static String enumToHuman(Enum e) {
         return capitalizeStrong(e.name().replace('_', ' '));
+    }
+    
+    /** @return true if the string is palindrome (empty string is palindrome) */
+    public static boolean isPalindrome(String s) {    
+        int n = s.length();
+        for( int i = 0; i < n/2; i++ )
+            if (s.charAt(i) != s.charAt(n-i-1)) return false;
+        return true;    
+    }
+    public static boolean isNonEmptyPalindrome(String s) {    
+        return s.isEmpty() ? false : isPalindrome(s);
     }
     
     /**
@@ -575,6 +587,14 @@ public interface Util {
        return methods;
    }
     
+    public static <A extends Annotation> Method getMethod(Class c, Class<A> ca) {
+        for(Method m: c.getDeclaredMethods()) {
+            A a = m.getAnnotation(ca);
+            if(a!=null) return m;
+        }
+        return null;
+    }
+    
     public static Field getField(Class clazz, String name) throws NoSuchFieldException {
        // get all fields of the class (but not inherited fields)
        Field f = null;
@@ -590,6 +610,24 @@ public interface Util {
        // get super class' fields recursively
        if (superClazz != null) return getField(superClazz, name);
        else throw new NoSuchFieldException();
+    }
+    
+    public static List<Class> getSuperClasses(Class c) {
+        return getSuperClasses(c, new ArrayList());
+    }
+    
+    private static List<Class> getSuperClasses(Class c, List<Class> cs) {
+        Class sc = c.getSuperclass();
+        if(sc!=null) {
+            cs.add(sc);
+            getSuperClasses(sc, cs);
+        }
+        Class[] is = c.getInterfaces();
+        for(Class i : is) {
+            cs.add(i);
+            getSuperClasses(i, cs);
+        }
+        return cs;
     }
     
     /**

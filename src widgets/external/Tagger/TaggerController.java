@@ -72,7 +72,7 @@ import util.File.Enviroment;
 import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
-import util.Parser.ParserImpl.ColorParser;
+import util.parsing.ParserImpl.ColorParser;
 import util.access.Accessor;
 import util.dev.Log;
 import static util.functional.Util.isIn;

@@ -7,8 +7,8 @@ import GUI.objects.PopOver.PopOver;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.controlsfx.control.textfield.TextFields;
-import util.Parser.ParserImpl.StringStringParser;
-import util.Parser.StringParser;
+import util.parsing.ParserImpl.StringStringParser;
+import util.parsing.StringParser;
 
 /**
  * Text field intended for mood tagging specifically. It provides two additional

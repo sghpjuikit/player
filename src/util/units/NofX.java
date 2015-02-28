@@ -7,9 +7,13 @@ package util.units;
 
 import static java.util.Objects.hash;
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import util.parsing.StringParseStrategy;
+import static util.parsing.StringParseStrategy.From.FROM_STRING_METHOD;
+import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /** Defines number within an amount. For example 15/20. */
 @Immutable
+@StringParseStrategy(from = FROM_STRING_METHOD, to = TO_STRING_METHOD)
 public class NofX implements Comparable<NofX>{
     public final int n;
     public final int of ;

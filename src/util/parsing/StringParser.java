@@ -1,5 +1,5 @@
 
-package util.Parser;
+package util.parsing;
 
 import java.util.Collection;
 import static java.util.Collections.singletonList;

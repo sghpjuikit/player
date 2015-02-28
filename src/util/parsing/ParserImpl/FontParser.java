@@ -1,11 +1,11 @@
 
-package util.Parser.ParserImpl;
+package util.parsing.ParserImpl;
 
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import util.dev.Log;
-import util.Parser.StringParser;
+import util.parsing.StringParser;
 
 /**
  * 

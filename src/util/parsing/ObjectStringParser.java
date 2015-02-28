@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package util.Parser;
+package util.parsing;
 
 import java.util.Collection;
 

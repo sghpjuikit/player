@@ -4,11 +4,11 @@
  * and open the template in the editor.
  */
 
-package util.Parser.ParserImpl;
+package util.parsing.ParserImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import util.Parser.ObjectStringParser;
+import util.parsing.ObjectStringParser;
 
 /**
  *

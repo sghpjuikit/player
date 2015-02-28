@@ -4,10 +4,10 @@
  * and open the template in the editor.
  */
 
-package util.Parser.ParserImpl;
+package util.parsing.ParserImpl;
 
 import javafx.scene.paint.Color;
-import util.Parser.StringParser;
+import util.parsing.StringParser;
 
 /**
  *

@@ -7,6 +7,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import PseudoObjects.ReadMode;
+import java.time.Duration;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.List;
@@ -38,7 +39,7 @@ public class Player {
         PLAYBACK.loadLastState();
     }
     
-    /** Equivalent to subscribing to some of the streams in this class, determined
+    /** Equivalent to subscribing to some of the streams in this class determined
     by a parameter. Also unsubscribes from any previous subsbscribtions. To remain
     consistant, the action is immediately invoked with current stream value upon
     subscribtion as if the event emited this value.
@@ -60,7 +61,19 @@ public class Player {
             case CUSTOM:            return null;
             default: throw new AssertionError("Illegal switch value: " + source);
         }
-        subscription = s.subscribe(action);
+        
+        // this ignores all events in rapid succession and fires only the last one
+        subscription = s.successionEnds(Duration.ofMillis(200)).subscribe(action);
+        // this also fires in between events periodically
+        // but unfortunately it just does not perform well for rapid table selection
+        // change when gui must be updated somewhere as a result. the gui update
+        // can not be offloaded to bgr thread and it causes the table selection
+        // (induced by UP/DOWN key being pressed for example) to lag for a moment
+        // no matter what time period we use
+        // also periods > 200ms have the unfortunate effect of a lag after last
+        // event which is also annoying and unnatural
+        // subscription = s.thenReduceFor(Duration.ofMillis(500),(a,b)->b).subscribe(action);
+        
         action.accept(((WritableValue<Metadata>)s).getValue());
         return subscription;
     }

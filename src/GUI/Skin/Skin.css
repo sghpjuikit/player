@@ -985,34 +985,36 @@
  ******************************************************************************/
 
 .scroll-bar:horizontal {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
     -fx-background-insets: 0, 1 0 1 0;
 }
 .scroll-bar:vertical {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
     -fx-background-insets: 0, 0 1 0 1;
 }
 .scroll-bar:focused {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
     -fx-background-insets: -0.2, 1, -1.4, 2.6;
 }
 .scroll-bar:vertical:focused {
-    -fx-background-color: -fx-color-darker;
+    -fx-background-color: null;
 }
 .scroll-bar > .thumb {
- -fx-background-color: rgb(211,211,211);
-    /*-fx-background-insets: 1, 2, 3;*/
-    -fx-background-insets: 2, 3, 4;
-    /*-fx-background-radius: 0.416667em, 0.333333em, 0.25em; *//* 5, 4,3 */
+    // default" normal scrol;lbar"
+    // -fx-background-color: rgb(211,211,211);
+    // -fx-background-insets: 2, 3, 4;
+    // -fx-background-radius: 3, 2, 1;
+    -fx-background-color: -fx-def-font-color;
+    -fx-background-insets: 6, 3, 4;
     -fx-background-radius: 3, 2, 1;
 }
 .scroll-bar:vertical > .thumb {
- -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar > .increment-button, 
 .scroll-bar > .decrement-button {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;     
-    -fx-color: transparent;
+    -fx-background-color: null;     
+    -fx-color: -fx-def-font-color;
     -fx-padding: 0.25em; /* 3px */
 }
 .scroll-bar:horizontal > .increment-button,
@@ -1065,7 +1067,7 @@
  *                                                                             *
  ******************************************************************************/
 .scroll-pane > .viewport {
-    -fx-background-color: transparent;
+    -fx-background-color: null;
 }
 .scroll-pane > .scroll-bar:horizontal {
     -fx-background-insets: 0 1 1 1, 1;
@@ -1193,10 +1195,10 @@
 }
 .progress-indicator > .percentage {
     -fx-font-size: 0.916667em; /* 11pt - 1 less than the default font */
-    -fx-fill: -fx-text-background-color;
+    -fx-fill: -fx-def-font-color;
 }
 .progress-indicator:indeterminate .segment {
-    -fx-background-color: -fx-accent;
+    -fx-background-color: -fx-def-font-color;
 }
 .progress-indicator:indeterminate .segment0 {
     -fx-shape:"M41.98 14.74 a3.5,3.5 0 1,1 0,1 Z";
@@ -1272,8 +1274,10 @@
 
 .label {
     -fx-text-fill: -fx-def-font-color;
+    
+    //-fx-background-color: rgb(255,255,255); // this would set rectangular text bgr
+    
     // decreases performance for little gain
-    /*-fx-background-color: rgb(255,255,255);*/ // this would set rectangular text bgr
     /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0, 0.0 , 0 , 1 );*/
 }
 /*******************************************************************************

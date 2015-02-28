@@ -13,9 +13,12 @@ public class ValueEventSourceN<T> extends ValueEventSource<T> {
     private T v;
     private T empty_val;
 
-    public ValueEventSourceN(T initialValue) {
+    public ValueEventSourceN(T initialValue, T emptyValue) {
         super(initialValue);
-        empty_val = initialValue;
+        empty_val = emptyValue;
+    }
+    public ValueEventSourceN(T initialValue) {
+        this(initialValue, initialValue);
     }
 
     @Override

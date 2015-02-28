@@ -7,14 +7,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-import util.Parser.ParserImpl.Parser;
-import util.Parser.StringParser;
-import util.dev.TODO;
+import util.parsing.ParserImpl.Parser;
+import util.parsing.StringParser;
 import util.Util;
 import static util.Util.unPrimitivize;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
+import util.dev.Log;
+import util.dev.TODO;
 
 /**
  * Object representation of a configurable value.
@@ -32,11 +33,11 @@ import util.access.TypedValue;
  * Because config is convertible from String and back it also provides convert
  * methods and implements {@link StrinParser}.
  * 
- * @param <T> type of value of this config
+ * @param <V> type of value of this config
  * 
  * @author uranium
  */
-public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, StringParser<T>, TypedValue<T>, EnumerableValue<T> {
+public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, StringParser<V>, TypedValue<V>, EnumerableValue<V> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -55,11 +56,11 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * </pre>
      */
     @Override
-    public abstract T getValue();
+    public abstract V getValue();
     
     /** {@inheritDoc} */
     @Override
-    public abstract void setValue(T val);
+    public abstract void setValue(V val);
 
     /**
      * {@inheritDoc}
@@ -72,7 +73,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * much better.
      */
     @Override
-    abstract public Class<T> getType();
+    abstract public Class<V> getType();
 
     /**
      * Alternative name of this config. Intended to be human readable and
@@ -81,7 +82,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * Default value is set to be equivalent to name, but can be specified to
      * differ. Always use for gui building instead of {@link #getName()}.
      */
-   abstract public String getGuiName();
+    abstract public String getGuiName();
 
     /**
      * Name of this config.
@@ -131,7 +132,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * contained.
      * @return default value. Never null.
      */
-    abstract public T getDefaultValue();
+    abstract public V getDefaultValue();
 
     public final void setDefaultValue() {
         setValue(getDefaultValue());
@@ -148,7 +149,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * Use for serialization or filling out guis.
      */
     public final String getValueS() {
-        return Parser.toS(getValue());
+        return toS(getValue());
     }
     
     /**
@@ -177,8 +178,8 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * {@inheritDoc}
      */
     @Override
-    public final String toS(T val) {
-        return Parser.toS(val);
+    public final String toS(V v) {
+        return Parser.toS(v);
     }
     
     /**
@@ -188,13 +189,21 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * {@inheritDoc}
      */
     @Override
-    public final T fromS(String str) {
-        return Parser.fromS(getType(), str);
+    public final V fromS(String str) {
+        if(isTypeEnumerable()) {
+            for(V v : enumerateValues()) 
+                if(toS(v).equals(str)) return v;
+            
+            Log.warn("Can not parse '" + str + "'. No enumerable config value for: "
+                    + getGuiName() + ". Using default value.");
+            return getDefaultValue();
+        } else
+            return Parser.fromS(getType(), str);
     }
     
 /*************************** configurable methods *****************************/
 
-    Supplier<Collection<T>> valueEnumerator;
+    Supplier<Collection<V>> valueEnumerator;
     private boolean init = false;
     
     public boolean isTypeEnumerable() {
@@ -206,7 +215,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
     }
     
     @Override
-    public Collection<T> enumerateValues() {
+    public Collection<V> enumerateValues() {
         if(!init && valueEnumerator==null) {
             valueEnumerator = buildEnumEnumerator(getDefaultValue());
             init = true;
@@ -214,7 +223,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         return valueEnumerator.get();
     }
     
-    private static <T> Supplier<Collection<T>> buildEnumEnumerator( T v) {
+    private static <T> Supplier<Collection<T>> buildEnumEnumerator(T v) {
         // handle enums
         Class c = v.getClass();
         if(c.isEnum()) {
@@ -244,7 +253,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * @throws IllegalArgumentException if name doent equal name of this config.
      */
     @Override
-    public final Config<T> getField(String name) {
+    public final Config<V> getField(String name) {
         if(!name.equals(getName())) throw new IllegalArgumentException("Name mismatch");
         else return this;
     }
@@ -260,7 +269,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
      * @return 
      */
     @Override
-    public final List<Config<T>> getFields() {
+    public final List<Config<V>> getFields() {
         return Collections.singletonList(this);
     }
     
@@ -275,7 +284,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         private final boolean editable;
         private final double min;
         private final double max;
-        private final String defaultValue;
+        private final T defaultValue;
 
         /**
          * 
@@ -297,7 +306,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
             Objects.requireNonNull(val);
             this.gui_name = gui_name;
             this.name = name;
-            this.defaultValue = toS(val);
+            this.defaultValue = val;
             this.group = category;
             this.info = info;
             this.editable = editable;
@@ -371,7 +380,7 @@ public abstract class Config<T> implements ApplicableValue<T>, Configurable<T>, 
         /** {@inheritDoc} */
         @Override
         public T getDefaultValue() {
-            return fromS(defaultValue);
+            return defaultValue;
         }
     }
 }

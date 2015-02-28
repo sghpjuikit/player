@@ -11,7 +11,10 @@ import static de.jensd.fx.glyphs.GlyphsDude.createIconButton;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.CHECK;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.RECYCLE;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.animation.FadeTransition;
+import static javafx.application.Platform.runLater;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
@@ -28,14 +31,15 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.util.Callback;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
-import util.Parser.ParserImpl.FileParser;
-import util.Parser.ParserImpl.FontParser;
 import util.Password;
 import static util.Util.unPrimitivize;
 import static util.async.Async.run;
 import static util.functional.Util.cmpareBy;
+import util.parsing.ParserImpl.FileParser;
+import util.parsing.ParserImpl.FontParser;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -47,6 +51,10 @@ import static util.functional.Util.cmpareBy;
  * @author uranium
  */
 abstract public class ConfigField<T> {
+    
+    private static final Tooltip defB_tooltip = new Tooltip("Default value");
+    private static final Tooltip globB_tooltip = new Tooltip("Whether shortcut is global (true) or local.");
+    
     private final Label label = new Label();
     private final HBox box = new HBox();
     final Config<T> config;
@@ -72,7 +80,8 @@ abstract public class ConfigField<T> {
                     // lazily build the button when requested
                     // we dont want hundreds of buttons we will never use anyway
                     if(defB==null) {
-                        defB = new Icon(RECYCLE, 11, "Default value", this::setNapplyDefault);
+                        defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
+                        defB.setTooltip(defB_tooltip);
                         defB.setOpacity(0);
                         defB.getStyleClass().setAll("congfig-field-default-button");
                         box.getChildren().add(defB);
@@ -221,42 +230,32 @@ abstract public class ConfigField<T> {
     
 /******************************************************************************/
     
+    private static Map<Class,Callback<Config,ConfigField>> m = new HashMap();
+    
+    static {
+        m.put(boolean.class, f -> new BooleanField(f));
+        m.put(Boolean.class, f -> new BooleanField(f));
+        m.put(String.class, f -> new GeneralField(f));
+        m.put(Action.class, f -> new ShortcutField(f));
+        m.put(Color.class, f -> new ColorField(f));
+        m.put(File.class, f -> new FileField(f));
+        m.put(Font.class, f -> new FontField(f));
+        m.put(Password.class, f -> new PasswordField(f));
+    }
+    
     /**
      * Creates ConfigFfield best suited for the specified Field.
      * @param f field for which the GUI will be created
      */
     public static ConfigField create(Config f) {
-        Class type = f.getType();
         
-        ConfigField cf;
-        if (f.isTypeEnumerable())
-            cf = new EnumertionField(f);
-        else
-        if (Boolean.class.equals(unPrimitivize(type)))
-            cf = new BooleanField(f);
-        else 
-        if (String.class.equals(type))
-            cf = new GeneralField(f);
-        else
-        if (Action.class.equals(type))
-            cf = new ShortcutField(f);
-        else
-        if (f.isMinMax())
-            cf = new SliderField(f);
-        else
-        if (Color.class.equals(type))
-            cf = new ColorField(f);
-        else
-        if (File.class.equals(type))
-            cf = new FileField(f);
-        else
-        if (Font.class.equals(type))
-            cf = new FontField(f);
-        else
-        if (Password.class.equals(type))
-            cf = new PasswordField(f);
-        else
-            cf = new GeneralField(f);
+        ConfigField cf = null;
+        
+        if (f.isTypeEnumerable()) cf = new EnumertionField(f);
+        else if(f.isMinMax()) cf = new SliderField(f);
+        
+        if(cf==null) 
+            cf = m.getOrDefault(f.getType(), c->new GeneralField(c)).call(f);
         
         cf.setEditable(f.isEditable());
         
@@ -486,8 +485,7 @@ abstract public class ConfigField<T> {
             slider.setValue(config.getValue().doubleValue());
         }
     }
-        
-    /** Specifically for listing out available skins. */
+    
     private static final class EnumertionField extends ConfigField<Object> {
         ComboBox<Object> cBox;
         
@@ -502,6 +500,9 @@ abstract public class ConfigField<T> {
                 }
             });
             cBox.setButtonCell(cBox.getCellFactory().call(null));
+            // stupid factory still uses toString implementation for initial value
+            // for some reason, override manually !
+            runLater(()->cBox.getButtonCell().setText(c.getValueS()));
             
             cBox.getItems().addAll(c.enumerateValues());
             cBox.getItems().sort(cmpareBy(v->c.toS(v)));
@@ -528,7 +529,7 @@ abstract public class ConfigField<T> {
     
     private static final class ShortcutField extends ConfigField<Action> {
         TextField txtF;
-        CheckIcon glob;
+        CheckIcon globB;
         HBox group;
         String t="";
         Action a;
@@ -571,18 +572,18 @@ abstract public class ConfigField<T> {
                 } else {
                     // prevent 'deselection' if we txtF lost focus because glob
                     // received click
-                    if(!glob.isFocused())
+                    if(!globB.isFocused())
                         txtF.setText("");
                 }
             });
             
-            glob = new CheckIcon();
-            glob.setSelected(a.isGlobal());
-            glob.setTooltip(new Tooltip("Whether shortcut is global (true) or local."));
-            glob.selectedProperty().addListener((o,ov,nv) -> {
+            globB = new CheckIcon();
+            globB.setSelected(a.isGlobal());
+            globB.setTooltip(globB_tooltip);
+            globB.selectedProperty().addListener((o,ov,nv) -> {
                 if (isApplyOnChange()) applyNsetIfNeed();
             });
-            group = new HBox(5, glob,txtF);
+            group = new HBox(5, globB,txtF);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
         }
@@ -592,7 +593,7 @@ abstract public class ConfigField<T> {
         }
         @Override public boolean hasUnappliedValue() {
             Action a = config.getValue();
-            boolean sameglobal = glob.isSelected()==a.isGlobal();
+            boolean sameglobal = globB.isSelected()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
@@ -603,16 +604,16 @@ abstract public class ConfigField<T> {
             // rather operate on the Action manually
 
             Action a = config.getValue();
-            boolean sameglobal = glob.isSelected()==a.isGlobal();
+            boolean sameglobal = globB.isSelected()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             
             if(!sameglobal && !sameKeys)
-                a.set(glob.isSelected(), txtF.getText());
+                a.set(globB.isSelected(), txtF.getText());
             else if (!sameKeys)
                 a.setKeys(txtF.getText());
             else if (!sameglobal)
-                a.setGlobal(glob.isSelected());
+                a.setGlobal(globB.isSelected());
             else {
                 refreshItem();
                 return false;
@@ -628,7 +629,7 @@ abstract public class ConfigField<T> {
             Action a = config.getValue();
             txtF.setPromptText(a.getKeys());
             txtF.setText("");
-            glob.setSelected(a.isGlobal());
+            globB.setSelected(a.isGlobal());
         }
     }
     

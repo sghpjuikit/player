@@ -7,16 +7,20 @@ package util.units;
 import static java.lang.Integer.parseInt;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.dev.Dependency;
-import static util.Util.shouldBeEmpty;
+import util.parsing.StringParseStrategy;
+import static util.parsing.StringParseStrategy.From.CONSTRUCTOR_STR;
+import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
 /**
  * Simple class for media bit rate. Internally represents the value as int.
+ * Unit is kbps.
  * 
  * @author uranium
  */
 @Immutable
+@StringParseStrategy(from = CONSTRUCTOR_STR, to = TO_STRING_METHOD)
 public class Bitrate implements Comparable<Bitrate> {
-    private static final String UNIT = " kbps";
+    private static final String UNIT = "kbps";
     private final int bitrate;
     
     /**
@@ -25,6 +29,14 @@ public class Bitrate implements Comparable<Bitrate> {
     public Bitrate(int value){
         if(value<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
         bitrate = value;
+    }
+    
+    /***
+     * @param s number as string with optional unit 'kbps' appended. White spaces
+     * are removed.
+     */
+    public Bitrate(String s){
+        this(val(s));
     }
     
     /** @return bit rate value in kb per second. */
@@ -43,17 +55,29 @@ public class Bitrate implements Comparable<Bitrate> {
      * @return string representation of the object
      */
     @Override
-    @Dependency("Designed to be used in tables and gui.")
-    @Dependency("Must be consistent with fromString()")
+    @Dependency("Designed to be used in tables, filters and gui.")
     public String toString() {
-        return bitrate == -1 ? "" : bitrate + UNIT;
+        return bitrate == -1 ? "" : bitrate + " " + UNIT;
+    }
+
+    /** @return true if the value is the same. */
+    @Override
+    public boolean equals(Object o) {
+        if(this==o) return true;
+        return o instanceof Bitrate && ((Bitrate)o).bitrate==bitrate;
+    }
+
+    @Override
+    public int hashCode() {
+        return 97 * 7 + this.bitrate;
     }
     
-    @Dependency("Name. Used by String Parser by reflection discovered by method name.")
-    @Dependency("Must be consistent with toString()")
-    @Dependency("Used in search filters")
-    public static Bitrate fromString(String s) {
+    
+    
+    
+    private static int val(String s) {
         if(s.endsWith(UNIT)) s=s.substring(0, s.length()-UNIT.length());
-        return new Bitrate(shouldBeEmpty(s) ? -1 : parseInt(s));
+        s = s.trim();
+        return s.isEmpty() ? -1 : parseInt(s);
     }
 }

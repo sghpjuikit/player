@@ -13,8 +13,8 @@ import java.util.Collection;
 public interface EnumerableValue<T> {
     
     /**
-     * Provides list of all currently available values. The list can change over
-     * time.
+     * Provides list of all currently available values. The list can differ if
+     * constructed at different time.
      */
     public Collection<T> enumerateValues();
 }

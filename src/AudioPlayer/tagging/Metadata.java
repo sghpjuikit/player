@@ -47,7 +47,7 @@ import util.File.FileUtil;
 import static util.File.FileUtil.EMPTY_COLOR;
 import static util.File.FileUtil.EMPTY_URI;
 import util.File.ImageFileFormat;
-import util.Parser.ParserImpl.ColorParser;
+import util.parsing.ParserImpl.ColorParser;
 import util.Util;
 import static util.Util.*;
 import static util.Util.emptifyString;

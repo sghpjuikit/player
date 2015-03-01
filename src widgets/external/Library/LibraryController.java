@@ -11,6 +11,7 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
+import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.FilteredTable;
@@ -27,6 +28,7 @@ import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import java.io.File;
 import static java.lang.Math.floor;
 import java.util.Collection;
@@ -43,7 +45,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.Dragboard;
@@ -116,6 +120,8 @@ public class LibraryController extends FXMLController {
     private Subscription monitor2;
     private Subscription monitor3;
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
+    ActionChooser actPane = new ActionChooser();
+    Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -137,6 +143,8 @@ public class LibraryController extends FXMLController {
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
+        // maintain info text
+        lvlB.setText(v.toString());
         if(monitor1!=null) monitor1.unsubscribe();
         // listen for database changes to refresh library
         monitor1 = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
@@ -415,4 +423,22 @@ public class LibraryController extends FXMLController {
         },
         (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
+    
+    {
+        lvlB.setContentDisplay(CENTER);
+        lvlB.setOnMouseClicked(e -> {
+            if(e.getButton()==PRIMARY) {  
+                lvl.setNapplyValue(lvl.getValue()+1);
+            }
+            if(e.getButton()==SECONDARY) {  
+                lvl.setNapplyValue(lvl.getValue()-1);
+            }
+            e.consume();
+        });
+    }
+    
+    @Override
+    public Node getActivityNode() {
+        return actPane;
+    }
 }

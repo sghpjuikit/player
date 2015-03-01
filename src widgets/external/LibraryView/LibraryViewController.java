@@ -12,6 +12,7 @@ import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.GUI;
+import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Table.FilteredTable;
@@ -24,6 +25,7 @@ import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +39,9 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
+import javafx.scene.Node;
+import static javafx.scene.control.ContentDisplay.CENTER;
+import javafx.scene.control.Labeled;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -68,7 +73,7 @@ import static util.functional.Util.*;
 @Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
-    name = "Library",
+    name = "Library View",
     description = "Provides access to database.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +
@@ -97,6 +102,8 @@ public class LibraryViewController extends FXMLController {
     private Subscription dbMonitor;
     private final Runner runOnce = new Runner(1);
     private boolean lock = false;
+    ActionChooser actPane = new ActionChooser();
+    Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -113,6 +120,8 @@ public class LibraryViewController extends FXMLController {
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "")
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
+        // maintain info text
+        lvlB.setText(v.toString());
         if(dbMonitor!=null) dbMonitor.unsubscribe();
         // listen for database changes to refresh library
         dbMonitor = DB.views.subscribe(v, (lvl,list) -> {
@@ -169,8 +178,7 @@ public class LibraryViewController extends FXMLController {
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
         table.setColumnStateFacory( f -> {
             double w = f==VALUE ? 200 : 50;
-            boolean v = f!= AVG_RATING || f!= YEAR;
-            return new ColumnInfo(f.toString(), f.ordinal(), v, w);
+            return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
         });
         table.setColumnFactory( mgf -> {
             Metadata.Field mf = fieldFilter.getValue();
@@ -312,19 +320,12 @@ public class LibraryViewController extends FXMLController {
     }
     
     private List<Metadata> filerList(List<Metadata> list) {
-        List<Metadata> l;
-        if(table.getSelectionModel().isEmpty()) {
-            // no selection -> fetch everything, optimalization
-            // same as filtering out nothing
-            l = list;
-        } else {
-            Predicate<Metadata> p = table.getSelectedItems().stream()
-                    .map(MetadataGroup::toMetadataPredicate)
-                    .reduce(Predicate::or)
-                    .orElse(isFALSE);
-            l = list.stream().filter(p).collect(toList());
-        }
-        return l;
+        List<MetadataGroup> mgs = table.getSelectionModel().isEmpty() ? table.getItems() : table.getSelectedItems();
+        Predicate<Metadata> p = mgs.stream()
+                .map(MetadataGroup::toMetadataPredicate)
+                .reduce(Predicate::or)
+                .orElse(isFALSE);
+        return list.stream().filter(p).collect(toList());
     }
     
 /******************************** CONTEXT MENU ********************************/
@@ -354,4 +355,23 @@ public class LibraryViewController extends FXMLController {
         play(filerList(DB.views.getValue(lvl.getValue())));
     }
     
+    
+
+    {
+        lvlB.setContentDisplay(CENTER);
+        lvlB.setOnMouseClicked(e -> {
+            if(e.getButton()==PRIMARY) {  
+                lvl.setNapplyValue(lvl.getValue()+1);
+            }
+            if(e.getButton()==SECONDARY) {  
+                lvl.setNapplyValue(lvl.getValue()-1);
+            }
+            e.consume();
+        });
+    }
+    
+    @Override
+    public Node getActivityNode() {
+        return actPane;
+    }
 }

@@ -28,7 +28,7 @@
 package GUI.objects.Rater;
 
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR_ALT;
 import static java.lang.Math.ceil;
@@ -89,7 +89,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         
         // fire rating changed event
         if (getSkinnable().ratingChanged != null)
-            getSkinnable().ratingChanged.accept(newRating/getSkinnable().max.get());
+            getSkinnable().ratingChanged.accept(newRating);
     };
     
 
@@ -99,10 +99,10 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         
         // init
         recreateButtons();
-        updateRating(getSkinnable().getRating());
+        updateRating(getSkinnable().rating.get());
         
-        registerChangeListener(control.ratingProperty(), "RATING");
-        registerChangeListener(control.max, "MAX");
+        registerChangeListener(control.rating, "RATING");
+        registerChangeListener(control.icons, "ICONS");
         registerChangeListener(control.updateOnHover, "UPDATE_ON_HOVER");
         registerChangeListener(control.partialRating, "PARTIAL_RATING");
         
@@ -110,14 +110,13 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         getSkinnable().addEventHandler(MOUSE_ENTERED, e -> {
             e.consume();
             if (getSkinnable().updateOnHover.get())
-                old_rating = getSkinnable().getRating();
+                old_rating = getSkinnable().rating.get();
         });
         getSkinnable().addEventHandler(MOUSE_EXITED, e -> {
             e.consume();
             if (getSkinnable().updateOnHover.get())
                 updateRating(old_rating);
         });
-        getSkinnable().ratingProperty().addListener((o,ov,nv)->updateRating(nv.doubleValue()));
     }
     
     @Override 
@@ -125,9 +124,9 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         super.handleControlPropertyChanged(p);
         
         if (p == "RATING" || p == "PARTIAL_RATING" || p == "UPDATE_ON_HOVER") ;
-        else if (p == "MAX") recreateButtons();
+        else if (p == "ICONS") recreateButtons();
         
-        updateRating(getSkinnable().getRating());
+        updateRating(getSkinnable().rating.get());
     }
     
     private void recreateButtons() {
@@ -152,35 +151,29 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     private double calculateRating(double sceneX, double sceneY) {
         final Rating control = getSkinnable();
         final Point2D b = backgroundContainer.sceneToLocal(sceneX,sceneY);
-        double leftpad = backgroundContainer.getPadding().getLeft();
-        double toppad = backgroundContainer.getPadding().getRight();
-        final int max = control.max.get();
-        double w = control.getWidth() - leftpad - toppad;
-        double h = control.getHeight() - leftpad - toppad;
-        double x = b.getX()-leftpad;
-        double y = b.getY()-toppad;        
+        double leftP = backgroundContainer.getPadding().getLeft();
+        double rightP = backgroundContainer.getPadding().getRight();
+        double w = control.getWidth() - leftP - rightP;
+        double x = b.getX()-leftP; 
                x = clip(0, x, w);
-               y = clip(0, y, h);
+        double icons = getSkinnable().icons.get();
+        // calculate the new value & clip
+        double nv = clip(0,x/w,1);
                
-        // calculate the new value
-        double nv = (x/w)*max;
-               // need to make absolutely sure we dont get out of legal value bounds
-               nv = clip(0,nv,max);
-               
-        // ceil double to int if needed
-        if (!getSkinnable().partialRating.get()) nv = ceil(nv);
+        // ceil to int if needed
+        if (!getSkinnable().partialRating.get()) nv = ceil(nv*icons)/icons;
         
         return nv;
     }
     
     // sets rating to thespecfied one and updates both skin & skinnable
-    private void updateRating(double newRating) {
+    public void updateRating(double newRating) {
         // prevents recursive call, updating skinnable would eventually invoke this method again
         if (rating == newRating) return;
         
         // set value
         rating = newRating;
-        getSkinnable().setRating(newRating);
+        getSkinnable().rating.set(newRating);
         updateClip();
     }
     
@@ -189,19 +182,19 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         final Rating control = getSkinnable();
         
         double w = control.getWidth() - (snappedLeftInset() + snappedRightInset());
-        double x = w/control.max.get()*rating;
+        double x = w*rating;
         
         forgroundClipRect.setWidth(x);
         forgroundClipRect.setHeight(control.getHeight());
         
-        boolean isMaxed = rating==1*getSkinnable().max.get();
-        foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,isMaxed));
+        boolean is1 = rating==1;
+        foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,is1));
         boolean is0 = rating==0;
         backgroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(min,is0));
     }
         
-    private Node createButton(FontAwesomeIconName icon) {
-        Text l = Icons.createIcon(icon, getSkinnable().max.get(), 10);
+    private Node createButton(GlyphIconName icon) {
+        Text l = Icons.createIcon(icon, getSkinnable().icons.get(), 10);
              l.setCache(true);
              l.setCacheHint(CacheHint.SPEED);
              l.getStyleClass().add("rating-button");

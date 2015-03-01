@@ -28,7 +28,7 @@ public class RatingRatingCellFactory implements RatingCellFactory {
             {
                 setContentDisplay(GRAPHIC_ONLY);    
                 setAlignment(Pos.CENTER);
-                r.max.bind(App.maxRating);
+                r.icons.bind(App.maxRating);
                 r.partialRating.bind(App.partialRating);
                 r.updateOnHover.bind(App.hoverRating);
                 r.editable.bind(App.allowRatingChange);
@@ -42,7 +42,7 @@ public class RatingRatingCellFactory implements RatingCellFactory {
                     if(getGraphic()==null) setGraphic(r);
                     // when rating is 1 (100%) cells wont get updated
                     // really bad workaround but the only that works for now
-                    runLater(() -> runLater(() -> r.setRatingP(item)));
+                    runLater(() -> runLater(() -> r.rating.set(item)));
                     // the normal approach
                     // r.setRatingP(item);
                 }

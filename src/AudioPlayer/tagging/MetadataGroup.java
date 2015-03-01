@@ -150,6 +150,10 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
         }
         
+        public boolean isCommon() {
+            return this!=AVG_RATING && this!=YEAR && this!=W_RATING;
+        }
+        
         public String toString(MetadataGroup group) {
             return this==VALUE ? group.getField().toString() : toString();
         }

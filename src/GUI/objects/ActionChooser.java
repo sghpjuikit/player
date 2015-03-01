@@ -8,7 +8,7 @@ package GUI.objects;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.ContentDisplay;
+import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.input.DragEvent.DRAG_ENTERED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -63,11 +63,11 @@ public class ActionChooser extends StackPane {
         return addIcon(icon, descriptn, false);
     }
     public Icon addIcon(FontAwesomeIconName icon, String descriptn, boolean drag_activated) {
-        return addIcon(icon, descriptn, descriptn, drag_activated);
+        return addIcon(icon, null, descriptn, drag_activated);
     }
     public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn, boolean drag_activated) {
-        Icon l = new Icon(icon, icon_size, descriptn);
-        l.setContentDisplay(ContentDisplay.TOP);
+        Icon l = new Icon(icon, icon_size);
+        l.setContentDisplay(CENTER);
         l.setFont(new Font(l.getFont().getName(), 13));
         l.setText(text);
         

@@ -20,6 +20,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
+import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
@@ -205,7 +206,7 @@ public class FileInfoController extends FXMLController {
         
         
         // bind rating to app configs
-        rater.max.bind(App.maxRating);
+        rater.icons.bind(App.maxRating);
         rater.partialRating.bind(App.partialRating);
         rater.updateOnHover.bind(App.hoverRating);
         rater.editable.bind(App.allowRatingChange);
@@ -296,6 +297,22 @@ public class FileInfoController extends FXMLController {
                 e.consume();
             }
         });
+        srcB = actPane.addIcon(SQUARE_ALT, "Source");
+        srcB.setOnMouseClicked(e -> {
+            if(e.getButton()==PRIMARY) readMode.setNextNapplyValue();
+            if(e.getButton()==SECONDARY) readMode.setPreviousNapplyValue();
+            ReadMode r = readMode.getValue();
+            GlyphIconName i = r==PLAYING ? PLAY : ANDROID;
+            srcB.setText(i.characterToString());
+            srcB.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",i.getFontFamily(), 15));
+            srcB.getStyleClass().add("glyph");
+            actPane.description.setText("left click: " + readMode.getValue().toString() + " -> " + readMode.next().toString() + "\n" +
+                                        "right click: " + readMode.getValue().toString() + " -> " + readMode.previous().toString());
+        });
+        srcB.setOnMouseEntered(e->{
+            actPane.description.setText("left click: " + readMode.getValue().toString() + " -> " + readMode.next().toString() + "\n" +
+                                        "right click: " + readMode.getValue().toString() + " -> " + readMode.previous().toString());
+        });
         Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
                 lvlB.setContentDisplay(CENTER);
         lvlB.setOnMouseClicked(e -> {
@@ -310,7 +327,8 @@ public class FileInfoController extends FXMLController {
     }
     
     private ActionChooser actPane;
-
+    Labeled srcB;
+    
     @Override
     public Node getActivityNode() {
         return actPane;
@@ -355,7 +373,7 @@ public class FileInfoController extends FXMLController {
             setCover(cover_source.getValue());
 
             // set rating
-            rater.setRating(m.getRatingToStars(rater.max.get()));
+            rater.rating.set(m.getRatingPercent());
 
             // set other fields
             title.setText("title: "         + m.getTitle());
@@ -388,7 +406,7 @@ public class FileInfoController extends FXMLController {
     }
     
     private void clear() {
-        rater.setRating(0d);
+        rater.rating.set(0d);
         title.setText("title: ");
         track.setText("track: ");
         disc.setText("disc: ");

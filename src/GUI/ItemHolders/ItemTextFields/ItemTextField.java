@@ -15,8 +15,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
-import util.parsing.StringParser;
 import util.access.AccessibleValue;
+import util.parsing.StringParser;
 
 /**
  * Customized {@link TextField} that stores an item. Normally a non-editable text
@@ -169,10 +169,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
      */
     private static List<String> STYLECLASS() {
         // debug (prints: text-input, text-field.)
-//        new TextField().getStyleClass().forEach(System.out::println); 
-        
-        // general solution, but not optimal
-//        return new TextField().getStyleClass();
+        // new TextField().getStyleClass().forEach(System.out::println);
         
         // manually
         List<String> out = new ArrayList();

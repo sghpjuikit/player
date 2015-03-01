@@ -69,7 +69,7 @@ public interface SkinTrait {
         }
         
         if (getOnSkinChanged() != null) getOnSkinChanged().accept(skincss);
-        System.out.println(skincss);
+        //System.out.println(skincss);
     }
     
     /** Loops through the skins by one. */

@@ -144,6 +144,15 @@ public final class AreaControls {
                 e.consume();
             }
         });
+        root.setOnDragDetected( e -> {
+            if (GUI.isLayoutMode() && e.getButton()==PRIMARY) {   // primary button drag only
+                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
+                DragUtil.setComponent(area.container,area.getActiveWidget(),db);
+                // signal dragging graphically with css
+                area.getContent().pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                e.consume();
+            }
+        });
         
 	// build header
 	header_buttons.setNodeOrientation(RIGHT_TO_LEFT);

@@ -26,6 +26,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.util.Duration;
+import static util.Util.clip;
 
 /**
  * A control for allowing users to provide a rating. This control supports
@@ -106,19 +107,13 @@ import javafx.util.Duration;
  */
 public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait, SkinTrait {
     
-    /**
-     * Creates a default instance with a minimum rating of 0 and a maximum 
-     * rating of 5.
-     */
+    /** Creates rating with 5 icons*/
     public Rating() {
         this(5);
     }
     
     /**
-     * Creates a default instance with a minimum rating of 0 and a maximum rating
-     * as provided by the argument.
-     * 
-     * @param icons The maximum allowed rating value.
+     * @param icons number of icons.
      */
     public Rating(int icons) {
         this(icons, 0);
@@ -126,27 +121,19 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     
     /**
      * Creates a Rating instance with a minimum rating of 0, a maximum rating
-     * as provided by the {@code max} argument, and a current rating as provided
+     * as provided by the {@code icons} argument, and a current rating as provided
      * by the {@code rating} argument.
      * 
      * @param max The maximum allowed rating value.
-     * @param rating
+     * @param r
      */
-    public Rating(int icons, double rating) {
+    public Rating(int icons, double r) {
         getStyleClass().setAll("rating");
         
-        max.set(icons);
-        setRating(rating);
+        this.icons.set(icons);
+        rating.set(r);
         installScaleOnHover();
-        
-//        getStylesheets().setAll(getUserAgentStylesheet()); // prevent skin change // unnecessary and evil
     }
-    
-    /***************************************************************************
-     * 
-     * Overriding public API
-     * 
-     **************************************************************************/
     
     /** {@inheritDoc} */
     @Override protected Skin<?> createDefaultSkin() {
@@ -158,58 +145,23 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
         if (skinIndexProperty().get()==-1) return super.getUserAgentStylesheet();
         else return getSkins().get(skinIndexProperty().get());
     }
-       
-    /***************************************************************************
-     * 
-     * Properties
-     * 
-     **************************************************************************/
     
-    // --- Rating
-    /** The current rating value. */
-    public final DoubleProperty ratingProperty() {
-        return rating;
-    }
-    private DoubleProperty rating = new SimpleDoubleProperty(this, "rating", 0);
-    
-    /** Sets the current rating value in stars.  */
-    public final void setRating(double value) {
-       rating.set(value);
-    }
-    
-    public final void setRatingP(double value) {
-       rating.set(value*max.get());
-    }
-    
-    /** Returns the current rating value in stars. */
-    public final double getRating() {
-        return rating.get();
-    }
-    
-    /**
-     * Computes rating value representing this control's rating value
-     * relative to provided maximum rating value. Simply recalculates the
-     * rating for new maximum value so the rating/max remains constant.
-     * @param maxRating
-     * @return 
-     */
-    public double getRatingTagValue(double maxRating) {
-        return getRating()*maxRating/max.get();
-    }
-    public double getRatingPercent() {
-        return getRating()/max.get();
-    }
-    
+    /** Rating value in 0-1. Value will clipped to range. */
+    public final DoubleProperty rating = new SimpleDoubleProperty(this, "rating", 0) {
+        @Override public void set(double nv) {
+            super.set(clip(0,nv,1));
+        }
+    };
     
     /** The maximum-allowed rating value. */
-    public final IntegerProperty max = new SimpleIntegerProperty(this, "max", 5);
+    public final IntegerProperty icons = new SimpleIntegerProperty(this, "icons", 5);
         
     /**
      * If true this allows for users to set a rating as a floating point value.
      * In other words, the range of the rating 'stars' can be thought of as a
-     * range between [0, max], and whereever the user clicks will be calculated
-     * as the new rating value. If this is false the more typical approach is used
-     * where the selected 'star' is used as the rating.
+ range between [0, icons], and whereever the user clicks will be calculated
+ as the new rating value. If this is false the more typical approach is used
+ where the selected 'star' is used as the rating.
      */
     public final BooleanProperty partialRating = new SimpleBooleanProperty(this, "partialRating", false);
     

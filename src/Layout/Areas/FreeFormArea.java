@@ -14,15 +14,18 @@ import Layout.Widgets.Widget;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import static javafx.application.Platform.runLater;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import static util.Util.setAnchors;
 import static util.functional.Util.findFirstEmpty;
+import static util.reactive.Util.maintain;
 
 /**
  <p>
@@ -47,12 +50,16 @@ public class FreeFormArea implements ContainerNode {
                 // the method call eventually invokes load() method below, with
                 // component/child == null (3rd case)
                 // first we initialize position & size
-                container.properties.put(index + "x", e.getX()-root.getWidth()/6);
-                container.properties.put(index + "y", e.getY()-root.getHeight()/6);
-                container.properties.put(index + "w", root.getWidth()/3);
-                container.properties.put(index + "h", root.getHeight()/3);
+                container.properties.put(index + "x", e.getX()/root.getWidth()-1/6d);
+                container.properties.put(index + "y", e.getY()/root.getHeight()-1/6d);
+                container.properties.put(index + "w", 1/3d);
+                container.properties.put(index + "h", 1/3d);
                 container.addChild(index, null);
             }
+            if(e.getButton()==SECONDARY && container.getChildren().isEmpty()) {
+                container.close();
+            }
+            e.consume();
         });
         
         // do not support drag from (widget areas already do that for us)
@@ -70,6 +77,18 @@ public class FreeFormArea implements ContainerNode {
                 e.setDropCompleted(true);
                 e.consume();
             }
+        });
+        root.widthProperty().addListener((o,ov,nv) -> {
+            windows.forEach((i,w) -> {
+                if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*nv.doubleValue());
+                if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*nv.doubleValue());
+            });
+        });
+        root.heightProperty().addListener((o,ov,nv) -> {
+            windows.forEach((i,w) -> {
+                if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*nv.doubleValue());
+                if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*nv.doubleValue());
+            });
         });
     }
     
@@ -151,17 +170,22 @@ public class FreeFormArea implements ContainerNode {
         w.open();
         w.resizeHalf();
         w.alignCenter();
-        // values from previous session
-//       Async.runOnFX(()->{
-        if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x"));
-        if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y"));
-        if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w"));
-        if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h"));
-//        });
-        w.x.addListener((o,ov,nv) -> container.properties.put(i+"x", nv));
-        w.y.addListener((o,ov,nv) -> container.properties.put(i+"y", nv));
-        w.w.addListener((o,ov,nv) -> container.properties.put(i+"w", nv));
-        w.h.addListener((o,ov,nv) -> container.properties.put(i+"h", nv));
+        // values from previous session (used when deserializing)
+        if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*root.getWidth());
+        if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*root.getHeight());
+        if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*root.getWidth());
+        if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*root.getHeight());
+        // remember
+        runLater(()->{
+            maintain(w.x, v -> container.properties.put(i+"x", v.doubleValue()/root.getWidth())); 
+            maintain(w.y, v -> container.properties.put(i+"y", v.doubleValue()/root.getHeight()));
+            maintain(w.w, v -> container.properties.put(i+"w", v.doubleValue()/root.getWidth()));
+            maintain(w.h, v -> container.properties.put(i+"h", v.doubleValue()/root.getHeight()));
+    //        w.x.addListener((o,ov,nv) -> container.properties.put(i+"x", nv.doubleValue()/root.getWidth()));
+    //        w.y.addListener((o,ov,nv) -> container.properties.put(i+"y", nv.doubleValue()/root.getHeight()));
+    //        w.w.addListener((o,ov,nv) -> container.properties.put(i+"w", nv.doubleValue()/root.getWidth()));
+    //        w.h.addListener((o,ov,nv) -> container.properties.put(i+"h", nv.doubleValue()/root.getHeight()));
+        });
         return w;
     }
     

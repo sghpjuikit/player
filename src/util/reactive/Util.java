@@ -26,7 +26,6 @@ public class Util {
         return valuesOf(o).subscribe(u);
     }
     public static<O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, WritableValue<V> w) {
-        System.out.println(o + " " + m + " " + w);
         w.setValue(m.apply(o.getValue()));
         return valuesOf(o).map(m).subscribe(w::setValue);
     }

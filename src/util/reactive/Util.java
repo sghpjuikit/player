@@ -33,8 +33,9 @@ public class Util {
         w.setValue(o.getValue());
         return valuesOf(o).subscribe(w::setValue);
     }
-    public static<O> void maintain(Property<O> o, Property<O> w) {
+    public static<O> Subscription maintain(Property<O> o, Property<O> w) {
         w.setValue(o.getValue());
         w.bind(o);
+        return w::unbind;
     }
 }

@@ -35,7 +35,6 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.OverrunStyle;
@@ -212,10 +211,6 @@ public class FileInfoController extends FXMLController {
         rater.editable.bind(App.allowRatingChange);
         // write metadata on rating change
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
-        // swap skin on right mouse click
-        rater.setOnMouseClicked( e -> { 
-            if (e.getButton() == SECONDARY) rater.toggleSkin(); 
-        });
         // hide rating if empty
         rater.visibleProperty().bind(rating.disabledProperty().not());
         
@@ -313,20 +308,10 @@ public class FileInfoController extends FXMLController {
             actPane.description.setText("left click: " + readMode.getValue().toString() + " -> " + readMode.next().toString() + "\n" +
                                         "right click: " + readMode.getValue().toString() + " -> " + readMode.previous().toString());
         });
-        Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
-                lvlB.setContentDisplay(CENTER);
-        lvlB.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY) {  
-                lvlB.setText("2");
-            }
-            if(e.getButton()==SECONDARY) {  
-                lvlB.setText("0");
-            }
-            e.consume();
-        });
+
     }
     
-    private ActionChooser actPane;
+    ActionChooser actPane;
     Labeled srcB;
     
     @Override

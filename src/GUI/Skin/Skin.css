@@ -3688,66 +3688,27 @@
 
 //*********************************** RATING *********************************//
 
+// container for the control, use use for padding and such
 .rating > .container {
-/*    -fx-spacing: 2;
-    -fx-padding: 0 4 0 4;*/
+    //-fx-padding: 0 4 0 4;
 }
+
+// inherits .glyph
+// the 'empty' rating button 
 .rating-button {
-    -fx-background-color: null;
-    -fx-border-color: null;
-    -fx-graphic: url("rating_unselected-star.png");
-    -fx-content-display: graphic-only;
     -fx-font-size: 10px;
 }
+// the 'full' rating button 
 .rating-button.strong {
-    -fx-graphic: url("rating_selected-star.png");
-    -fx-content-display: graphic-only;
+    /*-fx-opacity: 0.8;*/
     -fx-font-size: 10px;
-    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.3) , 4, 0.0 , 0 , 0 );
 }
-// style for the button when rating is at min value
-// it is good to visually signal this to the user
+// rating is at min value
 .rating-button:min {
-    -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4, 0, 0);
+    -fx-opacity: 0.3;
 }
-// style for the button when rating is at max value
-// it is good to visually signal this to the user
+// rating is at max value
 .rating-button:max {
-    -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4 ,0, 0);
+    /*-fx-opacity: 1;*/
+    -fx-fill: white;
 }
-/*.rating > .container {
-    -fx-spacing: 2;
-    -fx-padding: 0 4 0 4;
-}
-.rating-button {
-    -fx-background-color: null;
-    -fx-border-color: null;
-    -fx-background-image: url("rating_unselected-star.png");
-    -fx-background-image-repeat: no-repeat;
-    // the following two lines set the size of the element and therefore size
-    // of the control. The 2nd value must be half of the first.
-    // Should be sized to font size
-    -fx-background-size: 10;
-    -fx-padding: 5;
-}
-.rating-button.strong {
-    -fx-background-image: url("rating_selected-star.png");
-    -fx-background-image-repeat: no-repeat;
-}
-.rating-button:hover {
-    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.3) , 4, 0.0 , 0 , 0 );
-}
-// style for the button when rating is at min value
-// it is good to visually signal this to the user
-.rating-button:min {
-    -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4, 0, 0);
-}
-// style for the button when rating is at max value
-// it is good to visually signal this to the user
-.rating-button:max {
-    -fx-effect: innershadow( three-pass-box, -fx-def-font-color, 2, 0.4 ,0, 0);
-}*/
-
-
-
-

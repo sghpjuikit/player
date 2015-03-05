@@ -177,7 +177,7 @@ public class LibraryViewController extends FXMLController {
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
         table.setColumnStateFacory( f -> {
-            double w = f==VALUE ? 200 : 50;
+            double w = f==VALUE ? 250 : 70;
             return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
         });
         table.setColumnFactory( mgf -> {

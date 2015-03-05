@@ -191,14 +191,9 @@
                 </Label>
               </bottom>
               <center>
-                <StackPane BorderPane.alignment="CENTER">
+                <StackPane fx:id="coverSuperContainer" BorderPane.alignment="CENTER">
                   <children>
-                    <Label text="No Cover" StackPane.alignment="CENTER" /><BorderPane fx:id="coverContainer" StackPane.alignment="CENTER" /><AnchorPane fx:id="img_borderContainer" mouseTransparent="true" pickOnBounds="false" StackPane.alignment="CENTER">
-<children><Rectangle fx:id="img_border" fill="#3b5a7800" height="200.0" mouseTransparent="true" stroke="BLACK" strokeType="INSIDE" strokeWidth="3.0" width="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-</children>
-<opaqueInsets>
-<Insets />
-</opaqueInsets></AnchorPane>
+                    <Label text="No Cover" StackPane.alignment="CENTER" /><BorderPane fx:id="coverContainer" StackPane.alignment="CENTER" />
                   </children>
                 </StackPane>
               </center>

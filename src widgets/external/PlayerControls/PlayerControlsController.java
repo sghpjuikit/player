@@ -36,6 +36,7 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.Util;
 import util.access.Accessor;
+import static util.reactive.Util.*;
 
 
 /**
@@ -102,6 +103,9 @@ public class PlayerControlsController extends FXMLController implements Playback
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
     
+    // dependencies
+    Subscription d1;
+    
     @Override
     public void init() {
         // create balancer
@@ -123,7 +127,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        seeker.setChapterSnapDistance(GUI.snapDistance);        
+        d1 = maintain(GUI.snapDistance, d->d ,seeker.chapterSnapDistance);
         
         // create play buttons
         p1.setOnMouseClicked(e->rewind());
@@ -219,6 +223,8 @@ public class PlayerControlsController extends FXMLController implements Playback
         balance.balanceProperty().unbind();
         volume.valueProperty().unbind();
         seeker.unbindTime();
+        
+        d1.unsubscribe();
     }
     
 /******************************************************************************/

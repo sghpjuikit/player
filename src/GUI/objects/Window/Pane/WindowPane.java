@@ -9,6 +9,7 @@ import GUI.objects.Window.Resize;
 import GUI.objects.Window.stage.WindowBase.Maximized;
 import static GUI.objects.Window.stage.WindowBase.Maximized.ALL;
 import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
 import java.util.List;
 import javafx.beans.property.*;
 import javafx.collections.ListChangeListener;
@@ -39,7 +40,8 @@ public class WindowPane {
     
     public final DoubleProperty x = new SimpleDoubleProperty(50) {
         @Override public void set(double nv) {
-            double v = nv;
+            int tmp = (int) ceil(nv);
+            double v = tmp + tmp%2;
             if(snappable.get()) {
                 v = mapSnap(v, v+w.get(), w.get(), owner.getWidth());
                 v = mapSnapX(v, v+w.get(), w.get(), owner.getChildren());
@@ -52,7 +54,8 @@ public class WindowPane {
     };
     public final DoubleProperty y = new SimpleDoubleProperty(50) {
         @Override public void set(double nv) {
-            double v = nv;
+            int tmp = (int) ceil(nv);
+            double v = tmp + tmp%2;
             if(snappable.get()) {
                 v = mapSnap(v, v+h.get(), h.get(), owner.getHeight());
                 v = mapSnapY(v, v+h.get(), h.get(), owner.getChildren());
@@ -63,6 +66,26 @@ public class WindowPane {
             root.setLayoutY(v);
         }
     };
+//    public final DoubleProperty w = new SimpleDoubleProperty(root.getWidth()){
+//        {
+//            bindBidirectional(root.prefWidthProperty());
+//        }
+//        @Override public void set(double nv) {
+//            int tmp = (int) ceil(nv);
+//            double v = tmp + tmp%2;
+//            super.set(v);
+//        }
+//    };
+//    public final DoubleProperty h = new SimpleDoubleProperty(root.getHeight()){
+//        {
+//            bindBidirectional(root.prefHeightProperty());
+//        }
+//        @Override public void set(double nv) {
+//            int tmp = (int) ceil(nv);
+//            double v = tmp + tmp%2;
+//            super.set(v);
+//        }
+//    };
     public final DoubleProperty w = root.prefWidthProperty();
     public final DoubleProperty h = root.prefHeightProperty();
     public final BooleanProperty visible = root.visibleProperty();
@@ -78,6 +101,7 @@ public class WindowPane {
     /** Defines whether this window is resizable. */
     public final BooleanProperty resizable = new SimpleBooleanProperty(true);
     public final BooleanProperty snappable = new SimpleBooleanProperty(true);
+    public final DoubleProperty snapDistance = new SimpleDoubleProperty(5);
     public final BooleanProperty offscreenFixOn = new SimpleBooleanProperty(true);
     public final DoubleProperty offScreenFixOffset = new SimpleDoubleProperty(0);
     public final ReadOnlyBooleanProperty focused = _focused.getReadOnlyProperty();
@@ -176,9 +200,9 @@ public class WindowPane {
     }
     
     private double mapSnap(double x, double right, double w, double owner_width) {
-        if (abs(x)<5)
+        if (abs(x)<snapDistance.get())
             return 0;
-        if (abs(right-owner_width)<5)
+        if (abs(right-owner_width)<snapDistance.get())
             return owner_width - w;
         return x;
     }
@@ -187,10 +211,10 @@ public class WindowPane {
             if(n == this.root) continue;
             
             double wr = n.getLayoutX()+((Pane)n).getWidth(); 
-            if(abs(x-wr)<5)
+            if(abs(x-wr)<snapDistance.get())
                 return wr;
             
-            if(abs(x+w.get()-n.getLayoutX())<5)
+            if(abs(x+w.get()-n.getLayoutX())<snapDistance.get())
                 return n.getLayoutX()-w.get();
         }
         return x;
@@ -200,10 +224,10 @@ public class WindowPane {
             if(n == this.root) continue;
             
             double wr = n.getLayoutY()+((Pane)n).getHeight();
-            if(abs(y-wr)<5)
+            if(abs(y-wr)<snapDistance.get())
                 return wr;
             
-            if(abs(y+h.get()-n.getLayoutY())<5)
+            if(abs(y+h.get()-n.getLayoutY())<snapDistance.get())
                 return n.getLayoutY()-h.get();
         }
         return y;

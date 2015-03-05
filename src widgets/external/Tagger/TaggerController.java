@@ -20,7 +20,6 @@ import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
-import GUI.objects.Text;
 import GUI.objects.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
@@ -60,7 +59,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.util.Callback;
 import main.App;
 import static org.atteo.evo.inflector.English.plural;
@@ -72,12 +71,12 @@ import util.File.Enviroment;
 import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
-import util.parsing.ParserImpl.ColorParser;
 import util.access.Accessor;
 import util.dev.Log;
 import static util.functional.Util.isIn;
 import static util.functional.impl.Validator.*;
 import util.graphics.Icons;
+import util.parsing.ParserImpl.ColorParser;
 
 /**
  * TaggerController graphical component.
@@ -135,14 +134,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @FXML CustomTextField Custom5F;
     @FXML TextArea LyricsA;
     @FXML BorderPane coverContainer;
+    @FXML StackPane coverSuperContainer;
     @FXML Label CoverL;
     Thumbnail CoverV;
     File new_cover_file = null;
     @FXML StackPane progressPane;
     @FXML ProgressIndicator progressI;
     @FXML Label infoL;
-    @FXML Rectangle img_border;
-    @FXML AnchorPane img_borderContainer;
     
     
     //global variables
@@ -376,30 +374,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             }
         });
         
-        // hoverable img border
-        coverContainer.addEventHandler(MOUSE_EXITED, e-> img_border.setOpacity(0));
-        coverContainer.addEventHandler(MOUSE_ENTERED, e-> {
-            if (!isEmpty()) img_border.setOpacity(1);
-        });
-        img_border.setOpacity(0);
-        
-        // set img border clip
-        AnchorPane clip = new AnchorPane();
-            clip.layoutXProperty().bind(img_border.layoutXProperty());
-            clip.layoutYProperty().bind(img_border.layoutYProperty());
-            clip.prefWidthProperty().bind(img_border.widthProperty());
-            clip.prefHeightProperty().bind(img_border.heightProperty());
-            Rectangle r1 = new Rectangle(35, 35);
-            Rectangle r2 = new Rectangle(25, 25);
-            Rectangle r3 = new Rectangle(25, 25);
-            Rectangle r4 = new Rectangle(35, 35);
-            clip.getChildren().addAll(r1,r2,r3,r4);
-            r1.relocate(0, 0);
-            r2.relocate(175, 0);
-            r3.relocate(0, 175);
-            r4.relocate(175, 175);
-        img_border.setClip(clip);
-        
+        // cover add icon
+        Text icon = Icons.createIcon(PLUS, 60);
+             icon.setMouseTransparent(true);
+        coverSuperContainer.getChildren().add(icon);
+             icon.setOpacity(0);
+        coverContainer.addEventHandler(MOUSE_EXITED, e-> icon.setOpacity(0));
+        coverContainer.addEventHandler(MOUSE_ENTERED, e-> icon.setOpacity(isEmpty() ? 0 : 1));
         
         // bind Rating values absolute<->relative when writing
         RatingF.setOnKeyReleased(e -> setPR());
@@ -585,6 +566,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         fields.forEach(TagField::enable);
         CoverV.getPane().setDisable(false);
+        
         
         // histogram init
         fields.forEach(TagField::histogramInit);

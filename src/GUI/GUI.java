@@ -83,9 +83,9 @@ public class GUI {
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static double duration_LM = 250;
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
-    public static boolean snapping = true;
+    public static final Accessor<Boolean> snapping = new Accessor(true);
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-    public static double snapDistance = 7;
+    public static final Accessor<Double> snapDistance = new Accessor(6d);
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {

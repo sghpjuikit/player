@@ -18,11 +18,9 @@ package GUI.objects.Rater;
 import Configuration.IsConfig;
 import GUI.Traits.EditableTrait;
 import GUI.Traits.ScaleOnHoverTrait;
-import GUI.Traits.SkinTrait;
 import java.util.function.Consumer;
 import javafx.beans.property.*;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
 import javafx.util.Duration;
@@ -105,7 +103,7 @@ import static util.Util.clip;
  * automatically follow the users mouse as they move it along the Rating scale.
  * To enable this, just set both properties to true.
  */
-public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait, SkinTrait {
+public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait {
     
     /** Creates rating with 5 icons*/
     public Rating() {
@@ -138,12 +136,6 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
     /** {@inheritDoc} */
     @Override protected Skin<?> createDefaultSkin() {
         return new RatingSkin(this);
-    }
-
-    /** {@inheritDoc} */
-    @Override public String getUserAgentStylesheet() {
-        if (skinIndexProperty().get()==-1) return super.getUserAgentStylesheet();
-        else return getSkins().get(skinIndexProperty().get());
     }
     
     /** Rating value in 0-1. Value will clipped to range. */
@@ -208,36 +200,7 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait,
         return this;
     }
     
-    // skins
-    @Override
-    public Parent getSkinOwner() {
-        return this;
-    }
     
- 
-    IntegerProperty skinIndex = new SimpleIntegerProperty(-1);
-    protected Consumer<String> skinChanged;
-    
-    @Override
-    public IntegerProperty skinIndexProperty() { return skinIndex; }
-    
-    /* @return Handler used when skin changes. Default null. */
-     @Override
-    public Consumer<String> getOnSkinChanged() { return skinChanged; }
-    
-    /**
-     * Fired when skin of this control changes - more specifically on right
-     * mouse click (after new skin value is set).
-     * @param handler 
-     */
-    @Override
-    public void setOnSkinChanged(Consumer<String> handler) { skinChanged = handler; }
-    
-    /***************************************************************************
-     * 
-     * Behavior
-     * 
-     **************************************************************************/
     
     protected Consumer<Double> ratingChanged;
     

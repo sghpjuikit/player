@@ -16,6 +16,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static java.util.Arrays.asList;
 import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -60,7 +61,9 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     Seeker seeker = new Seeker();
     Icon prevB, playB, stopB, nextB, volB;
     // dpendencies that should be disposed of - listeners, etc
-    Subscription d1,d2,d3,d4,d5;
+    Subscription d1,d2,d3,d4,d5,d6;
+    List<Subscription> ds;
+    
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
@@ -82,7 +85,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
         // make seeker
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
-        seeker.setChapterSnapDistance(GUI.snapDistance);
+        d6 = maintain(GUI.snapDistance, d->d, seeker.chapterSnapDistance);
         seekerPane.setCenter(seeker);
         // make icons
         prevB = new Icon(STEP_BACKWARD, 14, null, PlaylistManager::playPreviousItem);
@@ -118,6 +121,8 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 }
             }
         });
+        
+        ds = asList(d1,d2,d3,d4,d5,d6);
     }
     
     @Override
@@ -126,11 +131,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     @Override
     public void close() {
         // remove listeners
-        d1.unsubscribe();
-        d2.unsubscribe();
-        d3.unsubscribe();
-        d4.unsubscribe();
-        d5.unsubscribe();
+        ds.forEach(Subscription::unsubscribe);
         seeker.unbindTime();
         volume.valueProperty().unbind();
     }

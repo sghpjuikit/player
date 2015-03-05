@@ -333,7 +333,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         showImage(img_files.get(0));
         active_image = 0;
-        img_files.forEach(f->addThumbnail(f));
+        img_files.forEach(this::addThumbnail);
     }
     
 /****************************** HELPER METHODS ********************************/

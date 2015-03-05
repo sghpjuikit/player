@@ -32,6 +32,7 @@ import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR_ALT;
 import static java.lang.Math.ceil;
+import static javafx.application.Platform.runLater;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -46,6 +47,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import static util.Util.clip;
+import util.async.Async;
 import util.graphics.Icons;
 
 /**
@@ -99,7 +101,9 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         
         // init
         recreateButtons();
+        runLater(()->runLater(()->recreateButtons()));
         updateRating(getSkinnable().rating.get());
+        Async.run(200,this::recreateButtons);
         
         registerChangeListener(control.rating, "RATING");
         registerChangeListener(control.icons, "ICONS");
@@ -127,6 +131,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         else if (p == "ICONS") recreateButtons();
         
         updateRating(getSkinnable().rating.get());
+        Async.run(200,()->updateRating(getSkinnable().rating.get()));
     }
     
     private void recreateButtons() {
@@ -167,7 +172,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     }
     
     // sets rating to thespecfied one and updates both skin & skinnable
-    public void updateRating(double newRating) {
+    public final void updateRating(double newRating) {
         // prevents recursive call, updating skinnable would eventually invoke this method again
         if (rating == newRating) return;
         

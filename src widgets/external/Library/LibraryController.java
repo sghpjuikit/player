@@ -56,6 +56,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.TransferMode;
+import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -116,9 +117,6 @@ public class LibraryController extends FXMLController {
     private @FXML VBox content;
     private final InfoTask taskInfo = new InfoTask(null, new Label(), new ProgressIndicator());
     private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
-    private Subscription monitor1;
-    private Subscription monitor2;
-    private Subscription monitor3;
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     ActionChooser actPane = new ActionChooser();
     Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
@@ -127,6 +125,10 @@ public class LibraryController extends FXMLController {
     @FXML Menu remMenu;
     @FXML MenuBar controlsBar;
     private final Runner runOnce = new Runner(1);
+    // dependencies to disopose of
+    private Subscription d1;
+    private Subscription d2;
+    private Subscription d3;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -145,9 +147,9 @@ public class LibraryController extends FXMLController {
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         // maintain info text
         lvlB.setText(v.toString());
-        if(monitor1!=null) monitor1.unsubscribe();
+        if(d1!=null) d1.unsubscribe();
         // listen for database changes to refresh library
-        monitor1 = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
+        d1 = DB.views.subscribe(v, (i,list) -> table.setItemsRaw(list));
         // initialize
         table.setItemsRaw(DB.views.getValue(v));
     });
@@ -247,6 +249,12 @@ public class LibraryController extends FXMLController {
                 e.consume();
             }
         });
+        table.setOnDragOver(e -> {
+            e.acceptTransferModes(COPY);
+            e.consume();
+        });
+//        table.setOnDragOver(DragUtil.audioDragAccepthandler);
+        table.setOnDragDropped(e-> addNeditDo(DragUtil.getAudioItems(e).stream().map(Item::getFile),false));
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
@@ -257,8 +265,8 @@ public class LibraryController extends FXMLController {
         table.setOnScroll(Event::consume);
         
         // update selected items for application
-        monitor2 = Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty()));
-        monitor3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
+        d2 = Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty()));
+        d3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
         
         // task information label
         taskInfo.setVisible(false);        
@@ -301,9 +309,9 @@ public class LibraryController extends FXMLController {
     @Override
     public void close() {
         // stop listening
-        monitor1.unsubscribe();
-        monitor2.unsubscribe();
-        monitor3.unsubscribe();
+        d1.unsubscribe();
+        d2.unsubscribe();
+        d3.unsubscribe();
     }
     
     
@@ -338,7 +346,11 @@ public class LibraryController extends FXMLController {
             File f = files==null ? null : getCommonRoot(fs);
             if(f!=null) last_file=f;
         }
-
+        
+        addNeditDo(files, edit);
+    }
+    
+    private void addNeditDo(Stream<File> files, boolean edit) {
         if(files!=null) {
             Task ts = runAsTask("Discovering files",
                     () -> files.map(SimpleItem::new).collect(toList()),

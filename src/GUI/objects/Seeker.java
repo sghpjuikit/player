@@ -15,8 +15,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -95,7 +94,7 @@ public final class Seeker extends AnchorPane {
                 // snap to chapter if nearby
                 if(snaPosToChap)
                     for (Chap c: chapters)
-                        if (snapDistance > Math.abs(distance-c.position*width)) {
+                        if (chapterSnapDistance.get() > Math.abs(distance-c.position*width)) {
                             position.setValue(c.position);
                             return;
                         }
@@ -169,7 +168,7 @@ public final class Seeker extends AnchorPane {
     // properties
     boolean showChapters = true;
     boolean popupChapters = true;
-    double snapDistance = 8;
+    public final DoubleProperty chapterSnapDistance = new SimpleDoubleProperty(8);
     boolean editableChapters = true;
     boolean singleChapterPopupMode = false;
     
@@ -184,14 +183,6 @@ public final class Seeker extends AnchorPane {
     /** Set whether chapters should be displayed on the seeker. Default true */
     public void setChaptersVisible(boolean val) {
         showChapters = val;
-    }
-    
-    /** 
-     * Set distance for snapping seeker thumb to chapter when dragging it.
-     * Default 8.
-     */
-    public void setChapterSnapDistance(double val) {
-        snapDistance = val;
     }
     
     /** Set whether chapters can be edited. Default true. */

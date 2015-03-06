@@ -5,6 +5,7 @@
  */
 package GUI.objects.Table;
 
+import GUI.objects.CheckMenuItem;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 import com.sun.javafx.scene.control.skin.TableViewSkinBase;
@@ -25,8 +26,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-import util.parsing.ParserImpl.Parser;
-import static util.Util.createmenuItem;
 import static util.Util.getEnumConstants;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
@@ -34,6 +33,7 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.cmpareBy;
 import static util.functional.Util.list;
+import util.parsing.ParserImpl.Parser;
 
 /**
  *
@@ -48,7 +48,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     private TableColumnInfo columnState;
     private final Class<F> type;
-    ContextMenu columnMenu;
+    ContextMenu columnVisibleMenu;
     
     public FieldedTable(Class<F> type) {
         super();
@@ -143,11 +143,11 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             
             
             // build new table column menu
-            columnMenu = new ContextMenu();
+            columnVisibleMenu = new ContextMenu();
             defColInfo.columns.streamV()
                     .sorted(cmpareBy(c->c.name))
-                    .map(c->createmenuItem(c.name,a->setColumnVisible(c.name, !isColumnVisible(c.name))))
-                    .forEach(columnMenu.getItems()::add);
+                    .map(c->new CheckMenuItem(c.name,c.visible,v->setColumnVisible(c.name, v)))
+                    .forEach(columnVisibleMenu.getItems()::add);
             // link table column menu
             runLater(()->{
                 TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
@@ -159,7 +159,10 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                     // link to our custom menu
                     Pane columnMenuButton = (Pane) f.get(h);
                          columnMenuButton.setOnMousePressed(e -> {
-                            columnMenu.show(columnMenuButton, Side.BOTTOM, 0, 0);
+                             // update check icons from column visibility
+                            columnVisibleMenu.getItems().forEach(mi ->
+                                ((CheckMenuItem)mi).selected.set(isColumnVisible(mi.getText())));
+                            columnVisibleMenu.show(columnMenuButton, Side.BOTTOM, 0, 0);
                             e.consume();
                          });
                      f.setAccessible(false);
@@ -171,7 +174,6 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         }
         return defColInfo;
     }
-    
     
     public Optional<TableColumn<T,?>> getColumn(Predicate<TableColumn<T,?>> filter) {
         for(TableColumn t : getColumns())

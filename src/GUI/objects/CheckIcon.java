@@ -18,31 +18,20 @@ import static util.reactive.Util.maintain;
  */
 public class CheckIcon extends Icon {
     
-    private final BooleanProperty s = new SimpleBooleanProperty();
+    public final BooleanProperty selected = new SimpleBooleanProperty();
     
     public CheckIcon() {
         this(true);
     }
     
-    public CheckIcon(boolean selected) {
-        s.addListener((o,ov,nv)->icon.setValue(nv ? TOGGLE_ON : TOGGLE_OFF));
-        s.set(selected);
+    public CheckIcon(boolean s) {
+        selected.addListener((o,ov,nv)->icon.setValue(nv ? TOGGLE_ON : TOGGLE_OFF));
+        selected.set(s);
         addEventHandler(MOUSE_CLICKED, e -> {
-            s.set(!s.get());
+            selected.set(!selected.get());
             e.consume();
         });
-        maintain(s,mapB(TOGGLE_ON,TOGGLE_OFF),icon);
+        maintain(selected,mapB(TOGGLE_ON,TOGGLE_OFF),icon);
     }
     
-    // we want to be code-compatible with CheckBox for easy code change
-    
-    public boolean isSelected() {
-        return s.get();
-    }
-    public void setSelected(boolean val) {
-        s.set(val);
-    }
-    public BooleanProperty selectedProperty() {
-        return s;
-    }
 }

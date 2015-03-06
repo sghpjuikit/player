@@ -49,7 +49,6 @@ import static util.File.FileUtil.EMPTY_URI;
 import util.File.ImageFileFormat;
 import util.parsing.ParserImpl.ColorParser;
 import util.Util;
-import static util.Util.*;
 import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
@@ -120,6 +119,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     private String title = "";
     private String album = "";
     private String artist = "";
+    @Transient
     private List<String> artists = null; // unsupported as of now
     private String album_artist = "";
     private String composer = "";
@@ -130,7 +130,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     private int discs_total = -1;
     private String genre = "";
     private String year = "";
-    @Transient  // the only field we do not persist
+    @Transient
     private Artwork cover = null;
     private int rating = -1;
     private int playcount = -1;

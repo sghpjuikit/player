@@ -40,4 +40,5 @@ public class ClassWidget extends Widget<Controller> {
             return Widget.EMPTY().load();
         }
     }
+    
 }

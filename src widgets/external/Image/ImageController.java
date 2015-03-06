@@ -20,6 +20,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import util.File.ImageFileFormat;
 import util.access.Accessor;
+import static util.async.Async.run;
 import util.async.FxTimer;
 
 /**
@@ -31,7 +32,7 @@ import util.async.FxTimer;
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Image",
-    description = "Shows an image associaed with the skin.",
+    description = "Shows an image - custom or skin image if skin supports it.",
     howto = "Available actions:\n" +
             "    Left click left side: Previous image\n" +
             "    Left click right side : Next image\n" +
@@ -64,7 +65,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     public final Accessor<Pos> align = new Accessor<>(CENTER, thumb::applyAlignment);   
     
     // non applied configurables
-    @IsConfig(name = "Custom image", info = "Custom static image file.", editable = false)
+    @IsConfig(name = "Custom image", info = "Custom static image file.", editable = true)
     public File custom_image = new File("");
 
     
@@ -110,7 +111,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
 
     @Override
     public void close() {
-        slideshow.stop();
+        if(slideshow!=null) slideshow.stop();
         images.clear();
     }
     
@@ -157,17 +158,18 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     
 /******************************* HELPER METHODS *******************************/
     
-    private void setImage(int index) {
-        if (images.isEmpty()) index = -1;
-        if (index >= images.size()) index = images.size()-1;
+    private void setImage(int i) {System.out.println(" h " + i);
+        if (i >= images.size()) i = images.size()-1;
         
-        if (index == -1) {
-            Image i = null;
-            thumb.loadImage(i);
+        if (i == -1) {
+            Image img = null;
+            thumb.loadImage(img);
             active_image = -1;
         } else {
-            thumb.loadImage(images.get(index));
-            active_image = index;
+            thumb.loadImage(images.get(i));
+            File f = images.get(i);
+            run(1000,()->thumb.loadImage(f));
+            active_image = i;
         }
     }
     

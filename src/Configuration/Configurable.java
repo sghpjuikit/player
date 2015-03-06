@@ -4,8 +4,13 @@ package Configuration;
 import static Configuration.Configuration.configsOf;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import static java.util.stream.Collectors.toList;
 import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.value.WritableValue;
 import util.Util;
+import static util.functional.Util.forEachIndexedStream;
+import static util.functional.Util.listM;
 
 /**
  * Defines object that can be configured.
@@ -27,8 +32,9 @@ import util.Util;
  * It is possible to use your own implementation. It requires to override only
  * getFields and getField methods - the way how the configs are derived).
  * Then one could combine the provided implementation
- * by calling super(), but adding custom Configs or manipulate the result in
- * some way or simply use different way of obtaining the configs.
+ * by calling super(), adding custom Configs or manipulate them, etc.
+ * <p>
+ * This class provides static utility methods for basic implementations.
  * <pre>
  * The following are some possible implementations for a Configurable:
  *    - reflection: default implementation relying on annotation
@@ -167,5 +173,24 @@ public interface Configurable<T> {
     default public void setField(String n, String v) {
         Config<T> c = getField(n);
         if(c!=null) c.setValueS(v);
+    }
+    
+    
+    
+    
+    public static Collection<Config> configsFromValues(Collection<WritableValue> vals) {
+        return forEachIndexedStream(vals, (i,v) -> new PropertyConfig(String.valueOf(i),v)).collect(toList());
+    }
+    
+    public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(Collection<E> vals) {
+        return listM(vals,v -> new PropertyConfig(v.getName(),v));
+    }
+    
+    public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(E... vals) {
+        return listM(vals,v -> new PropertyConfig(v.getName(),v));
+    }
+    
+    public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromFieldsOf(Object o) {
+        return configsOf(o.getClass(), o, false, true).values();
     }
 }

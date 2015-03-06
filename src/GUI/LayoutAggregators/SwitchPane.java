@@ -5,11 +5,13 @@ import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.objects.Window.stage.Window;
+import Layout.Component;
 import Layout.Layout;
 import static java.lang.Double.*;
 import static java.lang.Math.signum;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.Interpolator;
 import javafx.animation.ScaleTransition;
@@ -329,24 +331,50 @@ public class SwitchPane implements LayoutAggregator {
 
     
     /** 
-     * Scrolls to tab best suited to be shown. It is the tab that already occupies
-     * the biggest portion of this pane.
+     * Scrolls to the current tab.
      * It is pointless to use this method when autoalign is enabled.
      * <p>
      * Use to force-align tabs.
+     * <p>
+     * Equivalent to {@code alignTab(currTab());}
+     *
+     * @return index of current tab after aligning
      */
     public int alignTabs() {
         return alignTab(currTab());
     }
     
+    /** 
+     * Scrolls to tab right from the current tab.
+     * Use to force-align tabs.
+     * <p>
+     * Equivalent to {@code alignTab(currTab()+1);}
+     *
+     * @return index of current tab after aligning
+     */
     public int alignRightTab() {
         return alignTab(currTab()+1);
     }
     
+    /** 
+     * Scrolls to tab left from the current tab.
+     * Use to force-align tabs.
+     * <p>
+     * Equivalent to {@code alignTab(currTab()-1);}
+     *
+     * @return index of current tab after aligning
+     */
     public int alignLeftTab() {
         return alignTab(currTab()-1);
     }
     
+    /** 
+     * Scrolls to tab on provided position. Positions are (-infinity;infinity)
+     * with 0 being the main.
+     *
+     * @param i position
+     * @return index of current tab after aligning
+     */
     public int alignTab(int i) {
         uiDrag.stop();
         uiDrag.setOnFinished( a -> addTab(i));
@@ -355,11 +383,50 @@ public class SwitchPane implements LayoutAggregator {
         return i;
     }
     
+    /** 
+     * Scrolls to tab containing given layout.
+     *
+     * @param l layout
+     * @return index of current tab after aligning
+     */
+    public int alignTab(Layout l) {
+        int i = -1;
+        for(Entry<Integer,Layout> e : layouts.entrySet()) {
+            if(e.getValue().equals(l)) {
+                i = e.getKey();
+                alignTab(i);
+                break;
+            }
+        }
+        return i;
+    }
+    
+    /** 
+     * Scrolls to tab containing given component in its layout.
+     *
+     * @param c component
+     * @return index of current tab after aligning
+     */
+    public int alignTab(Component c) {
+        int i = -1;
+        for(Entry<Integer,Layout> e : layouts.entrySet()) {
+            boolean has = e.getValue().getAllChildren().anyMatch(ch -> ch==c);
+            if(has) {
+                i = e.getKey();
+                alignTab(i);
+                break;
+            }
+        }
+        return i;
+    }
+    
     /**
      * Executes {@link #alignTabs()} if the position of the tabs fullfills
      * snap requirements.
      * <p>
      * Use to align tabs while adhering to user settings.
+     *
+     * @return index of current tab after aligning
      */
     public int snapTabs() {
         int i = currTab();
@@ -375,8 +442,6 @@ public class SwitchPane implements LayoutAggregator {
         else
             return i;
     }
-    
-
     
     /** 
      * @return index of currently viewed tab. It is the tab consuming the most

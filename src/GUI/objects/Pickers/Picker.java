@@ -19,10 +19,10 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.util.Callback;
-import util.parsing.ToStringConverter;
 import util.functional.Util;
 import static util.functional.Util.forEachIndexed;
+import util.functional.functor.FunctionC;
+import util.parsing.ToStringConverter;
 
 /**
  * Generic item picker.
@@ -42,6 +42,14 @@ public class Picker<E> {
     /** Style class for cell. */
     public static final String STYLE_CLASS = "item-picker";
     public static final List<String> CELL_STYLE_CLASS = asList("block","item-picker-element");
+    /** Default on select action. Does nothing. */
+    public static final Consumer DEF_onSelect = item -> {};
+    /** Default on cancel action. Does nothing. */
+    public static final Runnable DEF_onCancel = () -> {};
+    /** Default Text factory. Uses item's toString() method. */
+    public static final ToStringConverter DEF_textCoverter = Object::toString;
+    /** Default Item supplier. Returns empty stream. */
+    public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
     
     private final AnchorPane tiles = new AnchorPane();
     public final ScrollPane root = new ScrollPane(tiles);
@@ -50,7 +58,7 @@ public class Picker<E> {
      * Procedure executed when item is selected passing the item as parameter.
      * Default implementation does nothing. Must not be null;
      */
-    public Consumer<E> onSelect = item -> {};
+    public Consumer<E> onSelect = DEF_onSelect;
     /**
      * Procedure executed when no item is selected. Invoked when user cancels
      * the picking by right click.
@@ -58,26 +66,26 @@ public class Picker<E> {
      * <p>
      * For example one might want to close this picker when no item is selected.
      */
-    public Runnable onCancel = () -> {};
+    public Runnable onCancel = DEF_onCancel;
     /**
      * Text factory.
      * Creates string representation of the item.
      * Default implementation uses item's toString() method.
      * Must not be null.
      */
-    public ToStringConverter<E> textCoverter = Object::toString;
+    public ToStringConverter<E> textCoverter = DEF_textCoverter;
     /**
      * Item supplier. Fetches the items as a stream. 
      * Default implementation returns empty stream. Must not be null;
      */
-    public Supplier<Stream<E>> itemSupply = Stream::empty;
+    public Supplier<Stream<E>> itemSupply = (Supplier)DEF_itemSupply;
     /**
      * Cell factory.
      * Creates graphic representation of the item.
      * Also might define minimum and maximum item size.
      * Must not be null;
      */
-    public Callback<E,Region> cellFactory = item -> {
+    public FunctionC<E,Node> cellFactory = item -> {
         String text = textCoverter.toS(item);
         Label l = new Label(text);
         StackPane b = new StackPane(l);
@@ -116,7 +124,7 @@ public class Picker<E> {
             .sorted(Util.cmpareNoCase(textCoverter::toS))
             // & create cells
             .forEach( item -> {
-                Node cell = cellFactory.call(item);
+                Node cell = cellFactory.apply(item);
                      cell.setOnMouseClicked( e -> {
                          if(e.getButton()==PRIMARY) {
                             onSelect.accept(item);

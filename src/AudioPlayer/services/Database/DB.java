@@ -21,6 +21,8 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import main.App;
 import util.access.Accessor;
+import static util.async.Async.executeBgr;
+import static util.async.Async.executeFX;
 import util.reactive.CascadingStream;
 
 /**
@@ -35,7 +37,12 @@ public class DB {
     public static void start() {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
-        views.push(1, getAllItems());
+        
+        // bgr thread helps with loading a lot 
+        executeBgr(() -> {
+            List<Metadata> ms = getAllItems();
+            executeFX(() -> views.push(1, ms));
+        });
     }
     
     public static void stop() {
@@ -154,6 +161,8 @@ public class DB {
     }
     public static void clearLib() {
         views.push(1, EMPTY_LIST);
+        em.clear();
+        em.flush();
     }
     
     public static CascadingStream<List<Metadata>> views = new CascadingStream<>();

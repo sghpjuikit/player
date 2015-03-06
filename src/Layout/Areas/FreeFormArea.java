@@ -166,6 +166,7 @@ public class FreeFormArea implements ContainerNode {
     }
     private PaneWindowControls buidWindow(int i) {
         PaneWindowControls w = new PaneWindowControls(root);
+        w.root.getStyleClass().add("freeflowcontainer-window");
         w.setHeaderVisible(false);
         w.offscreenFixOn.set(false);
         // initial size/pos

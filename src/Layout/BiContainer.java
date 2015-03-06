@@ -21,7 +21,7 @@ import javafx.scene.Node;
  * the abstract class type to avoid misuse. Do not use this class as non-pure
  * Container. See addChild and the exception.
  */
-abstract public class BiContainer extends Container {
+public class BiContainer extends Container {
     
     private final Map<Integer, Component> children = new HashMap();
     @XStreamOmitField
@@ -80,13 +80,10 @@ abstract public class BiContainer extends Container {
         
         if (index<1 || index>2)
             throw new IndexOutOfBoundsException("Index " + index + " not supported. Only null,1,2 values supported.");
-        
-        if(c!=null) {
-            if(c instanceof Container) Container.class.cast(c).parent = this;
-//            if(!(c instanceof Container)) 
-//                throw new UnsupportedOperationException("Non containers currently not supported");
-//            Container.class.cast(c).parent = this;
-        }
+
+        if(c instanceof Container) 
+            Container.class.cast(c).parent = this;
+
         children.put(index, c);
         load();
         initialize();

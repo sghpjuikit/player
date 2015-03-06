@@ -44,6 +44,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Point2D;
@@ -603,11 +604,19 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
 	});
 	// lock layout button
-	Icon lockB = new Icon(null, 13, "Lock layout", e -> GUI.toggleLayoutLocked());
+	Icon lockB = new Icon(null, 13, "Lock layout", GUI::toggleLayoutLocked);
         maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB.icon);
 	// layout mode button
-	Icon lmB = new Icon(null, 13, "Layout mode", e -> GUI.toggleLayoutNzoom());
+	Icon lmB = new Icon(null, 13, "Layout mode", GUI::toggleLayoutNzoom);
+	// layout tab buttons
+	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", ((SwitchPane)layout_aggregator)::alignLeftTab);
+	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", ((SwitchPane)layout_aggregator)::alignRightTab);
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB.icon);
+	// guide button - sho layout manager in a popp
+	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
+	    App.guide.resume();
+	    App.actionStream.push("Guide resumed");
+	});
 	// help button - show help information
 	Icon helpB = new Icon(INFO, 13, "Help");
 	helpB.setOnMouseClicked(e -> {
@@ -627,11 +636,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    helpP.show(helpB);
 	    helpP.getContentNode().setWrappingWidth(400);
 	    App.actionStream.push("Layout info popup");
-	});
-	// guide button - sho layout manager in a popp
-	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
-	    App.guide.resume();
-	    App.actionStream.push("Guide resumed");
 	});
 
 //	// manage layout button - sho layout manager in a popp
@@ -655,8 +659,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         maintain(fullscreen, mapB(COMPRESS,EXPAND), i->icon(fullscrB,i));
         maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), i->icon(minimB,i));
         maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), i->icon(maximB,i));
-        icon(closeB,CLOSE);
-	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, lockB, lmB, guideB, helpB);//, taskB);
+        icon(closeB,CLOSE);        
+        // add icons & gapsgaps
+        ltB.setPadding(new Insets(0, 0, 0, 15));
+        rtB.setPadding(new Insets(0, 15, 0, 0));
+	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);//, taskB);
     }
 
     private void icon(Labeled l, FontAwesomeIconName i) {
@@ -668,7 +675,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      ************************** WINDOW MECHANICS *******************************
      */
     @Override
-    public void close() {System.out.println(main);
+    public void close() {
 	// serialize windows if this is main app window
 	if (main) WindowManager.serialize();
         // after serialisation, close content it could prevent app closing

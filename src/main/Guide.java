@@ -77,8 +77,10 @@ public final class Guide {
                     con.addChild(con.getEmptySpot(), bc);
                     // load widgets
                     ((Container)bc.getChildren().get(1)).addChild(1,WidgetManager.getFactory("Playlist").create());
-                    ((Container)bc.getChildren().get(2)).addChild(1,WidgetManager.getFactory("PlayerControls").create());;
-                    // go to next
+                    ((Container)bc.getChildren().get(2)).addChild(1,WidgetManager.getFactory("PlayerControls").create());
+                    // go to layout
+                    la.alignTab(con);
+                    // go to next guide
                     App.actionStream.push("Intro");
                 }));
         addGuide(" ", "Hi, this is automatic guide for this application. It will show you around. " +

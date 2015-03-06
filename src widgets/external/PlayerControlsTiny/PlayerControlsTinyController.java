@@ -41,7 +41,7 @@ import static util.reactive.Util.maintain;
     howto = "Available actions:\n" +
             "    Control Playback\n" +
             "    Drop audio files : Adds or plays the files\n",
-    description = "Controls playback.",
+    description = "Controls playback. Minimalistic.",
     notes = "",
     version = "1",
     year = "2015",

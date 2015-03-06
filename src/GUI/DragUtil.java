@@ -162,7 +162,7 @@ public final class DragUtil {
         ArrayList<Item> o = new ArrayList();
         
         if (d.hasFiles()) {
-            getFilesAudio(d.getFiles(),Use.APP,0).map(SimpleItem::new).forEach(o::add);
+            getFilesAudio(d.getFiles(),Use.APP,Integer.MAX_VALUE).map(SimpleItem::new).forEach(o::add);
         } else
         if (d.hasUrl()) {
             String url = d.getUrl();
@@ -179,7 +179,7 @@ public final class DragUtil {
         if (hasItemList()) {
             o.addAll(getItemsList());
         }
-        
+        System.out.println(o.size() + " lll");
         return o;
     }
     
@@ -212,7 +212,9 @@ public final class DragUtil {
     public static List<File> getImageItems(DragEvent e) {
         Dragboard d = e.getDragboard();
         
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+        if (d.hasFiles())
+            return FileUtil.getImageFiles(d.getFiles());
+        else if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             try {
                 File nf = FileUtil.saveFileTo(d.getUrl(), App.TMP_FOLDER());
                 return Arrays.asList(nf);
@@ -220,9 +222,7 @@ public final class DragUtil {
                 Log.err(ex.getMessage());
                 return EMPTY_LIST;
             }
-        } else if (d.hasFiles())
-            return FileUtil.getImageFiles(d.getFiles());
-        else
+        } else
             return EMPTY_LIST;
     }
     /**
@@ -269,7 +269,19 @@ public final class DragUtil {
     public static void doWithImages(DragEvent e, InfoTask i, Consumer<List<File>> action, Consumer<Boolean> onEnd) {
         requireNonNull(onEnd);
         Dragboard d = e.getDragboard();
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+        if (d.hasFiles()) {System.out.println("files" + d.getFiles().size());
+            List<File> files = d.getFiles();
+            String name = "Copying " + plural("image", files.size());
+            new ActionTask<>(name)
+                .setAction(() -> action.accept(FileUtil.getImageFiles(files)))
+                .setOnDone((ok,result)->{
+                    i.unbind();
+                    onEnd.accept(ok);
+                 })
+                .useAnd(i::bind)
+                .run(Async::executeBgr);
+        } else
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {System.out.println("url");
             String url = d.getUrl();
             new ActionTask<>("Downloading image")
                 .setAction(()->{
@@ -285,18 +297,7 @@ public final class DragUtil {
                     i.unbind();
                 })
                 .useAnd(i::bind)
-                .run(Async::executeBgr);
-        } else if (d.hasFiles()) {
-            List<File> files = d.getFiles();
-            String name = "Copying " + plural("image", files.size());
-            new ActionTask<>(name)
-                .setAction(() -> action.accept(FileUtil.getImageFiles(files)))
-                .setOnDone((ok,result)->{
-                    i.unbind();
-                    onEnd.accept(ok);
-                 })
-                .useAnd(i::bind)
-                .run(Async::executeBgr);
+                .run(Async::executeBgr);        
         } else
             throw new IllegalStateException("image content not found");
     }
@@ -310,7 +311,7 @@ public final class DragUtil {
         InfoTask info = new InfoTask(p.getSkinn().getTitle(), new Label(), new ProgressIndicator());
         b.getChildren().addAll(info.message, info.progressIndicator);
         // execute
-        DragUtil.doWithImages(e, info, action, ok->p.hide());
+        doWithImages(e, info, action, ok->p.hide());
     }
     
      /**

@@ -321,7 +321,7 @@ public class LibraryViewController extends FXMLController {
     
     private List<Metadata> filerList(List<Metadata> list) {
         List<MetadataGroup> mgs = table.getSelectionModel().isEmpty() ? table.getItems() : table.getSelectedItems();
-        Predicate<Metadata> p = mgs.stream()
+        Predicate<Metadata> p = mgs.stream().parallel()
                 .map(MetadataGroup::toMetadataPredicate)
                 .reduce(Predicate::or)
                 .orElse(isFALSE);

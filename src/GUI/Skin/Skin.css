@@ -3332,6 +3332,14 @@
     
 }
 
+
+.freeflowcontainer-window {
+    
+}
+.freeflowcontainer-window > .content {
+    -fx-padding: 2.5;
+}
+
 /* Control for setting up layout. */
 .layouter {
 }

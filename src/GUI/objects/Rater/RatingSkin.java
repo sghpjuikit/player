@@ -130,8 +130,8 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         if (p == "RATING" || p == "PARTIAL_RATING" || p == "UPDATE_ON_HOVER") ;
         else if (p == "ICONS") recreateButtons();
         
-        updateRating(getSkinnable().rating.get());
-        Async.run(200,()->updateRating(getSkinnable().rating.get()));
+//        updateRating(getSkinnable().rating.get());
+        runLater(()->updateRating(getSkinnable().rating.get()));
     }
     
     private void recreateButtons() {

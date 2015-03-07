@@ -31,8 +31,7 @@ public final class FileSize implements Comparable<FileSize> {
      * @throws NullPointerException if param null
      */
     public FileSize(File f) {
-        long l = f.length();
-        size = l==0 ? -1 : l;
+        this(inBytes(f));
     }
     
     /**
@@ -52,6 +51,17 @@ public final class FileSize implements Comparable<FileSize> {
      */
     public FileSize(String bytes) {
         this(val(bytes));
+    }
+    
+    /** 
+     * Returns filesize in bytes. Equivalent to {@code new Filesize(f).inBytes;}, 
+     * but does not create a Filesize object.
+     * 
+     * @return filesize of the file in bytes
+     */
+    public static long inBytes(File f) {
+        long l = f.length();
+        return l==0 ? -1 : l;
     }
     
     /** @return file size in bytes or -1 if unknown */

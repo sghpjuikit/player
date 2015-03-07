@@ -47,7 +47,6 @@ import util.File.FileUtil;
 import static util.File.FileUtil.EMPTY_COLOR;
 import static util.File.FileUtil.EMPTY_URI;
 import util.File.ImageFileFormat;
-import util.parsing.ParserImpl.ColorParser;
 import util.Util;
 import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
@@ -55,6 +54,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import util.parsing.ParserImpl.ColorParser;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
@@ -133,6 +133,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     @Transient
     private Artwork cover = null;
     private int rating = -1;
+    @Transient
+    private double ratingP = -1;
     private int playcount = -1;
     private String category = "";
     private String comment = "";
@@ -197,8 +199,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * 
      */
     Metadata(AudioFile audiofile) {
-        uri = audiofile.getFile().getAbsoluteFile().toURI().toString();
-        filesize = super.getFilesize().inBytes();
+        File file = audiofile.getFile().getAbsoluteFile();
+        uri = file.toURI().toString();
+        filesize = FileSize.inBytes(file);
         
         loadGeneralFields(audiofile);
         switch (getFormat()) {
@@ -253,7 +256,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         year = getGeneral(tag,FieldKey.YEAR);
         
         category = getGeneral(tag,FieldKey.GROUPING);
-        cover = tag.getFirstArtwork();
+//        cover = tag.getFirstArtwork();
         comment = getComment(tag);
         lyrics = getGeneral(tag,FieldKey.LYRICS);
         mood = getGeneral(tag,FieldKey.MOOD);
@@ -648,9 +651,21 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         }
     }
     
+    private void loadCover() {
+        Tag tag = isFileBased() ? readAudioFile(getFile()).getTag() : null;
+        if(tag==null) {
+            Log.warn("Tag unsupported in item being read: " + getURI());
+            cover = null;
+            return;
+        } else {
+            cover = tag.getFirstArtwork();
+        }
+    }
+    
     @MetadataFieldMethod(Field.COVER)
     private Cover getCover() {
         try {
+            loadCover();
             if(cover==null) return new ImageCover((Image)null, getCoverInfo());
             else return new ImageCover((BufferedImage) cover.getImage(), getCoverInfo());
         } catch (IOException ex) {
@@ -661,6 +676,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     @MetadataFieldMethod(Field.COVER_INFO)
     private String getCoverInfo() {
         try {
+            loadCover();
             return cover.getDescription() + " " + cover.getMimeType() + " "
                        + ((RenderedImage)cover.getImage()).getWidth() + "x"
                        + ((RenderedImage)cover.getImage()).getHeight();
@@ -716,7 +732,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * @return the rating in 0-1 percent range */
     @MetadataFieldMethod(Field.RATING)
     public double getRatingPercent() {
-        return getRating()/(double)getRatingMax();
+        if(ratingP==-1) ratingP = getRating()/(double)getRatingMax();
+        return ratingP;
+        
+//        return getRating()/(double)getRatingMax();
     }
     
     /** @return the rating value (can for file type) or "" if empty. */

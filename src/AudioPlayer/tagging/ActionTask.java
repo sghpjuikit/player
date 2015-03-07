@@ -11,7 +11,7 @@ import java.util.function.Supplier;
  *
  * @author Plutonium_
  */
-public final class ActionTask<T> extends SuccessTask<T,ActionTask<T>> {
+public class ActionTask<T> extends SuccessTask<T,ActionTask<T>> {
 
     private String title;
     private Supplier<T> r;
@@ -32,12 +32,12 @@ public final class ActionTask<T> extends SuccessTask<T,ActionTask<T>> {
     }
     
     
-    public ActionTask<T> setTitle(String title) {
+    public final ActionTask<T> setTitle(String title) {
         this.title = title;
         return this;
     }
     
-    public ActionTask<T> setAction(Supplier<T> action) {
+    public final ActionTask<T> setAction(Supplier<T> action) {
         this.r = action;
         return this;
     }

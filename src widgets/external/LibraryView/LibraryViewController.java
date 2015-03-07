@@ -90,8 +90,8 @@ import static util.functional.Util.*;
             "                   descending, none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n",
     notes = "",
-    version = "0.6",
-    year = "2014",
+    version = "0.8",
+    year = "2015",
     group = LIBRARY
 )
 public class LibraryViewController extends FXMLController {
@@ -99,7 +99,8 @@ public class LibraryViewController extends FXMLController {
     private @FXML AnchorPane root;
     private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
-    private Subscription dbMonitor;
+    // dependencies
+    private Subscription d1;
     private final Runner runOnce = new Runner(1);
     private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
@@ -122,9 +123,9 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         // maintain info text
         lvlB.setText(v.toString());
-        if(dbMonitor!=null) dbMonitor.unsubscribe();
+        if(d1!=null) d1.unsubscribe();
         // listen for database changes to refresh library
-        dbMonitor = DB.views.subscribe(v, (lvl,list) -> {
+        d1 = DB.views.subscribe(v, (lvl,list) -> {
             // remember selected
             Set<Object> oldSel = table.getSelectedItems().stream()
                                       .map(MetadataGroup::getValue).collect(toSet());
@@ -268,7 +269,7 @@ public class LibraryViewController extends FXMLController {
     @Override
     public void close() {
         // stop listening for db changes
-        dbMonitor.unsubscribe();
+        d1.unsubscribe();
     }
 
     @Override

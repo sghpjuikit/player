@@ -9,6 +9,7 @@ import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -105,9 +106,9 @@ public enum AudioFileFormat {
      */
     public static boolean isSupported(String url, Use use) {
         try {
-            URI uri = URI.create(url);
+            URI uri = new URI(url);
             return of(uri).isSupported(use);
-        } catch(IllegalArgumentException e) {
+        } catch(URISyntaxException e) {
             return false;
         }
     }
@@ -127,10 +128,16 @@ public enum AudioFileFormat {
      * @return 
      */
     public static AudioFileFormat of(String path) {
+        // do a quick job of it
+        for(AudioFileFormat f: values())
+            if (path.endsWith(f.name()))
+                return f;
+        // cover damaged or weird paths
         String suffix = FileUtil.getSuffix(path);
         for(AudioFileFormat f: values())
             if (suffix.equalsIgnoreCase(f.toString()))
                 return f;
+        // no match
         return UNKNOWN;
     }    
     

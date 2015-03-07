@@ -99,9 +99,8 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- library view first row sometimes incorrect clip mask, reason: bad refresh     (javaFX bug)
-- initial table scroll reveals that rows are not created yet and the scroll     (still issue? medium, javaFX bug?)
-  jumps to end of table prematurely
+- library tables rows misaligned/not updated sometimes, reason: bad refresh     (javaFX bug)
+
 
 SOLVED (but the underlying cause still deserves attention)
 - reading metadata COMMENT tag field incorrectly reads CUSTOM1 if comment       (medium)
@@ -184,11 +183,6 @@ PERFORMANCE
   it appears that the skin eats lot more of memory compared to Modena
 - Container getAll Children/Containers/Widgets improve performance
 - configs memory - for example COnfigurator widget consumes about 40MB
-- scanning files & adding to library sometimes causes massive memory overhead
-  (1,5GB for 8GB of audio files)
-  cause: unknown, possible corrupted tag, messing up jAudotagger library
-  note: happenns only for my XRay Dog album collection.
-  note: scanning slowly increases memory consumption
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------

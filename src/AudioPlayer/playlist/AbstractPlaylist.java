@@ -1,6 +1,7 @@
 
 package AudioPlayer.playlist;
 
+import AudioPlayer.tagging.ActionTask;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -11,10 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.util.Duration;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
+import util.async.Async;
 
 /**
  * Playlist handles PlaylistItem groups and provides methods for easy
@@ -600,26 +600,17 @@ abstract public class AbstractPlaylist {
         items.removeIf(PlaylistItem::updated);
         if (items.isEmpty()) return;
         
-        Task<Integer> task = new Task<Integer>() {
-            @Override protected Integer call() throws Exception {
-                for (PlaylistItem i: items) {
-                    if (this.isCancelled()) return items.indexOf(i);
+        new ActionTask<Void>("") {
+            @Override protected Void call() throws Exception {
+               for (PlaylistItem i: items) {
+                    if (this.isCancelled()) return null;
                     i.update();
                 }
-                return items.size();
+                return null;
             }
-        };
-        task.setOnSucceeded((WorkerStateEvent e) -> {
-            if (task.getValue() != 0)
-                updateDuration();
-        });
-        task.setOnFailed((WorkerStateEvent e) -> {
-            if (task.getValue() != 0)
-                updateDuration();
-        });
-        Thread th = new Thread(task);
-               th.setDaemon(true);
-               th.start();
+        }
+            .setOnDone((ok,none) -> updateDuration())
+            .run(Async::executeBgr);
     }
     /**
      * Use to completely refresh playlist.
@@ -632,23 +623,19 @@ abstract public class AbstractPlaylist {
      * impact.
      */
     public void updateItems() {
-        if (isEmpty()) return;
+         if (isEmpty()) return;
         
-        Task<Void> task = new Task<Void>() {
+         new ActionTask<Void>("") {
             @Override protected Void call() throws Exception {
-                list().forEach(PlaylistItem::update);
+               for (PlaylistItem i: list()) {
+                    if (this.isCancelled()) break;
+                    i.update();
+                }
                 return null;
             }
-        };
-        task.setOnSucceeded((WorkerStateEvent e) -> {
-            updateDuration();
-        });
-        task.setOnFailed((WorkerStateEvent e) -> {
-            updateDuration();
-        });
-        Thread th = new Thread(task);
-               th.setDaemon(true);
-               th.start();
+        }
+            .setOnDone((ok,none) -> updateDuration())
+            .run(Async::executeBgr);
     }
     
 /***************************** INTERNAL METHODS *******************************/

@@ -131,7 +131,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         else if (p == "ICONS") recreateButtons();
         
 //        updateRating(getSkinnable().rating.get());
-        runLater(()->updateRating(getSkinnable().rating.get()));
+        runLater(()-> runLater(()->updateRating(getSkinnable().rating.get())));
     }
     
     private void recreateButtons() {

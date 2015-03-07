@@ -8,6 +8,7 @@ package util.reactive;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javafx.beans.property.Property;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
 import static org.reactfx.EventStreams.valuesOf;
@@ -22,8 +23,13 @@ public class Util {
     }
     /***/
     public static<O> Subscription maintain(ObservableValue<O> o, Consumer<? super O> u) {
+        ChangeListener<O> l = (b,ov,nv) -> u.accept(nv);
         u.accept(o.getValue());
-        return valuesOf(o).subscribe(u);
+        o.addListener(l);
+        return () -> o.removeListener(l);
+        
+//        u.accept(o.getValue());
+//        return valuesOf(o).subscribe(u);
     }
     public static<O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, WritableValue<V> w) {
         w.setValue(m.apply(o.getValue()));

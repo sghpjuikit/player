@@ -15,8 +15,8 @@ import org.jaudiotagger.audio.exceptions.CannotReadException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
-import util.dev.Log;
 import static util.File.AudioFileFormat.mp3;
+import util.dev.Log;
 
 /**
  *
@@ -50,7 +50,7 @@ public abstract class MetaItem<CI extends Item> extends Item<CI> {
         try {
             return AudioFileIO.read(file);
         } catch ( CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException ex) {
-            Log.err("Reading metadata failed for file: " + file.toPath() + "."
+            Log.err(ex + " Reading metadata failed for file: " + file.toPath() + "."
                     + "Corrupt or inaccessible file or data.");
             return null;
         }

@@ -471,7 +471,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 }),
                 createmenuItem("Add items to library", e -> {
                     List<Metadata> items = m.getValue().stream()
-                            .map(Item::toMetadata)
+                            .map(Item::toMeta)
                             .collect(Collectors.toList());
                     DB.addItems(items);
                 })

@@ -133,7 +133,7 @@ final class Core {
                     set(changeType, result);
                     Log.deb("Current metadata loaded.");
                 } else {
-                    set(changeType, item.toMetadata());
+                    set(changeType, item.toMeta());
                     Log.deb("Current metadata load fail. Metadata will be not be fully formed.");
                 }
             });

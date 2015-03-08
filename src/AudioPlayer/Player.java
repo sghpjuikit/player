@@ -5,12 +5,15 @@ import AudioPlayer.Core.CurrentItem;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataReader;
 import PseudoObjects.ReadMode;
 import java.time.Duration;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.List;
+import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.beans.value.WritableValue;
 import org.reactfx.EventStream;
@@ -88,19 +91,20 @@ public class Player {
     /** Stream for selected item in library that remembers value. Value is 
     Metadata.EMPTY if null is pushed into the stream, never null. */
     public static final ValueEventSource<Metadata> librarySelectedItemES = new ValueEventSourceN(Metadata.EMPTY);
-    /** Stream for selected items in library that remembers value. The list can
-    be empty, but never null. */
-    public static final ValueEventSource<List<Metadata>> librarySelectedItemsES = new ValueEventSourceN(EMPTY_LIST);
     /** Stream for selected item in playlist that remembers value. Value is 
     Metadata.EMPTY if null is pushed into the stream, never null. */
     public static final ValueEventSource<Metadata> playlistSelectedItemES = new ValueEventSourceN(Metadata.EMPTY);
-    /** Stream for selected items in playlist that remembers value. The list can
-    be empty, but never null. */
-    public static final ValueEventSource<List<Metadata>> playlistSelectedItemsES = new ValueEventSourceN(EMPTY_LIST);
     /** Merge of playlist and library selected item streams. */
     public static final ValueStream<Metadata> selectedItemES = new ValueStream(Metadata.EMPTY, merge(librarySelectedItemES,playlistSelectedItemES));
     /** Merge of playing item and playlist and library selected item streams. */
     public static final ValueStream<Metadata> anyItemES = new ValueStream(Metadata.EMPTY, librarySelectedItemES,playlistSelectedItemES,playingtem.itemUpdatedES);
+    
+    /** Stream for selected items in library that remembers value. The list can
+    be empty, but never null. */
+    public static final ValueEventSource<List<Metadata>> librarySelectedItemsES = new ValueEventSourceN(EMPTY_LIST);
+    /** Stream for selected items in playlist that remembers value. The list can
+    be empty, but never null. */
+    public static final ValueEventSource<List<Metadata>> playlistSelectedItemsES = new ValueEventSourceN(EMPTY_LIST);
     /** Merge of playlist and library selected items streams. */
     public static final ValueStream<List<Metadata>> selectedItemsES = new ValueStream(EMPTY_LIST, merge(librarySelectedItemsES,playlistSelectedItemsES));
     public static final ValueStream<List<Metadata>> anyItemsES = new ValueStream(EMPTY_LIST, merge(librarySelectedItemsES,playlistSelectedItemsES.map(m->singletonList(m))));
@@ -110,19 +114,37 @@ public class Player {
      * the item changed.
      */
     public static void refreshItem(Item item) {
+        requireNonNull(item);
+        
 
-        // update all playlist items referring to this updated metadata
-        PlaylistManager.updateItemsOf(item);
-        
-        // update library
-        // with current in-memory collection db implementation, no need
-        
-        // reload metadata if played right now
-        if (playingtem.get().same(item))
-            playingtem.update();
-        
-        // reload selected playlist
-        if (item.same(PlaylistManager.selectedItemES.getValue()))
-            core.selectedItemToMetadata(PlaylistManager.selectedItemES.getValue());
+        MetadataReader.create(item, (success,m) -> {
+            if (success) {
+                // update all playlist items referring to this updated metadata
+                PlaylistManager.updateItemsOf(m);
+
+                // update library
+                Metadata dbm=null;
+                int i;
+                List<Metadata> db = DB.views.getValue(1);
+                for(i=0; i<db.size(); i++) {
+                    Metadata mi = db.get(i);
+                    if(mi.same(m)) {
+                        dbm = mi;
+                        break;
+                    }
+                }
+                if(dbm!=null) {
+                    db.set(i, m);
+                    DB.views.push(1, db);
+                }
+
+                // reload metadata if played right now
+                if (playingtem.get().same(m)) playingtem.update();
+
+                // refresh selection event streams
+                if(librarySelectedItemES.getValue().same(m)) librarySelectedItemES.push(m);
+                if(playlistSelectedItemES.getValue().same(m)) playlistSelectedItemES.push(m);
+            }
+        });
     }
 }

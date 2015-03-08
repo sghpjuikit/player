@@ -211,7 +211,7 @@ public class LibraryController extends FXMLController {
             if (table.isTableHeaderVisible() && e.getY()<table.getTableHeaderHeight()) return;
             if(e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2) {
-                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylistItem));
+                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylist));
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
             } else
@@ -231,7 +231,7 @@ public class LibraryController extends FXMLController {
         table.setOnKeyReleased( e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
                 if(!table.getSelectionModel().isEmpty()) {
-                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylistItem));
+                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylist));
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
             }
@@ -406,7 +406,7 @@ public class LibraryController extends FXMLController {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             m.getItems().addAll(
                 createmenuItem("Play items", e -> {                     
-                    List<PlaylistItem> to_play = listM(m.getValue(), Metadata::toPlaylistItem);
+                    List<PlaylistItem> to_play = listM(m.getValue(), Metadata::toPlaylist);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
                 }),
                 createmenuItem("Enqueue items", e -> {

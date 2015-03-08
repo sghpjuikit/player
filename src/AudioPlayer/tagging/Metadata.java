@@ -732,10 +732,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * @return the rating in 0-1 percent range */
     @MetadataFieldMethod(Field.RATING)
     public double getRatingPercent() {
-        if(ratingP==-1) ratingP = getRating()/(double)getRatingMax();
-        return ratingP;
-        
-//        return getRating()/(double)getRatingMax();
+        return getRating()/(double)getRatingMax();
+//        if(ratingP==-1) ratingP = getRating()/(double)getRatingMax();
+//        return ratingP;
     }
     
     /** @return the rating value (can for file type) or "" if empty. */

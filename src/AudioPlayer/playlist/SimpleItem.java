@@ -24,9 +24,11 @@ public class SimpleItem extends Item implements Serializable {
     public SimpleItem(URI _uri) {
         uri = _uri;
     }
+    
     public SimpleItem(File file) {
         uri = file.toURI();
     }
+    
     public SimpleItem(Item i) {
         uri = i.getURI();
     }

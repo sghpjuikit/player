@@ -199,7 +199,7 @@ abstract public class AbstractPlaylist {
         if (_at > list().size()) _at = list().size();
         
         Playlist p = new Playlist();
-        items.stream().map(Item::toPlaylistItem).forEach(p.list()::add);
+        items.stream().map(Item::toPlaylist).forEach(p.list()::add);
         
         addPlaylist(p, _at);
     }

@@ -35,10 +35,10 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
-import util.parsing.ParserImpl.ColorParser;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import util.parsing.ParserImpl.ColorParser;
 
 /**
  * 
@@ -84,6 +84,7 @@ public class MetadataWriter extends MetaItem {
     
     @Override
     public URI getURI() {
+        if(file==null) throw new IllegalStateException("Illegal getUri call. metadata writer state not initialized.");
         return file.toURI();
     }
     @Override
@@ -585,7 +586,8 @@ public class MetadataWriter extends MetaItem {
             // restore playback
             if (isPlaying) PLAYBACK.loadLastState();
             // update this item for application
-            Player.refreshItem(this);
+            // dont use self as parameter! illegal state could leak
+            Player.refreshItem(toSimple());
             
             Log.deb("Saving tag for " + getURI() + " finished successfuly.");
             MetadataWriter.this.reset();
@@ -626,8 +628,8 @@ public class MetadataWriter extends MetaItem {
     }
     
     public void reset(Item i) {
-        AudioFile f = readAudioFile(i.getFile());
         file = i.getFile();
+        AudioFile f = readAudioFile(file);
         audioFile = f;
         fields_changed = 0;
         isWriting.set(false);

@@ -3,7 +3,6 @@ package AudioPlayer.playlist;
 
 import AudioPlayer.Player;
 import AudioPlayer.services.Database.DB;
-import util.units.FileSize;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
@@ -12,11 +11,22 @@ import java.util.Comparator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
+import util.units.FileSize;
 
 /**
- * Playable item.
+ * Representation of audio resource referenced by {@link URI}.
  * <p>
- * Object maintaining URI as an audio resource.
+ * Item has two distinct identities:
+ * <li> Resource identity revolves around the underlying resource this item 
+ * represents. Implementation independent (all subclasses will work this way).
+ * Obtained by {@link #getURI()} and compared by {@link #same(AudioPlayer.playlist.Item)}
+ * <li> Object identity revolves around identity of this item as an object in
+ * the application. For example items in a playlist
+ * can have same resource identity (same song being in the playlist twice), but
+ * their object identity must differ (only one of them can be played at any time).
+ * Implementation dependent - check each subclass for specific
+ * information
+ * Represented by {@link #hashCode()} and compared by {@link #equals(java.lang.Object)}
  * 
  * @param <CT> ComparableType. Subclasses should implements their own - self.
  * 
@@ -204,26 +214,33 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
 /******************************************************************************/
     
     /**
-     * Compares URI source with other Item object's. Returns true only
-     * if their respective URIs equal.
-     * @param source
+     * Compares the items' referenced file identities using {@link #getURI()}
+     * Returns true only if the respective URIs are equal.
+     * <pre>
+     * Equivalent to:
+     *      return i!= null && getURI().equals(i.getURI());
+     * </pre>
+     *
+     * @param i the other item
      * @return true if and only if the URIs of the items equal
      */
-    public boolean same(Item source) {
-        return source != null && getURI().equals(source.getURI());
+    public final boolean same(Item i) {
+        return i!= null && getURI().equals(i.getURI());
     }
     
     /**
-     * Compares URI source with other URI. Returns true only if URIs equal.
+     * Compares resource identity with other URI. Returns true only if URIs are equal.
+     * 
      * <pre>
-     * More formally, the implementation is exactly:
+     * Equivalent to:
      *      return getURI().equals(source);
      * </pre>
-     * @param source
+     *
+     * @param r resource
      * @return true if and only if the provided uri equals to that of the item
      */
-    public boolean same(URI source) {
-        return getURI().equals(source);
+    public final boolean same(URI r) {
+        return getURI().equals(r);
     }
 /******************************************************************************/
     
@@ -244,8 +261,23 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * 
      * @return metadata that tests true for {@link #same()} with this item.
      */
-    public Metadata toMetadata() {
+    public Metadata toMeta() {
         return new Metadata(this);
+    }
+    
+    /**
+     * Converts this item to {@link SimpleItem} - an {@link Item} wrapper
+     * for {@link URI}.
+     * <p>
+     * Use when using this item is not desirable (e.g. due to memory or possible illegal
+     * state in the future) and only the resource identity needs to be
+     * preserved.
+     * 
+     * @return simple item representation retaining of this item retaining the 
+     * identity.
+     */
+    public final SimpleItem toSimple() {
+        return new SimpleItem(getFile());
     }
     
     /**
@@ -253,12 +285,10 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * <p>
      * Subclases that contain values for fields contained in PlaylistItem should
      * override this method.
-     * <p>
-     * Default implementation is equivalent to: new PlaylistItem(getURI())
      * 
      * @return playlistItem that tests true for {@link #same()} with this item.
      */
-    public PlaylistItem toPlaylistItem() {
+    public PlaylistItem toPlaylist() {
          return new PlaylistItem(getURI());
     }
     
@@ -275,7 +305,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * <p>
      * Item will be read for metadata. This includes I/O operation.
      * <p>
-     * If the reading fails, the item will be converted using {@link #toMetadata()}.
+     * If the reading fails, the item will be converted using {@link #toMeta()}.
      * <p>
      * If the item is corrupt and the previous methods fail (it is possible the 
      * cache or library still contains the item) EMPRTY metadata will be returned.

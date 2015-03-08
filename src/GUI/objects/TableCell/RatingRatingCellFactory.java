@@ -7,7 +7,6 @@ package GUI.objects.TableCell;
 
 import AudioPlayer.tagging.Metadata;
 import GUI.objects.Rater.Rating;
-import static javafx.application.Platform.runLater;
 import javafx.geometry.Pos;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.control.TableCell;
@@ -40,11 +39,7 @@ public class RatingRatingCellFactory implements RatingCellFactory {
                     setGraphic(null);
                 } else {
                     if(getGraphic()==null) setGraphic(r);
-                    // when rating is 1 (100%) cells wont get updated
-                    // really bad workaround but the only that works for now
-                    runLater(() -> runLater(() -> r.rating.set(item)));
-                    // the normal approach
-                    // r.setRatingP(item);
+                    r.rating.set(item);
                 }
             }
         };

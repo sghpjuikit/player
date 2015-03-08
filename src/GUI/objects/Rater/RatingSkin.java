@@ -47,7 +47,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import static util.Util.clip;
-import util.async.Async;
 import util.graphics.Icons;
 
 /**
@@ -68,7 +67,6 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     // clip mask
     private Rectangle forgroundClipRect;
     
-    private double rating = 0;
     private double old_rating;
     
     private final EventHandler<MouseEvent> mouseMoveHandler = e -> {
@@ -76,8 +74,8 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         if (!getSkinnable().updateOnHover.get() || !getSkinnable().isEditable())
             return;
         
-        double newRating = calculateRating(e.getSceneX(), e.getSceneY());
-        updateRating(newRating);
+        double v = calculateRating(e.getSceneX(), e.getSceneY());
+        updateRating(v);
     };
     
     private final EventHandler<MouseEvent> mouseClickHandler = e-> {
@@ -85,13 +83,13 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         if (!getSkinnable().isEditable() || e.getButton()==SECONDARY) 
             return;
         
-        double newRating = calculateRating(e.getSceneX(), e.getSceneY());
-        updateRating(newRating);
-        old_rating = newRating;
+        double v = calculateRating(e.getSceneX(), e.getSceneY());
+        updateRating(v);
+        old_rating = v;
         
         // fire rating changed event
         if (getSkinnable().ratingChanged != null)
-            getSkinnable().ratingChanged.accept(newRating);
+            getSkinnable().ratingChanged.accept(v);
     };
     
 
@@ -99,11 +97,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     public RatingSkin(Rating control) {
         super(control, new RatingBehavior(control));
         
-        // init
         recreateButtons();
-        runLater(()->runLater(()->recreateButtons()));
-        updateRating(getSkinnable().rating.get());
-        Async.run(200,this::recreateButtons);
         
         registerChangeListener(control.rating, "RATING");
         registerChangeListener(control.icons, "ICONS");
@@ -127,11 +121,10 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     protected void handleControlPropertyChanged(String p) {
         super.handleControlPropertyChanged(p);
         
-        if (p == "RATING" || p == "PARTIAL_RATING" || p == "UPDATE_ON_HOVER") ;
-        else if (p == "ICONS") recreateButtons();
-        
-//        updateRating(getSkinnable().rating.get());
-        runLater(()-> runLater(()->updateRating(getSkinnable().rating.get())));
+        if (p == "RATING" || p == "PARTIAL_RATING" || p == "UPDATE_ON_HOVER") 
+            updateRating(getSkinnable().rating.get());
+        else if (p == "ICONS")
+            recreateButtons();
     }
     
     private void recreateButtons() {
@@ -150,6 +143,8 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         f.setMouseTransparent(true);
         foregroundContainer.getChildren().add(f);
         backgroundContainer.getChildren().add(b);
+        
+        updateRating(getSkinnable().rating.get());
     }
     
     // returns rating based on scene relative mouse position
@@ -172,29 +167,25 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     }
     
     // sets rating to thespecfied one and updates both skin & skinnable
-    public final void updateRating(double newRating) {
-        // prevents recursive call, updating skinnable would eventually invoke this method again
-        if (rating == newRating) return;
-        
-        // set value
-        rating = newRating;
-        getSkinnable().rating.set(newRating);
-        updateClip();
+    private void updateRating(double v) {
+        // wont update sometimes without runlater
+        runLater(()->updateClip(v));
+        updateClip(v);
     }
     
     // updates the skin to the current values
-    private void updateClip() {
-        final Rating control = getSkinnable();
+    private void updateClip(double v) {
+        final Rating s =  getSkinnable();
         
-        double w = control.getWidth() - (snappedLeftInset() + snappedRightInset());
-        double x = w*rating;
+        double w = s.getWidth() - (snappedLeftInset() + snappedRightInset());
+        double x = w*v;
         
         forgroundClipRect.setWidth(x);
-        forgroundClipRect.setHeight(control.getHeight());
+        forgroundClipRect.setHeight(s.getHeight());
         
-        boolean is1 = rating==1;
+        boolean is1 = v==1;
         foregroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(max,is1));
-        boolean is0 = rating==0;
+        boolean is0 = v==0;
         backgroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(min,is0));
     }
         

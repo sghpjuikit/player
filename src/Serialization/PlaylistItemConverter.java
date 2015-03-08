@@ -32,8 +32,11 @@ public class PlaylistItemConverter implements Converter {
         writer.startNode("time");
         writer.setValue(String.valueOf(item.getTime().toMillis()));
         writer.endNode();
-        writer.startNode("name");
-        writer.setValue(item.getName());
+        writer.startNode("artist");
+        writer.setValue(item.getArtist());
+        writer.endNode();
+        writer.startNode("title");
+        writer.setValue(item.getTitle());
         writer.endNode();
     }
 
@@ -46,8 +49,11 @@ public class PlaylistItemConverter implements Converter {
         double time = Double.parseDouble(reader.getValue());
         reader.moveUp();
         reader.moveDown();
-        String name = reader.getValue();
+        String artist = reader.getValue();
         reader.moveUp();
-        return new PlaylistItem(uri, name, time);
+        reader.moveDown();
+        String title = reader.getValue();
+        reader.moveUp();
+        return new PlaylistItem(uri, artist, title, time);
     }
 }

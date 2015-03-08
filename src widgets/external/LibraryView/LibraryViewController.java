@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static javafx.application.Platform.runLater;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.Event;
@@ -61,6 +62,7 @@ import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
 import util.collections.Histogram;
+import util.collections.ListCacheMap;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
 import util.functional.Runner;
@@ -105,6 +107,7 @@ public class LibraryViewController extends FXMLController {
     private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
     Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
+    private ListCacheMap<Metadata,Object> cache = null;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -149,7 +152,12 @@ public class LibraryViewController extends FXMLController {
         table.setUserData(v);
     });
     @IsConfig(name = "Field")
-    public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<Metadata.Field>(CATEGORY, v -> {
+    public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, v -> {
+            // rebuild cache
+            if(cache!=null) {
+                cache.clear();
+                cache.keyMapper = m -> m.getField(v);
+            }
             // rebuild value column
             find(table.getColumns(), c -> VALUE == c.getUserData()).ifPresent(c -> {
                 TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE.toString());
@@ -229,8 +237,18 @@ public class LibraryViewController extends FXMLController {
         });
         
         // send selection changed events, do not use InvalidationListener
+        
+//        EventSource<Void> ses = new EventSource<>();
+//        table.getSelectionModel().getSelectedItems().addListener((Observable o) -> ses.push(null));
+//        ses.successionEnds(Duration.ofMillis(100)).subscribe(a -> forwardItems(DB.views.getValue(lvl.getValue())));
+        
+//        table.getSelectionModel().getSelectedItems().addListener(
+//                (Observable o) -> forwardItems(DB.views.getValue(lvl.getValue())));
+        
         table.getSelectionModel().getSelectedItems().addListener(
-                (Observable o) -> forwardItems(DB.views.getValue(lvl.getValue())));
+                (Observable o) -> runLater(()->forwardItems(DB.views.getValue(lvl.getValue()))));
+        
+        
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
@@ -321,12 +339,48 @@ public class LibraryViewController extends FXMLController {
     }
     
     private List<Metadata> filerList(List<Metadata> list) {
+        // use cache if needed
+        boolean needed = lvl.getValue()==1 && list.size()>5000;
+        if(lvl.getValue()==1) System.out.println("need " + needed);
+        // build cache if not yet
+        if(needed && cache==null) {System.out.println("building cache");
+            cache = new ListCacheMap<>(m -> m.getField(fieldFilter.getValue()));
+        }
+        // get rid of cache if not needed
+        if(!needed && cache!= null) {System.out.println("disposing cache");
+            cache.clear();
+            cache = null;
+        }
+        // accumulate cache if not yet
+        if(needed && cache.isEmpty()) {System.out.println("accumulating cache");
+            cache.accumulate(list);
+        }
+        
+        if(needed) {System.out.println("returning cached");
+            List<MetadataGroup> mgs = table.getSelectionModel().isEmpty() ? table.getItems() : table.getSelectedItems();
+            List keys = listM(mgs,mg->mg.getValue());
+            return cache.getElementsOf(keys);
+        }
+        
+        
+        // build filter
         List<MetadataGroup> mgs = table.getSelectionModel().isEmpty() ? table.getItems() : table.getSelectedItems();
-        Predicate<Metadata> p = mgs.stream().parallel()
-                .map(MetadataGroup::toMetadataPredicate)
-                .reduce(Predicate::or)
-                .orElse(isFALSE);
-        return list.stream().filter(p).collect(toList());
+            // composed predicate, too much wasteful computation...
+            // Predicate<Metadata> p = mgs.parallelStream()
+            //        .map(MetadataGroup::toMetadataPredicate)
+            //        .reduce(Predicate::or)
+            //        .orElse(isFALSE);
+        
+            // optimisation : compute values ONCE if doable
+        Field f = fieldFilter.getValue();
+        List l = listM(mgs,mg->mg.getValue());
+        // optimisation : dont use equals for primitive types
+        boolean primitive = f.getType().isPrimitive();
+        Predicate<Metadata> p = primitive ? m -> isInR(m.getField(f), l) 
+                                          : m -> isIn(m.getField(f), l);
+        // filter
+        // optimisation 3: use parallel stream
+        return list.parallelStream().filter(p).collect(toList());
     }
     
 /******************************** CONTEXT MENU ********************************/
@@ -348,7 +402,7 @@ public class LibraryViewController extends FXMLController {
     private static void play(List<Metadata> items) {
         if(items.isEmpty()) return;
         Playlist p = new Playlist();
-        items.stream().sorted().map(Metadata::toPlaylistItem).forEach(p::addItem);
+        items.stream().sorted().map(Metadata::toPlaylist).forEach(p::addItem);
         PlaylistManager.playPlaylist(p);
     }
     

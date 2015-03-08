@@ -52,7 +52,7 @@ public class Playlist extends AbstractPlaylist {
       * Corrupted items will be added as well.*/
     public Playlist (Item i) {
         items = new ArrayList();
-        items.add(i.toPlaylistItem());
+        items.add(i.toPlaylist());
     }
     
     /** Wraps provided file into playlist. Corrupted items will be added as well.*/

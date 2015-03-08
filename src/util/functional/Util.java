@@ -38,10 +38,50 @@ public class Util {
     
     /** Predicate returning false.*/
     public static final Predicate isFALSE = o -> false;
-    
+    /**  */
     public static <E> boolean isIn(E o, E... es) {
-        return Stream.of(es).anyMatch(e -> o.equals(e));
+//        return Stream.of(es).anyMatch(e -> o.equals(e));
+        for(E e : es)
+            if(o.equals(e))
+                return true;
+        return false;
     }
+    public static <E> boolean isIn(E o, Collection<E> es) {
+//        return es.stream().anyMatch(e -> o.equals(e));
+        for(E e : es)
+            if(o.equals(e))
+                return true;
+        return false;
+    }
+    public static <E> boolean isInR(E o, E... es) {
+        for(E e : es)
+            if(o == e)
+                return true;
+        return false;
+    }
+    public static <E> boolean isInR(E o, Collection<E> es) {
+        for(E e : es)
+            if(o == e)
+                return true;
+        return false;
+    }
+    public static <E> boolean isAll(E o, Predicate<E>... ps) {
+        boolean b = true;
+        for(Predicate<E> p : ps)
+            b &= p.test(o);
+        return b;
+    }
+    public static <E> boolean isAny(E o, Predicate<E>... ps) {
+        boolean b = false;
+        for(Predicate<E> p : ps)
+            b |= p.test(o);
+        return b;
+    }
+    public static <E> boolean isNone(E o, Predicate<E>... ps) {
+        return !isAll(o, ps);
+    }
+    
+   
     
     /** Runnable that does nothing.  () -> {}; */
     public static final Runnable do_NOTHING = () -> {};

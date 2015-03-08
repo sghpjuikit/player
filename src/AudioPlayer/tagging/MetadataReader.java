@@ -14,10 +14,10 @@ import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
-import util.dev.Log;
 import util.File.AudioFileFormat.Use;
 import static util.async.Async.run;
 import static util.async.Async.runOnFX;
+import util.dev.Log;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -123,7 +123,7 @@ public class MetadataReader{
         // handle normal item
         else {
             afile = MetaItem.readAudioFile(item.getFile());
-            return (afile == null) ? item.toMetadata() : new Metadata(afile);
+            return (afile == null) ? item.toMeta() : new Metadata(afile);
         }
     }
     
@@ -185,14 +185,12 @@ public class MetadataReader{
 //                System.out.println(s + " " + o);
 //            });
             
-//            String name = m.getSource();  // this simply returns the URI which we already have
-            String name = item.getInitialName();    // for now initial name is the best we can do
-            double time = m.getDuration().toMillis();   //System.out.println("time "+time);
-            // make a playlistItem and covert to metadata
-            return new PlaylistItem(item.getURI(), name, time).toMetadata();
+            // make a playlistItem and covert to metadata //why? // not 100%sure...
+            // because PlaylistItem has advanced update() method? // probably
+            return new PlaylistItem(item.getURI(), "", "", m.getDuration().toMillis()).toMeta();
         } catch (IllegalArgumentException | UnsupportedOperationException e){
             Log.err("Error during creating metadata for non file based item: " + item);
-            return item.toMetadata();
+            return item.toMeta();
         }
     }
 

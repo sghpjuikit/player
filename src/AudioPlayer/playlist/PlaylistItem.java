@@ -5,7 +5,6 @@
  */
 package AudioPlayer.playlist;
 
-import util.units.FormattedDuration;
 import AudioPlayer.tagging.Metadata;
 import java.io.IOException;
 import java.net.URI;
@@ -23,7 +22,6 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import util.dev.Log;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import static util.File.AudioFileFormat.Use.APP;
@@ -32,6 +30,8 @@ import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import util.dev.Log;
+import util.units.FormattedDuration;
 
 /**
  * Defines item in playlist.
@@ -66,6 +66,8 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     private final SimpleObjectProperty<FormattedDuration> time;
     /** Consists of item's artist and title separated by separator string. */
     private final SimpleStringProperty name;
+    private String artist;
+    private String title;
     private boolean updated = false;
     boolean corrupted = false;
     
@@ -94,9 +96,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * @param new_name
      * @param length of the item in miliseconds.
      */
-    public PlaylistItem(URI new_uri, String new_name, double _length) {
+    public PlaylistItem(URI new_uri, String art, String titl, double _length) {
         uri = new SimpleObjectProperty<>(new_uri);
-        name = new SimpleStringProperty(new_name);
+        name = new SimpleStringProperty();
+        setATN(art, titl);
         time = new SimpleObjectProperty<>(new FormattedDuration(_length));
         updated = true;
     }
@@ -132,9 +135,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * wasnt updated yet. Never null.
      */
     public String getArtist() {
-        String s = name.get();
-        int i = s.indexOf(" - ");
-        return i==-1 ? "" : s.substring(0, i);
+        return artist==null ? "" : artist;
     }
     
     /**
@@ -142,9 +143,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * wasnt updated yet. Never null.
      */
     public String getTitle() {
-        String s = name.get();
-        int i = s.indexOf(" - ");
-        return i==-1 ? s : s.substring(i+3);
+        return title==null ? "" : title;
     }
     
     /** @return the time. ZERO if item wasnt updated yet. Never null. */
@@ -180,23 +179,18 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
             // update as file based item
             try {
                 // read tag for data
-                AudioFile f;
-                f = AudioFileIO.read(getFile());
+                AudioFile f = AudioFileIO.read(getFile());
                 Tag t = f.getTag();
                 AudioHeader h = f.getAudioHeader();
 
                 // get values
-                String artist = t.getFirst(FieldKey.ARTIST);
-                String title = t.getFirst(FieldKey.TITLE);
-                if (title.isEmpty())
-                    title = FileUtil.getName(getURI());
-                String _name = artist + " - " + title;
-
-                double _length = 1000 * h.getTrackLength();
-
+                double length = 1000 * h.getTrackLength();
+                artist = t.getFirst(FieldKey.ARTIST);
+                title = t.getFirst(FieldKey.TITLE);
+                setATN(artist, title);
                 // set values
-                name.set(_name);
-                time.set(new FormattedDuration(_length));
+                
+                time.set(new FormattedDuration(length));
                 updated = true;
             } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException ex) {
                 Log.err("Playlist item update failed.\n"+getURI());
@@ -205,13 +199,23 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
             // update as web based item
             try{
                 Media m = new Media(getURI().toString());
-                name.set(getInitialName());
+                setATN("", "");
                 time.set(new FormattedDuration(m.getDuration().toMillis()));
             } catch (IllegalArgumentException | NullPointerException | UnsupportedOperationException e) {
                 corrupted = true;   // mark as corrupted on error 
             }
         }
     }
+    
+    private void setATN(String art, String titl) {
+        artist = art;
+        title = titl.isEmpty() ? FileUtil.getName(getURI()) : titl;
+        if(artist.isEmpty() && title.isEmpty())
+            name.set(getInitialName());
+        else
+            name.set(artist.isEmpty() ? title : artist + " - " + title);
+    }
+    
     /**
      * Returns true if the item was marked updated. Once item is updated it will
      * stay in that state. Updated item guarantees that all its values are
@@ -266,8 +270,8 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * @return 
      */
     @Override
-    public Metadata toMetadata() {
-        return super.toMetadata();
+    public Metadata toMeta() {
+        return super.toMeta();
     }
     
     /** 
@@ -276,7 +280,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * This implementation returns this object.
      */
     @Override
-    public PlaylistItem toPlaylistItem() {
+    public PlaylistItem toPlaylist() {
         return this;
     }
     
@@ -333,10 +337,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * @return clone of the item or null if parameter null.
      */
     public PlaylistItem clone() {
-        URI _uri = getURI();
-        String _name = getName();
-        double _length = getTime().toMillis();
-        PlaylistItem i = new PlaylistItem(_uri, _name, _length);
+        PlaylistItem i = new PlaylistItem(getURI(), getArtist(), getTitle(), getTime().toMillis());
                      i.updated = updated; // also clone updated state
                      i.corrupted = corrupted; // also clone corrupted state
         return i;

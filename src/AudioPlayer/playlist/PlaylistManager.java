@@ -109,7 +109,6 @@ public class PlaylistManager implements Configurable {
      * @return true if item is played.
      */
     public static boolean isSameItemPlaying(Item item) {
-        Objects.requireNonNull(item);
         return item.same(getPlayingItem());
     }
     /**

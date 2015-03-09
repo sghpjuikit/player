@@ -652,6 +652,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     }
     
     private void loadCover() {
+        if(cover!=null || cover_loaded) return;
+        cover_loaded = true;
         Tag tag = isFileBased() ? readAudioFile(getFile()).getTag() : null;
         if(tag==null) {
             Log.warn("Tag unsupported in item being read: " + getURI());
@@ -672,6 +674,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             return new ImageCover((Image)null, getCoverInfo());
         }
     }
+    
+    @Transient
+    private boolean cover_loaded = false;
     
     @MetadataFieldMethod(Field.COVER_INFO)
     private String getCoverInfo() {

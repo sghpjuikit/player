@@ -2,16 +2,20 @@
 --------------------------------------------------------------------------------
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
-- rating class clean up
+
+- library add & edit doesnt add ? investigate, fix
+- library edit on add by drag&drop boolean config
+- tagger cover loading optimize
+- library remove + add + etc...
+- library refresh after tagging
+
 - annotation for name of plugin objects
 - plugin discovery/load
-- implement colr skin change + use song color, using setStyle on main color
 - library view save selection
 - library view play items use same order as library column sort order
 
 - Player contorls  nullpointer when nothing plays on init()
 - seeker nullpointer when quickly invoking next item
-- refresh item + tagging clean up reimplement properly
 - remove selected items monitoring for tagger
 - use action pane on widgets
 
@@ -157,7 +161,8 @@ PROBLEMS
 CLEANUP
 - Serializator and serialization
 - window manager
-- window color overlay effect
+- window color overlay effect, colr skin change + use song color
+  using setStyle on main color
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them
@@ -188,14 +193,8 @@ PERFORMANCE
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
 --------------------------------------------------------------------------------
 
-- when operating with playlist, the items must not be cloned or copied in a way
-  that creates new item instance. Playlist's behavior is applicable on the
-  very instances of the items it contains. Methods such as removeItems(items) or
-  isPlaying() will not work for items not contained in the playlist correctly, 
-  nor for copies or clones of items in the playlist.
-  Even two different playlist tables withing GUI, (in case they are linked to one
-  playlist) share the same playlist item object instances. Keep that in mind.
-- playlist table row height is fixed for now
+
+- table row heights are fixed
 - scrollbar width should be 15px. Or table resize (and more) might break.
 - instead of javafx.scene.text.Text use Text class provided by the project. It
   is exactly the same but provides css styleclass and support for skinning. Also
@@ -217,10 +216,6 @@ PERFORMANCE
   Also: try to set the correct TransferMode (COPY | MOVE | ANY) to indicate
   transfer (both accepting and firing event)
   Also: always use setCompleted(true) when drag drops and is handled
-- always consume event by calling consume() if it was handled.
-  For example if we handle only left button mouse clicks, do not consume also
-  right button clicks, instead let them propagate below. Goes for drag events
-  as well.
 - when showing ContextMenu, there is a big difference between show(Window,x,y)
   and (Node,x,y). The former will not hide the menu when next click happens
   within the node itself!

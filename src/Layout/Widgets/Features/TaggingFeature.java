@@ -2,7 +2,7 @@
 package Layout.Widgets.Features;
 
 import AudioPlayer.playlist.Item;
-import java.util.Collections;
+import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,7 +27,7 @@ public interface TaggingFeature extends Feature {
      */    
     public default void read(Item item) {
         Objects.requireNonNull(item);
-        read(Collections.singletonList(item));
+        read(singletonList(item));
     };
     
     /**

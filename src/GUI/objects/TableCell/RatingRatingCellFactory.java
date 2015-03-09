@@ -6,6 +6,7 @@
 package GUI.objects.TableCell;
 
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.Rater.Rating;
 import javafx.geometry.Pos;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
@@ -21,7 +22,7 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 public class RatingRatingCellFactory implements RatingCellFactory {
 
     @Override
-    public TableCell<Metadata, Double> call(TableColumn<Metadata, Double> param) {
+    public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> c) {
         return new TableCell<Metadata,Double>(){
             Rating r = new Rating(App.maxRating.get(), 0);
             {
@@ -31,6 +32,9 @@ public class RatingRatingCellFactory implements RatingCellFactory {
                 r.partialRating.bind(App.partialRating);
                 r.updateOnHover.bind(App.hoverRating);
                 r.editable.bind(App.allowRatingChange);
+                if(c.getUserData().equals(Metadata.Field.RATING)) {
+                    r.setOnRatingChanged(rv -> MetadataWriter.useToRate(c.getTableView().getItems().get(getIndex()), rv));
+                }
             }
             @Override
             protected void updateItem(Double item, boolean empty) {
@@ -44,5 +48,5 @@ public class RatingRatingCellFactory implements RatingCellFactory {
             }
         };
     }
-
+    
 }

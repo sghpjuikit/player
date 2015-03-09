@@ -12,7 +12,16 @@ import java.util.function.Consumer;
  *
  * @author Plutonium_
  */
-public interface ApplicableValue<T> extends AccessibleValue<T> {
+public interface ApplicableValue<V> extends AccessibleValue<V> {
+
+    
+    /**
+     * Applies contained value using the applier.
+     * Equivalent to {@code applyValue(getValue()); }.
+     */
+    public default void applyValue() {
+        applyValue(getValue());
+    }
     
     /**
      * Similar to {@link #applyValue()}, but instead of value of this accessor,
@@ -28,21 +37,13 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
      * 
      * @param val 
      */
-    public void applyValue(T val);
-    
-    /**
-     * Applies contained value using the applier.
-     * Equivalent to {@code applyValue(getValue()); }.
-     */
-    public default void applyValue() {
-        applyValue(getValue());
-    }
+    public void applyValue(V val);
     
     /**
      * Applies contained value using provided applier. 
      * Equivalent to calling {@code applier.accept(getValue()); }.
      */
-    public default void setNapplyValue(Consumer<T> applier) {
+    public default void applyValue(Consumer<V> applier) {
         applier.accept(getValue());
     }
     
@@ -50,9 +51,12 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
      * Sets value and applies using the applier.
      * Equivalent to {@code setValue(val); applyValue(); }.
      */
-    public default void setNapplyValue(T val) {
-        setValue(val);
-        applyValue();
+    public default void setNapplyValue(V v) {
+        V cv = getValue();
+        if(!cv.equals(v)) {
+            setValue(v);
+            applyValue(v);
+        }
     }
     
     /**
@@ -60,24 +64,21 @@ public interface ApplicableValue<T> extends AccessibleValue<T> {
      * subsequently.
      */
     public default void setNextNapplyValue() {
-        setNextValue();
-        applyValue();
+        setNapplyValue(next());
     }
     /**
      * Equivalent to calling {@link #setPreviousValue()} and then {@link #applyValue()}
      * subsequently.
      */
     public default void setPreviousNapplyValue() {
-        setPreviousValue();
-        applyValue();
+        setNapplyValue(previous());
     }
     /**
      * Equivalent to calling {@link #setCycledValue())} and then {@link #applyValue()}
      * subsequently.
      */
     public default void setCycledNapplyValue() {
-        setCycledValue();
-        applyValue();
+        setNapplyValue(cycle());
     }
     
     

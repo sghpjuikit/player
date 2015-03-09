@@ -25,7 +25,7 @@ public class TextStarRatingCellFactory implements RatingCellFactory {
     private static final String s5 = "*****";
 
     @Override
-    public TableCell<Metadata, Double> call(TableColumn<Metadata, Double> param) {
+    public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> param) {
         return new TableCell<Metadata,Double>(){
             {
                 setAlignment(Pos.CENTER);

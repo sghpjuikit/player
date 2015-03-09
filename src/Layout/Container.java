@@ -301,7 +301,7 @@ public abstract class Container extends Component implements AltState {
                 .filter(isNotNULL)
                 .forEach(c->c.close());
         
-        if (!isRoot()) {
+        if (parent!=null) {
             // remove from layout graph
             parent.removeChild(this);
             // remove from scene graph if attached to it

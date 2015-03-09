@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javafx.application.Platform;
+import static javafx.application.Platform.runLater;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -174,10 +175,11 @@ public class FileInfoController extends FXMLController {
     @Override
     public void init() {        
         // initialize gui
-        Thumbnail thumb = new Thumbnail();
-                  thumb.setBorderToImage(true);
+        Thumbnail cover = new Thumbnail();
+                  cover.setBackgroundVisible(false);
+                  cover.setBorderToImage(true);
                   
-        layout = new ImageFlowPane(entireArea, thumb);
+        layout = new ImageFlowPane(entireArea, cover);
         layout.setMinContentWidth(200);
         layout.setMinContentHeight(120);
         layout.setGap(5);
@@ -215,7 +217,7 @@ public class FileInfoController extends FXMLController {
         rater.visibleProperty().bind(rating.disabledProperty().not());
         
         // show/hide content on cover mouse click
-        thumb.getPane().setOnMouseClicked( e -> {
+        cover.getPane().setOnMouseClicked( e -> {
             if (e.getButton() == PRIMARY) {
                 layout.toggleShowContent();
                 showFields.setValue(layout.isShowContent());
@@ -308,7 +310,9 @@ public class FileInfoController extends FXMLController {
             actPane.description.setText("left click: " + readMode.getValue().toString() + " -> " + readMode.next().toString() + "\n" +
                                         "right click: " + readMode.getValue().toString() + " -> " + readMode.previous().toString());
         });
-
+        
+        // needs run later to properly initialize
+        runLater(()->resize(entireArea.getWidth(), entireArea.getHeight()));
     }
     
     ActionChooser actPane;

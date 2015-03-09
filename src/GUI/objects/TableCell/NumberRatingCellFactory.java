@@ -18,7 +18,7 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
 public class NumberRatingCellFactory implements RatingCellFactory {
 
     @Override
-    public TableCell<Metadata, Double> call(TableColumn<Metadata, Double> param) {
+    public TableCell<Metadata, Double> apply(TableColumn<Metadata, Double> param) {
         return new TableCell<Metadata,Double>(){
                     {
                         setAlignment(Pos.CENTER_RIGHT);

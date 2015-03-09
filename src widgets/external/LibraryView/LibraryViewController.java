@@ -122,7 +122,7 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
-    @IsConfig(name = "Library level", info = "")
+    @IsConfig(name = "Library level", info = "", min=1, max = 8)
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         // maintain info text
         lvlB.setText(v.toString());
@@ -200,7 +200,7 @@ public class LibraryViewController extends FXMLController {
             c.setCellFactory(mgf==AVG_RATING 
                 ? (Callback) App.ratingCell.getValue()
                 : mgf==W_RATING ? (Callback)new NumberRatingCellFactory()
-                : DEFAULT_ALIGNED_CELL_FACTORY(mgf.getType(mf), no_val));
+                : cellFactoryAligned(mgf.getType(mf), no_val));
             c.setUserData(mgf);
             return c;
         });
@@ -415,12 +415,10 @@ public class LibraryViewController extends FXMLController {
     {
         lvlB.setContentDisplay(CENTER);
         lvlB.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY) {  
-                lvl.setNapplyValue(lvl.getValue()+1);
-            }
-            if(e.getButton()==SECONDARY) {  
-                lvl.setNapplyValue(lvl.getValue()-1);
-            }
+            if(e.getButton()==PRIMARY)
+                lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));
+            if(e.getButton()==SECONDARY)
+                lvl.setNapplyValue(clip(1,lvl.getValue()-1,8));
             e.consume();
         });
     }

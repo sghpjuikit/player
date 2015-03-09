@@ -49,13 +49,11 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import javafx.scene.input.ContextMenuEvent;
-import javafx.scene.input.Dragboard;
+import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
-import javafx.scene.input.TransferMode;
 import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -79,6 +77,7 @@ import util.async.FxTimer;
 import util.functional.Runner;
 import static util.functional.Util.list;
 import static util.functional.Util.listM;
+import util.functional.functor.FunctionC;
 import util.graphics.Icons;
 import util.units.FormattedDuration;
 
@@ -143,8 +142,8 @@ public class LibraryController extends FXMLController {
     public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
-    @IsConfig(name = "Library level", info = "")
-    public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
+    @IsConfig(name = "Library level", info = "", min = 1, max = 8)
+    public final Accessor<Integer> lvl = new Accessor<Integer>(DB.views.getLastLvl()+1, v -> {
         // maintain info text
         lvlB.setText(v.toString());
         if(d1!=null) d1.unsubscribe();
@@ -156,6 +155,7 @@ public class LibraryController extends FXMLController {
     
     @IsConfig(editable = false)
     private File last_file = new File("");
+    
     
     @Override
     public void init() {
@@ -169,25 +169,13 @@ public class LibraryController extends FXMLController {
         });
         table.setColumnFactory( f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
-            c.setCellValueFactory( f==RATING 
-                ? cf -> {
-                        if(cf.getValue()==null) return null;
-                        String s = cf.getValue().getRatingPercentAsString();
-                        if(s.length()>4) s = s.substring(0,4);
-                        return new ReadOnlyObjectWrapper(s);
-                    }
-                : cf -> {
-                        if(cf.getValue()==null) return null;
-                        return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
-                    }
-            );
-            c.setCellValueFactory(cf -> {
-                        if(cf.getValue()==null) return null;
-                        return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
-                    });
+            c.setCellValueFactory( cf -> {
+                if(cf.getValue()==null) return null;
+                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
+            });
             c.setCellFactory(f==RATING
-                ? (Callback)App.ratingCell.getValue()
-                : DEFAULT_ALIGNED_CELL_FACTORY(f.getType(), ""));
+                ? (FunctionC) App.ratingCell.getValue()
+                : cellFactoryAligned(f.getType(), ""));
             c.setUserData(f);
             if(f==Metadata.Field.TRACK || f==Metadata.Field.DISC || 
                f==Metadata.Field.TRACKS_TOTAL || f==Metadata.Field.DISCS_TOTAL) {
@@ -200,6 +188,7 @@ public class LibraryController extends FXMLController {
             }
             return c;
         });
+        
         // maintain rating column cell style
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         columnInfo = table.getDefaultColumnInfo();
@@ -241,20 +230,29 @@ public class LibraryController extends FXMLController {
                 table.getSelectionModel().clearSelection();
         });
         
-        // handle drag from - copy selected items
-        table.setOnDragDetected( e -> {
-            if (e.getButton() == PRIMARY && e.getY()>table.getFixedCellSize()) {
-                Dragboard db = table.startDragAndDrop(TransferMode.COPY);
+
+        // drag&drop from table
+        table.setOnDragDetected(e -> {
+            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
+                    && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
+                Dragboard db = table.startDragAndDrop(COPY); // table==source
                 DragUtil.setItemList(table.getSelectedItemsCopy(),db);
+            }
+            e.consume();
+        });
+        // drag&drop to table
+        table.setOnDragOver(e -> {
+            if(e.getSource()!=table) {
+                e.acceptTransferModes(COPY);
                 e.consume();
             }
         });
-        table.setOnDragOver(e -> {
-            e.acceptTransferModes(COPY);
-            e.consume();
+        table.setOnDragDropped(e-> {
+            if(e.getSource()!=table) {
+                addNeditDo(DragUtil.getAudioItems(e).stream().map(Item::getFile),false);
+                e.consume();
+            }
         });
-//        table.setOnDragOver(DragUtil.audioDragAccepthandler);
-        table.setOnDragDropped(e-> addNeditDo(DragUtil.getAudioItems(e).stream().map(Item::getFile),false));
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
@@ -439,12 +437,10 @@ public class LibraryController extends FXMLController {
     {
         lvlB.setContentDisplay(CENTER);
         lvlB.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY) {  
-                lvl.setNapplyValue(lvl.getValue()+1);
-            }
-            if(e.getButton()==SECONDARY) {  
-                lvl.setNapplyValue(lvl.getValue()-1);
-            }
+            if(e.getButton()==PRIMARY)
+                lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));
+            if(e.getButton()==SECONDARY)
+                lvl.setNapplyValue(clip(1,lvl.getValue()-1,8));
             e.consume();
         });
     }

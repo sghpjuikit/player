@@ -15,6 +15,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.ItemHolders.ItemTextFields.MoodTextField;
+import GUI.objects.CheckIcon;
 import GUI.objects.GraphicalTextField;
 import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
@@ -29,15 +30,16 @@ import static PseudoObjects.ReadMode.*;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
+import java.net.URI;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import static javafx.application.Platform.runLater;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
@@ -53,6 +55,7 @@ import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.BACK_SPACE;
+import static javafx.scene.input.KeyCode.CONTROL;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -72,6 +75,8 @@ import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Accessor;
+import util.async.Async;
+import util.collections.MapSet;
 import util.dev.Log;
 import static util.functional.Util.isIn;
 import static util.functional.impl.Validator.*;
@@ -106,7 +111,7 @@ import util.parsing.ParserImpl.ColorParser;
 public class TaggerController extends FXMLController implements TaggingFeature {
     
     @FXML AnchorPane entireArea;
-    @FXML ScrollPane scrollPaneContent;
+    @FXML AnchorPane scrollContent;
     @FXML GridPane grid;
     @FXML CustomTextField TitleF;
     @FXML CustomTextField AlbumF;
@@ -145,21 +150,17 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     //global variables
     ObservableList<Item> allitems = FXCollections.observableArrayList();
-    ObservableList<Item> items = FXCollections.observableArrayList();
-    ObservableList<Metadata> metas = FXCollections.observableArrayList();   // currently active
+    List<Metadata> metas = new ArrayList();   // currently in gui active
     Task<List<Metadata>> loader;
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data chagnge during writing
-    Task<List<Metadata>> metaReader;
     private final List<Validation> validators = new ArrayList();
         
     // listeners
     private Subscription playingItemMonitoring;
     private Subscription selectedItemsMonitoring;
-    private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> 
-            read(selectedItems);
-    private final Consumer<Metadata> playingListener = item ->
-            read(singletonList(item));
+    private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> read(selectedItems);
+    private final Consumer<Metadata> playingListener = item -> read(singletonList(item));
     
     // properties
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
@@ -220,61 +221,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void init() {
-        
-        items.addListener((ListChangeListener.Change<? extends Item> c) -> {System.out.println("has change");
-            while (c.next()) {
-                // on remove: remove concerned metadatas and populate gui
-                if (c.wasRemoved()) {
-                    // get removed and remove
-                    List<? extends Item> rem = c.getRemoved();
-                    metas.removeIf( m -> rem.stream().anyMatch(i -> i.same(m)));
-                    populate(metas);
-                }
-                // on add: get metadata for all items and populate
-                else if (c.wasAdded()) {System.out.println("added " + c.getAddedSize());
-                    // get added
-                    List<Metadata> ready = new ArrayList();
-                    List<Item> needs_read = new ArrayList();
-                    c.getAddedSubList().stream()
-                        // filter out untaggable
-                        .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
-                        // separate Metadata and Items
-                        .forEach(i -> {
-                            if(i instanceof Metadata) ready.add((Metadata)i);
-                            else needs_read.add(i);
-                        });
-                    
-                    // prevent double reading while reading
-                    if(metaReader!=null && metaReader.isRunning()) {
-                        System.out.println("DOUBLE READING");
-                    }
-                    // read metadata for items
-                    MetadataReader.readMetadata(needs_read, (success,result) -> {
-                        if(success) {
-                            ready.addAll(result);
-                            ready.forEach(i->{
-                                if(!metas.stream().anyMatch(ii->ii.same(i)))
-                                    metas.add(i);
-                            });
-                            // bugged most probably because this listener is called
-                            // twice for some unknown reason
-//                            metas.addAll(result);
-                            System.out.println(result.size() + " "
-//                                    + ready.size()
-                                    + " " + metas.size());
-                            populate(metas);
-                            Log.info("Tagger: Metadata reading succeeded.");
-                        } else {
-                            Log.info("Tagger: Metadata reading failed.");
-                        }
-                        hideProgress();
-                    });
-                    showProgressReading();
-                }
-            }
-        });
-        
         CoverV = new Thumbnail(200);
+        CoverV.setBackgroundVisible(false);
         CoverV.setDragImage(false); // we have our own implementation below
         coverContainer.setCenter(CoverV.getPane());
         // add specialized mood text field
@@ -392,6 +340,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         infoL.setOnMouseClicked(e -> showItemsPopup());
         infoL.setCursor(Cursor.HAND);
         
+        entireArea.setOnKeyPressed(e -> { if(e.getCode()==CONTROL) add_not_set.set(true); });
+        entireArea.setOnKeyReleased(e -> { if(e.getCode()==CONTROL) add_not_set.set(false); });
     }
     
 
@@ -455,6 +405,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     
 /******************************************************************************/
+    BooleanProperty add_not_set = new SimpleBooleanProperty(false);
     
     /**
      * Reads metadata on provided items and fills the data for tagging. 
@@ -466,20 +417,62 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void read(List<? extends Item> items) {
         Objects.requireNonNull(items);
+        // remove duplicates
+        MapSet<URI, ? extends Item> unique = new MapSet<>(Item::getURI, items);
         
-        List<Item> unique = new ArrayList();
-        for(Item i : items) {
-            boolean has_double = false;
-            for (Item o : unique) has_double |= o.same(i);
-            // add if doesnt
-            if (!has_double) unique.add(i);
-        }        
-        
-        this.allitems.clear();
-        this.items.clear();
-        this.allitems.addAll(unique);
-        this.items.addAll(unique);
+        this.allitems.setAll(unique);
+        if(add_not_set.get()) add(unique); else set(unique);
     }
+    
+    private void set(Collection<? extends Item> set) {
+        metas.clear();
+        if(set.isEmpty()) {
+            showProgressReading();
+            populate(metas);
+        }
+        else add(set);
+    }
+    private void add(Collection<? extends Item> added) {
+        if(added.isEmpty()) return;
+        
+        // show progress, hide when populate ends - in populate()
+        showProgressReading();
+        // get added
+        List<Metadata> ready = new ArrayList();
+        List<Item> needs_read = new ArrayList();
+        added.stream()
+            // filter out untaggable
+            .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
+            .forEach(i -> {
+                if(i instanceof Metadata) ready.add((Metadata)i);
+                else needs_read.add(i);
+            });
+
+        // read metadata for items
+        MetadataReader.readMetadata(needs_read, (success,result) -> {
+            if(success) {
+                // remove duplicates
+                MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
+                                      unique.addAll(metas);
+                                      unique.addAll(ready);
+                                      unique.addAll(result);
+                
+                metas.clear();
+                metas.addAll(unique);
+                populate(metas);
+                Log.info("Tagger: Metadata reading succeeded.");
+            } else {
+                Log.info("Tagger: Metadata reading failed.");
+            }
+        });
+    } 
+    private void rem(Collection<? extends Item> rem) {
+        if(rem.isEmpty()) return;
+        // show progress, hide when populate ends - in populate()
+        showProgressReading();
+        metas.removeIf( m -> rem.stream().anyMatch(i -> i.same(m)));
+        populate(metas);
+    } 
     
     /**
      * Writes edited data to tag and reloads the data and refreshes gui. The
@@ -545,7 +538,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     /** use null to clear gui empty. */
     private void populate(List<Metadata> items) {
         // return if writing active
-        if (writing) return;
+        if (writing) { System.out.println("illegal state. tagger writing, cant update gui!!");
+            hideProgress(); return; }
         
         boolean empty = items == null || items.isEmpty();
         
@@ -555,88 +549,95 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         CoverV.getPane().setDisable(true);
         CoverL.setUserData(false);
         new_cover_file = null;
-        infoL.setText("No items loaded");
-        infoL.setGraphic(null);
         
         // return if no new content
-        if (empty) return;
+        if (empty) {
+            
+            // set info
+            infoL.setText("No items loaded");
+            infoL.setGraphic(null);
+            hideProgress();
+            return;
+        } else {
         
-        // set info label graphics
-        Icons.setIcon(infoL, items.size()==1 ? FontAwesomeIconName.TAG : TAGS);
-        
-        fields.forEach(TagField::enable);
-        CoverV.getPane().setDisable(false);
-        
-        
-        // histogram init
-        fields.forEach(TagField::histogramInit);
-        // handle cover separately
-        int coverI = 0;
-        String covDesS = "";
-        Cover CovS = null;
-        Set<AudioFileFormat> formats = new HashSet();
-        
-        // histogram do
-        for(Metadata m: items) {
-            int i = items.indexOf(m);
-            fields.forEach(f -> f.histogramDo(m, i));
-            formats.add(m.getFormat());
-            // handle cover separately
-            Cover c = m.getCover(TAG);
-            if (i==0 && !c.isEmpty())                                           
-                { coverI = 1; CovS = c; covDesS = c.getDestription(); }
-            if (coverI == 0 && i != 0 && !c.isEmpty())                          
-                { coverI = 2; CovS = c; covDesS = c.getDestription(); }
-            if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
-                coverI = 2;
-        }
-        
-        // histogram end - set fields prompt text
-        fields.forEach(f -> f.histogramEnd(formats));
-        // handle cover separately
-            // set image info
-             if (coverI == 0)    CoverL.setText(TAG_NO_VALUE);
-        else if (coverI == 1)    CoverL.setText(covDesS);
-        else if (coverI == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
-            // set image
-        if (coverI == 1)         CoverV.loadImage(CovS.getImage());
-        else                     CoverV.loadImage((Image)null);
+            // set info
+            infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");  
+            infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIconName.TAG : TAGS));
 
-        // enable/disable playcount field
-        if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
+            fields.forEach(TagField::enable);
+            CoverV.getPane().setDisable(false);
+
+
+            Async.run(() -> {
+
+                // histogram init
+                fields.forEach(TagField::histogramInit);
+                    // handle cover separately
+                int coverI = 0;
+                String covDesS = "";
+                Cover CovS = null;
+                Set<AudioFileFormat> formats = new HashSet();
+                
+                // histogram do
+                for(Metadata m: items) {
+                    int i = items.indexOf(m);
+                    fields.forEach(f -> f.histogramDo(m, i));
+                    formats.add(m.getFormat());
+                    // handle cover separately
+                    Cover c = m.getCover(TAG);
+                    if (i==0 && !c.isEmpty())                                           
+                        { coverI = 1; CovS = c; covDesS = c.getDestription(); }
+                    if (coverI == 0 && i != 0 && !c.isEmpty())                          
+                        { coverI = 2; CovS = c; covDesS = c.getDestription(); }
+                    if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
+                        coverI = 2;
+                }
+                    
+                // histogram end - set fields prompt text
+                final int c = coverI;
+                String s = covDesS;
+                Cover co = CovS;
+                runLater(() -> {
+                    fields.forEach(f -> f.histogramEnd(formats));
+                        // handle cover separately
+                        // set image info
+                         if (c == 0)    CoverL.setText(TAG_NO_VALUE);
+                    else if (c == 1)    CoverL.setText(s);
+                    else if (c == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
+                        // set image
+                    if (c == 1)         CoverV.loadImage(co.getImage());
+                    else                CoverV.loadImage((Image)null);
+
+                    // enable/disable playcount field
+                    if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
+
+                    hideProgress();
+                });
+            });
         
-        // set info
-        infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");      
+        }
     }
     
     private void showProgressReading() {
-//        progressI.progressProperty().bind(loader.progressProperty());
         progressI.setProgress(INDETERMINATE_PROGRESS);
         progressPane.setVisible(true);
-        // add blur effect to content to hint inaccessibility
+        // make inaccessible during sensitive operation
+        scrollContent.setMouseTransparent(true);        
+        // apply blur to content to hint inaccessibility
         // note: dont apply on root it would also blur the progres indicator!
-        scrollPaneContent.setEffect(new BoxBlur(3, 3, 1));
-        // make inaccessible
-        scrollPaneContent.setMouseTransparent(true);        
+        scrollContent.setEffect(new BoxBlur(3, 3, 1));
     }
     private void showProgressWriting() {
-//        progressI.progressProperty().unbind();
         progressI.setProgress(INDETERMINATE_PROGRESS);
         progressPane.setVisible(true);
-        // add blur effect to content to hint inaccessibility
-        // note: dont apply on root it would also blur the progres indicator!
-        scrollPaneContent.setEffect(new BoxBlur(3, 3, 1));
-        // make inaccessible
-        scrollPaneContent.setMouseTransparent(true);
+        scrollContent.setEffect(new BoxBlur(3, 3, 1));
+        scrollContent.setMouseTransparent(true);
     }
     private void hideProgress() {
         progressPane.setVisible(false);
-//        progressI.progressProperty().unbind();
         progressI.setProgress(0);
-        // remove effect
-        scrollPaneContent.setEffect(null);
-        // make accessible again
-        scrollPaneContent.setMouseTransparent(false);
+        scrollContent.setEffect(null);
+        scrollContent.setMouseTransparent(false);
     }
         
     private void addImg(File f) {
@@ -838,15 +839,79 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     private static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
     PopOver helpP;
-    Callback<ListView<Item>,ListCell<Item>> defCellFactory;
-    Callback<ListView<Item>,ListCell<Item>> editCellFactory;
+    Callback<ListView<Item>,ListCell<Item>> editCellFactory = listView -> 
+            new ListCell<Item>() {
+                CheckIcon cb = new CheckIcon();
+                {
+                    // allow user to de/activate item
+                    cb.setOnMouseClicked(e -> {
+                        Item item = getItem();
+                        // avoid nulls & respect lock
+                        if(item != null) {
+                            if(cb.selected.get()) add(singletonList(item));
+                            else rem(singletonList(item));
+//                            if(cb.selected.get()) items.add(item);
+//                            else items.remove(item);
+                        }
+                    });
+                }
+                @Override 
+                protected void updateItem(Item item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if(!empty) {
+                        int index = getIndex() + 1;
+                        setText(index + "   " + item.getFilenameFull());
+                        // handle untaggable
+                        boolean untaggable = item.isCorrupt(Use.DB) || !item.isFileBased();
+                        pseudoClassStateChanged(corrupt, untaggable);
+                        cb.selected.set(!untaggable);
+                        cb.setDisable(untaggable);
+
+                        if (getGraphic()==null) setGraphic(cb);
+                    } else {
+                        setText(null);
+                        setGraphic(null);
+                    }
+                }
+            };
     
     private PopOver showItemsPopup() {
         // build popup
         ListView<Item> list = new ListView();
                        // factory is set dynamically
-                       list.setCellFactory(getDefCellFactory());
-                       // list will be atomatically updated now
+                       list.setCellFactory(listView -> new ListCell<Item>() {
+                            CheckIcon cb = new CheckIcon();
+                            {
+                                // allow user to de/activate item
+                                cb.setOnMouseClicked(e -> {
+                                    Item item = getItem();
+                                    // avoid nulls & respect lock
+                                    if(item != null) {
+                                        if(cb.selected.get()) add(singletonList(item));
+                                        else rem(singletonList(item));
+                                    }
+                                });
+                            }
+                            @Override 
+                            protected void updateItem(Item item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if(!empty) {
+                                    int index = getIndex() + 1;
+                                    setText(index + "   " + item.getFilenameFull());
+                                    // handle untaggable
+                                    boolean untaggable = item.isCorrupt(Use.DB) || !item.isFileBased();
+                                    pseudoClassStateChanged(corrupt, untaggable);
+                                    cb.selected.set(!untaggable);
+                                    cb.setDisable(untaggable);
+
+                                    if (getGraphic()==null) setGraphic(cb);
+                                } else {
+                                    setText(null);
+                                    setGraphic(null);
+                                }
+                            }
+                        });
+                       // list will atomatically update now
                        list.setItems(allitems);
                        // support same drag & drop as tagger
                        list.setOnDragOver(DragUtil.audioDragAccepthandler);
@@ -854,107 +919,28 @@ public class TaggerController extends FXMLController implements TaggingFeature {
            
         
         // build content controls
-        Label helpB = new Icon(INFO,11);                     
+        Label helpB = new Icon(INFO,11, "Help");                     
         helpB.setOnMouseClicked( e -> {
-            // build help content for help popup if not yet built
-            // with this we avoid constructing multuple popups
+            // build help popup lazily
             if(helpP == null) {
-                String text = "List of all items in the tagger. Highlights " + 
-                              "untaggable items. Taggable items can be unselected " +
-                              "in selective list mode.\n\n" +
-                              "Available actions:\n" +
-                              "    Edit button : Switch to selectable list\n" +
-                              "    Drop items : Adds them to tagger.\n" +
-                              "    Drop audio files : Adds them to tagger.";
+                String text = "List of all items in the tagger. Highlights "
+                            + "untaggable items. Taggable items can be unselected"
+                            + " filtered.\n\n"
+                            + "Available actions:\n"
+                            + "    Drop items : Clears tagget and adds to tagger.\n"
+                            + "    Drop items + CTRL : Adds to tagger.";
                 helpP = PopOver.createHelpPopOver(text);
             }
             helpP.show(helpB);
             e.consume();
         });
-        helpB.setTooltip(new Tooltip("Help"));
-        Label editSwitchB = new Icon(PENCIL,11);                     
-        editSwitchB.setOnMouseClicked( e -> {
-            // switch factories
-            list.setCellFactory(list.getCellFactory().equals(defCellFactory)
-                                        ? getEditCellFactory()
-                                        : getDefCellFactory());
-            e.consume();
-        });
-        editSwitchB.setTooltip(new Tooltip("Edit"));
         
         // build popup
         PopOver p = new PopOver(list);
                 p.title.set("Active Items");
-                p.getHeaderIcons().addAll(editSwitchB,helpB);
+                p.getHeaderIcons().addAll(helpB);
                 p.show(infoL);
         return p;
-    }
-    
-    private Callback<ListView<Item>,ListCell<Item>> getEditCellFactory() {
-        if (editCellFactory == null) editCellFactory = listView -> {
-            CheckBox cb = new CheckBox();
-            BooleanProperty lock = new SimpleBooleanProperty(false);
-            ListCell<Item> cell =  new ListCell<Item>() {
-                @Override 
-                protected void updateItem(Item item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if(!empty) {
-                        int index = getIndex() + 1;
-                        setText(index + " " + item.getFilenameFull());
-                        boolean untaggable = item.isCorrupt(Use.DB) || !item.isFileBased();
-                        // mark corrupt items with css style
-                        pseudoClassStateChanged(corrupt, untaggable);
-                        // mark corrupt item as not taggable
-                        // because there is listener on selectedProperty and
-                        // we want it to fir eonly as a result of user's action
-                        // lock out this change
-                        // the untaggable filtering is done during reading
-                        lock.set(true);
-                        cb.setSelected(!untaggable);
-                        lock.set(false);
-                        // forbid corrupt items to get tagged
-                        cb.setDisable(untaggable);
-
-                        if (getGraphic()==null) setGraphic(cb);
-                    } else {
-                        // we have to clean up old content
-                        setText("");
-                        setGraphic(null);
-                    }
-                }
-            };    
-            // allow user to de/activate item
-            cb.selectedProperty().addListener((o,ov,nv) -> {
-                Item item = cell.getItem();
-                // avoid nulls
-                // also respect lock
-                if(item != null && !lock.get()) {
-                    if(nv) items.add(item);
-                    else items.remove(item);
-                }
-            });
-            return cell;
-        };
-        return editCellFactory;
-    }
-    private Callback<ListView<Item>,ListCell<Item>> getDefCellFactory() {
-        if (defCellFactory == null) defCellFactory = listView -> {
-            return new ListCell<Item>() {
-                @Override 
-                protected void updateItem(Item item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if(!empty) {
-                        int index = getIndex()+1;
-                        setText(index + " " + item.getFilenameFull());
-                        boolean iscorrupt = item.isCorrupt(Use.DB) || !item.isFileBased();
-                        // mark corrupt items with css style
-                        pseudoClassStateChanged(corrupt, iscorrupt);
-                    } else
-                        setText("");
-                }
-            };
-        };
-        return defCellFactory;
     }
     
     private final EventHandler<DragEvent> drag_dropped_handler = e -> {

@@ -14,9 +14,9 @@ import javafx.scene.image.Image;
  * @author Plutonium_
  */
  public interface Cover {
-     /**
-      * Returns the cover image.
-      */
+    /**
+     * Returns the cover image.
+     */
     public Image getImage();
     /**
      * Returns the cover image as is if available or loads it from file into

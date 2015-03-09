@@ -38,6 +38,8 @@ import javax.imageio.stream.ImageInputStream;
 import org.jaudiotagger.tag.images.Artwork;
 import util.File.FileUtil;
 import util.dev.Log;
+import util.functional.functor.FunctionC;
+import static util.functional.functor.FunctionC.composable;
 
 /** 
  * Provides static utility methods for various purposes. 
@@ -432,12 +434,10 @@ public class Util {
      * @return the column
      */
     public static<T> TableColumn<T,Void> createIndexColumn(String name) {
-        TableColumn<T,Void> indexColumn = new TableColumn(name);
-        indexColumn.setSortable(false);
-        indexColumn.setCellFactory( column -> 
-            new TableCell<T,Void>(){
+        TableColumn<T,Void> c = new TableColumn(name);
+               c.setSortable(false);
+               c.setCellFactory( column -> new TableCell<T,Void>(){
                 {
-                    // we want to align the index to the right, not left
                     setAlignment(CENTER_RIGHT);
                 }
                 @Override
@@ -446,9 +446,8 @@ public class Util {
                     if (empty) setText(null);
                     else setText(String.valueOf(getIndex()+1)+ ".");
                 }
-            }
-        );
-        return indexColumn;
+            });
+        return c;
     }
     
     /**
@@ -497,9 +496,9 @@ public class Util {
      * 
      * @param type for cell content.
      */
-    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Class<O> type, String no_val_text) {
-        Pos al = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
-        return DEFAULT_ALIGNED_CELL_FACTORY(al, no_val_text);
+    public static<T,O> FunctionC<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
+        Pos a = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+        return cellFactoryAligned(a, no_val_text);
     }
     
     /**
@@ -510,12 +509,9 @@ public class Util {
      * @param a cell alignment
      * @return 
      */
-    public static<T,O> Callback<TableColumn<T,O>,TableCell<T,O>> DEFAULT_ALIGNED_CELL_FACTORY(Pos a, String no_val_text) {
-        return column -> {
-            TableCell c = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text).call(column);
-                      c.setAlignment(a);
-            return c;
-        };
+    public static<T,O> FunctionC<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
+        return (FunctionC) composable(EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text))
+                           .andApply(cell -> cell.setAlignment(a));
     }
     
     /**

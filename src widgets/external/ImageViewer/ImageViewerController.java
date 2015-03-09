@@ -22,8 +22,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.FadeTransition;
@@ -36,6 +34,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -170,9 +169,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public void init() {
         try {
             entireArea.getStylesheets().add(getResource("skin.css").toURI().toURL().toExternalForm());
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(ImageViewerController.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } catch (MalformedURLException ex) {}
         
         // add thumbnail & span whole area
         entireArea.getChildren().add(thumbnail.getPane());
@@ -499,10 +496,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             AnchorPane.setBottomAnchor(itemPane, 20d);
             AnchorPane.setRightAnchor(itemPane, 20d);
             itemPane.setData("", data);
+            entireArea.pseudoClassStateChanged(getPseudoClass("theater"), v);
 
             itemPane.setOnMouseClicked(ee -> {
                 if(ee.getButton()==SECONDARY) {
-                    if(itemPane.getStyleClass().isEmpty()) itemPane.getStyleClass().addAll("block");
+                    if(itemPane.getStyleClass().isEmpty()) itemPane.getStyleClass().addAll("block-alternative");
                     else itemPane.getStyleClass().clear();
                     ee.consume();
                 }

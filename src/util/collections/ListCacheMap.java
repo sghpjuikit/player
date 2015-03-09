@@ -11,7 +11,14 @@ import java.util.List;
 import util.functional.functor.FunctionC;
 
 /**
- <p>
+More specific cache map using {@link ArrayList} as a cache bucket/accumulation
+container.
+<p>
+Cache factory returns new list and accumulator adds element to the list, key
+mapper remains unimplemented.
+<p>
+Defines a 
+
  @author Plutonium_
  */
 public class ListCacheMap<E,K> extends CacheMap<E,K,List<E>> {
@@ -20,6 +27,10 @@ public class ListCacheMap<E,K> extends CacheMap<E,K,List<E>> {
         super(keyMapper, () -> new ArrayList(), (e,cache) -> cache.add(e));
     }
     
+    
+    /** Multi key get with elements.
+    @return list containing all elements of all cache buckets / accumulation
+    containers assigned to keys in the given collection. */
     public List<E> getElementsOf(Collection<K> keys) {
         List<E> out = new ArrayList();
         for(K k : keys) {

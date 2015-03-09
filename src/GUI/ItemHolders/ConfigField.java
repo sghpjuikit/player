@@ -600,7 +600,7 @@ abstract public class ConfigField<T> {
         }
         @Override public final boolean applyNsetIfNeed() {
             // its pointless to make new Action just for this
-            // config.setNapplyValue(getItem()); 
+            // config.applyValue(getItem()); 
             // rather operate on the Action manually
 
             Action a = config.getValue();

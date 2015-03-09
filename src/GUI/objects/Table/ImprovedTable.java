@@ -5,9 +5,12 @@
  */
 package GUI.objects.Table;
 
+import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -63,8 +66,27 @@ public class ImprovedTable<T> extends TableView<T> {
         return header==null ? getFixedCellSize() : header.getHeight();
     }
     
+    /** Return index of a row containing the given y coordinate.
+    Note: works only if table uses fixedCellHeight. */
+    public int getRow(double y) {
+        double h = isTableHeaderVisible() ? y - getTableHeaderHeight() : y;
+        return (int)floor(h/getFixedCellSize());
+    }
+    
+    /** Returns whether there is an item in the row at specified index */
+    public boolean isRowFull(int i) {
+        return 0<=i && getItems().size()>i;
+    }
+    
+    /** Return index of a row containing the given scene y coordinate.
+    Note: works only if table uses fixedCellHeight. */
+    public int getRowS(double scenex, double sceney) {
+            Point2D p = sceneToLocal(new Point2D(scenex,sceney));
+            return getRow(p.getY());
+    }
+    
     /** Returns selected items. */
-    public List<T> getSelectedItems() {
+    public ObservableList<T> getSelectedItems() {
         return getSelectionModel().getSelectedItems();
     }
     

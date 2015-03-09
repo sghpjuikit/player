@@ -50,17 +50,7 @@ public final class WidgetArea extends Area<Container> {
         // support css styling
         content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
-//        // support drag from
-//        root.setOnDragDetected( e -> {
-//            // disallow in normal mode & primary button drag only
-//            if (controls.isShowingWeak() && e.getButton()==PRIMARY) {
-//                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-//                DragUtil.setComponent(container,widget,db);
-//                // signal dragging graphically with css
-//                content.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
-//                e.consume();
-//            }
-//        });
+        // support drag from - done in controls: AreaControls.class
         // return graphics to normal
         root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         // accept drag onto
@@ -112,8 +102,8 @@ public final class WidgetArea extends Area<Container> {
         openAndDo(content_root, null);
         
         // put controls to new widget
-        controls.title.setText(w.name());                // put title
-        controls.propB.setDisable(w.getFields().isEmpty()); // disable properties button if empty settings
+        controls.title.setText(w.name());
+        controls.propB.setDisable(w.getFields().isEmpty());
         
         // put container properties (just in case)
         setPadding(container.properties.getD("padding"));

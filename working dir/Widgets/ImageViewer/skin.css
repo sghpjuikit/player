@@ -1,15 +1,19 @@
 
+// root of the widget
+.img-viewer-root {}
+// theater mode
+.img-viewer-root:theater {
+    -fx-background-color: black;
+}
 
+// pane for thumbnails
 .thumbnail-pane {
 	-fx-background-color: rgba(0,0,0,0.3);
 }
 
-.block {
+// now playing info panel in the corner in theater mode
+.block-alternative {
 	-fx-background-color: rgba(20,20,20,0.7);
 	-fx-background-radius: 5;
 	-fx-text-fill: white;
-}
-
-.thumbnail-bgr {
-    -fx-background-color: black;
 }

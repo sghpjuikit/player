@@ -8,10 +8,10 @@ package GUI.objects.TableCell;
 import AudioPlayer.tagging.Metadata;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.util.Callback;
+import util.functional.functor.FunctionC;
 
 /**
  */
-public interface RatingCellFactory extends Callback<TableColumn<Metadata,Double>,TableCell<Metadata,Double>> {
+public interface RatingCellFactory extends FunctionC<TableColumn<Metadata,Double>,TableCell<Metadata,Double>> {
     
 }

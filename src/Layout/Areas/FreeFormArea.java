@@ -6,6 +6,7 @@
 package Layout.Areas;
 
 import GUI.DragUtil;
+import GUI.GUI;
 import static GUI.GUI.closeAndDo;
 import GUI.objects.Window.Pane.PaneWindowControls;
 import Layout.*;
@@ -43,7 +44,7 @@ public class FreeFormArea implements ContainerNode {
         BooleanProperty isHere = new SimpleBooleanProperty(false);
         root.setOnMousePressed(e -> isHere.set(isHere(e)));
         root.setOnMouseClicked(e -> {
-            if(!container.isUnderLock()) {
+            if(GUI.isLayoutMode() || !container.isUnderLock()) {
                 isHere.set(isHere.get() && isHere(e));
                 if(e.getButton()==PRIMARY && isHere.get()) {
                     int index = findFirstEmpty(container.getChildren(), 1);
@@ -135,13 +136,15 @@ public class FreeFormArea implements ContainerNode {
     }
     public void closeWindow(int i) {
         PaneWindowControls w = windows.get(i);
-        w.close();
-        windows.remove(i);
-        widgets.remove(i);
-        container.properties.remove(i+"x");
-        container.properties.remove(i+"y");
-        container.properties.remove(i+"w");
-        container.properties.remove(i+"h");
+        if(w!=null) { // null can happen only in illegal call, but cant prevent that for now (layouter calls close 2 times)
+            w.close();
+            windows.remove(i);
+            widgets.remove(i);
+            container.properties.remove(i+"x");
+            container.properties.remove(i+"y");
+            container.properties.remove(i+"w");
+            container.properties.remove(i+"h");
+        }
     }
 
     @Override
@@ -153,7 +156,11 @@ public class FreeFormArea implements ContainerNode {
     public void show() { }
 
     @Override
-    public void hide() { }
+    public void hide() {
+        windows.forEach((i,w) -> {
+            if(container.getChildren().get(i)==null) closeAndDo(w.root, () -> container.removeChild(i));
+        });
+    }
     
     
     private PaneWindowControls getWindow(int i) {
@@ -185,8 +192,8 @@ public class FreeFormArea implements ContainerNode {
             maintain(w.y, v -> { container.properties.put(i+"y", v.doubleValue()/root.getHeight());});
             maintain(w.w, v -> { container.properties.put(i+"w", v.doubleValue()/root.getWidth());});
             maintain(w.h, v -> { container.properties.put(i+"h", v.doubleValue()/root.getHeight());});
-        maintain(GUI.GUI.snapDistance, d->d, w.snapDistance);
-        maintain(GUI.GUI.snapping, w.snappable);
+        maintain(GUI.snapDistance, d->d, w.snapDistance);
+        maintain(GUI.snapping, w.snappable);
 //            maintain(w.x, v -> { if(w.resizing.get()==NONE) container.properties.put(i+"x", v.doubleValue()/root.getWidth());}); 
 //            maintain(w.y, v -> { if(w.resizing.get()==NONE) container.properties.put(i+"y", v.doubleValue()/root.getHeight());});
 //            maintain(w.w, v -> { if(w.resizing.get()!=NONE) container.properties.put(i+"w", v.doubleValue()/root.getWidth());});

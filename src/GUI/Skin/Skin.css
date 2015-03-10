@@ -3336,7 +3336,7 @@
 .freeflowcontainer-window {
     
 }
-.freeflowcontainer-window > .content {
+.freeflowcontainer-window >.content {
     -fx-padding: 2.5;
 }
 
@@ -3567,7 +3567,7 @@
 //****************************** THUMBNAIL ***********************************//
 
 // background for thumbnail
-.thumbnail-bgr {
+.thumbnail {
     -fx-background-color: black;
 }
 // border of thumbnail

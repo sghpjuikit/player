@@ -302,7 +302,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         });
         // drag&drop to
         setOnDragOver(e -> {
-            if(e.getSource()!= this)
+            if(e.getGestureSource()!= this)
                 DragUtil.audioDragAccepthandler.handle(e);
         });
         // handle drag (for empty table - it does not have any rows so

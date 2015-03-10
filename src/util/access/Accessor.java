@@ -18,41 +18,22 @@ import javafx.beans.property.SimpleObjectProperty;
  * 
  * @author Plutonium_
  */
-public class Accessor<T> extends SimpleObjectProperty<T> implements ApplicableValue<T> {
+public class Accessor<V> extends SimpleObjectProperty<V> implements ApplicableValue<V> {
     
-    private T value;
-    private Consumer<T> applier;
+    private Consumer<V> applier;
     
-    public Accessor(T val) {
+    public Accessor(V val) {
         this(val, null);
     }
     
-    public Accessor(T val, Consumer<T> applier) {
+    public Accessor(V val, Consumer<V> applier) {
         setValue(val);
         setApplier(applier);
     }
     
-//    /** 
-//     * {@inheritDoc}
-//     * 
-//     * @return non null value
-//     */
-//    @Override
-//    public T getValue() {
-//        requireNonNull(value);
-//        return value;
-//    }
-//
-//    /** {@inheritDoc} */
-//    @Override
-//    public final void setValue(T val) {
-//        requireNonNull(val);
-//        value = val;
-//    }
-    
     /** {@inheritDoc} */
     @Override
-    public void applyValue(T val) {
+    public void applyValue(V val) {System.out.println("applying " + val);
         requireNonNull(val);
         if (applier != null) applier.accept(val);
     }
@@ -62,7 +43,7 @@ public class Accessor<T> extends SimpleObjectProperty<T> implements ApplicableVa
      * 
      * @param applier or null to disable applying
      */
-    public final void setApplier(Consumer<T> applier) {
+    public final void setApplier(Consumer<V> applier) {
         this.applier = applier;
     }
     
@@ -72,67 +53,8 @@ public class Accessor<T> extends SimpleObjectProperty<T> implements ApplicableVa
      * 
      * @return applier or null if none.
      */
-    public Consumer<T> getApplier() {
+    public Consumer<V> getApplier() {
         return applier;
     }
     
 }
-//public class Accessor<T> implements ApplicableValue<T> {
-//    
-//    private T value;
-//    private Consumer<T> applier;
-//    
-//    public Accessor(T val) {
-//        this(val, null);
-//    }
-//    
-//    public Accessor(T val, Consumer<T> applier) {
-//        setValue(val);
-//        setApplier(applier);
-//    }
-//    
-//    /** 
-//     * {@inheritDoc}
-//     * 
-//     * @return non null value
-//     */
-//    @Override
-//    public T getValue() {
-//        requireNonNull(value);
-//        return value;
-//    }
-//
-//    /** {@inheritDoc} */
-//    @Override
-//    public final void setValue(T val) {
-//        requireNonNull(val);
-//        value = val;
-//    }
-//    
-//    /** {@inheritDoc} */
-//    @Override
-//    public void applyValue(T val) {
-//        requireNonNull(val);
-//        if (applier != null) applier.accept(val);
-//    }
-//    
-//    /** 
-//     * Sets applier. Applier is a code that applies the value in any way. 
-//     * 
-//     * @param applier or null to disable applying
-//     */
-//    public final void setApplier(Consumer<T> applier) {
-//        this.applier = applier;
-//    }
-//    
-//    /** 
-//     * Gets applier. Applier is a code that applies the value. It can do anything.
-//     * Default null.
-//     * 
-//     * @return applier or null if none.
-//     */
-//    public Consumer<T> getApplier() {
-//        return applier;
-//    }
-//    
-//}

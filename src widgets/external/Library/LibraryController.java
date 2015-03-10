@@ -242,7 +242,7 @@ public class LibraryController extends FXMLController {
         });
         // drag&drop to table
         table.setOnDragOver(e -> {
-            if(e.getSource()!=table) {
+            if(e.getGestureSource()!=table) {
                 e.acceptTransferModes(COPY);
                 e.consume();
             }

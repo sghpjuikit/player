@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- tagger cover bad value
 - library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
 - tagger cover loading optimize

@@ -25,6 +25,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import static util.Util.setAnchors;
+import util.collections.TupleM4;
 import static util.functional.Util.findFirstEmpty;
 import static util.reactive.Util.maintain;
 
@@ -48,14 +49,15 @@ public class FreeFormArea implements ContainerNode {
                 isHere.set(isHere.get() && isHere(e));
                 if(e.getButton()==PRIMARY && isHere.get()) {
                     int index = findFirstEmpty(container.getChildren(), 1);
+                    TupleM4<Double,Double,Double,Double> bestPos = bestRec(e.getX(), e.getY());
                     // add empty window at index
                     // the method call eventually invokes load() method below, with
                     // component/child == null (3rd case)
                     // first we initialize position & size
-                    container.properties.put(index + "x", e.getX()/root.getWidth()-1/6d);
-                    container.properties.put(index + "y", e.getY()/root.getHeight()-1/6d);
-                    container.properties.put(index + "w", 1/3d);
-                    container.properties.put(index + "h", 1/3d);
+                    container.properties.put(index + "x", bestPos.a);
+                    container.properties.put(index + "y", bestPos.b);
+                    container.properties.put(index + "w", bestPos.c);
+                    container.properties.put(index + "h", bestPos.d);
                     container.addChild(index, null);
                 }
                 if(e.getButton()==SECONDARY && container.getChildren().isEmpty()) {
@@ -200,6 +202,33 @@ public class FreeFormArea implements ContainerNode {
 //            maintain(w.h, v -> { if(w.resizing.get()!=NONE) container.properties.put(i+"h", v.doubleValue()/root.getHeight());});
         });
         return w;
+    }
+    
+    TupleM4<Double,Double,Double,Double> bestRec(double x, double y) {
+        TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, root.getWidth(), 0d, root.getHeight());
+        
+        for(PaneWindowControls w : windows.values()) {
+           double wl = w.x.get()+w.w.get();
+           if(wl<x && wl>b.a) b.a = wl;
+           double wr = w.x.get();
+           if(wr>x && wr<b.b) b.b = wr;
+           double ht = w.y.get()+w.h.get();
+           if(ht<y && ht>b.c) b.c = ht;
+           double hb = w.y.get();
+           if(hb>y && hb<b.d) b.d = hb;
+            System.out.println(b);
+        }
+//        System.out.println(b);
+        
+//        return new TupleM4<>(b.a,b.c,b.b-b.a,b.d-b.c);
+        return new TupleM4<>(b.a/root.getWidth(),b.c/root.getHeight(),
+                            (b.b-b.a)/root.getWidth(),(b.d-b.c)/root.getHeight());
+    }
+    
+    TupleM4<Double,Double,Double,Double> bestRecSimple(double x, double y) {
+        return new TupleM4<>(x/root.getWidth()-1/6d,
+                             y/root.getHeight()-1/6d,
+                             1/3d, 1/3d);
     }
     
 }

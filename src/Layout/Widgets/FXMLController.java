@@ -6,7 +6,9 @@
 package Layout.Widgets;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import static java.util.Objects.nonNull;
+import javafx.scene.layout.Pane;
 
 /**
  * Template for fxml based Controller implementation.
@@ -55,6 +57,14 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
      */
     public File getResource(String filename) {
         return new File(getWidget().getLocation(),filename);
+    }
+    
+    public void loadSkin(String filename, Pane root) {
+        try {
+            root.getStylesheets().add(getResource(filename).toURI().toURL().toString());
+        } catch (MalformedURLException ex) {
+        
+        }
     }
     
 }

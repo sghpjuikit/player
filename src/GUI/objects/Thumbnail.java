@@ -21,6 +21,7 @@ import java.util.HashMap;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -77,7 +78,7 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
 public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     // styleclasses
-    public static final String bgr_styleclass = "thumbnail-bgr";
+    public static final String bgr_styleclass = "thumbnail";
     public static final String border_styleclass = "thumbnail-border";
     
     // global propertiea
@@ -182,6 +183,11 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         );
         // keep image border size in line with image size bind pref,max size
         ratioIMG.greaterThan(ratioALL).addListener(border_sizer);
+    }
+    
+    
+    public final ObservableList<String> getStyleClass() {
+        return root.getStyleClass();
     }
     
  /******************************************************************************/

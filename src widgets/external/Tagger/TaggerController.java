@@ -65,6 +65,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 import main.App;
+import static main.App.TAG_MULTIPLE_VALUE;
+import static main.App.TAG_NO_VALUE;
 import static org.atteo.evo.inflector.English.plural;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.reactfx.Subscription;
@@ -106,7 +108,7 @@ import util.parsing.ParserImpl.ColorParser;
                   "Taggable items can be unselected in selective list mode.",
     notes = "To do: improve tagging performance. Support for ogg and flac.",
     version = "0.8",
-    year = "2014",
+    year = "2015",
     group = Widget.Group.TAGGER)
 public class TaggerController extends FXMLController implements TaggingFeature {
     
@@ -156,9 +158,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     boolean writing = false;    // prevents external data chagnge during writing
     private final List<Validation> validators = new ArrayList();
         
-    // listeners
-    private Subscription playingItemMonitoring;
-    private Subscription selectedItemsMonitoring;
+    // dependencies
+    private Subscription d1, d2;
     private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> read(selectedItems);
     private final Consumer<Metadata> playingListener = item -> read(singletonList(item));
     
@@ -176,40 +177,35 @@ public class TaggerController extends FXMLController implements TaggingFeature {
 
     @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
     public Boolean changeReadModeOnTransfer = false;
-    @IsConfig(name = "No value text", info = "Field text in case no tag value for field.")
-    public String TAG_NO_VALUE = App.TAG_NO_VALUE;
-    @IsConfig(name = "Multiple value text", info = "Field text in case multiple tag values per field.")
-    public String TAG_MULTIPLE_VALUE = App.TAG_MULTIPLE_VALUE;
-
 
     
     private void apllyReadMode(ReadMode v) {
-        if(playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
-        if(selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
+        if(d1!=null) d1.unsubscribe();
+        if(d2!=null) d2.unsubscribe();
         
         // rebind
         if (v == SELECTED_PLAYLIST) {            
-            selectedItemsMonitoring = PlaylistManager.selectedItemsES.subscribe(playlistListener);
+            d2 = PlaylistManager.selectedItemsES.subscribe(playlistListener);
             playlistListener.accept(PlaylistManager.selectedItemsES.getValue());
         } else
         if (v == PLAYING){
-            playingItemMonitoring = Player.playingtem.subscribeToUpdates(playingListener);
+            d1 = Player.playingtem.subscribeToUpdates(playingListener);
             playingListener.accept(Player.playingtem.get());
         } else
         if (v==SELECTED_LIBRARY){
-            selectedItemsMonitoring = Player.librarySelectedItemsES.subscribe(list->{
+            d2 = Player.librarySelectedItemsES.subscribe(list->{
                 this.allitems.setAll(list);
                 populate(list);
             });
         } else
         if (v==SELECTED_ANY){
-            selectedItemsMonitoring = Player.selectedItemsES.subscribe(list->{
+            d2 = Player.selectedItemsES.subscribe(list->{
                 this.allitems.setAll(list);
                 populate(list);
             });
         } else
         if (v==ANY){
-            selectedItemsMonitoring = Player.anyItemsES.subscribe(list->{
+            d2 = Player.anyItemsES.subscribe(list->{
                 this.allitems.setAll(list);
                 populate(list);
             });
@@ -221,9 +217,11 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void init() {
+        loadSkin("skin.css",entireArea);
+        
         CoverV = new Thumbnail(200);
-        CoverV.setBackgroundVisible(false);
         CoverV.setDragImage(false); // we have our own implementation below
+        CoverV.getPane().getStyleClass().add("tager-thumbnail");
         coverContainer.setCenter(CoverV.getPane());
         // add specialized mood text field
         grid.add(MoodF, 1, 14, 2, 1);
@@ -398,8 +396,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void close() {
         // remove listeners
-        if (selectedItemsMonitoring!=null) selectedItemsMonitoring.unsubscribe();
-        if (playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
+        if (d2!=null) d2.unsubscribe();
+        if (d1!=null) d1.unsubscribe();
     }
     
     

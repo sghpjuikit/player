@@ -55,7 +55,7 @@ public interface ApplicableValue<V> extends AccessibleValue<V> {
         V cv = getValue();
         if(!cv.equals(v)) {
             setValue(v);
-            applyValue(v);
+            applyValue();
         }
     }
     

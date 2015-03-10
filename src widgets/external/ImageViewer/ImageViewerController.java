@@ -18,7 +18,6 @@ import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
@@ -159,17 +158,13 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public int folderTreeDepth = 1;
     @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
     public int thumbsLimit = 100;
-    @IsConfig(
-//            editable = false
-    )
+    @IsConfig()
     private int active_image = -1;
     
     /** {@inheritDoc} */
     @Override
     public void init() {
-        try {
-            entireArea.getStylesheets().add(getResource("skin.css").toURI().toURL().toExternalForm());
-        } catch (MalformedURLException ex) {}
+        loadSkin("skin.css",entireArea);
         
         // add thumbnail & span whole area
         entireArea.getChildren().add(thumbnail.getPane());

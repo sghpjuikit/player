@@ -7,9 +7,6 @@
 - library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
 - tagger cover loading optimize
-- library remove + add + etc...
-- library refresh after tagging
-
 - annotation for name of plugin objects
 - plugin discovery/load
 - library view save selection

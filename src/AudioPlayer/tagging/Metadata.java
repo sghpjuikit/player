@@ -203,7 +203,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         uri = file.toURI().toString();
         filesize = FileSize.inBytes(file);
         
-        loadGeneralFields(audiofile);
+        Tag tag = audiofile.getTagOrCreateAndSetDefault();
+        loadGeneralFields(audiofile, tag);
         switch (getFormat()) {
             case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);
                         break;
@@ -221,19 +222,18 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         
     }
     /** loads all generally supported fields  */
-    private void loadGeneralFields(AudioFile aFile) {
+    private void loadGeneralFields(AudioFile aFile, Tag tag) {
         try {
         
         AudioHeader header = aFile.getAudioHeader();
         
-        bitrate = new Bitrate((int)header.getBitRateAsNumber()).getValue();
+        bitrate = (int)header.getBitRateAsNumber();
         duration = 1000 * header.getTrackLength();
         // format and encoding type are switched in jaudiotagger library...
         encoding = emptifyString(header.getFormat());
         channels = emptifyString(header.getChannels());
         sample_rate = emptifyString(header.getSampleRate());
         
-        Tag tag = aFile.getTag();
         if(tag==null) {
             Log.warn("Tag unsupported in item being read: " + getURI());
             return;

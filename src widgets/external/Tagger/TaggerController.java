@@ -28,7 +28,8 @@ import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.*;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
@@ -54,8 +55,7 @@ import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
-import static javafx.scene.input.KeyCode.BACK_SPACE;
-import static javafx.scene.input.KeyCode.CONTROL;
+import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -321,7 +321,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         });
         
         // cover add icon
-        Text icon = Icons.createIcon(PLUS, 60);
+        Text icon = Icons.createIcon(FontAwesomeIconName.PLUS, 60);
              icon.setMouseTransparent(true);
         coverSuperContainer.getChildren().add(icon);
              icon.setOpacity(0);
@@ -419,7 +419,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         MapSet<URI, ? extends Item> unique = new MapSet<>(Item::getURI, items);
         
         this.allitems.setAll(unique);
-        if(add_not_set.get()) add(unique); else set(unique);
+        if(add_not_set.get()) add(unique, false); else set(unique);
     }
     
     private void set(Collection<? extends Item> set) {
@@ -428,9 +428,9 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             showProgressReading();
             populate(metas);
         }
-        else add(set);
+        else add(set, true);
     }
-    private void add(Collection<? extends Item> added) {
+    private void add(Collection<? extends Item> added, boolean readAll) {
         if(added.isEmpty()) return;
         
         // show progress, hide when populate ends - in populate()
@@ -442,7 +442,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // filter out untaggable
             .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
             .forEach(i -> {
-                if(i instanceof Metadata) ready.add((Metadata)i);
+                if(!readAll || i instanceof Metadata) ready.add((Metadata)i);
                 else needs_read.add(i);
             });
 
@@ -522,13 +522,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
             if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
+        }, refreshed -> {
+            // post writing
+            writing = false;
+            populate(refreshed);
+            App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
         });
         
-        // post writing
-        hideProgress();
-        writing = false;
-        App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
-        read(metas);
     }
     
 /******************************************************************************/
@@ -550,14 +550,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         // return if no new content
         if (empty) {
-            
             // set info
             infoL.setText("No items loaded");
             infoL.setGraphic(null);
             hideProgress();
             return;
         } else {
-        
             // set info
             infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");  
             infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIconName.TAG : TAGS));
@@ -700,7 +698,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             
             // disable commitable if empty and backspace key pressed
             c.setOnKeyPressed( e -> {
-                if (e.getCode() == BACK_SPACE)
+                if (isIn(e.getCode(),BACK_SPACE,ESCAPE))
                     OnBackspacePressed();
             });
         }
@@ -812,7 +810,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     }
 
     
-    
     public final class Validation {
         public final TextInputControl field;
         public final Predicate<String> condition;
@@ -846,7 +843,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                         Item item = getItem();
                         // avoid nulls & respect lock
                         if(item != null) {
-                            if(cb.selected.get()) add(singletonList(item));
+                            if(cb.selected.get()) add(singletonList(item),false);
                             else rem(singletonList(item));
 //                            if(cb.selected.get()) items.add(item);
 //                            else items.remove(item);
@@ -885,7 +882,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                                     Item item = getItem();
                                     // avoid nulls & respect lock
                                     if(item != null) {
-                                        if(cb.selected.get()) add(singletonList(item));
+                                        if(cb.selected.get()) add(singletonList(item),false);
                                         else rem(singletonList(item));
                                     }
                                 });
@@ -917,7 +914,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
            
         
         // build content controls
-        Label helpB = new Icon(INFO,11, "Help");                     
+        Label helpB = new Icon(FontAwesomeIconName.INFO,11, "Help");                     
         helpB.setOnMouseClicked( e -> {
             // build help popup lazily
             if(helpP == null) {

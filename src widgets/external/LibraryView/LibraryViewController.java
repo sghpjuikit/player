@@ -1,6 +1,7 @@
 
 package LibraryView;
 
+import AudioPlayer.Player;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
@@ -26,10 +27,7 @@ import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -130,8 +128,8 @@ public class LibraryViewController extends FXMLController {
         // listen for database changes to refresh library
         d1 = DB.views.subscribe(v, (lvl,list) -> {
             // remember selected
-            Set<Object> oldSel = table.getSelectedItems().stream()
-                                      .map(MetadataGroup::getValue).collect(toSet());
+            Set oldSel = table.getSelectedItems().stream()
+                              .map(MetadataGroup::getValue).collect(toSet());
             // prevent selection from propagating change
             lock = true;
             // update list
@@ -247,8 +245,7 @@ public class LibraryViewController extends FXMLController {
         
         table.getSelectionModel().getSelectedItems().addListener(
                 (Observable o) -> runLater(()->forwardItems(DB.views.getValue(lvl.getValue()))));
-        
-        
+//        EventStreams.changesOf(table.getItemsFiltered().predicateProperty()).successionEnds(Duration.ofMillis(200)).subscribe(e->forwardItems(DB.views.getValue(lvl.getValue())));
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
@@ -340,38 +337,38 @@ public class LibraryViewController extends FXMLController {
     
     private List<Metadata> filerList(List<Metadata> list) {
         // use cache if needed
-        boolean needed = lvl.getValue()==1 && list.size()>5000;
-        if(lvl.getValue()==1) System.out.println("need " + needed);
-        // build cache if not yet
-        if(needed && cache==null) {System.out.println("building cache");
-            cache = new ListCacheMap<>(m -> m.getField(fieldFilter.getValue()));
-        }
-        // get rid of cache if not needed
-        if(!needed && cache!= null) {System.out.println("disposing cache");
-            cache.clear();
-            cache = null;
-        }
-        // accumulate cache if not yet
-        if(needed && cache.isEmpty()) {System.out.println("accumulating cache");
-            cache.accumulate(list);
-        }
-        
-        if(needed) {System.out.println("returning cached");
-            List<MetadataGroup> mgs = table.getSelectionModel().isEmpty() ? table.getItems() : table.getSelectedItems();
-            List keys = listM(mgs,mg->mg.getValue());
-            return cache.getElementsOf(keys);
-        }
+//        boolean needed = lvl.getValue()==1 && list.size()>5000;
+//        if(lvl.getValue()==1) System.out.println("need " + needed);
+//        // build cache if not yet
+//        if(needed && cache==null) {System.out.println("building cache");
+//            cache = new ListCacheMap<>(m -> m.getField(fieldFilter.getValue()));
+//        }
+//        // get rid of cache if not needed
+//        if(!needed && cache!= null) {System.out.println("disposing cache");
+//            cache.clear();
+//            cache = null;
+//        }
+//        // accumulate cache if not yet
+//        if(needed && cache.isEmpty()) {System.out.println("accumulating cache");
+//            cache.accumulate(list);
+//        }
+//        
+//        if(needed) {System.out.println("returning cached");
+//            List<MetadataGroup> mgs = table.getSelectedOrAllItemsCopy();
+//            Stream keys = mgs.stream().map(mg->mg.getValue());
+//            return cache.getElementsOf(keys);
+//        }
         
         
         // build filter
-        List<MetadataGroup> mgs = table.getSelectionModel().isEmpty() ? table.getItems() : table.getSelectedItems();
+        List<MetadataGroup> mgs = table.getSelectedOrAllItemsCopy();
             // composed predicate, too much wasteful computation...
             // Predicate<Metadata> p = mgs.parallelStream()
             //        .map(MetadataGroup::toMetadataPredicate)
             //        .reduce(Predicate::or)
             //        .orElse(isFALSE);
         
-            // optimisation : compute values ONCE if doable
+        // optimisation : compute values ONCE if doable
         Field f = fieldFilter.getValue();
         List l = listM(mgs,mg->mg.getValue());
         // optimisation : dont use equals for primitive types
@@ -379,7 +376,7 @@ public class LibraryViewController extends FXMLController {
         Predicate<Metadata> p = primitive ? m -> isInR(m.getField(f), l) 
                                           : m -> isIn(m.getField(f), l);
         // filter
-        // optimisation 3: use parallel stream
+        // optimisation : use parallel stream
         return list.parallelStream().filter(p).collect(toList());
     }
     
@@ -392,7 +389,7 @@ public class LibraryViewController extends FXMLController {
             m.getItems().addAll(
                 createmenuItem("Play items", e -> play(m.getValue())),
                 createmenuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
-                createmenuItem("Update from file", e -> DB.updateItemsFromFile(m.getValue())),
+                createmenuItem("Update from file", e -> Player.refreshItems(m.getValue())),
                 createmenuItem("Remove from library", e -> DB.removeItems(m.getValue())),
                 createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))));
 //                createmenuItem("Edit the item/s in tag editor", e -> m.getValue().re);

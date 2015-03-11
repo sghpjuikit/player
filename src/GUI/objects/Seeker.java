@@ -384,9 +384,7 @@ public final class Seeker extends AnchorPane {
 //                     // avoid removing chapter that does not exist
 //                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
 //                         return;
-                     MetadataWriter mw = MetadataWriter.create(m);
-                                    mw.removeChapter(c,m);
-                                    mw.write();
+                     MetadataWriter.use(m, w->w.removeChapter(c,m));
                      e.consume();
                 });
                 cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
@@ -527,10 +525,8 @@ public final class Seeker extends AnchorPane {
                 message.setWrappingWidthNatural(true);
                 // and physically 
                 c.setText(ta.getText());
-                Metadata m = Player.playingtem.get();            
-                MetadataWriter mw = MetadataWriter.create(m);
-                               mw.setChapter(c, m);
-                               mw.write();
+                Metadata m = Player.playingtem.get();
+                MetadataWriter.use(m, w->w.setChapter(c,m));
             }
             // go back visually
             content.getChildren().remove(ta);

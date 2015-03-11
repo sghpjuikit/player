@@ -85,14 +85,25 @@ public class ImprovedTable<T> extends TableView<T> {
             return getRow(p.getY());
     }
     
-    /** Returns selected items. */
+    /** Returns selected items. The list will continue to reflect changes in selection. */
     public ObservableList<T> getSelectedItems() {
         return getSelectionModel().getSelectedItems();
     }
     
-    /** @return copy of selected items (to prevent modification). */
+    /** @return unchanging copy of selected items. 
+        @see #getSelectedItems() */
     public List<T> getSelectedItemsCopy() {
         return new ArrayList(getSelectionModel().getSelectedItems());
+    }
+    /** @return selected items or all if none selected. The list will continue
+    to reflect change in selection or table list (depending on which was returned). */
+    public ObservableList<T> getSelectedOrAllItems() {
+        return getSelectionModel().isEmpty() ? getItems() : getSelectedItems();
+    }
+    /** @return unchanging copy of selected or all items.
+        @see #getSelectedOrAllItems() */
+    public List<T> getSelectedOrAllItemsCopy() {
+        return new ArrayList(getSelectedOrAllItems());
     }
     
     /** Will add zeros to index numbers to maintain length consistency. */

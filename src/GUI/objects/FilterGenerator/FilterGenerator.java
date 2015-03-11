@@ -19,11 +19,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.util.Callback;
-import util.parsing.ParserImpl.Parser;
 import util.Util;
 import static util.Util.unPrimitivize;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
+import static util.functional.Util.isTRUE;
+import util.parsing.ParserImpl.Parser;
 
 /**
  *
@@ -176,14 +177,17 @@ public class FilterGenerator<T> extends HBox {
     private void generatePredicate(BiPredicate p, String input, T o) {
         if(inconsistentState) return;
         
-        if(onFilterChange!=null && p!=null) {
+        if(valueF.getText().isEmpty()) {
+            predicate = isTRUE;
+            val = o;
+            if(onFilterChange!=null) onFilterChange.accept(predicate,o);
+        } else if(p!=null) {
             try {
-                
                 Object value = Parser.fromS(type, input);
                 if(value != null) {
                     predicate = x -> p.test(x,value);
                     val = o;
-                    onFilterChange.accept(predicate,o);
+                    if(onFilterChange!=null) onFilterChange.accept(predicate,o);
                 }
             // catch input parsing exceptions
             } catch(Exception e) {

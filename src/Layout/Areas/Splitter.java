@@ -175,10 +175,8 @@ public final class Splitter implements ContainerNode {
         maintain(splitPane.orientationProperty(), this::refreshControlsOrientation);
                 
         splitPane.getDividers().get(0).positionProperty().addListener((o,ov,nv) -> {
-            // occurs when user drags the divider
+            // occurs when user drags the divider, manual -> remember it
             if(splitPane.isPressed()) {
-                // if the change is manual, remember it
-                // stores value lazily + avoids accidental value change & bugs
                 prop.put("pos", nv);
             // occurs as a result of node parent resizing
             } else {
@@ -186,7 +184,7 @@ public final class Splitter implements ContainerNode {
                 // when layout starts the position is not applied correctly
                 // either because of a bug (only when orientation==vertical) or
                 // layout not being sized properly yet, it is difficult to say
-                // so for now, the initialisation phase (2s) is handled differently
+                // so for now, the initialisation phase (5s) is handled differently
                 if (initialized) {
                     // the problem still remains though - the position value gets
                     // changes when restored from near zero & reapplication of
@@ -197,15 +195,7 @@ public final class Splitter implements ContainerNode {
                     // the stored value is not affected which is good. But the gui
                     // might not be be properly put on consequent resizes or on
                     // near edge restoration (major problem)
-                    
-                    // enabling the below will fix it but produces a visual lag
-                    // and quite possibly degrades performance and increases app
-                    // memory footprint
-//                    double should_be = prop.getD("pos");
-//                    double is = nv.doubleValue();
-//                    if(Math.abs(is-should_be) > 0.08) {
-//                        Platform.runLater(()->splitPane.setDividerPositions(prop.getD("pos")));
-//                    }
+
                     
                     // because we really need to load the layout to proper
                     // position, use the workaround for initialisation
@@ -214,7 +204,7 @@ public final class Splitter implements ContainerNode {
                     if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08)
                         runOnFX(this::applyPos);
                     else
-                        run(2000, ()->initialized=true);
+                        run(5000, ()->initialized=true);
                 }
             }
         });
@@ -242,7 +232,7 @@ public final class Splitter implements ContainerNode {
         });
         Icon lockB = new Icon(LOCK, 12, "Lock container", this::toggleLocked);
         maintain(c.locked,mapB(LOCK,UNLOCK), lockB.icon);
-        Icon absB = new Icon(CHAIN, 12, "Switch proportionally resizable content", this::toggleAbsoluteSize);
+        Icon absB = new Icon(CHAIN, 12, "Switch proportionally resizable content", this::toggleAbsoluteSize);absB.setText("1");
         Icon switchB = new Icon(EXCHANGE, 12, "Swap content", this::switchChildren);
         Icon orienB = new Icon(MAGIC, 12, "Change orientation", this::toggleOrientation);
         maintain(c.orientation,o->o==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H, orienB.icon);
@@ -315,7 +305,7 @@ public final class Splitter implements ContainerNode {
         
     }
     public void toggleAbsoluteSizeFor(int i) {
-            setAbsoluteSize(getAbsoluteSize()==i ? 0 : i);
+        setAbsoluteSize(getAbsoluteSize()==i ? 0 : i);
     }
     public void setAbsoluteSize(int i) {
         if(i<0 || i>2)

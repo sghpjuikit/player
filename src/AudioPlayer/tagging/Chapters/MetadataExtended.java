@@ -93,9 +93,7 @@ public final class MetadataExtended {
         File f = new File(metadata.getLocation(),metadata.getFilenameFull() + ".xml");
         FileUtil.writeFile(f.getPath(), content);
         
-        MetadataWriter writer = MetadataWriter.create(metadata);
-        writer.setChapters(getChapters());
-        writer.write();
+        MetadataWriter.use(metadata, w->w.setChapters(getChapters()));
     }
     
     /**

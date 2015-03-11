@@ -147,7 +147,7 @@ public class DB {
         });
     }
     
-    private static void updateItems(List<Metadata> items) {
+    public static void updateItems(List<Metadata> items) {
         // update db
         em.getTransaction().begin();
         items.forEach(em::merge);

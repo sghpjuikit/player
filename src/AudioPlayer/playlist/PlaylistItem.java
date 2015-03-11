@@ -168,7 +168,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
 /******************************************************************************/
 
     /**
-     * Updates this item by reading the tag of the source.
+     * Updates this item by reading the tag of the source. Invokes costly I/O
+     * operation.
+     * <p>
+     * This playlist item will be updated after this method is invoked.
      * <p>
      * Dont use this method for lots of items at once on application thread!
      */
@@ -205,6 +208,16 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                 corrupted = true;   // mark as corrupted on error 
             }
         }
+    }
+    
+    /** Updates this playlist item to data from provided metadata. No I/O.
+     * <p>
+     * This playlist item will be updated after this method is invoked. */
+    public void update(Metadata m) {
+        uri.set(m.getURI());
+        setATN(m.getArtist(), m.getTitle());
+        time.set(m.getLength());
+        updated = true;
     }
     
     private void setATN(String art, String titl) {

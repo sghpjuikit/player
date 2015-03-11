@@ -97,6 +97,9 @@ final class Core {
         public void update() {
             load(false, val);
         }
+        public void update(Metadata m) {
+            set(false, val);
+        }
         
         void load() {
             load(true, val);

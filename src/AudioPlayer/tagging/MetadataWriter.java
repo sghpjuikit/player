@@ -5,12 +5,12 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import static java.util.Collections.singletonList;
 import java.util.List;
@@ -21,11 +21,11 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
 import main.App;
 import org.jaudiotagger.audio.AudioFile;
-import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
+import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
@@ -33,8 +33,10 @@ import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
+import org.reactfx.EventSource;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
+import static util.async.Async.run;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
@@ -55,6 +57,7 @@ public class MetadataWriter extends MetaItem {
     // state
     private File file;
     private AudioFile audioFile;
+    private Tag tag;
     private int fields_changed = 0;
     // properties
     private final ReadOnlyBooleanWrapper isWriting = new ReadOnlyBooleanWrapper(false);
@@ -127,7 +130,7 @@ public class MetadataWriter extends MetaItem {
         else
             artists.stream().filter(String::isEmpty).forEach(a->{
                 try {
-                    audioFile.getTag().createField(FieldKey.ARTIST, a);
+                    tag.createField(FieldKey.ARTIST, a);
                     fields_changed++;
                 } catch (KeyNotFoundException ex) {
                 Log.info("Artist field not found.");
@@ -156,10 +159,10 @@ public class MetadataWriter extends MetaItem {
     public void setCover(File cover) {
         try {
             if (cover == null)
-                audioFile.getTag().deleteArtworkField();
+                tag.deleteArtworkField();
             else {
-                audioFile.getTag().deleteArtworkField();
-                audioFile.getTag().setField(ArtworkFactory.createArtworkFromFile(cover));
+                tag.deleteArtworkField();
+                tag.setField(ArtworkFactory.createArtworkFromFile(cover));
             }
             fields_changed++;
         } catch (KeyNotFoundException ex) {
@@ -265,12 +268,6 @@ public class MetadataWriter extends MetaItem {
         } 
     }
     
-    private void validateMp3Tag(MP3File file) {
-        ID3v24Tag tag = file.getID3v2TagAsv24();
-//        if (tag==null) file.
-        file.getTagOrCreateDefault();
-    }
-    
     private void setRatingMP3(double val) {
         MP3File mp3File = ((MP3File)audioFile);
                 mp3File.getTagOrCreateAndSetDefault();
@@ -365,7 +362,6 @@ public class MetadataWriter extends MetaItem {
 
     /** @param val the publisher to set  */
     public void setPublisher(String val) {
-        
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   setPublisherMP3(val); break;
@@ -544,11 +540,9 @@ public class MetadataWriter extends MetaItem {
     /** sets field */
     private void setField(FieldKey field, String val) {
         try {
-            audioFile.getTagOrCreateDefault();
-            if (val == null || val.isEmpty())
-                audioFile.getTag().deleteField(field);
-            else
-                audioFile.getTag().setField(field, val);
+            boolean is_empty = val == null || val.isEmpty();
+            if (is_empty) tag.deleteField(field);
+            else tag.setField(field, val);
             fields_changed++;
         } catch (KeyNotFoundException ex) {
             Log.info(field.toString() + " field not found.");
@@ -563,19 +557,16 @@ public class MetadataWriter extends MetaItem {
     
     /** 
      * Writes all changes to tag.
-     * @return true if data were written to tag or nothing to write - on success,
-     * false otherwise - when writing ends unsuccessfully.
+     * @return true if data were written to tag or false if tag didnt change,
+     * either because there was nothing to change or writing failed.
      */
-    public boolean write() {
+    private boolean write(boolean autorefresh) {
         // write changes to tag
         String f = (fields_changed == 1) ? "field" : "fields";
         Log.deb("Writing " + fields_changed + f + " to tag for: " + getURI() + ".");
         
         // do nothing if nothing to write
-        if (!hasFields()) {
-            MetadataWriter.this.reset();
-            return true;
-        }  
+        if (!hasFields()) return false;  
         
         try {
             // suspend playback if necessary
@@ -585,16 +576,21 @@ public class MetadataWriter extends MetaItem {
             audioFile.commit();         
             // restore playback
             if (isPlaying) PLAYBACK.loadLastState();
+            
             // update this item for application
             // dont use self as parameter! illegal state could leak
-            Player.refreshItem(toSimple());
+            if(autorefresh) refreshesSource.push(toSimple());
             
             Log.deb("Saving tag for " + getURI() + " finished successfuly.");
-            MetadataWriter.this.reset();
             return true;
-        } catch (CannotWriteException ex) {
-            Log.err("Can not write to tag for file: " + audioFile.getFile().getPath());
-            MetadataWriter.this.reset();
+            
+        // problem: commit() throws UnableToRenameFileException, but it appears
+        // its undocumented and we can not catch it! catch everything...
+        // note: catching it as Exception doesnt help! catchign as Throwable -
+        // - untested, probably not - weird
+        // } catch (CannotWriteException | UnableToRenameFileException e) {
+        } catch (Throwable e) {
+            Log.err("Can not write to tag for file: " + audioFile.getFile().getPath() + e);
             return false;
         }
     }
@@ -623,34 +619,56 @@ public class MetadataWriter extends MetaItem {
     public void reset() {
         file = null;
         audioFile = null;
+        tag = null;
         fields_changed = 0;
         isWriting.set(false);
     }
     
     public void reset(Item i) {
         file = i.getFile();
-        AudioFile f = readAudioFile(file);
-        audioFile = f;
+        audioFile = readAudioFile(file);
+        tag = audioFile.getTagOrCreateAndSetDefault();
         fields_changed = 0;
         isWriting.set(false);
     }
     
 /******************************************************************************/
     
-    public static void use(Item item, Consumer<MetadataWriter> setter) {
+    public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter) {
         use(singletonList(item), setter);
     }
     
     public static void use(List<? extends Item> items, Consumer<MetadataWriter> setter) {
-        List<Item> changed = new ArrayList();
         MetadataWriter w = new MetadataWriter();
         for(Item i : items) {
             w.reset(i);
             setter.accept(w);
-            boolean ok = w.write();
-            if(ok) changed.add(i);
+            w.write(true);
         }
-        DB.updateItemsFromFile(changed);
+    }
+    
+    public static void use(List<Metadata> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
+        run(()->{
+            MetadataWriter w = new MetadataWriter();
+            List<Metadata> to_refresh = new ArrayList();
+            List<Metadata> not = new ArrayList();
+            for(Metadata i : items) {
+                w.reset(i);
+                setter.accept(w);
+                boolean changed = w.write(false);
+                if(changed) to_refresh.add(i); else not.add(i);
+            }
+
+            MetadataReader.readMetadata(to_refresh, (ok,metas) -> {
+                if (ok) {
+                    List<Metadata> all = new ArrayList();
+                                   all.addAll(metas);
+                                   all.addAll(not);
+                    if(action!=null) action.accept(all);
+                    Player.refreshItemsWithUpdated(metas);
+                }
+            });
+        });
     }
     
     /**
@@ -661,14 +679,12 @@ public class MetadataWriter extends MetaItem {
         int count = item.getPlaycount() + 1;
         MetadataWriter w = MetadataWriter.create(item);
                        w.setPlaycount(String.valueOf(count));
-        if (w.write()) {
+        if (w.write(true))
             App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
-            DB.updateItemsFromFile(singletonList(item));
-        }
     }
     
     /**
-     * Rates playing item and throws a notification.
+     * Rates item.
      * @param item to useToRate.
      * @param rating <0-1> representing percentage of the rating, 0 being minimum
      * and 1 maximum possible rating for current item. Value outside range will
@@ -677,10 +693,27 @@ public class MetadataWriter extends MetaItem {
     public static void useToRate(Metadata item, double rating) {
         MetadataWriter w = MetadataWriter.create(item);
                        w.setRatingPercent(rating);
-        if (w.write()) {
+        if (w.write(true))
             App.use(Notifier.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
-            DB.updateItemsFromFile(singletonList(item));
-        }
+    }
+    
+/******************************************************************************/
+    
+    private static final List<Item> refresh_queue = new ArrayList();
+    private static final EventSource<Item> refreshesSource = new EventSource<>();
+    static {
+        refreshesSource.hook(refresh_queue::add).successionEnds(Duration.ofSeconds(1))
+        .subscribe( ignored -> {
+            if(refresh_queue.size()==1) {
+                Item i = refresh_queue.get(0);
+                refresh_queue.clear();
+                Player.refreshItem(i);
+            } else {
+                List<Item> items = new ArrayList(refresh_queue);
+                refresh_queue.clear();
+                Player.refreshItems(items);
+            }
+        });
     }
     
 }

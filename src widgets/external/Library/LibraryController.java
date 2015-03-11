@@ -413,7 +413,8 @@ public class LibraryController extends FXMLController {
                 }),
                 createmenuItem("Update from file", e -> {
                     List<Metadata> items = m.getValue();
-                    DB.updateItemsFromFile(items);
+//                    DB.updateItemsFromFile(items);
+                    Player.refreshItems(items);
                 }),
                 createmenuItem("Remove from library", e -> {
                     List<Metadata> items = m.getValue();

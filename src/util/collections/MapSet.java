@@ -7,6 +7,7 @@ package util.collections;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import util.dev.TODO;
@@ -159,6 +160,17 @@ public class MapSet<K,E> implements Set<E> {
     /** @return this.values().stream() */
     public Stream<E> streamV() {
         return m.values().stream();
+    }
+    
+    public void ifHasK(K k, Consumer<E> action) {
+        E e = m.get(k);
+        if(e != null)
+            action.accept(e);
+    }
+    public void ifHasE(E element, Consumer<E> action) {
+        E e = m.get(keyMapper.apply(element));
+        if(e != null)
+            action.accept(e);
     }
     
 }

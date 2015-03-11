@@ -94,7 +94,7 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         FilterGenerator first = generators.get(0);
         generators.clear();
         generators.add(first);
-        generatePredicate();
+        generatePredicate();if(conjuction!=isTRUE)System.out.println("AAAAAAAAAAAAAAAAAAAAAA"); else System.out.println("ddddddddddddddd");
         for(int i=getChildren().size()-1; i>0; i--)
             getChildren().remove(getChildren().get(i));
     }
@@ -137,7 +137,7 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         return g;
     }
     
-    private void generatePredicate() {
+    private void generatePredicate() {System.out.println(generators.size()+ "gfdas");
         conjuction = generators.stream()
                                .map(g->converter.apply(g.val,g.predicate))
                                .reduce(Predicate::and)

@@ -4,6 +4,8 @@ package Layout.Widgets;
 import Configuration.Configurable;
 import Layout.Layout;
 import Layout.Widgets.Features.Feature;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.scene.Node;
 import util.Closable;
 
@@ -127,5 +129,15 @@ public interface Controller<W extends Widget> extends Configurable<Object>, Abst
     
     default public Node getActivityNode() {
         return null;
+    }
+    
+    /** @return all implemented features */
+    default List<Feature> getFeatures() {
+        List<Feature> out = new ArrayList();
+        for(Class c : getClass().getInterfaces()) {
+            Feature fn = (Feature) c.getAnnotation(Feature.class);
+            if (fn!=null) out.add(fn);
+        }
+        return out;
     }
 }

@@ -23,6 +23,7 @@ import Layout.Widgets.Features.Feature;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.IOException;
+import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.beans.property.BooleanProperty;
@@ -51,6 +52,7 @@ import org.reactfx.EventSource;
 import util.SingleInstance;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
+import static util.functional.Util.toS;
 import static util.reactive.Util.maintain;
 
 /**
@@ -460,10 +462,10 @@ public final class AreaControls {
                 info += "\n\n" + w.description();
             if (!w.notes().isEmpty()) info += "\n\n" + w.notes();
             if (!w.howto().isEmpty()) info += "\n\n" + w.howto();
-            String f = (w.getController() instanceof Feature)
-                ? Feature.class.cast(w.getController()).getFeatureName()
-                : "-";
-            info += "\n\nFeatures: " + f;
+            
+            List<Feature> ff = w.getController().getFeatures();
+            String s = ff.isEmpty() ? "none" : "\n" + toS(ff, f -> "    " + f.name() + ": " + f.description());
+            info += "\n\nFeatures: " + s;
         }
 
         return "Available actions:\n"

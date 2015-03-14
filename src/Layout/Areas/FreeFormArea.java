@@ -85,14 +85,22 @@ public class FreeFormArea implements ContainerNode {
         });
         root.widthProperty().addListener((o,ov,nv) -> {
             windows.forEach((i,w) -> {
+                boolean s = w.snappable.get();
+                w.snappable.unbind();
+                w.snappable.set(false);
                 if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*nv.doubleValue());
                 if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*nv.doubleValue());
+                maintain(GUI.snapping, w.snappable);
             });
         });
         root.heightProperty().addListener((o,ov,nv) -> {
             windows.forEach((i,w) -> {
+                boolean s = w.snappable.get();
+                w.snappable.unbind();
+                w.snappable.set(false);
                 if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*nv.doubleValue());
                 if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*nv.doubleValue());
+                maintain(GUI.snapping, w.snappable);
             });
         });
     }

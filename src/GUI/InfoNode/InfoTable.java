@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.virtual.InfoNode;
+package GUI.InfoNode;
 
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;

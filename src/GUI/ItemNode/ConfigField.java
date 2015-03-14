@@ -1,10 +1,10 @@
 
-package GUI.ItemHolders;
+package GUI.ItemNode;
 
 import Action.Action;
 import Configuration.Config;
-import GUI.ItemHolders.ItemTextFields.FileTextField;
-import GUI.ItemHolders.ItemTextFields.FontTextField;
+import GUI.ItemNode.ItemTextFields.FileTextField;
+import GUI.ItemNode.ItemTextFields.FontTextField;
 import GUI.objects.CheckIcon;
 import GUI.objects.Icon;
 import static de.jensd.fx.glyphs.GlyphsDude.createIconButton;

@@ -7,12 +7,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Defines tagging feature - functionality of a tagging widget
+ * Capable to read and write data to song tags
  * 
  * @author Plutonium_
  */
-@FeatureName("Metadata editing.")
-public interface TaggingFeature extends Feature {
+@Feature(
+  name = "Metadata editing", 
+  description = "Capable to read and write data to song tags", 
+  type = TaggingFeature.class
+)
+public interface TaggingFeature {
     
     /**
      * Convenience method for single item reading. For specifics read the

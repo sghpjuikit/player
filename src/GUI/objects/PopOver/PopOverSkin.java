@@ -65,7 +65,7 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private boolean tornOff;
     
-    private final StackPane root;
+    final StackPane root;
     private Path path;
     private BorderPane content;
     
@@ -142,7 +142,19 @@ public class PopOverSkin implements Skin<PopOver> {
         content.getStyleClass().add("content");
         
         // content
-        maintain(popOver.contentNodeProperty(), n->n, content.centerProperty());
+//        maintain(popOver.contentNodeProperty(), n->n, content.centerProperty());
+        maintain(popOver.contentNodeProperty(), n->n, n -> {
+            content.setCenter(n);
+            // the following lines fix some resize bugs
+            content.autosize();
+            content.applyCss();
+            content.layout();
+            content.requestLayout();
+            root.autosize();
+            root.applyCss();
+            root.layout();
+            root.requestLayout();
+        });
         
         // header
         header = new BorderPane();
@@ -243,6 +255,11 @@ public class PopOverSkin implements Skin<PopOver> {
         header.setPadding(new Insets(0, 0, i.getTop(), 0));
     }
     
+    public void setTitleAsOnlyHeaderContent() {
+        header.getChildren().clear();
+        header.setRight(title);
+    }
+    
     /**
      * Returns padding of content within popover. Default is css value.
      * @return 
@@ -299,25 +316,20 @@ public class PopOverSkin implements Skin<PopOver> {
         DoubleProperty cornerProperty = popOver.cornerRadiusProperty();
 
         DoubleProperty arrowSizeProperty = popOver.arrowSizeProperty();
-        DoubleProperty arrowIndentProperty = popOver
-                .arrowIndentProperty();
+        DoubleProperty arrowIndentProperty = popOver.arrowIndentProperty();
 
         centerYProperty.bind(Bindings.divide(root.heightProperty(), 2));
         centerXProperty.bind(Bindings.divide(root.widthProperty(), 2));
 
-        leftEdgePlusRadiusProperty.bind(Bindings.add(leftEdgeProperty,
-                popOver.cornerRadiusProperty()));
+        leftEdgePlusRadiusProperty.bind(Bindings.add(leftEdgeProperty,popOver.cornerRadiusProperty()));
 
-        topEdgePlusRadiusProperty.bind(Bindings.add(topEdgeProperty,
-                popOver.cornerRadiusProperty()));
+        topEdgePlusRadiusProperty.bind(Bindings.add(topEdgeProperty,popOver.cornerRadiusProperty()));
 
         rightEdgeProperty.bind(root.widthProperty());
-        rightEdgeMinusRadiusProperty.bind(Bindings.subtract(rightEdgeProperty,
-                popOver.cornerRadiusProperty()));
+        rightEdgeMinusRadiusProperty.bind(Bindings.subtract(rightEdgeProperty,popOver.cornerRadiusProperty()));
 
         bottomEdgeProperty.bind(root.heightProperty());
-        bottomEdgeMinusRadiusProperty.bind(Bindings.subtract(
-                bottomEdgeProperty, popOver.cornerRadiusProperty()));
+        bottomEdgeMinusRadiusProperty.bind(Bindings.subtract(bottomEdgeProperty, popOver.cornerRadiusProperty()));
 
         // INIT
         moveTo = new MoveTo();

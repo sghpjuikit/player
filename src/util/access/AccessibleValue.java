@@ -14,14 +14,19 @@ import javafx.beans.value.WritableValue;
 import util.functional.Operable;
 
 /**
- * Extension of {@link WritableValue), that supports {@link SequentialValue}. This
- * is a lightweight interface for objects with an access to a value.
+ * {@link WritableValue), with added default methods. A lightweight interface 
+ * for value wrappers.
  * <p>
- * Intended for object wrappers.
-
+ * The value does not have to be wrapped directly within this object, rather
+ * this object is a means to access it, hence the more applicable name - 
+ * accessible vlaue.
+ *
+ * @param <V> type of accessible value
+ * @see SequentialValue
+ * @see Operable
  * @author Plutonium_
  */
-public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T>, Operable<T> {
+public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>, Operable<V> {
     
     /**
      * Equivalent to calling {@link #setValue()} with {@link #next()};
@@ -53,14 +58,14 @@ public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T>
      * enum constant. Otherwise does nothing.
      */
     @Override
-    public default T next() {
-        T val = getValue();
+    public default V next() {
+        V val = getValue();
         if(val instanceof SequentialValue)
-            return ((SequentialValue<T>)getValue()).next();
+            return ((SequentialValue<V>)getValue()).next();
         else if(val instanceof Boolean)
-            return (T) SequentialValue.next(Boolean.class.cast(getValue()));
+            return (V) SequentialValue.next(Boolean.class.cast(getValue()));
         else if(val instanceof Enum)
-            return (T) SequentialValue.next(Enum.class.cast(getValue()));
+            return (V) SequentialValue.next(Enum.class.cast(getValue()));
         else return val;
     }
     
@@ -76,14 +81,14 @@ public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T>
      * {@inheritDoc}
      */
     @Override
-    public default T previous() {
-        T val = getValue();
+    public default V previous() {
+        V val = getValue();
         if(val instanceof SequentialValue)
-            return ((SequentialValue<T>)getValue()).previous();
+            return ((SequentialValue<V>)getValue()).previous();
         else if(val instanceof Boolean)
-            return (T) SequentialValue.previous(Boolean.class.cast(getValue()));
+            return (V) SequentialValue.previous(Boolean.class.cast(getValue()));
         else if(val instanceof Enum)
-            return (T) SequentialValue.previous(Enum.class.cast(getValue()));
+            return (V) SequentialValue.previous(Enum.class.cast(getValue()));
         else return val;
     }
     
@@ -91,32 +96,32 @@ public interface AccessibleValue<T> extends WritableValue<T>, SequentialValue<T>
     
     /** {@inheritDoc} */
     @Override
-    public default T apply(UnaryOperator<T> op) {
+    public default V apply(UnaryOperator<V> op) {
         return op.apply(getValue());
     }
     
     /** {@inheritDoc} */
     @Override
-    public default <R> R apply(Function<T,R> op) {
+    public default <R> R apply(Function<V,R> op) {
         return op.apply(getValue());
     }
     
     /** {@inheritDoc} */
     @Override
-    public default T apply(T e, BinaryOperator<T> op) {
+    public default V apply(V e, BinaryOperator<V> op) {
         return op.apply(getValue(), e);
     }
     
     /** {@inheritDoc} */
     @Override
-    public default void use(Consumer<T> op) {
+    public default void use(Consumer<V> op) {
         op.accept(getValue());
     }
 
     /** {@inheritDoc} */
     @Override
-    public default T useAnd(Consumer<T> op) {
-        T v = getValue();
+    public default V useAnd(Consumer<V> op) {
+        V v = getValue();
         op.accept(v);
         return v;
     }

@@ -7,9 +7,18 @@
 package Layout.Widgets.Features;
 
 /**
- * Defines configuration feature - functionality of a widget for configuring
+ * Configures.
  * 
  * @author Plutonium_
  */
-@FeatureName("Settings & Configuration")
-public interface ConfiguringFeature extends Feature { }
+/**
+ * Displays images.
+ *
+ * @author Plutonium_
+ */
+@Feature(
+  name = "Configurator",
+  description = "Provides settings and configurations",
+  type = ConfiguringFeature.class
+)
+public interface ConfiguringFeature { }

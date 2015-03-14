@@ -36,7 +36,9 @@ public abstract class MetaItem<CI extends Item> extends Item<CI> {
     
     /** @return provided value clipped to min and max rating */
     double clipRating(double v) {
-        return v<getRatingMin() ? getRatingMin() : v>getRatingMax() ? getRatingMax() : v; 
+        double min = getRatingMin();
+        double max = getRatingMax();
+        return v<min ? min : v>max ? max : v; 
     }
     
 //****************************** HELPER FUNCTIONS ****************************//

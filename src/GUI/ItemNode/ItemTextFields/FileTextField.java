@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.ItemHolders.ItemTextFields;
+package GUI.ItemNode.ItemTextFields;
 
 import java.io.File;
 import util.File.Enviroment;

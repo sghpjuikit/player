@@ -18,6 +18,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.beans.value.WritableValue;
 import org.reactfx.EventStream;
+import org.reactfx.EventStreams;
 import static org.reactfx.EventStreams.merge;
 import org.reactfx.Subscription;
 import util.collections.MapSet;
@@ -63,7 +64,7 @@ public class Player {
             case SELECTED_LIBRARY:  s = librarySelectedItemES; break;
             case SELECTED_ANY:      s = selectedItemES; break;
             case ANY:               s = anyItemES; break;
-            case CUSTOM:            return null;
+            case CUSTOM:            s = EventStreams.never(); break;
             default: throw new AssertionError("Illegal switch value: " + source);
         }
         

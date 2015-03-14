@@ -11,6 +11,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import static GUI.DragUtil.hasImage;
+import GUI.InfoNode.SongInfo;
 import GUI.Panes.ImageFlowPane;
 import GUI.objects.ActionChooser;
 import GUI.objects.Rater.Rating;
@@ -74,7 +75,7 @@ import util.access.Accessor;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class FileInfoController extends FXMLController {
+public class FileInfoController extends FXMLController implements SongInfo {
     
     @FXML AnchorPane entireArea;
     ImageFlowPane layout;
@@ -122,7 +123,7 @@ public class FileInfoController extends FXMLController {
     @IsConfig(name = "Show fields", info = "Show fields.")
     public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setShowContent(v));
     @IsConfig(name = "Item source", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring, this::populateGui));
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring, this::setValue));
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
@@ -249,7 +250,7 @@ public class FileInfoController extends FXMLController {
                 // get first item
                 List<Item> items = DragUtil.getAudioItems(e);
                 // getMetadata, refresh
-                if (!items.isEmpty()) populateGui(items.get(0).getMetadata());
+                if (!items.isEmpty()) setValue(items.get(0).getMetadata());
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
@@ -345,10 +346,9 @@ public class FileInfoController extends FXMLController {
     public boolean isEmpty() {
         return data == null;
     }
-    
-/****************************** HELPER METHODS ********************************/
-    
-    private void populateGui(Metadata m) {
+
+    @Override
+    public void setValue(Metadata m) {
         // prevent refreshing location if shouldnt
         if(!allowNoContent && m==Metadata.EMPTY) return;
         

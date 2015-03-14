@@ -9,11 +9,16 @@ package Layout.Widgets.Features;
 import java.io.File;
 
 /**
+ * Displays image.
  *
  * @author Plutonium_
  */
-@FeatureName("Image display")
-public interface ImageDisplayFeature extends Feature {
+@Feature(
+  name = "Image display",
+  description = "Displays image",
+  type = ImageDisplayFeature.class
+)
+public interface ImageDisplayFeature {
     
     /**
      * Displays the image.

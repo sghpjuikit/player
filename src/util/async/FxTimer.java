@@ -19,7 +19,7 @@ public class FxTimer implements Timer {
     private final Timeline timeline;
     private final Runnable action;
     
-    private Duration timeout;
+    private Duration period;
     private long seq = 0;
     
     /**
@@ -32,7 +32,7 @@ public class FxTimer implements Timer {
     * for n executions and {@link Animation.INDEFINITE} (-1) for infinite amount.
     */
     public FxTimer(Duration delay, int cycles, Runnable action) {
-        this.timeout = Duration.millis(delay.toMillis());
+        this.period = Duration.millis(delay.toMillis());
         this.timeline = new Timeline();
         this.action = action;
 
@@ -47,19 +47,19 @@ public class FxTimer implements Timer {
 
     @Override
     public void restart() {
-        restart(timeout);
+        restart(period);
     }
     
     /**
      * Equivalent to calling {@link #setTimeout()} and {@link #restart()}
      * subsequently.
-     * @param timeout 
+     * @param period 
      */
-    public void restart(Duration timeout) {
+    public void restart(Duration period) {
         stop();
         long expected = seq;
-        this.timeout = timeout;
-        timeline.getKeyFrames().setAll(new KeyFrame(timeout, ae -> {
+        this.period = period;
+        timeline.getKeyFrames().setAll(new KeyFrame(period, ae -> {
             if(seq == expected) {
                 action.run();
             }
@@ -67,8 +67,16 @@ public class FxTimer implements Timer {
         timeline.play();
     }
 
-    public void restart(double timeoutInMillis) {
-        restart(Duration.millis(timeoutInMillis));
+    public void restart(double periodInMs) {
+        restart(Duration.millis(periodInMs));
+    }
+    
+    public void pause() {
+        timeline.pause();
+    }
+    
+    public void unpause() {
+        timeline.play();
     }
     
     @Override
@@ -86,19 +94,23 @@ public class FxTimer implements Timer {
      * execution is planned. It will not affect currently running cycle. It will
      * affect every subsequent cycle. Therefore, it is pointless to run this
      * method if this timer is non-periodic.
-     * @param timeout 
+     * @param period 
      */
-    public void setTimeout(Duration timeout) {
-        this.timeout = timeout;
+    public void setPeriod(Duration period) {
+        this.period = period;
     }
     
-    public void setTimeout(double timeautInMillis) {
-        this.timeout = Duration.millis(timeautInMillis);
+    public void setPeriod(double periodInMs) {
+        this.period = Duration.millis(periodInMs);
+    }
+    
+    public Duration getPeriod() {
+        return period;
     }
     
     /**
      * If timer running, executes {@link #restart(javafx.util.Duration)}, else
-     * executes {@link #setTimeout(javafx.util.Duration)}
+     * executes {@link #setPeriod(javafx.util.Duration)}
      * <p>
      * Basically same as {@link #restart(javafx.util.Duration)}, but restarts
      * only if needed (when running).
@@ -107,11 +119,11 @@ public class FxTimer implements Timer {
      */
     public void setTimeoutAndRestart(Duration timeout) {
         if (isRunning()) restart(timeout);
-        else setTimeout(timeout);
+        else FxTimer.this.setPeriod(timeout);
     }
     
     public void setTimeoutAndRestart(double timeautInMillis) {
         if (isRunning()) restart(Duration.millis(timeautInMillis));
-        else setTimeout(Duration.millis(timeautInMillis));
+        else FxTimer.this.setPeriod(Duration.millis(timeautInMillis));
     }
 }

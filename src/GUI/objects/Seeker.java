@@ -109,7 +109,7 @@ public final class Seeker extends AnchorPane {
             }
         });
         
-        this.widthProperty().addListener( o -> positionChapters() );
+        this.widthProperty().addListener( o -> chapters.forEach(Chap::position) );
         
         
         // new chapter button
@@ -139,22 +139,20 @@ public final class Seeker extends AnchorPane {
         }));
     }
     
-    // Updates positions of chapters. No reloading takes place. Use on resize.
-    private void positionChapters() {
-        chapters.forEach( c -> c.setLayoutX(c.position*getWidth()));
-    }
-    
     /**
      * Reloads chapters from currently played item's metadata. Use when chapter
      * data changes for example on chapter add/remove.
+     *
+     * @param m metadata
+     * @throws NullPointerException if parameter null
      */
     public void reloadChapters(Metadata m) {
+        requireNonNull(m);
         // clear 
         getChildren().removeAll(chapters);
         chapters.clear();
         
-        // return if disabled or not available
-        if (!showChapters || m==null || m.isEmpty()) return;
+        if (!showChapters) return;
         
         // populate
         for (Chapter ch: m.getChaptersFromAny()) {     
@@ -162,7 +160,7 @@ public final class Seeker extends AnchorPane {
             getChildren().add(c);
             chapters.add(c);
         }
-        positionChapters();
+        chapters.forEach(Chap::position);
     }
     
     // properties
@@ -511,6 +509,7 @@ public final class Seeker extends AnchorPane {
             content.getChildren().add(ta);
             p.getHeaderIcons().set(0, commitB);
             p.getHeaderIcons().add(1, cancelB);
+            p.getHeaderIcons().remove(editB);                                   // testing bug
                 // do not add remove buton if the chapter is being created
             if (!Player.playingtem.get().containsChapterAt(c.getTime()))
                 p.getHeaderIcons().remove(delB);
@@ -568,6 +567,10 @@ public final class Seeker extends AnchorPane {
          */
         public void setOnEditFinish(Consumer<Boolean> onEditFinish) {
             this.onEditFinish = onEditFinish;
+        }
+        
+        public void position() {
+            setLayoutX(position*Seeker.this.getWidth());
         }
     }
 }

@@ -5,7 +5,6 @@ import Configuration.CompositeConfigurable;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
-import Layout.Widgets.Features.Feature;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.ObjectStreamException;
 import java.lang.annotation.ElementType;
@@ -124,7 +123,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
     /** {@inheritDoc} */
     @Override
-    public boolean hasFeature(Class<? extends Feature> feature) {
+    public boolean hasFeature(Class feature) {
         return getFactory().hasFeature(feature);
     }
     

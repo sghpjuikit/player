@@ -11,6 +11,9 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
+import GUI.InfoNode.InfoTable;
+import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import GUI.InfoNode.InfoTask;
 import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
@@ -18,9 +21,6 @@ import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
-import GUI.virtual.InfoNode.InfoTable;
-import static GUI.virtual.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
-import GUI.virtual.InfoNode.InfoTask;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -413,7 +413,6 @@ public class LibraryController extends FXMLController {
                 }),
                 createmenuItem("Update from file", e -> {
                     List<Metadata> items = m.getValue();
-//                    DB.updateItemsFromFile(items);
                     Player.refreshItems(items);
                 }),
                 createmenuItem("Remove from library", e -> {

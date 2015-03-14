@@ -7,12 +7,16 @@
 package Layout.Widgets.Features;
 
 /**
- * Defines playlist feature - functionality of a widget for playlist.
+ * Stores list of songs to play.
  * 
  * @author Plutonium_
  */
-@FeatureName("Playlist")
-public interface PlaylistFeature extends Feature {
+@Feature(
+  name = "Playlist", 
+  description = "Stores list of songs to play", 
+  type = PlaylistFeature.class
+)
+public interface PlaylistFeature {
 
     
 

@@ -7,6 +7,7 @@ package GUI.objects;
 
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
+import GUI.InfoNode.SongInfo;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
@@ -17,7 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 
 /** Info about song. */
-public class ItemInfo extends AnchorPane {
+public class ItemInfo extends AnchorPane implements SongInfo {
 
     @FXML private Label typeL;
     @FXML private Label indexL;
@@ -60,13 +61,18 @@ public class ItemInfo extends AnchorPane {
 	// do nothing
     }
 
+    @Override
+    public void setValue(Metadata m) {
+        setValue("", m);
+    }
+    
     /**
      Displays metadata information and title.
      <p>
      @param title
      @param m
      */
-    public void setData(String title, Metadata m) {
+    public void setValue(String title, Metadata m) {
 	Objects.requireNonNull(m);
 	typeL.setText(title);
 	if (thumb != null) thumb.loadImage(m.getCover(ANY));

@@ -7,9 +7,13 @@
 package Layout.Widgets.Features;
 
 /**
- * Defines playback feature - functionality of a widget for playback.
+ * Controls song playback.
  * 
  * @author Plutonium_
  */
-@FeatureName("Playback control")
-public interface PlaybackFeature extends Feature {}
+@Feature(
+  name = "Playback", 
+  description = "Controls song playback", 
+  type = PlaybackFeature.class
+)
+public interface PlaybackFeature {}

@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- notification use file info? make config
 - tagger cover bad value
 - library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
@@ -25,33 +26,20 @@
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
 - bookmark config serialisation - hahsmap not supported
-- tab area - select tab on mouse release not press or avoid loading content
-  somehow when reordering
-- tab drag areas vs tabs implement both at once
+- tab area - reimplement
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
 - press C to collapse layout containers easily - implement properly
-- library shortcuts
-- writing to tag for files without tag fails sometimes (jaudiotagger cant rename
-  file, it looks like it is locked) - perhaps generalizes to any change of tag
-  that enlarges the file (and thus requires tmp file)
-  it is possible that app doesnt have permission  to create tmp file where the lib
-  is trying to do it.
 - clean up Environment + more robust
 - explorer graphics support css skinning
 - enums with class bodies deserialistion parsing problems                       (?)
 - tray menu get rid of swing + add more options
 - libraryView bad layout for bottom pane because of task progress bar
+- thumbnail image bound to prefSize causes problems, anchorPane doesn work      (?)
+- ConfigField (General) disable ok button for manually applied configs          (?)
 
 --------------------------------------------------------------------------------
------------------------- PERFECTION - the pain & OCD ---------------------------
---------------------------------------------------------------------------------
-
-- thumbnail image bound to prefSize causes problems, anchorPane doesn work
-- ConfigField (General) disable ok button for manually applied configs
-
---------------------------------------------------------------------------------
------------------------- BUGS - what i dot want to hear about ------------------
+------------------------ BUGS - what i dont want to hear about ------------------
 --------------------------------------------------------------------------------
 
 GENERAL
@@ -166,7 +154,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them
 - file format discovery. Unite Image and Audio types add category               (not needed)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
-- Notification class unite contents, remove enum (lot of code + fxml duplicity)
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort

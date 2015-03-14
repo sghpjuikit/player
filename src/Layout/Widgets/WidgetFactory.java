@@ -5,8 +5,6 @@
  */
 package Layout.Widgets;
 
-import Layout.Widgets.Features.Feature;
-
 /**
  * Factory that creates widgets.
  * <p>
@@ -157,7 +155,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
 
     /** {@inheritDoc} */
     @Override
-    public boolean hasFeature(Class<? extends Feature> feature) {
+    public boolean hasFeature(Class feature) {
         return feature.isAssignableFrom(controller_class);
     }
     

@@ -6,7 +6,7 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.ActionTask;
 import GUI.objects.PopOver.PopOver;
-import GUI.virtual.InfoNode.InfoTask;
+import GUI.InfoNode.InfoTask;
 import Layout.Component;
 import Layout.Container;
 import java.io.File;

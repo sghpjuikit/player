@@ -2,7 +2,7 @@ package Layout.WidgetImpl;
 
 import Configuration.Configuration;
 import Configuration.IsConfig;
-import GUI.ItemHolders.ConfigField;
+import GUI.ItemNode.ConfigField;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Features.ConfiguringFeature;

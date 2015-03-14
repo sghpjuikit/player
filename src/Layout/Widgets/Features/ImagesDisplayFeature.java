@@ -9,11 +9,16 @@ import java.io.File;
 import java.util.List;
 
 /**
+ * Displays images.
  *
  * @author Plutonium_
  */
-@FeatureName("Images display")
-public interface ImagesDisplayFeature extends Feature {
+@Feature(
+  name = "Images display",
+  description = "Displays images",
+  type = ImagesDisplayFeature.class
+)
+public interface ImagesDisplayFeature {
     
     /**
      * Displays the images.

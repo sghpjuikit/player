@@ -10,7 +10,7 @@ import GUI.DragUtil;
 import GUI.objects.ItemInfo;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Thumbnail;
-import GUI.virtual.InfoNode.InfoTask;
+import GUI.InfoNode.InfoTask;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
@@ -339,7 +339,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         if(keepContentOnEmpty && new_folder==null) return;
         // refresh location
         folder.set(new_folder);
-        if(theater_mode.getValue()) itemPane.setData("", m);
+        if(theater_mode.getValue()) itemPane.setValue("", m);
      }
     
     // using change listener means the event fires only if value really changed
@@ -490,7 +490,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             itemPane.toFront();
             AnchorPane.setBottomAnchor(itemPane, 20d);
             AnchorPane.setRightAnchor(itemPane, 20d);
-            itemPane.setData("", data);
+            itemPane.setValue("", data);
             entireArea.pseudoClassStateChanged(getPseudoClass("theater"), v);
 
             itemPane.setOnMouseClicked(ee -> {

@@ -48,10 +48,10 @@ final class Core {
             return val;
         }
 
-        void set(boolean change, Metadata value) {
-            val = value;
-            if(change) itemPlayedES.push(val);
-            itemUpdatedES.push(val);
+        void set(boolean change, Metadata m) {
+            val = m;
+            if(change) itemPlayedES.push(m);
+            itemUpdatedES.push(m);
         }
         
         /** 
@@ -98,12 +98,8 @@ final class Core {
             load(false, val);
         }
         public void update(Metadata m) {
-            set(false, val);
+            set(false, m);
         }
-        
-        void load() {
-            load(true, val);
-        }       
         
         public void itemChanged(Item item) {
             if(item == null) {

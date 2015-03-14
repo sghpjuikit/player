@@ -14,7 +14,7 @@ import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.ItemHolders.ItemTextFields.MoodTextField;
+import GUI.ItemNode.ItemTextFields.MoodTextField;
 import GUI.objects.CheckIcon;
 import GUI.objects.GraphicalTextField;
 import GUI.objects.Icon;

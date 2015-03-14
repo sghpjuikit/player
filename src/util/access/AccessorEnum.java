@@ -27,7 +27,6 @@ public class AccessorEnum<T> extends Accessor<T> implements EnumerableValue<T> {
         super(val);
         valueEnumerator = enumerator;
     }
-    
     public AccessorEnum(T val, Consumer<T> applier, Supplier<Collection<T>> enumerator) {
         super(val, applier);
         valueEnumerator = enumerator;

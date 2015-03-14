@@ -7,32 +7,23 @@ import Layout.WidgetImpl.Configurator;
 import Layout.WidgetImpl.HtmlEditor;
 import Layout.WidgetImpl.Spectrumator;
 import Layout.WidgetImpl.Visualisation;
-import Layout.Widgets.Features.Feature;
-import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
-import static Layout.Widgets.WidgetManager.WidgetSource.LAYOUT;
-import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
-import static Layout.Widgets.WidgetManager.WidgetSource.STANDALONE;
+import static Layout.Widgets.WidgetManager.WidgetSource.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import main.App;
-import util.dev.Log;
 import util.File.FileUtil;
+import util.dev.Log;
 
 /**
  * Handles operations with Widgets.
- * <p>
  */
 public final class WidgetManager {
     /** Collection of registered Widget Factories. Non null, unique.*/
@@ -103,7 +94,15 @@ public final class WidgetManager {
     }
     
     /**
-     * Returns widged fulfilling condition.
+     * Equivalent to {@code find(filter, source, false);}
+     * @see #find(java.util.function.Predicate, Layout.Widgets.WidgetManager.WidgetSource, boolean) 
+     */
+    public static Optional<Widget> find(Predicate<WidgetInfo> filter, WidgetSource source) {
+        return find(filter, source, false);
+    }
+    
+    /**
+     * Returns widget fulfilling condition.
      * <pre>
      * - any widget can be returned (if it fulfills the cond.), but:
      * - if there is preferred widget it will always be returned first
@@ -112,23 +111,33 @@ public final class WidgetManager {
      * - if all methods fail, null is returned
      * <pre>
      * Created widgets are displayed in a popup
-     * 
-     * @param cond
+     *
+     * @param filter filter
+     * @param source strategy for widget lookup
+     * @param ignore whether the widget will partake in application layout and be
+     * available for future widget search query. Use true if you want to simply
+     * use the widget as a custom graphics, use false to let it be part of layout.
+     * Can not be changed later.
+     * <p>
+     * Note that using true will cause the returned widget (if any) be visible in
+     * one way or another depending on strategy. So for example newly created
+     * widget will be put into layout or will show in a popup. If this behavior is
+     * not desired, use false.
      * @return optional of widget fulfilling condition or empty if not available
      */
-    public static Optional<Widget> find(Predicate<WidgetInfo> cond, WidgetSource source) {
+    public static Optional<Widget> find(Predicate<WidgetInfo> filter, WidgetSource source, boolean ignore) {
         Widget out = null;
         
         // get preferred type
         String preferred = getFactories()
-                .filter(cond::test)
+                .filter(filter::test)
                 .filter(w -> !w.isIgnored())
                 .filter(f->f.isPreferred())
                 .findAny().map(f->f.name).orElse("");
         
         // get viable widgets - widgets of the feature & of preferred type if any
         List<Widget> widgets = findAll(source)
-                .filter(cond::test)
+                .filter(filter::test)
                 .filter(w -> !w.isIgnored())
                 .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
                 .collect(Collectors.toList());
@@ -146,7 +155,7 @@ public final class WidgetManager {
         if (out == null && source.newWidgetsAllowed()) {
             // get factory
             WidgetFactory f = getFactories()
-                   .filter(cond::test)
+                   .filter(filter::test)
                    .filter(w -> !w.isIgnored())
                    .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
                    .findAny().orElse(null);
@@ -154,8 +163,10 @@ public final class WidgetManager {
             // open widget as standalone if found
             if (f!=null) {
                 out = f.create();
-                standaloneWidgets.add(out);
-                ContextManager.showFloating(out);
+                if(!ignore) {
+                    standaloneWidgets.add(out);
+                    ContextManager.showFloating(out);
+                }
             }
         }
         
@@ -166,18 +177,18 @@ public final class WidgetManager {
      * Equivalent to: {@code 
      * getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())}
      */
-    public static<F extends Feature> Optional<F> find(Class<F> feature, WidgetSource source) {
-        return WidgetManager.find(w->w.hasFeature(feature), source).map(w->(F)w.getController());
+    public static<F> Optional<F> find(Class<F> feature, WidgetSource source) {
+        return find(w->w.hasFeature(feature), source).map(w->(F)w.getController());
     }
     
     /** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */
-    public static<F extends Feature> void use(Class<F> type, WidgetSource source, Consumer<F> action) {
+    public static<F> void use(Class<F> type, WidgetSource source, Consumer<F> action) {
         find(type, source).ifPresent(action);
     }
     
     /** Equivalent to: {@code getWidget(cond, source).ifPresent(action)} */
     public static void use(Predicate<WidgetInfo> cond, WidgetSource source, Consumer<Widget> action) {
-        WidgetManager.find(cond, source).ifPresent(action);
+        find(cond, source).ifPresent(action);
     }
     
     /**

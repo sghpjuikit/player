@@ -15,6 +15,7 @@ import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
+import PseudoObjects.ReadMode;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import static java.util.Arrays.asList;
 import java.util.List;
@@ -100,8 +101,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         d1 = maintain(PLAYBACK.volumeProperty(), v->muteChanged(PLAYBACK.isMute(), v.doubleValue()));
         d2 = maintain(PLAYBACK.muteProperty(), m->muteChanged(m, PLAYBACK.getVolume()));
         d3 = maintain(PLAYBACK.statusProperty(), this::statusChanged);
-        d4 = Player.playingtem.subscribeToUpdates(this::playbackItemChanged);  // add listener
-             playbackItemChanged(Player.playingtem.get());                     // init value    
+        d4 = Player.subscribe(ReadMode.PLAYING, d4, this::playbackItemChanged);   
         d5 = maintain(PLAYBACK.currentTimeProperty(),t->currentTimeChanged());
         
         // audio drag
@@ -143,12 +143,10 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         currentTimeChanged();
     }
     
-    private void playbackItemChanged(Metadata nv) {
-        if(nv!=null) {
-            titleL.setText(nv.getTitle());
-            artistL.setText(nv.getArtist());
-        }
-        seeker.reloadChapters(nv);
+    private void playbackItemChanged(Metadata m) {
+        titleL.setText(m.getTitle());
+        artistL.setText(m.getArtist());
+        seeker.reloadChapters(m);
     }
     private void statusChanged(Status status) {
         if (status == null || status == UNKNOWN ) {

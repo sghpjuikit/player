@@ -32,6 +32,7 @@ import GUI.objects.Window.stage.WindowBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.*;
@@ -265,18 +266,18 @@ public class PopOver<N extends Node> extends PopupControl {
     public final PopOverSkin createDefaultSkin() {
         return new PopOverSkin(this);
     }
+    
     /**
      * Type safe alternative to {@link #getSkin()} which should be avoided.
-     * @return 
+     * @return skin
      */
-    public PopOverSkin getSkinn() {System.out.println("getting skin " + getSkin());
+    public PopOverSkin getSkinn() {
         return (PopOverSkin) getSkin();
     }    
     
     private final ObjectProperty<N> contentNode = new SimpleObjectProperty<N>(this, "contentNode") {
         @Override public void setValue(N node) {
-            // enforce null check
-            Objects.requireNonNull(node, "content node can not be null");
+            requireNonNull(node);
             super.setValue(node);
         }
     };
@@ -311,25 +312,19 @@ public class PopOver<N extends Node> extends PopupControl {
     }
     
 /******************************************************************************/
-
+    
     /** 
      * Hides this popup if it is not detached. Otherwise does nothing.
-     * Equivalent to: if(!isDetached()) hide();
+     * Equivalent to: if(!isDetached()) hideStrong();
      */
     @Override
     public void hide() {
-        if (!detached.get()) {
-            if (isAnimated()) fadeOut();
-            else hideImmediatelly();
-        }
+        if (!detached.get()) hideStrong();
     }
     
     /** 
      * Hides this popup. If is animated, the hiding animation will be set off,
-     * otherwise happens immediatelly. Detached property is ignored.
-     * The hiding can be prevented during the animation time (by calling
-     * any of the show methods) as the hiding takes place only when animation
-     * finishes.
+     * otherwise happens immediatelly.
      */
     public void hideStrong() {
         if (isAnimated()) fadeOut();
@@ -364,7 +359,6 @@ public class PopOver<N extends Node> extends PopupControl {
         if(ownerNode!=null) {
             this.ownerNode = ownerNode;
             this.ownerWindow = ownerNode.getScene().getWindow();
-            System.out.println(this.ownerWindow instanceof PopOver);
             if(this.ownerWindow instanceof PopOver) {
                 setParentPopup((PopOver)this.ownerWindow);
             }
@@ -858,7 +852,8 @@ public class PopOver<N extends Node> extends PopupControl {
         AppBottomLeft;
         
         public double calcX(PopOver popup) {
-            double W = popup.getContentNode().layoutBoundsProperty().get().getWidth() + GAP;
+            double W = popup.getSkinn().root.getWidth() + GAP;
+//            double W = popup.getContentNode().layoutBoundsProperty().get().getWidth() + GAP;
             Rectangle2D screen = Screen.getPrimary().getBounds();
             WindowBase app = App.getWindow();
             switch(this) {
@@ -876,7 +871,8 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
         public double calcY(PopOver popup) {
-            double H = popup.getContentNode().layoutBoundsProperty().get().getHeight() + GAP;
+            double H = popup.getSkinn().root.getHeight() + GAP;
+//            double H = popup.getContentNode().layoutBoundsProperty().get().getHeight() + GAP;
             Rectangle2D screen = Screen.getPrimary().getBounds();
             WindowBase app = App.getWindow();
             switch(this) {
@@ -1085,7 +1081,7 @@ public class PopOver<N extends Node> extends PopupControl {
         return (fadeDuration != null) ? fadeDuration : DEFAULT_FADE_IN_DURATION;
     }
 
-    private void fadeIn() {//getSkin().getNode().setOpacity(0);
+    private void fadeIn() {
         // lazy initialize
         if (fadeInAnim==null) {
             fadeInAnim = new FadeTransition();
@@ -1118,8 +1114,12 @@ public class PopOver<N extends Node> extends PopupControl {
         // set & play
         fadeOutAnim.setNode(getSkin().getNode());
         fadeOutAnim.setDuration(getAnimDuration());
+        // when popover hides on click but that very click shows it back
+        // unfortunately the hiding executes on mouse press and showing on mouse
+        // release - thus producing ugly fade out-in, delayed hidding fixes it
+        fadeOutAnim.setDelay(Duration.millis(150));
         fadeOutAnim.setOnFinished( e -> {
-            opacityOldVal=0;//System.out.println("setting 0");
+            opacityOldVal=0;
             hideImmediatelly();
             fadeOutAnim.setOnFinished(null);
         });

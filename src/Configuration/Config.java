@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-import util.parsing.ParserImpl.Parser;
-import util.parsing.StringParser;
 import util.Util;
 import static util.Util.unPrimitivize;
 import util.access.ApplicableValue;
@@ -16,6 +14,8 @@ import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import util.parsing.ParserImpl.Parser;
+import util.parsing.StringParser;
 
 /**
  * Object representation of a configurable value.
@@ -190,6 +190,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      */
     @Override
     public final V fromS(String str) {
+        if(isTypeEnumerable() && getType().equals(String.class)) return (V)str;
         if(isTypeEnumerable()) {
             for(V v : enumerateValues()) 
                 if(toS(v).equals(str)) return v;

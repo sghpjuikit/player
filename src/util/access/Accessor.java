@@ -33,7 +33,7 @@ public class Accessor<V> extends SimpleObjectProperty<V> implements ApplicableVa
     
     /** {@inheritDoc} */
     @Override
-    public void applyValue(V val) {System.out.println("applying " + val);
+    public void applyValue(V val) {
         requireNonNull(val);
         if (applier != null) applier.accept(val);
     }

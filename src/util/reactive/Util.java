@@ -40,8 +40,20 @@ public class Util {
         return valuesOf(o).subscribe(w::setValue);
     }
     public static<O> Subscription maintain(Property<O> o, Property<O> w) {
+        if(w.isBound())w.unbind();
         w.setValue(o.getValue());
         w.bind(o);
         return w::unbind;
+    }
+    
+    
+    
+    public static<O> Subscription maintain(ValueStream<O> o, Consumer<? super O> u) {
+        u.accept(o.getValue());
+        return o.subscribe(u);
+    }
+    public static<O> Subscription maintain(ValueStream<O> o, O initial, Consumer<? super O> u) {
+        u.accept(initial);
+        return o.subscribe(u);
     }
 }

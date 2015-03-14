@@ -8,7 +8,6 @@ package AudioPlayer.services.Database;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
@@ -141,12 +140,6 @@ public class DB {
         updateLib();
     }
     
-    public static void updateItemsFromFile(List<? extends Item> items) {
-        MetadataReader.readMetadata(items, (success,result) -> {
-            if(success) updateItems(result);
-        });
-    }
-    
     public static void updateItems(List<Metadata> items) {
         // update db
         em.getTransaction().begin();
@@ -159,6 +152,7 @@ public class DB {
     public static void updateLib() {
         views.push(1, getAllItems());
     }
+    
     public static void clearLib() {
         views.push(1, EMPTY_LIST);
         em.clear();

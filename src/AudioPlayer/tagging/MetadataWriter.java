@@ -10,8 +10,6 @@ import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.time.Duration;
-import java.util.ArrayList;
 import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -33,7 +31,6 @@ import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
-import org.reactfx.EventSource;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
 import static util.async.Async.run;
@@ -577,9 +574,10 @@ public class MetadataWriter extends MetaItem {
             // restore playback
             if (isPlaying) PLAYBACK.loadLastState();
             
+            // abandoned
             // update this item for application
             // dont use self as parameter! illegal state could leak
-            if(autorefresh) refreshesSource.push(toSimple());
+            // if(autorefresh) refreshesSource.push(toSimple());
             
             Log.deb("Saving tag for " + getURI() + " finished successfuly.");
             return true;
@@ -638,33 +636,22 @@ public class MetadataWriter extends MetaItem {
         use(singletonList(item), setter);
     }
     
-    public static void use(List<? extends Item> items, Consumer<MetadataWriter> setter) {
-        MetadataWriter w = new MetadataWriter();
-        for(Item i : items) {
-            w.reset(i);
-            setter.accept(w);
-            w.write(true);
-        }
+    public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter) {
+        use(items, setter, null);
     }
     
-    public static void use(List<Metadata> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
+    public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
         run(()->{
             MetadataWriter w = new MetadataWriter();
-            List<Metadata> to_refresh = new ArrayList();
-            List<Metadata> not = new ArrayList();
-            for(Metadata i : items) {
+            for(I i : items) {
                 w.reset(i);
                 setter.accept(w);
-                boolean changed = w.write(false);
-                if(changed) to_refresh.add(i); else not.add(i);
+                w.write(false);
             }
 
-            MetadataReader.readMetadata(to_refresh, (ok,metas) -> {
+            MetadataReader.readMetadata(items, (ok,metas) -> {
                 if (ok) {
-                    List<Metadata> all = new ArrayList();
-                                   all.addAll(metas);
-                                   all.addAll(not);
-                    if(action!=null) action.accept(all);
+                    if(action!=null) action.accept(metas);
                     Player.refreshItemsWithUpdated(metas);
                 }
             });
@@ -677,10 +664,8 @@ public class MetadataWriter extends MetaItem {
      */
     public static void useToIncrPlaycount(Metadata item) {
         int count = item.getPlaycount() + 1;
-        MetadataWriter w = MetadataWriter.create(item);
-                       w.setPlaycount(String.valueOf(count));
-        if (w.write(true))
-            App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
+        use(item, w->w.setPlaycount(count));
+        App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
     }
     
     /**
@@ -691,29 +676,37 @@ public class MetadataWriter extends MetaItem {
      * be ignored.
      */
     public static void useToRate(Metadata item, double rating) {
-        MetadataWriter w = MetadataWriter.create(item);
-                       w.setRatingPercent(rating);
-        if (w.write(true))
-            App.use(Notifier.class, s -> s.showTextNotification("Song rating changed to: " + rating, "Update"));
+        use(item, w->w.setRatingPercent(rating));
+        App.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
     }
     
 /******************************************************************************/
+    // abandoned idea
     
-    private static final List<Item> refresh_queue = new ArrayList();
-    private static final EventSource<Item> refreshesSource = new EventSource<>();
-    static {
-        refreshesSource.hook(refresh_queue::add).successionEnds(Duration.ofSeconds(1))
-        .subscribe( ignored -> {
-            if(refresh_queue.size()==1) {
-                Item i = refresh_queue.get(0);
-                refresh_queue.clear();
-                Player.refreshItem(i);
-            } else {
-                List<Item> items = new ArrayList(refresh_queue);
-                refresh_queue.clear();
-                Player.refreshItems(items);
-            }
-        });
-    }
+    // we queue up all written to items and do group refresh, all while keeping
+    // refreshing code as a cross cutting concern at one place
+    // works, but unfortunately this solution cant provide the updated medatada
+    // back to the caller (because the calls add up to one), which we need
+    // for some operations (for ecample intagger widget to confirm operation 
+    // result with 100% certainty)
+    
+    // we would push into the stream in MetadataWriter.write() method on commit
+    
+    // private static final List<Item> refresh_queue = new ArrayList();
+    // private static final EventSource<Item> refreshesSource = new EventSource<>();
+    // static {
+    //     refreshesSource.hook(refresh_queue::add).successionEnds(Duration.ofSeconds(1))
+    //     .subscribe( ignored -> {
+    //         if(refresh_queue.size()==1) {
+    //             Item i = refresh_queue.get(0);System.out.println("updating " + i.getURI());
+    //             refresh_queue.clear();
+    //             Player.refreshItem(i);
+    //         } else {
+    //             List<Item> items = new ArrayList(refresh_queue);
+    //             refresh_queue.clear();
+    //             Player.refreshItems(items);
+    //         }
+    //     });
+    // 
     
 }

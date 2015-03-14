@@ -6,8 +6,6 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.Features.Feature;
-
 /**
  *
  * @author Plutonium_
@@ -79,5 +77,5 @@ public interface WidgetInfo {
     Widget.Group group();
     
     /** @return true if widget's contoroller implements given feature */
-    boolean hasFeature(Class<? extends Feature> feature);
+    boolean hasFeature(Class feature);
 }

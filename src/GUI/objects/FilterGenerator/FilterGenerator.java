@@ -24,7 +24,7 @@ import static util.Util.unPrimitivize;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
 import static util.functional.Util.isTRUE;
-import util.parsing.ParserImpl.Parser;
+import util.parsing.Parser;
 
 /**
  *

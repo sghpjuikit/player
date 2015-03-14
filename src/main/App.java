@@ -153,11 +153,9 @@ public class App extends Application {
             
             
             
-            // plugins
-            // discover all plugin types & plugins
+            // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
-            
             
             WidgetManager.initialize();     // must initialize before below
             

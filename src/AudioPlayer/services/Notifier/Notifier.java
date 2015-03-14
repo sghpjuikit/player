@@ -10,7 +10,7 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.InfoNode.SongInfo;
-import GUI.objects.ItemInfo;
+import GUI.InfoNode.ItemInfo;
 import GUI.objects.PopOver.Notification;
 import GUI.objects.PopOver.PopOver;
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopRight;
@@ -78,7 +78,7 @@ public final class Notifier implements Service {
     @IsConfig(name = "On right click")
     public static final AccessorAction onClickR = new AccessorAction("Notification hide", null);
     
-    @IsConfig(name = "GUI")
+    @IsConfig(name = "Playback change graphics")
     public static final AccessorEnum<String> graphics = new AccessorEnum<String>("Normal", 
         v -> {
             if("Normal".equals(v)) {

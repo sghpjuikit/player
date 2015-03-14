@@ -54,7 +54,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.dev.Log;
 import util.dev.TODO;
-import util.parsing.ParserImpl.ColorParser;
+import util.parsing.impl.ColorParser;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;

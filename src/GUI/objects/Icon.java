@@ -31,10 +31,16 @@ public class Icon extends Label {
     
     
     public final StyleableProperty<FontAwesomeIconName> icon = new SimpleStyleableObjectProperty<FontAwesomeIconName>(ICON_CMD, this, "icon") {
-        public void set(FontAwesomeIconName v) {
-            super.set(v);
-            Icons.setIcon(Icon.this, v, String.valueOf(icon_size.get()));
+
+        @Override
+        protected void invalidated() {
+            super.invalidated(); //To change body of generated methods, choose Tools | Templates.
+            Icons.setIcon(Icon.this, get(), String.valueOf(icon_size.get()));
         }
+        
+//        public void set(FontAwesomeIconName v) {
+//            super.set(v);
+//        }
     };
     
      public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
@@ -64,6 +70,7 @@ public class Icon extends Label {
     public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
         setContentDisplay(ContentDisplay.CENTER);
         icon_size.set(size);
+//        if(ico!=null) icon.applyStyle(null, ico);
         if(ico!=null) icon.setValue(ico);
         if(tooltip!=null && !tooltip.isEmpty()) setTooltip(new Tooltip(tooltip));
         if(onClick!=null) setOnMouseClicked(onClick);

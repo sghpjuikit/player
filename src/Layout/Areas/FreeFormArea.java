@@ -224,7 +224,6 @@ public class FreeFormArea implements ContainerNode {
            if(ht<y && ht>b.c) b.c = ht;
            double hb = w.y.get();
            if(hb>y && hb<b.d) b.d = hb;
-            System.out.println(b);
         }
         
         return new TupleM4<>(b.a/root.getWidth(),b.c/root.getHeight(),

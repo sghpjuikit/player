@@ -4,27 +4,27 @@
  * and open the template in the editor.
  */
 
-package util.parsing.ParserImpl;
+package util.parsing.impl;
 
-import java.io.File;
 import util.parsing.StringParser;
 
 /**
- *
+ * String to String type of parser. For use in rare cases for generic types.
+ * <p>
  * @author Plutonium_
  */
-public class FileParser implements StringParser<File> {
+public class StringStringParser implements StringParser<String> {
     
     /** {@inheritDoc} */
     @Override
-    public File fromS(String source) {
-        return new File(source);
+    public String fromS(String source) {
+        return source;
     }
     
     /** {@inheritDoc} */
     @Override
-    public String toS(File object) {
-        return object.getPath();
+    public String toS(String object) {
+        return object;
     }
-
+    
 }

@@ -33,7 +33,7 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.cmpareBy;
 import static util.functional.Util.list;
-import util.parsing.ParserImpl.Parser;
+import util.parsing.Parser;
 
 /**
  *

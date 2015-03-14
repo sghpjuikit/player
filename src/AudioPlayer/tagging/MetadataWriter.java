@@ -37,7 +37,7 @@ import static util.async.Async.run;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import util.parsing.ParserImpl.ColorParser;
+import util.parsing.impl.ColorParser;
 
 /**
  * 

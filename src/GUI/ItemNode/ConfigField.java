@@ -38,8 +38,8 @@ import util.Password;
 import static util.Util.unPrimitivize;
 import static util.async.Async.run;
 import static util.functional.Util.cmpareBy;
-import util.parsing.ParserImpl.FileParser;
-import util.parsing.ParserImpl.FontParser;
+import util.parsing.impl.FileParser;
+import util.parsing.impl.FontParser;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.

@@ -10,7 +10,7 @@
 - plugin discovery/load
 - library view save selection
 - library view play items use same order as library column sort order
-
+- notification title css
 - Player contorls nullpointer when nothing plays on init()
 - seeker nullpointer when quickly invoking next item
 - remove selected items monitoring for tagger

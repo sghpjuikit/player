@@ -1,5 +1,5 @@
 
-package util.parsing.ParserImpl;
+package util.parsing.impl;
 
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;

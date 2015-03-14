@@ -9,6 +9,7 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import PseudoObjects.ReadMode;
+import static PseudoObjects.ReadMode.CUSTOM;
 import java.net.URI;
 import java.time.Duration;
 import static java.util.Collections.EMPTY_LIST;
@@ -80,7 +81,7 @@ public class Player {
         // event which is also annoying and unnatural
         // subscription = s.thenReduceFor(Duration.ofMillis(500),(a,b)->b).subscribe(action);
         
-        action.accept(((WritableValue<Metadata>)s).getValue());
+        if(source!=CUSTOM) action.accept(((WritableValue<Metadata>)s).getValue());
         return subscription;
     }
     

@@ -3,8 +3,6 @@ package Tagger;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
@@ -27,15 +25,14 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.*;
+import static PseudoObjects.ReadMode.CUSTOM;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import static javafx.application.Platform.runLater;
 import javafx.beans.property.BooleanProperty;
@@ -83,7 +80,7 @@ import util.dev.Log;
 import static util.functional.Util.isIn;
 import static util.functional.impl.Validator.*;
 import util.graphics.Icons;
-import util.parsing.ParserImpl.ColorParser;
+import util.parsing.impl.ColorParser;
 
 /**
  * TaggerController graphical component.
@@ -159,9 +156,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     private final List<Validation> validators = new ArrayList();
         
     // dependencies
-    private Subscription d1, d2;
-    private final Consumer<List<PlaylistItem>> playlistListener = selectedItems -> read(selectedItems);
-    private final Consumer<Metadata> playingListener = item -> read(singletonList(item));
+    private Subscription d1;
     
     // properties
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
@@ -169,7 +164,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
     public final Accessor<NodeCentricPos> popupPos = new Accessor<>(DownCenter, MoodF::setPos);
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(CUSTOM, this::apllyReadMode);
+    public final Accessor<ReadMode> readMode = new Accessor<>(CUSTOM, r -> {
+        d1 = Player.subscribe(r, d1, m -> {
+            allitems.setAll(m);
+            populate(singletonList(m));
+        });
+    });
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
     public final Accessor<Boolean> allow_playcount_change = new Accessor<>(false, v -> {
         if(!isEmpty()) PlaycountF.setDisable(!v);
@@ -178,41 +178,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
     public Boolean changeReadModeOnTransfer = false;
 
-    
-    private void apllyReadMode(ReadMode v) {
-        if(d1!=null) d1.unsubscribe();
-        if(d2!=null) d2.unsubscribe();
-        
-        // rebind
-        if (v == SELECTED_PLAYLIST) {            
-            d2 = PlaylistManager.selectedItemsES.subscribe(playlistListener);
-            playlistListener.accept(PlaylistManager.selectedItemsES.getValue());
-        } else
-        if (v == PLAYING){
-            d1 = Player.playingtem.subscribeToUpdates(playingListener);
-            playingListener.accept(Player.playingtem.get());
-        } else
-        if (v==SELECTED_LIBRARY){
-            d2 = Player.librarySelectedItemsES.subscribe(list->{
-                this.allitems.setAll(list);
-                populate(list);
-            });
-        } else
-        if (v==SELECTED_ANY){
-            d2 = Player.selectedItemsES.subscribe(list->{
-                this.allitems.setAll(list);
-                populate(list);
-            });
-        } else
-        if (v==ANY){
-            d2 = Player.anyItemsES.subscribe(list->{
-                this.allitems.setAll(list);
-                populate(list);
-            });
-        } else
-        if (v==CUSTOM)
-            read(EMPTY_LIST);
-    }
     
     
     @Override
@@ -381,6 +346,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     public void refresh() {
         field_text_alignment.applyValue();
         popupPos.applyValue();
+        allow_playcount_change.applyValue();
         readMode.applyValue();
     }
     
@@ -395,8 +361,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void close() {
-        // remove listeners
-        if (d2!=null) d2.unsubscribe();
         if (d1!=null) d1.unsubscribe();
     }
     

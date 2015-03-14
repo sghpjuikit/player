@@ -14,7 +14,7 @@ import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
-import util.parsing.ParserImpl.Parser;
+import util.parsing.Parser;
 import util.parsing.StringParser;
 
 /**

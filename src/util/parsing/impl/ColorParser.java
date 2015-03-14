@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package util.parsing.ParserImpl;
+package util.parsing.impl;
 
 import javafx.scene.paint.Color;
 import util.parsing.StringParser;

@@ -7,7 +7,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.objects.ItemInfo;
+import GUI.InfoNode.ItemInfo;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.Thumbnail;
 import GUI.InfoNode.InfoTask;

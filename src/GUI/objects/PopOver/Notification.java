@@ -23,8 +23,6 @@ public class Notification extends PopOver {
     public Runnable rClickAction = null;
     
     public Notification() {
-//        headerVisible.set(false);
-        title.set("");
         detached.set(false);
         detachable.set(false);
         setHideOnEscape(false);
@@ -34,6 +32,7 @@ public class Notification extends PopOver {
         setAutoFix(false);
         setAutoHide(false);
         getSkinn().setTitleAsOnlyHeaderContent();
+        getSkinn().root.getStyleClass().add("notification");
         
         setContentNode(root);
         root.setOnMouseClicked(e -> {

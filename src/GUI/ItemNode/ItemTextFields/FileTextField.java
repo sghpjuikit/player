@@ -8,7 +8,7 @@ package GUI.ItemNode.ItemTextFields;
 
 import java.io.File;
 import util.File.Enviroment;
-import util.parsing.ParserImpl.FileParser;
+import util.parsing.impl.FileParser;
 import util.parsing.StringParser;
 
 /**

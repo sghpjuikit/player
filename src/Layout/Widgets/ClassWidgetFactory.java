@@ -20,10 +20,12 @@ public class ClassWidgetFactory extends WidgetFactory<ClassWidget> {
      * @param _name
      * @param type Factory type - type of object that will be wrapped.
      */
-    public ClassWidgetFactory(String _name, Class<? extends Node> type) {
+    public <T extends Node & Controller> ClassWidgetFactory(String _name, Class<T> type) {
         super(_name, type);
-        if (!Controller.class.isAssignableFrom(type))
-            throw new IllegalArgumentException("Class must implement Controller in order to become a widget.");
+    }
+    
+    public <T extends Node & Controller> ClassWidgetFactory(Class<T> type) {
+        super(type);
     }
     
     /** {@inheritDoc} */

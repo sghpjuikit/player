@@ -7,6 +7,7 @@
 package Layout.WidgetImpl;
 
 import Layout.Widgets.Controller;
+import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.HTMLEditor;
@@ -16,6 +17,7 @@ import util.Util;
  *
  * @author Plutonium_
  */
+@IsWidget
 public class HtmlEditor extends AnchorPane implements Controller<Widget>  {
     private HTMLEditor editor = new HTMLEditor();
     

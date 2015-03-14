@@ -8,6 +8,7 @@ package Layout.WidgetImpl;
 
 import GUI.objects.Spectrum;
 import Layout.Widgets.Controller;
+import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import javafx.scene.layout.AnchorPane;
 import util.Util;
@@ -16,6 +17,7 @@ import util.Util;
  *
  * @author Plutonium_
  */
+@IsWidget
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

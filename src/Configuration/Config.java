@@ -190,7 +190,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      */
     @Override
     public final V fromS(String str) {
-        if(isTypeEnumerable() && getType().equals(String.class)) return (V)str;
+//        if(isTypeEnumerable() && getType().equals(String.class)) return (V)str;
         if(isTypeEnumerable()) {
             for(V v : enumerateValues()) 
                 if(toS(v).equals(str)) return v;

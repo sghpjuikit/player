@@ -6,6 +6,7 @@ import GUI.ItemNode.ConfigField;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Features.ConfiguringFeature;
+import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.*;
@@ -17,10 +18,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
-import util.dev.Log;
 import util.access.Accessor;
+import util.dev.Log;
 import static util.functional.Util.cmpareNoCase;
-
+@IsWidget
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

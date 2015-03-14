@@ -3,17 +3,15 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- notification use file info? make config
 - tagger cover bad value
 - library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
 - tagger cover loading optimize
-- annotation for name of plugin objects
 - plugin discovery/load
 - library view save selection
 - library view play items use same order as library column sort order
 
-- Player contorls  nullpointer when nothing plays on init()
+- Player contorls nullpointer when nothing plays on init()
 - seeker nullpointer when quickly invoking next item
 - remove selected items monitoring for tagger
 - use action pane on widgets

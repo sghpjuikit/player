@@ -7,6 +7,7 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.IsConfig;
 import Layout.Widgets.Controller;
+import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import java.net.URI;
 import java.util.ArrayList;
@@ -25,18 +26,14 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polyline;
-import javafx.scene.shape.Shape;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
+import javafx.scene.shape.*;
 import static util.functional.Util.isNotNULL;
 
 /**
  *
  * @author Plutonium_
  */
+@IsWidget
 public final class Graphs extends AnchorPane implements Controller<Widget>  {
     
     ObservableList<Metadata> metadatas = FXCollections.observableArrayList();

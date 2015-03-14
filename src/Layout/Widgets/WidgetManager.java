@@ -3,10 +3,6 @@ package Layout.Widgets;
 
 import GUI.objects.Window.stage.ContextManager;
 import Layout.LayoutManager;
-import Layout.WidgetImpl.Configurator;
-import Layout.WidgetImpl.HtmlEditor;
-import Layout.WidgetImpl.Spectrumator;
-import Layout.WidgetImpl.Visualisation;
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
 import java.io.File;
 import java.io.IOException;
@@ -18,7 +14,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javafx.scene.Node;
 import main.App;
+import org.atteo.classindex.ClassIndex;
 import util.File.FileUtil;
 import util.dev.Log;
 
@@ -29,8 +27,11 @@ public final class WidgetManager {
     /** Collection of registered Widget Factories. Non null, unique.*/
     static final Map<String,WidgetFactory> factories = new HashMap<>();
     
-    public static void initialize() {
-        registerInternalWidgetFactories();
+    public static <T extends Node & Controller> void initialize() {
+        // register internal
+        ClassIndex.getAnnotated(IsWidget.class).forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
+        new EmptyWidgetFactory().register();
+        // register external
         registerExternalWidgetFactories();
     }
     
@@ -253,18 +254,7 @@ public final class WidgetManager {
     
     
 /******************************************************************************/
-    
-    
-    /** Registers internal widget factories. */
-    private static void registerInternalWidgetFactories() {
-        new ClassWidgetFactory("Settings", Configurator.class).register();
-        //new ClassWidgetFactory("Playlist Manager", PlaylistManagerComponent.class).register();
-        new ClassWidgetFactory("Visualisation", Visualisation.class).register();
-        //new ClassWidgetFactory("Graphs", Graphs.class).register();
-        new ClassWidgetFactory("HTMLEditor", HtmlEditor.class).register();
-        new ClassWidgetFactory("Spectrumator", Spectrumator.class).register();
-        new EmptyWidgetFactory().register();
-    }
+
     /**
      * Registers external widget factories.
      * Searches for .fxml files in widget folder and registers them as widget

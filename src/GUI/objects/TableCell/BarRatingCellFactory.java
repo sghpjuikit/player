@@ -5,6 +5,7 @@
  */
 package GUI.objects.TableCell;
 
+import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.control.ProgressBar;
@@ -15,6 +16,7 @@ import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as progress bar. */
+@IsPlugin
 @StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Bar" )
 public class BarRatingCellFactory implements RatingCellFactory {
 

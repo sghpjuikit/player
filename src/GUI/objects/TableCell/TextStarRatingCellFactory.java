@@ -5,6 +5,7 @@
  */
 package GUI.objects.TableCell;
 
+import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import static java.lang.Math.round;
 import javafx.geometry.Pos;
@@ -15,6 +16,7 @@ import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as text from '' to '*****'. */
+@IsPlugin
 @StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Text star" )
 public class TextStarRatingCellFactory implements RatingCellFactory {
     private static final String s0 = "";

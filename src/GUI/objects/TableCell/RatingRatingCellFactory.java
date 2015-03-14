@@ -5,6 +5,7 @@
  */
 package GUI.objects.TableCell;
 
+import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.Rater.Rating;
@@ -18,6 +19,7 @@ import static util.parsing.StringParseStrategy.From.CONSTRUCTOR;
 import static util.parsing.StringParseStrategy.To.CONSTANT;
 
 /** Cell for rating displaying the value as rating control. */
+@IsPlugin
 @StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Stars" )
 public class RatingRatingCellFactory implements RatingCellFactory {
 

@@ -4,6 +4,8 @@ package main;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
+import AudioPlayer.plugin.IsPlugin;
+import AudioPlayer.plugin.IsPluginType;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.services.Service;
@@ -32,6 +34,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
+import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import util.File.FileUtil;
 import util.access.AccessorEnum;
@@ -148,18 +151,20 @@ public class App extends Application {
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
             
-            // plugins
-            plugins.registerPluginType(RatingCellFactory.class);
-            plugins.registerPlugin(TextStarRatingCellFactory.class);
-            plugins.registerPlugin(BarRatingCellFactory.class);
-            plugins.registerPlugin(NumberRatingCellFactory.class);
-            plugins.registerPlugin(RatingRatingCellFactory.class);
             
-            Configuration.load();           // must initialize first
+            
+            // plugins
+            // discover all plugin types & plugins
+            ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
+            ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
+            
+            
+            WidgetManager.initialize();     // must initialize before below
+            
+            Configuration.load();
             
             // initializing, the order is important
             Player.initialize();
-            WidgetManager.initialize();             // must initialize before below
             GUI.initialize();                       // must initialize before below
             
             // this might me deprecated

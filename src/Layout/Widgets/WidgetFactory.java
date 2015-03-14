@@ -36,20 +36,22 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
      * Implementation note: this constructor must be called from every extending
      * class' constructor with super().
      * 
-     * @param name
-     * @param controller_class class of the controller. There are no restrictions
-     * for this general constructor, but more specific factories might impose some.
-     * In any case, it is recommended for the class to be at least Class<Controller>
-     *  - the controller should always implement Controller interface
+     * @param name name of widget this factory will create
+     * @param c class of the controller of the widget this factory will create.
+     * There are no restrictions here, but other factories might impose some.
+     * In any case, it is recommended for the class to implement {@link Controller}
+     * and also be annotated with {@link Widget.Info}
+     *
+     * @param c controller class
      */
-    WidgetFactory(String name, Class<?> controller_class) {
+    WidgetFactory(String name, Class<?> c) {
         // init name
         this.name = name;
-        this.controller_class = controller_class;
+        this.controller_class = c;
         
         // init info
             // grab Controller's class and its annotation or get default
-        Widget.Info i = controller_class.getAnnotation(Widget.Info.class);
+        Widget.Info i = c.getAnnotation(Widget.Info.class);
         if (i==null) i = WidgetFactory.class.getAnnotation(Widget.Info.class);
         
         gui_name = i.name().isEmpty() ? name : i.name();
@@ -62,6 +64,22 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         year = i.year();
         notes = i.notes();
         group = i.group();
+    }
+    
+    /**
+     * Calls {@link #WidgetFactory(java.lang.String, java.lang.Class)} with
+     * name derived from the class. If {@link Widget.Info} annotation is present
+     * (as it should) the name field will be used. Otherwise the controller class
+     * name will be used as widget factory name.
+     * @param c controller class
+     */
+    public WidgetFactory(Class<?> c) {
+        this(getNameFromAnnotation(c), c);
+    }
+    
+    private static String getNameFromAnnotation(Class<?> c) {
+        Widget.Info i = c.getAnnotation(Widget.Info.class);
+        return i==null ? c.getName() : i.name();
     }
     
     /**

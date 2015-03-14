@@ -464,7 +464,7 @@ public final class AreaControls {
             if (!w.howto().isEmpty()) info += "\n\n" + w.howto();
             
             List<Feature> ff = w.getController().getFeatures();
-            String s = ff.isEmpty() ? "none" : "\n" + toS(ff, f -> "    " + f.name() + ": " + f.description());
+            String s = ff.isEmpty() ? "none" : "\n" + toS(ff, f -> "    " + f.name() + ": " + f.description() + "\n");
             info += "\n\nFeatures: " + s;
         }
 

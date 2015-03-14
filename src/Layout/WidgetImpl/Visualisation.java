@@ -4,6 +4,7 @@ package Layout.WidgetImpl;
 import Configuration.IsConfig;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
+import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static java.lang.Math.random;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import util.access.Accessor;
  *
  * @author Plutonium_
  */
+@IsWidget
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",

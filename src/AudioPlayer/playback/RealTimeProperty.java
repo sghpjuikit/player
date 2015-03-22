@@ -103,9 +103,7 @@ public final class RealTimeProperty {
      * @param h
      */
     public void setOnTimeAt(PercentTimeEventHandler h) {
-        if (handlers.isEmpty())
-            realTime.addListener(eventInvalidator);
-        
+        if (handlers.isEmpty()) realTime.addListener(eventInvalidator);
         handlers.add(h);
     }
     
@@ -128,9 +126,7 @@ public final class RealTimeProperty {
      * @param h
      */
     public void setOnTimeAt(TimeEventHandler h) {
-        if (handlers.isEmpty())
-            realTime.addListener(eventInvalidator);
-        
+        if (handlers.isEmpty()) realTime.addListener(eventInvalidator);
         handlers.add(h);
     }
     

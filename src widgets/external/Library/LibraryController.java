@@ -17,6 +17,7 @@ import GUI.InfoNode.InfoTask;
 import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.Spinner.Spinner;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+import static javafx.application.Platform.runLater;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -72,6 +74,7 @@ import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesAudio;
 import static util.Util.*;
 import util.access.Accessor;
+import util.async.Async;
 import static util.async.Async.runAsTask;
 import util.async.FxTimer;
 import util.functional.Runner;
@@ -114,7 +117,7 @@ public class LibraryController extends FXMLController {
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
-    private final InfoTask taskInfo = new InfoTask(null, new Label(), new ProgressIndicator());
+    private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner());
     private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     ActionChooser actPane = new ActionChooser();
@@ -267,7 +270,7 @@ public class LibraryController extends FXMLController {
         d3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
         
         // task information label
-        taskInfo.setVisible(false);        
+        taskInfo.setVisible(false);
         
         // table information label
         InfoTable<Metadata> infoL = new InfoTable(new Label(), table);
@@ -331,21 +334,42 @@ public class LibraryController extends FXMLController {
     
     private void addNedit(boolean edit, boolean dir) {
         // get files
-        Stream<File> files;
+//        Stream<File> files;
+//        if(dir) {
+//            File f = Enviroment.chooseFile("Add folder to library", true, last_file,
+//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
+//            files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
+//            if (f!=null) last_file = f;
+//        } else {
+//            List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
+//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
+//            files = fs.stream();
+//            File f = files==null ? null : getCommonRoot(fs);
+//            if(f!=null) last_file=f;
+//        }
+//        
+//        addNeditDo(files, edit);
+        
         if(dir) {
             File f = Enviroment.chooseFile("Add folder to library", true, last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
-            if (f!=null) last_file = f;
+            Async.run(() -> {
+                Stream<File> files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
+                if (f!=null) last_file = f;
+                addNeditDo(files, edit);
+            });
         } else {
             List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            files = fs.stream();
-            File f = files==null ? null : getCommonRoot(fs);
-            if(f!=null) last_file=f;
+            Async.run(() -> {
+                Stream<File> files = fs.stream();
+                File f = files==null ? null : getCommonRoot(fs);
+                if(f!=null) last_file=f;
+                addNeditDo(files, edit);
+            });
         }
         
-        addNeditDo(files, edit);
+        
     }
     
     private void addNeditDo(Stream<File> files, boolean edit) {
@@ -362,12 +386,13 @@ public class LibraryController extends FXMLController {
                             };
 
                             Task t = MetadataReader.readAaddMetadata(result,onEnd,false);
-                            taskInfo.showNbind(t);
+//                            taskInfo.showNbind(t);
                         } else {
                             hideInfo.restart();
                         }
                     });
-            taskInfo.showNbind(ts);
+            runLater(()->taskInfo.showNbind(ts));
+//            taskInfo.showNbind(ts);
         }
     }
     

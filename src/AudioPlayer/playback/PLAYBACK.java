@@ -140,6 +140,7 @@ public final class PLAYBACK implements Configurable {
     public static void seek(double at) {
         if(at<0 ||at>1) throw new IllegalArgumentException("Seek value must be 0-1");
         seek(getTotalTime().multiply(at));
+        if(state.status.get()==PAUSED) player.pause_resume();
     }
     
     /** Seek forward by specified duration */

@@ -48,6 +48,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.text.TextAlignment.JUSTIFY;
 import javafx.stage.Screen;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -200,7 +201,8 @@ public class PopOver<N extends Node> extends PopupControl {
      */
     public static PopOver<Text> createHelpPopOver(String text) {
         Text t = new Text(text);
-             t.setWrappingWidthNatural(true);               
+             t.setWrappingWidthNatural(true);
+             t.setTextAlignment(JUSTIFY);
         PopOver<Text> p = new PopOver(t);
                       p.getSkinn().setContentPadding(new Insets(8));
                       p.title.set("Help");

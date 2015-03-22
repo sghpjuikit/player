@@ -13,7 +13,7 @@ import javafx.scene.media.AudioSpectrumListener;
  *
  * @author uranium
  */
-public class Spectrum extends AnchorPane{
+public class Spectrum extends AnchorPane {
     private final XYChart.Data<String, Number>[] series1Data;
     private final AudioSpectrumListener audioSpectrumListener;
     private final BarChart<String, Number> bc;

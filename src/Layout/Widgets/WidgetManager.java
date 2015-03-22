@@ -178,6 +178,9 @@ public final class WidgetManager {
      * Equivalent to: {@code 
      * getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())}
      */
+    public static<F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
+        return find(w->w.hasFeature(feature), source, ignore).map(w->(F)w.getController());
+    }
     public static<F> Optional<F> find(Class<F> feature, WidgetSource source) {
         return find(w->w.hasFeature(feature), source).map(w->(F)w.getController());
     }

@@ -336,7 +336,7 @@ public class LibraryViewController extends FXMLController {
     }
     
     private List<Metadata> filerList(List<Metadata> list) {
-        // use cache if needed
+//        // use cache if needed
 //        boolean needed = lvl.getValue()==1 && list.size()>5000;
 //        if(lvl.getValue()==1) System.out.println("need " + needed);
 //        // build cache if not yet

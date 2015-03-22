@@ -105,26 +105,14 @@ public class SwitchPane implements LayoutAggregator {
         setAnchors(zoom, 0);
         zoom.getChildren().add(ui);
         setAnchors(ui, 0);
-                
-        // initialize ui drag behavior
-//        root.addEventFilter(MOUSE_PRESSED, e -> {
-//            if(e.getButton()==SECONDARY && genuineEvent) {
-////                    startUiDrag(e);
-////                    ui.setMouseTransparent(true);
-//                genuineEvent = false;
-//
-//                FxTimer.run(1000, ()->{
-////                        Event.fireEvent(root, (Event)e.clone());
-//                    genuineEvent = true;
-//                });
-//
-//            } else if(e.getButton()==MIDDLE) {
-//                //ui.setMouseTransparent(true);
-//                //startScroll(e);
-//            }
-//            
-//        });
-                
+        
+        // prevent problematic events
+        root.addEventFilter(MOUSE_PRESSED, e -> {
+            if(e.getButton()==SECONDARY) {
+                e.consume();
+            }
+        });
+        
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
@@ -135,7 +123,8 @@ public class SwitchPane implements LayoutAggregator {
                 //doScrolling(e);
         });
         
-        root.addEventFilter(MOUSE_CLICKED, e-> {
+        root.addEventFilter(MOUSE_RELEASED, e-> {
+//        root.addEventFilter(MOUSE_CLICKED, e-> {
             if(e.getButton()==SECONDARY) {
                 dragUiEnd(e);
                 ui.setMouseTransparent(false);

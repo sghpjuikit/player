@@ -6,13 +6,10 @@
 package util.async;
 
 import AudioPlayer.tagging.SuccessTask;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.application.Platform;
+import static javafx.application.Platform.runLater;
 import javafx.concurrent.Task;
 import javafx.util.Duration;
 
@@ -139,6 +136,21 @@ public final class Async {
         FxTimer t = new FxTimer(period, INDEFINITE, action);
         t.restart();
         return t;
+    }
+    
+    
+    /** Prepares value V on new bgr thread started immediately and consumes it
+    on FX thread.
+    <p>
+    Use to run blocking call (e.g. I/O) on bgr and use result back to FX thread
+    */
+    public static <V> void runFromBgr(Supplier<V> bgraction, Consumer<V> fxaction) {
+        Thread thread = new Thread(() -> {
+            V t = bgraction.get();
+            runLater(() -> fxaction.accept(t));
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
     
     

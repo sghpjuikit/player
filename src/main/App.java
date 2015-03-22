@@ -26,10 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -107,6 +104,8 @@ public class App extends Application {
     public static final BooleanProperty allowRatingChange = new SimpleBooleanProperty(true);
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
     public static final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
+    @IsConfig(name = "Debug", info = "For debug purposes.")
+    public static final DoubleProperty debug = new SimpleDoubleProperty(0);
     
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")
     public static String TAG_NO_VALUE = "-- no assigned value --";
@@ -191,21 +190,17 @@ public class App extends Application {
         // initialize non critical parts
         Player.loadLast();                      // should load in the end
 
-        PlaycountIncrementer.initialize();
         MoodManager.initialize();
         Action.getActions().forEach(Action::register);
         
         // apply all (and gui) settings
         Configuration.getFields().forEach(Config::applyValue);
         
-        
-        TrayService ts = new TrayService();
-                    ts.setOnTrayClick(GUI::toggleMinimize);
-        services.addService(ts);
+        services.addService(new TrayService());
         services.addService(new Notifier());
-        
+        services.addService(new PlaycountIncrementer());
         services.getAllServices()
-                .filter(s->!s.isDependency()).filter(Service::isSupported)
+                .filter(s->!s.isDependency() && s.isSupported())
                 .forEach(Service::start);
         
         // handle guide
@@ -240,7 +235,7 @@ public class App extends Application {
         
         if(initialized) {
             services.getAllServices()
-                    .filter(s->!s.isDependency()).filter(Service::isRunning)
+                    .filter(Service::isRunning)
                     .forEach(Service::stop);
             Player.state.serialize();            
             Configuration.save();

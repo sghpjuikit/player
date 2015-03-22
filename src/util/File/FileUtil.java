@@ -347,12 +347,13 @@ public final class FileUtil {
      }
      
      /**
-      * Reads file as a text file and returns all its content in form of List of
-      * Strings, each representing one line.
+      * Reads file as a text file and returns all its content as list of all lines,
+      * with newlines removed. Joining the lines with '\n' will build the original
+      * content.
       * @param filepath
-      * @return List of lines or empty list. Never null.
+      * @return List of lines or empty list (if empty or on error). Never null.
       */
-     public static List<String> readFile(String filepath) {
+     public static List<String> readFileLines(String filepath) {
         File file = new File(filepath);
         try {
             return Files.readAllLines(Paths.get(filepath), Charset.defaultCharset());
@@ -363,34 +364,30 @@ public final class FileUtil {
      }
      
      /**
-      * Reads and parses specified key-value type of text file file. This method
-      * translates the file into object oriented paradigm.
+      * Reads files as key-value storage. Empty lines or lines starting with '#'
+      * (comment) will be ignored.
+      * <pre>{@code
       * File format per line (input):
       *     "key : value"
       * Map of lines (output):
       *     <String key, String value>
-      * @param file
-      * @return 
+      * }</pre>
+      *
+      * @param file file to read
+      * @return map of key-value pairs
       */
-     public static Map<String,String> parseFile(File file) {
-        final List<String> lines = new ArrayList<>();
-        Map<String,String> out = new HashMap<>();
-        try {
-            lines.addAll(Files.readAllLines(Paths.get(file.getPath()), Charset.defaultCharset()));
-        } catch (IOException ex) {
-            Log.err("Problems reading file " + file.getPath() + ". File wasnt parsed.");
-            return out;
-        }
-        // remove empty lines, comments and other abominations
-        for (int i=lines.size()-1; i>=0; i--) {
-            String l = Util.emptifyString(lines.get(i));
-            if (!l.isEmpty() && !l.startsWith("#")) {
-                String key = l.substring(0, l.indexOf(" : "));
-                String value = l.substring(l.indexOf(" : ")+3);
-                out.put(key, value);                
-            }            
-        }
-        return out;
+     public static Map<String,String> readFileKeyValues(File file) {
+        Map<String,String> m = new HashMap<>();
+        readFileLines(file.getAbsolutePath())
+             .forEach(line -> {
+                String l = Util.emptifyString(line);
+                if (!l.isEmpty() && !l.startsWith("#")) {
+                    String key = l.substring(0, l.indexOf(" : "));
+                    String value = l.substring(l.indexOf(" : ")+3);
+                    m.put(key, value);                
+                }    
+             });
+        return m;
      }
      
     public static void deleteFile(File file) {

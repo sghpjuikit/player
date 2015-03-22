@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- stream for defining activator/deactivator shapes on mouse move
+- app icon
+- ext fieldiner ciics for taer - keep+clear & action apply
 - tagger cover bad value
 - library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
@@ -31,7 +34,6 @@
 - clean up Environment + more robust
 - explorer graphics support css skinning
 - enums with class bodies deserialistion parsing problems                       (?)
-- tray menu get rid of swing + add more options
 - libraryView bad layout for bottom pane because of task progress bar
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work      (?)
 - ConfigField (General) disable ok button for manually applied configs          (?)
@@ -87,7 +89,6 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- library tables rows misaligned/not updated sometimes, reason: bad refresh     (javaFX bug)
 
 
 SOLVED (but the underlying cause still deserves attention)
@@ -169,7 +170,6 @@ PERFORMANCE
 - container & widget closing - implement & document properly, remove memleaks   (medium)
 - skin memory consumption investigate                                           (medium)
   it appears that the skin eats lot more of memory compared to Modena
-- Container getAll Children/Containers/Widgets improve performance
 - configs memory - for example COnfigurator widget consumes about 40MB
 
 --------------------------------------------------------------------------------

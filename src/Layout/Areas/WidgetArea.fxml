@@ -1,10 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root id="entireArea" fx:id="content_root" focusTraversable="true" minHeight="0.0" minWidth="0.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root id="entireArea" fx:id="content_root" focusTraversable="true" minHeight="0.0" minWidth="0.0" prefHeight="60.0" prefWidth="67.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-    <AnchorPane id="contentPane" fx:id="content" prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <StackPane layoutX="60.0" layoutY="60.0" maxHeight="200.0" maxWidth="300.0" minHeight="200.0" minWidth="300.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <StackPane fx:id="inforoot" StackPane.alignment="CENTER">
+               <children>
+                <AnchorPane id="contentPane" fx:id="content" prefHeight="-1.0" prefWidth="-1.0">
+                     <StackPane.margin>
+                        <Insets bottom="9.0" left="9.0" right="9.0" top="9.0" />
+                     </StackPane.margin>
+                  </AnchorPane>
+                  <Path styleClass="area-path-border" StackPane.alignment="TOP_LEFT">
+                     <elements>
+                        <MoveTo y="20.0" />
+                        <LineTo />
+                        <LineTo x="20.0" />
+                     </elements>
+                  </Path>
+                  <Path styleClass="area-path-border" StackPane.alignment="TOP_RIGHT">
+                     <elements>
+                        <MoveTo x="-20.0" />
+                        <LineTo />
+                        <LineTo y="20.0" />
+                     </elements>
+                  </Path>
+                  <Path styleClass="area-path-border" StackPane.alignment="BOTTOM_RIGHT">
+                     <elements>
+                        <MoveTo y="-20.0" />
+                        <LineTo />
+                        <LineTo x="-20.0" />
+                     </elements>
+                  </Path>
+                  <Path styleClass="area-path-border" StackPane.alignment="BOTTOM_LEFT">
+                     <elements>
+                        <MoveTo y="-20.0" />
+                        <LineTo />
+                        <LineTo x="20.0" />
+                     </elements>
+                  </Path>
+               </children>
+            </StackPane>
+         </children>
+      </StackPane>
   </children>
 </fx:root>

@@ -225,7 +225,7 @@ public class Configuration {
         Log.info("Loading configuration");
         
         File file= new File("Settings.cfg").getAbsoluteFile();
-        Map<String,String> lines = FileUtil.parseFile(file);
+        Map<String,String> lines = FileUtil.readFileKeyValues(file);
         if(lines.isEmpty())
             Log.info("Configuration couldnt be loaded. No content found. Using "
                     + "default settings.");

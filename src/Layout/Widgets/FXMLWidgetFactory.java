@@ -86,7 +86,7 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
             // instantiate the controller
             return controllerLoader.loadClass(controllerName);
         } catch (ClassNotFoundException | MalformedURLException | URISyntaxException e) {
-            throw new RuntimeException("Controller class loading failed. ", e);
+            throw new RuntimeException("Controller class loading failed from: " + url + ". ", e);
         }
     }
 }

@@ -9,8 +9,8 @@ import AudioPlayer.services.Service;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.InfoNode.SongInfo;
 import GUI.InfoNode.ItemInfo;
+import GUI.InfoNode.SongInfo;
 import GUI.objects.PopOver.Notification;
 import GUI.objects.PopOver.PopOver;
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopRight;
@@ -33,29 +33,23 @@ import util.access.AccessorAction;
 import util.access.AccessorEnum;
 
 /**
- * 
+ * Provides notification functionality.
+ *
  * @author uranium
  */
 @IsConfigurable("Notification")
 @IsActionable
 public final class Notifier implements Service {
     
-/*****************************   CONFIGURATION   ******************************/
     
     private static Notification n;
     private static Node songNotifGui;
     private static SongInfo songNotifInfo;
-    private static List<String> getSongGuiFactoryNames() {
-        List<String> l = WidgetManager.getFactories()
-                            .filter(f->f.hasFeature(SongInfo.class))
-                            .map(f->f.name()).collect(toList());
-        l.add("Normal");
-        l.add("Normal - no cover");
-        return l;
-    }
     
     // dependencies
     private Subscription d1, d2;
+    
+/*****************************   CONFIGURATION   ******************************/
     
     @IsConfig(name = "Show notifications.", info = "Turn notification on and off completely")
     public static boolean showNotification = true;
@@ -96,17 +90,16 @@ public final class Notifier implements Service {
                 Widget wf = WidgetManager.find(w->w.name().equals(v), NEW, true).get();
                 songNotifGui = wf.load();
                 songNotifInfo = (SongInfo)wf.getController();
-//                songNotifInfo = WidgetManager.find(SongInfo.class, NEW).get();
-//                songNotifGui = ((Controller)songNotifInfo).getWidget().load();
                 ((Pane)songNotifGui).setPrefSize(700, 300);
             }
-//            App.use(Notifier.class,nnn->{
-//                if(nnn.initialized) nnn.notifNowPlaying();
-//                else nnn.initialized = true;
-//            });
-        },Notifier::getSongGuiFactoryNames){
-            
-        };
+        },() -> {
+            List<String> l = WidgetManager.getFactories()
+                        .filter(f->f.hasFeature(SongInfo.class))
+                        .map(f->f.name()).collect(toList());
+            l.add("Normal");
+            l.add("Normal - no cover");
+            return l;
+        });
     
     @IsAction(name = "Notification hide")
     public static void notifHide() {

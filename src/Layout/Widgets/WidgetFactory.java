@@ -79,7 +79,7 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     
     private static String getNameFromAnnotation(Class<?> c) {
         Widget.Info i = c.getAnnotation(Widget.Info.class);
-        return i==null ? c.getName() : i.name();
+        return i==null ? c.getSimpleName() : i.name();
     }
     
     /**

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.shape.*?>
+<?import java.lang.*?>
+<?import java.net.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="400.0" prefWidth="700.0" styleClass="mainFxmlClass" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+    <stylesheets>
+        <URL value="@gamelib.css" />
+    </stylesheets>
+   <children>
+      <TitledPane collapsible="false" text="Games" AnchorPane.bottomAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0">
+               <children>
+                  <ListView fx:id="game_list" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+               </children>
+            </AnchorPane>
+        </content>
+      </TitledPane>
+      <StackPane fx:id="cover_root" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="300.0" AnchorPane.topAnchor="50.0" />
+      <StackPane layoutX="50.0" layoutY="50.0" maxHeight="200.0" maxWidth="300.0" minHeight="200.0" minWidth="300.0" AnchorPane.leftAnchor="50.0" AnchorPane.topAnchor="50.0">
+         <children>
+            <StackPane fx:id="inforoot" StackPane.alignment="CENTER">
+               <children>
+                  <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="200.0" maxWidth="300.0" StackPane.alignment="CENTER">
+                    <content>
+                      <AnchorPane>
+                           <children>
+                              <Text fx:id="info_text" strokeType="OUTSIDE" strokeWidth="0.0" styleClass="text-shape" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                           </children>
+                        </AnchorPane>
+                    </content>
+                     <StackPane.margin>
+                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                     </StackPane.margin>
+                  </ScrollPane>
+                  <Path fill="#1f93ff00" styleClass="path-border" StackPane.alignment="TOP_LEFT">
+                      <elements>
+                          <MoveTo y="20.0" />
+                          <LineTo />
+                        <LineTo x="20.0" />
+                      </elements>
+                  </Path>
+                  <Path fill="#1f93ff00" styleClass="path-border" StackPane.alignment="TOP_RIGHT">
+                     <elements>
+                        <MoveTo x="-20.0" />
+                        <LineTo />
+                        <LineTo y="20.0" />
+                     </elements>
+                  </Path>
+                  <Path fill="#1f93ff00" styleClass="path-border" StackPane.alignment="BOTTOM_RIGHT">
+                     <elements>
+                        <MoveTo y="-20.0" />
+                        <LineTo />
+                        <LineTo x="-20.0" />
+                     </elements>
+                  </Path>
+                  <Path fill="#1f93ff00" styleClass="path-border" StackPane.alignment="BOTTOM_LEFT">
+                     <elements>
+                        <MoveTo y="-20.0" />
+                        <LineTo />
+                        <LineTo x="20.0" />
+                     </elements>
+                  </Path>
+               </children>
+            </StackPane>
+         </children>
+      </StackPane>
+      <HBox fx:id="controls" alignment="CENTER" layoutX="95.0" layoutY="273.0" prefHeight="50.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="300.0" />
+   </children>
+</AnchorPane>

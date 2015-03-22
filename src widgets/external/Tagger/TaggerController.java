@@ -24,7 +24,6 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.*;
 import static PseudoObjects.ReadMode.CUSTOM;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
@@ -110,6 +109,7 @@ import util.parsing.impl.ColorParser;
 public class TaggerController extends FXMLController implements TaggingFeature {
     
     @FXML AnchorPane entireArea;
+    @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
     @FXML GridPane grid;
     @FXML CustomTextField TitleF;
@@ -142,8 +142,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @FXML Label CoverL;
     Thumbnail CoverV;
     File new_cover_file = null;
-    @FXML StackPane progressPane;
-    @FXML ProgressIndicator progressI;
+    ProgressIndicator progressI;
     @FXML Label infoL;
     
     
@@ -182,12 +181,17 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     @Override
     public void init() {
+        
         loadSkin("skin.css",entireArea);
         
         CoverV = new Thumbnail(200);
         CoverV.setDragImage(false); // we have our own implementation below
         CoverV.getPane().getStyleClass().add("tager-thumbnail");
         coverContainer.setCenter(CoverV.getPane());
+        
+        progressI = new GUI.objects.Spinner.Spinner();
+        header.setRight(progressI);
+        
         // add specialized mood text field
         grid.add(MoodF, 1, 14, 2, 1);
         
@@ -580,7 +584,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     private void showProgressReading() {
         progressI.setProgress(INDETERMINATE_PROGRESS);
-        progressPane.setVisible(true);
+        progressI.setVisible(true);
         // make inaccessible during sensitive operation
         scrollContent.setMouseTransparent(true);        
         // apply blur to content to hint inaccessibility
@@ -589,12 +593,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     }
     private void showProgressWriting() {
         progressI.setProgress(INDETERMINATE_PROGRESS);
-        progressPane.setVisible(true);
+        progressI.setVisible(true);
         scrollContent.setEffect(new BoxBlur(3, 3, 1));
         scrollContent.setMouseTransparent(true);
     }
     private void hideProgress() {
-        progressPane.setVisible(false);
+        progressI.setVisible(false);
         progressI.setProgress(0);
         scrollContent.setEffect(null);
         scrollContent.setMouseTransparent(false);

@@ -10,27 +10,15 @@
 
 <AnchorPane fx:id="entireArea" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-      <BorderPane prefHeight="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <BorderPane fx:id="header" prefHeight="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <left>
           <Label fx:id="infoL" text="Summary" BorderPane.alignment="CENTER" />
          </left>
-         <right>
-          <StackPane fx:id="progressPane" blendMode="SRC_OVER" visible="false" BorderPane.alignment="CENTER">
-            <children>
-              <Circle fill="#66a3ff" opacity="0.11" radius="7.5" smooth="true" stroke="BLACK" strokeLineJoin="MITER" strokeType="INSIDE" strokeWidth="0.0">
-                <effect>
-                  <GaussianBlur radius="24.91" />
-                </effect>
-              </Circle>
-              <ProgressIndicator fx:id="progressI" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="15.0" prefWidth="15.0" progress="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-            </children>
-          </StackPane>
-         </right>
          <padding>
             <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
          </padding>
       </BorderPane>
-    <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="523.0" prefWidth="500.0" AnchorPane.bottomAnchor="30.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+    <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="523.0" prefWidth="500.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
       <content>
         <AnchorPane id="AnchorPane" fx:id="scrollContent" prefWidth="-1.0">
           <children>

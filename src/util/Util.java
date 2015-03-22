@@ -396,6 +396,31 @@ public class Util {
         return max(min,min(i,max));
     }
     
+    
+    /** Returns random element from the list and removes it from the list. 
+    @return random element from the list. 
+    @throws IndexOutOfBoundsException if list empty
+    */
+    private static <T> T rand(List<T> list) {
+        int i = (int)Math.floor(random()*list.size());
+        T t = list.get(i);
+        list.remove(t);
+        return t;
+    }
+    
+    /** Returns n random elements from the source list. Source list wont be changed.
+    @return specified number of random elements from the list
+    @throws IndexOutOfBoundsException if list doesnt have enough elements */
+    private static <T> ArrayList<T> randN(int amount, List<T> source){
+        if(amount>=source.size()) return new ArrayList<>(source);
+        else {
+            ArrayList<T> all = new ArrayList<>(source);
+            ArrayList<T> l = new ArrayList<>();
+            for(int i=0;i<amount;i++) l.add(rand(all));
+            return l;
+        }
+    }
+    
 /******************************** GRAPHICS ************************************/
     
     /** Sets anchors for given node within its parent AnchorPane. */
@@ -541,10 +566,13 @@ public class Util {
         if (e.getButton()==MouseButton.SECONDARY) e.consume();
     };
     
-    public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> actionHandler) {
+    public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> action) {
         MenuItem i = new MenuItem(text);
-                 i.setOnAction(actionHandler);
+                 if(action!=null) i.setOnAction(action);
         return i;
+    }
+    public static MenuItem createmenuItem(String text, Runnable action) {
+        return createmenuItem(text, action==null ? null : a -> action.run());
     }
     
 /***************************** REFLECTION *************************************/

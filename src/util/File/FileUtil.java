@@ -363,6 +363,15 @@ public final class FileUtil {
         }
      }
      
+     public static Stream<String> readFileLines(File f) {
+        try {
+            return Files.lines(f.toPath(), Charset.defaultCharset());
+        } catch (IOException ex) {
+            Log.err("Problems reading file " + f.getPath() + ". File wasnt read." + ex.getMessage());
+            return Stream.empty();
+        }
+     }
+     
      /**
       * Reads files as key-value storage. Empty lines or lines starting with '#'
       * (comment) will be ignored.

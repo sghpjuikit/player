@@ -3727,11 +3727,16 @@
     -fx-fill: null;
     -fx-stroke: -fx-def-font-color;
     -fx-stroke-width: 2;
+    -fx-stroke-type: inside;
 }
+
+/** Pane border created with path.
+    extends .path, .shape. Does not extend path-border.*/
 .area-path-border {
     -fx-fill: null;
     -fx-stroke: -fx-pane-color;
     -fx-stroke-width: 2;
+    -fx-stroke-type: inside;
 }
 
 /** Simple progress indicator control.

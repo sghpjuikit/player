@@ -39,7 +39,7 @@ import static util.Util.setAnchors;
 public abstract class Area<T extends Container> implements ContainerNode, Closable {
     
     public static final PseudoClass draggedPSEUDOCLASS = PseudoClass.getPseudoClass("dragged");
-    public static final List<String> bgr_STYLECLASS = Arrays.asList("area", "block");
+    public static final List<String> bgr_STYLECLASS = Arrays.asList("block", "area");
     
     /** Container this are is associated with. The relationship can not be 
       changed. */

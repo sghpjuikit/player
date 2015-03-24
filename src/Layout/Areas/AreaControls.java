@@ -25,7 +25,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.IOException;
 import java.util.List;
 import javafx.animation.FadeTransition;
-import javafx.animation.TranslateTransition;
+import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.Event;
@@ -46,10 +46,11 @@ import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.EventSource;
 import util.SingleInstance;
+import static util.Util.animation;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
 import static util.functional.Util.toS;
@@ -87,13 +88,13 @@ public final class AreaControls {
     @FXML public BorderPane header;
     @FXML public Label title;
     public Label propB;
-    @FXML TilePane header_buttons;
+    public @FXML TilePane header_buttons;
     Icon infoB, absB;
 
     // animations // dont initialize here or make final
     private final FadeTransition contrAnim;
     private final FadeTransition contAnim;
-    private final TranslateTransition blurAnim;
+    private final Transition blurAnim;
 
     Area area;
 
@@ -162,13 +163,14 @@ public final class AreaControls {
 	header_buttons.getChildren().addAll(closeB, detachB, changeB, propB, refreshB, lockB, absB, dragB, infoB);
 
 	// build animations
-	contrAnim = new FadeTransition(Duration.millis(GUI.duration_LM), root);
-	contAnim = new FadeTransition(Duration.millis(GUI.duration_LM), area.getContent());
-	blurAnim = new TranslateTransition(Duration.millis(GUI.duration_LM), area.getContent());
+	contrAnim = new FadeTransition(millis(GUI.duration_LM), root);
+	contAnim = new FadeTransition(millis(GUI.duration_LM), area.getContent());
 	BoxBlur blur = new BoxBlur(0, 0, 1);
-	blur.widthProperty().bind(area.getContent().translateZProperty());
-	blur.heightProperty().bind(area.getContent().translateZProperty());
 	area.getContent().setEffect(blur);
+	blurAnim = animation(millis(GUI.duration_LM), null, frac -> {
+            blur.setWidth(frac*GUI.blur_LM);
+            blur.setHeight(frac*GUI.blur_LM);
+        });
 
         // weak mode and strong mode - strong mode is show/hide called from external code
 	// - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)
@@ -177,9 +179,10 @@ public final class AreaControls {
 	BooleanProperty inside = new SimpleBooleanProperty(false);
 	// monitor mouse movement (as filter)
 	EventSource<MouseEvent> showS = new EventSource();
-	area.root.addEventFilter(MOUSE_MOVED, showS::push);
-	area.root.addEventFilter(MOUSE_ENTERED, showS::push);
-	area.root.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
+        Pane p = area instanceof WidgetArea ? ((WidgetArea)area).content_padding : area.root;
+	p.addEventFilter(MOUSE_MOVED, showS::push);
+	p.addEventFilter(MOUSE_ENTERED, showS::push);
+	p.addEventFilter(MOUSE_EXITED, e -> inside.set(false));
         // and check activator.mouse_enter events
 	// ignore when already showing, under lock or in strong mode
 	showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
@@ -198,7 +201,7 @@ public final class AreaControls {
 	EventSource<MouseEvent> hideS = new EventSource();
 	deactivator.addEventFilter(MOUSE_EXITED, hideS::push);
 	deactivator2.addEventFilter(MOUSE_EXITED, hideS::push);
-	area.root.addEventFilter(MOUSE_EXITED, hideS::push);
+	p.addEventFilter(MOUSE_EXITED, hideS::push);
 
         // hide when no longer hovered and in weak mode
 	// ignore when alreadt not showing, under lock or in strong mode
@@ -216,7 +219,7 @@ public final class AreaControls {
         // hide on mouse exit from area
 	// sometimes mouse exited deactivator does not fire in fast movement
 	// same thing as above - need to take care of popup...
-	area.root.addEventFilter(MOUSE_EXITED, e -> {
+	p.addEventFilter(MOUSE_EXITED, e -> {
 	    if (isShowingWeak && !isShowingStrong && (helpP.isNull() || !helpP.get().isShowing()))
 		hide();
 	});
@@ -397,7 +400,7 @@ public final class AreaControls {
 	// put new values
 	contrAnim.setToValue(1);
 	contAnim.setToValue(1 - GUI.opacity_LM);
-	blurAnim.setToZ(GUI.blur_LM);
+	blurAnim.setRate(1);
 	// play
 	contrAnim.play();
 	if (GUI.opacity_layoutMode) contAnim.play();
@@ -417,7 +420,7 @@ public final class AreaControls {
 	blurAnim.stop();
 	contrAnim.setToValue(0);
 	contAnim.setToValue(1);
-	blurAnim.setToZ(0);
+	blurAnim.setRate(-1);
 	contrAnim.play();
 	if (GUI.opacity_layoutMode) contAnim.play();
 	if (GUI.blur_layoutMode) blurAnim.play();

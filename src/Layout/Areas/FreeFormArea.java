@@ -8,10 +8,12 @@ package Layout.Areas;
 import GUI.DragUtil;
 import GUI.GUI;
 import static GUI.GUI.closeAndDo;
+import GUI.objects.Icon;
 import GUI.objects.Window.Pane.PaneWindowControls;
 import Layout.*;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.Widgets.Widget;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS_SQUARE_ALT;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -47,22 +49,13 @@ public class FreeFormArea implements ContainerNode {
         root.setOnMouseClicked(e -> {
             if(GUI.isLayoutMode() || !container.isUnderLock()) {
                 isHere.set(isHere.get() && isHere(e));
-                if(e.getButton()==PRIMARY && isHere.get()) {
-                    int index = findFirstEmpty(container.getChildren(), 1);
-                    TupleM4<Double,Double,Double,Double> bestPos = bestRec(e.getX(), e.getY());
-                    // add empty window at index
-                    // the method call eventually invokes load() method below, with
-                    // component/child == null (3rd case)
-                    // first we initialize position & size
-                    container.properties.put(index + "x", bestPos.a);
-                    container.properties.put(index + "y", bestPos.b);
-                    container.properties.put(index + "w", bestPos.c);
-                    container.properties.put(index + "h", bestPos.d);
-                    container.addChild(index, null);
-                }
-                if(e.getButton()==SECONDARY && container.getChildren().isEmpty()) {
+                // add new widget on left click
+                if(e.getButton()==PRIMARY && isHere.get())
+                    addEmptyWindowAt(e.getX(), e.getY());
+                // close on right click
+                if(e.getButton()==SECONDARY && container.getChildren().isEmpty())
                     container.close();
-                }
+                    
                 e.consume();
             }
         });
@@ -76,9 +69,8 @@ public class FreeFormArea implements ContainerNode {
         // handle drag onto
         root.setOnDragDropped( e -> {
             if (DragUtil.hasComponent()) {
-                int index = findFirstEmpty(container.getChildren(), 1);
-                container.addChild(index, null);
-                container.swapChildren(index,DragUtil.getComponent());
+                int i = addEmptyWindowAt(e.getX(), e.getY());
+                container.swapChildren(i,DragUtil.getComponent());
                 e.setDropCompleted(true);
                 e.consume();
             }
@@ -127,6 +119,14 @@ public class FreeFormArea implements ContainerNode {
         } else
         if(cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container, i);
+                       // add maximize button
+                       wa.controls.header_buttons.getChildren().add(1, new Icon(PLUS_SQUARE_ALT, 12, "Maximize & align", () -> {
+                           TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+1, w.y.get()+1, w);
+                           w.x.set(p.a*root.getWidth());
+                           w.y.set(p.b*root.getHeight());
+                           w.w.set(p.c*root.getWidth());
+                           w.h.set(p.d*root.getHeight());
+                       }));
                        wa.loadWidget((Widget)cm);
                        widgets.put(i,wa);
                        w.moveOnDragOf(w.content);
@@ -212,10 +212,12 @@ public class FreeFormArea implements ContainerNode {
         return w;
     }
     
-    TupleM4<Double,Double,Double,Double> bestRec(double x, double y) {
+    /** Optimal size/position strategy returning greatest empty square. */
+    TupleM4<Double,Double,Double,Double> bestRec(double x, double y, PaneWindowControls new_w) {
         TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, root.getWidth(), 0d, root.getHeight());
         
         for(PaneWindowControls w : windows.values()) {
+           if(w==new_w) continue;   // ignore self
            double wl = w.x.get()+w.w.get();
            if(wl<x && wl>b.a) b.a = wl;
            double wr = w.x.get();
@@ -230,10 +232,37 @@ public class FreeFormArea implements ContainerNode {
                             (b.b-b.a)/root.getWidth(),(b.d-b.c)/root.getHeight());
     }
     
+    /** Optimal size/position strategy returning centeraligned 3rd of window size
+      dimensions. */
     TupleM4<Double,Double,Double,Double> bestRecSimple(double x, double y) {
         return new TupleM4<>(x/root.getWidth()-1/6d,
                              y/root.getHeight()-1/6d,
                              1/3d, 1/3d);
+    }
+    
+    /** Initializes position & size for i-th window, ignoring self w if passed as param. */
+    private void storeBestRec(int i, double x, double y, PaneWindowControls w) {
+        TupleM4<Double,Double,Double,Double> bestPos = bestRec(x, y, w);
+        // add empty window at index
+        // the method call eventually invokes load() method below, with
+        // component/child == null (3rd case)
+        container.properties.put(i + "x", bestPos.a);
+        container.properties.put(i + "y", bestPos.b);
+        container.properties.put(i + "w", bestPos.c);
+        container.properties.put(i + "h", bestPos.d);    
+    }
+    
+    private int addEmptyWindowAt(double x, double y) {
+        // get index
+        int i = findFirstEmpty(container.getChildren(), 1);
+        // preset viable area
+        storeBestRec(i, x, y, null);
+        // add empty window at index (into viable area)
+        // the method call eventually invokes load() method below, with
+        // component/child == null (3rd case)
+        container.addChild(i, null);
+        
+        return i;
     }
     
 }

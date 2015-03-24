@@ -5,7 +5,6 @@
 
 - stream for defining activator/deactivator shapes on mouse move
 - app icon
-- ext fieldiner ciics for taer - keep+clear & action apply
 - tagger cover bad value
 - library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
@@ -34,7 +33,6 @@
 - clean up Environment + more robust
 - explorer graphics support css skinning
 - enums with class bodies deserialistion parsing problems                       (?)
-- libraryView bad layout for bottom pane because of task progress bar
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work      (?)
 - ConfigField (General) disable ok button for manually applied configs          (?)
 

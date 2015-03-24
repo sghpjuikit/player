@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root id="AnchorPane" fx:id="root" pickOnBounds="false" prefHeight="300.0" prefWidth="300.0" styleClass="block,area-control" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root id="AnchorPane" fx:id="root" pickOnBounds="false" prefHeight="300.0" prefWidth="300.0" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
       <children>
         <BorderPane fx:id="header" mouseTransparent="true" pickOnBounds="false" prefHeight="25.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="0.0">
           <center>

@@ -77,9 +77,9 @@ public class GUI {
     @IsConfig(name = "Layout mode fade bgr", info = "Layout mode use fade effect.")
     public static boolean opacity_layoutMode = true;
     @IsConfig(name = "Layout mode fade intensity", info = "Layout mode fade effect intensity.", min=0.0, max=1.0)
-    public static double opacity_LM = 0.8;
+    public static double opacity_LM = 1;
     @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur efect intensity.", min=0.0, max=20.0)
-    public static double blur_LM = 8;
+    public static double blur_LM = 4;
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static double duration_LM = 250;
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
@@ -445,11 +445,13 @@ public class GUI {
         Animation a = buildAnimation(n, action);
                   a.setRate(-1);
                   a.playFrom(ANIM_DUR.subtract(ANIM_DUR.multiply(pos)));
+//                  a.play();
     }
     public static void openAndDo(Node n, Runnable action) {
         double pos = n.getScaleX()==1 ? 0 : n.getScaleX();
         Animation a = buildAnimation(n, action);
                   a.playFrom(ANIM_DUR.multiply(pos));
+//                  a.play();
     }
     
     private static Animation buildAnimation(Node n, Runnable action) {

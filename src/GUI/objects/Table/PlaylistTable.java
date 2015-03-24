@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
@@ -37,11 +36,11 @@ import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import static org.reactfx.EventStreams.changesOf;
 import org.reactfx.Subscription;
 import util.File.Enviroment;
 import util.Util;
 import static util.Util.*;
-import static util.async.Async.run;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.cmpareBy;
@@ -70,8 +69,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     double last;
     ArrayList<Integer> selected_temp = new ArrayList<>();
     
-    // playing item observation listeners, the playing item style update
-    Subscription playintItemMonitor = Player.playingtem.subscribeToChanges(o->refreshColumn(columnIndex));
+    // dependencies
+    Subscription d1 = Player.playingtem.subscribeToChanges(o->refreshColumn(columnIndex));
+    Subscription d2;
     
     // invisible controls helping with resizing columns
     private Label tmp = new Label();
@@ -323,16 +323,13 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         refreshColumn(columnIndex);
         
         // maintain columns width
-        // fix this up
-        heightProperty().addListener(o -> getColumnResizePolicy().call(null));
-        getItems().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
-        getItemsFiltered().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
-        getItemsRaw().addListener( (Observable o) -> run(150,()->getColumnResizePolicy().call(null)));
+        d2 = changesOf(getItems()).subscribe(c -> getColumnResizePolicy().call(null));
     }
 
     /** Clears resources like listeners for this table object. */
     public void clearResources() {
-        playintItemMonitor.unsubscribe();
+        d1.unsubscribe();
+        d2.unsubscribe();
         getSelectionModel().selectedItemProperty().removeListener(selItemListener);
         getSelectionModel().getSelectedItems().removeListener(selItemsListener);
     }

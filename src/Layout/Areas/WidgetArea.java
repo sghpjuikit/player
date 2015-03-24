@@ -15,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
 import static util.Util.setAnchors;
 
 /**
@@ -23,6 +24,7 @@ import static util.Util.setAnchors;
 public final class WidgetArea extends Area<Container> {
     
     @FXML private AnchorPane content;
+    @FXML public StackPane content_padding;
     
     private Widget widget = Widget.EMPTY();     // never null
     
@@ -44,11 +46,11 @@ public final class WidgetArea extends Area<Container> {
         }
         // load controls
         controls = new AreaControls(this);
-        content_root.getChildren().addAll(controls.root);
+        content_padding.getChildren().addAll(controls.root);
         setAnchors(controls.root, 0d);
         
-        // support css styling
-        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
+        // support css styling - 
+//        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
         // support drag from - done in controls: AreaControls.class
         // return graphics to normal

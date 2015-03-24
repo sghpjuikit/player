@@ -445,12 +445,15 @@ abstract public class ConfigField<T> {
             });
             
             // add scrolling support
+            // unfortunately this control is often within scrollpane and user
+            // might end up changing value of this config field while scrolling
+            // disable this
             slider.setBlockIncrement((c.getMax()-c.getMin())/20);
-            slider.setOnScroll( e -> {
-                if (e.getDeltaY()>0) slider.increment();
-                else slider.decrement();
-                e.consume();
-            });
+//            slider.setOnScroll( e -> {
+//                if (e.getDeltaY()>0) slider.increment();
+//                else slider.decrement();
+//                e.consume();
+//            });
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
             slider.setMaxWidth(-1);

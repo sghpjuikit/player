@@ -51,6 +51,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static javafx.scene.control.TableColumn.SortType.ASCENDING;
 import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -268,6 +269,16 @@ public class LibraryController extends FXMLController {
         // update selected items for application
         d2 = Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty()));
         d3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
+        
+        // update library comparator
+        changesOf(table.getSortOrder()).subscribe( c -> 
+            DB.library_sorter = c.getList().stream().map(column -> {
+                    Metadata.Field f = (Metadata.Field) column.getUserData();
+                    int type = column.getSortType()==ASCENDING ? 1 : -1;
+                    return (Comparator<Metadata>)(m1,m2) -> type*((Comparable)m1.getField(f)).compareTo((m2.getField(f)));
+                })
+                .reduce((m1,m2) -> 0, Comparator::thenComparing)
+        );
         
         // task information label
         taskInfo.setVisible(false);

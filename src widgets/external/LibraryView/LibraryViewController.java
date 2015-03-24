@@ -394,12 +394,16 @@ public class LibraryViewController extends FXMLController {
                 createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))));
 //                createmenuItem("Edit the item/s in tag editor", e -> m.getValue().re);
             return m;
-        }, (menu, w) -> menu.setValue(w.filerList(DB.views.getValue(w.lvl.getValue()))));
+        }, (menu, w) -> {
+            List<Metadata> l = w.filerList(DB.views.getValue(w.lvl.getValue()));
+                           l.sort(DB.library_sorter);
+            menu.setValue(l);
+        });
     
     private static void play(List<Metadata> items) {
         if(items.isEmpty()) return;
         Playlist p = new Playlist();
-        items.stream().sorted().map(Metadata::toPlaylist).forEach(p::addItem);
+        items.stream().sorted(DB.library_sorter).map(Metadata::toPlaylist).forEach(p::addItem);
         PlaylistManager.playPlaylist(p);
     }
     

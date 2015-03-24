@@ -13,7 +13,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import javafx.animation.Interpolator;
+import javafx.animation.Transition;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -423,7 +426,14 @@ public class Util {
     
 /******************************** GRAPHICS ************************************/
     
-    /** Sets anchors for given node within its parent AnchorPane. */
+    /** Shortcut for:
+        <pre>{@code
+        AnchorPane.setTopAnchor(n, a);
+        AnchorPane.setRightAnchor(n, a);
+        AnchorPane.setBottomAnchor(n, a);
+        AnchorPane.setLeftAnchor(n, a);
+        }</pre>
+    */
     public static void setAnchors(Node n, double a) {
         AnchorPane.setTopAnchor(n, a);
         AnchorPane.setRightAnchor(n, a);
@@ -431,7 +441,14 @@ public class Util {
         AnchorPane.setLeftAnchor(n, a);
     }
     
-    /** Sets anchors for given node within its parent AnchorPane. */
+    /** Shortcut for:
+        <pre>{@code
+            AnchorPane.setTopAnchor(n, top);
+            AnchorPane.setRightAnchor(n, right);
+            AnchorPane.setBottomAnchor(n, bottom);
+            AnchorPane.setLeftAnchor(n, left);
+        }</pre>
+    */
     public static void setAnchors(Node n, double top, double right, double bottom, double left) {
         AnchorPane.setTopAnchor(n, top);
         AnchorPane.setRightAnchor(n, right);
@@ -573,6 +590,33 @@ public class Util {
     }
     public static MenuItem createmenuItem(String text, Runnable action) {
         return createmenuItem(text, action==null ? null : a -> action.run());
+    }
+    
+    /** Shortcut for:
+        Transition t = new Transition() {
+            {
+                setCycleDuration(d);
+                if(i!=null) setInterpolator(i);
+            }
+            @Override
+            protected void interpolate(double p) {
+                animator.accept(p);
+            }
+        };
+        }</pre>
+    */
+    public static Transition animation(Duration d, Interpolator i, Consumer<Double> animator) {
+        Transition t = new Transition() {
+            {
+                setCycleDuration(d);
+                if(i!=null) setInterpolator(i);
+            }
+            @Override
+            protected void interpolate(double p) {
+                animator.accept(p);
+            }
+        };
+        return t;
     }
     
 /***************************** REFLECTION *************************************/

@@ -12,6 +12,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.Collections;
 import static java.util.Collections.EMPTY_LIST;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -159,5 +160,14 @@ public class DB {
         em.flush();
     }
     
+    
     public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
+    
+    /** Comparator defining the sorting for items in operations that wish to
+    provide consistent sorting. For example playing an album might presort the
+    songs before putting them to playlist.
+    <p>
+    The comparator should reflect library table sort order.
+    */
+    public static Comparator<Metadata> library_sorter = Metadata::compareTo;
 }

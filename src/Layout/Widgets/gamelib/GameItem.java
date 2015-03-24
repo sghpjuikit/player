@@ -30,7 +30,7 @@ public class GameItem {
     private File installocation;
 
     public GameItem(File f) {
-        location = f;
+        location = f.getAbsoluteFile();
         name = f.getName();
     }
     
@@ -81,13 +81,13 @@ public class GameItem {
         return new File(location,"play.lnk");
     }
     
-    public void play() {
+    public String play() {
         Map<String,String> settings = readFileKeyValues(new File(location,"settings.cfg"));
+        List<String> command = new ArrayList();
 
         try {
             File exe =null ;
             String pathA = settings.get("pathAbs");
-            List<String> command = new ArrayList();
             
             if(pathA!=null) {
                 exe = new File(pathA);
@@ -95,7 +95,7 @@ public class GameItem {
             
             if(exe==null) {
                 String pathR = settings.get("path");
-                if(pathR==null) return;
+                if(pathR==null) return "No path is set up.";
                 exe = new File(location,pathR);
             }
             
@@ -111,8 +111,19 @@ public class GameItem {
             }
             // run
             new ProcessBuilder(command).start();
+            return "Starting...";
         } catch (IOException ex) {
-            Logger.getLogger(GameItem.class.getName()).log(Level.SEVERE, null, ex);
+            // we might have failed due to the program requiring elevation (run
+            // as admin) so we use a little utility we package along
+            try {
+                // use elevate.exe to run what we wanted
+                command.add(0, "elevate.exe");
+                new ProcessBuilder(command).start();
+                return "Starting (as administrator)...";
+            } catch (IOException ex1) {
+                Logger.getLogger(GameItem.class.getName()).log(Level.SEVERE, null, ex1);
+                return ex.getMessage();
+            }
         }
         
     }

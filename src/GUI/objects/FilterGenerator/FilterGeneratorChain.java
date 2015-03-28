@@ -12,11 +12,9 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import util.access.FieldValue.FieldEnum;
@@ -24,6 +22,7 @@ import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
 import static util.functional.Util.isTRUE;
+import util.functional.functor.RunnableC;
 
 /**
  *
@@ -94,14 +93,14 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         FilterGenerator first = generators.get(0);
         generators.clear();
         generators.add(first);
-        generatePredicate();if(conjuction!=isTRUE)System.out.println("AAAAAAAAAAAAAAAAAAAAAA"); else System.out.println("ddddddddddddddd");
+        generatePredicate();if(conjuction!=isTRUE)
         for(int i=getChildren().size()-1; i>0; i--)
             getChildren().remove(getChildren().get(i));
     }
     
-    public void setButton(FontAwesomeIconName icon, Tooltip t, EventHandler<MouseEvent> action) {
+    public void setButton(FontAwesomeIconName icon, Tooltip t, RunnableC action) {
         Label rem =  new Icon(icon, 13);
-              rem.setOnMouseClicked(action);
+              rem.setOnMouseClicked(e -> action.toHandlerConsumed());
               rem.setPadding(new Insets(0, 3, 0, 5));
               rem.setTooltip(t);
         generators.get(0).getChildren().remove(0);

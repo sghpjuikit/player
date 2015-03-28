@@ -6,14 +6,14 @@
  * Courtesy of Bembrick Software Labs in the interest of promoting JavaFX.
  */
 
-package util.graphics.visualisation;
+package unused.visualisation;
 
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import static util.graphics.visualisation.Particle.MIN_RADIUS;
-import static util.graphics.visualisation.Particle.RADIUS_DELTA;
+import static unused.visualisation.Particle.MIN_RADIUS;
+import static unused.visualisation.Particle.RADIUS_DELTA;
 
 /**
  * A <code>CanvasParticleAnimater</code> is the main object involved in testing a JavaFX <code>Canvas</code> by

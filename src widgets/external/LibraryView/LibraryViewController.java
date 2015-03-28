@@ -66,31 +66,26 @@ import static util.collections.Tuples.tuple;
 import util.functional.Runner;
 import static util.functional.Util.*;
 
-/**
- *
- * @author Plutonium_
- */
 @Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Library View",
-    description = "Provides access to database.",
+    description = "Provides database filtering.",
     howto = "Available actions:\n" +
             "    Item left click : Selects item\n" +
             "    Item right click : Opens context menu\n" +
             "    Item double click : Plays item\n" +
-//            "    Item drag : \n" +
+            "    Type : search & filter\n" +
             "    Press ENTER : Plays item\n" +
             "    Press ESC : Clear selection & filter\n" +
-//            "    Type : Searches for item - applies filter\n" +
             "    Scroll : Scroll table vertically\n" +
             "    Scroll + SHIFT : Scroll table horizontally\n" +
-            "    Drag column : Changes column order\n" +
-            "    Click column : Changes sort order - ascending,\n" +
-            "                   descending, none\n" +
+            "    Column drag : swap columns\n" +
+            "    Column right click: show column menu\n" +
+            "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n",
     notes = "",
-    version = "0.8",
+    version = "1",
     year = "2015",
     group = LIBRARY
 )
@@ -99,8 +94,10 @@ public class LibraryViewController extends FXMLController {
     private @FXML AnchorPane root;
     private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
+    
     // dependencies
     private Subscription d1;
+    
     private final Runner runOnce = new Runner(1);
     private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
@@ -116,8 +113,8 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "", min=1, max = 8)
@@ -158,7 +155,7 @@ public class LibraryViewController extends FXMLController {
             }
             // rebuild value column
             find(table.getColumns(), c -> VALUE == c.getUserData()).ifPresent(c -> {
-                TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE.toString());
+                TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE);
                 c.setText(t.getText());
                 c.setCellFactory((Callback)t.getCellFactory());
                 c.setCellValueFactory((Callback)t.getCellValueFactory());
@@ -199,7 +196,6 @@ public class LibraryViewController extends FXMLController {
                 ? (Callback) App.ratingCell.getValue()
                 : mgf==W_RATING ? (Callback)new NumberRatingCellFactory()
                 : cellFactoryAligned(mgf.getType(mf), no_val));
-            c.setUserData(mgf);
             return c;
         });
         // maintain rating column cell style
@@ -250,7 +246,6 @@ public class LibraryViewController extends FXMLController {
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
         table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        table.addEventFilter(MOUSE_CLICKED, consumeOnSecondaryButton);
         // prevent context menu changing selection despite the above
         table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
         // prevent volume change
@@ -392,7 +387,6 @@ public class LibraryViewController extends FXMLController {
                 createmenuItem("Update from file", e -> Player.refreshItems(m.getValue())),
                 createmenuItem("Remove from library", e -> DB.removeItems(m.getValue())),
                 createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))));
-//                createmenuItem("Edit the item/s in tag editor", e -> m.getValue().re);
             return m;
         }, (menu, w) -> {
             List<Metadata> l = w.filerList(DB.views.getValue(w.lvl.getValue()));

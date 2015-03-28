@@ -107,7 +107,6 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 });
             }
             c.setCellFactory(cellFactoryAligned(f.getType(), ""));
-            c.setUserData(f);
             c.setResizable(true);
             return c;
         });
@@ -250,7 +249,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         
         // move items on drag
         setOnMouseDragged( e -> {
-            if (e.getButton()!=MouseButton.PRIMARY) return;
+            if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
             
             double h = getFixedCellSize();
             double dist = e.getScreenY()- last;
@@ -291,8 +290,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         
         // drag&drop from
         setOnDragDetected(e -> {
-            if (e.isControlDown() && e.getButton() == PRIMARY 
-                    && !getSelectedItems().isEmpty()
+            if (e.getButton() == PRIMARY  && !e.isControlDown() && !getSelectedItems().isEmpty()
                         && isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
                 
                 Dragboard db = startDragAndDrop(TransferMode.COPY);

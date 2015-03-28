@@ -130,13 +130,6 @@ SOLVED (but the underlying cause still deserves attention)
   solution: after mouse is released canUpdate is set to true, set canUpdate     (OK)
   to true with a 100ms delay.
 
-PROBLEMS
-- fxml widget deserializing prevent app crash when deserialized widget has no   (minor, but dangerous)
-  factory available - also instantiatingController should never return null in
-  fxmlFactory
-- get rid of layout aggregators
-  deserializing and creating windows, or make it into a container?
-
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
 --------------------------------------------------------------------------------
@@ -146,6 +139,8 @@ CLEANUP
 - window manager
 - window color overlay effect, colr skin change + use song color
   using setStyle on main color
+- get rid of layout aggregators
+  deserializing and creating windows, or make it into a container?
 
 UNIFICATIONS, OVERHAULS, REDESIGN
 - Playback/Player/Playlist state and suspending/restoring them

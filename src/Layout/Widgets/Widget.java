@@ -13,7 +13,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.Map;
-import static java.util.Objects.requireNonNull;
 import javafx.scene.Node;
 import util.dev.Log;
 
@@ -278,11 +277,13 @@ public abstract class Widget<C extends Controller> extends Component implements 
     * @throws ObjectStreamException
     */
     private Object readResolve() throws ObjectStreamException {
+        // assign factory
         if (factory==null) factory = WidgetManager.getFactory(name);
-        
-        // make sure
-        requireNonNull(factory);
-        return this;
+        // if none exists (maybe the widget was serialized in different application)
+        // return null - widget can not exist without its factory
+        // the null does not cause exception, it is treated by container as no 
+        // component - basically we ignore this widget
+        return factory==null ? null : this;
     }
     
 

@@ -24,6 +24,8 @@ import javafx.geometry.Side;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 import static util.Util.getEnumConstants;
@@ -33,17 +35,31 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.cmpareBy;
 import static util.functional.Util.list;
+import util.functional.functor.FunctionC;
 import util.parsing.Parser;
 
 /**
  *
+ * The columns use userData property to store the field F. Use {@link #setUserData(java.lang.Object)}
+ * to obtain the exact F field the column represents. Every column will return
+ * a value except for index column, which returns null. Never use 
+ * {@link #getUserData()} on the columns or column lookup will break.
+ * <p>
+ * Has redesigned column set up menu. The table header button opening it is
+ * hidden by default and the menu can also be shown by right click on the table
+ * header.
+ * <p>
+
+ * @param <T> type of element in the table, must be aware of its fields
+ * @param <F> field of the T to access the fields
+
  * @author Plutonium_
  */
 public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
     
     
     private Function<F,ColumnInfo> colStateFact;
-    private Callback<String,TableColumn<T,?>> colFact;
+    private Callback<F,TableColumn<T,?>> colFact;
     private UnaryOperator<String> keyNameColMapper = name -> name;
     
     private TableColumnInfo columnState;
@@ -53,15 +69,23 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public FieldedTable(Class<F> type) {
         super();
         this.type = type;
+        
+        
+        // show the column control menu on right click
+        addEventHandler(MOUSE_CLICKED, e -> {
+            if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight()) {
+                columnVisibleMenu.show(this, e.getScreenX(), e.getScreenY());
+            }
+        });
+        // column control menu button not needed now (but still optionally usable)
+        setTableMenuButtonVisible(false);
     }
     
-    public void setColumnFactory(Callback<F,TableColumn<T,?>> columnFactory) {
-        colFact = name -> "#".equals(name) 
-            ? columnIndex 
-            : columnFactory.call(Parser.fromS(type, keyNameColMapper.apply(name)));
+    public void setColumnFactory(FunctionC<F,TableColumn<T,?>> columnFactory) {
+        colFact = f -> f==null ? columnIndex : columnFactory.andApply(c -> c.setUserData(f)).call(f);
     }
     
-    public Callback<String,TableColumn<T,?>> getColumnFactory() {
+    public Callback<F,TableColumn<T,?>> getColumnFactory() {
         return colFact;
     }
     
@@ -81,11 +105,15 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         return getColumn(name).isPresent();
     }
     
+    private F nameToF(String name) {
+        return "#".equals(name) ? null : Parser.fromS(type, keyNameColMapper.apply(name));
+    }
+    
     public void setColumnVisible(String name, boolean v) {
         TableColumn<T,?> t = getColumn(name).orElse(null);
         if(v) {
             if(t==null) {
-                t = colFact.call(name);
+                t = colFact.call(nameToF(name));
                 t.setPrefWidth(columnState.columns.get(name).width);
                 t.setVisible(v);
                 getColumns().add(t);
@@ -103,7 +131,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         List<TableColumn<T,?>> visibleColumns = new ArrayList();
         state.columns.stream().sorted().filter(c->c.visible).forEach(c->{
             // get or build column
-            TableColumn tc = getColumn(c.name).orElse(colFact.call(c.name));
+            TableColumn tc = getColumn(c.name).orElse(colFact.call(nameToF(c.name)));
             // set width
             tc.setPrefWidth(c.width);
             // set visibility

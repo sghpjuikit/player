@@ -445,13 +445,11 @@ public class GUI {
         Animation a = buildAnimation(n, action);
                   a.setRate(-1);
                   a.playFrom(ANIM_DUR.subtract(ANIM_DUR.multiply(pos)));
-//                  a.play();
     }
     public static void openAndDo(Node n, Runnable action) {
         double pos = n.getScaleX()==1 ? 0 : n.getScaleX();
         Animation a = buildAnimation(n, action);
                   a.playFrom(ANIM_DUR.multiply(pos));
-//                  a.play();
     }
     
     private static Animation buildAnimation(Node n, Runnable action) {

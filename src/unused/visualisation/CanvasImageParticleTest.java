@@ -6,7 +6,7 @@
  * Courtesy of Bembrick Software Labs in the interest of promoting JavaFX.
  */
 
-package util.graphics.visualisation;
+package unused.visualisation;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

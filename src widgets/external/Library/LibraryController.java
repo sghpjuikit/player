@@ -85,10 +85,6 @@ import util.functional.functor.FunctionC;
 import util.graphics.Icons;
 import util.units.FormattedDuration;
 
-/**
- *
- * @author Plutonium_
- */
 @Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
@@ -98,20 +94,19 @@ import util.units.FormattedDuration;
             "    Item left click : Selects item\n" +
             "    Item right click : Opens context menu\n" +
             "    Item double click : Plays item\n" +
-            "    Item drag : Starts drag & drop\n" +
+            "    Type : search & filter\n" +
             "    Press ENTER : Plays item\n" +
-            "    Press DELETE : Removes items from library\n" +
             "    Press ESC : Clear selection & filter\n" +
             "    Scroll : Scroll table vertically\n" +
             "    Scroll + SHIFT : Scroll table horizontally\n" +
-            "    Drag column : Changes column order\n" +
-            "    Click column : Changes sort order - ascending,\n" +
-            "                   descending, none\n" +
+            "    Column drag : swap columns\n" +
+            "    Column right click: show column menu\n" +
+            "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n" +
             "    Menu bar : Opens additional actions\n",
     notes = "",
-    version = "0.6",
-    year = "2014",
+    version = "1",
+    year = "2015",
     group = LIBRARY
 )
 public class LibraryController extends FXMLController {
@@ -129,9 +124,7 @@ public class LibraryController extends FXMLController {
     @FXML MenuBar controlsBar;
     private final Runner runOnce = new Runner(1);
     // dependencies to disopose of
-    private Subscription d1;
-    private Subscription d2;
-    private Subscription d3;
+    private Subscription d1, d2, d3;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -142,8 +135,8 @@ public class LibraryController extends FXMLController {
     public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
     @IsConfig(name = "Library level", info = "", min = 1, max = 8)
@@ -180,7 +173,6 @@ public class LibraryController extends FXMLController {
             c.setCellFactory(f==RATING
                 ? (FunctionC) App.ratingCell.getValue()
                 : cellFactoryAligned(f.getType(), ""));
-            c.setUserData(f);
             if(f==Metadata.Field.TRACK || f==Metadata.Field.DISC || 
                f==Metadata.Field.TRACKS_TOTAL || f==Metadata.Field.DISCS_TOTAL) {
                 c.setComparator((Comparator) new Comparator<Integer>() {

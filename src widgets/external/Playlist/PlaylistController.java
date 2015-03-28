@@ -8,15 +8,16 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
+import GUI.InfoNode.InfoTable;
+import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.SimpleConfigurator;
 import GUI.objects.Table.PlaylistTable;
-import GUI.InfoNode.InfoTable;
-import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.PLAYLIST;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
@@ -25,14 +26,12 @@ import java.util.Date;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.Priority;
@@ -40,6 +39,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import static util.Util.consumeOnSecondaryButton;
 import util.access.Accessor;
+import util.functional.functor.RunnableC;
 import util.graphics.Icons;
 import util.units.FormattedDuration;
 
@@ -57,21 +57,22 @@ import util.units.FormattedDuration;
             "    Item left click : Selects item\n" +
             "    Item right click : Opens context menu\n" +
             "    Item double click : Plays item\n" +
-            "    Item drag : Moves item within playlist\n" +
-            "    Item drag + CTRL : Activates Drag&Drop\n" +
+            "    Item drag : Activates Drag&Drop\n" +
+            "    Item drag + CTRL : Moves item within playlist\n" +
+            "    Type : search & filter\n" +
             "    Press ENTER : Plays item\n" +
             "    Press ESC : Clear selection & filter\n" +
-            "    Type : Searches for item - applies filter\n" +
-            "    Filter button : Uses filter for playback\n" +
-            "    Click column : Changes sort order - ascending, descending, none\n" +
+            "    Scroll : Scroll table vertically\n" +
+            "    Scroll + SHIFT : Scroll table horizontally\n" +
+            "    Column drag : swap columns\n" +
+            "    Column right click: show column menu\n" +
+            "    Click column : Sort - ascending | descending | none\n" +
             "    Click column + SHIFT : Sorts by multiple columns\n" +
-            "    Drag column : Changes column order\n" +
             "    Menu bar : Opens additional actions\n",
-    notes = "Plans: multiple playlists through tabs.\n" + 
-            "Bugs: sorting through menubar buttons is broken",
+    notes = "Plans: multiple playlists through tabs",
     version = "1",
-    year = "2014",
-    group = Widget.Group.PLAYLIST
+    year = "2015",
+    group = PLAYLIST
 )
 public class PlaylistController extends FXMLController implements PlaylistFeature {
 
@@ -94,8 +95,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for controlling columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(true, table::setTableMenuButtonVisible);
+    @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
+    public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
     @IsConfig(name = "Show bottom header", info = "Show contorls pane at the bottom.")
     public final Accessor<Boolean> show_bottom_header = new Accessor<>(true, v -> {
         if(v) root.getChildren().setAll(table.getRoot(),optionPane);
@@ -300,10 +301,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         }
     }
     
-    private EventHandler<MouseEvent> filterToggler() {
-        return e -> {
-            filter_for_playback.setCycledNapplyValue();
-            e.consume();
-        };
+    private RunnableC filterToggler() {
+        return filter_for_playback::setCycledNapplyValue;
     }
 }

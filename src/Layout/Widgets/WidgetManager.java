@@ -29,7 +29,8 @@ public final class WidgetManager {
     
     public static <T extends Node & Controller> void initialize() {
         // register internal
-        ClassIndex.getAnnotated(IsWidget.class).forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
+        ClassIndex.getAnnotated(IsWidget.class)
+                  .forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
         new EmptyWidgetFactory().register();
         // register external
         registerExternalWidgetFactories();
@@ -44,7 +45,9 @@ public final class WidgetManager {
     
     /**
      * Looks for widget factory in the list of registered factories. Searches
-     * by name.
+     * by name. If no factory is found it will be attempted to register a new
+     * one (this means factories added and not registered at runtime will work)
+     *
      * @param name
      * @return widget factory, null if not found
      */
@@ -52,15 +55,18 @@ public final class WidgetManager {
         // get factory
         WidgetFactory wf = factories.get(name);
         
-        // attempt to register new factory for the file
+        // attempt to register new factory for the file (maybe it was added in
+        // runtime)
         if(wf==null) {
-            try {
-                File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
-                URL source = f.toURI().toURL();
-                new FXMLWidgetFactory(name, source).register();
-                Log.deb("registering " + name);
-            } catch(MalformedURLException e) {
-                Log.err("Error registering wirget: " + name);
+            File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
+            if(f.exists()) {
+                try {
+                    URL source = f.toURI().toURL();
+                    new FXMLWidgetFactory(name, source).register();
+                    Log.deb("registering " + name);
+                } catch(MalformedURLException e) {
+                    Log.err("Error registering wirget: " + name);
+                }
             }
         }
         

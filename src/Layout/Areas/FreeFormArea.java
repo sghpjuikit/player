@@ -121,7 +121,7 @@ public class FreeFormArea implements ContainerNode {
             WidgetArea wa = new WidgetArea(container, i);
                        // add maximize button
                        wa.controls.header_buttons.getChildren().add(1, new Icon(PLUS_SQUARE_ALT, 12, "Maximize & align", () -> {
-                           TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+1, w.y.get()+1, w);
+                           TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
                            w.x.set(p.a*root.getWidth());
                            w.y.set(p.b*root.getHeight());
                            w.w.set(p.c*root.getWidth());

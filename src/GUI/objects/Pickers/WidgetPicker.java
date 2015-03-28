@@ -17,7 +17,10 @@ public class WidgetPicker extends Picker<WidgetFactory>{
         super();
         itemSupply = WidgetManager::getFactories;
         textCoverter = WidgetFactory::name;
-        cellFactory = cellFactory.andApply((w,cell) -> Tooltip.install(cell, new Tooltip(w.description())));
+        cellFactory = cellFactory.andApply((w,cell) -> {
+            if(!w.description().isEmpty())
+                Tooltip.install(cell, new Tooltip(w.description()));
+        });
     }
     
 }

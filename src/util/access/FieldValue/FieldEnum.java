@@ -13,5 +13,7 @@ import util.access.TypedValue;
  * @author Plutonium_
  */
 public interface FieldEnum<T> extends TypedValue, SteroidObject {
-
+    
+    public String getDescription();
+    
 }

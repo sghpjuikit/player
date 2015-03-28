@@ -15,8 +15,7 @@ import javafx.scene.media.Media;
 import javax.persistence.EntityManager;
 import org.jaudiotagger.audio.AudioFile;
 import util.File.AudioFileFormat.Use;
-import static util.async.Async.run;
-import static util.async.Async.runOnFX;
+import static util.async.Async.*;
 import util.dev.Log;
 
 /**
@@ -96,7 +95,7 @@ public class MetadataReader{
             }
         };
         
-        return run(task);
+        return runBgr(task);
     }
 
     /**
@@ -175,7 +174,7 @@ public class MetadataReader{
             });
         });
 
-        return run(task);
+        return runBgr(task);
     }
 
     static private Metadata createNonFileBased(Item item){
@@ -265,7 +264,7 @@ public class MetadataReader{
             }
         };
         
-        return run(task);
+        return runBgr(task);
     }
     
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){
@@ -319,6 +318,6 @@ public class MetadataReader{
             
         };
         
-        return run(task);
+        return runBgr(task);
     }    
 }

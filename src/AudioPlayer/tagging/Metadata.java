@@ -1102,48 +1102,56 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * 
      */
     public static enum Field implements FieldEnum<Metadata> {
-        PATH,
-        FORMAT,
-        FILESIZE,
-        ENCODING,
-        BITRATE,
-        ENCODER,
-        CHANNELS,
-        SAMPLE_RATE,
-        LENGTH,
-        TITLE,
-        ALBUM,
-        ARTIST,
-        ALBUM_ARTIST,
-        COMPOSER,
-        PUBLISHER,
-        TRACK,
-        TRACKS_TOTAL,
-        TRACK_INFO,
-        DISC,
-        DISCS_TOTAL,
-        DISCS_INFO,
-        GENRE,
-        YEAR,
-        COVER,
-        COVER_INFO,
-        RATING,
-        RATING_RAW,
-        PLAYCOUNT,
-        CATEGORY,
-        COMMENT,
-        LYRICS,
-        MOOD,
-        COLOR,
-        CHAPTERS,
-        CUSTOM1,
-        CUSTOM2,
-        CUSTOM3,
-        CUSTOM4,
-        CUSTOM5;
-            
-        private Field() {
+        PATH(""),
+        FORMAT(""),
+        FILESIZE(""),
+        ENCODING(""),
+        BITRATE(""),
+        ENCODER(""),
+        CHANNELS(""),
+        SAMPLE_RATE(""),
+        LENGTH(""),
+        TITLE(""),
+        ALBUM(""),
+        ARTIST(""),
+        ALBUM_ARTIST(""),
+        COMPOSER(""),
+        PUBLISHER(""),
+        TRACK(""),
+        TRACKS_TOTAL(""),
+        TRACK_INFO(""),
+        DISC(""),
+        DISCS_TOTAL(""),
+        DISCS_INFO(""),
+        GENRE(""),
+        YEAR(""),
+        COVER(""),
+        COVER_INFO(""),
+        RATING(""),
+        RATING_RAW(""),
+        PLAYCOUNT(""),
+        CATEGORY(""),
+        COMMENT(""),
+        LYRICS(""),
+        MOOD(""),
+        COLOR(""),
+        CHAPTERS(""),
+        CUSTOM1(""),
+        CUSTOM2(""),
+        CUSTOM3(""),
+        CUSTOM4(""),
+        CUSTOM5("");
+        
+        private final String desc;
+        
+        private Field(String desc) {
             mapEnumConstant(this, Util::enumToHuman);
+            this.desc = desc;
+        }
+
+        @Override
+        public String getDescription() {
+            return desc;
         }
         
         /** {@inheritDoc} */

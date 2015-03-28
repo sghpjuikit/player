@@ -3475,16 +3475,14 @@
 }
 
 .item-picker-element {
-/*    -fx-background-color: -fx-pane-color;*/
     -fx-background-color: -fx-pane-color;
     -fx-background-radius: 0;
     -fx-pref-height: 2em;
-    /*-fx-text-fill: -fx-def-font-color;*/
-    //-fx-padding: 0.3em 0.7em 0.3em 0.7em;
 }
 .item-picker-element:hover {
-    -fx-background-color: rgba(25,25,35,0.80);
-    -fx-background-insets: -0.2em -0.2em -0.2em -0.2em;
+    -fx-background-color: -fx-pane-color;
+    -fx-background-insets: 3;
+    -fx-effect: dropshadow(three-pass-box, -fx-pane-color, 2, 0.0, 0, 1);
 }
 
 //******************************** POPOVER ***********************************//

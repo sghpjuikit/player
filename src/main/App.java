@@ -80,7 +80,7 @@ public class App extends Application {
     private boolean initialized = false;
     
     private static final ServiceManager services = new ServiceManager();
-    private static PluginMap plugins = new PluginMap();
+    public static PluginMap plugins = new PluginMap();
     
     private static App instance;
     public App() {

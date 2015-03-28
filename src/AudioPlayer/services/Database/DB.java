@@ -21,8 +21,9 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import main.App;
 import util.access.Accessor;
-import static util.async.Async.executeBgr;
-import static util.async.Async.executeFX;
+import util.async.Async;
+import static util.async.Async.runBgr;
+import util.async.FxTimer;
 import util.reactive.CascadingStream;
 
 /**
@@ -39,10 +40,8 @@ public class DB {
         em = emf.createEntityManager();
         
         // bgr thread helps with loading a lot 
-        executeBgr(() -> {
-            List<Metadata> ms = getAllItems();
-            executeFX(() -> views.push(1, ms));
-        });
+//        runBgr(DB::getAllItems, items -> views.push(1, items));
+        runBgr(DB::getAllItems, i -> Async.runOnFX(() -> new FxTimer(10000, 1, ()->views.push(1, i)).restart()));
     }
     
     public static void stop() {

@@ -20,10 +20,11 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static javafx.application.Platform.runLater;
-import javafx.geometry.Side;
+import static javafx.geometry.Side.BOTTOM;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
+import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.Pane;
@@ -39,13 +40,20 @@ import util.functional.functor.FunctionC;
 import util.parsing.Parser;
 
 /**
- *
- * The columns use userData property to store the field F. Use {@link #setUserData(java.lang.Object)}
+ * Table for {@link FieldedValue}. Generates columns, sorting and filtering
+ * based on field information.
+ * <p>
+ * Supports column state serialization and deserialization.
+ * <p>
+ * The columns use userData property to store the field F for identification.
+ * Use {@link #setUserData(java.lang.Object)}
  * to obtain the exact F field the column represents. Every column will return
  * a value except for index column, which returns null. Never use 
  * {@link #getUserData()} on the columns or column lookup will break.
  * <p>
- * Has redesigned column set up menu. The table header button opening it is
+ * Only visible columns are built.
+ * <p>
+ * Has redesigned menu for column visibility. The table header button opening it is
  * hidden by default and the menu can also be shown by right click on the table
  * header.
  * <p>
@@ -57,9 +65,8 @@ import util.parsing.Parser;
  */
 public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
     
-    
     private Function<F,ColumnInfo> colStateFact;
-    private Callback<F,TableColumn<T,?>> colFact;
+    private FunctionC<F,TableColumn<T,?>> colFact;
     private UnaryOperator<String> keyNameColMapper = name -> name;
     
     private TableColumnInfo columnState;
@@ -71,12 +78,14 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         this.type = type;
         
         
-        // show the column control menu on right click
+        // show the column control menu on right click ( + hide if shown )
         addEventHandler(MOUSE_CLICKED, e -> {
-            if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight()) {
+            if (e.getButton()==SECONDARY && e.getY()<getTableHeaderHeight())
                 columnVisibleMenu.show(this, e.getScreenX(), e.getScreenY());
-            }
+            
+            else if(columnVisibleMenu.isShowing()) columnVisibleMenu.hide();
         });
+
         // column control menu button not needed now (but still optionally usable)
         setTableMenuButtonVisible(false);
     }
@@ -111,9 +120,10 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     public void setColumnVisible(String name, boolean v) {
         TableColumn<T,?> t = getColumn(name).orElse(null);
+        F f = nameToF(name);
         if(v) {
             if(t==null) {
-                t = colFact.call(nameToF(name));
+                t = colFact.call(f);
                 t.setPrefWidth(columnState.columns.get(name).width);
                 t.setVisible(v);
                 getColumns().add(t);
@@ -174,26 +184,29 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             columnVisibleMenu = new ContextMenu();
             defColInfo.columns.streamV()
                     .sorted(cmpareBy(c->c.name))
-                    .map(c->new CheckMenuItem(c.name,c.visible,v->setColumnVisible(c.name, v)))
+                    .map(c-> {
+                        CheckMenuItem mi = new CheckMenuItem(c.name,c.visible,v->setColumnVisible(c.name, v));
+                        F f = nameToF(c.name);
+                        String desc = f==null ? "" : f.getDescription();
+                        if(!desc.isEmpty()) Tooltip.install(mi.getGraphic(), new Tooltip(desc));
+                        return mi;
+                    })
                     .forEach(columnVisibleMenu.getItems()::add);
-            // link table column menu
+            // update column menu check icons every time we show it
+            // the menu is rarely shown + no need to update it any other time
+            columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(isColumnVisible(mi.getText()))));
+            // link table column button to our menu instead of an old one
             runLater(()->{
                 TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
                 try {
-                    // cornerRegion is the context menu button
+                    // cornerRegion is the context menu button, use reflection
                     Field f = TableHeaderRow.class.getDeclaredField("cornerRegion");
                     // they just wont let us...
                     f.setAccessible(true);
                     // link to our custom menu
-                    Pane columnMenuButton = (Pane) f.get(h);
-                         columnMenuButton.setOnMousePressed(e -> {
-                             // update check icons from column visibility
-                            columnVisibleMenu.getItems().forEach(mi ->
-                                ((CheckMenuItem)mi).selected.set(isColumnVisible(mi.getText())));
-                            columnVisibleMenu.show(columnMenuButton, Side.BOTTOM, 0, 0);
-                            e.consume();
-                         });
-                     f.setAccessible(false);
+                    Pane columnB = (Pane) f.get(h);
+                         columnB.setOnMousePressed(e -> columnVisibleMenu.show(columnB, BOTTOM, 0, 0));
+                    f.setAccessible(false);
                 } catch (Exception ex) {
                     Logger.getLogger(FieldedTable.class.getName()).log(Level.SEVERE, null, ex);
                 }

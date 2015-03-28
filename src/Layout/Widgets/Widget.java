@@ -276,7 +276,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
     * @return this
     * @throws ObjectStreamException
     */
-    private Object readResolve() throws ObjectStreamException {
+    // must not be private or it wont get inherited and is called on sublass
+    // apparently this isnt inherited or something...
+    protected Object readResolve() throws ObjectStreamException {
         // assign factory
         if (factory==null) factory = WidgetManager.getFactory(name);
         // if none exists (maybe the widget was serialized in different application)

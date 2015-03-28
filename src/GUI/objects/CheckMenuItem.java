@@ -60,5 +60,4 @@ public class CheckMenuItem extends MenuItem {
         this("");
     }
     
-    
 }

@@ -6,6 +6,7 @@
 package util.functional.functor;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import static javafx.application.Platform.isFxApplicationThread;
 import static javafx.application.Platform.runLater;
 import javafx.event.EventHandler;
@@ -15,6 +16,18 @@ import javafx.event.EventHandler;
  @author Plutonium_
  */
 public interface RunnableC extends Runnable {
+    
+    public default Supplier<Void> toSupplier() {
+        return () -> { run(); return null; };
+    }
+    
+    public default Consumer<Void> toConsumer() {
+        return nothing -> run();
+    }
+    
+    public default FunctionC<Void,Void> toFunction() {
+        return nothing -> { run(); return null; };
+    }
     
     /** Returns a runnable that when run, runs this runnable on fx application
     thread. It wraps this runnable in runlater or executes directly if it is

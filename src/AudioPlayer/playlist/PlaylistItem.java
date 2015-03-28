@@ -397,6 +397,19 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                             ? "Time" 
                             : capitalizeStrong(constant.name().replace('_', ' ')));
         }
+
+        @Override
+        public String getDescription() {
+            switch(this) {
+                case NAME : return "'Song artist' - 'Song title'";
+                case TITLE : return "Song title";
+                case ARTIST : return "Song artist";
+                case LENGTH : return "Song length";
+                case PATH : return "Song file path";
+                case FORMAT : return "Song file type";
+            }
+            throw new AssertionError();
+        }
         
         /**
          * Returns true.

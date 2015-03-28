@@ -109,7 +109,7 @@ import util.units.FormattedDuration;
     year = "2015",
     group = LIBRARY
 )
-public class LibraryController extends FXMLController {
+public class LibraryController extends FXMLController {public String a() { return ""; }
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
@@ -356,7 +356,7 @@ public class LibraryController extends FXMLController {
         if(dir) {
             File f = Enviroment.chooseFile("Add folder to library", true, last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            Async.run(() -> {
+            Async.runBgr(() -> {
                 Stream<File> files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
                 if (f!=null) last_file = f;
                 addNeditDo(files, edit);
@@ -364,7 +364,7 @@ public class LibraryController extends FXMLController {
         } else {
             List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            Async.run(() -> {
+            Async.runBgr(() -> {
                 Stream<File> files = fs.stream();
                 File f = files==null ? null : getCommonRoot(fs);
                 if(f!=null) last_file=f;

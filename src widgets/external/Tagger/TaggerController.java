@@ -40,6 +40,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -51,6 +52,8 @@ import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
+import static javafx.scene.input.DragEvent.DRAG_EXITED;
+import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
@@ -59,7 +62,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import javafx.util.Callback;
 import main.App;
 import static main.App.TAG_MULTIPLE_VALUE;
 import static main.App.TAG_NO_VALUE;
@@ -73,7 +75,7 @@ import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Accessor;
-import util.async.Async;
+import static util.async.Async.runBgr;
 import util.collections.MapSet;
 import util.dev.Log;
 import static util.functional.Util.isIn;
@@ -190,6 +192,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         coverContainer.setCenter(CoverV.getPane());
         
         progressI = new GUI.objects.Spinner.Spinner();
+        progressI.setVisible(false);
         header.setRight(progressI);
         
         // add specialized mood text field
@@ -293,9 +296,12 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         Text icon = Icons.createIcon(FontAwesomeIconName.PLUS, 60);
              icon.setMouseTransparent(true);
         coverSuperContainer.getChildren().add(icon);
-             icon.setOpacity(0);
+             icon.setOpacity(0);    // bug, needs to be set after it is added
         coverContainer.addEventHandler(MOUSE_EXITED, e-> icon.setOpacity(0));
         coverContainer.addEventHandler(MOUSE_ENTERED, e-> icon.setOpacity(isEmpty() ? 0 : 1));
+        // fire mouse enter/exit on drag enter/exit
+        coverContainer.addEventHandler(DRAG_OVER, e-> { if(DragUtil.hasImage(e.getDragboard())) Event.fireEvent(CoverV.getPane(),new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, PRIMARY, 1, true, true, true, true, true, true, true, true, false, false, null)); });
+        coverContainer.addEventHandler(DRAG_EXITED, e-> Event.fireEvent(CoverV.getPane(),new MouseEvent(MOUSE_EXITED, 0, 0, 0, 0, PRIMARY, 1, true, true, true, true, true, true, true, true, false, false, null)));
         
         // bind Rating values absolute<->relative when writing
         RatingF.setOnKeyReleased(e -> setPR());
@@ -309,6 +315,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         entireArea.setOnKeyPressed(e -> { if(e.getCode()==CONTROL) add_not_set.set(true); });
         entireArea.setOnKeyReleased(e -> { if(e.getCode()==CONTROL) add_not_set.set(false); });
+        
+        populate(null);
     }
     
 
@@ -410,7 +418,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // filter out untaggable
             .filter(i -> !i.isCorrupt(Use.DB) && i.isFileBased())
             .forEach(i -> {
-                if(!readAll || i instanceof Metadata) ready.add((Metadata)i);
+                if(!readAll && i instanceof Metadata) ready.add((Metadata)i);
                 else needs_read.add(i);
             });
 
@@ -490,10 +498,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
             if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
-        }, refreshed -> {
+        }, items -> {
             // post writing
             writing = false;
-            populate(refreshed);
+            populate(items);
             App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
         });
         
@@ -504,7 +512,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     /** use null to clear gui empty. */
     private void populate(List<Metadata> items) {
         // return if writing active
-        if (writing) { System.out.println("illegal state. tagger writing, cant update gui!!");
+        if (writing) {
             hideProgress(); return; }
         
         boolean empty = items == null || items.isEmpty();
@@ -512,7 +520,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // empty previous content
         fields.forEach(TagField::emptyContent);
         CoverV.loadImage((Image)null);
-        CoverV.getPane().setDisable(true);
+        coverSuperContainer.setDisable(true);
         CoverL.setUserData(false);
         new_cover_file = null;
         
@@ -529,10 +537,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIconName.TAG : TAGS));
 
             fields.forEach(TagField::enable);
-            CoverV.getPane().setDisable(false);
+            coverSuperContainer.setDisable(false);
 
 
-            Async.run(() -> {
+            runBgr(() -> {
 
                 // histogram init
                 fields.forEach(TagField::histogramInit);
@@ -589,19 +597,22 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         scrollContent.setMouseTransparent(true);        
         // apply blur to content to hint inaccessibility
         // note: dont apply on root it would also blur the progres indicator!
-        scrollContent.setEffect(new BoxBlur(3, 3, 1));
+        scrollContent.setEffect(new BoxBlur(1, 1, 1));
+        scrollContent.setOpacity(0.8);
     }
     private void showProgressWriting() {
         progressI.setProgress(INDETERMINATE_PROGRESS);
         progressI.setVisible(true);
-        scrollContent.setEffect(new BoxBlur(3, 3, 1));
         scrollContent.setMouseTransparent(true);
+        scrollContent.setEffect(new BoxBlur(1, 1, 1));
+        scrollContent.setOpacity(0.8);
     }
     private void hideProgress() {
-        progressI.setVisible(false);
         progressI.setProgress(0);
-        scrollContent.setEffect(null);
+        progressI.setVisible(false);
         scrollContent.setMouseTransparent(false);
+        scrollContent.setEffect(null);
+        scrollContent.setOpacity(1);
     }
         
     private void addImg(File f) {
@@ -802,41 +813,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     
     private static PseudoClass corrupt = PseudoClass.getPseudoClass("corrupt");
     PopOver helpP;
-    Callback<ListView<Item>,ListCell<Item>> editCellFactory = listView -> 
-            new ListCell<Item>() {
-                CheckIcon cb = new CheckIcon();
-                {
-                    // allow user to de/activate item
-                    cb.setOnMouseClicked(e -> {
-                        Item item = getItem();
-                        // avoid nulls & respect lock
-                        if(item != null) {
-                            if(cb.selected.get()) add(singletonList(item),false);
-                            else rem(singletonList(item));
-//                            if(cb.selected.get()) items.add(item);
-//                            else items.remove(item);
-                        }
-                    });
-                }
-                @Override 
-                protected void updateItem(Item item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if(!empty) {
-                        int index = getIndex() + 1;
-                        setText(index + "   " + item.getFilenameFull());
-                        // handle untaggable
-                        boolean untaggable = item.isCorrupt(Use.DB) || !item.isFileBased();
-                        pseudoClassStateChanged(corrupt, untaggable);
-                        cb.selected.set(!untaggable);
-                        cb.setDisable(untaggable);
-
-                        if (getGraphic()==null) setGraphic(cb);
-                    } else {
-                        setText(null);
-                        setGraphic(null);
-                    }
-                }
-            };
     
     private PopOver showItemsPopup() {
         // build popup

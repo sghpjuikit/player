@@ -33,7 +33,7 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
-import static util.async.Async.run;
+import static util.async.Async.runBgr;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
@@ -641,7 +641,7 @@ public class MetadataWriter extends MetaItem {
     }
     
     public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
-        run(()->{
+        runBgr(()->{
             MetadataWriter w = new MetadataWriter();
             for(I i : items) {
                 w.reset(i);

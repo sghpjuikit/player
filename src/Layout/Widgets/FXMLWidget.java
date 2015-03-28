@@ -31,7 +31,7 @@ public final class FXMLWidget extends Widget<FXMLController> {
 
     @Override
     public Node loadInitial() {
-        try {
+        try {System.out.println(getName() + " ddd " + getFactory());
             controller = getFactory().instantiateController();
             controller.setWidget(this);
             

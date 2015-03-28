@@ -12,6 +12,10 @@ import java.util.Map;
 import static util.Util.getEnumConstants;
 
 /**
+ * Object or value which provides an access to its fields and uses {@link 
+ * FieldEnum} descriptors to provide information about them. Useful for building
+ * tables or handling big objects more generically, because it allows handling
+ * of all fields equally.
  *
  * @author Plutonium_
  */

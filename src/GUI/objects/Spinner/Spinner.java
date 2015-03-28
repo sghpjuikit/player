@@ -26,9 +26,15 @@ import static javafx.util.Duration.ZERO;
  */
 public class Spinner extends ProgressIndicator {
     
+    
     public Spinner() {
+        this(0);
+    }
+
+    public Spinner(double progress) {
         // needed
         setSkin(createDefaultSkin());
+        setProgress(1);
     }
 
     @Override

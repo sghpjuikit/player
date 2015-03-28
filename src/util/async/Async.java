@@ -6,6 +6,7 @@
 package util.async;
 
 import AudioPlayer.tagging.SuccessTask;
+import static java.util.Objects.requireNonNull;
 import java.util.function.*;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.application.Platform;
@@ -27,7 +28,7 @@ public final class Async {
      * @return task
      */
     public static Task<Void> runAsTask(Runnable action) {
-        return run(new SuccessTask<Void,SuccessTask>() {
+        return Async.runBgr(new SuccessTask<Void,SuccessTask>() {
             @Override
             protected Void call() throws Exception {
                 action.run();
@@ -58,7 +59,7 @@ public final class Async {
      * @return The task
      */
     public static<R> Task<R> runAsTask(String name, Supplier<R> action, BiConsumer<Boolean,R> onEnd) {
-        return run(new SuccessTask(name, onEnd) {
+        return runBgr(new SuccessTask(name, onEnd) {
             @Override protected R call() throws Exception {
                 updateMessage(name + " ...");
                 return action.get();
@@ -79,11 +80,31 @@ public final class Async {
      * @return the action. If the action is a {@link Task} it is useful to catch it
      * and bind to monitor progress.
      */
-    public static<R extends Runnable> R run(R action) {
+    public static<R extends Runnable> R runBgr(R action) {
         Thread thread = new Thread(action);
         thread.setDaemon(true);
         thread.start();
         return action;
+    }
+    
+    /** 
+     * Prepares value V on new bgr thread started immediately and consumes it
+     * on FX thread.
+     * <p>
+     * Use to run blocking call (e.g. I/O) on bgr and use result back on FX thread
+     * 
+     * @throws NullPointerException if any parameter null
+     */
+    public static <V> void runBgr(Supplier<V> bgraction, Consumer<V> fxaction) {
+        requireNonNull(bgraction);
+        requireNonNull(fxaction);
+        
+        Thread thread = new Thread(() -> {
+            V t = bgraction.get();
+            runLater(() -> fxaction.accept(t));
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
     
     /**
@@ -139,27 +160,6 @@ public final class Async {
     }
     
     
-    /** Prepares value V on new bgr thread started immediately and consumes it
-    on FX thread.
-    <p>
-    Use to run blocking call (e.g. I/O) on bgr and use result back to FX thread
-    */
-    public static <V> void runFromBgr(Supplier<V> bgraction, Consumer<V> fxaction) {
-        Thread thread = new Thread(() -> {
-            V t = bgraction.get();
-            runLater(() -> fxaction.accept(t));
-        });
-        thread.setDaemon(true);
-        thread.start();
-    }
-    
-    
 
-    /** Transforms Runnable into Runnable that executes on FxApplication Thread.*/
-    public static final UnaryOperator<Runnable> toFxRunnable = r -> () -> runOnFX(r);
-    
-    /** Function transforming executor into function transforming runnable into 
-     * runnable that executes with provided executor */
-    public static final Function<Consumer<Runnable>,UnaryOperator<Runnable>> executionWrapper = executor -> r -> () -> executor.accept(r);
     
 }

@@ -149,6 +149,21 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         Field() {
             mapEnumConstant(this, c->capitalizeStrong(c.name().replace('_', ' ')));
         }
+
+        @Override
+        public String getDescription() {
+            switch(this) {
+                case VALUE : return "Song field to group by";
+                case ITEMS : return "Number of songs in the group";
+                case ALBUMS : return "Number of albums in the group";
+                case LENGTH : return "Total length of the group";
+                case SIZE : return "Total file size of the group";
+                case AVG_RATING : return "Average rating of the group = sum(rating)/items";
+                case W_RATING : return "Weighted rating of the group = sum(rating) = avg_rating*items";
+                case YEAR : return "Year of songs in the group or '...' if multiple";
+            }
+            throw new AssertionError();
+        }
         
         public boolean isCommon() {
             return this!=AVG_RATING && this!=YEAR && this!=W_RATING;

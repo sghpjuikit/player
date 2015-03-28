@@ -19,6 +19,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.cmpareBy;
 import util.units.FormattedDuration;
+import web.DuckDuckGoImageQBuilder;
 
 /**
  * Playlist table GUI component.
@@ -462,6 +464,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                             .map(Item::toMeta)
                             .collect(Collectors.toList());
                     DB.addItems(items);
+                }),
+                createmenuItem("Search cover at DuckDuckGo", e -> {
+                    String s = m.getValue().get(0).getMetadata().getAlbum();
+                    Enviroment.browse(URI.create(new DuckDuckGoImageQBuilder().apply(s.replace(" ", "%20"))));
                 })
             );
             return m;

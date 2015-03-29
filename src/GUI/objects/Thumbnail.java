@@ -48,7 +48,7 @@ import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.SingleInstance;
 import util.Util;
-import static util.Util.createmenuItem;
+import static util.Util.menuItem;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
@@ -462,7 +462,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         () -> {
             ContentContextMenu<Image> m = new ContentContextMenu<>();
             m.getItems().addAll(
-                createmenuItem("Save the image as ...", e -> {
+                menuItem("Save the image as ...", e -> {
                     FileChooser fc = new FileChooser();
                         fc.getExtensionFilters().addAll(ImageFileFormat.filter());
                         fc.setTitle("Save image as...");
@@ -471,7 +471,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     File f = fc.showSaveDialog(App.getWindowOwner().getStage());
                     FileUtil.writeImage(m.getValue(), f);
                 }),
-                createmenuItem("Copy the image to clipboard", e -> {
+                menuItem("Copy the image to clipboard", e -> {
                     if (m.getValue()==null) return;
                     Clipboard clipboard = Clipboard.getSystemClipboard();
                     ClipboardContent content = new ClipboardContent();
@@ -492,13 +492,13 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         () -> {
             ContentContextMenu<File> m = new ContentContextMenu<>();
             m.getItems().addAll(
-                createmenuItem("Browse location", e ->
+                menuItem("Browse location", e ->
                     Enviroment.browse(m.getValue().toURI())
                 ),
-                createmenuItem("Edit the image in editor", e ->
+                menuItem("Edit the image in editor", e ->
                     Enviroment.edit(m.getValue())
                 ),
-                createmenuItem("Fulscreen", e -> {
+                menuItem("Fulscreen", e -> {
                     Widget c = WidgetManager.getFactory("Image").create();
 //                   Window w = Window.create();
 //                          w.setSizeAndLocationToInitial();
@@ -524,13 +524,13 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     p.getContent().setAll(n);
                     p.show(App.getWindow().getStage(), 0, 0);
                 }),
-                createmenuItem("Open image", e ->
+                menuItem("Open image", e ->
                     Enviroment.open(m.getValue())
                 ),
-                createmenuItem("Delete the image from disc", e ->
+                menuItem("Delete the image from disc", e ->
                     FileUtil.deleteFile(m.getValue())
                 ),
-                createmenuItem("Save the image as ...", e -> {
+                menuItem("Save the image as ...", e -> {
                    File of = m.getValue();
                    FileChooser fc = new FileChooser();
                        fc.getExtensionFilters().addAll(ImageFileFormat.filter());

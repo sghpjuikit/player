@@ -27,11 +27,13 @@
 
 package GUI.objects.Rater;
 
+import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
 import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR_ALT;
 import static java.lang.Math.ceil;
+import java.util.Collections;
 import static javafx.application.Platform.runLater;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
@@ -52,7 +54,7 @@ import util.graphics.Icons;
 /**
  *
  */
-public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
+public class RatingSkin extends BehaviorSkinBase<Rating, BehaviorBase<Rating>> {
     
     public static final String SELECTED = "strong";
     public static final PseudoClass max = PseudoClass.getPseudoClass("max");
@@ -95,7 +97,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
 
     
     public RatingSkin(Rating control) {
-        super(control, new RatingBehavior(control));
+        super(control, new BehaviorBase(control, Collections.emptyList()));
         
         recreateButtons();
         
@@ -149,6 +151,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
     
     // returns rating based on scene relative mouse position
     private double calculateRating(double sceneX, double sceneY) {
+        // get 0-1 position value
         final Rating control = getSkinnable();
         final Point2D b = backgroundContainer.sceneToLocal(sceneX,sceneY);
         double leftP = backgroundContainer.getPadding().getLeft();
@@ -156,11 +159,13 @@ public class RatingSkin extends BehaviorSkinBase<Rating, RatingBehavior> {
         double w = control.getWidth() - leftP - rightP;
         double x = b.getX()-leftP; 
                x = clip(0, x, w);
-        double icons = getSkinnable().icons.get();
-        // calculate the new value & clip
+        // make 2px space for min & max value
+        double extra = 2/w;
+               x = x*(1+2*extra)-extra;
+        // calculate the rating value
         double nv = clip(0,x/w,1);
-               
         // ceil to int if needed
+        double icons = getSkinnable().icons.get();
         if (!getSkinnable().partialRating.get()) nv = ceil(nv*icons)/icons;
         
         return nv;

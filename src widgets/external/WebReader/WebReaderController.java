@@ -6,7 +6,6 @@ package WebReader;
  */
 
 
-import AudioPlayer.Player;
 import Configuration.IsConfig;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
@@ -15,10 +14,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import main.App;
-import util.access.AccessorEnum;
-import web.DuckDuckGoImageQBuilder;
-import web.HttpSearchQueryBuilder;
 
 /**
  *
@@ -27,9 +22,6 @@ import web.HttpSearchQueryBuilder;
     name = "WebReader"
 )
 public final class WebReaderController extends FXMLController {
-    
-    @IsConfig(name = "Rating control", info = "The style of the graphics of the rating control.")
-    private static final AccessorEnum<HttpSearchQueryBuilder> searchQB = new AccessorEnum<>(new DuckDuckGoImageQBuilder(),() -> App.plugins.getPlugins(HttpSearchQueryBuilder.class));
     
     @FXML
     private TextField addressBar;
@@ -64,9 +56,6 @@ public final class WebReaderController extends FXMLController {
     }
     public void reloadPage() {
         engine.load(addressBar.getText());
-        String s = Player.playingtem.get().getAlbum();
-        if(!s.isEmpty())
-            engine.load(searchQB.getValue().apply(s));
     }
     public void loadPage(String page) {
         engine.load(page);

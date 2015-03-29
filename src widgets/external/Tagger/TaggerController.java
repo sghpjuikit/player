@@ -96,14 +96,14 @@ import util.parsing.impl.ColorParser;
     name = "Tagger",
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
-    howto = "Available actions:\n" +
-            "    Drag cover away : Removes cover\n" +
-            "    Drop image file : Adds cover\n" +
-            "    Drop audio files : Adds files to tagger\n" +
-            "    Write : Saves the tags\n" +
-            "    Loaded items label click : Opens editable source list of items",
-    description = "Tag editor for audio files. Supports reading and writing to tag." +
-                  "Taggable items can be unselected in selective list mode.",
+    howto = "Available actions:\n"
+          + "    Drag cover away : Removes cover\n"
+          + "    Drop image file : Adds cover\n"
+          + "    Drop audio files : Adds files to tagger\n"
+          + "    Write : Saves the tags\n"
+          + "    Loaded items label click : Opens editable source list of items",
+    description = "Tag editor for audio files. Supports reading and writing to "
+         + "tag. Taggable items can be unselected in selective list mode.",
     notes = "To do: improve tagging performance. Support for ogg and flac.",
     version = "0.8",
     year = "2015",

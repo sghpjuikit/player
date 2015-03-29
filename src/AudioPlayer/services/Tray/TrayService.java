@@ -28,7 +28,7 @@ import static javafx.stage.StageStyle.*;
 import javax.imageio.ImageIO;
 import main.App;
 import org.reactfx.Subscription;
-import static util.Util.createmenuItem;
+import static util.Util.menuItem;
 import util.dev.Log;
 
 /**
@@ -58,9 +58,8 @@ public class TrayService implements Service{
               s.setScene(new Scene(new Region()));
 //              s.show();
         ContextMenu cm = new ContextMenu();
-                    cm.getItems().addAll(
-                        createmenuItem("Play/pause", PLAYBACK::pause_resume),
-                        createmenuItem("Exit", App::close)
+                    cm.getItems().addAll(menuItem("Play/pause", PLAYBACK::pause_resume),
+                        menuItem("Exit", App::close)
                     );
                     s.focusedProperty().addListener((o,ov,nv) -> {
                         if(!nv) {

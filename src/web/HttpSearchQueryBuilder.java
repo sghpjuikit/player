@@ -6,6 +6,7 @@
 package web;
 
 import AudioPlayer.plugin.IsPluginType;
+import java.net.URI;
 import util.functional.functor.FunctionC;
 
 /**
@@ -13,6 +14,6 @@ import util.functional.functor.FunctionC;
  @author Plutonium_
  */
 @IsPluginType
-public interface HttpSearchQueryBuilder extends FunctionC<String,String> {
+public interface HttpSearchQueryBuilder extends FunctionC<String,URI> {
     
 }

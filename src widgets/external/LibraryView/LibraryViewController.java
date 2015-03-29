@@ -7,6 +7,7 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
+import static AudioPlayer.tagging.Metadata.Field.ALBUM;
 import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import AudioPlayer.tagging.MetadataGroup;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
@@ -28,6 +29,7 @@ import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import java.util.*;
+import static java.util.Collections.EMPTY_LIST;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -39,11 +41,9 @@ import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.scene.Node;
+import javafx.scene.control.*;
 import static javafx.scene.control.ContentDisplay.CENTER;
-import javafx.scene.control.Labeled;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import javafx.scene.input.ContextMenuEvent;
 import static javafx.scene.input.KeyCode.*;
@@ -56,6 +56,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import main.App;
 import org.reactfx.Subscription;
+import util.File.Enviroment;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
@@ -65,6 +66,8 @@ import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
 import util.functional.Runner;
 import static util.functional.Util.*;
+import util.parsing.Parser;
+import web.HttpSearchQueryBuilder;
 
 @Info(
     author = "Martin Polakovic",
@@ -139,7 +142,7 @@ public class LibraryViewController extends FXMLController {
             // enable propagation
             lock = false;
             // propagate in 1 event
-            forwardItems(filerList(list));
+            forwardItems(filerList(list,true,false));
         });
         // initialize
         setItems(DB.views.getValue(v));
@@ -327,10 +330,10 @@ public class LibraryViewController extends FXMLController {
     /** Sends event to next level. */
     private void forwardItems(List<Metadata> list) {
         if(!lock)
-            DB.views.push(lvl.getValue()+1, filerList(list));
+            DB.views.push(lvl.getValue()+1, filerList(list,true,false));
     }
     
-    private List<Metadata> filerList(List<Metadata> list) {
+    private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
 //        // use cache if needed
 //        boolean needed = lvl.getValue()==1 && list.size()>5000;
 //        if(lvl.getValue()==1) System.out.println("need " + needed);
@@ -353,23 +356,35 @@ public class LibraryViewController extends FXMLController {
 //            Stream keys = mgs.stream().map(mg->mg.getValue());
 //            return cache.getElementsOf(keys);
 //        }
-        
-        
+
         // build filter
-        List<MetadataGroup> mgs = table.getSelectedOrAllItemsCopy();
-            // composed predicate, too much wasteful computation...
-            // Predicate<Metadata> p = mgs.parallelStream()
-            //        .map(MetadataGroup::toMetadataPredicate)
-            //        .reduce(Predicate::or)
-            //        .orElse(isFALSE);
+        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItemsCopy() : table.getSelectedItemsCopy();
+        
+        // optimisation : if empty, dont bother filtering
+        if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList(list);
+        
+        // composed predicate, too much wasteful computation...
+        // Predicate<Metadata> p = mgs.parallelStream()
+        //        .map(MetadataGroup::toMetadataPredicate)
+        //        .reduce(Predicate::or)
+        //        .orElse(isFALSE);
         
         // optimisation : compute values ONCE if doable
         Field f = fieldFilter.getValue();
         List l = listM(mgs,mg->mg.getValue());
-        // optimisation : dont use equals for primitive types
-        boolean primitive = f.getType().isPrimitive();
-        Predicate<Metadata> p = primitive ? m -> isInR(m.getField(f), l) 
-                                          : m -> isIn(m.getField(f), l);
+        Predicate<Metadata> p;
+        // optimisation : if only 1, dont use list
+        if(l.size()==1) {
+            // optimisation : dont use equals for primitive types
+            boolean primitive = f.getType().isPrimitive();
+            Object v = l.get(0);
+            p = primitive ? m -> m.getField(f)==v : m -> v.equals(m.getField(f));
+        } else {
+            // optimisation : dont use equals for primitive types
+            boolean primitive = f.getType().isPrimitive();
+            p = primitive ? m -> isInR(m.getField(f), l) : m -> isIn(m.getField(f), l);
+        }
+        
         // filter
         // optimisation : use parallel stream
         return list.parallelStream().filter(p).collect(toList());
@@ -377,21 +392,31 @@ public class LibraryViewController extends FXMLController {
     
 /******************************** CONTEXT MENU ********************************/
     
+    private static Menu searchMenu;
     private static final TableContextMenuRInstance<Metadata, LibraryViewController> contxt_menu = new TableContextMenuRInstance<>(
         () -> {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
-            
+            MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
+                                      q -> "in " + Parser.toS(q),
+                                      q -> Enviroment.browse(q.apply(m.getValue().get(0).getAlbum())));
+            searchMenu = new Menu("Search album cover",null,is);
             m.getItems().addAll(
-                createmenuItem("Play items", e -> play(m.getValue())),
-                createmenuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
-                createmenuItem("Update from file", e -> Player.refreshItems(m.getValue())),
-                createmenuItem("Remove from library", e -> DB.removeItems(m.getValue())),
-                createmenuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))));
+                menuItem("Play items", e -> play(m.getValue())),
+                menuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
+                menuItem("Update from file", e -> Player.refreshItems(m.getValue())),
+                menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
+                menuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))),
+                searchMenu
+            );
             return m;
         }, (menu, w) -> {
-            List<Metadata> l = w.filerList(DB.views.getValue(w.lvl.getValue()));
+            List<Metadata> l = w.filerList(DB.views.getValue(w.lvl.getValue()),false,true);
                            l.sort(DB.library_sorter);
             menu.setValue(l);
+            if(w.fieldFilter.getValue()==ALBUM && menu.getItems().size()==5)
+                menu.getItems().add(searchMenu);
+            if(w.fieldFilter.getValue()!=ALBUM && menu.getItems().size()==6)
+                menu.getItems().remove(searchMenu);
         });
     
     private static void play(List<Metadata> items) {
@@ -402,7 +427,7 @@ public class LibraryViewController extends FXMLController {
     }
     
     private void play() {
-        play(filerList(DB.views.getValue(lvl.getValue())));
+        play(filerList(DB.views.getValue(lvl.getValue()),false,true));
     }
     
     

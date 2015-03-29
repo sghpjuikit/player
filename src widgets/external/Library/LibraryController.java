@@ -83,7 +83,9 @@ import static util.functional.Util.list;
 import static util.functional.Util.listM;
 import util.functional.functor.FunctionC;
 import util.graphics.Icons;
+import util.parsing.Parser;
 import util.units.FormattedDuration;
+import web.HttpSearchQueryBuilder;
 
 @Info(
     author = "Martin Polakovic",
@@ -431,31 +433,36 @@ public class LibraryController extends FXMLController {public String a() { retur
         () -> {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             m.getItems().addAll(
-                createmenuItem("Play items", e -> {                     
+                menuItem("Play items", e -> {                     
                     List<PlaylistItem> to_play = listM(m.getValue(), Metadata::toPlaylist);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
                 }),
-                createmenuItem("Enqueue items", e -> {
+                menuItem("Enqueue items", e -> {
                     List<Metadata> items = m.getValue();
                     PlaylistManager.addItems(items);
                 }),
-                createmenuItem("Update from file", e -> {
+                menuItem("Update from file", e -> {
                     List<Metadata> items = m.getValue();
                     Player.refreshItems(items);
                 }),
-                createmenuItem("Remove from library", e -> {
+                menuItem("Remove from library", e -> {
                     List<Metadata> items = m.getValue();
                     DB.removeItems(items);
                 }),
-                createmenuItem("Edit the item/s in tag editor", e -> {
+                menuItem("Edit the item/s in tag editor", e -> {
                     List<Metadata> items = m.getValue();
                     WidgetManager.use(TaggingFeature.class, NOLAYOUT ,w->w.read(items));
                 }),
-                createmenuItem("Explore items's directory", e -> {
+                menuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
                     List<File> files = list(items, Item::isFileBased, Item::getLocation);
                     Enviroment.browse(files,true);
-                })
+                }),
+                new Menu("Search album cover",null,
+                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
+                            q -> "in " + Parser.toS(q),
+                            q -> Enviroment.browse(q.apply(m.getValue().get(0).getAlbum())))
+                )
                );
             return m;
         },

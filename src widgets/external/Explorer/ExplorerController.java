@@ -28,7 +28,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import main.App;
 import util.File.Enviroment;
-import static util.Util.createmenuItem;
+import static util.Util.menuItem;
 import util.access.Accessor;
 
 /**
@@ -131,21 +131,21 @@ public class ExplorerController extends FXMLController {
         () -> {
             ContentContextMenu<List<File>> m = new ContentContextMenu<>();
             m.getItems().addAll(
-                createmenuItem("Open", e -> {
+                menuItem("Open", e -> {
                     Enviroment.open(m.getValue().get(0));
                 }),
-                createmenuItem("Open in-app", e -> {
+                menuItem("Open in-app", e -> {
                     Enviroment.openIn(m.getValue(),true);
                 }),
-                createmenuItem("Edit", e -> {
+                menuItem("Edit", e -> {
                     Enviroment.edit(m.getValue().get(0));
                 }),
-                createmenuItem("Copy", e -> {
+                menuItem("Copy", e -> {
                     ClipboardContent cc = new ClipboardContent();
                     cc.put(DataFormat.FILES, m.getValue());
                     Clipboard.getSystemClipboard().setContent(cc);
                 }),
-                createmenuItem("Explore in browser", e -> {
+                menuItem("Explore in browser", e -> {
                     Enviroment.browse(m.getValue(),true);
                 })
             );

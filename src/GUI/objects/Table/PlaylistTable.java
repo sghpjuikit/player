@@ -19,7 +19,6 @@ import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +36,7 @@ import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import main.App;
 import static org.reactfx.EventStreams.changesOf;
 import org.reactfx.Subscription;
 import util.File.Enviroment;
@@ -45,8 +45,9 @@ import static util.Util.*;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.cmpareBy;
+import util.parsing.Parser;
 import util.units.FormattedDuration;
-import web.DuckDuckGoImageQBuilder;
+import web.HttpSearchQueryBuilder;
 
 /**
  * Playlist table GUI component.
@@ -434,41 +435,42 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         () -> {
             ContentContextMenu<List<PlaylistItem>> m = new ContentContextMenu();
             m.getItems().addAll(
-                createmenuItem("Play items", e -> {
+                menuItem("Play items", e -> {
                     PlaylistManager.playItem(m.getValue().get(0));
                 }),
-                createmenuItem("Remove items", e -> {
+                menuItem("Remove items", e -> {
                     PlaylistManager.removeItems(m.getValue());
                 }),
-                createmenuItem("Edit the item/s in tag editor", e -> {
+                menuItem("Edit the item/s in tag editor", e -> {
                     WidgetManager.use(TaggingFeature.class,NOLAYOUT, w->w.read(m.getValue()));
                 }),
-                createmenuItem("Crop items", e -> {
+                menuItem("Crop items", e -> {
                     PlaylistManager.retainItems(m.getValue());
                 }),
-                createmenuItem("Duplicate items as group", e -> {
+                menuItem("Duplicate items as group", e -> {
                     PlaylistManager.duplicateItemsAsGroup(m.getValue());
                 }),
-                createmenuItem("Duplicate items individually", e -> {
+                menuItem("Duplicate items individually", e -> {
                     PlaylistManager.duplicateItemsByOne(m.getValue());
                 }),
-                createmenuItem("Explore items's directory", e -> {
+                menuItem("Explore items's directory", e -> {
                     List<File> files = m.getValue().stream()
                             .filter(Item::isFileBased)
                             .map(Item::getLocation)
                             .collect(Collectors.toList());
                     Enviroment.browse(files,true);
                 }),
-                createmenuItem("Add items to library", e -> {
+                menuItem("Add items to library", e -> {
                     List<Metadata> items = m.getValue().stream()
                             .map(Item::toMeta)
                             .collect(Collectors.toList());
                     DB.addItems(items);
                 }),
-                createmenuItem("Search cover at DuckDuckGo", e -> {
-                    String s = m.getValue().get(0).getMetadata().getAlbum();
-                    Enviroment.browse(URI.create(new DuckDuckGoImageQBuilder().apply(s.replace(" ", "%20"))));
-                })
+                new Menu("Search album cover",null,
+                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
+                            q -> "in " + Parser.toS(q),
+                            q -> Enviroment.browse(q.apply(m.getValue().get(0).getMetadata().getAlbum())))
+                )
             );
             return m;
         },

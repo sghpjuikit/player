@@ -16,13 +16,13 @@ import static util.parsing.StringParseStrategy.To.CONSTANT;
  @author Plutonium_
  */
 @IsPlugin
-@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "DuckDuckGo" )
-public class DuckDuckGoImageQBuilder implements HttpSearchQueryBuilder {
+@StringParseStrategy( from = CONSTRUCTOR, to = CONSTANT, constant = "Bing" )
+public class BingImageSearchQBuilder implements HttpSearchQueryBuilder {
 
     @Override
     public URI apply(String term) {
-        String s =  "https://duckduckgo.com/?q=" + term.replace(" ", "%20") + "&iax=1&ia=images";
+        String s = "http://www.bing.com/images/search?q=" + term.replace(" ", "%20") + "&qs=n&form=QBIR&pq=ggg&sc=8-3&sp=-1";
         return URI.create(s);
     }
     
-}
+}           

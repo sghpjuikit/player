@@ -42,7 +42,7 @@ import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
 import util.File.Enviroment;
 import util.Util;
-import static util.Util.createmenuItem;
+import static util.Util.menuItem;
 import util.access.Accessor;
 import static util.functional.Util.cmpareBy;
 
@@ -330,26 +330,26 @@ public class BookmarkerController extends FXMLController {
         () -> {
             ContentContextMenu<List<BookmarkItem>> m = new ContentContextMenu();
             m.getItems().addAll(
-                createmenuItem("Add items to playlist", e -> {
+                menuItem("Add items to playlist", e -> {
                      List<BookmarkItem> items = m.getValue();
                      PlaylistManager.addItems(items);
                  }),
-                createmenuItem("Add items to playlist & play", e -> {
+                menuItem("Add items to playlist & play", e -> {
                     List<BookmarkItem> items = m.getValue();
                     if(items.isEmpty()) return;
                     int i = PlaylistManager.getSize();
                     PlaylistManager.addItems(items);
                     PlaylistManager.playItem(i);
                 }),
-                createmenuItem("Unbookmark items", e -> {
+                menuItem("Unbookmark items", e -> {
                     List<BookmarkItem> items = m.getValue();
                     BookmarkManager.removeBookmarks(items);
                 }),
-                createmenuItem("Edit the item/s in tag editor", e -> {
+                menuItem("Edit the item/s in tag editor", e -> {
                     List<BookmarkItem> items = m.getValue();
                     WidgetManager.use(TaggingFeature.class,NOLAYOUT,w->w.read(items));
                 }),
-                createmenuItem("Explore items's directory", e -> {
+                menuItem("Explore items's directory", e -> {
                     List<BookmarkItem> items = m.getValue();
                     List<File> files = items.stream()
                             .filter(Item::isFileBased)

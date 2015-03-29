@@ -583,13 +583,33 @@ public class Util {
         if (e.getButton()==MouseButton.SECONDARY) e.consume();
     };
     
-    public static MenuItem createmenuItem(String text, EventHandler<ActionEvent> action) {
+    public static MenuItem menuItem(String text, EventHandler<ActionEvent> action) {
         MenuItem i = new MenuItem(text);
                  if(action!=null) i.setOnAction(action);
         return i;
     }
-    public static MenuItem createmenuItem(String text, Runnable action) {
-        return createmenuItem(text, action==null ? null : a -> action.run());
+    public static MenuItem menuItem(String text, Runnable action) {
+        return menuItem(text, action==null ? null : a -> action.run());
+    }
+    /** 
+    * Generates menu items from list of services or actions. Use to populate
+    * context menu dynamically.
+    * <p>
+    * For example context menu that provides menu items for searching given
+    * text on the web, using different search engines. What we want is to
+    * generate menu items each executing the same type action.
+    * 
+    * @param <A> service or action that can facilitates the action
+    * @param from list of service
+    * @param toStr service to string converter for menu item text
+    * @param menu item click action, uses service A possibly on some parameter
+    * like selected table item
+    * @return 
+    */
+    public static <A> MenuItem[] menuItems(List<A> from, Function<A,String> toStr, Consumer<A> action) {
+        return from.stream()
+            .map(t -> menuItem(toStr.apply(t), e -> action.accept(t)))
+            .toArray(MenuItem[]::new);
     }
     
     /** Shortcut for:

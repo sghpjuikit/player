@@ -40,14 +40,12 @@ public class Util {
     public static final Predicate isFALSE = o -> false;
     /**  */
     public static <E> boolean isIn(E o, E... es) {
-//        return Stream.of(es).anyMatch(e -> o.equals(e));
         for(E e : es)
             if(o.equals(e))
                 return true;
         return false;
     }
     public static <E> boolean isIn(E o, Collection<E> es) {
-//        return es.stream().anyMatch(e -> o.equals(e));
         for(E e : es)
             if(o.equals(e))
                 return true;

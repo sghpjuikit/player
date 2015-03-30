@@ -1,8 +1,0 @@
-
-.thumbnail {
-	-fx-background-color: null;
-}
-.thumbnail-border:hover {
-    -fx-border-color: -fx-def-font-color;
-    -fx-opacity: 0.4;
-}

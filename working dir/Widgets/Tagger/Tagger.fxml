@@ -201,7 +201,7 @@
               <center>
                 <StackPane fx:id="coverSuperContainer" BorderPane.alignment="CENTER">
                   <children>
-                    <Label text="No Cover" StackPane.alignment="CENTER" /><BorderPane fx:id="coverContainer" StackPane.alignment="CENTER" />
+                    <Label fx:id="noCoverL" text="No Cover" StackPane.alignment="CENTER" /><BorderPane fx:id="coverContainer" StackPane.alignment="CENTER" />
                   </children>
                 </StackPane>
               </center>

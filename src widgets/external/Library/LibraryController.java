@@ -52,6 +52,7 @@ import javafx.scene.control.*;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableColumn.SortType.ASCENDING;
+import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -185,6 +186,14 @@ public class LibraryController extends FXMLController {public String a() { retur
                 });
             }
             return c;
+        });
+        
+        // let resizing as it is
+        table.setColumnResizePolicy(resize -> {
+            boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
+            // resize index column
+            table.getColumn("#").ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
+            return b;
         });
         
         // maintain rating column cell style

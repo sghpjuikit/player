@@ -60,6 +60,7 @@ import util.File.Enviroment;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
+import util.async.Async;
 import util.collections.Histogram;
 import util.collections.ListCacheMap;
 import util.collections.TupleM6;
@@ -222,14 +223,20 @@ public class LibraryViewController extends FXMLController {
                 play();
             else if (e.getCode() == ESCAPE)         // deselect
                 table.getSelectionModel().clearSelection();
-            else if (e.isControlDown() && e.getCode() == L)  // layout columns
-                resizeMainColumn();
         });
         
-        // alleviates user from column resizing after layout changes
+        // resizing
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
-            resizeMainColumn();
+            // resize index column
+            table.getColumn("#").ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
+            // resize main column to span remaining space
+            find(table.getColumns(),c -> VALUE == c.getUserData()).ifPresent(c->{
+                double w = table.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
+                double itemsHeight = (table.getItems().size()+1)*table.getFixedCellSize();
+                double scrollbar = itemsHeight < table.getHeight() ? 0 : 15;
+                c.setPrefWidth(table.getWidth()-(scrollbar+w-c.getWidth()));
+            });
             return b;
         });
         
@@ -270,14 +277,9 @@ public class LibraryViewController extends FXMLController {
         lvl.applyValue();
     }
     
-    public void resizeMainColumn() {
-        find(table.getColumns(),c -> VALUE == c.getUserData()).ifPresent(c->{
-            double w = table.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
-            double itemsHeight = (table.getItems().size()+1)*table.getFixedCellSize();
-            double scrollbar = itemsHeight < table.getHeight() ? 0 : 15;
-            c.setPrefWidth(table.getWidth()-(scrollbar+w-c.getWidth()));
-        });
-    }
+//    public void resizeMainColumn() {
+
+//    }
 
     @Override
     public void close() {
@@ -306,25 +308,48 @@ public class LibraryViewController extends FXMLController {
     
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
-        Field f = fieldFilter.getValue();
-        // make histogram
-        h.keyMapper = metadata -> metadata.getField(f);
-        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
-        h.elementAccumulator = (hist,metadata) -> {
-            hist.a++;
-            hist.b.add(metadata.getAlbum());
-            hist.c += metadata.getLengthInMs();
-            hist.d += metadata.getFilesizeInB();
-            hist.e += metadata.getRatingPercent();
-            if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
-                hist.f = hist.f==null ? metadata.getYear() : "...";
-        };
-        h.clear();
-        h.accumulate(list);
-        // read histogram
-        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
-        // pass down the chain
-        forwardItems(list);
+        Async.runBgr(() -> {
+            Field f = fieldFilter.getValue();
+            // make histogram
+            h.keyMapper = metadata -> metadata.getField(f);
+            h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+            h.elementAccumulator = (hist,metadata) -> {
+                hist.a++;
+                hist.b.add(metadata.getAlbum());
+                hist.c += metadata.getLengthInMs();
+                hist.d += metadata.getFilesizeInB();
+                hist.e += metadata.getRatingPercent();
+                if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
+                    hist.f = hist.f==null ? metadata.getYear() : "...";
+            };
+            h.clear();
+            h.accumulate(list);
+            // read histogram
+            return h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
+        }, l -> {
+            table.setItemsRaw(l);
+            forwardItems(list);
+        });
+        
+//        Field f = fieldFilter.getValue();
+//        // make histogram
+//        h.keyMapper = metadata -> metadata.getField(f);
+//        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+//        h.elementAccumulator = (hist,metadata) -> {
+//            hist.a++;
+//            hist.b.add(metadata.getAlbum());
+//            hist.c += metadata.getLengthInMs();
+//            hist.d += metadata.getFilesizeInB();
+//            hist.e += metadata.getRatingPercent();
+//            if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
+//                hist.f = hist.f==null ? metadata.getYear() : "...";
+//        };
+//        h.clear();
+//        h.accumulate(list);
+//        // read histogram
+//        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
+//        // pass down the chain
+//        forwardItems(list);
     }
     
     /** Sends event to next level. */
@@ -358,7 +383,8 @@ public class LibraryViewController extends FXMLController {
 //        }
 
         // build filter
-        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItemsCopy() : table.getSelectedItemsCopy();
+        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
+//        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItemsCopy() : table.getSelectedItemsCopy();
         
         // optimisation : if empty, dont bother filtering
         if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList(list);

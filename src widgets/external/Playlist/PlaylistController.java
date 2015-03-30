@@ -23,6 +23,7 @@ import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.Collection;
 import java.util.Date;
+import java.util.function.Predicate;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
@@ -119,7 +120,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
             table.setItemsRaw((Collection<PlaylistItem>) c.getList());
     private final InvalidationListener predicateL = o -> 
-            PlaylistManager.playingItemSelector.setFilter(table.getFilterPredicate());
+            PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
     
     
     @Override
@@ -251,7 +252,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @FXML
     public void savePlaylist() {
-        if(table.getItemsFiltered().isEmpty()) return;
+        if(table.getItems().isEmpty()) return;
         
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
         MapConfigurable mc = new MapConfigurable(
@@ -292,11 +293,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private void setUseFilterForPlayback(boolean v) {
         if(v) {
             filter_for_playback.setValue(true);
-            table.getItemsFiltered().predicateProperty().addListener(predicateL);
-            PlaylistManager.playingItemSelector.setFilter(table.getFilterPredicate());
+            table.predicate.addListener(predicateL);
+            PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
         } else {
             filter_for_playback.setValue(false);
-            table.getItemsFiltered().predicateProperty().removeListener(predicateL);
+            table.predicate.removeListener(predicateL);
             PlaylistManager.playingItemSelector.setFilter(null);
         }
     }

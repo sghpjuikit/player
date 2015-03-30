@@ -15,7 +15,8 @@ import GUI.InfoNode.SongInfo;
 import GUI.Panes.ImageFlowPane;
 import GUI.objects.ActionChooser;
 import GUI.objects.Rater.Rating;
-import GUI.objects.Thumbnail;
+import GUI.objects.Thumbnail.ChangeableThumbnail;
+import GUI.objects.Thumbnail.Thumbnail;
 import Layout.Areas.Area;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
@@ -176,7 +177,7 @@ public class FileInfoController extends FXMLController implements SongInfo {
     @Override
     public void init() {        
         // initialize gui
-        Thumbnail cover = new Thumbnail();
+        Thumbnail cover = new ChangeableThumbnail();
                   cover.setBackgroundVisible(false);
                   cover.setBorderToImage(true);
                   

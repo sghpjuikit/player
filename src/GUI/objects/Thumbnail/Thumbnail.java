@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package GUI.objects.Thumbnail;
 
 import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
@@ -75,11 +75,12 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
  */
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable
-public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
+public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     // styleclasses
-    public static final String bgr_styleclass = "thumbnail";
-    public static final String border_styleclass = "thumbnail-border";
+    public final String bgr_styleclass = "thumbnail";
+    public final String border_styleclass = "thumbnail-border";
+    public final String image_styleclass = "thumbnail-image";
     
     // global propertiea
     @IsConfig(name="Thumbnail size", info = "Preffered size for thumbnails.")
@@ -88,7 +89,7 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     public static double animDur = 100;
     public static boolean animated = false;
     
-    private AnchorPane root = new AnchorPane();
+    AnchorPane root = new AnchorPane();
     @FXML ImageView image;
     @FXML StackPane img_container;
     @FXML BorderPane content_container;
@@ -135,7 +136,8 @@ public final class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             initialize(_size);
         } catch (IOException e) {
             Log.err("Thumbnail source data coudlnt be read.");
-        }        
+        }
+        image.getStyleClass().add(image_styleclass);
     }    
     
     /** Use to create more specific thumbnail object from the get go. */

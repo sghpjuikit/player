@@ -2,7 +2,7 @@ package Image;
 
 import Configuration.IsConfig;
 import GUI.DragUtil;
-import GUI.objects.Thumbnail;
+import GUI.objects.Thumbnail.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;

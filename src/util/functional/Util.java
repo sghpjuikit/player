@@ -7,10 +7,8 @@ package util.functional;
 
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import static java.util.Comparator.naturalOrder;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.joining;
@@ -242,6 +240,56 @@ public class Util {
     public static<E> Optional<E> find(Collection<E> c, Predicate<E> filter) {
         for(E i : c) if(filter.test(i)) return Optional.of(i);
         return Optional.empty();
+    }
+    
+    
+    public static <V> V min(V min, BinaryOperator<V> minimizator, V... c) {
+        return Stream.of(c).reduce(min, minimizator);
+    }
+    
+    public static <V> V min(Collection<V> c, V min, BinaryOperator<V> minimizator) {
+        return c.stream().reduce(min, minimizator);
+    }
+    
+    public static <V> V min(V min, Comparator<V> cmp, V... c) {
+        return max(Stream.of(c), min, cmp);
+    }
+    
+    public static <V> V min(Collection<V> c, V min, Comparator<V> cmp) {
+        return max(c.stream(), min, cmp);
+    }
+    
+    public static <V extends Comparable<V>> V min(Stream<V> c, V min) {
+        return max(c, min, naturalOrder());
+    }
+    
+    public static <V> V min(Stream<V> c, V min, Comparator<V> cmp) {
+        return c.reduce(min, (t,u) -> cmp.compare(t, u)<0 ? t : u);
+    }
+    
+    
+    public static <V> V max(V max, BinaryOperator<V> maximizator, V... c) {
+        return Stream.of(c).reduce(max, maximizator);
+    }
+    
+    public static <V> V max(Collection<V> c, V max, BinaryOperator<V> maximizator) {
+        return c.stream().reduce(max, maximizator);
+    }
+    
+    public static <V> V max(V max, Comparator<V> cmp, V... c) {
+        return max(Stream.of(c), max, cmp);
+    }
+    
+    public static <V> V max(Collection<V> c, V max, Comparator<V> cmp) {
+        return max(c.stream(), max, cmp);
+    }
+    
+    public static <V extends Comparable<V>> V max(Stream<V> c, V max) {
+        return max(c, max, naturalOrder());
+    }
+    
+    public static <V> V max(Stream<V> c, V max, Comparator<V> cmp) {
+        return c.reduce(max, (t,u) -> cmp.compare(t, u)>0 ? t : u);
     }
     
 /****************************** indexed forEach *******************************/

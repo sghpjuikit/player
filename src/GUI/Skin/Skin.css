@@ -3565,7 +3565,7 @@
 
 // background for thumbnail
 .thumbnail {
-    -fx-background-color: black;
+    -fx-background-color: null;
 }
 // border of thumbnail
 .thumbnail-border {
@@ -3573,8 +3573,21 @@
     -fx-border-width: 2;
 }
 
-//****************************** SEEKER ***********************************//
+//************************** CHANGEABLE THUMBNAIL ****************************//
+// inherits .thumbnail, adds following entries
 
+.thumbnail-image:highlighted {
+    -fx-opacity: 0.5;
+}
+.thumbnail-border:highlighted {
+    -fx-border-color: -fx-def-font-color;
+    -fx-opacity: 0.5;
+}
+.changeable-thumbnail-icon {
+    -fx-text-fill: -fx-def-font-color;
+}
+
+//****************************** SEEKER ***********************************//
 // seeker actually wraps slider and as a result it has exactly the same classes
 // as slider
 

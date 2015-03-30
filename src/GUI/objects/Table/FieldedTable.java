@@ -40,10 +40,14 @@ import util.functional.functor.FunctionC;
 import util.parsing.Parser;
 
 /**
- * Table for {@link FieldedValue}. Generates columns, sorting and filtering
- * based on field information.
+ * Table for {@link FieldedValue}. This facilitates column creation, sorting and
+ * potentially additional features (e.g. filtering - {@link FilteredTable}.
  * <p>
- * Supports column state serialization and deserialization.
+ * Supports column state serialization and deserialization - it is possible to
+ * restore previous state. This includes column order, column names, sort order, 
+ * and column widths.
+ * <p>
+ * Nested columns are not supported.
  * <p>
  * The columns use userData property to store the field F for identification.
  * Use {@link #setUserData(java.lang.Object)}
@@ -244,7 +248,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * <p>
      * Works even when field's respective column is invisible.
      * <p>
-     * Note, that if the field must support sorting - return Comparable type.
+     * Note, that the field must support sorting - return Comparable type.
      * 
      * @param field 
      */

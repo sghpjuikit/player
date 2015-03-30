@@ -34,7 +34,7 @@ public class Spinner extends ProgressIndicator {
     public Spinner(double progress) {
         // needed
         setSkin(createDefaultSkin());
-        setProgress(1);
+        setProgress(progress);
     }
 
     @Override

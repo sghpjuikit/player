@@ -19,7 +19,7 @@ import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
 import GUI.objects.PopOver.PopOver.NodeCentricPos;
 import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
-import GUI.objects.Thumbnail;
+import GUI.objects.Thumbnail.ChangeableThumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
@@ -38,9 +38,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.css.PseudoClass;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -52,13 +50,8 @@ import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
-import static javafx.scene.input.DragEvent.DRAG_EXITED;
-import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.KeyCode.*;
-import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -70,7 +63,6 @@ import org.controlsfx.control.textfield.CustomTextField;
 import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import util.File.Enviroment;
 import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
@@ -99,7 +91,8 @@ import util.parsing.impl.ColorParser;
     howto = "Available actions:\n"
           + "    Drag cover away : Removes cover\n"
           + "    Drop image file : Adds cover\n"
-          + "    Drop audio files : Adds files to tagger\n"
+          + "    Drop audio files : Sets files to tagger\n"
+          + "    Drop audio files + CTRL:  Adds files to tagger\n"
           + "    Write : Saves the tags\n"
           + "    Loaded items label click : Opens editable source list of items",
     description = "Tag editor for audio files. Supports reading and writing to "
@@ -142,16 +135,15 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @FXML BorderPane coverContainer;
     @FXML StackPane coverSuperContainer;
     @FXML Label CoverL;
-    Thumbnail CoverV;
+    @FXML Label noCoverL;
+    ChangeableThumbnail CoverV;
     File new_cover_file = null;
     ProgressIndicator progressI;
     @FXML Label infoL;
     
-    
     //global variables
     ObservableList<Item> allitems = FXCollections.observableArrayList();
     List<Metadata> metas = new ArrayList();   // currently in gui active
-    Task<List<Metadata>> loader;
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data chagnge during writing
     private final List<Validation> validators = new ArrayList();
@@ -186,9 +178,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
         loadSkin("skin.css",entireArea);
         
-        CoverV = new Thumbnail(200);
-        CoverV.setDragImage(false); // we have our own implementation below
-        CoverV.getPane().getStyleClass().add("tager-thumbnail");
+        CoverV = new ChangeableThumbnail();
+        CoverV.getPane().setPrefSize(200, 200);
+        CoverV.onFileDropped = this::addImg;
+        CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
         
         progressI = new GUI.objects.Spinner.Spinner();
@@ -244,43 +237,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // drag & drop content
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
         entireArea.setOnDragDropped(drag_dropped_handler);
-        
-        // add cover on click
-        coverContainer.setOnMouseClicked( e -> {
-            if (e.getButton()!=PRIMARY || metas.isEmpty()) return;
-            
-            File initial_dir = metas.stream()
-                    .filter(Item::isFileBased)
-                    .findFirst().map(Item::getLocation)
-                    .orElse(new File(""));
-            File f = Enviroment.chooseFile("Select image to add to tag",
-                    false, initial_dir, entireArea.getScene().getWindow());
-            if (f!= null) addImg(f);
-        });
-        
-        // add cover on drag & drop image file
-        CoverV.getPane().setOnDragOver( t -> {
-            Dragboard d = t.getDragboard();
-            // accept if as at least one image file, note: we dont want url
-            // we are only interested in files - only those can be written in tag
-            if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported))
-                t.acceptTransferModes(TransferMode.ANY);
-        });
-        CoverV.getPane().setOnDragDropped( t -> {
-            Dragboard d = t.getDragboard();
-            // check again if the image file is in the dragboard. If it isnt
-            // do not consume and let the event propagate bellow. In case there
-            // are playable items/files they will be captured by root's drag
-            // handler
-            // removing the condition would consume the event and stop propagation
-            if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) {
-                d.getFiles().stream().filter(ImageFileFormat::isSupported)
-                            .findAny().ifPresent(this::addImg);
-                //end drag transfer
-                t.setDropCompleted(true);
-                t.consume();
-            }
-        });
 
         // remove cover on drag exit
         CoverV.getPane().setOnDragDetected( e -> CoverV.getPane().startFullDrag());
@@ -292,17 +248,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             }
         });
         
-        // cover add icon
-        Text icon = Icons.createIcon(FontAwesomeIconName.PLUS, 60);
-             icon.setMouseTransparent(true);
-        coverSuperContainer.getChildren().add(icon);
-             icon.setOpacity(0);    // bug, needs to be set after it is added
-        coverContainer.addEventHandler(MOUSE_EXITED, e-> icon.setOpacity(0));
-        coverContainer.addEventHandler(MOUSE_ENTERED, e-> icon.setOpacity(isEmpty() ? 0 : 1));
-        // fire mouse enter/exit on drag enter/exit
-        coverContainer.addEventHandler(DRAG_OVER, e-> { if(DragUtil.hasImage(e.getDragboard())) Event.fireEvent(CoverV.getPane(),new MouseEvent(MOUSE_ENTERED, 0, 0, 0, 0, PRIMARY, 1, true, true, true, true, true, true, true, true, false, false, null)); });
-        coverContainer.addEventHandler(DRAG_EXITED, e-> Event.fireEvent(CoverV.getPane(),new MouseEvent(MOUSE_EXITED, 0, 0, 0, 0, PRIMARY, 1, true, true, true, true, true, true, true, true, false, false, null)));
-        
         // bind Rating values absolute<->relative when writing
         RatingF.setOnKeyReleased(e -> setPR());
         RatingF.setOnMousePressed(e -> setPR());
@@ -313,6 +258,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         infoL.setOnMouseClicked(e -> showItemsPopup());
         infoL.setCursor(Cursor.HAND);
         
+        // maintain add or set
         entireArea.setOnKeyPressed(e -> { if(e.getCode()==CONTROL) add_not_set.set(true); });
         entireArea.setOnKeyReleased(e -> { if(e.getCode()==CONTROL) add_not_set.set(false); });
         
@@ -456,7 +402,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
      */
     @FXML @Override
     public void write() {
-        if (loader != null && loader.isRunning()) return;
         
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if(v!=null) {

@@ -2,7 +2,7 @@
 package Layout.WidgetImpl;
 
 import GUI.objects.Text;
-import GUI.objects.Thumbnail;
+import GUI.objects.Thumbnail.Thumbnail;
 import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.UniContainer;

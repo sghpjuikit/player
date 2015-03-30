@@ -5,10 +5,10 @@
  */
 package GUI.objects.Table;
 
+import GUI.GUI;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -16,9 +16,10 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Text;
 import javafx.util.Callback;
+import org.reactfx.Subscription;
 import util.Util;
-import static util.async.Async.run;
 
 /**
  *
@@ -29,23 +30,13 @@ public class ImprovedTable<T> extends TableView<T> {
     final TableColumn<T,Void> columnIndex = new TableColumn("#");
     private final Callback<TableColumn<T,Void>, TableCell<T,Void>> indexCellFactory;
     boolean zero_pad = true;
-    
+    Subscription s;
     
     public ImprovedTable() {
         indexCellFactory = buildIndexColumnCellFactory();
         columnIndex.setCellFactory(indexCellFactory);
         columnIndex.setSortable(false);
         getColumns().add(columnIndex);
-        
-        ListChangeListener<T> refresher = o -> {
-            // unfortunately this doesnt work, it requires delay
-            // table.getColumnResizePolicy().call(new TableView.ResizeFeatures(table, columnIndex, 0d));
-            run(100, () -> getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d)));
-        };
-        itemsProperty().addListener((o,ov,nv) -> {
-            ov.removeListener(refresher);
-            nv.addListener(refresher);
-        });
     }
     
     /** Set visibility of columns header. Default true. */
@@ -73,16 +64,16 @@ public class ImprovedTable<T> extends TableView<T> {
         return (int)floor(h/getFixedCellSize());
     }
     
-    /** Returns whether there is an item in the row at specified index */
-    public boolean isRowFull(int i) {
-        return 0<=i && getItems().size()>i;
-    }
-    
     /** Return index of a row containing the given scene y coordinate.
     Note: works only if table uses fixedCellHeight. */
     public int getRowS(double scenex, double sceney) {
             Point2D p = sceneToLocal(new Point2D(scenex,sceney));
             return getRow(p.getY());
+    }
+    
+    /** Returns whether there is an item in the row at specified index */
+    public boolean isRowFull(int i) {
+        return 0<=i && getItems().size()>i;
     }
     
     /** Returns selected items. The list will continue to reflect changes in selection. */
@@ -115,6 +106,11 @@ public class ImprovedTable<T> extends TableView<T> {
     /** @see #setZeropadIndex(boolean) */
     public boolean isZeropadIndex() {
         return zero_pad;
+    }
+    
+    /** Max index. Normally equal to number of items. */
+    public int getMaxIndex() {
+        return getItems().size();
     }
     
     /** Refreshes given column. */
@@ -151,6 +147,22 @@ public class ImprovedTable<T> extends TableView<T> {
         });
     }
     
+    /** Returns ideal width for index column derived from current max index.
+        Mostly used during table/column resizing. */
+    public double calculateIndexColumnWidth() {
+        // need this weird method to get 9s as their are wide chars (font isnt 
+        // always proportional)
+        int s = getMaxIndex();
+        int i = Util.decMin1(s);
+        Text text = new Text();
+             text.setFont(GUI.font.getValue());
+             text.setText(i + ".");
+             text.autosize();
+             text.applyCss();
+        double w = text.getLayoutBounds().getWidth() + 5;
+        return w;
+    }
+    
 /************************************ SORT ************************************/
     
     /**
@@ -172,5 +184,13 @@ public class ImprovedTable<T> extends TableView<T> {
         getSortOrder().remove(c);
         c.setSortType(type);
         getSortOrder().add(0, c);
+    }
+    
+    
+/************************************* HELPER *********************************/
+    
+    @Deprecated
+    final void resizeIndexColumn() {
+        getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d));
     }
 }

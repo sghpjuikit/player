@@ -141,6 +141,10 @@ public class SwitchPane implements LayoutAggregator {
             if(GUI.GUI.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
+                byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
+                double fromcentre = e.getX()-uiWidth()/2;
+                       fromcentre = fromcentre/zoom.getScaleX();
+                tox = signum(-1*e.getDeltaY())*(fromcentre);
                 zoom(i);
                 e.consume();
 //                double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/20d;
@@ -174,6 +178,9 @@ public class SwitchPane implements LayoutAggregator {
             ui.setTranslateX(-getTabX(currTab()));
         });
     };
+    
+    double byx = 0;
+    double tox = 0;
 
 /********************************    TABS   ***********************************/
     
@@ -522,9 +529,11 @@ public class SwitchPane implements LayoutAggregator {
 /*********************************** ZOOMING **********************************/
     
     private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
+    private final TranslateTransition zt = new TranslateTransition(Duration.ZERO,ui);
     
     public void zoom(boolean v) {
         z.setInterpolator(new CircularInterpolator(EASE_OUT));
+        zt.setInterpolator(new CircularInterpolator(EASE_OUT));
         zoomNoAcc(v ? zoomScaleFactor : 1);
     }
     
@@ -550,6 +559,11 @@ public class SwitchPane implements LayoutAggregator {
         z.setToX(d);
         z.setToY(d);
         z.play();
+        zt.stop();
+        zt.setDuration(z.getDuration());
+//        zt.setByX((1-zoom.getScaleX())*byx);
+        zt.setByX(tox/5);
+        zt.play();
         App.actionStream.push("Zoom mode");
     }
     private void zoomNoAcc(double d) {

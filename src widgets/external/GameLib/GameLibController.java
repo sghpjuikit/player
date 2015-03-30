@@ -8,7 +8,7 @@ package GameLib;
 import GUI.GUI;
 import GUI.objects.FileTree;
 import GUI.objects.Icon;
-import GUI.objects.Thumbnail;
+import GUI.objects.Thumbnail.Thumbnail;
 import static GameLib.GameLibController.InfoType.EXPLORER;
 import static GameLib.GameLibController.InfoType.PLAY;
 import Layout.Widgets.FXMLController;

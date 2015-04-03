@@ -65,7 +65,7 @@ public final class WidgetArea extends Area<Container> {
                 e.consume();
             }
         });
-        
+       
         if(GUI.isLayoutMode()) show(); else hide();
     }
     
@@ -117,6 +117,8 @@ public final class WidgetArea extends Area<Container> {
             setActivityContent(an);
             setActivityVisible(false);
         }
+        wNode.setUserData(this);
+        
     }
     
     @Override

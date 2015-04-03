@@ -11,7 +11,8 @@ import Configuration.IsConfig;
 import GUI.DragUtil;
 import GUI.GUI;
 import GUI.objects.Balancer.Balancer;
-import GUI.objects.FadeButton;
+import GUI.objects.GlowIcon;
+import GUI.objects.Icon;
 import GUI.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
@@ -79,17 +80,17 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label channelsL;
     
     @FXML HBox playButtons;
-    FadeButton p1 = new FadeButton(ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
-    FadeButton f2 = new FadeButton(FAST_BACKWARD,25);
-    FadeButton f3 = new FadeButton(PLAY,25);
-    FadeButton f4 = new FadeButton(FAST_FORWARD,25);
-    FadeButton f5 = new FadeButton(ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
-    FadeButton f6 = new FadeButton(STOP,25);
-    FadeButton muteB = new FadeButton(VOLUME_UP,15);
-    FadeButton addB = new FadeButton(PLUS_SQUARE_ALT,10);
+    Icon p1 = new GlowIcon(ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
+    Icon f2 = new GlowIcon(FAST_BACKWARD,25);
+    Icon f3 = new GlowIcon(PLAY,25);
+    Icon f4 = new GlowIcon(FAST_FORWARD,25);
+    Icon f5 = new GlowIcon(ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
+    Icon f6 = new GlowIcon(STOP,25);
+    Icon muteB = new GlowIcon(VOLUME_UP,15);
+    Icon addB = new GlowIcon(PLUS_SQUARE_ALT,10);
+    Icon loopB = new GlowIcon(RANDOM,14);
     
     @FXML HBox infoBox;
-    FadeButton loopB = new FadeButton(RANDOM,14);
     
     // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
@@ -312,7 +313,7 @@ public class PlayerControlsController extends FXMLController implements Playback
             }
         }
     }
-    private void loopModeChanged(LoopMode new_mode) {
+    private void loopModeChanged(LoopMode new_mode) {System.out.println(new_mode);
         switch (new_mode) {
             case OFF:       loopB.setIcon(ALIGN_CENTER); // linear
                             Tooltip.install(loopB, new Tooltip("Loop mode: off"));

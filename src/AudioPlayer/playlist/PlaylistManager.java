@@ -26,8 +26,6 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import main.App;
@@ -634,18 +632,17 @@ public class PlaylistManager implements Configurable {
         VBox cnt = new VBox(t1,t2);
              cnt.setSpacing(8);
         VBox.setMargin(t2, new Insets(0, 0, 0, 20));
-        Label infoB =  new Icon(INFO, 11, "Help");
-              infoB.setContentDisplay(ContentDisplay.CENTER);
-              infoB.setOnMouseClicked( e -> {
-                PopOver helpP = PopOver.createHelpPopOver("");
-                        helpP.setContentNode(cnt);
-                        // open the uri in browser
-                        helpP.getContentNode().setOnMouseClicked( pe -> {
-                            Enviroment.browse(URI.create(uri));
-                            pe.consume();
-                        });
-                        helpP.show(infoB);
-              });
+        Icon infoB =  new Icon(INFO, 11, "Help");
+             infoB.setOnMouseClicked( e -> {
+               PopOver helpP = PopOver.createHelpPopOver("");
+                       helpP.setContentNode(cnt);
+                       // open the uri in browser
+                       helpP.getContentNode().setOnMouseClicked( pe -> {
+                           Enviroment.browse(URI.create(uri));
+                           pe.consume();
+                       });
+                       helpP.show(infoB);
+             });
         // build popup
         PopOver p = new PopOver(title, content);
                 p.getHeaderIcons().add(infoB);

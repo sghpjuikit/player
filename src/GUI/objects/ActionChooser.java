@@ -8,7 +8,6 @@ package GUI.objects;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.input.DragEvent.DRAG_ENTERED;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
@@ -25,12 +24,13 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
  @author Plutonium_
  */
 @TODO(purpose = FUNCTIONALITY, note = "decide best functionality, complete + clean up")
-public class ActionChooser extends StackPane {
+public class ActionChooser<T> extends StackPane {
 
     public final Text description = new Text();
     public final HBox actionBox;
 
-    private int icon_size = 80;
+    private int icon_size = 40;
+    public T item;
 
     public ActionChooser() {
         setAlignment(Pos.CENTER);
@@ -60,16 +60,15 @@ public class ActionChooser extends StackPane {
     }
 
     public Icon addIcon(FontAwesomeIconName icon, String descriptn) {
-        return addIcon(icon, descriptn, false);
+        return addIcon(icon, descriptn, true, false);
     }
-    public Icon addIcon(FontAwesomeIconName icon, String descriptn, boolean drag_activated) {
-        return addIcon(icon, null, descriptn, drag_activated);
+    public Icon addIcon(FontAwesomeIconName icon, String descriptn, boolean hover_activated, boolean drag_activated) {
+        return addIcon(icon, null, descriptn, hover_activated, drag_activated);
     }
-    public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn, boolean drag_activated) {
+    public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn, boolean hover_activated, boolean drag_activated) {
         Icon l = new Icon(icon, icon_size);
-        l.setContentDisplay(CENTER);
         l.setFont(new Font(l.getFont().getName(), 13));
-        l.setText(text);
+//        l.setText(text);
         
         l.scaleYProperty().bind(l.scaleXProperty());
         if(drag_activated) {
@@ -77,7 +76,8 @@ public class ActionChooser extends StackPane {
             l.addEventHandler(DRAG_EXITED, e -> description.setText(""));
             l.addEventHandler(DRAG_ENTERED, e -> l.setScaleX(1.1));
             l.addEventHandler(DRAG_EXITED, e -> l.setScaleX(1));
-        } else {
+        }
+        if(hover_activated) {
             l.addEventHandler(MOUSE_ENTERED, e -> description.setText(descriptn));
             l.addEventHandler(MOUSE_EXITED, e -> description.setText(""));
             l.addEventHandler(MOUSE_ENTERED, e -> l.setScaleX(1.1));

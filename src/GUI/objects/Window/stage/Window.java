@@ -36,14 +36,11 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
 import java.io.*;
 import static java.lang.Math.*;
-import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Objects;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
@@ -80,6 +77,7 @@ import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.find;
 import static util.functional.Util.mapB;
 import util.graphics.Icons;
+import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
 
 /**
@@ -242,22 +240,15 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      @return new window or null if error occurs during initialization.
      */
     public static Window create() {
-	try {
-	    Window w = new Window();
-                   w.getStage().initOwner(App.getWindowOwner().getStage());
-	    URL fxml = Window.class.getResource("Window.fxml");
-	    FXMLLoader l = new FXMLLoader(fxml);
-                       l.setRoot(w.root);
-                       l.setController(w);
-                       l.load();
-	    w.initialize();
-	    w.minimB.setVisible(false);
+        Window w = new Window();
+               w.getStage().initOwner(App.getWindowOwner().getStage());
+        // load fxml part
+        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
 
-	    return w;
-	} catch (IOException ex) {
-	    Log.err("Couldnt create Window. " + ex.getMessage());
-	    return null;
-	}
+        w.initialize();
+        w.minimB.setVisible(false);
+
+        return w;
     }
 
     public static Window createWindowOwner() {
@@ -292,7 +283,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML Button maximB; 
     @FXML Button closeB; 
     @FXML AnchorPane bgrImgLayer;
-
+    
+    /**  Left icon header menu. */
+    public IconBox left_icons;
+    /**  Right icon header menu. */
+    public IconBox right_icons;
+        
     private Window() {
 	super();
     }
@@ -571,10 +567,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    e -> browse(App.getGithubLink()));
 	// github button - show all available FontAwesome icons in a popup
 	Icon dirB = new Icon(CSS3, 13, "Open css guide",
-	    e -> browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html")));
+	    e -> browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html"));
 	// css button - show all available FontAwesome icons in a popup
 	Icon cssB = new Icon(FOLDER, 13, "Open application location (development tool)",
-	    e -> browse(App.getLocation().toURI()));
+	    e -> browse(App.getLocation()));
 	// icon button - show all available FontAwesome icons in a popup
 	Icon iconsB = new Icon(IMAGE, 13, "Icon browser (development tool)", 
             e -> {
@@ -637,33 +633,23 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    helpP.getContentNode().setWrappingWidth(400);
 	    App.actionStream.push("Layout info popup");
 	});
-
-//	// manage layout button - sho layout manager in a popp
-//	Label taskB = createIcon(TASKS, 13, "Tasks", e -> 
-//	    run(100, () -> {
-//		Node n = root.lookup("#taskB");
-//		Point2D b = n.localToScreen(n.getBoundsInLocal().getWidth() / 2, n.getBoundsInLocal().getHeight() / 2);
-//		ClickEffect ce = ClickEffect.createStandalone().setScale(33);
-//		ce.apply();
-//		ce.play(b.getX(), b.getY());
-//	    })
-//	);
-//	taskB.setId("taskB");
 	
-	// make left menu
-	IconBox left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
-        // make right menu
-	IconBox right_icons = new IconBox(controls, RIGHT_TO_LEFT);
+	left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
+        left_icons.box.setSpacing(8);
+	right_icons = new IconBox(controls, RIGHT_TO_LEFT);
+        right_icons.box.setSpacing(8);
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), i->icon(miniB,i));
         maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), i->icon(ontopB,i));
         maintain(fullscreen, mapB(COMPRESS,EXPAND), i->icon(fullscrB,i));
         maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), i->icon(minimB,i));
         maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), i->icon(maximB,i));
         icon(closeB,CLOSE);        
-        // add icons & gapsgaps
+        // add icons & gaps
+        ltB.setContentDisplay(GRAPHIC_ONLY);
+        rtB.setContentDisplay(GRAPHIC_ONLY);
         ltB.setPadding(new Insets(0, 0, 0, 15));
         rtB.setPadding(new Insets(0, 15, 0, 0));
-	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);//, taskB);
+	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
     }
 
     private void icon(Labeled l, FontAwesomeIconName i) {

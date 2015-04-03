@@ -13,7 +13,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.LayoutAggregators.SimpleWithMenuAgregator;
 import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.FadeButton;
+import GUI.objects.GlowIcon;
 import Layout.Layout;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
@@ -79,19 +79,19 @@ public class WindowManager {
                 // layout wrapper
             SimpleWithMenuAgregator la= new SimpleWithMenuAgregator(l);
                 // window control buttons
-            FadeButton closeB = new FadeButton(TIMES, 15);
+            GlowIcon closeB = new GlowIcon(TIMES, 15);
                        closeB.setOnMouseClicked( e -> {
                            App.close(); // closing the window is not enogh
                            e.consume();
                        });
                        Tooltip.install(closeB, new Tooltip("Close"));
-            FadeButton onTopB = new FadeButton(STOP, 15);
+            GlowIcon onTopB = new GlowIcon(STOP, 15);
                        onTopB.setOnMouseClicked( e -> {
                            miniWindow.toggleAlwaysOnTOp();
                            e.consume();
                        });
                        Tooltip.install(onTopB, new Tooltip("Toggle on top"));
-            FadeButton toggleMiniB = new FadeButton(CARET_UP, 15);
+            GlowIcon toggleMiniB = new GlowIcon(CARET_UP, 15);
                        toggleMiniB.setOnMouseClicked( e -> {
                            toggleMini();
                            e.consume();

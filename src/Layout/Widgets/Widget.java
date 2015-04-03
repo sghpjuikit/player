@@ -285,7 +285,11 @@ public abstract class Widget<C extends Controller> extends Component implements 
         // return null - widget can not exist without its factory
         // the null does not cause exception, it is treated by container as no 
         // component - basically we ignore this widget
-        return factory==null ? null : this;
+        // return factory==null ? null : this;
+        
+        // using empty widget might be better idea?
+        // maybe creating an 'error' widget would be a good idea
+        return factory==null ? Widget.EMPTY().load() : this;
     }
     
 

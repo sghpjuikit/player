@@ -164,7 +164,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 if(getColumns().contains(columnName))
                     columnName.setPrefWidth(columnName.getWidth()-rf.getDelta());
                 rf.getColumn().setPrefWidth(rf.getColumn().getWidth()+rf.getDelta());
-                return true;
+                return false;
             }
             // handle table resize or index column
             
@@ -196,7 +196,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             columnIndex.setPrefWidth(W1);
             columnName.setPrefWidth(W-W1-W3-W4-S-G);
             columnTime.setPrefWidth(W3);
-            return true;
+            return false;
         });
         
         // prevent selection change on right click

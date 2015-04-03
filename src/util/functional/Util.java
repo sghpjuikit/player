@@ -295,7 +295,7 @@ public class Util {
 /****************************** indexed forEach *******************************/
     
     /**
-     * Functional alternative to for cycle for collections.
+     * Functional alternative to for loop.
      * <p>
      * Equivalent to Collection.forEach(), with additional parameter - index of
      * the element in the collection.
@@ -307,7 +307,7 @@ public class Util {
      * @param c
      * @param action 
      */
-    public static<T> void forEachIndexed(Collection<T> c, BiConsumer<Integer,T> action) {
+    public static<T> void forEachI(Collection<T> c, BiConsumer<Integer,T> action) {
         int i=0;
         for(T item : c) {
             action.accept(i, item);
@@ -319,9 +319,9 @@ public class Util {
      * Returns stream of elements mapped by the mapper from index-element pairs 
      * of specified collection. Indexes start at 0.
      * <p>
- Functionally equivalent to: List.stream().mapB(item->new Pair(item,list.indexOf(item))).mapB(pair->mapper.mapB(p))
- but avoiding the notion of a Pair or Touple, and without any collection
- traversal to get indexes.
+     * Functionally equivalent to: List.stream().mapB(item->new Pair(item,list.indexOf(item))).mapB(pair->mapper.mapB(p))
+     * but avoiding the notion of a Pair or Touple, and without any collection
+     * traversal to get indexes.
      * 
      * @param <T> element type
      * @param <R> result type
@@ -329,13 +329,23 @@ public class Util {
      * @param mapper
      * @return 
      */
-    public static<T,R> Stream<R> forEachIndexedStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
+    public static<T,R> Stream<R> forEachIStream(Collection<T> c, BiFunction<Integer,T,R> mapper) {
         int i=0;
         Stream.Builder<R> b = Stream.builder();
         for(T item : c) {
             b.accept(mapper.apply(i, item));
             i++;
         }
+        return b.build();
+    }
+    /** *  Equivalent to {@link #forEachIStream(java.util.Collection, java.util.function.BiFunction)}
+    but iterates backwards (the index values are also reversed so last item
+    has index value of 0).*/
+    public static<T,R> Stream<R> forEachIRStream(List<T> c, BiFunction<Integer,T,R> mapper) {
+        int size = c.size();
+        Stream.Builder<R> b = Stream.builder();
+        for(int i = 1; i<=size; i++)
+            b.accept(mapper.apply(i-1, c.get(size-i)));
         return b.build();
     }
     
@@ -352,7 +362,7 @@ public class Util {
      * 
      * @return stream of mapped values by a mapper out of key-element pairs
      */
-    public static<I,T,R> Stream<R> forEachIndexedStream(Collection<T> c, I initial_val, Function<I,I> operation, BiFunction<I,T,R> mapper) {
+    public static<I,T,R> Stream<R> forEachIStream(Collection<T> c, I initial_val, Function<I,I> operation, BiFunction<I,T,R> mapper) {
         I i = initial_val;
         Stream.Builder<R> b = Stream.builder();
         for(T item : c) {

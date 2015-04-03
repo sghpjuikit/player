@@ -40,7 +40,8 @@ public final class Guide {
     private final Text text = new Text();
     private final PopOver<VBox> p = new PopOver(new VBox(15,text));
     private Subscription action_monitoring;
-    Label prevB, nextB, infoL;
+    Icon prevB, nextB;
+    Label infoL;
     
     public Guide() {
         

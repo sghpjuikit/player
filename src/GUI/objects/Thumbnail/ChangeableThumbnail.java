@@ -5,6 +5,7 @@
  */
 package GUI.objects.Thumbnail;
 
+import GUI.DragUtil;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.io.File;
 import java.util.function.Consumer;
@@ -25,8 +26,13 @@ import static util.Util.setAnchors;
 import util.graphics.Icons;
 
 /**
- <p>
- @author Plutonium_
+ * Thumbnail which can accept a file. A custom action invoked afterwards can be 
+ * defined. Thumbnail has a highlight mode showed on hover.
+ * <p>
+ * File can be accepted either by using file chooser opened by clicking on this
+ * thumbnail, or by file drag&drop.
+ * 
+ * @author Plutonium_
  */
 public class ChangeableThumbnail extends Thumbnail {
     private final StackPane rt = new StackPane();
@@ -40,9 +46,6 @@ public class ChangeableThumbnail extends Thumbnail {
     public ChangeableThumbnail() {
         super();
         
-        setDragImage(false); // we have our own implementation below
-        getPane().getStyleClass().add("changeable-thumbnail");
-        
         root.getChildren().add(rt);
         setAnchors(rt,0);
         
@@ -52,12 +55,12 @@ public class ChangeableThumbnail extends Thumbnail {
         icon.setVisible(false);
         rt.getChildren().add(icon);
         icon.getStyleClass().add("changeable-thumbnail-icon");
-             
+        
+        // highlight on/off on mouse
         rt.addEventHandler(MOUSE_EXITED, e -> highlight(false));
         rt.addEventHandler(MOUSE_ENTERED, e -> highlight(true));
-        rt.addEventHandler(DRAG_OVER, e -> highlight(true));
+        rt.addEventHandler(DRAG_OVER, e -> { if(DragUtil.hasImage(e.getDragboard())) highlight(true); });
         rt.addEventHandler(DRAG_EXITED, e -> highlight(false));
-        
         
         // add image on click
         rt.setOnMouseClicked( e -> {
@@ -71,7 +74,8 @@ public class ChangeableThumbnail extends Thumbnail {
         getPane().setOnDragOver( t -> {
             Dragboard d = t.getDragboard();
             // accept if as at least one image file, note: we dont want url
-            if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported))
+            // ignore self -> self drag
+            if (t.getGestureSource()!=getPane() && d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported))
                 t.acceptTransferModes(TransferMode.ANY);
         });
         getPane().setOnDragDropped( t -> {

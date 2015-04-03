@@ -17,6 +17,7 @@ import GUI.GUI;
 import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuRInstance;
+import GUI.objects.Icon;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
@@ -42,7 +43,6 @@ import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.CENTER;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import javafx.scene.input.ContextMenuEvent;
@@ -105,7 +105,7 @@ public class LibraryViewController extends FXMLController {
     private final Runner runOnce = new Runner(1);
     private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
-    Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
+    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
     private ListCacheMap<Metadata,Object> cache = null;
     
     // configurables
@@ -136,7 +136,7 @@ public class LibraryViewController extends FXMLController {
             // update list
             setItems(list);
             // update selected - restore every available old one
-            forEachIndexed(table.getItems(), (i,mg) -> {
+            forEachI(table.getItems(), (i,mg) -> {
                 if(oldSel.contains(mg.getValue()))
                     table.getSelectionModel().select(i);
             });
@@ -459,7 +459,6 @@ public class LibraryViewController extends FXMLController {
     
 
     {
-        lvlB.setContentDisplay(CENTER);
         lvlB.setOnMouseClicked(e -> {
             if(e.getButton()==PRIMARY)
                 lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));

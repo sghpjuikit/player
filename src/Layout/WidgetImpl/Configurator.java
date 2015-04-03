@@ -8,19 +8,19 @@ import Layout.Widgets.Controller;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
-import java.io.IOException;
 import java.util.*;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
 import util.access.Accessor;
-import util.dev.Log;
 import static util.functional.Util.cmpareNoCase;
+import util.graphics.fxml.ConventionFxmlLoader;
 @IsWidget
 @Layout.Widgets.Widget.Info(
     author = "Martin Polakovic",
@@ -40,8 +40,7 @@ import static util.functional.Util.cmpareNoCase;
 public final class Configurator extends AnchorPane implements Controller<ClassWidget>, ConfiguringFeature {
 
     // gui & state
-    @FXML
-    Accordion accordion;
+    @FXML Accordion accordion;
     private final Map<String, ConfigGroup> groups = new HashMap();
     private final List<ConfigField> configFields = new ArrayList();
 
@@ -49,7 +48,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
     public final Accessor<HPos> alignemnt = new Accessor<>(HPos.RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(1).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
-    public final Accessor<Pos> title_align = new Accessor<>(Pos.CENTER, v -> groups.forEach((n, g) -> g.pane.setAlignment(v)));
+    public final ObjectProperty<Pos> title_align = new SimpleObjectProperty(Pos.CENTER);
     @IsConfig(editable = false)
     public final Accessor<String> expanded = new Accessor<>("", v -> {
         if (groups.containsKey(v))
@@ -57,15 +56,9 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     });
 
     public Configurator() {
-        super();
-        FXMLLoader fxmlLoader = new FXMLLoader(Configurator.class.getResource("Configurator.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-        try {
-            fxmlLoader.load();
-        } catch (IOException ex) {
-            Log.err("ConfiguratorComponent source data coudlnt be read.");
-        }
+        
+        // load fxml part
+        new ConventionFxmlLoader(this).loadNoEx();
 
         // clear previous fields
         configFields.clear();
@@ -99,25 +92,14 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
     }
-
-    public void initialize() {
-        // do nothing here, we simply follow the contract - fxmlLoader needs this method
-    }
-
-    /**
-     **************************** PUBLIC API ***********************************
-     */
-    /**
-     Set and apply values and refresh if needed (no need for hard refresh)
-     */
+    
+    /** Set and apply values and refresh if needed (no need for hard refresh) */
     @FXML
     public void ok() {
         configFields.forEach(ConfigField::applyNsetIfNeed);
     }
 
-    /**
-     Set default app settings.
-     */
+    /** Set default app settings. */
     @FXML
     public void defaults() {
         // use this for now
@@ -130,15 +112,14 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     @Override
     public void refresh() {
         alignemnt.applyValue();
-        title_align.applyValue();
+//        title_align.applyValue();
         expanded.applyValue();
         // refresh values
         configFields.forEach(ConfigField::refreshItem);
     }
 
-    /**
-     ***************************************************************************
-     */
+/******************************************************************************/
+    
     private ClassWidget w;
 
     @Override
@@ -151,9 +132,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         return w;
     }
 
-    /**
-     **************************** HELPER METHODS *******************************
-     */
+    
     private final class ConfigGroup {
 
         final TitledPane pane = new TitledPane();
@@ -162,8 +141,10 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         public ConfigGroup(String name) {
             pane.setText(name);
             pane.setContent(grid);
-            pane.expandedProperty().addListener((o, ov, nv)
-                -> expanded.setValue(nv ? pane.getText() : ""));
+            pane.expandedProperty().addListener((o, ov, nv) -> {
+                if(nv) expanded.setValue(pane.getText());
+            });
+            pane.alignmentProperty().bind(title_align);
 
             grid.setVgap(3);
             grid.setHgap(10);

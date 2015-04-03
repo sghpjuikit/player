@@ -1,6 +1,7 @@
 
 package Layout.Areas;
 
+import GUI.objects.Spinner.Spinner;
 import GUI.objects.Window.stage.ContextManager;
 import GUI.objects.Window.stage.Window;
 import Layout.Component;
@@ -16,9 +17,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.effect.BoxBlur;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.ScrollEvent;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -53,6 +52,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
+    public final ProgressIndicator progress;
     
     /**
      * @param c container to make contract with
@@ -71,26 +71,42 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         c.properties.initProperty(Double.class, "padding", 0d);
         
         // init behavior
-        root.addEventFilter(ScrollEvent.SCROLL,e -> {
-            if(controls.isShowing()) {
-                if(e.getDeltaY()<0) collapse();
-                else if(e.getDeltaY()>0) expand();
-                e.consume();
-            }
-        });
-        root.setOnMouseClicked(e->{
-            if(controls.isShowing())
-                if(e.getButton()==MouseButton.MIDDLE) {
-                    setPadding(0);
-                    e.consume();
-                }
-        });
+//        root.addEventHandler(SCROLL,e -> {
+//            if(controls.isShowing()) {
+//                if(e.getDeltaY()<0) collapse();
+//                else if(e.getDeltaY()>0) expand();
+//                e.consume();
+//            }
+//        });
+//        root.setOnMouseClicked(e->{
+//            if(controls.isShowing())
+//                if(e.getButton()==MIDDLE) {
+//                    setPadding(0);
+//                    e.consume();
+//                }
+//        });
         
         // load controls
         activityPane = new StackPane();
         activityPane.setPickOnBounds(false);
         content_root.getChildren().add(activityPane);
         setAnchors(activityPane, 0d);
+        
+        
+        
+        progress = new Spinner();
+        progress.setPrefSize(50, 50);
+        progress.setMaxSize(50, 50);
+//        progress.setVisible(false);
+        progress.progressProperty().addListener((o,ov,nv) -> progress.setVisible(nv.doubleValue()!=1));
+        
+        StackPane s = new StackPane(progress);
+        StackPane.setAlignment(progress, Pos.TOP_LEFT);
+        root.getChildren().add(s);
+        setAnchors(s, 0);
+        s.setMouseTransparent(true);
+        
+        
         activityPane.toFront();
     }
     
@@ -223,15 +239,20 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     
     public final void setActivityVisible(boolean v) {
         activityPane.setVisible(v);
-        activityPane.getStyleClass().addAll(bgr_STYLECLASS);
-        activityPane.pseudoClassStateChanged(draggedPSEUDOCLASS, v);
+//        activityPane.getStyleClass().setAll(bgr_STYLECLASS);
+//        activityPane.pseudoClassStateChanged(draggedPSEUDOCLASS, v);
         getContent().setOpacity(v ? 0.2 : 1);
-        getContent().setEffect(v ? new BoxBlur(2, 2, 1) : null);
-        getContent().setMouseTransparent(v);
+//        getContent().setEffect(v ? new BoxBlur(2, 2, 1) : null);
+//        getContent().setMouseTransparent(v);
+//        if(v)activityPane.requestFocus();
+//        if(v)activityPane.toFront();
+//        if(v)progress.getParent().toFront();
     }
     
     public final void setActivityContent(Node n) {
-        activityPane.getChildren().setAll(n);
-        StackPane.setAlignment(n, Pos.CENTER);
+//        if(!activityPane.getChildren().contains(n)) {
+            activityPane.getChildren().setAll(n);
+            StackPane.setAlignment(n, Pos.CENTER);
+//        }
     }
 }

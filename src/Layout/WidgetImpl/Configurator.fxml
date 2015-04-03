@@ -9,7 +9,7 @@
   <children>
     <BorderPane prefHeight="-1.0" prefWidth="-1.0" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="5.0">
       <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefHeight="-1.0" prefWidth="-1.0" vbarPolicy="AS_NEEDED" BorderPane.alignment="CENTER">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="-1.0" prefWidth="-1.0" vbarPolicy="AS_NEEDED" BorderPane.alignment="CENTER">
           <content>
             <AnchorPane minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0">
               <padding>
@@ -26,7 +26,7 @@
       <center>
         <HBox alignment="CENTER" prefHeight="-1.0" prefWidth="-1.0" spacing="10.0" BorderPane.alignment="CENTER">
           <children>
-            <Button id="redoB" minHeight="19.0" mnemonicParsing="false" onMouseClicked="#initialize" prefHeight="30.0" prefWidth="90.0" text="Reload">
+            <Button id="redoB" minHeight="19.0" mnemonicParsing="false" onMouseClicked="#refresh" prefHeight="30.0" prefWidth="90.0" text="Reload">
               <tooltip>
                 <Tooltip text="Refresh settings." />
               </tooltip>

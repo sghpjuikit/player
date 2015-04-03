@@ -16,7 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
+import static java.util.Collections.singletonList;
 import java.util.HashMap;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
@@ -24,7 +24,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -49,18 +48,17 @@ import util.File.ImageFileFormat;
 import util.SingleInstance;
 import util.Util;
 import static util.Util.menuItem;
+import static util.Util.setAnchors;
+import util.dev.Dependency;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
  * Thumbnail.
- * (Not necessarily) small image component. Supports resizing operarion and
- * has several added funcionalities like border, background or  mouse over
- * animations.
  * <p>
- * Thumbnail's background and border can be fully styled with css. Additionally,
- * border can be set to frame thumbnail or picture respectively.
+ * Resizable (not necessarily) small image container.
  * <p>
  * Image is always positioned inside the thumbnail and aligned to center both
  * vertically and horizontally.
@@ -69,9 +67,14 @@ import static util.dev.TODO.Purpose.FUNCTIONALITY;
  * factor determining the load size. For details see {@link #LOAD_COEFICIENT}
  * and {@link #calculateImageLoadSize()}.
  * <p>
- * Thumbnails initialized with File instead of Image object have
- * additional functionalities (context menu). It is recommended to use file
- * to pass an image into the thumbnail object, when possible.
+ * Supports:
+ * <li> resizing - use preferred size of the root, see {@link #getPane()}
+ * <li> file awareness - if file (representing the image) can be set in addition
+ * to the the image
+ * <li> image file drag
+ * <li> border can be set to frame whole thumbnail or image respectively.
+ * <li> image context menu
+ * <li> image context menu
  */
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable
@@ -122,57 +125,48 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         loadImage(img);
     }
     
-    /**
-     * Use if you need different size than default thumbnail size and the image
-     * is expected to change during life cycle.
-     * @param _size 
-     */
-    public Thumbnail (double _size) {
-        FXMLLoader fxmlLoader = new FXMLLoader(Thumbnail.class.getResource("Thumbnail.fxml"));
-        fxmlLoader.setRoot(root);
-        fxmlLoader.setController(this);
-        try {
-            root = (AnchorPane) fxmlLoader.load();
-            initialize(_size);
-        } catch (IOException e) {
-            Log.err("Thumbnail source data coudlnt be read.");
-        }
-        image.getStyleClass().add(image_styleclass);
-    }    
-    
     /** Use to create more specific thumbnail object from the get go. */
     public Thumbnail (Image img, double size) {
         this(size);
         loadImage(img);
     }
     
-    private void initialize(double size) {
+    /**
+     * Use if you need different size than default thumbnail size and the image
+     * is expected to change during life cycle.
+     * @param _size 
+     */
+    public Thumbnail (double _size) {
+        
+        // load fxml part
+        new ConventionFxmlLoader(Thumbnail.class, root, this).loadNoEx();
+        
+        image.getStyleClass().add(image_styleclass);
+
         // initialize values
         image.setCache(false);
         setSmooth(true);
         setPreserveRatio(true);
-//        image.setCacheHint(CacheHint.SPEED);
-        borderToImage(false);
+        // image.setCacheHint(CacheHint.SPEED);
+        setBorderToImage(false);
+        setBorderVisible(true);
         setBackgroundVisible(true);
-        setDragImage(true);
+        setDragEnabled(true);
+        setContextMenuOn(true);
         
         // animations
         installScaleOnHover();
         
-        // experimental feature
-        // change border framing style on mouse middle button click //experimental
-        root.addEventFilter(MOUSE_CLICKED, e -> {
-            if(e.getButton()==MIDDLE)
-                setBorderToImage(!isBorderToImage());
-        });
-        
-        setContextMenuOn(true);
+        // debug - change border framing style on mouse middle button click
+        // root.addEventFilter(MOUSE_CLICKED, e -> {
+        //    if(e.getButton()==MIDDLE) setBorderToImage(!isBorderToImage());
+        // });
         
         // set size
-        root.setPrefSize(size,size);
+        root.setPrefSize(_size,_size);
         // initialize image size
-        image.setFitHeight(size);
-        image.setFitWidth(size);
+        image.setFitHeight(_size);
+        image.setFitWidth(_size);
         // bind image sizes to size
         image.fitHeightProperty().bind(Bindings.min(root.prefHeightProperty(), maxIMGH));
         image.fitWidthProperty().bind(Bindings.min(root.prefWidthProperty(), maxIMGW));
@@ -243,11 +237,14 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     }
     
     /**
-     * Note that in order for the image to resize properly prefSize of this pane
-     * must be changed!
+     * Returns root pane. Also image drag gesture source {@see #setDragEnabled(boolean)}.
+     * <p>
+     * Note that in order for the image to resize prefSize of this pane
+     * must be used!
+     * <p>
      * {@inheritDoc }
-     * @return 
      */
+    @Dependency("Must return image drag gesture root")
     @Override
     public AnchorPane getPane() {
         return root;
@@ -278,6 +275,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         maxScaleFactor = val;
     }
     
+    
     /** 
      * Whether border envelops thumbnail or image specifically.
      * This is important for when the picture doesnt have the same aspect ratio
@@ -297,24 +295,15 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     /** Sets the {@link #borderToImage}. */
     public void setBorderToImage(boolean val) {
         if(borderToImage==val) return;
-        borderToImage(val);
+        borderToImage = val;
+        border_sizer.changed(null, null, ratioIMG.get()>ratioALL.get());
     }
     
-    /**
-     * Set visibility of the border. Default true.
-     * @param val 
-     */
-    private void borderToImage(boolean val) {
-        borderToImage = val;
-        if(val) {
-            root.getStyleClass().remove(border_styleclass);
-            img_border.getStyleClass().add(border_styleclass);
-
-        } else {
-            img_border.getStyleClass().remove(border_styleclass);
-            root.getStyleClass().add(border_styleclass);
-        }
+    public void setBorderVisible(boolean val) {
+        if(val) img_border.getStyleClass().add(border_styleclass);
+        else img_border.getStyleClass().remove(border_styleclass);
     }
+    
     
     /** 
      * Sets visibility of the background. The bgr is visible only when the image
@@ -329,30 +318,43 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         }
         else root.getStyleClass().remove(bgr_styleclass);
     }
-
-    public void setBorderVisible(boolean val) {
-        if(val) {
-            borderToImage(borderToImage);
-        } else {
-            root.getStyleClass().remove(border_styleclass);
-            img_border.getStyleClass().remove(border_styleclass);
-        }
-    }
+    
     
     /**
-     * Set support for dragging file representing the displayed image. The file
-     * can be dragged and dropped anywhere within the application.
+     * Allow image file drag from this thumbnail.
+     * <p>
+     * Dragging is done with left button and only possible if this thumbnail 
+     * has file set. The file will be put into dragboard, use Dataformat.FILES 
+     * to retrieve it.
+     * <p>
+     * The gesture source can be obtained by {@link #getPane()}
+     * <p>
      * Default true.
-     * @param val 
      */
-    public void setDragImage(boolean val) {
+    public void setDragEnabled(boolean val) {
         if(val) {
-            dragHandler = buildDragHandler();
+            dragHandler = buildDH();
             root.addEventHandler(DRAG_DETECTED, dragHandler);
         } else {
             root.removeEventHandler(DRAG_DETECTED, dragHandler);
             dragHandler = null;
         }
+    }
+    
+    private EventHandler<MouseEvent> dragHandler;
+    private EventHandler<MouseEvent> buildDH() {
+        return e -> {
+            if(e.getButton()==PRIMARY && img_file!=null) {
+                Dragboard db = root.startDragAndDrop(TransferMode.COPY);
+                // set drag image
+                if(getImage()!=null) db.setDragView(getImage());
+                // set content
+                HashMap<DataFormat,Object> c = new HashMap();
+                c.put(FILES, singletonList(img_file));
+                db.setContent(c);
+                e.consume();
+            }
+        };
     }
     
     /**
@@ -362,23 +364,6 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     public void setContextMenuOn(boolean val) {
         if (val) root.addEventHandler(MOUSE_CLICKED,contextMenuHandler);
         else root.removeEventHandler(MOUSE_CLICKED,contextMenuHandler);
-    }
-    
-    private EventHandler<MouseEvent> dragHandler;
-    
-    private EventHandler<MouseEvent> buildDragHandler() {
-        return e -> {
-            if(e.getButton()==PRIMARY && img_file!=null) {
-                Dragboard db = root.startDragAndDrop(TransferMode.LINK);
-                // set image
-                if(getImage()!=null) db.setDragView(getImage());
-                // set content
-                HashMap<DataFormat,Object> c = new HashMap();
-                c.put(FILES, Collections.singletonList(img_file));
-                db.setContent(c);
-                e.consume();
-            }
-        };
     }
     
     public void applyAlignment(Pos val) {
@@ -436,24 +421,34 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     }
     
     private final ChangeListener<Boolean> border_sizer = (o,ov,nv)-> {
-        if(nv) {
-            img_border.prefHeightProperty().unbind();
-            img_border.prefWidthProperty().unbind();
-            img_border.prefHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));
-            img_border.prefWidthProperty().bind(image.fitWidthProperty());
-            img_border.maxHeightProperty().unbind();
-            img_border.maxWidthProperty().unbind();
-            img_border.maxHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));
-            img_border.maxWidthProperty().bind(image.fitWidthProperty());
+        if(borderToImage) {
+            if(!img_container.getChildren().contains(img_border)) img_container.getChildren().add(img_border);
+            if(nv) {
+                img_border.prefHeightProperty().unbind();
+                img_border.prefWidthProperty().unbind();
+                img_border.prefHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));
+                img_border.prefWidthProperty().bind(image.fitWidthProperty());
+                img_border.maxHeightProperty().unbind();
+                img_border.maxWidthProperty().unbind();
+                img_border.maxHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));
+                img_border.maxWidthProperty().bind(image.fitWidthProperty());
+            } else {
+                img_border.prefHeightProperty().unbind();
+                img_border.prefWidthProperty().unbind();
+                img_border.prefWidthProperty().bind(image.fitHeightProperty().multiply(ratioIMG));
+                img_border.prefHeightProperty().bind(image.fitHeightProperty());
+                img_border.maxHeightProperty().unbind();
+                img_border.maxWidthProperty().unbind();
+                img_border.maxWidthProperty().bind(image.fitHeightProperty().multiply(ratioIMG));
+                img_border.maxHeightProperty().bind(image.fitHeightProperty());
+            }
         } else {
             img_border.prefHeightProperty().unbind();
             img_border.prefWidthProperty().unbind();
-            img_border.prefWidthProperty().bind(image.fitHeightProperty().multiply(ratioIMG));
-            img_border.prefHeightProperty().bind(image.fitHeightProperty());
             img_border.maxHeightProperty().unbind();
             img_border.maxWidthProperty().unbind();
-            img_border.maxWidthProperty().bind(image.fitHeightProperty().multiply(ratioIMG));
-            img_border.maxHeightProperty().bind(image.fitHeightProperty());
+            if(!root.getChildren().contains(img_border)) root.getChildren().add(img_border);
+            setAnchors(img_border,0);
         }
     };
     

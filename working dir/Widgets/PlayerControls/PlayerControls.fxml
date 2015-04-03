@@ -48,11 +48,11 @@
               <center>
                 <GridPane fx:id="soundGrid" alignment="CENTER" BorderPane.alignment="CENTER">
                   <children>
-                    <Slider fx:id="volume" prefWidth="110.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <Slider fx:id="volume" prefWidth="110.0" styleClass="volume" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                   </children>
                   <columnConstraints>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="99.0" minWidth="10.0" prefWidth="33.0" />
-                    <ColumnConstraints hgrow="SOMETIMES" />
+                    <ColumnConstraints hgrow="NEVER" maxWidth="99.0" minWidth="10.0" prefWidth="33.0" />
+                    <ColumnConstraints hgrow="NEVER" />
                   </columnConstraints>
                   <rowConstraints>
                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />

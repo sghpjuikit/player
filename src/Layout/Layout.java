@@ -161,7 +161,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
         
         // load
         Node n = super.load(rootPane);
-        initialize();
+        initialize();        
         return n;
     }    
 

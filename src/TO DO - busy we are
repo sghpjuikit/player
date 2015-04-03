@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- bookmarks reimplement through comment field & metadata table
+- playlist table column resizing and serializing
 - stream for defining activator/deactivator shapes on mouse move
 - app icon
 - tagger cover bad value
@@ -11,13 +13,9 @@
 - tagger cover loading optimize
 - plugin discovery/load
 - library view save selection
-- library view play items use same order as library column sort order
 - notification title css
 - Player contorls nullpointer when nothing plays on init()
 - seeker nullpointer when quickly invoking next item
-- remove selected items monitoring for tagger
-- use action pane on widgets
-
 - popover position jumps when drag starts
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
@@ -25,7 +23,6 @@
 - mini window bgr stretched, artefact on the right since menu doesnt have bgr
 - miniMode autohide add option, clean code, start autohide on window creation
 - minimode popups should prevent from autohiding, but how?
-- bookmark config serialisation - hahsmap not supported
 - tab area - reimplement
 - configurator empt shortcut not defaulting? fix
 - ALT+F4 closes windows separately instead whole app
@@ -47,25 +44,21 @@ GENERAL
 - deactivator position | size a bit off when loading first time & into small    (minor)
   area. It requires area resize call to initialize correct height/y-ccord
   use black bgr on the buttons pane to see the issue
-- Thumbnail borde rchanges size of the control - not good at all
 - Enviromment Dektop.browse() doesnt select files in explorer but opens them    (unsolvable?)
 - playlist item moving change order when moving fast even for jsut 1 block      (medium-major, investigate)
 - backslash (\) shortcut not working for left backslash key (left from Z)       (medium, since more stuff can be affected)
   status: currently unsolvable, so far one of its kind
   problem: jintellitype '\' works only for right '\' not left one (yes there are
   two '\' keys on the keyboard).
-- global shortcuts sometimes still fail to register to proper keys and register (medium, investigate cases)
-  for ALT instead. It happened only once since last reimplementation and it was
-  probabyly a result of messing around with configs. But it can still produce
-  issues and return.
 - starting playback at given previous position seeks to beginning for a while   (medium)
 - local shortcuts for complex characters (BACK_SLASH, etc) not working
   solution: solved for some characters by manually rewriting them upon
   shortcut registering, but thats only partial and incomplete workaround
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 - tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug)
-- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug)
-- Configurator group title alignment doesnt get applied on refresh              (still issue? javaFX bug)
+- blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug ?)
+  this happens when something has null skin, investigate & fix
+- Configurator group title alignment doesnt get applied sometimes               (javaFX bug)
 - context menu position sometimes off (even default ones). The cause must be
   its parent Node not initializing size correctly
 - some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug)
@@ -79,7 +72,7 @@ GENERAL
   doest block another press which could have happened during that time
   solution: have an incrementing sequence unique per shortcut press - this is
   however kinda hard to implement and i dont think its worth the effort
-- some gif files throw array index out of bounds execption                      (still issue?, internal javaFX bug)
+- some gif files throw array index out of bounds execption                      (still issue?, javaFX bug)
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
@@ -151,8 +144,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static
 - finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
-- improve/unify table column resizing for all tables
-- -||- sorting
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager
   & add support for tables to vind ObservableLists - decision to make
   but fix playlist table need to override sorting method because of this
@@ -169,7 +160,6 @@ PERFORMANCE
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
 --------------------------------------------------------------------------------
 
-
 - table row heights are fixed
 - scrollbar width should be 15px. Or table resize (and more) might break.
 - instead of javafx.scene.text.Text use Text class provided by the project. It
@@ -177,12 +167,6 @@ PERFORMANCE
   comes in with a handy resize methods
 - real main app window is hidden and owner of the others. this way they share
   some of the state like minimized
-- tooltip font size for AwesomeDude Label is same as icon size - which means
-  if default font size is 12 and the icon's size is 16 tooltips font will be 16.
-  Easily solvable by using fontAwesome method which takes font size as param too
-- when implementing equals() always test for reference equality like this:
-  if(o==this) return true; // this line can make a difference and it will never
-  be a bad thing. It can only help.
 - when implementing DragEvent make sure to properly accept the incoming drag
   only when all necessary onditions are met, not always. For example if we
   accept only certain type of files we need to query the dragboard files and see
@@ -195,7 +179,3 @@ PERFORMANCE
 - when showing ContextMenu, there is a big difference between show(Window,x,y)
   and (Node,x,y). The former will not hide the menu when next click happens
   within the node itself!
-- all popups and context menus have property setConsumeAutoHidingEvents()
-  to specify whether mouse event that closes the popup should have any further
-  effect on the application. In my opinion having it set to true (default) is 
-  rather annoying.

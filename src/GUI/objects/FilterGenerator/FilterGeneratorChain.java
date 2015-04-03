@@ -13,16 +13,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import util.async.Run;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
 import static util.functional.Util.isTRUE;
-import util.functional.functor.RunnableC;
 
 /**
  *
@@ -98,11 +97,11 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
             getChildren().remove(getChildren().get(i));
     }
     
-    public void setButton(FontAwesomeIconName icon, Tooltip t, RunnableC action) {
-        Label rem =  new Icon(icon, 13);
-              rem.setOnMouseClicked(e -> action.toHandlerConsumed());
-              rem.setPadding(new Insets(0, 3, 0, 5));
-              rem.setTooltip(t);
+    public void setButton(FontAwesomeIconName icon, Tooltip t, Run action) {
+        Icon rem =  new Icon(icon, 13);
+             rem.setOnMouseClicked(e -> action.toHandlerConsumed());
+             rem.setPadding(new Insets(0, 3, 0, 5));
+             rem.setTooltip(t);
         generators.get(0).getChildren().remove(0);
         generators.get(0).getChildren().add(0,rem);
     }
@@ -114,8 +113,8 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         g.setPrefTypeSupplier(prefTypeSupplier);
         g.setPrefPredicateSupplier(prefpredicateSupplier);
         g.setData(data);
-        Label rem = new Icon(MINUS, 13);
-        Label add = new Icon(PLUS, 13);
+        Icon rem = new Icon(MINUS, 13);
+        Icon add = new Icon(PLUS, 13);
         rem.setOnMouseClicked(e -> {
             generators.remove(g);
             getChildren().setAll(generators);
@@ -136,7 +135,7 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
         return g;
     }
     
-    private void generatePredicate() {System.out.println(generators.size()+ "gfdas");
+    private void generatePredicate() {
         conjuction = generators.stream()
                                .map(g->converter.apply(g.val,g.predicate))
                                .reduce(Predicate::and)

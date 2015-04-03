@@ -59,7 +59,7 @@ abstract public class ConfigField<T> {
     private final HBox box = new HBox();
     final Config<T> config;
     private boolean applyOnChange = true;
-    private Label defB;
+    private Icon defB;
     
     private ConfigField(Config<T> c) {
         config = c;
@@ -404,7 +404,7 @@ abstract public class ConfigField<T> {
             });
         }
         
-        @Override public Control getNode() {
+        @Override public Node getNode() {
             return cBox;
         }
         @Override public Boolean getItem() {

@@ -41,6 +41,16 @@ import static util.functional.Util.list;
 @TODO(purpose = FUNCTIONALITY,
       note = "printing, mailing if needed (but can be easily implemented")
 public class Enviroment {
+
+    /** Equivalent to {@code browse(f.toURI()); } */
+    public static void browse(File f) {
+        browse(f.toURI());
+    }
+    
+    /** Equivalent to {@code browse(URI.create(uri)); } */
+    public static void browse(String uri) {
+        browse(URI.create(uri));
+    }
     
     /**
      * Browses file's parent directory or directory.

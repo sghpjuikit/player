@@ -10,7 +10,7 @@
   <children><BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <right><HBox fx:id="volBox" alignment="CENTER_RIGHT" spacing="10.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER_RIGHT">
 <children>
-                    <Slider fx:id="volume" prefWidth="80.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <Slider fx:id="volume" prefWidth="80.0" styleClass="volume" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 </children></HBox>
 </right>
 <left><HBox alignment="CENTER" fillHeight="false" spacing="15.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" BorderPane.alignment="CENTER">

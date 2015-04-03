@@ -40,7 +40,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import static util.Util.consumeOnSecondaryButton;
 import util.access.Accessor;
-import util.functional.functor.RunnableC;
+import util.async.Run;
 import util.graphics.Icons;
 import util.units.FormattedDuration;
 
@@ -302,7 +302,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         }
     }
     
-    private RunnableC filterToggler() {
+    private Run filterToggler() {
         return filter_for_playback::setCycledNapplyValue;
     }
 }

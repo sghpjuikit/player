@@ -7,18 +7,18 @@ package GUI.objects.Spinner;
 
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
-import java.io.IOException;
 import java.util.Collections;
+import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
  <p>
@@ -28,7 +28,7 @@ public class Spinner extends ProgressIndicator {
     
     
     public Spinner() {
-        this(0);
+        this(1);
     }
 
     public Spinner(double progress) {
@@ -54,14 +54,8 @@ public class Spinner extends ProgressIndicator {
         public SpinnerSkin(Spinner spinner) {
             super(spinner, new BehaviorBase(spinner, Collections.emptyList()));
             
-            FXMLLoader fxmlLoader = new FXMLLoader(Spinner.class.getResource("Spinner.fxml"));
-            fxmlLoader.setController(this);
-            fxmlLoader.setRoot(root);
-            try {
-                fxmlLoader.load();
-            } catch (IOException ex) {
-                throw new RuntimeException("SimpleConfiguratorComponent source data coudlnt be read.");
-            }
+            // load fxml part
+            new ConventionFxmlLoader(Spinner.class, root, this).loadNoEx();
             
             // register listeners
             registerChangeListener(spinner.indeterminateProperty(), "INDETERMINATE");
@@ -98,11 +92,11 @@ public class Spinner extends ProgressIndicator {
 
         private void update() {
             Spinner s = getSkinnable();
-            double p = s.getProgress();
-            if(s.getParent()!=null && s.getScene()!=null && p!=1 && p!=0) {
-//            if(s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1 && p!=0) {
+            double p = s.getProgress();System.out.println(p);
+            if(s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1) {
                 if(rt==null) {
                     rt = new RotateTransition(Duration.seconds(80), inner);
+                    rt.setInterpolator(Interpolator.LINEAR);
                     rt.setCycleCount(Transition.INDEFINITE);
                     rt.setDelay(ZERO);
                     rt.setByAngle(360*100);
@@ -110,7 +104,7 @@ public class Spinner extends ProgressIndicator {
                 if(!playing) rt.play();
                 playing = true;
             } else {
-                if(playing) rt.pause();
+                if(playing && rt!=null) rt.pause();
                 playing = false;
             }
         }

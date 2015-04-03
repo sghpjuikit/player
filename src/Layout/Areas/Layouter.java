@@ -11,10 +11,8 @@ import Layout.FreeFormContainer;
 import Layout.PolyContainer;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
+import javafx.animation.*;
 import static javafx.animation.Interpolator.LINEAR;
-import javafx.animation.ScaleTransition;
 import javafx.event.EventHandler;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -153,6 +151,17 @@ public final class Layouter implements ContainerNode {
         }
         a1.play();
         a2.play();
+        
+//        Interpolator in = new SineInterpolator();
+////        forEachIndexedStream(cp.getCells(), (i,n) -> new Anim(millis(300), in, at -> { n.setScaleX(at); n.setScaleY(at); }).delay(millis(i*50)))
+////            .toArray(Anim[]::new)
+////        cp.getCells().stream().map(n->new Anim(millis(300), i, at -> { n.setScaleX(at); n.setScaleY(at); })).to
+//        Transition t = new ParallelTransition(
+//            forEachIndexedStream(cp.getCells(), (i,n) -> new Anim(millis(300), in, at -> { n.setScaleX(at); n.setScaleY(at); }).delay(millis(i*50)))
+//            .toArray(Anim[]::new)
+//        );
+//        t.setDelay(millis(500));
+//        t.play();
     }
     
     private boolean clickMode = true;

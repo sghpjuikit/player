@@ -601,7 +601,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if(valCond!=null && c instanceof CustomTextField) {
                 Validation v = new Validation(c, valCond , field + " field doeas not contain valid text.");
                 validators.add(v);
-                Label l = new Icon(EXCLAMATION_TRIANGLE, 11);
+                Icon l = new Icon(EXCLAMATION_TRIANGLE, 11);
                 CustomTextField cf = (CustomTextField)c;
                 c.textProperty().addListener((o,ov,nv) -> {
                     boolean b = v.isValid();
@@ -803,7 +803,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
            
         
         // build content controls
-        Label helpB = new Icon(FontAwesomeIconName.INFO,11, "Help");                     
+        Icon helpB = new Icon(FontAwesomeIconName.INFO,11, "Help");                     
         helpB.setOnMouseClicked( e -> {
             // build help popup lazily
             if(helpP == null) {

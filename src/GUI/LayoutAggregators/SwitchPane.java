@@ -12,16 +12,14 @@ import static java.lang.Math.signum;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import javafx.animation.*;
 import static javafx.animation.Animation.INDEFINITE;
-import javafx.animation.Interpolator;
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.beans.property.DoubleProperty;
 import javafx.scene.Parent;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.*;
-import javafx.scene.input.ScrollEvent;
+import static javafx.scene.input.ScrollEvent.SCROLL;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import main.App;
@@ -106,6 +104,9 @@ public class SwitchPane implements LayoutAggregator {
         zoom.getChildren().add(ui);
         setAnchors(ui, 0);
         
+        // always zoom x:y == 1:1, to zoom change x, y will simply follow
+        zoom.scaleYProperty().bind(zoom.scaleXProperty());
+        
         // prevent problematic events
         root.addEventFilter(MOUSE_PRESSED, e -> {
             if(e.getButton()==SECONDARY) {
@@ -113,18 +114,48 @@ public class SwitchPane implements LayoutAggregator {
             }
         });
         
+//        PerspectiveTransform pt = new PerspectiveTransform();
+//            pt.setUlx(0);
+//            pt.setUly(0);
+//            pt.setLlx(0);
+//            pt.setLly(1440/2);
+//            pt.setUrx(2560/2);
+//            pt.setUry(0);
+//            pt.setLrx(2560/2);
+//            pt.setLry(1440/2);
+//        root.setEffect(pt);
+//        root.addEventFilter(MOUSE_MOVED, e -> {
+//            if(isZoomed()) {
+//                double x = abs((e.getX()-root.getWidth()/2)/root.getWidth());
+//                double y = -1*(e.getY()-root.getHeight()/2)/root.getHeight();
+//                pt.setUlx(50*x);
+//                pt.setUly(50*y);
+//                pt.setLlx(50*x);
+//                pt.setLly(50*y);
+//                pt.setUrx(root.getWidth()-50*x);
+//                pt.setUry(root.getHeight()-50*y);
+//                pt.setLrx(root.getWidth()-50*x);
+//                pt.setLry(root.getHeight()-50*y);
+//            pt.setUlx(0+50*x);
+//            pt.setUly(0+50*y);
+//            pt.setLlx(0+50*x);
+//            pt.setLly(1440/2+50*y);
+//            pt.setUrx(2560/2-50*x);
+//            pt.setUry(0-50*y);
+//            pt.setLrx(2560/2-50*x);
+//            pt.setLry(1440/2-50*y);
+//            }
+//        });
+        
         root.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==SECONDARY) {
                 ui.setMouseTransparent(true);
                 dragUiStart(e);
                 dragUi(e);
             }
-            //if(e.isMiddleButtonDown())
-                //doScrolling(e);
         });
         
         root.addEventFilter(MOUSE_RELEASED, e-> {
-//        root.addEventFilter(MOUSE_CLICKED, e-> {
             if(e.getButton()==SECONDARY) {
                 dragUiEnd(e);
                 ui.setMouseTransparent(false);
@@ -137,7 +168,7 @@ public class SwitchPane implements LayoutAggregator {
             dragUiEnd(e);
         });
         
-        root.addEventFilter(ScrollEvent.SCROLL, e-> {
+        root.addEventHandler(SCROLL, e-> {
             if(GUI.GUI.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
@@ -147,30 +178,11 @@ public class SwitchPane implements LayoutAggregator {
                 tox = signum(-1*e.getDeltaY())*(fromcentre);
                 zoom(i);
                 e.consume();
-//                double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/20d;
-//                       i = clip(0.2d,i,1d);
-//                zoom.setScaleX(i);
-//                zoom.setScaleY(i);
-//                e.consume();
             }
         });
         
-//        root.addEventFilter(MOUSE_RELEASED, e-> {
-//            if(e.getButton()==MIDDLE) {
-//                //endScroll(e);
-//                //ui.setMouseTransparent(false);
-//            }
-//        });
-        
         uiDrag = new TranslateTransition(Duration.millis(400),ui);
         uiDrag.setInterpolator(new CircularInterpolator(EASE_OUT));
-        
-        scrolling = new TranslateTransition(Duration.millis(400), ui);
-        scrolling.setByX(3000);
-        scrolling.setInterpolator(Interpolator.LINEAR);
-        scrolling.setOnFinished( e -> {
-            scrolling.play();
-        });
         
         // bind widths for automatic dynamic resizing (works perfectly)
         ui.widthProperty().addListener(l -> {
@@ -187,7 +199,7 @@ public class SwitchPane implements LayoutAggregator {
     public final Map<Integer,AnchorPane> tabs = new HashMap();
     
     /** 
-     * Adds specified layout as new tab on the right side 
+     * Adds specified layout as new tab on the first empty tab from 0 to right 
      * 
      * @return tab index
      */
@@ -484,38 +496,6 @@ public class SwitchPane implements LayoutAggregator {
         return ui.translateXProperty();
     }
     
-/******************************** SCROLLING ***********************************/
-    
-    private final TranslateTransition scrolling;
-    private double scrollStartX = 0;
-    private boolean scrollActive = false;
-    
-    private void startScroll(MouseEvent e) {
-        if(scrollActive) return;System.out.println("scroll start");
-        scrollStartX = e.getSceneX();
-        scrollActive = true;
-        scrolling.play();
-    }
-    private void doScrolling(MouseEvent e) {
-        if(!scrollActive) return;
-        System.out.println("scroll do");
-        // calculate distance from start
-        double distance = e.getSceneX()-scrollStartX;
-        // set animation speed, 1 = max speed, 0 = min
-        scrolling.setRate(distance/uiWidth());
-        
-        e.consume();
-    }
-    private void endScroll(MouseEvent e) {
-        if(!scrollActive) return;
-        System.out.println("scroll end");
-        scrollActive = false;
-        scrolling.stop();
-        alignTabs();
-        
-        e.consume();
-    }
-    
     
 /********************************** ALIGNING **********************************/
     
@@ -531,20 +511,25 @@ public class SwitchPane implements LayoutAggregator {
     private final ScaleTransition z = new ScaleTransition(Duration.ZERO,zoom);
     private final TranslateTransition zt = new TranslateTransition(Duration.ZERO,ui);
     
+    /** Animates zoom on when true, or off when false. */
     public void zoom(boolean v) {
         z.setInterpolator(new CircularInterpolator(EASE_OUT));
         zt.setInterpolator(new CircularInterpolator(EASE_OUT));
         zoomNoAcc(v ? zoomScaleFactor : 1);
     }
     
+    /** @return true if zoomed to value <0,1), false when zoomed to 1*/
     public boolean isZoomed() {
         return zoom.getScaleX()!=1;
     }
     
+    /** Animates zoom on/off. Equivalent to: {@code zoom(!isZoomed());} */
     public void toggleZoom() {
         zoom(!isZoomed());
     }
     
+    /** Use to animate or manipulate zooming 
+    @return zoom scale prperty taking on values from (0,1> */
     public DoubleProperty zoomProperty() {
         return zoom.scaleXProperty();
     }
@@ -557,11 +542,9 @@ public class SwitchPane implements LayoutAggregator {
         z.stop();
         z.setDuration(Duration.millis(GUI.GUI.duration_LM));
         z.setToX(d);
-        z.setToY(d);
         z.play();
         zt.stop();
         zt.setDuration(z.getDuration());
-//        zt.setByX((1-zoom.getScaleX())*byx);
         zt.setByX(tox/5);
         zt.play();
         App.actionStream.push("Zoom mode");

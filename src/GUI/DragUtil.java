@@ -5,19 +5,24 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import AudioPlayer.tagging.ActionTask;
-import GUI.objects.PopOver.PopOver;
 import GUI.InfoNode.InfoTask;
+import GUI.objects.PopOver.PopOver;
 import Layout.Component;
 import Layout.Container;
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Integer.MAX_VALUE;
 import java.net.URI;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import java.util.concurrent.CompletableFuture;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import static java.util.stream.Collectors.toList;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.scene.control.Label;
@@ -32,6 +37,7 @@ import main.App;
 import static org.atteo.evo.inflector.English.plural;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
+import static util.File.AudioFileFormat.Use.APP;
 import util.File.FileUtil;
 import static util.File.FileUtil.getFilesAudio;
 import util.File.ImageFileFormat;
@@ -281,7 +287,7 @@ public final class DragUtil {
                 .useAnd(i::bind)
                 .run(Async::executeBgr);
         } else
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {System.out.println("url");
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
             new ActionTask<>("Downloading image")
                 .setAction(()->{
@@ -321,6 +327,93 @@ public final class DragUtil {
     public static boolean hasImage(Dragboard d) {
         return (d.hasFiles() && !FileUtil.getImageFiles(d.getFiles()).isEmpty()) ||
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
+    }
+    
+    
+    
+    public static void doWithImagess(DragEvent e, Consumer<List<File>> action) {
+        Dragboard d = e.getDragboard();
+        if (d.hasFiles()) {System.out.println("files" + d.getFiles().size());
+            List<File> files = d.getFiles();
+            String name = "Copying " + plural("image", files.size());
+            new ActionTask<>(name)
+                .setAction(() -> action.accept(FileUtil.getImageFiles(files)))
+                .run(Async::executeBgr);
+        } else
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+            String url = d.getUrl();
+            new ActionTask<>("Downloading image")
+                .setAction(()->{
+                    try {
+                        File nf = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                        action.accept(singletonList(nf));
+                    } catch (Exception ex) {
+                        Log.err(ex.getMessage());
+                    }
+                })
+                .run(Async::executeBgr);        
+        } else
+            throw new IllegalStateException("image content not found");
+    }
+    
+    
+    
+    
+    /**
+     * Returns future that contains image file obtained from the dragboard. The
+     * file type is supported. Always call {@link #hasImage(javafx.scene.input.Dragboard) }
+     * before this method to check the content.
+     * <ls>If there was an url, the image will be downlaoded and stored as temporary
+     * file.
+     * <ls>If there were files, the first image file is returned
+     * <ls>If for some reason no supported image file could be obtained, the
+     * future will return null
+     */
+    public static CompletableFuture<File> getImages(DragEvent e) {
+        Dragboard d = e.getDragboard();
+
+        // first url - we dont want files to get in the way
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+            String url = d.getUrl();
+            return supplyAsync(() -> {
+                        try {
+                            return FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                        } catch(IOException ex) {
+                            return null;
+                        }
+                    });
+        } else
+        if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            return supplyAsync(() -> {
+                        List<File> fs = FileUtil.getImageFiles(files);
+                        return fs.isEmpty() ? null : fs.get(0);
+                    });
+        } else
+            return completedFuture(null);
+    }
+    
+    public static CompletableFuture<List<Item>> getSongs(DragEvent e) {
+        Dragboard d = e.getDragboard();
+        
+        if (d.hasFiles()) {System.out.println("files");
+            List<File> files = d.getFiles();
+            return supplyAsync(() -> getFilesAudio(files,APP,MAX_VALUE)
+                                    .map(SimpleItem::new).collect(toList()));
+        } else
+        if (d.hasUrl()) {
+            String url = d.getUrl();
+            return completedFuture(AudioFileFormat.isSupported(url,APP)
+                                ? singletonList(new SimpleItem(URI.create(url)))
+                                : null);
+        } else
+        if (hasPlaylist()) {
+            return completedFuture((List)getPlaylist().getItems());
+        } else 
+        if (hasItemList()) {
+            return completedFuture(getItemsList());
+        } else
+            return completedFuture(EMPTY_LIST);
     }
     
     

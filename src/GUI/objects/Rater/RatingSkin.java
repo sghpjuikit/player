@@ -198,7 +198,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, BehaviorBase<Rating>> {
         Text l = Icons.createIcon(icon, getSkinnable().icons.get(), 10);
              l.setCache(true);
              l.setCacheHint(CacheHint.SPEED);
-             l.getStyleClass().add("rating-button");
+             l.getStyleClass().setAll("rating-button");
              l.setOnMouseMoved(mouseMoveHandler);
              l.setOnMouseClicked(mouseClickHandler);
         return l;

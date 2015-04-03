@@ -15,8 +15,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javafx.animation.Interpolator;
-import javafx.animation.Transition;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -456,6 +454,16 @@ public class Util {
         AnchorPane.setLeftAnchor(n, left);
     }
     
+    public static void setScaleXY(Node n, double s) {
+        n.setScaleX(s);
+        n.setScaleY(s);
+    }
+    
+    public static void setScaleXY(Node n, double x, double y) {
+        n.setScaleX(x);
+        n.setScaleY(y);
+    }
+    
     /**
      * Returns copy of the selected items of the table. Because the original list
      * is observable, changes would show up if it was used as a parameter. Often,
@@ -610,33 +618,6 @@ public class Util {
         return from.stream()
             .map(t -> menuItem(toStr.apply(t), e -> action.accept(t)))
             .toArray(MenuItem[]::new);
-    }
-    
-    /** Shortcut for:
-        Transition t = new Transition() {
-            {
-                setCycleDuration(d);
-                if(i!=null) setInterpolator(i);
-            }
-            @Override
-            protected void interpolate(double p) {
-                animator.accept(p);
-            }
-        };
-        }</pre>
-    */
-    public static Transition animation(Duration d, Interpolator i, Consumer<Double> animator) {
-        Transition t = new Transition() {
-            {
-                setCycleDuration(d);
-                if(i!=null) setInterpolator(i);
-            }
-            @Override
-            protected void interpolate(double p) {
-                animator.accept(p);
-            }
-        };
-        return t;
     }
     
 /***************************** REFLECTION *************************************/

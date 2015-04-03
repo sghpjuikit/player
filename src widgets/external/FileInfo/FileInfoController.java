@@ -14,9 +14,9 @@ import static GUI.DragUtil.hasImage;
 import GUI.InfoNode.SongInfo;
 import GUI.Panes.ImageFlowPane;
 import GUI.objects.ActionChooser;
+import GUI.objects.Icon;
 import GUI.objects.Rater.Rating;
 import GUI.objects.Thumbnail.ChangeableThumbnail;
-import GUI.objects.Thumbnail.Thumbnail;
 import Layout.Areas.Area;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
@@ -24,35 +24,39 @@ import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import java.io.File;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javafx.application.Platform;
-import static javafx.application.Platform.runLater;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.Node;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
-import javafx.scene.control.Labeled;
-import javafx.scene.control.OverrunStyle;
+import javafx.scene.control.*;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import javafx.scene.image.Image;
+import static javafx.scene.input.DragEvent.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import main.App;
 import org.reactfx.Subscription;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
+import util.File.ImageFileFormat;
 import util.Util;
 import util.access.Accessor;
+import util.async.Async;
+import static util.async.Async.eFX;
+import static util.async.Async.run;
 
 /**
  * File info widget controller.
@@ -177,9 +181,13 @@ public class FileInfoController extends FXMLController implements SongInfo {
     @Override
     public void init() {        
         // initialize gui
-        Thumbnail cover = new ChangeableThumbnail();
+        ChangeableThumbnail cover = new ChangeableThumbnail();
                   cover.setBackgroundVisible(false);
-                  cover.setBorderToImage(true);
+                  cover.setBorderToImage(false);
+                  cover.onFileDropped = f -> {
+                      actPane.item = f;
+                      getArea().setActivityVisible(true);
+                  };
                   
         layout = new ImageFlowPane(entireArea, cover);
         layout.setMinContentWidth(200);
@@ -218,34 +226,9 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // hide rating if empty
         rater.visibleProperty().bind(rating.disabledProperty().not());
         
-        // show/hide content on cover mouse click
-        cover.getPane().setOnMouseClicked( e -> {
-            if (e.getButton() == PRIMARY) {
-                layout.toggleShowContent();
-                showFields.setValue(layout.isShowContent());
-            }
-        });
-        
-        
-        // accept drag transfer
+        // accept audio drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
-//        entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
-//        entireArea.setOnDragOver(e->{
-//            if (hasImage(e.getDragboard())) {
-//                ((Area)getActivityNode().getUserData()).setActivityVisible(true);
-//                e.acceptTransferModes(TransferMode.ANY);
-//                e.consume();
-//            }
-//        });
-        entireArea.setOnDragEntered(e->{
-            if (hasImage(e.getDragboard())) {
-                ((Area)getActivityNode().getUserData()).setActivityVisible(true);
-                entireArea.getScene().getWindow().requestFocus();
-//                e.acceptTransferModes(TransferMode.ANY);
-//                e.consume();
-            }
-        });
-        // handle drag transfers
+        // handle audio drag transfers
         entireArea.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
                 // get first item
@@ -258,40 +241,70 @@ public class FileInfoController extends FXMLController implements SongInfo {
             }
         });
         
-        actPane = new ActionChooser();
-        actPane.setOnDragExited(e->((Area)actPane.getUserData()).setActivityVisible(false));
+        // if image drag detected open activity pane
+        entireArea.addEventFilter(DRAG_ENTERED,e->{
+            if (hasImage(e.getDragboard()) && e.getGestureSource()!=cover.getPane())
+                getArea().setActivityVisible(true);
+        });
+        entireArea.addEventFilter(DRAG_OVER,e->{
+            if (hasImage(e.getDragboard()) && e.getGestureSource()!=cover.getPane())
+                getArea().setActivityVisible(true);
+        });
         
-        Labeled copyB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
-        copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
-        copyB.setOnDragDropped( e -> {
-            if(data!=null && data.isFileBased()) { 
-                // process images
-                DragUtil.doWithImages(e,
-                    imgs -> {
-                        int n = imgs.size();
-                        if(n==1) {
-                            // copy files to displayed item's location & preserve old
-                            copyFileSafe(imgs.get(0), data.getLocation(), "cover");
-                            // refresh picture
-                            Platform.runLater(cover_source::applyValue);
-                        } else if (n>1) {
-
-                        }
-                    });
-                // end drag
-                ((Area)actPane.getUserData()).setActivityVisible(false);
+        
+        ProgressIndicator pi = new GUI.objects.Spinner.Spinner();pi.setPrefSize(33, 33);
+        actPane = new ActionChooser();
+        actPane.addEventHandler(DRAG_EXITED, e-> { if(getArea().progress.getProgress()!=-1) ((Area)actPane.getUserData()).setActivityVisible(false);});
+        actPane.addEventHandler(MOUSE_EXITED, e-> { if(getArea().progress.getProgress()!=-1) ((Area)actPane.getUserData()).setActivityVisible(false);});
+        
+        pi.setVisible(true);
+        actPane.actionBox.getChildren().add(0,pi);
+        
+        Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover", true,true);
+        coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
+        coverB.setOnDragDropped( e -> {
+            if(data!=null && data.isFileBased()) {  //&& DragUtil.hasImage(e.getDragboard())
+                
+                 CompletableFuture.runAsync(()->{})
+                    .thenRunAsync(()->getArea().progress.setProgress(-1),eFX)
+                    .thenCompose(nothing -> DragUtil.getImages(e))
+                    .thenAcceptAsync(f -> copyFileSafe(f, data.getLocation(), "cover"))
+                    .thenRunAsync(() -> System.out.println("cover"), eFX)
+                    .thenRunAsync(cover_source::applyValue, eFX)
+                    .thenRun(() -> getArea().setActivityVisible(false))
+                    .thenRun(() -> getArea().progress.setProgress(1))
+                    .thenRun(() -> System.out.println("SSSS " + Platform.isFxApplicationThread() + " " + getArea().progress.getProgress()))
+//                    .thenRunAsync(() -> {
+//                        getArea().progress.setProgress(1);
+//                        getArea().setActivityVisible(false);
+//                        cover_source.applyValue();
+//                    },eFX)
+                    .complete(null);
+                 
                 e.setDropCompleted(true);
                 e.consume();
             }
         });
-        Labeled coverB = actPane.addIcon(PLUS, "Copy to the location");
-        coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
-        coverB.setOnDragDropped( e -> {
+        
+        coverB.setOnMouseClicked(e -> {
+            File f = actPane.item;
+            if(f !=null && ImageFileFormat.isSupported(f)) {
+                getArea().progress.setProgress(-1);
+                Async.runBgr(()->copyFileSafe(f, data.getLocation(), "cover"),() -> {
+                    cover_source.applyValue();
+                    getArea().progress.setProgress(-1);
+                    getArea().setActivityVisible(false);
+                });
+            }
+        });
+        Icon copyB = actPane.addIcon(PLUS, "Copy to the location", true,true);
+        copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
+        copyB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {  
                 // process images
                 DragUtil.doWithImages(e, imgs -> copyFiles(imgs, data.getLocation()));
                 // end drag
-                ((Area)actPane.getUserData()).setActivityVisible(false);
+//                ((Area)actPane.getUserData()).setActivityVisible(false);
                 e.setDropCompleted(true);
                 e.consume();
             }
@@ -305,20 +318,20 @@ public class FileInfoController extends FXMLController implements SongInfo {
             srcB.setText(i.characterToString());
             srcB.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",i.getFontFamily(), 15));
             srcB.getStyleClass().add("glyph");
-            actPane.description.setText("left click: " + readMode.getValue().toString() + " -> " + readMode.next().toString() + "\n" +
-                                        "right click: " + readMode.getValue().toString() + " -> " + readMode.previous().toString());
+            actPane.description.setText("left click: " + readMode.next().toString() + "\n" +
+                                        "right click: " + readMode.previous().toString());
         });
         srcB.setOnMouseEntered(e->{
-            actPane.description.setText("left click: " + readMode.getValue().toString() + " -> " + readMode.next().toString() + "\n" +
-                                        "right click: " + readMode.getValue().toString() + " -> " + readMode.previous().toString());
+            actPane.description.setText("left click: " + readMode.next().toString() + "\n" +
+                                        "right click: " + readMode.previous().toString());
         });
         
         // needs run later to properly initialize
-        runLater(()->resize(entireArea.getWidth(), entireArea.getHeight()));
+        run(1000,()->resize(entireArea.getWidth(), entireArea.getHeight()));
     }
     
-    ActionChooser actPane;
-    Labeled srcB;
+    ActionChooser<File> actPane;
+    Icon srcB;
     
     @Override
     public Node getActivityNode() {

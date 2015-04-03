@@ -36,6 +36,7 @@ public class ImprovedTable<T> extends TableView<T> {
         indexCellFactory = buildIndexColumnCellFactory();
         columnIndex.setCellFactory(indexCellFactory);
         columnIndex.setSortable(false);
+        columnIndex.setResizable(false);
         getColumns().add(columnIndex);
     }
     
@@ -126,6 +127,7 @@ public class ImprovedTable<T> extends TableView<T> {
         TableColumn<T,Void> c = new TableColumn("#");
                             c.setCellFactory(buildIndexColumnCellFactory());
                             c.setSortable(false);
+                            c.setResizable(false);
         return c;
     }
     

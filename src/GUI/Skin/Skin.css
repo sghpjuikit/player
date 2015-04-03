@@ -2590,12 +2590,11 @@
 
 .tooltip {
     -fx-background-color: -fx-popup-def-bgr-color;
-    //-fx-opacity: 0.85;
-    -fx-background-radius: 1;
-    -fx-border-width:2;
+    -fx-background-radius: 0;
+    -fx-border-width:1;
     -fx-border-color: black;
     -fx-text-fill: -fx-def-font-color;
-    -fx-padding: 0.3em 0.7em 0.3em 0.7em;
+    -fx-padding: 0.5em 1em 0.5em 1em;
 }
 
 /*******************************************************************************
@@ -3351,34 +3350,7 @@
 .header-buttons {
 }
 
-/* button in a header-buttons box */
-.header-button {
-    -fx-label-padding: 0;
-    -fx-content-display: center;
-    -fx-background-color: null;
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-    -fx-padding: 0;
-}
-.header-button:focused {
-    -fx-background-color: null;
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
-.header-button:hover {
-    -fx-background-color: null;
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
-.header-button:pressed {
-    -fx-background-color: null;
-    -fx-background-insets: 0;
-    -fx-border: null;
-    -fx-border-width: 0;
-}
+
 
 .lighter-button {
     -fx-background-color: rgba(180,200,255,0.1);
@@ -3444,7 +3416,7 @@
     -fx-underline: true
 }
 .table-row-cell:played,
-.table-row-cell:played:selected{
+.table-row-cell:played:selected {
     // setting text fill here wont work, because text is in cells not rows
     // in general set only non-content properties in row
 }
@@ -3563,7 +3535,7 @@
 
 //****************************** THUMBNAIL ***********************************//
 
-// background for thumbnail
+// root - background for thumbnail
 .thumbnail {
     -fx-background-color: null;
 }
@@ -3574,8 +3546,10 @@
 }
 
 //************************** CHANGEABLE THUMBNAIL ****************************//
+// highlights that file can be added with icon
 // inherits .thumbnail, adds following entries
 
+// highlighted is active when: mouse hover | drag over
 .thumbnail-image:highlighted {
     -fx-opacity: 0.5;
 }
@@ -3583,65 +3557,103 @@
     -fx-border-color: -fx-def-font-color;
     -fx-opacity: 0.5;
 }
+// icon shown on highlight
 .changeable-thumbnail-icon {
     -fx-text-fill: -fx-def-font-color;
 }
 
 //****************************** SEEKER ***********************************//
-// seeker actually wraps slider and as a result it has exactly the same classes
-// as slider
+// inherits slider
 
-// leaving out any skinning for seeker whatsoever will cause it to have the same
-// skin as ordinary slider
+.seeker .thumb {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
+}
+.seeker .thumb:hover,
+.seeker .thumb:pressed {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
+}
+
 .seeker .track {
     -fx-background-color: rgba(255,255,255,0.3);
-    -fx-background-insets: -3; // this actually puts width back to original 100%
-    -fx-background-radius: 0;
-    -fx-padding: 3; // basically trck width (as usually the length is autosized)
+    -fx-background-insets: 0; // this actually puts width back to original 100%
+    -fx-background-radius: 1;
+    -fx-padding: 1; // basically track width (as usually the length is autosized)
 }
 
 // this is a custom element and doesnt belong under slider
 // styles markers on the seekbar. markers mark specific time point on the seeker
 // note: marker is a Rectangle which is a Shape
 .seeker-marker {
-    -fx-background-color: rgb(0,0,0);
-    -fx-opacity: 0.4;
-    -fx-padding: 4 2 4 2; // height=4, width=2
+    -fx-background-color: -fx-def-font-color;
+    -fx-opacity: 0.5;
+    -fx-padding: 4 1 4 1; // height=4, width=2
+}
+
+//****************************** VOLUME SLIDER *******************************//
+// inherits slider
+
+.volume .thumb {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
+}
+.volume .thumb:hover {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
+}
+
+.volume .track {
+    -fx-background-color: rgba(255,255,255,0.3);
+    -fx-background-insets: 0; // this actually puts width back to original 100%
+    -fx-background-radius: 1;
+    -fx-padding: 1; // basically track width (as usually the length is autosized)
 }
 
 //*********************************** TEXT ***********************************//
 
 // javafx.scene.text.Text doesnt actually have a style class so this is a custom
-// implementation of that
-// it does however have to be applied manually in the code upon Text object
-// creation. A sublass of Text could however be created that uses this style
-// class by default
+// implementation of that used by a sublass
 .text-shape {
     -fx-fill: -fx-def-font-color;
 }
 
+//*********************************** ICONS **********************************//
 
-// application icons. specifically: icons usin glyph fonts and also graphics of
-// an Icon with 'icon' styleclass
-// the icons true class is Text
+// Text using glyph to make icon
+// inherits nothing
+
 .glyph {
     -fx-fill: -fx-def-font-color;
+    // id love to do this, but animations get jerky
+    //-fx-effect: dropshadow(three-pass-box, rgb(130,170,255), 4,0, 0,0);
 }
 .glyph:hover {
     -fx-fill: -fx-def-font-color-hover;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 
 // Icon class
-// see also .glyph
+// inherits .glyph
 .icon {
-    icon: "CLOSE";
+    //icon: "CLOSE";
 }
 
 .icon:hover {
-    icon: "LOCK";
+    //icon: "LOCK";
+    -fx-fill: -fx-def-font-color-hover;
 }
 
-// the following are all subtypes of .awesome
+
+
+
+
 
 .congfig-field-default-button {
     -fx-font-size: 0.9em;
@@ -3680,23 +3692,7 @@
 
 /***********************************************************************************/
 
-// special button with two graphics and fade transition on hover between them.
-// This way anything can be faded into anything. Simply define the two states
-.fade-button-normal {
-    -fx-font-size: 0.9em;
-    -fx-background-color: transparent;
-    -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
-}
-.fade-button-hover {
-    -fx-font-size: 0.9em;
-    -fx-background-color: transparent;
-    -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color-hover;
-    -fx-text-fill: -fx-def-font-color-hover;
-    -fx-effect: dropshadow( gaussian, -fx-def-font-color-hover, 5, 0.0 , 0 , 0 );
-}
+
 
 /* Audio spectrum graph.
    Extends and has all properties of: chart-bar */
@@ -3711,12 +3707,20 @@
     //-fx-padding: 0 4 0 4;
 }
 
-// inherits .glyph
+
+// .rating-button
+// the stars (although not necessarily stars (not settable in css))), all of the
+// icons are one object due to performance optimizations, so so separete effects
+// on individual icons are impossible
+// should inherit .glyph, but does not due to possible atifacts
+
 // the 'empty' rating button 
 .rating-button {
+    -fx-fill: -fx-def-font-color;
     -fx-font-size: 10px;
 }
-// the 'full' rating button 
+// the 'full' rating button - 2nd group of icons with this pseudoclass hovers
+// clipped on top to produce partial rating effect
 .rating-button.strong {
     /*-fx-opacity: 0.8;*/
     -fx-font-size: 10px;

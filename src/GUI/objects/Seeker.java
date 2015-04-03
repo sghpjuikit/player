@@ -8,7 +8,6 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.PopOver.PopOver;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
@@ -18,11 +17,9 @@ import javafx.animation.ScaleTransition;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
@@ -39,8 +36,7 @@ import javafx.stage.Popup;
 import javafx.util.Duration;
 import static util.async.Async.run;
 import util.async.FxTimer;
-import util.dev.Dependency;
-import util.dev.Log;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
  * 
@@ -62,20 +58,10 @@ public final class Seeker extends AnchorPane {
     private boolean snaPosToChap = false;
     
     public Seeker() {
-        // load graphics
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Seeker.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-        try {
-            fxmlLoader.load();
-        } catch (IOException ex) {
-            Log.err("Seeker source data coudlnt be read.");
-        }
-        initializeC();
-    }
-    
-    @Dependency("Public because of FXMLLoader. Runs automatically. Dont use.")
-    public void initializeC() {
+        
+        // load fxml part
+        new ConventionFxmlLoader(this).loadNoEx();
+        
         this.setMinSize(0,0);
         this.setMaxSize(USE_COMPUTED_SIZE,15);
         this.setPrefSize(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
@@ -251,7 +237,7 @@ public final class Seeker extends AnchorPane {
     
     private class AddChapButton {
         Popup p;
-        FadeButton l = new FadeButton(PLUS_CIRCLE, 18);
+        GlowIcon l = new GlowIcon(PLUS_CIRCLE, 18);
         Slider s;
         FadeTransition ft = new FadeTransition(Duration.millis(250), l);
         
@@ -405,7 +391,7 @@ public final class Seeker extends AnchorPane {
                     nextB.setDisable(true);
                 if(0 == i)
                     prevB.setDisable(true);
-                Label helpB = new Icon(INFO, 11, "Help", e -> {
+                Icon helpB = new Icon(INFO, 11, "Help", e -> {
                     // build help content for help popup if not yet built
                     // with this we avoid constructing multuple popups
                     if(helpP == null) {

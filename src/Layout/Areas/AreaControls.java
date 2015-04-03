@@ -22,7 +22,6 @@ import Layout.Container;
 import Layout.Widgets.Features.Feature;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import java.io.IOException;
 import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
@@ -30,7 +29,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Pos;
@@ -49,11 +47,12 @@ import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
 import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.EventSource;
+import util.Animation.Anim;
 import util.SingleInstance;
-import static util.Util.animation;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
 import static util.functional.Util.toS;
+import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
 
 /**
@@ -87,7 +86,7 @@ public final class AreaControls {
     @FXML public Region deactivator2;
     @FXML public BorderPane header;
     @FXML public Label title;
-    public Label propB;
+    public Icon propB;
     public @FXML TilePane header_buttons;
     Icon infoB, absB;
 
@@ -100,22 +99,17 @@ public final class AreaControls {
 
     public AreaControls(Area area) {
 	this.area = area;
-
-	// load graphics
-	try {
-	    FXMLLoader loader = new FXMLLoader(this.getClass().getResource("AreaControls.fxml"));
-	    loader.setRoot(root);
-	    loader.setController(this);
-	    loader.load();
-	} catch (IOException ex) {
-	    throw new RuntimeException(ex.getMessage());
-	}
+        
+        // load fxml part
+        new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
 	// avoid clashing of title and control buttons for small root size
 	header_buttons.maxWidthProperty()
 	    .bind(root.widthProperty().subtract(title.widthProperty())
 		.divide(2).subtract(15));
 	header_buttons.setMinWidth(15);
+	header_buttons.setHgap(8);
+	header_buttons.setVgap(8);
 
 	// build header buttons
 	infoB = new Icon(INFO, 12, "Help", this::showInfo);
@@ -167,10 +161,10 @@ public final class AreaControls {
 	contAnim = new FadeTransition(millis(GUI.duration_LM), area.getContent());
 	BoxBlur blur = new BoxBlur(0, 0, 1);
 	area.getContent().setEffect(blur);
-	blurAnim = animation(millis(GUI.duration_LM), null, frac -> {
-            blur.setWidth(frac*GUI.blur_LM);
-            blur.setHeight(frac*GUI.blur_LM);
-        });
+	blurAnim = new Anim(at -> {
+            blur.setWidth(at*GUI.blur_LM);
+            blur.setHeight(at*GUI.blur_LM);
+        }).dur(GUI.duration_LM);
 
         // weak mode and strong mode - strong mode is show/hide called from external code
 	// - weak mode is show/hide by mouse enter/exit events in the corner (activator/deactivator)

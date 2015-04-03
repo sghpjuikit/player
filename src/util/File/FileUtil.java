@@ -542,7 +542,7 @@ public final class FileUtil {
 
         is.close();
         os.close();
-    }
+   }
     
     /**
      * Same as {@link #saveFileAs(java.lang.String, java.io.File)} but instead

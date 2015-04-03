@@ -2,6 +2,7 @@
 package Layout.Widgets;
 
 import Configuration.Configurable;
+import Layout.Areas.Area;
 import Layout.Layout;
 import Layout.Widgets.Features.Feature;
 import java.util.ArrayList;
@@ -129,6 +130,18 @@ public interface Controller<W extends Widget> extends Configurable<Object>, Abst
     
     default public Node getActivityNode() {
         return null;
+    }
+    
+    /**
+     * Returns the graphics of the container where this widget is loaded. The area
+     * provides access to the layout graph.
+     *
+     * @return area within which the widget this controller is associated with is
+     * loaded in.*/
+    default public Area getArea() {
+        Object o = getWidget().load().getUserData();
+        if(o instanceof Area) return (Area)o;
+        throw new IllegalStateException(getWidget().getName() + "'s controller cant access Area");
     }
     
     /** @return all implemented features */

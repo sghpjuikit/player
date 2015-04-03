@@ -36,7 +36,6 @@ public class Icons {
         Text t = new Text(icon.characterToString());
         t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getFontFamily(), iconSize));
         t.getStyleClass().add("glyph");
-        t.setPickOnBounds(true);
         return t;
     }
     public static Text createIcon(GlyphIconName icon, int icons, int size) {

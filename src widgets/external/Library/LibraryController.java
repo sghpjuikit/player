@@ -17,6 +17,7 @@ import GUI.InfoNode.InfoTask;
 import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
+import GUI.objects.Icon;
 import GUI.objects.Spinner.Spinner;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
@@ -49,7 +50,7 @@ import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.CENTER;
+import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableColumn.SortType.ASCENDING;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
@@ -77,6 +78,7 @@ import static util.File.FileUtil.getFilesAudio;
 import static util.Util.*;
 import util.access.Accessor;
 import util.async.Async;
+import static util.async.Async.eFX;
 import static util.async.Async.runAsTask;
 import util.async.FxTimer;
 import util.functional.Runner;
@@ -120,7 +122,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     ActionChooser actPane = new ActionChooser();
-    Labeled lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", false);
+    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -238,11 +240,11 @@ public class LibraryController extends FXMLController {public String a() { retur
         });
         
 
-        // drag&drop from table
+        // drag&drop from table==source
         table.setOnDragDetected(e -> {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
-                Dragboard db = table.startDragAndDrop(COPY); // table==source
+                Dragboard db = table.startDragAndDrop(COPY);
                 DragUtil.setItemList(table.getSelectedItemsCopy(),db);
             }
             e.consume();
@@ -255,8 +257,17 @@ public class LibraryController extends FXMLController {public String a() { retur
             }
         });
         table.setOnDragDropped(e-> {
-            if(e.getSource()!=table) {
-                addNeditDo(DragUtil.getAudioItems(e).stream().map(Item::getFile),false);
+            if(e.getGestureSource()!=table) {
+                
+                taskInfo.setVisible(true);
+                taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
+                taskInfo.message.setText("Discovering songs...");
+                DragUtil.getSongs(e)
+                        .thenAcceptAsync(songs -> addNeditDo(songs.stream().map(Item::getFile),false))
+                        .thenRunAsync(() -> {}, eFX)
+                        .complete(null);
+                 
+                e.setDropCompleted(true);
                 e.consume();
             }
         });
@@ -283,7 +294,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                 .reduce((m1,m2) -> 0, Comparator::thenComparing)
         );
         
-        // task information label
+        // task info init
         taskInfo.setVisible(false);
         
         // table information label
@@ -347,23 +358,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     }
     
     private void addNedit(boolean edit, boolean dir) {
-        // get files
-//        Stream<File> files;
-//        if(dir) {
-//            File f = Enviroment.chooseFile("Add folder to library", true, last_file,
-//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-//            files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
-//            if (f!=null) last_file = f;
-//        } else {
-//            List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
-//                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-//            files = fs.stream();
-//            File f = files==null ? null : getCommonRoot(fs);
-//            if(f!=null) last_file=f;
-//        }
-//        
-//        addNeditDo(files, edit);
-        
+        // get files        
         if(dir) {
             File f = Enviroment.chooseFile("Add folder to library", true, last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
@@ -382,8 +377,6 @@ public class LibraryController extends FXMLController {public String a() { retur
                 addNeditDo(files, edit);
             });
         }
-        
-        
     }
     
     private void addNeditDo(Stream<File> files, boolean edit) {
@@ -400,7 +393,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                             };
 
                             Task t = MetadataReader.readAaddMetadata(result,onEnd,false);
-//                            taskInfo.showNbind(t);
+                            taskInfo.showNbind(t);
                         } else {
                             hideInfo.restart();
                         }
@@ -479,7 +472,6 @@ public class LibraryController extends FXMLController {public String a() { retur
     );
     
     {
-        lvlB.setContentDisplay(CENTER);
         lvlB.setOnMouseClicked(e -> {
             if(e.getButton()==PRIMARY)
                 lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));

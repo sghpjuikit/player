@@ -31,9 +31,10 @@ public class ClassWidget extends Widget<Controller> {
             rememberConfigs();
             controller = Controller.class.cast(node);
             controller.setWidget(this);
-            restoreConfigs();
             
+            restoreConfigs();
             controller.refresh();
+            
             return node;
         } catch (InstantiationException | IllegalAccessException e) {
             Log.err("Widget " + name + " failed to load. " + e.getMessage());

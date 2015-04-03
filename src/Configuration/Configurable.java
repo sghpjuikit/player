@@ -9,7 +9,7 @@ import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 import util.Util;
-import static util.functional.Util.forEachIndexedStream;
+import static util.functional.Util.forEachIStream;
 import static util.functional.Util.listM;
 
 /**
@@ -179,7 +179,7 @@ public interface Configurable<T> {
     
     
     public static Collection<Config> configsFromValues(Collection<WritableValue> vals) {
-        return forEachIndexedStream(vals, (i,v) -> new PropertyConfig(String.valueOf(i),v)).collect(toList());
+        return forEachIStream(vals, (i,v) -> new PropertyConfig(String.valueOf(i),v)).collect(toList());
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(Collection<E> vals) {

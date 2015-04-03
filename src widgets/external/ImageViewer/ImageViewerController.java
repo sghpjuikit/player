@@ -55,7 +55,7 @@ import util.Util;
 import util.access.Accessor;
 import util.async.Async;
 import util.async.FxTimer;
-import static util.functional.Util.forEachIndexedStream;
+import static util.functional.Util.forEachIStream;
 
 /**
  * 
@@ -364,7 +364,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                         // create timeline for adding thumbnails
                         thumbTimeline = new Timeline();
                         // add actions - turn file into thumbnail
-                        forEachIndexedStream(files, 
+                        forEachIStream(files, 
                                 (i,f) -> new KeyFrame(Duration.millis((1+i)*thumbnailReloadTime), e -> {
                                         // create & load thumbnail on bgr thread
                                         Thumbnail t = createThumbnail(f);

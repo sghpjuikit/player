@@ -106,7 +106,6 @@ public interface FunctionC<IN,OUT> extends Function<IN,OUT>, Callback<IN,OUT> {
     /** Equivalent to {@code cf.setValue(composable(f.getValue()).andApply(m));}. */
     public static<IN,OUT> void composeC(WritableValue<Callback<IN,OUT>> f, Consumer<OUT> m) {
         f.setValue(composable(f.getValue()).andApply(m));
-    }
-    
+    }    
     
 }

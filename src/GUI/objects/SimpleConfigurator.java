@@ -5,18 +5,18 @@ import Configuration.Config;
 import Configuration.Configurable;
 import GUI.ItemNode.ConfigField;
 import com.sun.glass.ui.Screen;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import static util.functional.Util.cmpareNoCase;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
  * Configurable state transformer graphical control. Graphics to configure 
@@ -63,16 +63,10 @@ public class SimpleConfigurator<T> extends AnchorPane {
         Objects.requireNonNull(c);
         
         configurable = c;
-        onOK = on_OK==null ? cg -> {} : on_OK;
+        onOK = on_OK==null ? onOK : on_OK;
         
-        FXMLLoader fxmlLoader = new FXMLLoader(SimpleConfigurator.class.getResource("SimpleConfigurator.fxml"));
-        fxmlLoader.setRoot(this);
-        fxmlLoader.setController(this);
-        try {
-            fxmlLoader.load();
-        } catch (IOException ex) {
-            throw new RuntimeException("SimpleConfiguratorComponent source data coudlnt be read.");
-        }
+        // load fxml part
+        new ConventionFxmlLoader(this).loadNoEx();
         
         fieldsPane.setMaxHeight(Screen.getMainScreen().getVisibleHeight()*0.7);
         anchor = AnchorPane.getBottomAnchor(fieldsPane);
@@ -90,6 +84,9 @@ public class SimpleConfigurator<T> extends AnchorPane {
             fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
             fields.add(cf.getControl(), 1, configFields.size()-1);
         });
+        
+        // prevent scroll even leak
+        fieldsPane.setOnScroll(Event::consume);
     }
     
     public SimpleConfigurator(Configurable<T> configurable) {

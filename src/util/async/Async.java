@@ -7,6 +7,7 @@ package util.async;
 
 import AudioPlayer.tagging.SuccessTask;
 import static java.util.Objects.requireNonNull;
+import java.util.concurrent.Executor;
 import java.util.function.*;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.application.Platform;
@@ -19,6 +20,36 @@ import javafx.util.Duration;
  * @author Plutonium_
  */
 public final class Async {
+    
+    public static Consumer<Runnable> FX = Async::executeFX;
+    public static Consumer<Runnable> FXLATER = Async::executeLater;
+    public static Consumer<Runnable> BGR = Async::executeBgr;
+    public static Consumer<Runnable> CURR = Async::executeCurr;
+    
+    public static Executor eFX = Async::executeFX;
+    public static Executor eFXLATER = Async::executeLater;
+    public static Executor eBGR = Async::executeBgr;
+    public static Executor eCURR = Async::executeCurr;
+    
+    
+    public static void executeCurr(Runnable r) {
+        r.run();
+    }
+    
+    public static void executeBgr(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.start();
+    }
+    
+    public static void executeFX(Runnable r) {
+        if(Platform.isFxApplicationThread()) r.run(); else runLater(r);
+    }
+    
+    public static void executeLater(Runnable r) {
+        Platform.runLater(r);
+    }
+    
     
     /**
      * Executes the action immediately on new thread as new 
@@ -35,18 +66,6 @@ public final class Async {
                 return null;
             }
         });
-    }
-    
-    public static void executeCurr(Runnable r) {
-        r.run();
-    }
-    public static void executeBgr(Runnable r) {
-        Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        thread.start();
-    }
-    public static void executeFX(Runnable r) {
-        Platform.runLater(r);
     }
     
     /**
@@ -105,6 +124,10 @@ public final class Async {
         });
         thread.setDaemon(true);
         thread.start();
+    }
+    /** Convenience method. {@link Void} version of {@link #runBgr(java.util.function.Supplier, java.util.function.Consumer)} */
+    public static <V> void runBgr(Runnable bgraction, Runnable fxaction) {
+        runBgr(() -> { bgraction.run(); return null; }, nothing->fxaction.run());
     }
     
     /**

@@ -20,7 +20,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import util.File.ImageFileFormat;
 import util.access.Accessor;
-import static util.async.Async.run;
 import util.async.FxTimer;
 
 /**
@@ -73,7 +72,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     public void init() {
         thumb.setBackgroundVisible(false);
         thumb.setBorderVisible(false);
-        thumb.setDragImage(false);
+        thumb.setDragEnabled(false);
         thumb.getPane().setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
                 if(e.getX() < 0.5*thumb.getPane().getWidth()) prevImage();
@@ -158,17 +157,15 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     
 /******************************* HELPER METHODS *******************************/
     
-    private void setImage(int i) {System.out.println(" h " + i);
+    private void setImage(int i) {
         if (i >= images.size()) i = images.size()-1;
         
         if (i == -1) {
             Image img = null;
             thumb.loadImage(img);
             active_image = -1;
-        } else {
+        } else {System.out.println(i + " " + images.size());
             thumb.loadImage(images.get(i));
-            File f = images.get(i);
-            run(1000,()->thumb.loadImage(f));
             active_image = i;
         }
     }

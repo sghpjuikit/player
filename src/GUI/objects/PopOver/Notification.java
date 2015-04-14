@@ -7,7 +7,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 
 /**
  * Notification popover.

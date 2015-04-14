@@ -35,7 +35,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
 import static util.async.Async.run;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 /**

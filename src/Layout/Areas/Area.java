@@ -1,7 +1,6 @@
 
 package Layout.Areas;
 
-import GUI.objects.Spinner.Spinner;
 import GUI.objects.Window.stage.ContextManager;
 import GUI.objects.Window.stage.Window;
 import Layout.Component;
@@ -17,7 +16,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -52,7 +50,6 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
-    public final ProgressIndicator progress;
     
     /**
      * @param c container to make contract with
@@ -91,22 +88,6 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         activityPane.setPickOnBounds(false);
         content_root.getChildren().add(activityPane);
         setAnchors(activityPane, 0d);
-        
-        
-        
-        progress = new Spinner();
-        progress.setPrefSize(50, 50);
-        progress.setMaxSize(50, 50);
-//        progress.setVisible(false);
-        progress.progressProperty().addListener((o,ov,nv) -> progress.setVisible(nv.doubleValue()!=1));
-        
-        StackPane s = new StackPane(progress);
-        StackPane.setAlignment(progress, Pos.TOP_LEFT);
-        root.getChildren().add(s);
-        setAnchors(s, 0);
-        s.setMouseTransparent(true);
-        
-        
         activityPane.toFront();
     }
     

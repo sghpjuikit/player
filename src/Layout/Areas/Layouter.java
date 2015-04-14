@@ -1,7 +1,7 @@
 
 package Layout.Areas;
 
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import static GUI.GUI.*;
 import GUI.objects.Pickers.*;

@@ -92,12 +92,14 @@ public class Anim extends Transition {
     }
     
     
-    public <T extends Transition> T then(T t) {
-        setOnFinished(e -> t.play());
-        return t;
-    }
-    public void then(Runnable r) {
+//    public <T extends Transition> T then(T t) {
+//        setOnFinished(e -> t.play());
+//        return t;
+//    }
+    
+    public Anim then(Runnable r) {
         setOnFinished(e -> r.run());
+        return this;
     }
     
     

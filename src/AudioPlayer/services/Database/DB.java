@@ -23,7 +23,7 @@ import main.App;
 import util.access.Accessor;
 import util.async.Async;
 import static util.async.Async.runBgr;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 import util.reactive.CascadingStream;
 
 /**

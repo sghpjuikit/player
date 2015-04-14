@@ -7,7 +7,7 @@ package Layout.WidgetImpl;
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistCategorizer;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.objects.Table.PlaylistTableSimple;
 import PseudoObjects.Category;
 import java.io.IOException;

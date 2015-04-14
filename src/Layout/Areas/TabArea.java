@@ -3,7 +3,7 @@ package Layout.Areas;
 
 import Configuration.Configurable;
 import GUI.objects.Window.stage.ContextManager;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.objects.Window.stage.Window;
 import Layout.Component;

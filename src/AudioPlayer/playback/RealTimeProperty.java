@@ -9,7 +9,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 
 /**
  *

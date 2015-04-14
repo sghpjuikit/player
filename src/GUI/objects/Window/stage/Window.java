@@ -12,6 +12,7 @@ import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.Icon;
 import GUI.objects.PopOver.PopOver;
+import GUI.objects.Spinner.Spinner;
 import GUI.objects.Text;
 import GUI.objects.Window.Resize;
 import static GUI.objects.Window.Resize.*;
@@ -67,9 +68,12 @@ import javafx.stage.Screen;
 import static javafx.stage.StageStyle.*;
 import main.App;
 import org.reactfx.Subscription;
+import util.Animation.Anim;
+import util.Animation.Interpolators.ElasticInterpolator;
 import static util.File.Enviroment.browse;
 import util.Util;
 import static util.Util.setAnchors;
+import static util.Util.setScaleXY;
 import util.access.Accessor;
 import util.dev.Log;
 import util.dev.TODO;
@@ -242,12 +246,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static Window create() {
         Window w = new Window();
                w.getStage().initOwner(App.getWindowOwner().getStage());
-        // load fxml part
-        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
+               // load fxml part
+               new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
 
-        w.initialize();
-        w.minimB.setVisible(false);
-
+               w.initialize();
         return w;
     }
 
@@ -274,14 +276,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML public AnchorPane borders;
     @FXML public AnchorPane content;
     @FXML private HBox controls;
-
-    @FXML Button pinB;
-    @FXML Button miniB; 
-    @FXML Button ontopB; 
-    @FXML Button fullscrB; 
-    @FXML Button minimB; 
-    @FXML Button maximB; 
-    @FXML Button closeB; 
     @FXML AnchorPane bgrImgLayer;
     
     /**  Left icon header menu. */
@@ -406,8 +400,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	setIcon(App.getIcon());
 	// setTitle(App.getAppName());
 	setTitlePosition(Pos.CENTER_LEFT);
-	miniB.setVisible(true);
-	minimB.setVisible(true);
 	App.window = this;
     }
 
@@ -634,22 +626,67 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    App.actionStream.push("Layout info popup");
 	});
 	
+        // left header
 	left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
-        left_icons.box.setSpacing(8);
-	right_icons = new IconBox(controls, RIGHT_TO_LEFT);
-        right_icons.box.setSpacing(8);
-        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), i->icon(miniB,i));
-        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), i->icon(ontopB,i));
-        maintain(fullscreen, mapB(COMPRESS,EXPAND), i->icon(fullscrB,i));
-        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), i->icon(minimB,i));
-        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), i->icon(maximB,i));
-        icon(closeB,CLOSE);        
-        // add icons & gaps
         ltB.setContentDisplay(GRAPHIC_ONLY);
         rtB.setContentDisplay(GRAPHIC_ONLY);
         ltB.setPadding(new Insets(0, 0, 0, 15));
         rtB.setPadding(new Insets(0, 15, 0, 0));
 	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
+        
+        
+        Icon miniB = new Icon(null, 13, "Close window", this::toggleMini);
+        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
+        Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
+        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
+        Icon fullscrB = new Icon(null, 13, "Fullscreen mode", this::toggleFullscreen);
+        maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB.icon);
+        Icon minimB = new Icon(MINUS_SQUARE_ALT, 13, "Minimize application", this::toggleMinimize);
+//        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB.icon);
+        Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize window", this::toggleMaximize);
+//        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
+        Icon closeB = new Icon(CLOSE, 13, "Close window", this::close);
+        // right header
+	right_icons = new IconBox(controls, RIGHT_TO_LEFT);
+	right_icons.add(miniB, ontopB, fullscrB, minimB, maximB, closeB);
+    }
+    
+    /** Creates new progress indicator in this window's header, and returns it. 
+     * Bind or set its progress value to show ongoing task's progress. 
+     * <ul>
+     * <li> Set the the indicator's progress to -1, to indicate the task has 
+     * started. This will display the indicator.
+     * <li> Stop the indicator by setting progress to 1, when your task finishes.
+     * </ul>
+     * Always do both on FX application thread.
+     * <p>
+     * Multiple indicators are supported. Never use the same one for more than
+     * one task/work.
+     * <p>
+     * Indicator is disposed of automatically when progress is set to 1. Be sure
+     * that the task finishes at some point! 
+     * 
+     * @return indicator
+     */
+    public ProgressIndicator taskAdd() {
+        Spinner p = new Spinner();
+        p.progressProperty().addListener((o,ov,nv) -> {
+            if(nv.doubleValue()==-1) {
+                // add indicator to header
+                left_icons.box.getChildren().add(p);
+                new Anim(at->setScaleXY(p,at*at))
+                    .dur(500).intpl(new ElasticInterpolator())
+                    .play();
+            }
+            if(nv.doubleValue()==1) {
+                // remove indicator from header
+                new Anim(at->setScaleXY(p,1-at*at))
+                    .dur(500).intpl(new ElasticInterpolator())
+                    .then(() -> left_icons.box.getChildren().remove(p))
+                    .play();
+            }
+        });
+        return p;
     }
 
     private void icon(Labeled l, FontAwesomeIconName i) {

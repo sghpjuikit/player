@@ -6,10 +6,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import GUI.DragUtil;
-import GUI.InfoNode.InfoTask;
 import GUI.InfoNode.ItemInfo;
-import GUI.objects.PopOver.PopOver;
 import GUI.objects.Thumbnail.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
@@ -21,12 +18,12 @@ import java.io.File;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -38,24 +35,24 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
+import main.App;
 import org.reactfx.Subscription;
-import util.File.FileUtil;
+import static util.File.FileUtil.copyFiles;
 import static util.File.FileUtil.getFilesImage;
 import util.Util;
 import util.access.Accessor;
-import util.async.Async;
-import util.async.FxTimer;
+import static util.async.Async.eFX;
+import util.async.executor.FxTimer;
 import static util.functional.Util.forEachIStream;
+import util.graphics.drag.DragUtil;
 
 /**
  * 
@@ -221,39 +218,26 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 e.setDropCompleted(true);
                 e.consume();
             }
-            if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {System.out.println("received img");
-                // grab images
-                    InfoTask info = new InfoTask(null, new Label(), new ProgressBar());
-                    HBox b = new HBox(8, info.message, info.progressIndicator);
-                    PopOver p = new PopOver("Handling images", b);
-                    Task t = Async.runAsTask(()->{System.out.println(Platform.isFxApplicationThread() + " dddd");
-                        DragUtil.doWithImages(e, files -> {
-                            // prevent copying displayed items
-                            // the copyng itself prevents copying the files if source and
-                            // destination is the same, but we obtained files recursively
-                            // which means the location can differ
-                            files.removeIf(images::contains);
-                            // copy files to displayed item's location
-                            FileUtil.copyFiles(files, folder.get())
-                                // create thumbnails for new files (we avoid refreshing all)
-                                .forEach(f->addThumbnail(f));
-                        });
-                    });
-                    info.bind(t);
-                    p.show(entireArea.getScene().getWindow());
-                    p.centerOnScreen();
-//                DragUtil.doWithImageItems(e, files -> {
-//                    // prevent copying displayed items
-//                    // the copyng itself prevents copying the files if source and
-//                    // destination is the same, but we obtained files recursively
-//                    // which means the location can differ
-//                    files.removeIf(images::contains);
-//                    // copy files to displayed item's location
-//                    FileUtil.copyFiles(files, folder.get())
-//                        // create thumbnails for new files (we avoid refreshing all)
-//                        .forEach(f->addThumbnail(f));
-//                });
-                // end drag
+            if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {
+                 ProgressIndicator p = App.getWindow().taskAdd();
+                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
+                    .thenCompose(nothing -> DragUtil.getImages(e))
+                    .thenAcceptAsync(files -> {
+                        // prevent copying displayed items
+                        // the copyng itself prevents copying the files if source and
+                        // destination is the same, but we obtained files recursively
+                        // which means the location can differ
+                        files.removeIf(images::contains);
+                        // copy files to displayed item's location
+                        copyFiles(files, folder.get())
+                            // create thumbnails for new files (we avoid refreshing all)
+                            .forEach(f->addThumbnail(f));
+
+                        p.setProgress(1);
+                    },eFX)
+                    .thenRun(()->{})
+                    .complete(null);
+                
                 e.setDropCompleted(true);
                 e.consume();
             }

@@ -406,14 +406,16 @@ public class WindowBase {
     }
     
     public Screen getScreen(double x, double y) {
-        for (Screen scr : Screen.getScreens())
-            if (scr.getBounds().intersects(x,y,1,1)) {
-                return scr;
-                // unknown whether this affects functionality
-//                break;
-            }
-        // aboid null
-        return Screen.getPrimary();
+        // rely on official util (someone hid it..., good work genius)
+        return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
+//        for (Screen scr : Screen.getScreens())
+//            if (scr.getBounds().intersects(x,y,1,1)) {
+//                return scr;
+//                // unknown whether this affects functionality
+////                break;
+//            }
+//        // avoid null
+//        return Screen.getPrimary();
     }
     
     /**

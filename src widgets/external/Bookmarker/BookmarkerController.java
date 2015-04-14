@@ -4,7 +4,7 @@ package Bookmarker;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import Layout.Widgets.FXMLController;

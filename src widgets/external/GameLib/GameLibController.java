@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.util.stream.Collectors.joining;
 import javafx.animation.Interpolator;
+import static javafx.animation.Interpolator.LINEAR;
 import javafx.animation.ParallelTransition;
 import javafx.animation.SequentialTransition;
 import javafx.fxml.FXML;
@@ -41,7 +42,7 @@ import util.Animation.Interpolators.ElasticInterpolator;
 import util.File.Enviroment;
 import util.File.FileUtil;
 import static util.File.FileUtil.readFileLines;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 import util.hierarchy.FileHierarchy;
 
 /**
@@ -115,7 +116,7 @@ public class GameLibController extends FXMLController {
                 new Anim(millis(450), i, at -> inforoot.setPrefSize(300*at,50)),
                 new Anim(millis(550), i, at -> inforoot.setPrefSize(300,50+(inforootroot.getHeight()-50)*at))
             ),
-            new Anim(millis(1000),null, at -> {
+            new Anim(millis(1000),LINEAR, at -> {
                 int length = g.getName().length();
                 int n = (int) Math.floor(length * at);
                 titleL.setText(g.getName().substring(0, n));
@@ -198,8 +199,9 @@ public class GameLibController extends FXMLController {
         file_tree.setShowRoot(false);
 //        file_tree.setRoot(new TreeItem<>(new File("")));
         
-        
-        file_tree_root.getChildren().setAll(fh);
+        file_tree_root.getChildren().setAll(fh.getPane());
+        fh.getPane().prefWidthProperty().bind(file_tree_root.widthProperty());
+        fh.getPane().prefHeightProperty().bind(file_tree_root.heightProperty());
     }
 
     @Override

@@ -65,7 +65,7 @@ import util.collections.Histogram;
 import util.collections.ListCacheMap;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
-import util.functional.Runner;
+import util.async.executor.Runner;
 import static util.functional.Util.*;
 import util.parsing.Parser;
 import web.HttpSearchQueryBuilder;
@@ -265,7 +265,7 @@ public class LibraryViewController extends FXMLController {
     
     @Override
     public void refresh() {
-        runOnce.run(()->table.setColumnState(columnInfo));
+        runOnce.execute(()->table.setColumnState(columnInfo));
         
         table_orient.applyValue();
         zeropad.applyValue();

@@ -1,7 +1,7 @@
 
 package Layout;
 
-import GUI.DragUtil.WidgetTransfer;
+import util.graphics.drag.DragUtil.WidgetTransfer;
 import GUI.GUI;
 import Layout.Areas.ContainerNode;
 import Layout.Widgets.Widget;

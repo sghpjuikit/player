@@ -1,26 +1,30 @@
 package Image;
 
 import Configuration.IsConfig;
-import GUI.DragUtil;
 import GUI.objects.Thumbnail.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.MIDDLE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
+import main.App;
 import util.File.ImageFileFormat;
 import util.access.Accessor;
-import util.async.FxTimer;
+import static util.async.Async.eFX;
+import util.async.executor.FxTimer;
+import util.graphics.drag.DragUtil;
 
 /**
  * FXML Controller class
@@ -96,12 +100,17 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
-                // grab images
-                DragUtil.doWithImages(e, imgs -> {
-                    if(!imgs.isEmpty())
-                        showImage(imgs.get(0));
-                });
-                // end drag
+                 ProgressIndicator p = App.getWindow().taskAdd();
+                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
+                    .thenCompose(nothing -> DragUtil.getImages(e))
+                    .thenAcceptAsync(imgs -> {
+                        if(!imgs.isEmpty())
+                            showImage(imgs.get(0));
+                        p.setProgress(1);
+                    },eFX)
+                    .thenRun(()->{})
+                    .complete(null);
+                
                 e.setDropCompleted(true);
                 e.consume();
             }

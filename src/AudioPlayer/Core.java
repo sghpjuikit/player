@@ -14,7 +14,7 @@ import AudioPlayer.tagging.MetadataReader;
 import java.util.List;
 import java.util.function.Consumer;
 import org.reactfx.Subscription;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 import util.dev.Log;
 import util.reactive.ValueEventSourceN;
 

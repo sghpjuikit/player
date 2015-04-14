@@ -9,15 +9,12 @@ import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import GUI.DragUtil;
-import static GUI.DragUtil.hasImage;
 import GUI.InfoNode.SongInfo;
 import GUI.Panes.ImageFlowPane;
 import GUI.objects.ActionChooser;
 import GUI.objects.Icon;
 import GUI.objects.Rater.Rating;
 import GUI.objects.Thumbnail.ChangeableThumbnail;
-import Layout.Areas.Area;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
@@ -32,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -57,6 +53,8 @@ import util.access.Accessor;
 import util.async.Async;
 import static util.async.Async.eFX;
 import static util.async.Async.run;
+import util.graphics.drag.DragUtil;
+import static util.graphics.drag.DragUtil.hasImage;
 
 /**
  * File info widget controller.
@@ -252,33 +250,25 @@ public class FileInfoController extends FXMLController implements SongInfo {
         });
         
         
-        ProgressIndicator pi = new GUI.objects.Spinner.Spinner();pi.setPrefSize(33, 33);
         actPane = new ActionChooser();
-        actPane.addEventHandler(DRAG_EXITED, e-> { if(getArea().progress.getProgress()!=-1) ((Area)actPane.getUserData()).setActivityVisible(false);});
-        actPane.addEventHandler(MOUSE_EXITED, e-> { if(getArea().progress.getProgress()!=-1) ((Area)actPane.getUserData()).setActivityVisible(false);});
+        actPane.addEventHandler(DRAG_EXITED, e-> getArea().setActivityVisible(false));
+        actPane.addEventHandler(MOUSE_EXITED, e-> getArea().setActivityVisible(false));
         
-        pi.setVisible(true);
-        actPane.actionBox.getChildren().add(0,pi);
         
         Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover", true,true);
         coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         coverB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {  //&& DragUtil.hasImage(e.getDragboard())
-                
-                 CompletableFuture.runAsync(()->{})
-                    .thenRunAsync(()->getArea().progress.setProgress(-1),eFX)
-                    .thenCompose(nothing -> DragUtil.getImages(e))
+                 ProgressIndicator p = App.getWindow().taskAdd();
+                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
+                    .thenCompose(nothing -> DragUtil.getImage(e))
                     .thenAcceptAsync(f -> copyFileSafe(f, data.getLocation(), "cover"))
-                    .thenRunAsync(() -> System.out.println("cover"), eFX)
-                    .thenRunAsync(cover_source::applyValue, eFX)
-                    .thenRun(() -> getArea().setActivityVisible(false))
-                    .thenRun(() -> getArea().progress.setProgress(1))
-                    .thenRun(() -> System.out.println("SSSS " + Platform.isFxApplicationThread() + " " + getArea().progress.getProgress()))
-//                    .thenRunAsync(() -> {
-//                        getArea().progress.setProgress(1);
-//                        getArea().setActivityVisible(false);
-//                        cover_source.applyValue();
-//                    },eFX)
+                    .thenRunAsync(() -> {
+                        cover_source.applyValue();              // refresh cover
+                        p.setProgress(1);                       // hide progress
+                        getArea().setActivityVisible(false);    // hide activity
+                    },eFX)
+                    .thenRun(()->{})
                     .complete(null);
                  
                 e.setDropCompleted(true);
@@ -289,10 +279,11 @@ public class FileInfoController extends FXMLController implements SongInfo {
         coverB.setOnMouseClicked(e -> {
             File f = actPane.item;
             if(f !=null && ImageFileFormat.isSupported(f)) {
-                getArea().progress.setProgress(-1);
+                ProgressIndicator p = App.getWindow().taskAdd();
+                p.setProgress(-1);
                 Async.runBgr(()->copyFileSafe(f, data.getLocation(), "cover"),() -> {
                     cover_source.applyValue();
-                    getArea().progress.setProgress(-1);
+                    p.setProgress(1);
                     getArea().setActivityVisible(false);
                 });
             }
@@ -300,11 +291,19 @@ public class FileInfoController extends FXMLController implements SongInfo {
         Icon copyB = actPane.addIcon(PLUS, "Copy to the location", true,true);
         copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         copyB.setOnDragDropped( e -> {
-            if(data!=null && data.isFileBased()) {  
-                // process images
-                DragUtil.doWithImages(e, imgs -> copyFiles(imgs, data.getLocation()));
-                // end drag
-//                ((Area)actPane.getUserData()).setActivityVisible(false);
+            if(data!=null && data.isFileBased()) {
+                 ProgressIndicator p = App.getWindow().taskAdd();
+                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
+                    .thenCompose(nothing -> DragUtil.getImages(e))
+                    .thenAcceptAsync(imgs -> copyFiles(imgs, data.getLocation()))
+                    .thenRunAsync(() -> {
+                        cover_source.applyValue();              // refresh cover
+                        p.setProgress(1);                       // hide progress
+                        getArea().setActivityVisible(false);    // hide activity
+                    },eFX)
+                    .thenRun(()->{})
+                    .complete(null);
+                
                 e.setDropCompleted(true);
                 e.consume();
             }

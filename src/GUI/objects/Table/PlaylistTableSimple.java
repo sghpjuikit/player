@@ -8,7 +8,7 @@ import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import util.units.FormattedDuration;
 import java.util.List;
 import javafx.beans.value.ObservableValue;

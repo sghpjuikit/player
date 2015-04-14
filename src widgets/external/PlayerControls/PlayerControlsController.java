@@ -8,7 +8,7 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.objects.Balancer.Balancer;
 import GUI.objects.GlowIcon;

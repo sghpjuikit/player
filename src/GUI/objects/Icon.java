@@ -50,7 +50,17 @@ public class Icon extends Label {
 //            t.setText(icon.getValue().characterToString());
 //            t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getValue().getFontFamily(), get()));
 //            t.getStyleClass().add("glyph");
-            
+//            setMinSize(nv, nv);
+//            setPrefSize(nv, nv);
+//            setMaxSize(nv, nv);
+//            ((Text)getGraphic()).minHeight(nv);
+//            ((Text)getGraphic()).minWidth(nv);
+//            ((Text)getGraphic()).prefWidth(nv);
+//            ((Text)getGraphic()).prefHeight(nv);
+//            ((Text)getGraphic()).maxHeight(nv);
+//            ((Text)getGraphic()).maxHeight(nv);
+//            ((Text)getGraphic()).getTransforms().clear();
+//            setPadding(Insets.EMPTY);
         }
     };
 
@@ -69,7 +79,7 @@ public class Icon extends Label {
     public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
         setGraphic(new Text());
         getGraphic().getStyleClass().add("glyph");
-        ((Text)getGraphic()).setBoundsType(TextBoundsType.LOGICAL);
+        ((Text)getGraphic()).setBoundsType(TextBoundsType.VISUAL);
         icon_size.set(size);
 //        if(ico!=null) icon.applyStyle(null, ico);
         if(ico!=null) icon.setValue(ico);

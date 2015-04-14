@@ -11,7 +11,6 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import GUI.DragUtil;
 import GUI.ItemNode.ItemTextFields.MoodTextField;
 import GUI.objects.CheckIcon;
 import GUI.objects.GraphicalTextField;
@@ -73,6 +72,7 @@ import util.dev.Log;
 import static util.functional.Util.isIn;
 import static util.functional.impl.Validator.*;
 import util.graphics.Icons;
+import util.graphics.drag.DragUtil;
 import util.parsing.impl.ColorParser;
 
 /**

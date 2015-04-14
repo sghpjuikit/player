@@ -1,6 +1,6 @@
 
 
-package util.async;
+package util.async.executor;
 
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;

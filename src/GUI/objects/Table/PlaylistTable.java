@@ -10,7 +10,7 @@ import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;

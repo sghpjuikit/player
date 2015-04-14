@@ -5,7 +5,7 @@
  */
 package GUI.objects.Thumbnail;
 
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.io.File;
 import java.util.function.Consumer;

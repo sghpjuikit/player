@@ -30,7 +30,7 @@ import javafx.scene.input.MouseEvent;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.access.Accessor;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 import util.collections.MapSet;
 import util.dev.Dependency;
 import util.dev.Log;

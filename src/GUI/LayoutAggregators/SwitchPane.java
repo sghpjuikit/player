@@ -28,7 +28,7 @@ import static util.Animation.Interpolators.EasingMode.EASE_IN;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import static util.Util.clip;
 import static util.Util.setAnchors;
-import util.async.FxTimer;
+import util.async.executor.FxTimer;
 
 /**
  * Pane with switchable content.

@@ -9,7 +9,7 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import GUI.DragUtil;
+import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.InfoNode.InfoTable;
 import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
@@ -80,8 +80,8 @@ import util.access.Accessor;
 import util.async.Async;
 import static util.async.Async.eFX;
 import static util.async.Async.runAsTask;
-import util.async.FxTimer;
-import util.functional.Runner;
+import util.async.executor.FxTimer;
+import util.async.executor.Runner;
 import static util.functional.Util.list;
 import static util.functional.Util.listM;
 import util.functional.functor.FunctionC;
@@ -263,7 +263,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                 taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
                 taskInfo.message.setText("Discovering songs...");
                 DragUtil.getSongs(e)
-                        .thenAcceptAsync(songs -> addNeditDo(songs.stream().map(Item::getFile),false))
+                        .thenAcceptAsync(songs -> addNeditDo(songs,false))
                         .thenRunAsync(() -> {}, eFX)
                         .complete(null);
                  
@@ -324,7 +324,7 @@ public class LibraryController extends FXMLController {public String a() { retur
 
     @Override
     public void refresh() {
-        runOnce.run(()->table.setColumnState(columnInfo));
+        runOnce.execute(()->table.setColumnState(columnInfo));
         
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
@@ -365,7 +365,7 @@ public class LibraryController extends FXMLController {public String a() { retur
             Async.runBgr(() -> {
                 Stream<File> files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
                 if (f!=null) last_file = f;
-                addNeditDo(files, edit);
+                addNeditDo(files.map(SimpleItem::new), edit);
             });
         } else {
             List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
@@ -374,15 +374,14 @@ public class LibraryController extends FXMLController {public String a() { retur
                 Stream<File> files = fs.stream();
                 File f = files==null ? null : getCommonRoot(fs);
                 if(f!=null) last_file=f;
-                addNeditDo(files, edit);
+                addNeditDo(files.map(SimpleItem::new), edit);
             });
         }
     }
     
-    private void addNeditDo(Stream<File> files, boolean edit) {
-        if(files!=null) {
+    private void addNeditDo(Stream<Item> files, boolean edit) {
             Task ts = runAsTask("Discovering files",
-                    () -> files.map(SimpleItem::new).collect(toList()),
+                    () -> files.collect(toList()),
                     (success,result) -> {
                         if (success) {
                             BiConsumer<Boolean,List<Metadata>> onEnd = (succes,added) -> {
@@ -400,7 +399,6 @@ public class LibraryController extends FXMLController {public String a() { retur
                     });
             runLater(()->taskInfo.showNbind(ts));
 //            taskInfo.showNbind(ts);
-        }
     }
     
     @FXML private void removeInvalid() {

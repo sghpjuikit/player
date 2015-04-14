@@ -22,7 +22,7 @@
                         <Insets left="5.0" right="5.0" />
                     </padding>
                 </BorderPane>
-                <HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="5.0" AnchorPane.leftAnchor="4.0" AnchorPane.topAnchor="4.0" BorderPane.alignment="CENTER">
+                <HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="8.0" AnchorPane.leftAnchor="4.0" AnchorPane.topAnchor="4.0" BorderPane.alignment="CENTER">
                     <children>
                         <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" /><Label fx:id="titleL" BorderPane.alignment="CENTER">
                         <BorderPane.margin>
@@ -30,39 +30,7 @@
                         </BorderPane.margin></Label>
                     </children>
                 </HBox>
-                <HBox fx:id="controls" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="5.0" visible="true" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0">
-                    <children>
-                        <Button fx:id="miniB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMini" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T" visible="false">
-                        <tooltip>
-                            <Tooltip text="Toggle Mini" />
-                        </tooltip>
-                        </Button><Button fx:id="ontopB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleAlwaysOnTOp" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="T">
-                        <tooltip>
-                        <Tooltip text="Always on top" />
-                        </tooltip>
-                        </Button>
-                            <Button fx:id="fullscrB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleFullscreen" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="■">
-                              <tooltip>
-                                <Tooltip text="Fullscreen" />
-                              </tooltip>
-                            </Button>
-                            <Button fx:id="minimB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMinimize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="▁">
-                              <tooltip>
-                                <Tooltip text="Minimize" />
-                              </tooltip>
-                            </Button>
-                            <Button fx:id="maximB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#toggleMaximize" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="☐">
-                              <tooltip>
-                                <Tooltip text="Maximize/Demaximize" />
-                              </tooltip>
-                            </Button>
-                            <Button fx:id="closeB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="✕">
-                              <tooltip>
-                                <Tooltip text="Close" />
-                              </tooltip>
-                            </Button>
-                    </children>
-                </HBox>
+                <HBox fx:id="controls" alignment="CENTER" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="8.0" visible="true" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0" />
                 <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">
                <cursor>
                   <Cursor fx:constant="S_RESIZE" />

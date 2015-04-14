@@ -4,12 +4,13 @@
  * and open the template in the editor.
  */
 
-package GUI;
+package util.graphics.drag;
 
 import javafx.scene.input.TransferMode;
 
 /**
  * Complete enumeration for {@link TransferMode}.
+ *
  * @author Plutonium_
  */
 public enum DragType {

@@ -50,6 +50,7 @@ import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -103,7 +104,8 @@ import util.parsing.impl.ColorParser;
     group = Widget.Group.TAGGER)
 public class TaggerController extends FXMLController implements TaggingFeature {
     
-    @FXML AnchorPane entireArea;
+    @FXML AnchorPane root;
+    @FXML AnchorPane content;
     @FXML BorderPane header;
     @FXML AnchorPane scrollContent;
     @FXML GridPane grid;
@@ -140,6 +142,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     File new_cover_file = null;
     ProgressIndicator progressI;
     @FXML Label infoL;
+    @FXML Label placeholder;
     
     //global variables
     ObservableList<Item> allitems = FXCollections.observableArrayList();
@@ -176,7 +179,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @Override
     public void init() {
         
-        loadSkin("skin.css",entireArea);
+        loadSkin("skin.css",root);
         
         CoverV = new ChangeableThumbnail();
         CoverV.getPane().setPrefSize(200, 200);
@@ -223,24 +226,24 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         
 
         // deselect text fields on click
-        entireArea.setOnMousePressed( e -> {
-            entireArea.requestFocus();
+        root.setOnMousePressed(e -> {
+            root.requestFocus();
             fields.forEach(TagField::onLooseFocus);
         });
         
         // write on press enter
-        entireArea.setOnKeyPressed( e -> {
+        root.setOnKeyPressed( e -> {
             if (e.getCode() == KeyCode.ENTER)
                 write();
         });
         
         // drag & drop content
-        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
-        entireArea.setOnDragDropped(drag_dropped_handler);
+        root.setOnDragOver(DragUtil.audioDragAccepthandler);
+        root.setOnDragDropped(drag_dropped_handler);
 
         // remove cover on drag exit
         CoverV.getPane().setOnDragDetected( e -> CoverV.getPane().startFullDrag());
-        entireArea.addEventFilter(MOUSE_DRAG_RELEASED, e-> {
+        root.addEventFilter(MOUSE_DRAG_RELEASED, e-> {
             Point2D click = CoverV.getPane().sceneToLocal(e.getSceneX(),e.getSceneY());
             // only if drag starts on the cover and ends outside of it
             if(e.getGestureSource().equals(CoverV.getPane()) && !CoverV.getPane().contains(click)) {
@@ -259,8 +262,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         infoL.setCursor(Cursor.HAND);
         
         // maintain add or set
-        entireArea.setOnKeyPressed(e -> { if(e.getCode()==CONTROL) add_not_set.set(true); });
-        entireArea.setOnKeyReleased(e -> { if(e.getCode()==CONTROL) add_not_set.set(false); });
+        root.setOnKeyPressed(e -> { if(e.getCode()==CONTROL) add_not_set.set(true); });
+        root.setOnKeyReleased(e -> { if(e.getCode()==CONTROL) add_not_set.set(false); });
         
         populate(null);
     }
@@ -460,6 +463,13 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         if (writing) {
             hideProgress(); return; }
         
+        // totally empty
+        boolean totally_empty = allitems.isEmpty();
+        content.setVisible(!totally_empty);
+        placeholder.setVisible(totally_empty);
+        if(totally_empty) return;
+        
+        // empty
         boolean empty = items == null || items.isEmpty();
         
         // empty previous content
@@ -468,6 +478,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         coverSuperContainer.setDisable(true);
         CoverL.setUserData(false);
         new_cover_file = null;
+        
         
         // return if no new content
         if (empty) {
@@ -483,7 +494,6 @@ public class TaggerController extends FXMLController implements TaggingFeature {
 
             fields.forEach(TagField::enable);
             coverSuperContainer.setDisable(false);
-
 
             runNew(() -> {
 
@@ -618,7 +628,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 InputConstraints.numbersOnly(c, !field.isTypeNumberNonegative(), field.isTypeFloatingNumber());
             
             // if not commitable yet, enable commitable & set text to tag value on click
-            c.setOnMouseClicked(this::OnMouseClicked);
+            c.setOnMouseClicked(e -> {
+                if(e.getButton()==PRIMARY)
+                    OnMouseClicked();
+            });
             
             // disable commitable if empty and backspace key pressed
             c.setOnKeyPressed( e -> {
@@ -651,7 +664,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 c.setPromptText(c.getId());
             }
         }
-        void OnMouseClicked(MouseEvent e) {
+        void OnMouseClicked() {
             if (!(boolean)c.getUserData()) {
                 c.setUserData(true);
                 c.setText("");
@@ -666,7 +679,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             if (c.getText().isEmpty()) {
                 c.setPromptText(c.getId());
                 c.setUserData(false);
-                entireArea.requestFocus();
+                root.requestFocus();
                 if (c.equals(RatingF)) {  // link this action between related fields
                     RatingPF.setPromptText(RatingPF.getId());
                     RatingPF.setUserData(false);

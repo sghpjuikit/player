@@ -671,20 +671,18 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      */
     public ProgressIndicator taskAdd() {
         Spinner p = new Spinner();
+        Anim a = new Anim(at->setScaleXY(p,at*at)).dur(500).intpl(new ElasticInterpolator());
         p.progressProperty().addListener((o,ov,nv) -> {
             if(nv.doubleValue()==-1) {
                 // add indicator to header
                 left_icons.box.getChildren().add(p);
-                new Anim(at->setScaleXY(p,at*at))
-                    .dur(500).intpl(new ElasticInterpolator())
-                    .play();
+                a.then(null)
+                 .play();
             }
             if(nv.doubleValue()==1) {
                 // remove indicator from header
-                new Anim(at->setScaleXY(p,1-at*at))
-                    .dur(500).intpl(new ElasticInterpolator())
-                    .then(() -> left_icons.box.getChildren().remove(p))
-                    .play();
+                a.then(() -> left_icons.box.getChildren().remove(p))
+                 .playBFrom();
             }
         });
         return p;

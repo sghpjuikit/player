@@ -68,6 +68,9 @@ import main.App;
 import static org.reactfx.EventStreams.changesOf;
 import static org.reactfx.EventStreams.nonNullValuesOf;
 import org.reactfx.Subscription;
+import util.Animation.Anim;
+import static util.Animation.Anim.Interpolators.reverse;
+import util.Animation.Interpolators.ElasticInterpolator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
@@ -116,8 +119,31 @@ public class LibraryController extends FXMLController {public String a() { retur
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
-    private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner());
-    private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
+    private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner()){
+        Anim a;
+        {
+            a = new Anim(at->setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
+        }
+        @Override
+        public void setVisible(boolean v) {
+            if(v) {
+                super.setVisible(v);
+                a.then(null)
+                 .play();
+            } else {
+//                Async.run(3000, () -> a.then(() -> super.setVisible(v))
+//                 .playBFrom());
+                super.setVisible(v);
+            }
+        }
+    };
+    private final FxTimer hideInfo = new FxTimer(5000, 1, () -> {
+        new Anim(at->setScaleXY(taskInfo.progressIndicator,at*at)).dur(500).intpl(reverse(new ElasticInterpolator()))
+            .then(taskInfo::hideNunbind)
+            .play();
+        
+    });
+//    private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     ActionChooser actPane = new ActionChooser();
     Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
@@ -384,6 +410,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                         WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
 
                     hideInfo.restart();
+//                    taskInfo.hideNunbind();
                 },false);
                 taskInfo.bind(t);
             }, FX)
@@ -393,6 +420,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     @FXML private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
             hideInfo.restart();
+//            taskInfo.hideNunbind();
         });
        taskInfo.showNbind(t);
     }

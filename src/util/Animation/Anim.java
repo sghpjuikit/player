@@ -22,6 +22,7 @@ import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import util.Util;
+import util.collections.Tuple2;
 
 /**
  <p>
@@ -89,29 +90,31 @@ public class Anim extends Transition {
     
     @Override
     protected void interpolate(double frac) {
-        position.set(1-frac);
-        affector.accept(1-frac);
+        position.set(frac);
+        affector.accept(frac);
     }
     
-    
-//    public <T extends Transition> T then(T t) {
-//        setOnFinished(e -> t.play());
-//        return t;
-//    }
-    
     public Anim then(Runnable r) {
-        setOnFinished(e -> r.run());
+        setOnFinished(r==null ? null : e -> r.run());
         return this;
     }
     
+    
+    public void playFrom() {
+        playFrom(getCurrentTime().toMillis()/getCycleDuration().toMillis());
+    }
+    
+    public void playBFrom() {
+        playBFrom(getCurrentTime().toMillis()/getCycleDuration().toMillis());
+    }
     
     public void playFrom(double position) {
         super.playFrom(getCycleDuration().multiply(position));
     }
     
-    public void playFromEnd(double position) {
+    public void playBFrom(double position) {
         setRate(-1);
-        super.playFrom(getCycleDuration());
+        super.playFrom(getCycleDuration().subtract(getCycleDuration().multiply(position)));
     }
     
     public void closeAndDo(Runnable action) {
@@ -184,6 +187,47 @@ public class Anim extends Transition {
      * function into different 0-1 function to produce nonlinear animation.
      */
     public static interface Interpolators {
+        
+        /**
+         * Returns interpolator as sequential combination of interpolators. Use 
+         * to achieve not continuous function by putting the interpolators
+         * one after another and then mapping the resulting f back to 0-1.
+         * The final interpolator will be divided into subranges in which each
+         * respective interpolator will be used with the input in the range
+         * mapped back to 0-1.
+         * <p>
+         * For example pseudocode: of(0.2,x->0.5, 0.8,x->0.1) will
+         * produce interpolator returning 0.5 for x <=0.2 and 0.1 for x > 0.2 
+         * 
+         * @param interpolators couples of range and interpolator. Ranges must
+         * give sum 1 and must be in an increasing order
+         * 
+         * @throws IllegalArgumentException if ranges dont give sum of 1
+         */
+        public static Function<Double,Double> of(Tuple2<Double,Function<Double,Double>>... interpolators) {
+            if(Stream.of(interpolators).mapToDouble(i->i._1).sum()!=1)
+                throw new IllegalArgumentException("sum of interpolator fractions must be 1");
+            
+            return x -> {
+                double p1=0;
+                for(Tuple2<Double,Function<Double,Double>> i : interpolators) {
+                    double p2=p1+i._1;
+                    if(x<=p2) return i._2.apply((x-p1)/(p2-p1));
+                    p1=p2;
+                }
+                throw new RuntimeException("Combined interpolator out of value at: " + x);
+            };
+        }
+        
+        /** Returns reverse interpolator, which produces 1-interpolated_value. */
+        public static Function<Double,Double> reverse(Function<Double,Double> i) {
+            return x -> 1-i.apply(x);
+        }
+        
+        /** Returns reverse interpolator, which produces 1-interpolated_value. */
+        public static Function<Double,Double> reverse(Interpolator i) {
+            return x -> 1-i.interpolate(0d,1d,(double)x);
+        }
         
         public static Function<Double,Double> isAround(double point_span, double... points) {
             return at -> {

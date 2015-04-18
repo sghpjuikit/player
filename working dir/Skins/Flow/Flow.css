@@ -16,7 +16,7 @@
     -fx-prompt-font-color: rgb(165, 165, 165);
     
     -fx-pane-color: rgba(0,0,20,0.4);
-    -fx-popup-def-bgr-color: rgba(20,30,50,0.7);
+    -fx-popup-def-bgr-color: rgba(10,10,25,0.65);
 }
 
 .block {
@@ -76,7 +76,7 @@
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: orange;
-    -fx-effect: dropshadow(gaussian, orange, 12,0 , 0,0);
+    -fx-effect: dropshadow(gaussian, orange, 9,0 , 0,0);
     -fx-underline: false;
 }
 
@@ -86,6 +86,55 @@
     -fx-underline: true;
 }
 
-.rating-button:max {
-    -fx-fill: orange;
+
+
+.combo-box-base,
+.combo-box-base:editable,
+.choice-box,
+.choice-box:showing,
+.text-input {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 3 5 2 5;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-effect: null;
+}
+
+.combo-box-base:hover,
+.combo-box-base:editable:hover,
+.combo-box-base:showing:hover,
+.choice-box:hover,
+.text-input:hover {
+    -fx-background-color: rgba(0,0,0,0.1);
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 3 5 2 5;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-effect: null;
+}
+
+.combo-box-base:focused,
+.combo-box-base:editable:focused,
+.combo-box-base:showing:focused,
+.choice-box:focused,
+.text-input:focused {
+    -fx-background-color: rgba(0,0,0,0.2);
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-padding: 3 5 2 5;
+    -fx-text-fill: -fx-def-font-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+    -fx-effect: null;
+}
+.combo-box:hover > .list-cell, 
+.combo-box > .list-cell {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 2;
+    -fx-text-fill:-fx-def-font-color;
+    -fx-padding: 0;
+    -fx-effect: null;
 }

@@ -35,6 +35,7 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
 import util.Password;
+import static util.Util.enumToHuman;
 import static util.Util.unPrimitivize;
 import static util.async.Async.run;
 import static util.functional.Util.cmpareBy;
@@ -499,7 +500,8 @@ abstract public class ConfigField<T> {
             cBox.setCellFactory( cbox -> new ListCell<Object>() {
                 @Override protected void updateItem(Object item, boolean empty) {
                     super.updateItem(item, empty);
-                    setText(empty ? "" : c.toS(item));
+                    // most of the stuff are enums, so convert it to nice string
+                    setText(empty ? "" : enumToHuman(c.toS(item)));
                 }
             });
             cBox.setButtonCell(cBox.getCellFactory().call(null));

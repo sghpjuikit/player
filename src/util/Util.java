@@ -202,17 +202,24 @@ public class Util {
     }
     
     /** 
-     * Converts enum constant to 'human readable' string. 
-     * first letter upper case, 
-     * other letters lower case, 
-     * '_' into ' '
+     * Converts enum constant to 'human readable' string.
+     * <ls>
+     * <li> first letter upper case, 
+     * <li> other letters lower case, 
+     * <li> '_' into ' '
+     * <ls>
      */
     public static String enumToHuman(Enum e) {
         return capitalizeStrong(e.name().replace('_', ' '));
     }
     
+    /** Same as {@link #enumToHuman(java.lang.Enum)}, for String. */
+    public static String enumToHuman(String s) {
+        return capitalizeStrong(s.replace('_', ' '));
+    }
+    
     /** @return true if the string is palindrome (empty string is palindrome) */
-    public static boolean isPalindrome(String s) {    
+    public static boolean isPalindrome(String s) {
         int n = s.length();
         for( int i = 0; i < n/2; i++ )
             if (s.charAt(i) != s.charAt(n-i-1)) return false;

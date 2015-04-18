@@ -1239,7 +1239,7 @@
 
 /*******************************************************************************
  *                                                                             *
- * Text COMMON                                                                 *
+ * Text BIXES                                                                  *
  *                                                                             *
  ******************************************************************************/
 
@@ -1266,25 +1266,8 @@
     
     -fx-prompt-text-fill: -fx-prompt-font-color;
 }
-/*******************************************************************************
- *                                                                             *
- * Label                                                                       *
- *                                                                             *
- ******************************************************************************/
 
-.label {
-    -fx-text-fill: -fx-def-font-color;
-    
-    //-fx-background-color: rgb(255,255,255); // this would set rectangular text bgr
-    
-    // decreases performance for little gain
-    /*-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0, 0.0 , 0 , 1 );*/
-}
-/*******************************************************************************
- *                                                                             *
- * TextArea                                                                    *
- *                                                                             *
- ******************************************************************************/
+/********************************* TextArea ***********************************/
 
 .text-area {
 
@@ -1313,7 +1296,142 @@
 }
 
 
- // DO NOT OVERRIDE FOR NOW
+/********************************* ComboBox ***********************************/
+
+/* Customise the ListCell that appears in the ComboBox button itself */
+.combo-box > .list-cell {
+    -fx-background: null;
+    -fx-background-color: null;
+    -fx-text-fill: -fx-text-base-color;
+    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
+}
+.combo-box-base:editable > .arrow-button,
+.combo-box-base > .arrow-button {
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
+    //-fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
+    -fx-background-color: null;
+}
+.combo-box-base,
+.combo-box-base:editable {
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-padding: 3 10 2 10;
+    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+    -fx-text-fill: -fx-def-font-color;
+    -fx-alignment: CENTER;
+    -fx-content-display: LEFT;
+}
+.menu-button > .label {
+    -fx-alignment: CENTER_LEFT;
+}
+.combo-box-base:hover,
+.combo-box-base:editable:hover{
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-padding: 3 10 2 10;
+    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+}
+.combo-box-base:showing,
+.combo-box-base:editable:showing > .arrow-button {
+    -fx-background-color:
+        rgba(255, 255, 255, 0.3),
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
+        rgb(218, 226, 224);
+    -fx-background-insets: 0 0 -1 0, 0, 1.5;
+    -fx-background-radius: 3, 2, 2;
+    -fx-padding: 3 10 2 10;
+    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
+}
+.combo-box-base:focused {
+    -fx-background-color: rgba(235, 235, 235, 0.7),
+                          rgba(0, 0, 0, 0.6),
+                          rgba(255, 255, 255, 0.92);
+}
+
+// editable combobox
+//.combo-box-base:editable > .arrow-button,
+//.combo-box-base:editable > .text-field,
+//.combo-box-base:editable:contains-focus,
+//.combo-box-base:editable:focused > .text-field,
+//.combo-box-base:editable > .text-field:focused,
+//.combo-box-base:editable:contains-focus > .arrow-button,*
+
+
+.date-picker > .arrow-button {
+    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: 1 1 1 0, 1, 2;
+    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
+}
+.date-picker > .text-field {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 1 0 1 1;
+    -fx-background-radius: 2 0 0 2;
+}
+.date-picker:contains-focus {
+    -fx-background-color: -fx-focus-color;
+    -fx-background-insets: -0.2;
+    -fx-background-radius: 3;
+}
+.date-picker:focused > .text-field,
+.date-picker > .text-field:focused {
+    -fx-background-color: 
+        -fx-control-inner-background,
+        -fx-faint-focus-color,
+        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
+    -fx-background-insets: 1 0 1 1, 1 0 1 1, 3 2 3 3;
+    -fx-background-radius: 2 0 0 2, 1 0 0 1, 0;
+}
+.date-picker:contains-focus > .arrow-button {
+    -fx-background-color: -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
+    -fx-background-insets: 1, 2, 1, 2.6;
+    -fx-background-radius: 0 2 2 0, 0 1 1 0, 0 1 1 0, 0 1 1 0;
+}
+
+/********* PopupControl that is displayed when the button is pressed **********/
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-background-insets: 0, 1;
+    // -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 ); // gets in the way of transparent bgr
+    -fx-effect: null;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-padding: 1 0 1 5;
+    -fx-background-color: null;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+    -fx-background: null;
+    -fx-background-color: null;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background: null;
+    -fx-background-color: -fx-color-darker;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: derive(-fx-control-inner-background,-30%);
+}
+
+/*********************************** LABEL ************************************/
+
+.label {
+    -fx-text-fill: -fx-def-font-color;
+    //-fx-background-color: rgb(255,255,255); // this would set rectangular text bgr
+    //-fx-effect: dropshadow( one-pass-box , rgba(0, 0, 0, 0.7), 0,0 , 0,1 );    // decreases performance for little gain
+}
+
+
 /*******************************************************************************
  *                                                                             *
  * HTML Editor                                                                 *
@@ -1394,28 +1512,24 @@
 }
 
 
-/*******************************************************************************
- *                                                                             *
- * PopupMenu                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************* PopupMenu **********************************/
 
 .context-menu {
     -fx-background-insets: 0, 1;
-    -fx-padding: 0.25em 0.25em 0.25em 0.25em;  /* 3 3 3 3 */
-    -fx-background-color: rgba(20,20,30,0.7);
-    -fx-border-width: 2;
+    -fx-padding: 0.25em;  /* 3 3 3 3 */
+    -fx-background-color: -fx-popup-def-bgr-color;
+    -fx-border-width: 1;
     -fx-border-color: black;
     -fx-border-insets: 0;
 }
 .context-menu .separator:horizontal .line {
-    -fx-border-width: 2;
-    -fx-border-color: black transparent transparent transparent;
+    -fx-border-width: 1;
+    -fx-border-color: -fx-def-font-color transparent transparent transparent;
     -fx-border-insets: 1 0 0 0;
 }
 .context-menu > .scroll-arrow {
-    -fx-padding: 0.416667em 0.416667em 0.416667em 0.416667em; /* 5 */
-    -fx-background-color: transparent;
+    -fx-padding: 0.416667em; /* 5 */
+    -fx-background-color: null;
 }
 .context-menu > .scroll-arrow:hover {
     -fx-background: -fx-selection-bar;
@@ -1426,11 +1540,7 @@
     -fx-stroke: -fx-text-fill;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Menu                                                                        *
- *                                                                             *
- ******************************************************************************/
+/*********************************** Menu *************************************/
 
 .menu {
     -fx-background-color: transparent;
@@ -1480,7 +1590,7 @@
 /* Show nothing for background of normal menu button in a menu bar */
 .menu-bar > .container > .menu-button {
     -fx-background-radius: 0;
-    -fx-background-color: transparent;
+    -fx-background-color: null;
     -fx-background-insets: 0;
 }
 /* Change padding of menu buttons when in menu bar */
@@ -1491,7 +1601,7 @@
 /* Hide the down arrow for a menu placed in a menubar */
 .menu-bar > .container > .menu-button > .arrow-button > .arrow {
     -fx-padding: 0.167em 0 0.250em 0; /* 2 0 3 0 */
-    -fx-background-color: transparent;
+    -fx-background-color: null;
     -fx-shape: null;
 }
 .menu-bar > .container > .menu > .arrow-button {
@@ -1502,7 +1612,7 @@
 .menu-bar > .container > .menu-button:showing {
    // -fx-background: -fx-selection-bar;      // < default value
    // -fx-background-color: -fx-background;   // < default value
-   -fx-background-color: -fx-color-lighter;
+   -fx-background-color: null;
 }
 .menu-bar > .container > .menu-button:hover > .label,
 .menu-bar > .container > .menu-button:focused > .label,
@@ -1520,9 +1630,7 @@
  ******************************************************************************/
 
 .menu-item {
-/*    -fx-background-color: transparent;
-    -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;   4 5 4 5 */
-    -fx-background-color: rgba(10,10,10,0.85);
+    -fx-background-color: null;
     -fx-background-radius: 2;
     -fx-padding: 0.333333em 0.41777em 0.333333em 0.41777em;
     -fx-background-insets: 0.2em 0.2em 0.2em 0.2em;
@@ -1537,7 +1645,7 @@
     -fx-padding: 0em 0.5em 0em 0em;
 }
 .menu-item:focused {
-    -fx-background-color: rgba(20,20,30,0.85);
+    -fx-background-color: -fx-color-darker;
     -fx-background-insets: 0 0 0 0;
 }
 .menu-item:focused > .label {
@@ -1704,146 +1812,6 @@
     -fx-background-insets: 0, 1;
     -fx-background-radius: 2, 0;
     -fx-padding: 2;
-}
-
-/*******************************************************************************
- *                                                                             *
- * ComboBox                                                                    *
- *                                                                             *
- ******************************************************************************/
-
-/* Customise the ListCell that appears in the ComboBox button itself */
-.combo-box > .list-cell {
-    -fx-background: transparent;
-    -fx-background-color: transparent;
-    -fx-text-fill: -fx-text-base-color;
-    //-fx-padding: 0.333333em 0.666667em 0.333333em 0.666667em; /* 4 8 4 8 */
-}
-.combo-box-base:editable > .arrow-button,
-.combo-box-base > .arrow-button {
-    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-    //-fx-padding: 0.5em 0.667em 0.5em 0.833333em; /* 6 8 6 10 */
-    -fx-background-color: transparent;
-}
-.combo-box-base,
-.combo-box-base:editable {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-    -fx-text-fill: -fx-def-font-color;
-    -fx-alignment: CENTER;
-    -fx-content-display: LEFT;
-}
-.menu-button > .label {
-    -fx-alignment: CENTER_LEFT;
-}
-.combo-box-base:hover,
-.combo-box-base:editable:hover{
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-}
-.combo-box-base:showing,
-.combo-box-base:editable:showing > .arrow-button {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 0 -1 0, 0, 1.5;
-    -fx-background-radius: 3, 2, 2;
-    -fx-padding: 3 10 2 10;
-    -fx-effect: innershadow( gaussian, rgba(0, 0, 0, 0.7), 4, 0, 0, 2 );
-}
-.combo-box-base:focused {
-    -fx-background-color: rgba(235, 235, 235, 0.7),
-                          rgba(0, 0, 0, 0.6),
-                          rgba(255, 255, 255, 0.92);
-}
-
-/*******************************************************************************
- *                                                                             *
- * Editable ComboBox                                                           *
- *                                                                             *
- * The editable ComboBox TextBox inherits its properties from the TextBox      *
- * Control. Only the properties with values that are different from the        *
- * TextBox are specified here.                                                 *
- *                                                                             *
- ******************************************************************************/
-
-/*.combo-box-base:editable > .arrow-button,*/
-.date-picker > .arrow-button {
-    -fx-background-color: -fx-outer-border, -fx-inner-border, -fx-body-color;
-    -fx-background-insets: 1 1 1 0, 1, 2;
-    -fx-background-radius: 0 3 3 0, 0 2 2 0, 0 1 1 0;
-}
-/*.combo-box-base:editable > .text-field,*/
-.date-picker > .text-field {
-    -fx-background-color: -fx-control-inner-background;
-    -fx-background-insets: 1 0 1 1;
-    -fx-background-radius: 2 0 0 2;
-}
-/*.combo-box-base:editable:contains-focus,*/
-.date-picker:contains-focus {
-    -fx-background-color: -fx-focus-color;
-    -fx-background-insets: -0.2;
-    -fx-background-radius: 3;
-}
-/*.combo-box-base:editable:focused > .text-field,
-.combo-box-base:editable > .text-field:focused,*/
-.date-picker:focused > .text-field,
-.date-picker > .text-field:focused {
-    -fx-background-color: 
-        -fx-control-inner-background,
-        -fx-faint-focus-color,
-        linear-gradient(from 0px 0px to 0px 5px, derive(-fx-control-inner-background, -9%), -fx-control-inner-background);
-    -fx-background-insets: 1 0 1 1, 1 0 1 1, 3 2 3 3;
-    -fx-background-radius: 2 0 0 2, 1 0 0 1, 0;
-}
-/*.combo-box-base:editable:contains-focus > .arrow-button,*/
-.date-picker:contains-focus > .arrow-button {
-    -fx-background-color: -fx-inner-border, -fx-body-color, -fx-faint-focus-color, -fx-body-color;
-    -fx-background-insets: 1, 2, 1, 2.6;
-    -fx-background-radius: 0 2 2 0, 0 1 1 0, 0 1 1 0, 0 1 1 0;
-}
-
-/* -------------- STYLES FOR THE DEFAULT LISTVIEW-BASED COMBOBOX ------------- */
-
-.combo-box-popup > .list-view {
-    -fx-background-color:
-        linear-gradient(to bottom,
-            derive(-fx-color,-17%),
-            derive(-fx-color,-30%)
-        ),
-        -fx-control-inner-background;
-    -fx-background-insets: 0, 1;
-    -fx-effect: dropshadow( gaussian , rgba(0,0,0,0.2) , 12, 0.0 , 0 , 8 );
-}
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
-    //-fx-padding: 4 0 4 5;
-    /* No alternate highlighting */
-    -fx-background: -fx-control-inner-background;
-}
-.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
-    -fx-background:  -fx-selection-bar-non-focused;
-    -fx-background-color:  -fx-background;
-}
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
-.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
-    -fx-background: -fx-accent;
-    -fx-background-color: -fx-selection-bar;
-}
-.combo-box-popup > .list-view > .placeholder > .label {
-    -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
 
 /*******************************************************************************
@@ -3242,20 +3210,6 @@
     // -fx-opacity: 0.32;           // emulate -fx-pane-color
 }
 
-.darker {
-    //-fx-background-color: -fx-color-darker;
-}
-
-.lighter {
-    -fx-background-color: -fx-color-lighter;
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.05) rgba(0, 0, 0, 0.08) rgba(0, 0, 0, 0.08) rgba(255, 255, 255, 0.08);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
-}
-
-
 /************************************ WINDOW ***********************************/
 
 /* Window. More specifically its root pane. Element with this class will also have class
@@ -3349,28 +3303,6 @@
 /* HBox containing buttons within a header */
 .header-buttons {
 }
-
-
-
-.lighter-button {
-    -fx-background-color: rgba(180,200,255,0.1);
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
-}
-.lighter-button:hover {
-    /*-fx-background-color: rgba(0,0,0,0.2);*/
-    -fx-background-color: null;
-    -fx-border-color: 
-        transparent transparent rgba(255, 255, 255, 0.08) transparent,
-        rgba(255, 255, 255, 0.15) rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.5) rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1, 1.5;
-    -fx-border-insets: -2, -0.5;
-}
-
-
 
 
 /* Small button mostly within custom controls for opening dialogs. For example
@@ -3722,7 +3654,6 @@
 // the 'full' rating button - 2nd group of icons with this pseudoclass hovers
 // clipped on top to produce partial rating effect
 .rating-button.strong {
-    /*-fx-opacity: 0.8;*/
     -fx-font-size: 10px;
 }
 // rating is at min value
@@ -3731,10 +3662,10 @@
 }
 // rating is at max value
 .rating-button:max {
-    /*-fx-opacity: 1;*/
-    -fx-fill: white;
+    -fx-fill: derive(-fx-def-font-color,50%);;
 }
 
+//************************************ PANE **********************************//
 
 /** Pane border created with path.
     extends .path, .shape */
@@ -3753,6 +3684,8 @@
     -fx-stroke-width: 2;
     -fx-stroke-type: inside;
 }
+
+//********************************** SPINNER *********************************//
 
 /** Simple progress indicator control.
     extends .arc, .shape */

@@ -65,12 +65,6 @@ public class Fut<T> {
     public final Fut<T> thenR(Runnable action, Consumer<Runnable> executor) {
         return new Fut(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
     }
-//    public final Fut<Void> thenR(Runnable action) {
-//        return new Fut(f.thenAcceptAsync(res -> action.run()));
-//    }
-//    public final Fut<Void> thenR(Runnable action, Consumer<Runnable> executor) {
-//        return new Fut(f.thenAcceptAsync(res -> action.run(), executor::accept));
-//    }
     
     public final Fut<T> showProgress(ProgressIndicator p) {
         return new Fut(CompletableFuture

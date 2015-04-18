@@ -758,6 +758,29 @@ public class Util {
     }
     
     /**
+     * Set field named f of the object o to value v.
+     * @throws RuntimeException if reflection error occurs
+     */
+    public static void setField(Object o, String f, Object v) {
+        setField(o.getClass(), o, f, v);
+    }
+    
+    /**
+     * Set field named f of the object o declared in class c to value v.
+     * @throws RuntimeException if reflection error occurs
+     */
+    public static void setField(Class c, Object o, String f, Object v) {
+        try {
+            Field fl = c.getDeclaredField(f);
+            fl.setAccessible(true);
+            fl.set(o,v);
+            fl.setAccessible(false);
+        } catch (Exception x) {
+            throw new RuntimeException(x);
+        }
+    }
+    
+    /**
      * Renames declared enum sonstant using the mapper function on the enum
      * constant string.
      * <p>
@@ -784,18 +807,12 @@ public class Util {
      * @param c class
      * @param e enum constant/instance
      * @param mapper function to apply on the constant
+     * @throws RuntimeException if reflection error occurs
      */
     public static<E extends Enum>void mapEnumConstant(E e, Function<E, String> mapper) {
-        try {
-            Field f = e.getClass().getSuperclass().getDeclaredFields()[0];
-            f.setAccessible(true);
-            f.set(e, mapper.apply(e));
-            f.setAccessible(false);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+        setField(e.getClass().getSuperclass(), e, "name", mapper.apply(e));
     }
-    
+
     /**
      * Returns enum constants of an enum class in declared order. Works for 
      * enums with class method

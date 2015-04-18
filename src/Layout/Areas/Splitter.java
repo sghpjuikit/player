@@ -37,7 +37,7 @@ import unused.SimplePositionable;
 import static util.Util.setAnchors;
 import static util.access.SequentialValue.next;
 import static util.async.Async.run;
-import static util.async.Async.runOnFX;
+import static util.async.Async.runFX;
 import util.collections.PropertyMap;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
@@ -202,7 +202,7 @@ public final class Splitter implements ContainerNode {
                 } else {
                     double p = prop.getD("pos");
                     if(nv.doubleValue()<p-0.08||nv.doubleValue()>p+0.08)
-                        runOnFX(this::applyPos);
+                        runFX(this::applyPos);
                     else
                         run(5000, ()->initialized=true);
                 }

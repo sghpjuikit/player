@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Skin;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Arc;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import util.graphics.fxml.ConventionFxmlLoader;
@@ -48,6 +49,9 @@ public class Spinner extends ProgressIndicator {
         StackPane root = new StackPane();
         @FXML StackPane inner;
         @FXML StackPane outer;
+        @FXML Arc inner_arc;
+        @FXML Arc outer_arc;
+        @FXML Arc progress_arc;
         RotateTransition rt;
         boolean playing = false;
         
@@ -92,7 +96,7 @@ public class Spinner extends ProgressIndicator {
 
         private void update() {
             Spinner s = getSkinnable();
-            double p = s.getProgress();System.out.println(p);
+            double p = s.getProgress();System.out.println("spiner progress " + p);
             if(s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1) {
                 if(rt==null) {
                     rt = new RotateTransition(Duration.seconds(80), inner);
@@ -107,6 +111,18 @@ public class Spinner extends ProgressIndicator {
                 if(playing && rt!=null) rt.pause();
                 playing = false;
             }
+            
+//            double w = p==-1 ? 2 : 2 + 3*p;
+//            double a = p==-1 ? 270 : + 90*p;
+//            inner_arc.setStrokeWidth(w);
+//            inner_arc.setLength(a)
+//            double sc = p==-1 ? 1 : 1-p;
+//            outer.setScaleX(sc);
+//            outer.setScaleY(sc);
+            double sa = p==-1 ? 0 : 360*p;
+            double la = p==-1 ? 0 : 360*p;
+            progress_arc.setStartAngle(sa);
+            progress_arc.setLength(la);
         }
     
     }

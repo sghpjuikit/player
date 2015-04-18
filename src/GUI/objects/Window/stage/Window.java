@@ -7,7 +7,6 @@ import AudioPlayer.services.LastFM.LastFMManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.*;
 import GUI.GUI;
-import GUI.LayoutAggregators.EmptyLayoutAggregator;
 import GUI.LayoutAggregators.LayoutAggregator;
 import GUI.LayoutAggregators.SwitchPane;
 import GUI.objects.Icon;
@@ -70,7 +69,7 @@ import main.App;
 import org.reactfx.Subscription;
 import util.Animation.Anim;
 import util.Animation.Interpolators.ElasticInterpolator;
-import static util.File.Enviroment.browse;
+import static util.File.Environment.browse;
 import util.Util;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
@@ -268,7 +267,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /**
      ***************************************************************************
      */
-    private LayoutAggregator layout_aggregator = new EmptyLayoutAggregator();
+//    private LayoutAggregator layout_aggregator = new EmptyLayoutAggregator();
+    private LayoutAggregator layout_aggregator = new SwitchPane();
     boolean main = false;
     
     // root is assigned '.window' styleclass
@@ -387,10 +387,107 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		}
 	    }
 	});
+        
+        
+        
+	// github button - show all available FontAwesome icons in a popup
+	Icon gitB = new Icon(GITHUB, 13, "Open github project page for this application",
+	    e -> browse(App.getGithubLink()));
+	// github button - show all available FontAwesome icons in a popup
+	Icon dirB = new Icon(CSS3, 13, "Open css guide",
+	    e -> browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html"));
+	// css button - show all available FontAwesome icons in a popup
+	Icon cssB = new Icon(FOLDER, 13, "Open application location (development tool)",
+	    e -> browse(App.getLocation()));
+	// icon button - show all available FontAwesome icons in a popup
+	Icon iconsB = new Icon(IMAGE, 13, "Icon browser (development tool)", 
+            e -> {
+                Pane g = new GlyphsBrowser(); g.setPrefHeight(700);
+                new PopOver(g).show((Node)e.getSource());
+            });
+//            e -> new PopOver(new GlyphsBrowser()).show((Node)e.getSource()));
+	// settings button - show application settings in a popup
+	Icon propB = new Icon(GEARS, 13, "Application settings",
+	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NOLAYOUT));
+	// manage layout button - sho layout manager in a popp
+	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
+	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
+        // lasFm button - show basic lastFm settings and toggle scrobbling
+	Icon lastFMB = new Icon(null, 13, "LastFM");
+        maintain(LastFMManager.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB.icon);
+	lastFMB.setOnMouseClicked(e -> {
+	    if (e.getButton() == MouseButton.PRIMARY)
+		if (LastFMManager.getScrobblingEnabled())
+		    LastFMManager.toggleScrobbling();
+		else
+		    if (LastFMManager.isLoginSuccess())
+			LastFMManager.toggleScrobbling();
+		    else
+			new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
+	    else if (e.getButton() == MouseButton.SECONDARY)
+		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
+	});
+	// lock layout button
+	Icon lockB = new Icon(null, 13, "Lock layout", GUI::toggleLayoutLocked);
+        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB.icon);
+	// layout mode button
+	Icon lmB = new Icon(null, 13, "Layout mode", GUI::toggleLayoutNzoom);
+	// layout tab buttons
+	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", ((SwitchPane)layout_aggregator)::alignLeftTab);
+	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", ((SwitchPane)layout_aggregator)::alignRightTab);
+        maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB.icon);
+	// guide button - sho layout manager in a popp
+	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
+	    App.guide.resume();
+	    App.actionStream.push("Guide resumed");
+	});
+	// help button - show help information
+	Icon helpB = new Icon(INFO, 13, "Help");
+	helpB.setOnMouseClicked(e -> {
+	    PopOver<Text> helpP = PopOver.createHelpPopOver(
+		"Available actions:\n"
+		+ "    Header icons : Providing custom functionalities. See tooltips.\n"
+		+ "    Header buttons : Providing window contorl. See tooltips.\n"
+		+ "    Mouse drag : Move window. Windows snap to screen or to other windows.\n"
+		+ "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n"
+		+ "    Mouse drag edge : Resizes window.\n"
+		+ "    Double left click : Toggle meximized mode on/off.\n"
+		+ "    Double right click : Toggle hide header on/off.\n"
+		+ "    Press ALT : Show hidden header temporarily.\n"
+		+ "    Press ALT : Activate layout mode.\n"
+		+ "    Content right drag : drag tabs."
+	    );
+	    helpP.show(helpB);
+	    helpP.getContentNode().setWrappingWidth(400);
+	    App.actionStream.push("Layout info popup");
+	});
+	
+        // left header
+	left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
+        ltB.setContentDisplay(GRAPHIC_ONLY);
+        rtB.setContentDisplay(GRAPHIC_ONLY);
+        ltB.setPadding(new Insets(0, 0, 0, 15));
+        rtB.setPadding(new Insets(0, 15, 0, 0));
+	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
+        
+        
+        Icon miniB = new Icon(null, 13, "Close window", this::toggleMini);
+        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
+        Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
+        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
+        Icon fullscrB = new Icon(null, 13, "Fullscreen mode", this::toggleFullscreen);
+        maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB.icon);
+        Icon minimB = new Icon(MINUS_SQUARE_ALT, 13, "Minimize application", this::toggleMinimize);
+        // maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB.icon);
+        Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize window", this::toggleMaximize);
+        // maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
+        Icon closeB = new Icon(CLOSE, 13, "Close window", this::close);
+        
+        // right header
+	right_icons = new IconBox(controls, RIGHT_TO_LEFT);
+	right_icons.add(miniB, ontopB, fullscrB, minimB, maximB, closeB);
 
     }
-
-    ;
     
     public void setAsMain() {
 	if (App.getWindow() != null)
@@ -553,102 +650,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public void setIcon(Image img) {
 	iconI.setImage(img);
 	leftHeaderBox.getChildren().remove(iconI);
-
-	// github button - show all available FontAwesome icons in a popup
-	Icon gitB = new Icon(GITHUB, 13, "Open github project page for this application",
-	    e -> browse(App.getGithubLink()));
-	// github button - show all available FontAwesome icons in a popup
-	Icon dirB = new Icon(CSS3, 13, "Open css guide",
-	    e -> browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html"));
-	// css button - show all available FontAwesome icons in a popup
-	Icon cssB = new Icon(FOLDER, 13, "Open application location (development tool)",
-	    e -> browse(App.getLocation()));
-	// icon button - show all available FontAwesome icons in a popup
-	Icon iconsB = new Icon(IMAGE, 13, "Icon browser (development tool)", 
-            e -> {
-                Pane g = new GlyphsBrowser(); g.setPrefHeight(700);
-                new PopOver(g).show((Node)e.getSource());
-            });
-//            e -> new PopOver(new GlyphsBrowser()).show((Node)e.getSource()));
-	// settings button - show application settings in a popup
-	Icon propB = new Icon(GEARS, 13, "Application settings",
-	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NOLAYOUT));
-	// manage layout button - sho layout manager in a popp
-	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
-	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
-        // lasFm button - show basic lastFm settings and toggle scrobbling
-	Icon lastFMB = new Icon(null, 13, "LastFM");
-        maintain(LastFMManager.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB.icon);
-	lastFMB.setOnMouseClicked(e -> {
-	    if (e.getButton() == MouseButton.PRIMARY)
-		if (LastFMManager.getScrobblingEnabled())
-		    LastFMManager.toggleScrobbling();
-		else
-		    if (LastFMManager.isLoginSuccess())
-			LastFMManager.toggleScrobbling();
-		    else
-			new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
-	    else if (e.getButton() == MouseButton.SECONDARY)
-		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
-	});
-	// lock layout button
-	Icon lockB = new Icon(null, 13, "Lock layout", GUI::toggleLayoutLocked);
-        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB.icon);
-	// layout mode button
-	Icon lmB = new Icon(null, 13, "Layout mode", GUI::toggleLayoutNzoom);
-	// layout tab buttons
-	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", ((SwitchPane)layout_aggregator)::alignLeftTab);
-	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", ((SwitchPane)layout_aggregator)::alignRightTab);
-        maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB.icon);
-	// guide button - sho layout manager in a popp
-	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
-	    App.guide.resume();
-	    App.actionStream.push("Guide resumed");
-	});
-	// help button - show help information
-	Icon helpB = new Icon(INFO, 13, "Help");
-	helpB.setOnMouseClicked(e -> {
-	    PopOver<Text> helpP = PopOver.createHelpPopOver(
-		"Available actions:\n"
-		+ "    Header icons : Providing custom functionalities. See tooltips.\n"
-		+ "    Header buttons : Providing window contorl. See tooltips.\n"
-		+ "    Mouse drag : Move window. Windows snap to screen or to other windows.\n"
-		+ "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n"
-		+ "    Mouse drag edge : Resizes window.\n"
-		+ "    Double left click : Toggle meximized mode on/off.\n"
-		+ "    Double right click : Toggle hide header on/off.\n"
-		+ "    Press ALT : Show hidden header temporarily.\n"
-		+ "    Press ALT : Activate layout mode.\n"
-		+ "    Content right drag : drag tabs."
-	    );
-	    helpP.show(helpB);
-	    helpP.getContentNode().setWrappingWidth(400);
-	    App.actionStream.push("Layout info popup");
-	});
-	
-        // left header
-	left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
-        ltB.setContentDisplay(GRAPHIC_ONLY);
-        rtB.setContentDisplay(GRAPHIC_ONLY);
-        ltB.setPadding(new Insets(0, 0, 0, 15));
-        rtB.setPadding(new Insets(0, 15, 0, 0));
-	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
-        
-        
-        Icon miniB = new Icon(null, 13, "Close window", this::toggleMini);
-        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
-        Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
-        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
-        Icon fullscrB = new Icon(null, 13, "Fullscreen mode", this::toggleFullscreen);
-        maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB.icon);
-        Icon minimB = new Icon(MINUS_SQUARE_ALT, 13, "Minimize application", this::toggleMinimize);
-//        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB.icon);
-        Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize window", this::toggleMaximize);
-//        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
-        Icon closeB = new Icon(CLOSE, 13, "Close window", this::close);
-        // right header
-	right_icons = new IconBox(controls, RIGHT_TO_LEFT);
-	right_icons.add(miniB, ontopB, fullscrB, minimB, maximB, closeB);
     }
     
     /** Creates new progress indicator in this window's header, and returns it. 

@@ -37,6 +37,7 @@ import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
+import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
@@ -209,10 +210,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);
                         break;
             case flac:  //FLACFile flac = (MP3File)audioFile;
-                        loadSpecificFieldsFLAC();
+                        loadSpecificFieldsFLAC((FlacTag)tag);
                         break;
             case ogg:   //MP3File ogg = (MP3File)audioFile;
-                        loadSpecificFieldsOGG();
+                        loadSpecificFieldsOGG(tag);
                         break;
             case wav:   //MP3File ogg = (MP3File)audioFile;
                         loadSpecificFieldsWAV();
@@ -346,9 +347,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                 // both for rating and playcount.
                 // all is good until the tag is actually damaged and the int can really
                 // overflow during conversion and we get ArithmeticException
-                // so we catch it and ignore the value (personally id throw custom
-                // exception and handled it in upper layers eventually showing a dialog
-                // asking the user to fix the tags by rewriting it
+                // so we catch it and ignore the value
                 try {
                     rating = Math.toIntExact(rat);
                 } catch (ArithmeticException e){}
@@ -367,15 +366,19 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         playcount = -1;
         publisher = "";
     }
-    private void loadSpecificFieldsOGG() {
+    private void loadSpecificFieldsOGG(Tag tag) {
         rating = -1;
         playcount = -1;
         publisher = "";
+        // try to get category as winamp does it
+        if(category.isEmpty()) category = Util.emptifyString(tag.getFirst("CATEGORY"));
     }
-    private void loadSpecificFieldsFLAC() {
+    private void loadSpecificFieldsFLAC(FlacTag tag) {
         rating = -1;
         playcount = -1;
         publisher = "";
+        // try to get category as winamp does it
+        if(category.isEmpty()) category = Util.emptifyString(tag.getFirst("CATEGORY"));
     }
 
 /******************************************************************************/  

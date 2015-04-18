@@ -3762,3 +3762,6 @@
     -fx-stroke-width: 2;
     -fx-stroke-type: inside;
 }
+.spinner-progress {
+    -fx-fill: -fx-def-font-color;
+}

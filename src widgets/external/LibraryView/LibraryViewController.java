@@ -1,7 +1,6 @@
 
 package LibraryView;
 
-import AudioPlayer.Player;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
@@ -56,16 +55,15 @@ import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import main.App;
 import org.reactfx.Subscription;
-import util.File.Enviroment;
+import util.File.Environment;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
-import util.async.Async;
+import util.async.executor.LimitedExecutor;
 import util.collections.Histogram;
 import util.collections.ListCacheMap;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
-import util.async.executor.Runner;
 import static util.functional.Util.*;
 import util.parsing.Parser;
 import web.HttpSearchQueryBuilder;
@@ -102,7 +100,7 @@ public class LibraryViewController extends FXMLController {
     // dependencies
     private Subscription d1;
     
-    private final Runner runOnce = new Runner(1);
+    private final LimitedExecutor runOnce = new LimitedExecutor(1);
     private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
     Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
@@ -308,48 +306,52 @@ public class LibraryViewController extends FXMLController {
     
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
-        Async.runBgr(() -> {
-            Field f = fieldFilter.getValue();
-            // make histogram
-            h.keyMapper = metadata -> metadata.getField(f);
-            h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
-            h.elementAccumulator = (hist,metadata) -> {
-                hist.a++;
-                hist.b.add(metadata.getAlbum());
-                hist.c += metadata.getLengthInMs();
-                hist.d += metadata.getFilesizeInB();
-                hist.e += metadata.getRatingPercent();
-                if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
-                    hist.f = hist.f==null ? metadata.getYear() : "...";
-            };
-            h.clear();
-            h.accumulate(list);
-            // read histogram
-            return h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
-        }, l -> {
-            table.setItemsRaw(l);
-            forwardItems(list);
-        });
+        // doesnt work ?
+//        new Fut<>()
+//            .supply(() -> {
+//            Field f = fieldFilter.getValue();
+//            // make histogram
+//            h.keyMapper = metadata -> metadata.getField(f);
+//            h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+//            h.elementAccumulator = (hist,metadata) -> {
+//                hist.a++;
+//                hist.b.add(metadata.getAlbum());
+//                hist.c += metadata.getLengthInMs();
+//                hist.d += metadata.getFilesizeInB();
+//                hist.e += metadata.getRatingPercent();
+//                if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
+//                    hist.f = hist.f==null ? metadata.getYear() : "...";
+//            };
+//            h.clear();
+//            h.accumulate(list);
+//            // read histogram
+//            return h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
+//        })
+//        .use(l -> {
+//            table.setItemsRaw(l);
+//            forwardItems(list);
+//        })
+//        .run();
         
-//        Field f = fieldFilter.getValue();
-//        // make histogram
-//        h.keyMapper = metadata -> metadata.getField(f);
-//        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
-//        h.elementAccumulator = (hist,metadata) -> {
-//            hist.a++;
-//            hist.b.add(metadata.getAlbum());
-//            hist.c += metadata.getLengthInMs();
-//            hist.d += metadata.getFilesizeInB();
-//            hist.e += metadata.getRatingPercent();
-//            if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
-//                hist.f = hist.f==null ? metadata.getYear() : "...";
-//        };
-//        h.clear();
-//        h.accumulate(list);
-//        // read histogram
-//        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
-//        // pass down the chain
-//        forwardItems(list);
+        Field f = fieldFilter.getValue();
+        // make histogram
+        h.keyMapper = metadata -> metadata.getField(f);
+        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+        h.elementAccumulator = (hist,metadata) -> {
+            hist.a++;
+            hist.b.add(metadata.getAlbum());
+            hist.c += metadata.getLengthInMs();
+            hist.d += metadata.getFilesizeInB();
+            hist.e += metadata.getRatingPercent();
+            if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
+                hist.f = hist.f==null ? metadata.getYear() : "...";
+        };
+        h.clear();
+        h.accumulate(list);
+        // read histogram
+        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
+        // pass down the chain
+        forwardItems(list);
     }
     
     /** Sends event to next level. */
@@ -424,12 +426,12 @@ public class LibraryViewController extends FXMLController {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
                                       q -> "in " + Parser.toS(q),
-                                      q -> Enviroment.browse(q.apply(m.getValue().get(0).getAlbum())));
+                                      q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);
             m.getItems().addAll(
                 menuItem("Play items", e -> play(m.getValue())),
                 menuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
-                menuItem("Update from file", e -> Player.refreshItems(m.getValue())),
+                menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
                 menuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))),
                 searchMenu

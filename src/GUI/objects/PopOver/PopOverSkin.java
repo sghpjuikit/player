@@ -51,7 +51,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.*;
 import javafx.stage.Window;
-import util.async.Async;
+import static util.async.Async.run;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
 
@@ -165,7 +165,7 @@ public class PopOverSkin implements Skin<PopOver> {
         maintain(popOver.headerVisible, b->b ? header : null, content.topProperty());
 
         // the delay in the execution is essencial for updatePath to work - unknown reason
-        InvalidationListener uPLd = o -> Async.run(25,this::updatePath);
+        InvalidationListener uPLd = o -> run(25,this::updatePath);
         InvalidationListener uPL = o -> updatePath();
 
         popOver.getScene().getWindow().xProperty().addListener(uPL);

@@ -40,7 +40,7 @@ import static util.functional.Util.list;
  */
 @TODO(purpose = FUNCTIONALITY,
       note = "printing, mailing if needed (but can be easily implemented")
-public class Enviroment {
+public class Environment {
 
     /** Equivalent to {@code browse(f.toURI()); } */
     public static void browse(File f) {

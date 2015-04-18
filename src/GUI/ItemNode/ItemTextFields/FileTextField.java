@@ -7,7 +7,7 @@
 package GUI.ItemNode.ItemTextFields;
 
 import java.io.File;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.parsing.impl.FileParser;
 import util.parsing.StringParser;
 
@@ -29,10 +29,10 @@ public class FileTextField extends ItemTextField<File> {
     @Override
     void onDialogAction() {
         if(v==null || v.isDirectory()) {
-            File f = Enviroment.chooseFile("Choose directory", true, v, getScene().getWindow());
+            File f = Environment.chooseFile("Choose directory", true, v, getScene().getWindow());
             setValue(f);
         } else {
-            File f = Enviroment.chooseFile("Choose file", false, v, getScene().getWindow());
+            File f = Environment.chooseFile("Choose file", false, v, getScene().getWindow());
             setValue(f);
         }
     }

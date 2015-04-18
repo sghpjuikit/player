@@ -66,7 +66,7 @@ import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Accessor;
-import static util.async.Async.runBgr;
+import static util.async.Async.runNew;
 import util.collections.MapSet;
 import util.dev.Log;
 import static util.functional.Util.isIn;
@@ -485,7 +485,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             coverSuperContainer.setDisable(false);
 
 
-            runBgr(() -> {
+            runNew(() -> {
 
                 // histogram init
                 fields.forEach(TagField::histogramInit);

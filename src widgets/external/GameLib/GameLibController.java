@@ -39,7 +39,7 @@ import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import util.Animation.Anim;
 import util.Animation.Interpolators.ElasticInterpolator;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.File.FileUtil;
 import static util.File.FileUtil.readFileLines;
 import util.async.executor.FxTimer;
@@ -174,7 +174,7 @@ public class GameLibController extends FXMLController {
         Icon exploreB = new Icon(FOLDER, 40, null, () -> {
             if(game!=null) {
                 if(at!=EXPLORER) goTo(EXPLORER);
-                else Enviroment.browse(game.getLocation().toURI());
+                else Environment.browse(game.getLocation().toURI());
             }
         });
         

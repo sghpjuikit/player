@@ -21,7 +21,9 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import util.Animation.Anim;
-import static util.Animation.Anim.*;
+import static util.Animation.Anim.Interpolators.isAroundMin1;
+import static util.Animation.Anim.par;
+import static util.Animation.Anim.seq;
 import util.functional.Util;
 import static util.functional.Util.forEachI;
 import static util.functional.Util.forEachIStream;
@@ -145,7 +147,7 @@ public class Picker<E> {
           forEachIStream(getCells(), (i,n) ->
               seq(
                 new Anim(n.getChildrenUnmodifiable().get(0)::setOpacity).dur(500+random()*1000).intpl(0),
-                new Anim(n.getChildrenUnmodifiable().get(0)::setOpacity).dur(500).intpl(at -> isAroundMin1(at, 0.04, 0.1,0.2,0.3))
+                new Anim(n.getChildrenUnmodifiable().get(0)::setOpacity).dur(500).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
               )
           )
         );

@@ -38,7 +38,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import main.App;
 import org.reactfx.Subscription;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.Util;
 import static util.Util.*;
 import util.dev.TODO;
@@ -416,8 +416,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     private static final TableContextMenuInstance<PlaylistItem> contxt_menu = new TableContextMenuInstance<> (
         () -> {
             ContentContextMenu<List<PlaylistItem>> m = new ContentContextMenu();
-            m.getItems().addAll(
-                menuItem("Play items", e -> {
+            m.getItems().addAll(menuItem("Play items", e -> {
                     PlaylistManager.playItem(m.getValue().get(0));
                 }),
                 menuItem("Remove items", e -> {
@@ -440,7 +439,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                             .filter(Item::isFileBased)
                             .map(Item::getLocation)
                             .collect(Collectors.toList());
-                    Enviroment.browse(files,true);
+                    Environment.browse(files,true);
                 }),
                 menuItem("Add items to library", e -> {
                     List<Metadata> items = m.getValue().stream()
@@ -451,7 +450,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 new Menu("Search album cover",null,
                     menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
                             q -> "in " + Parser.toS(q),
-                            q -> Enviroment.browse(q.apply(m.getValue().get(0).getMetadata().getAlbum())))
+                            q -> Environment.browse(q.apply(m.getValue().get(0).getMetadata().getAlbum())))
                 )
             );
             return m;

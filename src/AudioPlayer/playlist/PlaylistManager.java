@@ -31,7 +31,7 @@ import javafx.util.Duration;
 import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import util.File.Enviroment;
+import util.File.Environment;
 import static util.File.FileUtil.getFilesAudio;
 import util.reactive.ValueEventSource;
 
@@ -562,7 +562,7 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     public static void addOrEnqueueFiles(boolean add) {
-        List<File> files = Enviroment.chooseFiles("Choose Audio Files", browse, App.getWindowOwner().getStage(), AudioFileFormat.filter(Use.PLAYBACK));
+        List<File> files = Environment.chooseFiles("Choose Audio Files", browse, App.getWindowOwner().getStage(), AudioFileFormat.filter(Use.PLAYBACK));
         if (files != null) {
             browse = files.get(0).getParentFile();
             List<URI> queue = new ArrayList<>();
@@ -582,7 +582,7 @@ public class PlaylistManager implements Configurable {
      * @param add true to add items, false to clear playlist and play items
      */
     public static void addOrEnqueueFolder(boolean add) {
-        File dir = Enviroment.chooseFile("Choose Audio Files From Directory Tree",
+        File dir = Environment.chooseFile("Choose Audio Files From Directory Tree",
                 true, browse, App.getWindowOwner().getStage());
         if (dir != null) {
             browse = dir;
@@ -633,12 +633,12 @@ public class PlaylistManager implements Configurable {
              cnt.setSpacing(8);
         VBox.setMargin(t2, new Insets(0, 0, 0, 20));
         Icon infoB =  new Icon(INFO, 11, "Help");
-             infoB.setOnMouseClicked( e -> {
+             infoB.setOnMouseClicked(e -> {
                PopOver helpP = PopOver.createHelpPopOver("");
                        helpP.setContentNode(cnt);
                        // open the uri in browser
-                       helpP.getContentNode().setOnMouseClicked( pe -> {
-                           Enviroment.browse(URI.create(uri));
+                       helpP.getContentNode().setOnMouseClicked(pe -> {
+                           Environment.browse(URI.create(uri));
                            pe.consume();
                        });
                        helpP.show(infoB);

@@ -31,32 +31,7 @@ import util.dev.Log;
  */
 public class MetadataReader{
 
-    /**
-     * Creates list of Metadata for provided items. Use to read multiple files
-     * at once. The work runs on background thread. The procedures executed on
-     * task completion will be automatically executed from FXApplication thread.
-     * <p>
-     * This method returns {@link Task} doing the work, which allows binding to
-     * its properties (for example progress) and more.
-     * <p>
-     * When any error occurs during the reading process, the reading will stop
-     * and return all obtained metadata.
-     * <p>
-     * The result of the task is list of metadatas (The list will not be null 
-     * nor contain null values) if task finshes sccessfully or null otherwise.
-     * <p>
-     * Calling this method will immediately start the reading process (on
-     * another thread).
-     * <p>
-     * @param items List of items to read.
-     * @param onEnd procedure to execute upon finishing this task providig
-     * the result and success flag.
-     * Must not be null.
-     * @return task reading the files returning item's metadatas on successful
-     * completion or all successfully obtained metadata when any error occurs.
-     * @throws NullPointerException if any parameter null
-     */
-    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
+    private static Task<List<Metadata>> buildReadMetadata(List<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
         // perform check
         Objects.requireNonNull(items);
         Objects.requireNonNull(onEnd);
@@ -95,7 +70,59 @@ public class MetadataReader{
             }
         };
         
-        return runBgr(task);
+        return task;
+    }
+    
+    /**
+     * Creates list of Metadata for provided items. Use to read multiple files
+     * at once. The work runs on background thread. The procedures executed on
+     * task completion will be automatically executed from FXApplication thread.
+     * <p>
+     * This method returns {@link Task} doing the work, which allows binding to
+     * its properties (for example progress) and more.
+     * <p>
+     * When any error occurs during the reading process, the reading will stop
+     * and return all obtained metadata.
+     * <p>
+     * The result of the task is list of metadatas (The list will not be null 
+     * nor contain null values) if task finshes sccessfully or null otherwise.
+     * <p>
+     * Calling this method will immediately start the reading process (on
+     * another thread).
+     * 
+     * @param items List of items to read.
+     * @param onEnd procedure to execute upon finishing this task providig
+     * the result and success flag.
+     * Must not be null.
+     * @return task reading the files returning item's metadatas on successful
+     * completion or all successfully obtained metadata when any error occurs.
+     *
+     * @throws NullPointerException if any parameter null
+     */
+    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
+        // create task
+        final Task task = buildReadMetadata(items, onEnd);
+        
+        // run immediately and return task
+        runNew(task);
+        return task;
+    }
+    
+    /** 
+     * Transforms items into their metadatas by reading the files.
+     * For asynchronouse use only.
+     * Items for which reading fails are ignored.
+     */
+    public static List<Metadata> readMetadata(List<? extends Item> items){    
+        List<Metadata> metadatas = new ArrayList();
+
+        for (Item item: items){
+            // create metadata
+            Metadata m = create(item);
+            if (!m.isEmpty()) metadatas.add(m);
+        }
+
+        return metadatas;
     }
 
     /**
@@ -174,7 +201,9 @@ public class MetadataReader{
             });
         });
 
-        return runBgr(task);
+        // run immediately and return task
+        runNew(task);
+        return task;
     }
 
     static private Metadata createNonFileBased(Item item){
@@ -251,7 +280,7 @@ public class MetadataReader{
                     }
                     em.getTransaction().commit();
                     // update library model
-                    runOnFX(DB::updateLib);
+                    runFX(DB::updateLib);
                 } catch (Exception e ) {
                     e.printStackTrace();
                 }
@@ -264,7 +293,9 @@ public class MetadataReader{
             }
         };
         
-        return runBgr(task);
+        // run immediately and return task
+        runNew(task);
+        return task;
     }
     
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){
@@ -294,7 +325,7 @@ public class MetadataReader{
                 
                 DB.em.getTransaction().commit();
                 // update library model
-                runOnFX(DB::updateLib);
+                runFX(DB::updateLib);
                         
                 // update state
                 updateMessage(all,completed,removed);
@@ -318,6 +349,8 @@ public class MetadataReader{
             
         };
         
-        return runBgr(task);
+        // run immediately and return task
+        runNew(task);
+        return task;
     }    
 }

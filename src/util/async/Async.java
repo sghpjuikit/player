@@ -5,16 +5,14 @@
  */
 package util.async;
 
-import util.async.executor.FxTimer;
-import AudioPlayer.tagging.SuccessTask;
-import static java.util.Objects.requireNonNull;
 import java.util.concurrent.Executor;
 import java.util.function.*;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.application.Platform;
-import static javafx.application.Platform.runLater;
-import javafx.concurrent.Task;
 import javafx.util.Duration;
+import static util.Util.setField;
+import util.async.executor.FxTimer;
+import util.async.runnable.Run;
 
 /**
  *
@@ -22,168 +20,128 @@ import javafx.util.Duration;
  */
 public final class Async {
     
-    public static Consumer<Runnable> FX = Async::executeFX;
-    public static Consumer<Runnable> FXLATER = Async::executeLater;
-    public static Consumer<Runnable> BGR = Async::executeBgr;
-    public static Consumer<Runnable> CURR = Async::executeCurr;
+    public static Consumer<Runnable> FX = Async::runFX;
+    public static Consumer<Runnable> FXLATER = Async::runLater;
+    public static Consumer<Runnable> NEW = Async::runNew;
+    public static Consumer<Runnable> CURR = Async::run;
+    public static Consumer<Runnable> FXAFTER(double delay) {
+        return r -> runFX(delay, r);
+    }
+    public static Consumer<Runnable> FXAFTER(Duration delay) {
+        return r -> runFX(delay, r);
+    }
     
-    public static Executor eFX = Async::executeFX;
-    public static Executor eFXLATER = Async::executeLater;
-    public static Executor eBGR = Async::executeBgr;
-    public static Executor eCURR = Async::executeCurr;
     
+    public static Executor eFX = Async.FX::accept;
+    public static Executor eFXLATER = Async.FXLATER::accept;
+    public static Executor eBGR = Async.NEW::accept;
+    public static Executor eCURR = Async.CURR::accept;
     
-    public static void executeCurr(Runnable r) {
+    /**
+     * Executes the runnable immediately on current thread.
+     * Equivalent to 
+     * <pre>{@code 
+     *   r.run();
+     * </pre>
+     */
+    public static void run(Runnable r) {
         r.run();
-    }
-    
-    public static void executeBgr(Runnable r) {
-        Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        thread.start();
-    }
-    
-    public static void executeFX(Runnable r) {
-        if(Platform.isFxApplicationThread()) r.run(); else runLater(r);
-    }
-    
-    public static void executeLater(Runnable r) {
-        Platform.runLater(r);
-    }
-    
-    
-    /**
-     * Executes the action immediately on new thread as new 
-     * {@link SuccessTask} and returns it. Use
-     * @param <Void>
-     * @param action
-     * @return task
-     */
-    public static Task<Void> runAsTask(Runnable action) {
-        return Async.runBgr(new SuccessTask<Void,SuccessTask>() {
-            @Override
-            protected Void call() throws Exception {
-                action.run();
-                return null;
-            }
-        });
-    }
-    
-    /**
-     * Executes the action immediately on new thread as new
-     * {@link SuccessTask} returning the result of the action and returns the task.
-     * @param <R>
-     * @param name Name of the task
-     * @param action Action to execute as task
-     * @param onEnd Action processing result of the task
-     * @return The task
-     */
-    public static<R> Task<R> runAsTask(String name, Supplier<R> action, BiConsumer<Boolean,R> onEnd) {
-        return runBgr(new SuccessTask(name, onEnd) {
-            @Override protected R call() throws Exception {
-                updateMessage(name + " ...");
-                return action.get();
-            }
-        });
-    }
-    
-    /**
-     * Executes the action immediately on a new Thread.
-     * Equivalent to 
-     * <pre>{@code 
-     *   Thread thread = new Thread(action);
-     *   thread.setDaemon(true);
-     *   thread.start();}
-     * </pre>
-     * @param action
-     * @param <R> type of action - any Runnable, that includes Tasks and Futures
-     * @return the action. If the action is a {@link Task} it is useful to catch it
-     * and bind to monitor progress.
-     */
-    public static<R extends Runnable> R runBgr(R action) {
-        Thread thread = new Thread(action);
-        thread.setDaemon(true);
-        thread.start();
-        return action;
-    }
-    
-    /** 
-     * Prepares value V on new bgr thread started immediately and consumes it
-     * on FX thread.
-     * <p>
-     * Use to run blocking call (e.g. I/O) on bgr and use result back on FX thread
-     * 
-     * @throws NullPointerException if any parameter null
-     */
-    public static <V> void runBgr(Supplier<V> bgraction, Consumer<V> fxaction) {
-        requireNonNull(bgraction);
-        requireNonNull(fxaction);
-        
-        Thread thread = new Thread(() -> {
-            V t = bgraction.get();
-            runLater(() -> fxaction.accept(t));
-        });
-        thread.setDaemon(true);
-        thread.start();
-    }
-    /** Convenience method. {@link Void} version of {@link #runBgr(java.util.function.Supplier, java.util.function.Consumer)} */
-    public static <V> void runBgr(Runnable bgraction, Runnable fxaction) {
-        runBgr(() -> { bgraction.run(); return null; }, nothing->fxaction.run());
-    }
-    
-    /**
-     * Executes the action immediately on a main application thread.
-     * Equivalent to 
-     * <pre>{@code 
-     *   Platform.runLater(action);}
-     * </pre>
-     * @param <R> type of action - any Runnable, that includes Tasks and Futures
-     * @return the action. If the action is a {@link Task} it is useful to catch it
-     * and bind to monitor progress.
-     */
-    public static<R extends Runnable> R runOnFX(R action) {
-        Platform.runLater(action);
-        return action;
     }
     
     /**
      * Executes the action on current thread after specified delay from now.
      * Equivalent to {@code new FxTimer(delay, action, 1).restart();}.
      * @param delay delay
-     * @param <R> type of action - any Runnable, that includes Tasks and Futures
-     * @return the action. If the action is a {@link Task} it is useful to catch it
-     * and bind to monitor progress.
      */
-    public static<R extends Runnable> R run(Duration delay, R action) {
+    public static void run(Duration delay, Runnable action) {
         new FxTimer(delay, 1, action).restart();
-        return action;
     }
     
     /**
      * Executes the action on current thread after specified delay from now.
      * Equivalent to {@code new FxTimer(delay, action, 1).restart();}.
-     * @param delay Delay in milliseconds
-     * @param <R> type of action - any Runnable, that includes Tasks and Futures
-     * @return the action. If the action is a {@link Task} it is useful to catch it
-     * and bind to monitor progress.
+     * @param delay delay in milliseconds
      */
-    public static<R extends Runnable> R run(double delay, R action) {
+    public static void run(double delay, Runnable action) {
         new FxTimer(delay, 1, action).restart();
-        return action;
     }
     
     /**
      * Executes the action on current thread repeatedly with given time period.
      * Equivalent to {@code new FxTimer(delay, action, INDEFINITE).restart();}.
      * @param delay delay
+     * @param action action. Takes the timer as a parameter. Use it to stop the
+     * periodic execution. Otherwise it will never stop !
      */
-    public static FxTimer runPeriodic(Duration period, Runnable action) {
-        FxTimer t = new FxTimer(period, INDEFINITE, action);
-        t.restart();
-        return t;
+    public static void runPeriodic(Duration period, Consumer<FxTimer> action) {
+        FxTimer t = new FxTimer(period, INDEFINITE, ()->{}); // use dummy action
+        Run r = () -> action.accept(t);                      // make action
+        setField(t,"action",r);                              // set action
+        t.restart();                                         // start
     }
     
+    /**
+     * Executes the runnable immediately on a new daemon thread.
+     * Equivalent to 
+     * <pre>{@code 
+     *   Thread thread = new Thread(action);
+     *   thread.setDaemon(true);
+     *   thread.start();
+     * }</pre>
+     */
+    public static void runNew(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.start();
+    }
     
-
+    /**
+     * Executes runnable on fx thread, immediately id called on fx thread, or
+     * using Platform.runLater() otherwise.
+     * <p>
+     * Use to execute the action on fx as soon as possible.
+     * <p>
+     * Equivalent to 
+     * <pre>{@code
+     *   if(Platform.isFxApplicationThread())
+     *       r.run();
+     *   else
+     *       Platform.runLater(r);
+     * }</pre>
+     */
+    public static void runFX(Runnable r) {
+        if(Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
+    }
+    
+    /**
+     * Executes the action on fx thread after specified delay from now.
+     * @param delay delay in milliseconds
+     */
+    public static void runFX(double delay, Runnable r) {
+        new FxTimer(delay, 1, () -> Async.runFX(r)).restart();
+    }
+    
+    /**
+     * Executes the action on fx thread after specified delay from now.
+     * @param delay delay
+     */
+    public static void runFX(Duration delay, Runnable r) {
+        new FxTimer(delay, 1, () -> Async.runFX(r)).restart();
+    }
+    
+    /**
+     * Executes the runnable on fx thread at unspecified time in the future.
+     * <p>
+     * Use to execute the action on fx thread, but not immediately. In practice
+     * the delay is very small.
+     * <p>
+     * Equivalent to 
+     * <pre>{@code
+     *   Platform.runLater(r);
+     * }</pre>
+     */
+    public static void runLater(Runnable r) {
+        Platform.runLater(r);
+    }
     
 }

@@ -10,16 +10,21 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root type="StackPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root type="StackPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <StackPane fx:id="inner" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="15.0" prefWidth="15.0" StackPane.alignment="CENTER">
+      <StackPane fx:id="outer" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="15.0" prefWidth="15.0" StackPane.alignment="CENTER">
          <children>
-            <Arc fill="#1f93ff00" length="270.0" radiusX="8.0" radiusY="8.0" strokeType="INSIDE" strokeWidth="2.0" styleClass="spinner" StackPane.alignment="TOP_LEFT" />
+            <Arc fx:id="outer_arc" fill="#1f93ff00" length="270.0" radiusX="8.0" radiusY="8.0" strokeType="INSIDE" strokeWidth="2.0" styleClass="spinner" StackPane.alignment="TOP_LEFT" />
          </children>
       </StackPane>
-      <StackPane fx:id="outer" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="10.0" prefWidth="10.0" StackPane.alignment="CENTER">
+      <StackPane fx:id="inner" maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="10.0" prefWidth="10.0" StackPane.alignment="CENTER">
          <children>
-            <Arc fill="#1f93ff00" length="270.0" radiusX="5.0" radiusY="5.0" startAngle="180.0" strokeType="INSIDE" strokeWidth="2.0" styleClass="spinner" StackPane.alignment="BOTTOM_RIGHT" />
+            <Arc fx:id="inner_arc" fill="#1f93ff00" length="270.0" radiusX="5.0" radiusY="5.0" startAngle="180.0" strokeType="INSIDE" strokeWidth="2.0" styleClass="spinner" StackPane.alignment="BOTTOM_RIGHT" />
+         </children>
+      </StackPane>
+      <StackPane prefHeight="10.0" prefWidth="10.0" StackPane.alignment="CENTER">
+         <children>
+            <Arc fx:id="progress_arc" radiusX="5.0" radiusY="5.0" startAngle="90.0" styleClass="spinner-progress" type="ROUND" />
          </children>
       </StackPane>
    </children>

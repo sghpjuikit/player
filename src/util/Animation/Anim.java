@@ -17,9 +17,11 @@ import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.Node;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
+import util.Util;
 
 /**
  <p>
@@ -87,8 +89,8 @@ public class Anim extends Transition {
     
     @Override
     protected void interpolate(double frac) {
-        position.set(frac);
-        affector.accept(frac);
+        position.set(1-frac);
+        affector.accept(1-frac);
     }
     
     
@@ -162,32 +164,64 @@ public class Anim extends Transition {
         return t;
     }
     
-    public static double isAround(double at, double point_span, double... points) {
-        for(double p : points)
-            if(at>p-point_span && at<p+point_span)
-                return 0;
-        return 1;
+
+    
+    /**
+     * Animation appliers.
+     * Consumers of animation position value - double of range 0-1, applying it
+     * in some arbitrary way.
+     */
+    public static interface Affectors {
+        
+        /** Affector that scales node's x and y. */
+        public static Consumer<Double> scaleXY(Node n) {
+            return x -> Util.setScaleXY(n,x);
+        }
     }
     
-    public static double isAroundMin1(double at, double point_span, double... points) {
-        if(at<points[0]) return 0;
-        for(double p : points)
-            if(at>p-point_span && at<p+point_span)
-                return 0;
-        return 1;
-    }
-    public static double isAroundMin2(double at, double point_span, double... points) {
-        if(at<points[0]) return 0;
-        for(double p : points)
-            if(at>p-point_span && at<p+point_span)
-                return abs((at-p+point_span)/(point_span*2)-0.5);
-        return 1;
-    }
-    public static double isAroundMin3(double at, double point_span, double... points) {
-        if(at<points[0]) return 0;
-        for(double p : points)
-            if(at>p-point_span && at<p+point_span)
-                return sqrt(abs((at-p+point_span)/(point_span*2)-0.5));
-        return 1;
+    /**
+     * Animation position transformers. Transform linear 0-1 animation position
+     * function into different 0-1 function to produce nonlinear animation.
+     */
+    public static interface Interpolators {
+        
+        public static Function<Double,Double> isAround(double point_span, double... points) {
+            return at -> {
+                for(double p : points)
+                    if(at>p-point_span && at<p+point_span)
+                        return 0d;
+                return 1d;
+            };
+        }
+
+        public static Function<Double,Double> isAroundMin1(double point_span, double... points) {
+            return at -> {
+                if(at<points[0]-point_span) return 0d;
+                for(double p : points)
+                    if(at>p-point_span && at<p+point_span)
+                        return 0d;
+                return 1d;
+            };
+        }
+        public static Function<Double,Double> isAroundMin2(double point_span, double... points) {
+            return at -> {
+                if(at<points[0]-point_span) return 0d;
+                for(double p : points)
+                    if(at>p-point_span && at<p+point_span)
+                        return abs((at-p+point_span)/(point_span*2)-0.5);
+                return 1d;
+            };
+        }
+        public static Function<Double,Double> isAroundMin3(double point_span, double... points) {
+            return at -> {
+                if(at<points[0]-point_span) return 0d;
+                for(double p : points)
+                    if(at>p-point_span && at<p+point_span)
+                        return sqrt(abs((at-p+point_span)/(point_span*2)-0.5));
+                return 1d;
+            };
+        }
+        
+        public static final Function<Double,Double> reverse = at -> 1-at;
     }
 }

@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javafx.util.Duration;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
-import util.async.Async;
+import static util.async.Async.NEW;
 
 /**
  * Playlist handles PlaylistItem groups and provides methods for easy
@@ -610,7 +610,7 @@ abstract public class AbstractPlaylist {
             }
         }
             .setOnDone((ok,none) -> updateDuration())
-            .run(Async::executeBgr);
+            .run(NEW);
     }
     /**
      * Use to completely refresh playlist.
@@ -635,7 +635,7 @@ abstract public class AbstractPlaylist {
             }
         }
             .setOnDone((ok,none) -> updateDuration())
-            .run(Async::executeBgr);
+            .run(NEW);
     }
     
 /***************************** INTERNAL METHODS *******************************/

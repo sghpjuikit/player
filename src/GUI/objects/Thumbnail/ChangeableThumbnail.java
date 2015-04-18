@@ -20,7 +20,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
 import util.graphics.Icons;
@@ -63,9 +63,9 @@ public class ChangeableThumbnail extends Thumbnail {
         rt.addEventHandler(DRAG_EXITED, e -> highlight(false));
         
         // add image on click
-        rt.setOnMouseClicked( e -> {
+        rt.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
-                File f = Enviroment.chooseFile("Select image to add to tag",false, new File(""), root.getScene().getWindow());
+                File f = Environment.chooseFile("Select image to add to tag",false, new File(""), root.getScene().getWindow());
                 if (f!= null) onFileDropped.accept(f);
             }
         });

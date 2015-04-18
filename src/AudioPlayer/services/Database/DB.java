@@ -21,9 +21,8 @@ import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 import main.App;
 import util.access.Accessor;
-import util.async.Async;
-import static util.async.Async.runBgr;
-import util.async.executor.FxTimer;
+import static util.async.Async.FXAFTER;
+import util.async.future.Fut;
 import util.reactive.CascadingStream;
 
 /**
@@ -39,9 +38,15 @@ public class DB {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
         
-        // bgr thread helps with loading a lot 
-//        runBgr(DB::getAllItems, items -> views.push(1, items));
-        runBgr(DB::getAllItems, i -> Async.runOnFX(() -> new FxTimer(10000, 1, ()->views.push(1, i)).restart()));
+        new Fut<>()
+            // read db on bgr thread
+            .supply(DB::getAllItems)                        
+            // populate lib - overloads FX thread, so delay
+            // todo: detect when app starts up and run right afterwards
+            // .use(i -> views.push(1, i), FX)
+            .use(i -> views.push(1, i), FXAFTER(7000))
+            .showProgress(App.getWindow().taskAdd())
+            .run();
     }
     
     public static void stop() {

@@ -40,7 +40,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import static util.Util.consumeOnSecondaryButton;
 import util.access.Accessor;
-import util.async.Run;
+import util.async.runnable.Run;
 import util.graphics.Icons;
 import util.units.FormattedDuration;
 

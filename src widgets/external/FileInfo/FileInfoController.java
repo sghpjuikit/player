@@ -28,7 +28,6 @@ import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -50,9 +49,8 @@ import static util.File.FileUtil.copyFiles;
 import util.File.ImageFileFormat;
 import util.Util;
 import util.access.Accessor;
-import util.async.Async;
-import static util.async.Async.eFX;
-import static util.async.Async.run;
+import static util.async.Async.*;
+import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 import static util.graphics.drag.DragUtil.hasImage;
 
@@ -259,17 +257,15 @@ public class FileInfoController extends FXMLController implements SongInfo {
         coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         coverB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {  //&& DragUtil.hasImage(e.getDragboard())
-                 ProgressIndicator p = App.getWindow().taskAdd();
-                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
-                    .thenCompose(nothing -> DragUtil.getImage(e))
-                    .thenAcceptAsync(f -> copyFileSafe(f, data.getLocation(), "cover"))
-                    .thenRunAsync(() -> {
+                 new Fut<>()
+                    .then(DragUtil.getImage(e))
+                    .use(f -> copyFileSafe(f, data.getLocation(), "cover"))
+                    .thenR(() -> {
                         cover_source.applyValue();              // refresh cover
-                        p.setProgress(1);                       // hide progress
                         getArea().setActivityVisible(false);    // hide activity
-                    },eFX)
-                    .thenRun(()->{})
-                    .complete(null);
+                    },FX)
+                    .showProgress(App.getWindow().taskAdd())
+                    .run();
                  
                 e.setDropCompleted(true);
                 e.consume();
@@ -279,30 +275,29 @@ public class FileInfoController extends FXMLController implements SongInfo {
         coverB.setOnMouseClicked(e -> {
             File f = actPane.item;
             if(f !=null && ImageFileFormat.isSupported(f)) {
-                ProgressIndicator p = App.getWindow().taskAdd();
-                p.setProgress(-1);
-                Async.runBgr(()->copyFileSafe(f, data.getLocation(), "cover"),() -> {
-                    cover_source.applyValue();
-                    p.setProgress(1);
-                    getArea().setActivityVisible(false);
-                });
+                new Fut<>()
+                    .thenR(() -> copyFileSafe(f, data.getLocation(), "cover"))
+                    .thenR(() -> {
+                        cover_source.applyValue();              // refresh cover
+                        getArea().setActivityVisible(false);    // hide activity
+                    },FX)
+                    .showProgress(App.getWindow().taskAdd())
+                    .run();
             }
         });
         Icon copyB = actPane.addIcon(PLUS, "Copy to the location", true,true);
         copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         copyB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {
-                 ProgressIndicator p = App.getWindow().taskAdd();
-                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
-                    .thenCompose(nothing -> DragUtil.getImages(e))
-                    .thenAcceptAsync(imgs -> copyFiles(imgs, data.getLocation()))
-                    .thenRunAsync(() -> {
+                 new Fut<>()
+                    .then(DragUtil.getImages(e))
+                    .then(imgs -> copyFiles(imgs, data.getLocation()))
+                    .thenR(() -> {
                         cover_source.applyValue();              // refresh cover
-                        p.setProgress(1);                       // hide progress
                         getArea().setActivityVisible(false);    // hide activity
-                    },eFX)
-                    .thenRun(()->{})
-                    .complete(null);
+                    },FX)
+                    .showProgress(App.getWindow().taskAdd())
+                    .run();
                 
                 e.setDropCompleted(true);
                 e.consume();

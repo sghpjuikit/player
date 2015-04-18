@@ -3,12 +3,26 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- unify icons + fluent api
+- app modularize animated loading
+- tagger add icons to reset and defaults
+- cover download subsequently !work - temp file?
+- bad disc parsing error - metadata- fucking winamp
+- autofill for every tag field
+- support parametrized actions + generate menu items from selection object type
+- improve some of the css
+- enrich tagging type support  aif? mp4a? etc... + playback support aif?
+0 audoi drag&drop supp flders
+
+Error: org.jaudiotagger.audio.exceptions.CannotReadException: Unable to read file because it is too small to be valid audio file: O:\music\soundtracks\games\Mass Effect3 (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg Reading metadata failed for file: O:\music\soundtracks\games\Mass Effect3 (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg.Corrupt or inaccessible file or data.
+
+Error: Tag (gen.field) reading error during: file:/O:/music/soundtracks/series/Kamisama%20no%20Inai%20Nichiyoubi%20O.S.T%20Requiem/CD%201/17%20Farewell.flac For input string: "17/34"[Ljava.lang.StackTraceElement;@171da80
+
+- other problems with songs from <none> category
 - bookmarks reimplement through comment field & metadata table
 - playlist table column resizing and serializing
 - stream for defining activator/deactivator shapes on mouse move
 - app icon
-- tagger cover bad value
-- library add & edit doesnt add ? investigate, fix
 - library edit on add by drag&drop boolean config
 - tagger cover loading optimize
 - plugin discovery/load

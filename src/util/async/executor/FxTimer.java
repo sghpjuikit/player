@@ -7,6 +7,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 import org.reactfx.util.Timer;
+import util.dev.Dependency;
 
 /**
 * Provides factory methods for timers that are manipulated from and execute
@@ -17,6 +18,7 @@ import org.reactfx.util.Timer;
 public class FxTimer implements Timer {
     
     private final Timeline timeline;
+    @Dependency(value = "name - field is accessed with reflection")
     private final Runnable action;
     
     private Duration period;

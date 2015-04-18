@@ -8,21 +8,21 @@ package util.async.executor;
 import java.util.concurrent.Executor;
 
 /**
- * Executor with an execution count limit.
+ * Executor with an execution count limit. 
  * <p>
- * Guarantees the number of executions, for example one may wish to execute an
- * action at most once.
+ * Guarantees the number of executions (irrelevant of the Runnable), as
+ * one may wish for this executor to execute at most most n times.
  * 
  * @author Plutonium_
  */
-public class Runner implements Executor {
+public class LimitedExecutor implements Executor {
     
     private long executed = 0;
     private final long max;
 
     /** @param limit maximum number of times this executor can execute any 
         runnable */
-    public Runner(long limit) {
+    public LimitedExecutor(long limit) {
         max = limit;
     }
     

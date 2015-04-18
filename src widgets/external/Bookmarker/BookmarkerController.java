@@ -40,7 +40,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.input.TransferMode;
 import javafx.util.Callback;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.Util;
 import static util.Util.menuItem;
 import util.access.Accessor;
@@ -329,8 +329,7 @@ public class BookmarkerController extends FXMLController {
     private static final TableContextMenuInstance<BookmarkItem> context_menu = new TableContextMenuInstance<>(
         () -> {
             ContentContextMenu<List<BookmarkItem>> m = new ContentContextMenu();
-            m.getItems().addAll(
-                menuItem("Add items to playlist", e -> {
+            m.getItems().addAll(menuItem("Add items to playlist", e -> {
                      List<BookmarkItem> items = m.getValue();
                      PlaylistManager.addItems(items);
                  }),
@@ -355,7 +354,7 @@ public class BookmarkerController extends FXMLController {
                             .filter(Item::isFileBased)
                             .map(Item::getLocation)
                             .collect(Collectors.toList());
-                    Enviroment.browse(files,true);
+                    Environment.browse(files,true);
                 })               
             );
             return m;

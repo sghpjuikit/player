@@ -42,7 +42,7 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.util.Duration;
 import main.App;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.SingleInstance;
@@ -488,12 +488,11 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     private static final SingleInstance<ContentContextMenu<File>,Thumbnail> file_context_menu = new SingleInstance<>(
         () -> {
             ContentContextMenu<File> m = new ContentContextMenu<>();
-            m.getItems().addAll(
-                menuItem("Browse location", e ->
-                    Enviroment.browse(m.getValue().toURI())
+            m.getItems().addAll(menuItem("Browse location", e ->
+                    Environment.browse(m.getValue().toURI())
                 ),
                 menuItem("Edit the image in editor", e ->
-                    Enviroment.edit(m.getValue())
+                    Environment.edit(m.getValue())
                 ),
                 menuItem("Fulscreen", e -> {
                     Widget c = WidgetManager.getFactory("Image").create();
@@ -522,7 +521,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     p.show(App.getWindow().getStage(), 0, 0);
                 }),
                 menuItem("Open image", e ->
-                    Enviroment.open(m.getValue())
+                    Environment.open(m.getValue())
                 ),
                 menuItem("Delete the image from disc", e ->
                     FileUtil.deleteFile(m.getValue())

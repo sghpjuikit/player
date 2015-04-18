@@ -27,7 +27,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import javafx.util.Duration;
-import util.File.Enviroment;
+import util.File.Environment;
 
 /**
  * Provides methods for player.
@@ -370,7 +370,7 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Explore current item directory", description = "Explore current item directory.", shortcut = "ALT+V", global = true)
     public static void openPlayedLocation() {
         Item i = PlaylistManager.getPlayingItem();
-        Enviroment.browse(i==null ? null : i.getURI());
+        Environment.browse(i==null ? null : i.getURI());
     }
 
 //********************************** ON START *********************************/

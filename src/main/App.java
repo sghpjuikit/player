@@ -4,6 +4,7 @@ package main;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
+import AudioPlayer.playlist.Item;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
 import AudioPlayer.services.Database.DB;
@@ -11,6 +12,7 @@ import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.Tray.TrayService;
+import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.*;
 import GUI.GUI;
@@ -24,6 +26,8 @@ import Library.BookmarkManager;
 import java.io.File;
 import static java.lang.Math.random;
 import java.net.URI;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,6 +35,7 @@ import javafx.animation.Transition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.*;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -38,12 +43,15 @@ import javafx.stage.Stage;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import util.Animation.Anim;
-import static util.Animation.Anim.*;
+import static util.Animation.Anim.Interpolators.isAroundMin1;
+import static util.Animation.Anim.par;
+import static util.Animation.Anim.seq;
 import util.Animation.Interpolators.CircularInterpolator;
 import util.Animation.Interpolators.ElasticInterpolator;
 import util.File.FileUtil;
 import static util.Util.setScaleXY;
 import util.access.AccessorEnum;
+import static util.async.Async.eFX;
 import static util.async.Async.run;
 import static util.functional.Util.forEachIRStream;
 import static util.functional.Util.forEachIStream;
@@ -179,10 +187,11 @@ public class App extends Application {
             // we need to initialize skin before windows do
             Configuration.getField("skin").applyValue();
             
-            DB.start();
             
             // initialize windows from previous session
             WindowManager.deserialize();
+            
+            DB.start();
             
             GUI.setLayoutMode(true);
             Transition t = par(
@@ -206,7 +215,7 @@ public class App extends Application {
                                  .map(a -> 
                                     seq(
                                         new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
-                                        new Anim(a.content_root::setOpacity).dur(700).intpl(at -> isAroundMin1(at, 0.04, 0.1,0.2,0.3))
+                                        new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
                                     )
                                  )
                             )
@@ -399,4 +408,19 @@ public class App extends Application {
     public static File PLAYLIST_FOLDER() {
         return new File(DATA_FOLDER(),"Playlists");
     }
+    
+    
+    
+    // jobs
+    
+    public static void refreshItemsFromFileJob(List<? extends Item> items) {
+        ProgressIndicator p = App.getWindow().taskAdd();
+        CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
+           .thenApplyAsync(nothing -> MetadataReader.readMetadata(items))
+           .thenAcceptAsync(Player::refreshItemsWithUpdated,eFX)
+           .thenRunAsync(() -> p.setProgress(1),eFX)
+           .thenRun(()->{})
+           .complete(null);
+    }
+    
 }

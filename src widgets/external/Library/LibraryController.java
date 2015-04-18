@@ -9,7 +9,6 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.InfoNode.InfoTable;
 import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
@@ -36,10 +35,9 @@ import static java.lang.Math.floor;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.concurrent.CompletableFuture;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
-import static javafx.application.Platform.runLater;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
 import javafx.event.Event;
@@ -72,20 +70,20 @@ import static org.reactfx.EventStreams.nonNullValuesOf;
 import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import util.File.Enviroment;
+import util.File.Environment;
 import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesAudio;
 import static util.Util.*;
 import util.access.Accessor;
-import util.async.Async;
-import static util.async.Async.eFX;
-import static util.async.Async.runAsTask;
+import static util.async.Async.FX;
 import util.async.executor.FxTimer;
-import util.async.executor.Runner;
+import util.async.executor.LimitedExecutor;
+import util.async.future.Fut;
 import static util.functional.Util.list;
 import static util.functional.Util.listM;
 import util.functional.functor.FunctionC;
 import util.graphics.Icons;
+import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
 import web.HttpSearchQueryBuilder;
@@ -127,7 +125,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     @FXML Menu addMenu;
     @FXML Menu remMenu;
     @FXML MenuBar controlsBar;
-    private final Runner runOnce = new Runner(1);
+    private final LimitedExecutor runOnce = new LimitedExecutor(1);
     // dependencies to disopose of
     private Subscription d1, d2, d3;
     
@@ -258,15 +256,7 @@ public class LibraryController extends FXMLController {public String a() { retur
         });
         table.setOnDragDropped(e-> {
             if(e.getGestureSource()!=table) {
-                
-                taskInfo.setVisible(true);
-                taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
-                taskInfo.message.setText("Discovering songs...");
-                DragUtil.getSongs(e)
-                        .thenAcceptAsync(songs -> addNeditDo(songs,false))
-                        .thenRunAsync(() -> {}, eFX)
-                        .complete(null);
-                 
+                addNeditDo(DragUtil.getSongs(e), false);
                 e.setDropCompleted(true);
                 e.consume();
             }
@@ -360,45 +350,44 @@ public class LibraryController extends FXMLController {public String a() { retur
     private void addNedit(boolean edit, boolean dir) {
         // get files        
         if(dir) {
-            File f = Enviroment.chooseFile("Add folder to library", true, last_file,
+            File f = Environment.chooseFile("Add folder to library", true, last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            Async.runBgr(() -> {
+            addNeditDo(CompletableFuture.supplyAsync(() -> {
                 Stream<File> files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
-                if (f!=null) last_file = f;
-                addNeditDo(files.map(SimpleItem::new), edit);
-            });
+                if (f!=null) last_file = f.getParentFile()==null ? f : f.getParentFile();
+                return files.map(SimpleItem::new);
+            }), edit);
         } else {
-            List<File> fs = Enviroment.chooseFiles("Add files to library", last_file,
+            List<File> fs = Environment.chooseFiles("Add files to library", last_file,
                     root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            Async.runBgr(() -> {
+            addNeditDo(CompletableFuture.supplyAsync(() -> {
                 Stream<File> files = fs.stream();
                 File f = files==null ? null : getCommonRoot(fs);
                 if(f!=null) last_file=f;
-                addNeditDo(files.map(SimpleItem::new), edit);
-            });
+                return files.map(SimpleItem::new);
+            }), edit);
         }
     }
     
-    private void addNeditDo(Stream<Item> files, boolean edit) {
-            Task ts = runAsTask("Discovering files",
-                    () -> files.collect(toList()),
-                    (success,result) -> {
-                        if (success) {
-                            BiConsumer<Boolean,List<Metadata>> onEnd = (succes,added) -> {
-                                if(succes & edit)
-                                    WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
-                                    
-                                hideInfo.restart();
-                            };
+    private void addNeditDo(CompletableFuture<Stream<Item>> files, boolean edit) {
+        new Fut<>()
+            .thenR(()->{
+                taskInfo.setVisible(true);
+                taskInfo.message.setText("Discovering files...");
+                taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
+            }, FX)
+            .then(files)
+            .then(items -> items.collect(toList()))
+            .use(items ->{
+                Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
+                    if(ok & edit)
+                        WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
 
-                            Task t = MetadataReader.readAaddMetadata(result,onEnd,false);
-                            taskInfo.showNbind(t);
-                        } else {
-                            hideInfo.restart();
-                        }
-                    });
-            runLater(()->taskInfo.showNbind(ts));
-//            taskInfo.showNbind(ts);
+                    hideInfo.restart();
+                },false);
+                taskInfo.bind(t);
+            }, FX)
+            .run();
     }
     
     @FXML private void removeInvalid() {
@@ -432,8 +421,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
         () -> {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
-            m.getItems().addAll(
-                menuItem("Play items", e -> {                     
+            m.getItems().addAll(menuItem("Play items", e -> {                     
                     List<PlaylistItem> to_play = listM(m.getValue(), Metadata::toPlaylist);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
                 }),
@@ -443,7 +431,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                 }),
                 menuItem("Update from file", e -> {
                     List<Metadata> items = m.getValue();
-                    Player.refreshItems(items);
+                    App.refreshItemsFromFileJob(items);
                 }),
                 menuItem("Remove from library", e -> {
                     List<Metadata> items = m.getValue();
@@ -456,12 +444,12 @@ public class LibraryController extends FXMLController {public String a() { retur
                 menuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
                     List<File> files = list(items, Item::isFileBased, Item::getLocation);
-                    Enviroment.browse(files,true);
+                    Environment.browse(files,true);
                 }),
                 new Menu("Search album cover",null,
                     menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
                             q -> "in " + Parser.toS(q),
-                            q -> Enviroment.browse(q.apply(m.getValue().get(0).getAlbum())))
+                            q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())))
                 )
                );
             return m;

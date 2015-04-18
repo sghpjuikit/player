@@ -27,7 +27,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import main.App;
-import util.File.Enviroment;
+import util.File.Environment;
 import static util.Util.menuItem;
 import util.access.Accessor;
 
@@ -81,12 +81,12 @@ public class ExplorerController extends FXMLController {
         FileTree.from(tree);
         
         // context menu & open file
-        tree.setOnMouseClicked( e -> {
+        tree.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
                 if(e.getClickCount()==2) {
                     File f = tree.getSelectionModel().getSelectedItem().getValue();
-                    if(f!=null && (f.isFile() || Enviroment.isOpenableInApp(f)))
-                        Enviroment.openIn(f, openInApp);
+                    if(f!=null && (f.isFile() || Environment.isOpenableInApp(f)))
+                        Environment.openIn(f, openInApp);
                 }
             } else
             if(e.getButton()==SECONDARY) {
@@ -130,15 +130,14 @@ public class ExplorerController extends FXMLController {
     private static final TreeContextMenuInstance<File> contxt_menu = new TreeContextMenuInstance<File>(
         () -> {
             ContentContextMenu<List<File>> m = new ContentContextMenu<>();
-            m.getItems().addAll(
-                menuItem("Open", e -> {
-                    Enviroment.open(m.getValue().get(0));
+            m.getItems().addAll(menuItem("Open", e -> {
+                    Environment.open(m.getValue().get(0));
                 }),
                 menuItem("Open in-app", e -> {
-                    Enviroment.openIn(m.getValue(),true);
+                    Environment.openIn(m.getValue(),true);
                 }),
                 menuItem("Edit", e -> {
-                    Enviroment.edit(m.getValue().get(0));
+                    Environment.edit(m.getValue().get(0));
                 }),
                 menuItem("Copy", e -> {
                     ClipboardContent cc = new ClipboardContent();
@@ -146,7 +145,7 @@ public class ExplorerController extends FXMLController {
                     Clipboard.getSystemClipboard().setContent(cc);
                 }),
                 menuItem("Explore in browser", e -> {
-                    Enviroment.browse(m.getValue(),true);
+                    Environment.browse(m.getValue(),true);
                 })
             );
             return m;

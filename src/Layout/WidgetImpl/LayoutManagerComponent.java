@@ -17,7 +17,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import main.App;
-import util.File.Enviroment;
+import util.File.Environment;
 import util.dev.Log;
 import static util.functional.Util.toCSList;
 
@@ -119,7 +119,7 @@ public final class LayoutManagerComponent {
     }
     @FXML
     public void openLayoutDirectory() {
-        Enviroment.browse(App.LAYOUT_FOLDER().toURI());
+        Environment.browse(App.LAYOUT_FOLDER().toURI());
     }
     
     private boolean isSelected() {

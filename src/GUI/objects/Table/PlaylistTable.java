@@ -10,11 +10,11 @@ import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
+import GUI.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
@@ -26,12 +26,10 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
-import javafx.event.*;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -44,6 +42,7 @@ import static util.Util.*;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.cmpareBy;
+import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
 import web.HttpSearchQueryBuilder;
@@ -107,41 +106,27 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         columnTime = (TableColumn) getColumn(LENGTH).get();
         
         // initialize row factories
-        setRowFactory(t -> new TableRow<PlaylistItem>() {
+        setRowFactory(t -> new ImprovedTableRow<PlaylistItem>() {
             {
-                setOnMousePressed( e -> {
-                    // remember position for moving selected rows on mouse drag
-                    last = e.getScreenY();
-                });
+                // remember position for moving selected rows on mouse drag
+                setOnMousePressed( e -> last = e.getScreenY());
                 // clear table selection on mouse released if no item
                 setOnMouseReleased( e -> {
                     if (getItem() == null)
                         selectNone();
                 });
+                // left doubleckick -> play
+                onLeftDoubleClick((r,e) -> PlaylistManager.playItem(getSourceIndex(r.getIndex())));
+                // right click -> show context menu
+                onRightSingleClick((r,e) -> {
+                    // prep selection for context menu
+                    if(!isSelected())
+                        getSelectionModel().clearAndSelect(getIndex());
+                    // show context menu
+                    contxt_menu.show(PlaylistTable.this, e);
+                });
                 // handle drag transfer
-                setOnDragDropped( e -> 
-                    onDragDropped(e, isEmpty() ? getItems().size() : getIndex())
-                );
-            }
-            private void updatePseudoclassState(PlaylistItem item, boolean empty) {
-                if (empty) return;
-                // set pseudoclass
-                // normal pseudoClassStateChanged(playingRowCSS, false); doesnt work here faithfully
-                // since the content is within cells themselves - the pseudoclass has to be passed down
-                // if we want the content (like text, not just the cell) to be styled correctly
-                if (PlaylistManager.isItemPlaying(item))
-                    getChildrenUnmodifiable().forEach(
-                            c->c.pseudoClassStateChanged(playingRowCSS, true));
-                else 
-                    getChildrenUnmodifiable().forEach(
-                            c->c.pseudoClassStateChanged(playingRowCSS, false));
-
-                if (item.markedAsCorrupted())
-                     getChildrenUnmodifiable().forEach(
-                             c->c.pseudoClassStateChanged(corruptRowCSS, true));
-                else 
-                    getChildrenUnmodifiable().forEach(
-                            c->c.pseudoClassStateChanged(corruptRowCSS, false));
+                setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
             }
             @Override 
             protected void updateItem(PlaylistItem item, boolean empty) {
@@ -154,6 +139,22 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             @Override protected void layoutChildren() {
                 super.layoutChildren();
                 updatePseudoclassState(getItem(), isEmpty());
+            }
+            private void updatePseudoclassState(PlaylistItem item, boolean empty) {
+                if (empty) return;
+                // set pseudoclass
+                // normal pseudoClassStateChanged(playingRowCSS, false); doesnt work here faithfully
+                // since the content is within cells themselves - the pseudoclass has to be passed down
+                // if we want the content (like text, not just the cell) to be styled correctly
+                if (PlaylistManager.isItemPlaying(item))
+                    getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(playingRowCSS, true));
+                else 
+                    getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(playingRowCSS, false));
+
+                if (item.markedAsCorrupted())
+                    getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(corruptRowCSS, true));
+                else 
+                    getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(corruptRowCSS, false));
             }
         });
         
@@ -201,38 +202,15 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         
         // prevent selection change on right click
         addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
+        // addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
         // prevent context menu changing selection despite the above
-        addEventFilter(ContextMenuEvent.ANY, Event::consume);
+        // addEventFilter(ContextMenuEvent.ANY, Event::consume);
         
-        // handle click
+        // empty table left click -> add items
         addEventHandler(MOUSE_CLICKED, e -> {
             if (isTableHeaderVisible() && e.getY()<getTableHeaderHeight()) return;
-            if (e.getButton() == PRIMARY) { 
-                // add new items if empty
-                if (e.getClickCount() == 1) {
-                    if(getItems().isEmpty())
+            if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItems().isEmpty())
                         PlaylistManager.addOrEnqueueFiles(true);
-                }
-                // play item on doubleclick
-                if (e.getClickCount() == 2) {
-                    if(!getSelectionModel().isEmpty()) {
-                        int i = getSelectionModel().getSelectedIndex();
-                        int j = getSourceIndex(i);
-                        PlaylistManager.playItem(j);
-                    }
-                }           
-            } else
-            if(e.getButton()==SECONDARY) {
-                // prepare selection for context menu
-                int i = getRow(e.getY());
-                if(!getSelectionModel().isSelected(i))
-                    getSelectionModel().clearAndSelect(i);
-                // show context menu
-                contxt_menu.show(this, e);
-                e.consume();
-            }
-            e.consume();
         });
         
         // move items on drag
@@ -287,17 +265,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             e.consume();
         });
         // drag&drop to
-        setOnDragOver(e -> {
-            if(e.getGestureSource()!= this)
-                DragUtil.audioDragAccepthandler.handle(e);
-        });
-        // handle drag (for empty table - it does not have any rows so
-        // drag event handlers registered on rows in row factory will not work)
-        // in case table is not empty. row's respective handler will handle this
-        setOnDragDropped( e -> {
-            if (getItems().isEmpty())
-                onDragDropped(e, 0);
-        });
+        setOnDragOver_NoSelf(DragUtil.audioDragAccepthandler);
+        // handle drag (empty table has no rows so row drag event handlers
+        // will not work, events fall through on table and we handle it here
+        setOnDragDropped( e -> dropDrag(e, 0));
         
         // reflect selection for whole application
         getSelectionModel().selectedItemProperty().addListener(selItemListener);
@@ -401,7 +372,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     
 /****************************** DRAG AND DROP *********************************/
     
-    private void onDragDropped(DragEvent e, int index) {
+    private void dropDrag(DragEvent e, int index) {
         if (DragUtil.hasAudio(e.getDragboard())) {
             List<Item> items = DragUtil.getAudioItems(e);
             PlaylistManager.addItems(items, index);

@@ -8,7 +8,6 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import GUI.objects.Balancer.Balancer;
 import GUI.objects.GlowIcon;
@@ -27,6 +26,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -37,6 +38,7 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.Util;
 import util.access.Accessor;
+import util.graphics.drag.DragUtil;
 import static util.reactive.Util.*;
 
 
@@ -153,8 +155,8 @@ public class PlayerControlsController extends FXMLController implements Playback
         AnchorPane.setLeftAnchor(addB, 5d);
         
         // loopmode
-        loopB.setOnMouseClicked(e->PLAYBACK.toggleLoopMode());
-        loopB.setScaleX(1.3); // scale horizontally a bit for non-rectangle icon
+        loopB.setOnMouseClicked(this::cycleLoopMode);
+        loopB.setScaleX(1.3); // scale horizontally a bit to get non-rectangle icon
         infoBox.getChildren().add(1, loopB);
         
         // volume button
@@ -258,8 +260,9 @@ public class PlayerControlsController extends FXMLController implements Playback
         PLAYBACK.seekBackward();
     }
     
-    @FXML private void cycleLoopMode() {
-        PLAYBACK.toggleLoopMode();
+    private void cycleLoopMode(MouseEvent e) {
+        if(e.getButton()==PRIMARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().next());
+        if(e.getButton()==SECONDARY) PLAYBACK.setLoopMode(PLAYBACK.getLoopMode().previous());
     }
     
     @FXML private void cycleMute() {

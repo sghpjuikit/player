@@ -10,11 +10,13 @@ import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
@@ -163,6 +165,26 @@ public class ImprovedTable<T> extends TableView<T> {
              text.applyCss();
         double w = text.getLayoutBounds().getWidth() + 5;
         return w;
+    }
+    
+/************************************ DRAG ************************************/
+    
+    /** 
+     * Equivalent to {@link #setOnDragOver(javafx.event.EventHandler)}, but 
+     * does nothing if the drag gesture source is this table. 
+     * <p>
+     * Drag over events should accept drag&drops (which is prevented), so other 
+     * drag event setters need not this special handling. In effect drag from 
+     * self to self is completely forbidden.
+     * <p>
+     * Note this works only when this table correctly assignes itself as the
+     * drag source in the DRAG_DETECTED using {@link #startDragAndDrop(javafx.scene.input.TransferMode...)}
+     */
+    public void setOnDragOver_NoSelf(EventHandler<? super DragEvent> h) {
+        setOnDragOver(e -> {
+            if(e.getGestureSource()!=this)
+                h.handle(e);
+        });
     }
     
 /************************************ SORT ************************************/

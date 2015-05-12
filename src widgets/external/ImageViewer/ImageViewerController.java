@@ -151,10 +151,10 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public long thumbnailReloadTime = 200l;
     @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
     public boolean keepContentOnEmpty = true;
-    @IsConfig(name = "File search depth", info = "Depth to search to for files in folders.")
-    public int folderTreeDepth = 1;
+    @IsConfig(name = "File search depth", info = "Depth to search to for files in folders. 1 for current folder only.")
+    public int folderTreeDepth = 2;
     @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
-    public int thumbsLimit = 100;
+    public int thumbsLimit = 50;
     @IsConfig()
     private int active_image = -1;
     

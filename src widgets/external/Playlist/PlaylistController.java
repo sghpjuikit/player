@@ -3,7 +3,7 @@ package Playlist;
 
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
-import static AudioPlayer.playlist.PlaylistItem.Field.*;
+import AudioPlayer.playlist.PlaylistItem.Field;
 import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
@@ -39,6 +39,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import static util.Util.consumeOnSecondaryButton;
+import static util.Util.menuItem;
 import util.access.Accessor;
 import util.async.runnable.Run;
 import util.graphics.Icons;
@@ -154,6 +155,12 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         Icons.setIcon(remMenu, MINUS, "11", "11");
         Icons.setIcon(selMenu, CROP, "11", "11");
         Icons.setIcon(orderMenu, NAVICON, "11", "11");
+        
+        // add sort submenu
+        Menu sortM = new Menu("Sort by");
+        for(Field f : Field.values()) 
+            sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
+        orderMenu.getItems().add(0, sortM);
     }
 
     @Override
@@ -222,21 +229,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         table.selectNone();
     }
     
-    @FXML public void sortByName() {
-        table.sortBy(NAME);
-    }
-    @FXML public void sortByArtist() {
-        table.sortBy(ARTIST);
-    }
-    @FXML public void sortByLength() {
-        table.sortBy(LENGTH);
-    }
-    @FXML public void sortByTitle() {
-        table.sortBy(TITLE);
-    }
-    @FXML public void sortByFilename() {
-        table.sortBy(PATH);
-    }
     
     @FXML public void reverseOrder() {
         PlaylistManager.reversePlaylist();

@@ -16,7 +16,8 @@
     -fx-prompt-font-color: rgb(165, 165, 165);
     
     -fx-pane-color: rgba(0,0,20,0.4);
-    -fx-popup-def-bgr-color: rgba(10,10,25,0.65);
+    -fx-popup-def-bgr-color: rgba(16,16,35,0.75);
+
 }
 
 .block {
@@ -137,4 +138,11 @@
     -fx-text-fill:-fx-def-font-color;
     -fx-padding: 0;
     -fx-effect: null;
+}
+
+.menu-item:focused > .label {
+    -fx-text-fill: orange;
+}
+.menu-item:focused {
+    -fx-background-color: null;
 }

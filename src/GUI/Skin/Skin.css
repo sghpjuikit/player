@@ -353,7 +353,8 @@
 
     /* The colors to use in Pagination */
     -fx-page-bullet-border: #acacac;
-    -fx-page-indicator-hover-border: #accee5;
+    -fx-page-indicator-hover-border: #accee5;    
+    
 
     /***************************************************************************
      *                                                                         *
@@ -1571,6 +1572,16 @@
     -fx-effect: innershadow( two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 1 );
 }
 
+
+.menu-nochildren > .right-container > .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+.menu-nochildren:focused > .right-container > .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    // we should probably remove the added area for the arrow on the right
+}
 
 /*******************************************************************************
  *                                                                             *

@@ -3,15 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package GUI.objects.ContextMenu;
 
+import GUI.objects.CheckIcon;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.beans.property.BooleanProperty;
+import javafx.collections.ListChangeListener;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 
 /** 
-Simple {@link MenuItem} implementation with check icon. The icon selection
+Simple {@link Menu} implementation with check icon. The icon selection
 changes on/off on mouse click.
 <p>
 Features:
@@ -21,16 +24,19 @@ Features:
 
 @author Plutonium_
 */
-public class CheckMenuItem extends MenuItem {
+public class CheckMenuItem extends Menu {
+    
+    private static final String NO_CHILDREN_STYLECLASS = "menu-nochildren";
     private final CheckIcon icon = new CheckIcon(false);
+    
     /** Selection state reflected by the icon. Changes on click. Default false.*/
     public final BooleanProperty selected = icon.selected;
     
     /**
-    @param text text of this menu item
-    @param s selection state
-    @param selection change handler
-    */
+     @param text text of this menu item
+     @param s selection state
+     @param selection change handler
+     */
     public CheckMenuItem(String text, boolean s, Consumer<Boolean> sel_han) {
         this(text, s);
         
@@ -47,6 +53,16 @@ public class CheckMenuItem extends MenuItem {
         setGraphic(icon);
         selected.set(s);
         setOnAction(e -> selected.set(!selected.get()));
+        
+        // hide open submenu arrow if no children
+        getStyleClass().add(NO_CHILDREN_STYLECLASS);
+        getItems().addListener(new ListChangeListener<MenuItem>() {
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends MenuItem> c) {
+                if(c.getList().isEmpty() && !getStyleClass().contains(NO_CHILDREN_STYLECLASS)) getStyleClass().add(NO_CHILDREN_STYLECLASS);
+                else getStyleClass().remove(NO_CHILDREN_STYLECLASS);
+            }
+        });
     }
     
     /**

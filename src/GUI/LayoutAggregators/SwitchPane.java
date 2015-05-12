@@ -15,6 +15,7 @@ import java.util.Map.Entry;
 import javafx.animation.*;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.beans.property.DoubleProperty;
+import javafx.event.Event;
 import javafx.scene.Parent;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
@@ -28,6 +29,7 @@ import static util.Animation.Interpolators.EasingMode.EASE_IN;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import static util.Util.clip;
 import static util.Util.setAnchors;
+import util.async.Async;
 import util.async.executor.FxTimer;
 
 /**
@@ -95,7 +97,6 @@ public class SwitchPane implements LayoutAggregator {
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
     private final AnchorPane ui = new AnchorPane();
-//    boolean genuineEvent = true;
     
     public SwitchPane() {
         // set ui
@@ -108,10 +109,9 @@ public class SwitchPane implements LayoutAggregator {
         zoom.scaleYProperty().bind(zoom.scaleXProperty());
         
         // prevent problematic events
-        root.addEventFilter(MOUSE_PRESSED, e -> {
-            if(e.getButton()==SECONDARY) {
-                e.consume();
-            }
+        // technically we only need to consume MOUSE_PRESSED and ContextMenuEvent.ANY
+        root.addEventFilter(Event.ANY, e -> {
+            if(uiDragActive) e.consume();
         });
         
 //        PerspectiveTransform pt = new PerspectiveTransform();
@@ -294,7 +294,8 @@ public class SwitchPane implements LayoutAggregator {
     private void dragUiEnd(MouseEvent e) {
         if(!uiDragActive) return;//System.out.println("end");
         // stop drag
-        uiDragActive = false;
+//        uiDragActive = false;
+        Async.run(100, () -> uiDragActive=false);
         measurePulser.stop();
         // handle drag end
         if(always_align) {

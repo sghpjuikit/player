@@ -22,6 +22,7 @@ import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
+import GUI.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -31,7 +32,6 @@ import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import java.io.File;
-import static java.lang.Math.floor;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -226,28 +226,20 @@ public class LibraryController extends FXMLController {public String a() { retur
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         columnInfo = table.getDefaultColumnInfo();
         
-        
-        
-        // context menu & play
-        table.addEventHandler(MOUSE_CLICKED, e -> {
-            if (table.isTableHeaderVisible() && e.getY()<table.getTableHeaderHeight()) return;
-            if(e.getButton()==PRIMARY) {
-                if(e.getClickCount()==2) {
+        // row behavior
+        table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
+                .onLeftDoubleClick((r,e) -> {
                     Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylist));
-                    PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
-                }
-            } else
-            if(e.getButton()==SECONDARY) {
-                // prepare selection for context menu
-                double h = table.isTableHeaderVisible() ? e.getY() - table.getTableHeaderHeight() : e.getY();
-                int i = (int)floor(h/table.getFixedCellSize()); // row index
-                if(!table.getSelectionModel().isSelected(i))
-                    table.getSelectionModel().clearAndSelect(i);
-                // show context menu
-                contxt_menu.show(table, e);
-                e.consume();
-            }
-        });
+                    PlaylistManager.playPlaylistFrom(p, r.getIndex());
+                })
+                .onRightSingleClick((r,e) -> {
+                    // prep selection for context menu
+                    if(!r.isSelected())
+                        tbl.getSelectionModel().clearAndSelect(r.getIndex());
+                    // show context menu
+                    contxt_menu.show(table, e);
+                })
+        );
         
         // key actions
         table.setOnKeyReleased( e -> {
@@ -264,7 +256,19 @@ public class LibraryController extends FXMLController {public String a() { retur
         });
         
 
-        // drag&drop from table==source
+        // drag&drop to accept
+        table.setOnDragOver_NoSelf(e -> {
+            // huh? something missing... like THE CODE!! dont just accept anything!
+            e.acceptTransferModes(COPY);
+            e.consume();
+        });
+        // drag&drop to
+        table.setOnDragDropped(e-> {
+            addNeditDo(DragUtil.getSongs(e), false);
+            e.setDropCompleted(true);
+            e.consume();
+        });
+        // drag&drop from
         table.setOnDragDetected(e -> {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
@@ -273,26 +277,12 @@ public class LibraryController extends FXMLController {public String a() { retur
             }
             e.consume();
         });
-        // drag&drop to table
-        table.setOnDragOver(e -> {
-            if(e.getGestureSource()!=table) {
-                e.acceptTransferModes(COPY);
-                e.consume();
-            }
-        });
-        table.setOnDragDropped(e-> {
-            if(e.getGestureSource()!=table) {
-                addNeditDo(DragUtil.getSongs(e), false);
-                e.setDropCompleted(true);
-                e.consume();
-            }
-        });
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        // prevent context menu changing selection despite the above
-        table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
+        // table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
+        // prevent context menu changing selection
+        // table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
         // prevent volume change
         table.setOnScroll(Event::consume);
         

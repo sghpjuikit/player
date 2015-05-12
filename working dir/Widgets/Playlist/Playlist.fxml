@@ -31,9 +31,7 @@
     <MenuItem mnemonicParsing="false" onAction="#selectAll" text="Select all" /><MenuItem mnemonicParsing="false" onAction="#selectNone" text="Select none" />
 </items>
     </Menu><Menu fx:id="orderMenu" mnemonicParsing="false" text="o">
-  <items>
-    <MenuItem mnemonicParsing="false" onAction="#sortByTitle" text="Sort by title" />
-    <MenuItem mnemonicParsing="false" onAction="#sortByArtist" text="Sort by artist" /><MenuItem mnemonicParsing="false" onAction="#sortByName" text="Sort by name" /><MenuItem mnemonicParsing="false" onAction="#sortByLength" text="Sort by length" /><MenuItem mnemonicParsing="false" onAction="#sortByFilename" text="Sort by filename" /><MenuItem mnemonicParsing="false" onAction="#reverseOrder" text="Reverse order" /><MenuItem mnemonicParsing="false" onAction="#randomOrder" text="Random order" /><MenuItem mnemonicParsing="false" onAction="#tagEditSelected" text="Edit selected" /><MenuItem mnemonicParsing="false" onAction="#saveSelectedAsPlaylist" text="Save selected as..." /><MenuItem mnemonicParsing="false" onAction="#savePlaylist" text="Save playlist as..." />
+  <items><MenuItem mnemonicParsing="false" onAction="#reverseOrder" text="Reverse order" /><MenuItem mnemonicParsing="false" onAction="#randomOrder" text="Random order" /><MenuItem mnemonicParsing="false" onAction="#tagEditSelected" text="Edit selected" /><MenuItem mnemonicParsing="false" onAction="#saveSelectedAsPlaylist" text="Save selected as..." /><MenuItem mnemonicParsing="false" onAction="#savePlaylist" text="Save playlist as..." />
   </items>
 </Menu>
   </menus>

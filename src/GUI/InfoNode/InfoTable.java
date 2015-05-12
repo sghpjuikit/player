@@ -12,10 +12,11 @@ import javafx.beans.InvalidationListener;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
 import static org.atteo.evo.inflector.English.plural;
+import static util.Util.copySelectedItems;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.TODO.Severity.LOW;
-import static util.Util.copySelectedItems;
+import static util.dev.TODO.Severity.MEDIUM;
 
 /**
  * Provides information about table items and table item selection.
@@ -94,18 +95,16 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
     @Override
     public void unbind() {
         if(itemL != null) t.getItems().removeListener(itemL);
-        if(selL != null)t.getSelectionModel().getSelectedItems().removeListener(selL);
+        if(selL != null) t.getSelectionModel().getSelectedItems().removeListener(selL);
     }
     
     /** Updates the text of the node using the text factory.
      * @param all all items of the table
      * @param selected  selected items of the table */
+    @TODO(purpose = BUG, severity = MEDIUM, note = "use mouse to quickly change playlist selection, looks ike java bug")
     public void updateText(List<E> all, List<E> selected) {
         boolean isAll = selected.isEmpty();
         List<E> l = isAll ? all : selected;
-        node.setText(textFactory.apply(isAll,l));
-        
-        // if bugs appear avoid using original list by copying it
         node.setText(textFactory.apply(isAll,l));
     }
 

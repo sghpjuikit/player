@@ -5,7 +5,7 @@
  */
 package GUI.objects.Table;
 
-import GUI.objects.CheckMenuItem;
+import GUI.objects.ContextMenu.CheckMenuItem;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 import com.sun.javafx.scene.control.skin.TableViewSkinBase;
@@ -75,7 +75,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     private TableColumnInfo columnState;
     private final Class<F> type;
-    ContextMenu columnVisibleMenu;
+    public ContextMenu columnVisibleMenu;
     
     public FieldedTable(Class<F> type) {
         super();

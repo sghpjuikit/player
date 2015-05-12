@@ -123,8 +123,6 @@ public class Spinner extends ProgressIndicator {
             double la = p==-1 ? 0 : 360*p;
             progress_arc.setStartAngle(sa);
             progress_arc.setLength(la);
-            
-//            if(p==1) runLater(() -> new Anim(at->setScaleXY(progress_arc,at*at)).dur(500).intpl(new ElasticInterpolator()).play());
         }
     
     }

@@ -14,6 +14,7 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ActionChooser;
+import GUI.objects.ContextMenu.CheckMenuItem;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Icon;
@@ -21,6 +22,7 @@ import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import GUI.objects.TableCell.NumberRatingCellFactory;
+import GUI.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -33,6 +35,7 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.function.Predicate;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import java.util.stream.Stream;
 import static javafx.application.Platform.runLater;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -44,14 +47,16 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
-import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import javafx.util.Callback;
 import main.App;
 import org.reactfx.Subscription;
@@ -65,6 +70,7 @@ import util.collections.ListCacheMap;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
+import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import web.HttpSearchQueryBuilder;
 
@@ -204,23 +210,44 @@ public class LibraryViewController extends FXMLController {
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         columnInfo = table.getDefaultColumnInfo();
         
-        // context menu
-        table.setOnMouseClicked( e -> {
-            if (e.getY()<table.getTableHeaderHeight()) return;
-            if(e.getButton()==PRIMARY) {
-                if(e.getClickCount()==2)
-                    play();
-            } else
-            if(e.getButton()==SECONDARY)
-                contxt_menu.show(this,(TableView)table, e);
-        });
+        // row behavior
+        table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
+                .onLeftDoubleClick((row,e) -> playSelected())
+                .onRightSingleClick((row,e) -> {
+                    // prep selection for context menu
+                    if(!row.isSelected())
+                        tbl.getSelectionModel().clearAndSelect(row.getIndex());
+                    // show context menu
+                    contxt_menu.show(this, (TableView)table, e);
+                })
+        );
+        
+        // column context menu - add change field submenus
+        Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
+        Stream.of(Field.values())
+              .map(f -> new CheckMenuItem(f.toStringEnum(), false, s -> {
+                            if(s) fieldFilter.setNapplyValue(f);
+                        }))
+              .forEach(m.getItems()::add);
+            // refresh when menu opens
+        table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         
         // key actions
         table.setOnKeyReleased( e -> {
             if (e.getCode() == ENTER)        // play first of the selected
-                play();
+                playSelected();
             else if (e.getCode() == ESCAPE)         // deselect
                 table.getSelectionModel().clearSelection();
+        });
+        
+        // drag&drop from
+        table.setOnDragDetected(e -> {
+            if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
+                    && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
+                Dragboard db = table.startDragAndDrop(COPY);
+                DragUtil.setItemList(filerListToSelectedNsort(),db);
+            }
+            e.consume();
         });
         
         // resizing
@@ -253,9 +280,9 @@ public class LibraryViewController extends FXMLController {
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        // prevent context menu changing selection despite the above
-        table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
+        // table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
+        // prevent context menu changing selection
+        // table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
         // prevent volume change
         table.setOnScroll(Event::consume);
     }
@@ -418,6 +445,16 @@ public class LibraryViewController extends FXMLController {
         return list.parallelStream().filter(p).collect(toList());
     }
     
+    // get all items in grouped in the selected groups, sorts using library sort order \
+    private List<Metadata> filerListToSelectedNsort() {
+        List<Metadata> l = filerList(DB.views.getValue(lvl.getValue()),false,true);
+                       l.sort(DB.library_sorter);
+        return l;
+    }
+    private void playSelected() {
+        play(filerList(DB.views.getValue(lvl.getValue()),false,true));
+    }
+    
 /******************************** CONTEXT MENU ********************************/
     
     private static Menu searchMenu;
@@ -438,9 +475,7 @@ public class LibraryViewController extends FXMLController {
             );
             return m;
         }, (menu, w) -> {
-            List<Metadata> l = w.filerList(DB.views.getValue(w.lvl.getValue()),false,true);
-                           l.sort(DB.library_sorter);
-            menu.setValue(l);
+            menu.setValue(w.filerListToSelectedNsort());
             if(w.fieldFilter.getValue()==ALBUM && menu.getItems().size()==5)
                 menu.getItems().add(searchMenu);
             if(w.fieldFilter.getValue()!=ALBUM && menu.getItems().size()==6)
@@ -454,9 +489,7 @@ public class LibraryViewController extends FXMLController {
         PlaylistManager.playPlaylist(p);
     }
     
-    private void play() {
-        play(filerList(DB.views.getValue(lvl.getValue()),false,true));
-    }
+
     
     
 

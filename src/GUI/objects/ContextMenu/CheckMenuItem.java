@@ -52,7 +52,10 @@ public class CheckMenuItem extends Menu {
         super(text);
         setGraphic(icon);
         selected.set(s);
-        setOnAction(e -> selected.set(!selected.get()));
+        
+        // action = toggle selection
+        setOnAction(e -> selected.set(!selected.get()));            
+        icon.setOnMouseClicked(e -> getOnAction().handle(null));
         
         // hide open submenu arrow if no children
         getStyleClass().add(NO_CHILDREN_STYLECLASS);

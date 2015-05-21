@@ -6,6 +6,7 @@
 
 package AudioPlayer.tagging;
 
+import java.time.Year;
 import java.util.function.Predicate;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import static util.Util.capitalizeStrong;
@@ -37,11 +38,11 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
     private final long size;
     private final double avg_rating;
     private final double weigh_rating;
-    private final String year;
+    private final Year year;
     
     public MetadataGroup(Metadata.Field field, Object value, long item_count, 
                          long album_count, double length, long filesize_sum, 
-                         double avg_rating, String year) {
+                         double avg_rating, Year year) {
         this.field = field;
         this.value = value;
         this.items = item_count;
@@ -96,7 +97,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         return weigh_rating;
     }
     
-    public String getYear() {
+    public Year getYear() {
         return year;
     }
     
@@ -199,7 +200,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
                 case SIZE : return FileSize.class;
                 case AVG_RATING : return double.class;
                 case W_RATING : return double.class;
-                case YEAR : return String.class;
+                case YEAR : return Year.class;
             }
             throw new AssertionError();
         }

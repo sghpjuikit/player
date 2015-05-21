@@ -8,7 +8,7 @@ package util.access;
 import Action.Action;
 import java.util.function.Consumer;
 import util.dev.TODO;
-import static util.functional.Util.listM;
+import static util.functional.Util.map;
 
 /**
  * Accessor for Action. Lists all available actions. ComboBox should be used as
@@ -20,11 +20,11 @@ public class AccessorAction extends AccessorEnum<String> {
     
     
     public AccessorAction(Action a, Consumer<Action> applier) {
-        super(a.getName(), applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> listM(Action.getActions(), Action::getName));
+        super(a.getName(), applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> map(Action.getActions(), Action::getName));
     }
     
     public AccessorAction(String action_name, Consumer<Action> applier) {
-        super(action_name, applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> listM(Action.getActions(), Action::getName));
+        super(action_name, applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> map(Action.getActions(), Action::getName));
     }
     
     public Action getValueAction() {

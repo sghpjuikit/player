@@ -82,7 +82,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
             ConfigField cf = ConfigField.create(f);                 // create
             configFields.add(cf);                                   // add
             fields.add(cf.getLabel(), 0, configFields.size()-1);    // populate
-            fields.add(cf.getControl(), 1, configFields.size()-1);
+            fields.add(cf.getNode(), 1, configFields.size()-1);
         });
         
         // prevent scroll even leak

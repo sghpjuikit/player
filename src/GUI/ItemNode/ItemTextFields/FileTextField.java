@@ -8,8 +8,7 @@ package GUI.ItemNode.ItemTextFields;
 
 import java.io.File;
 import util.File.Environment;
-import util.parsing.impl.FileParser;
-import util.parsing.StringParser;
+import util.parsing.Parser;
 
 /**
  * {@link AbstractFileField} for {@link File} objects denoting directories
@@ -20,10 +19,7 @@ import util.parsing.StringParser;
 public class FileTextField extends ItemTextField<File> {
     
     public FileTextField() {
-        this(FileParser.class);
-    }
-    public FileTextField(Class<? extends StringParser<File>> parser_type) {
-        super(parser_type);
+        super(Parser.toConverter(File.class));
     }
 
     @Override

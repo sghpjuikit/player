@@ -80,7 +80,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
                 // add to grid
                 g.grid.getRowConstraints().add(new RowConstraints());
                 g.grid.add(cf.getLabel(), 1, g.grid.getRowConstraints().size());
-                g.grid.add(cf.getControl(), 2, g.grid.getRowConstraints().size());
+                g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size());
             }
         });
 

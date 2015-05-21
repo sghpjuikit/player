@@ -82,8 +82,8 @@ import static util.async.Async.FX;
 import util.async.executor.FxTimer;
 import util.async.executor.LimitedExecutor;
 import util.async.future.Fut;
-import static util.functional.Util.list;
-import static util.functional.Util.listM;
+import static util.functional.Util.map;
+import static util.functional.Util.filterMap;
 import util.functional.functor.FunctionC;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
@@ -153,7 +153,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     @FXML MenuBar controlsBar;
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
     // dependencies to disopose of
-    private Subscription d1, d2, d3;
+    private Subscription d1, d2, d3, d4;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -187,6 +187,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     public void init() {
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
+        table.scrollFilterField = TITLE;
         
         // set up table columns
         table.setColumnStateFacory( f -> {
@@ -229,7 +230,7 @@ public class LibraryController extends FXMLController {public String a() { retur
         // row behavior
         table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
                 .onLeftDoubleClick((r,e) -> {
-                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylist));
+                    Playlist p = new Playlist(map(table.getItems(),Metadata::toPlaylist));
                     PlaylistManager.playPlaylistFrom(p, r.getIndex());
                 })
                 .onRightSingleClick((r,e) -> {
@@ -238,14 +239,17 @@ public class LibraryController extends FXMLController {public String a() { retur
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
                     // show context menu
                     contxt_menu.show(table, e);
-                })
+                })                // additional css styleclasses
+                .styleRuleAdd("played", Player.playingtem.get()::same)
         );
+        // maintain playing item css by refreshing index column
+        d4 = Player.playingtem.subscribeToChanges(o -> table.refresh());
         
         // key actions
-        table.setOnKeyReleased( e -> {
+        table.setOnKeyReleased(e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
                 if(!table.getSelectionModel().isEmpty()) {
-                    Playlist p = new Playlist(listM(table.getItems(),Metadata::toPlaylist));
+                    Playlist p = new Playlist(map(table.getItems(),Metadata::toPlaylist));
                     PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
                 }
             }
@@ -344,6 +348,7 @@ public class LibraryController extends FXMLController {public String a() { retur
         d1.unsubscribe();
         d2.unsubscribe();
         d3.unsubscribe();
+        d4.unsubscribe();
     }
     
     
@@ -440,7 +445,7 @@ public class LibraryController extends FXMLController {public String a() { retur
         () -> {
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {                     
-                    List<PlaylistItem> to_play = listM(m.getValue(), Metadata::toPlaylist);
+                    List<PlaylistItem> to_play = map(m.getValue(), Metadata::toPlaylist);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
                 }),
                 menuItem("Enqueue items", e -> {
@@ -461,7 +466,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                 }),
                 menuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
-                    List<File> files = list(items, Item::isFileBased, Item::getLocation);
+                    List<File> files = filterMap(items,Item::isFileBased,Item::getLocation);
                     Environment.browse(files,true);
                 }),
                 new Menu("Search album cover",null,

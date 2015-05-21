@@ -8,9 +8,10 @@ package util.collections;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
-import util.functional.functor.FunctionC;
 
 /**
 More specific cache map using {@link ArrayList} as a cache bucket/accumulation
@@ -23,12 +24,28 @@ Defines a
 
  @author Plutonium_
  */
-public class ListCacheMap<E,K> extends CacheMap<E,K,List<E>> {
+public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
 
-    public ListCacheMap(FunctionC<E,K> keyMapper) {
+    /** Creates collection map with {@link ArrayList} list cache buckets. */
+    public ListMap(Function<E,K> keyMapper) {
         super(keyMapper, () -> new ArrayList(), (e,cache) -> cache.add(e));
     }
     
+    public ListMap(Supplier<List<E>> cacheFactory, Function<E,K> keyMapper) {
+        super(keyMapper, cacheFactory, (e,cache) -> cache.add(e));
+    }
+    
+    /** Deaccumulates (removes) given element from this map. */
+    public void deaccumulate(E e) {
+        // get key
+        K k = keyMapper.apply(e);
+        // get cache storage with key
+        List<E> c = get(k);
+        if(c!=null) {
+            // remove element
+            c.remove(e);
+        }
+    }
     
     /** Multi key get returning the combined content of the cache buckets.
     @return list containing all elements of all cache buckets / accumulation

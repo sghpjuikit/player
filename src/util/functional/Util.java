@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import javafx.util.Callback;
 import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
+import util.functional.functor.FunctionE;
 
 /**
  *
@@ -77,6 +78,15 @@ public class Util {
         return !isAll(o, ps);
     }
     
+    /** Repeat action n times. */
+    public static void rep(int n, Runnable action) {
+        for(int x=0; x<n; x++) action.run();
+    }
+    
+    /** Repeat action n times. Action takes the n as parameter - in [0,n-1] */
+    public static void rep(int n, IntConsumer action) {
+        for(int x=0; x<n; x++) action.accept(x);
+    }
    
     
     /** Runnable that does nothing.  () -> {}; */
@@ -149,6 +159,80 @@ public class Util {
     }
     public static <NN> Function<? extends Object,NN> mapNulls(NN non_null) {
         return (Function) in -> in==null ? non_null : in;
+    }
+
+    /** Equivalent to {@code noEx(f, null, ecs); }*/
+    public static <I,O> Function<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
+        return noEx(null, f, ecs);
+    }
+    /** Equivalent to {@code noEx(f, null, ecs); }*/
+    public static <I,O> Function<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
+        return noEx(null, f, ecs);
+    }
+    /** 
+     * Return function functionally equivalent to the one provided, but which
+     * returns null if any of the exception types or subtypes is caught. The 
+     * function will never throw any (including runtime) of the specified 
+     * exceptions, but will keep throwing other exception types.
+     * 
+     * @param f function to wrap
+     * @param or value to return when exception is caught
+     * @param ecs exception types. Any exception that is equal to the type or 
+     * subtype of any of the exceptions types will be caught. Using
+     * Exception.class will effectively catch all exception types. Throwable.class
+     * is also an option.
+     */
+    public static <I,O> Function<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
+        return noEx(or, f, list(ecs));
+    }
+
+    /** Equivalent to {@link #noEx(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
+    public static <I,O> Function<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
+        return i -> {
+            try {
+                return f.apply(i);
+            } catch(Exception e) {
+                for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                throw e;
+            }
+        };
+    }
+
+    /** Equivalent to {@code noExE(f, null, ecs); }*/
+    public static <I,O> Function<I,O> noExE(FunctionE<I,O> f, Class<?>... ecs) {
+        return noExE(null, f, ecs);
+    }
+    /** Equivalent to {@code noExE(f, null, ecs); }*/
+    public static <I,O> Function<I,O> noExE(FunctionE<I,O> f, Collection<Class<?>> ecs) {
+        return noExE(null, f, ecs);
+    }
+    /** 
+     * Return function functionally equivalent to the one provided, but which
+     * returns null if any of the exception types or subtypes is caught. The 
+     * function will never throw any (including runtime) of the specified 
+     * exceptions, but will keep throwing other exception types.
+     * 
+     * @param f function to wrap
+     * @param or value to return when exception is caught
+     * @param ecs exception types. Any exception that is equal to the type or 
+     * subtype of any of the exceptions types will be caught. Using
+     * Exception.class will effectively catch all exception types. Throwable.class
+     * is also an option.
+     */
+    public static <I,O> Function<I,O> noExE(O or, FunctionE<I,O> f, Class<?>... ecs) {
+        return noExE(or, f, list(ecs));
+    }
+
+    /** Equivalent to {@link #noExE(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
+    public static <I,O> Function<I,O> noExE(O or, FunctionE<I,O> f, Collection<Class<?>> ecs) {
+        return i -> {
+            try {
+                return f.apply(i);
+            } catch(Exception e) {
+                for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                throw new RuntimeException(e);
+            }
+        };
     }
     
 /****************************** collection -> list ****************************/
@@ -292,7 +376,16 @@ public class Util {
         return c.reduce(max, (t,u) -> cmp.compare(t, u)>0 ? t : u);
     }
     
-/****************************** indexed forEach *******************************/
+/************************************ for *************************************/
+    
+    /** 
+     * Zip for loop. Loops over both lists simultaneously.
+     * @throws IllegalArgumentException if lists do not have the same size
+     */
+    public static<A,B> void forEach(List<A> a, List<B> b, BiConsumer<A,B> action) {
+        if(a.size()!=b.size()) throw new IllegalArgumentException("Collection sizes must match");
+        for(int i=0; i<a.size(); i++) action.accept(a.get(i), b.get(i));
+    }
     
     /**
      * Functional alternative to for loop.
@@ -388,41 +481,55 @@ public class Util {
         return Arrays.asList(a);
     }
     
+    public static<T> List<T> list(int i, T a) {
+        List<T> l = new ArrayList(i);
+        for(int j=0; j<i; j++) l.add(a);
+        return l;
+    }
     
-    public static<T> List<T> list(T[] a, Predicate<T> f) {
+    public static<T> List<T> list(int i, Supplier<T> factory) {
+        List<T> l = new ArrayList(i);
+        for(int j=0; j<i; j++) l.add(factory.get());
+        return l;
+    }
+    
+    
+    public static<T> List<T> filter(T[] a, Predicate<T> f) {
         return Stream.of(a).filter(f).collect(toList());
     }
     
-    public static<T> List<T> list(Collection<T> c, Predicate<T> f) {
+    public static<T> List<T> filter(Collection<T> c, Predicate<T> f) {
         return c.stream().filter(f).collect(toList());
     }
     
-    public static<T,R> List<R> listM(T[] a, Function<T,R> m) {
+    public static<T,R> List<R> map(T[] a, Function<T,R> m) {
         return Stream.of(a).map(m).collect(toList());
     }
     
-    public static<T,R> List<R> listM(Collection<T> c, Function<T,R> m) {
+    public static<T,R> List<R> map(Collection<T> c, Function<T,R> m) {
         return c.stream().map(m).collect(toList());
     }
     
     
-    public static<T,R> List<R> list(T[] a, Predicate<T> f, Function<T,R> m) {
+    public static<T,R> List<R> filterMap(T[] a, Predicate<T> f, Function<T,R> m) {
         return Stream.of(a).filter(f).map(m).collect(toList());
     }
     
-    public static<T,R> List<R> list(Collection<T> c, Predicate<T> f, Function<T,R> m) {
+    public static<T,R> List<R> filterMap(Collection<T> c, Predicate<T> f, Function<T,R> m) {
         return c.stream().filter(f).map(m).collect(toList());
     }
     
     
-    public static<T> List<T> split(String txt, String regex, int i, Function<String,T> factory) {
+    
+    
+    public static<T> List<T> split(String txt, String regex, int i, Function<String,T> m) {
         if(txt.isEmpty()) return EMPTY_LIST;
-        return Stream.of(txt.split(regex, i)).map(factory).collect(toList());
+        return Stream.of(txt.split(regex, i)).map(m).collect(toList());
     }
     
-    public static<T> List<T> split(String txt, String regex, Function<String,T> factory) {
+    public static<T> List<T> split(String txt, String regex, Function<String,T> m) {
         if(txt.isEmpty()) return EMPTY_LIST;
-        return Stream.of(txt.split(regex, -1)).map(factory).collect(toList());
+        return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
     }
     
     

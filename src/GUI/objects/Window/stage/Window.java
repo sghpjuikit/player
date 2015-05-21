@@ -44,7 +44,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -169,8 +168,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @IsConfig(name = "Overlay effect intensity", info = "Intensity of the color overlay effect.", min = 0, max = 1)
     public static double overlay_norm_factor = 0.5;
 
-    @IsConfig(name = "Borderless", info = "Borderless window has hidden header and borders.")
+    @IsConfig(name = "Borderless", info = "Hides borders.")
     public static final Accessor<Boolean> window_borderless = new Accessor<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
+    
+    @IsConfig(name = "Headerless", info = "Hides header.")
+    public static final Accessor<Boolean> window_headerless = new Accessor<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
 
     @AppliesConfig("headerVisiblePreference")
     private static void applyHeaderVisiblePreference() {
@@ -320,9 +322,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
 	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 	fullscreen.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
-        
-        // layout mode on resizing - experimental
-        resizing.addListener((o,ov,nv) -> GUI.setLayoutMode(nv!=NONE));
 
 	// add to list of active windows
 	windows.add(this);
@@ -351,6 +350,15 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		if (e.getClickCount() == 2)
 		    setHeaderVisible(!headerVisible);
 	});
+        
+        header_activator.addEventFilter(MOUSE_ENTERED, e -> {
+            if(!headerVisible)
+                applyHeaderVisible(true);
+        });
+        header.addEventFilter(MOUSE_EXITED_TARGET, e -> {
+            if(!headerVisible)
+                applyHeaderVisible(false);
+        });
 
         // change volume on scroll
 	// if some component has its own onScroll behavior, it should consume
@@ -363,28 +371,18 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	root.addEventFilter(KEY_PRESSED, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
 		GUI.setLayoutMode(true);
-		//            SwitchPane.class.cast(layout_aggregator).zoomOut();
-		showHeader(true);
+		applyHeaderVisible(true);
 	    }
 	});
 
 	root.addEventFilter(KEY_RELEASED, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
 		GUI.setLayoutMode(false);
-		//            SwitchPane.class.cast(layout_aggregator).zoomIn();
 
 		if (headerVisiblePreference)
-		    if (isFullscreen()) {
-			showHeader(false);
-			setBorderless(true);
-		    } else {
-			showHeader(headerVisible);
-			setBorderless(!headerVisible);
-		    }
-		else {
-		    showHeader(headerVisible);
-		    setBorderless(!headerVisible);
-		}
+                    applyHeaderVisible(isFullscreen() ? false : headerVisible);
+		else
+		    applyHeaderVisible(headerVisible);
 	    }
 	});
         
@@ -433,8 +431,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// layout mode button
 	Icon lmB = new Icon(null, 13, "Layout mode", GUI::toggleLayoutNzoom);
 	// layout tab buttons
-	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", ((SwitchPane)layout_aggregator)::alignLeftTab);
-	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", ((SwitchPane)layout_aggregator)::alignRightTab);
+	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", () -> ((SwitchPane)getLayoutAggregator()).alignLeftTab());
+	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", () -> ((SwitchPane)getLayoutAggregator()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB.icon);
 	// guide button - sho layout manager in a popp
 	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
@@ -582,6 +580,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      **************************** HEADER & BORDER    *********************************
      */
     @FXML private BorderPane header;
+    @FXML private Pane header_activator;
     @FXML private Region lBorder;
     @FXML private Region rBorder;
     @FXML private ImageView iconI;
@@ -589,23 +588,23 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     @FXML private HBox leftHeaderBox;
     private boolean headerVisible = true;
     private boolean headerAllowed = true;
+    private boolean borderless = false;
 
     /**
      Sets visibility of the window header, including its buttons for control
      of the window (close, etc).
      */
     public void setHeaderVisible(boolean val) {
-	// prevent pointless operation
 	if (!headerAllowed) return;
 	headerVisible = val;
-	showHeader(val);
+	applyHeaderVisible(val);
     }
 
     public boolean isHeaderVisible() {
 	return headerVisible;
     }
 
-    private void showHeader(boolean val) {
+    private void applyHeaderVisible(boolean val) {
 	controls.setVisible(val);
 	leftHeaderBox.setVisible(val);
 	if (val) {
@@ -613,9 +612,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    AnchorPane.setTopAnchor(content, 25d);
 	    AnchorPane.setTopAnchor(lBorder, 25d);
 	    AnchorPane.setTopAnchor(rBorder, 25d);
-	    setBorderless(!val);
 	} else {
-	    header.setPrefHeight(5);
+	    header.setPrefHeight(isBorderlessApplied()? 0 : 5);
 	    AnchorPane.setTopAnchor(content, 5d);
 	    AnchorPane.setTopAnchor(lBorder, 5d);
 	    AnchorPane.setTopAnchor(rBorder, 5d);
@@ -629,7 +627,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	setHeaderVisible(val);
 	headerAllowed = val;
     }
-
+    
+    public boolean isHeaderVisibleApplied() {
+	return AnchorPane.getTopAnchor(content)==25;
+    }
+    
     /**
      Set title for this window shown in the header.
      */
@@ -722,26 +724,35 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     @Override
     public void setFullscreen(boolean v) {
-	super.setFullscreen(v);
-	// handle header visibility
-	if (headerVisiblePreference)
-	    if (v) showHeader(false);
-	    else showHeader(headerVisible);
+	super.setFullscreen(v);                 // fullscreen
+        applyBorderless(v ? true : borderless); // borderless
+	if (headerVisiblePreference)            // headerless
+	    if (v) applyHeaderVisible(false);
+	    else applyHeaderVisible(headerVisible);
 	else
 	    setHeaderVisible(!headerVisible);
-	setBorderless(v);
     }
 
     public boolean isBorderless() {
-	return AnchorPane.getBottomAnchor(content) == 0;
+	return borderless;
     }
 
     public void setBorderless(boolean v) {
-	if (v) setAnchors(content, 0);
-	else setAnchors(content, 25, 5, 5, 5);
+        borderless = v;
+        applyBorderless(v);
+    }
+    
+    private void applyBorderless(boolean v) {
+        double tp = isHeaderVisibleApplied() ? 25 : v ? 0 : 5;
+        double p = v ? 0 : 5;
+        setAnchors(content, tp,p,p,p);
+        header.setPrefHeight(tp);
 	borders.setVisible(!v);
     }
-
+    public boolean isBorderlessApplied() {
+	return AnchorPane.getBottomAnchor(content) == 0;
+    }
+    
     @FXML public void toggleMini() {
 	WindowManager.toggleMini();
     }
@@ -756,7 +767,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// it can not consume drag detected event and prevent dragging
 	// should be fixed
 	if (e.getButton() != PRIMARY || resizing.get()!=Resize.NONE) return;
-        if(header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
+//        if(header.contains(new Point2D(e.getSceneX(), e.getSceneY())));
         
         isMoving.set(true);
 	appX = e.getSceneX();
@@ -961,9 +972,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    writer.startNode("layout-aggregator-type");
 	    writer.setValue(w.layout_aggregator.getClass().getName());
 	    writer.endNode();
-	    writer.startNode("header-visible");
-	    writer.setValue(String.valueOf(w.isHeaderVisible()));
-	    writer.endNode();
 	}
 
 	@Override
@@ -1000,9 +1008,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    reader.moveUp();
 	    reader.moveDown();
 	    reader.getValue(); // ignore layout aggregator
-	    reader.moveUp();
-	    reader.moveDown();
-	    w.setHeaderVisible(Boolean.parseBoolean(reader.getValue()));
 	    reader.moveUp();
 	    return w;
 	}

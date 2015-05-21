@@ -8,8 +8,7 @@ package GUI.ItemNode.ItemTextFields;
 
 import javafx.scene.text.Font;
 import org.controlsfx.dialog.Dialogs;
-import util.parsing.impl.FontParser;
-import util.parsing.StringParser;
+import util.parsing.Parser;
 
 /**
  *
@@ -18,25 +17,12 @@ import util.parsing.StringParser;
 public class FontTextField extends ItemTextField<Font> {
 
     public FontTextField() {
-        this(FontParser.class);
-    }
-    public FontTextField(Class<? extends StringParser<Font>> parser_type) {
-        super(parser_type);
+        super(Parser.toConverter(Font.class));
     }
     
     @Override
     void onDialogAction() {
         Font tmp = Dialogs.create().owner(getScene().getWindow()).showFontSelector(v).orElse(null);
         setValue(tmp);
-    }
-
-    @Override
-    String itemToString(Font item) {
-        if(item != null) {
-            return new FontParser().toS(item);
-        } else {
-            return "";
-        }
-        
     }
 }

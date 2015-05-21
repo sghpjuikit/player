@@ -20,7 +20,7 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.DOCUMENTATION;
 import util.collections.MapSet;
 import static util.functional.Util.find;
-import static util.functional.Util.listM;
+import static util.functional.Util.map;
 import static util.functional.Util.split;
 import static util.functional.Util.toIndexedStream;
 import static util.functional.Util.toS;
@@ -142,7 +142,7 @@ public final class TableColumnInfo {
         
         public void fromTable(TableView<?> table) {
             sorts.clear();
-            sorts.addAll(listM(table.getSortOrder(),c->Tuples.t(c.getText(), c.getSortType())));
+            sorts.addAll(map(table.getSortOrder(),c->Tuples.t(c.getText(), c.getSortType())));
         }
         
         public void toTable(TableView<?> table) {

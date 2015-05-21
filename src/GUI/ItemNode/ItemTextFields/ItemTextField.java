@@ -8,7 +8,6 @@ package GUI.ItemNode.ItemTextFields;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
@@ -16,7 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import org.controlsfx.control.textfield.CustomTextField;
 import util.access.AccessibleValue;
-import util.parsing.StringParser;
+import util.parsing.StringConverter;
 
 /**
  * Customized {@link TextField} that stores an item. Normally a non-editable text
@@ -51,7 +50,7 @@ import util.parsing.StringParser;
 public abstract class ItemTextField<T> extends CustomTextField implements AccessibleValue<T> {
     
     T v;
-    private Class parser_class;
+    private StringConverter<T> converter;
     private BiConsumer<T,T> onItemChange;
     private Callback<T, String> valueFactory;
     
@@ -73,12 +72,10 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
         getStyleClass().setAll(STYLECLASS());
     }
     
-    /**
-     * Constructor. Creates instance of the item text field utilizing parser
-     * of the provided type. */
-    public ItemTextField(Class<? extends StringParser<T>> parser_type) {
+    /***/
+    public ItemTextField(StringConverter<T> parser) {
         this();
-        parser_class = parser_type;
+        converter = parser;
     }
     
     
@@ -136,27 +133,9 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
      * @return String as a representation of the item.
      * @throws RuntimeException if no parser is provided
      */
-    String itemToString(T item) {
-        // throw runtime exception if implementation incomplete
-        // forces developer to provide one or the other
-        if(parser_class == null) {
-            throw new RuntimeException("No provided parsing implementation. At "
-                    + "least one - parser or value factory - must be specified.");
-        }
-        
-        // instantiate parser
-        StringParser<T> parser;
-        try {
-            parser = (StringParser<T>) parser_class.newInstance();
-        } catch (InstantiationException | IllegalAccessException ex) {
-            return Objects.toString(item); // if parser fails to instantiate () shouldnt throw exception?
-        }
-        
-        // parse
-        if(item!=null)
-            return parser.toS(item);
-        else
-            return "";
+    String itemToString(T item) {        
+        if(item!=null) return converter.toS(item);
+        else return "";
     }
     
 /******************************************************************************/

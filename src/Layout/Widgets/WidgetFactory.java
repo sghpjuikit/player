@@ -5,6 +5,10 @@
  */
 package Layout.Widgets;
 
+import Layout.Widgets.Features.Feature;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Factory that creates widgets.
  * <p>
@@ -175,6 +179,16 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     @Override
     public boolean hasFeature(Class feature) {
         return feature.isAssignableFrom(controller_class);
+    }
+    
+    /** @return all implemented features */
+    public List<Feature> getFeatures() {
+        List<Feature> out = new ArrayList();
+        for(Class c : controller_class.getInterfaces()) {
+            Feature f = (Feature) c.getAnnotation(Feature.class);
+            if (f!=null) out.add(f);
+        }
+        return out;
     }
     
 }

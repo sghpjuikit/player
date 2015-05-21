@@ -10,8 +10,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
-import util.functional.functor.FunctionC;
 
 /**
  Map for caching and splitting collections. It splits elements E to cache buckets 
@@ -19,17 +19,18 @@ import util.functional.functor.FunctionC;
 
  @param <E> element that will be split/accumulated
  @param <K> key extracted from element E to hash cache buckets on.
- @param <C> cache bucket/accumulation container. A collection such as List, but 
- can be a single object
- even element E itself. For example a sum. Depends on accumulation strategy.
+ @param <C> cache bucket/accumulation container. A (not necessarily) a collection
+ such as List. Can even be an element E itself. For example a sum. Depends on 
+ accumulation strategy. Because of this, elements can not be removed.
  <p>
+ @see ListMap
  @author Plutonium_
  */
-public class CacheMap<E,K,C> extends HashMap<K,C> {
+public class CollectionMap<E,K,C> extends HashMap<K,C> {
     /** Extracts keys from elements. Determines the splitting parts of the caching 
     strategy, e.g. using a predicate would split the original collection on
     two parts - elements that test true, and elements that test false.*/
-    public FunctionC<E,K> keyMapper;
+    public Function<E,K> keyMapper;
     /** Builds cache bucket/accumulation container when there is none for the
     given key during accumulation.*/
     public Supplier<C> cacheFactory;
@@ -39,27 +40,30 @@ public class CacheMap<E,K,C> extends HashMap<K,C> {
     reducing strategies can be used, for example {@code (element,sum) -> sum+number; }*/
     public BiConsumer<E,C> cacheAccumulator;
 
-    public CacheMap(FunctionC<E,K> keyMapper, Supplier<C> cacheFactory, BiConsumer<E,C> cacheAccumulator) {
+    public CollectionMap(Function<E,K> keyMapper, Supplier<C> cacheFactory, BiConsumer<E,C> cacheAccumulator) {
         this.keyMapper = keyMapper;
         this.cacheFactory = cacheFactory;
         this.cacheAccumulator = cacheAccumulator;
     }
     
     /** Accumulates given collection into this cache map. The collection remains
-    ineffected. */
+    unaffected. */
     public void accumulate(Collection<E> es) {
-        for(E e : es) {
-            // get key
-            K k = keyMapper.apply(e);
-            // get cache storage with key & build new if not yet built 
-            C c = get(k);
-            if(c==null) {
-                c = cacheFactory.get();
-                put(k, c);
-            }
-            // cache element
-            cacheAccumulator.accept(e, c);
+        for(E e : es) accumulate(e);
+    }
+    
+    /** Accumulates given element into this map. */
+    public void accumulate(E e) {
+        // get key
+        K k = keyMapper.apply(e);
+        // get cache storage with key & build new if not yet built 
+        C c = get(k);
+        if(c==null) {
+            c = cacheFactory.get();
+            put(k, c);
         }
+        // cache element
+        cacheAccumulator.accept(e, c);
     }
     
     /** Multi key get.

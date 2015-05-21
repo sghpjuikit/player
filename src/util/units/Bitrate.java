@@ -18,7 +18,11 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * @author uranium
  */
 @Immutable
-@StringParseStrategy(from = CONSTRUCTOR_STR, to = TO_STRING_METHOD)
+@StringParseStrategy(
+    from = CONSTRUCTOR_STR,
+    to = TO_STRING_METHOD,
+    ex = { IndexOutOfBoundsException.class, NumberFormatException.class, IllegalArgumentException.class }
+)
 public class Bitrate implements Comparable<Bitrate> {
     private static final String UNIT = "kbps";
     private final int bitrate;
@@ -75,7 +79,7 @@ public class Bitrate implements Comparable<Bitrate> {
     
     
     
-    private static int val(String s) {
+    private static int val(String s) throws IndexOutOfBoundsException, NumberFormatException {
         if(s.endsWith(UNIT)) s=s.substring(0, s.length()-UNIT.length());
         s = s.trim();
         return s.isEmpty() ? -1 : parseInt(s);

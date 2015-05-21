@@ -10,7 +10,7 @@ import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 import util.Util;
 import static util.functional.Util.forEachIStream;
-import static util.functional.Util.listM;
+import static util.functional.Util.map;
 
 /**
  * Defines object that can be configured.
@@ -183,11 +183,11 @@ public interface Configurable<T> {
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(Collection<E> vals) {
-        return listM(vals,v -> new PropertyConfig(v.getName(),v));
+        return map(vals,v -> new PropertyConfig(v.getName(),v));
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(E... vals) {
-        return listM(vals,v -> new PropertyConfig(v.getName(),v));
+        return map(vals,v -> new PropertyConfig(v.getName(),v));
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromFieldsOf(Object o) {

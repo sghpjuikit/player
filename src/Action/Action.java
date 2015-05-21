@@ -16,7 +16,6 @@ import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import static java.util.Collections.singletonList;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -416,12 +415,6 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
     public double getMax() {
         return Double.NaN;
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public List<Class> getSupportedClasses() {
-        return singletonList(Action.class);
-    }
     
 /********************************** AS OBJECT *********************************/
     
@@ -448,9 +441,7 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
     }
     
     
-    
-    
-    
+
     
     
     private Action(boolean isGlobal, KeyCombination keys) {

@@ -29,6 +29,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRI
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import java.io.File;
 import java.net.URI;
+import java.time.Year;
 import java.util.*;
 import static java.util.Collections.singletonList;
 import java.util.function.Predicate;
@@ -60,6 +61,7 @@ import static main.App.TAG_MULTIPLE_VALUE;
 import static main.App.TAG_NO_VALUE;
 import static org.atteo.evo.inflector.English.plural;
 import org.controlsfx.control.textfield.CustomTextField;
+import org.controlsfx.control.textfield.TextFields;
 import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
@@ -70,11 +72,10 @@ import util.access.Accessor;
 import static util.async.Async.runNew;
 import util.collections.MapSet;
 import util.dev.Log;
-import static util.functional.Util.isIn;
-import static util.functional.impl.Validator.*;
+import static util.functional.Util.*;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
-import util.parsing.impl.ColorParser;
+import util.parsing.Parser;
 
 /**
  * TaggerController graphical component.
@@ -194,6 +195,21 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         // add specialized mood text field
         grid.add(MoodF, 1, 14, 2, 1);
         
+        // validators
+        Predicate<String> IsBetween0And1 = noEx(false,(String t) -> {
+            double i = new Double(t);
+            return i>=0 && i<=1;
+        },NumberFormatException.class)::apply;
+        Predicate<String> isPastYearS = noEx(false,(String t) -> {
+            int i = new Integer(t);
+            int max = Year.now().getValue();
+            return i>0 && i<=max;
+        },NumberFormatException.class)::apply;
+        Predicate<String> isIntS = noEx(false,(String t) -> {
+            int i = Integer.parseInt(t);
+            return true;
+        },NumberFormatException.class)::apply;
+        
         // initialize fields
         fields.add(new TagField(TitleF,TITLE));
         fields.add(new TagField(AlbumF,ALBUM));
@@ -222,7 +238,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             // associate color picker with custom1 field
         Custom1F.setEditable(false);
         ColorF.disableProperty().bind(Custom1F.disabledProperty());
-        ColorF.valueProperty().addListener((o,ov,nv) -> Custom1F.setText(new ColorParser().toS(nv)));
+        ColorF.valueProperty().addListener((o,ov,nv) -> Custom1F.setText(Parser.toS(nv)));
         
 
         // deselect text fields on click
@@ -638,6 +654,11 @@ public class TaggerController extends FXMLController implements TaggingFeature {
                 if (isIn(e.getCode(),BACK_SPACE,ESCAPE))
                     OnBackspacePressed();
             });
+            
+             if(c instanceof TextField) {
+                TextFields.bindAutoCompletion((TextField)c, p -> filter(list("abcd","holo"),t -> t.startsWith(p.getUserText())));
+//                TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.getStrings(f.name()),t -> t.startsWith(p.getUserText())));
+             }
         }
         void enable() { 
             c.setDisable(false);
@@ -730,7 +751,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         }
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if(f==CUSTOM1) {
-                Color c = new ColorParser().fromS(histogramS);
+                Color c = Parser.fromS(Color.class,histogramS);
                 ColorF.setValue(c==null ? EMPTY_COLOR : c);   
                 Custom1F.setText("");
             }
@@ -745,9 +766,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             setSupported(formats);
         }
     }
-
-    
-    public final class Validation {
+    private final class Validation {
         public final TextInputControl field;
         public final Predicate<String> condition;
         public final String text;

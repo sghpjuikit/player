@@ -208,6 +208,7 @@ public class PopOver<N extends Node> extends PopupControl {
                       p.title.set("Help");
                       p.setAutoHide(true);
                       p.setHideOnClick(true);
+                      p.setAutoFix(true);
                       p.detachable.set(false);
         return p;
     }
@@ -355,6 +356,9 @@ public class PopOver<N extends Node> extends PopupControl {
     
     private void showThis(Node ownerNode, Window ownerWindow) {
         Objects.requireNonNull(ownerWindow);
+        Screen s = com.sun.javafx.util.Utils.getScreenForPoint(ownerWindow.getX()+ownerWindow.getWidth()/2, ownerWindow.getY()+ownerWindow.getHeight()/2);
+        setMaxWidth(s.getBounds().getWidth());
+        setMaxHeight(s.getBounds().getHeight());
         
         // we must set the owners so moving with owner behavior knows which
         // mode should be done

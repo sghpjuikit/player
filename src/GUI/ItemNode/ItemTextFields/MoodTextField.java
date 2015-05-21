@@ -6,9 +6,9 @@ import GUI.objects.Pickers.MoodPicker;
 import GUI.objects.PopOver.PopOver;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import javafx.scene.layout.Region;
 import org.controlsfx.control.textfield.TextFields;
-import util.parsing.impl.StringStringParser;
-import util.parsing.StringParser;
+import util.parsing.Parser;
 
 /**
  * Text field intended for mood tagging specifically. It provides two additional
@@ -24,10 +24,7 @@ public class MoodTextField extends ItemTextField<String> {
     private PopOver.NodeCentricPos pos = PopOver.NodeCentricPos.RightCenter;
 
     public MoodTextField() {
-        this(StringStringParser.class);
-    }
-    public MoodTextField(Class<? extends StringParser<String>> parser_type) {
-        super(parser_type);
+        super(Parser.toConverter(String.class));
         
         // set autocompletion
         TextFields.bindAutoCompletion(this, p -> MoodManager.moods.stream()
@@ -66,18 +63,14 @@ public class MoodTextField extends ItemTextField<String> {
         p.setCornerRadius(0);
         p.setAutoHide(true);
         p.setAutoFix(true);
+        mood_picker.onCancel = p::hide;
         mood_picker.onSelect = mood -> {
             setValue(mood);
             p.hide();
         };
+        ((Region)mood_picker.getNode()).setPrefSize(800,600);
         p.show(this, pos);
-    }
-
-    @Override
-    String itemToString(String item) {
-        return item;
-    }
-    
+    }    
     
 /******************************* CONTEXT MENU *********************************/
     

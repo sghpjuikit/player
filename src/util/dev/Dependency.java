@@ -6,6 +6,7 @@
 package util.dev;
 
 import java.lang.annotation.*;
+import static java.lang.annotation.ElementType.*;
 
 /**
  * Annotates code that depends on or is depended on by other code. Marks and 
@@ -14,7 +15,7 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Repeatable(Dependencies.class)
-@Target({ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
+@Target({METHOD, CONSTRUCTOR, FIELD, TYPE})
 public @interface Dependency {
     String value() default "";
 }

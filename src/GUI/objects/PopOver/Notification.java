@@ -13,7 +13,8 @@ import util.async.executor.FxTimer;
  * Notification popover.
  */
 public class Notification extends PopOver {
-        
+    
+    private static final String STYLECLASS = "notification";
     private final FxTimer closer = new FxTimer(5000, 1, this::hide);
     private final StackPane root = new StackPane();
     
@@ -32,7 +33,7 @@ public class Notification extends PopOver {
         setAutoFix(false);
         setAutoHide(false);
         getSkinn().setTitleAsOnlyHeaderContent();
-        getSkinn().root.getStyleClass().add("notification");
+        getStyleClass().add(STYLECLASS);
         
         setContentNode(root);
         root.setOnMouseClicked(e -> {

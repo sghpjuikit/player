@@ -28,10 +28,29 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 @Target(TYPE)
 public @interface StringParseStrategy {
 
+    /** Defines strategy for parsing object from String. */
     From from() default NONE;
+    /** Defines strategy for parsing object to String. */
     To to() default TO_STRING_METHOD;
+    /** Use along with {@link To#CONSTANT}. */
     String constant() default "";
-    
+    /** 
+     * Use when to string strategy relies on a method that can throw an 
+     * exception. Here it is possible to specify all exceptions regarding the
+     * conversion process. Parser can then catch them and provide a unification
+     * mechanism for handling erroneous input and failed conversions.
+     * <p>
+     * This shifts the implementation in fail cases from the object to the
+     * parsing framework, see {@link Parser}.
+     * <p>
+     * Enumerate all exceptions (runtime or checked) that can be thrown as a 
+     * result of to string conversion failure. Exceptions due to programming
+     * error or other causes should be ignored.
+     * <p>
+     * Default value is empty array.
+     */
+    Class<? extends Exception>[] ex() default {};
+
     /** Defines strategy for parsing object from String. */
     public static enum From {
         /** Static fromString(String text) method is responsible. */
@@ -62,7 +81,7 @@ public @interface StringParseStrategy {
     
     /** Defines strategy for parsing object to String. */
     public static enum To {
-        /** toString() method is responsible. *//** toString() method is responsible. */
+        /** toString() method is responsible. */
         TO_STRING_METHOD,
         /** {@link ParsesToString} annotation decides responsible method. */
         ANNOTATED_METHOD,

@@ -16,7 +16,7 @@
     -fx-prompt-font-color: rgb(165, 165, 165);
     
     -fx-pane-color: rgba(0,0,20,0.4);
-    -fx-popup-def-bgr-color: rgba(16,16,35,0.75);
+    -fx-popup-def-bgr-color: rgba(16,16,35,0.8);
 
 }
 
@@ -79,6 +79,10 @@
     -fx-text-fill: orange;
     -fx-effect: dropshadow(gaussian, orange, 9,0 , 0,0);
     -fx-underline: false;
+}
+.table-row-cell:played,
+.table-row-cell:played:selected {
+    -fx-effect: none;
 }
 
 .indexed-cell:corrupt,
@@ -145,4 +149,13 @@
 }
 .menu-item:focused {
     -fx-background-color: null;
+}
+/* Small button mostly within custom controls for opening dialogs. For example
+   Font picker from within text area. */
+.dialog-button {
+    // the below is the arrow css used for other components like combo-box
+    -fx-background-color: -fx-def-font-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }

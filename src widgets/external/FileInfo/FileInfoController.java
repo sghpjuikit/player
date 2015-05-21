@@ -380,7 +380,7 @@ public class FileInfoController extends FXMLController implements SongInfo {
             artist.setText("artist: "       + m.getArtist());
             album.setText("album: "         + m.getAlbum());
             album_artist.setText("album artist: " + m.getAlbumArtist());
-            year.setText("year: "           + m.getYear());
+            year.setText("year: "           + m.getYearAsS());
             genre.setText("genre: "         + m.getGenre());
             composer.setText("composer: "   + m.getComposer());
             publisher.setText("publisher: " + m.getPublisher());

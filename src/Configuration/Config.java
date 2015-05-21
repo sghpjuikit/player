@@ -15,7 +15,7 @@ import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
 import util.parsing.Parser;
-import util.parsing.StringParser;
+import util.parsing.StringConverter;
 
 /**
  * Object representation of a configurable value.
@@ -37,7 +37,7 @@ import util.parsing.StringParser;
  * 
  * @author uranium
  */
-public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, StringParser<V>, TypedValue<V>, EnumerableValue<V> {
+public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, StringConverter<V>, TypedValue<V>, EnumerableValue<V> {
 
     /**
      * Value wrapped in this config. Always {@link Object}. Primitives are
@@ -160,19 +160,9 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     public final void setValueS(String str) {
         setValue(fromS(str));
     }
-
-    /**
-     * Inherited method from {@link StringParser}
-     * <p>
-     * {@inheritDoc}
-     */
-    @Override
-    public final boolean supports(Class<?> type) {
-        return getType().isAssignableFrom(type);
-    }
     
     /**
-     * Inherited method from {@link StringParser}
+     * Inherited method from {@link StringConverter}
      * Note: this config remains intact.
      * <p>
      * {@inheritDoc}
@@ -183,7 +173,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     }
     
     /**
-     * Inherited method from {@link StringParser}
+     * Inherited method from {@link StringConverter}
      * Note: this config remains intact.
      * <p>
      * {@inheritDoc}

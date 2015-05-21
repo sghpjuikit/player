@@ -26,7 +26,6 @@ import static util.dev.TODO.Severity.SEVERE;
  *
  * @author Plutonium_
  */
-@TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
 public class MapSet<K,E> implements Set<E> {
 
     /** Function transforming element to its identity. Used for all collection
@@ -133,12 +132,14 @@ public class MapSet<K,E> implements Set<E> {
                 modified = true;
         return modified;
     }
-
+    
+    @TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
     @Override
     public boolean retainAll(Collection<?> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
+    
+    @TODO(purpose = UNIMPLEMENTED, severity = SEVERE)
     @Override
     public boolean removeAll(Collection<?> c) {
         throw new UnsupportedOperationException("Not supported yet.");

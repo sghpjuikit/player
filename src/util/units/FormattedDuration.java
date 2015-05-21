@@ -15,7 +15,11 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * Duration with overriden toString method, where it is formatted into
  * minutes:seconds format.* Example: 00:00.
  */
-@StringParseStrategy(from = VALUE_OF_METHOD, to = TO_STRING_METHOD)
+@StringParseStrategy(
+    from = VALUE_OF_METHOD,
+    to = TO_STRING_METHOD,
+    ex = { IllegalArgumentException.class, NumberFormatException.class }
+)
 public class FormattedDuration extends Duration {
     private static final long serialVersionUID = 11L;
     
@@ -38,7 +42,7 @@ public class FormattedDuration extends Duration {
     
     @Dependency("Name. Used by String Parser by reflection discovered by method name.")
     @Dependency("Supports different units to allow convenient search filters.")
-    public static FormattedDuration valueOf(String s) {
+    public static FormattedDuration valueOf(String s) throws NumberFormatException, IllegalArgumentException {
         int index = -1;
         for (int i=0; i<s.length(); i++) {
             char c = s.charAt(i);

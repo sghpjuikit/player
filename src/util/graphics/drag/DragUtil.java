@@ -170,7 +170,6 @@ public final class DragUtil {
         if (hasItemList()) {
             o.addAll(getItemsList());
         }
-        System.out.println(o.size() + " lll");
         return o;
     }
     

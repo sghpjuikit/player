@@ -597,10 +597,12 @@ public final class FileUtil {
         else return f;
     }
     
+    public static String getSuffix(File f) {
+        return getSuffix(f.getPath());
+    }
+    
     public static String getSuffix(URI f) {
-        String n = f.getPath();
-        int p = n.lastIndexOf('.');
-        return (p == - 1) ? "" : n.substring(p + 1);
+        return getSuffix(f.getPath());
     }
     
     public static String getSuffix(String path) {

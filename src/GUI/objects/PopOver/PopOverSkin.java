@@ -59,6 +59,11 @@ public class PopOverSkin implements Skin<PopOver> {
 
     private static final PseudoClass DETACHED = PseudoClass.getPseudoClass("detached");
     private static final PseudoClass FOCUSED = PseudoClass.getPseudoClass("focused");
+    private static final String ROOT_STYLECLASS = "popover-root";
+    private static final String CONTENT_STYLECLASS = "content";
+    private static final String HEADER_STYLECLASS = "popover-header";
+    private static final String TITLE_STYLECLASS = "title";
+    private static final String SHAPE_STYLECLASS = "bgr";
 
     private double xOffset;
     private double yOffset;
@@ -85,23 +90,20 @@ public class PopOverSkin implements Skin<PopOver> {
 
         root = new StackPane();
         root.setPickOnBounds(false);
-        root.getStyleClass().add("popover");
+        root.getStyleClass().add(ROOT_STYLECLASS);
 
-        /*
-         * The min width and height equal 2 * corner radius + 2 * arrow indent +
-         * 2 * arrow size.
-         */
-        root.minWidthProperty().bind(
-                Bindings.add(multiply(2, popOver.arrowSizeProperty()),
-                            add(multiply(2,popOver.cornerRadiusProperty()),
-                                multiply(2,popOver.arrowIndentProperty()))));
-
+         //  min width and height equal 2 * corner radius + 2 * arrow indent +
+         // 2 * arrow size.
         root.minHeightProperty().bind(root.minWidthProperty());
+        root.minWidthProperty().bind(
+                add(multiply(2,popOver.arrowSizeProperty()),
+                        add(multiply(2,popOver.cornerRadiusProperty()),
+                            multiply(2,popOver.arrowIndentProperty()))));
 
         // create header & its content
         title = new Label();
         title.textProperty().bind(popOver.title);
-        title.getStyleClass().add("title");
+        title.getStyleClass().add(TITLE_STYLECLASS);
 
         closeB = new Icon(TIMES_CIRCLE, 11, "Close", popOver::hideStrong);
         // causes slight bug where popup changes position by 1px
@@ -137,15 +139,13 @@ public class PopOverSkin implements Skin<PopOver> {
         });
         
         
-        // create content
-        content = new BorderPane();
-        content.getStyleClass().add("content");
-        
         // content
+        content = new BorderPane();
+        content.getStyleClass().add(CONTENT_STYLECLASS);
 //        maintain(popOver.contentNodeProperty(), n->n, content.centerProperty());
         maintain(popOver.contentNodeProperty(), n->n, n -> {
             content.setCenter(n);
-            // the following lines fix some resize bugs
+            // the following fixes some resize bugs
             content.autosize();
             content.applyCss();
             content.layout();
@@ -160,7 +160,7 @@ public class PopOverSkin implements Skin<PopOver> {
         header = new BorderPane();
         header.setLeft(title);
         header.setRight(headerControls);
-        header.getStyleClass().add("popover-header");
+        header.getStyleClass().add(HEADER_STYLECLASS);
         // header visibility
         maintain(popOver.headerVisible, b->b ? header : null, content.topProperty());
 
@@ -178,18 +178,19 @@ public class PopOverSkin implements Skin<PopOver> {
         
         // this block must be done before the next one
         path = new Path();
-        path.getStyleClass().add("bgr");
+        path.getStyleClass().add(SHAPE_STYLECLASS);
         path.setManaged(false);
         createPathElements();
         updatePath();
         
         // react on detached state change and initialize
-        maintain(popOver.detached, d -> {
+        maintain(popOver.detached, d -> {System.out.println(d);
             updatePath();
-            content.pseudoClassStateChanged(DETACHED, d);
-            path.pseudoClassStateChanged(DETACHED, d);
+            popOver.pseudoClassStateChanged(DETACHED, d);
             content.setTop(header); // always show header in detached mode
         });
+        // maintain focus style
+        maintain(popOver.focusedProperty(), v -> popOver.pseudoClassStateChanged(FOCUSED, v));
 
         root.setOnMousePressed(e -> {
             if (popOver.detachable.get()) {

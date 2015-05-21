@@ -7,7 +7,8 @@
 package util.parsing;
 
 /**
- *
+ * Object to String converter.
+ * 
  * @author Plutonium_
  */
 @FunctionalInterface

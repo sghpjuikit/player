@@ -34,8 +34,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.functional.Util.cmpareBy;
-import static util.functional.Util.list;
+import static util.functional.Util.*;
 import util.functional.functor.FunctionC;
 import util.parsing.Parser;
 
@@ -172,7 +171,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         if(defColInfo==null) {
             // generate column states
             F[] fields = getEnumConstants(type);
-            List<ColumnInfo> l = list(fields,f->f.isTypeStringRepresentable(),colStateFact);
+            List<ColumnInfo> l = filterMap(fields,f->f.isTypeStringRepresentable(),colStateFact);
             defColInfo = new TableColumnInfo();
             defColInfo.nameKeyMapper = keyNameColMapper;
             defColInfo.columns.addAll(l);

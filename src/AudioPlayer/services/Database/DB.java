@@ -10,15 +10,9 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import java.io.File;
 import java.net.URI;
-import java.util.Collections;
+import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.TypedQuery;
+import javax.persistence.*;
 import main.App;
 import util.access.Accessor;
 import static util.async.Async.FXAFTER;
@@ -164,14 +158,72 @@ public class DB {
         em.flush();
     }
     
-    
+    /** In memory item database. Use for library.*/
     public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
     
-    /** Comparator defining the sorting for items in operations that wish to
-    provide consistent sorting. For example playing an album might presort the
-    songs before putting them to playlist.
-    <p>
-    The comparator should reflect library table sort order.
-    */
+    /** 
+     * Comparator defining the sorting for items in operations that wish to
+     * provide consistent sorting. For example playing an album might presort the
+     * songs before putting them to playlist.
+     * <p>
+     * The comparator should reflect library table sort order.
+     */
     public static Comparator<Metadata> library_sorter = Metadata::compareTo;
+    
+    
+    
+    
+/******************************************************************************/
+    
+    public static StringStore getStrings(String name) {System.out.println("fuckme");
+        StringStore s = em.find(StringStore.class, name);s.add("aaaa");s.add("hol");System.out.println(s==null);System.out.println("wtf");
+        return s;//s==null ? new StringStore(name) : new StringStore(name,s);
+    }
+    
+    public static void addString(String name, String s) {
+        // update db
+        StringStore ss = getStrings(name);
+        boolean b = ss.add(s);
+        if(b) {
+            em.getTransaction().begin();
+            em.merge(ss);
+            em.getTransaction().commit();
+        }
+    }
+    
+    @Entity(name = "StringStore")
+    public static class StringStore extends HashSet<String> {
+        @Id
+        public String name;
+
+        public StringStore() {
+        }
+        
+        public StringStore(String name) {
+            this.name = name;
+        }
+
+        public StringStore(String name, Collection<? extends String> c) {
+            this.name = name;
+            addAllPrivately(c);
+        }
+//
+//        @Override
+//        public boolean add(String e) {
+//            boolean b = super.add(e);
+//            if(b) 
+//            return b;
+//        }
+//
+//        @Override
+//        public boolean addAll(Collection<? extends String> c) {
+//            return super.addAll(c); //To change body of generated methods, choose Tools | Templates.
+//        }
+        
+         boolean addAllPrivately(Collection<? extends String> c) {
+            return super.addAll(c);
+        }
+        
+        
+    }
 }

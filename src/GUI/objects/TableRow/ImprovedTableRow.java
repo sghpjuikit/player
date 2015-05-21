@@ -5,27 +5,35 @@
  */
 package GUI.objects.TableRow;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
+import javafx.css.PseudoClass;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.MouseButton;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
+import util.collections.Tuple2;
+import static util.collections.Tuples.tuple;
 
 /**
  * {@link TableRow} with additional methods.
  * <p>
- * <li> flow API for frequently used mouse handlers
- * For example: {@code new ImprovedRow().onLeftSingleClick((row,event) -> {...});}
+ * Flow API for frequently used mouse handlers
+ * For example: {@code new ImprovedRow().onLeftSingleClick((row,event) -> ...);}
  * <p>
+ * It is possible to apply various pseudoclasses using predicates on the item T
+ * of the row. See {@link #styleRuleAdd(java.lang.String, java.util.function.Predicate)}.
+ * Note that if the nature of the item's property predicating rows style is not
+ * observable (POJO) or is external, all the styles must be applied on change
+ * manually. This can be done simply by calling table.refresh();
+ * 
  * @author Plutonium_
  */
 public class ImprovedTableRow<T> extends TableRow<T>{
     
-    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onL1Click = null;
-    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onL2Click = null;
-    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onR1Click = null;
-    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onR2Click = null;
 
     public ImprovedTableRow() {
         super();
@@ -41,6 +49,14 @@ public class ImprovedTableRow<T> extends TableRow<T>{
             }
         });
     }
+    
+/************************* fluent API for common mouse events *****************/
+    
+    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onL1Click = null;
+    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onL2Click = null;
+    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onR1Click = null;
+    private BiConsumer<ImprovedTableRow<T>,MouseEvent> onR2Click = null;
+    
     /** 
      * Registers handler for single left click. Does nothing if row empty.
      * @param handler, which takes this row as additional parameter.
@@ -62,5 +78,57 @@ public class ImprovedTableRow<T> extends TableRow<T>{
     public ImprovedTableRow<T> onRightDoubleClick(BiConsumer<ImprovedTableRow<T>,MouseEvent> handler) {
         onR2Click = handler;
         return this;
+    }
+    
+/************************************* css ************************************/
+    
+    private final List<Tuple2<PseudoClass,Predicate<T>>> stylerules = new ArrayList(); 
+    
+    /**
+     * Adds styling rule that updates row's pseudoclass based on condition.
+     * 
+     * @param pseudoclass name of the pseudoclass as defined in css
+     * @param condition pseudoclass will be used when condition tests true
+     */
+    public ImprovedTableRow<T> styleRuleAdd(String pseudoclass, Predicate<T> condition) {
+        stylerules.add(tuple(PseudoClass.getPseudoClass(pseudoclass), condition));
+        return this;
+    }
+    
+    /**
+     * Removes each styling rule whose pseudoclass name equals and predicate
+     * is the same as the ones specified.
+     * 
+     * @param pseudoclass pseudoclass name of the rule to remove
+     * @param condition of the rule to remove
+     */
+    public ImprovedTableRow<T> styleRuleRemove(String pseudoclass, Predicate<T> condition) {
+        stylerules.removeIf(rule -> rule._1.equals(pseudoclass) && rule._2==condition);
+        return this;
+    }
+    
+    @Override 
+    protected void updateItem(T item, boolean empty) {
+        super.updateItem(item, empty);
+        updatePseudoclassState(item, empty);
+    }
+    
+    // there are cases where we need this (someone dutiful pls investigate)
+    @Override 
+    protected void layoutChildren() {
+        super.layoutChildren();
+        updatePseudoclassState(getItem(), isEmpty());
+    }
+    
+    private void updatePseudoclassState(T item, boolean empty) {
+        if (empty) return;
+        stylerules.forEach(rule -> {
+            boolean v = rule._2.test(item);
+            // set pseudoclass
+            pseudoClassStateChanged(rule._1, v);
+            // since the content is within cells themselves - the pseudoclass has to be passed down
+            // if we want the content (like text, not just the cell) to be styled correctly
+            getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(rule._1, v));
+        });
     }
 }

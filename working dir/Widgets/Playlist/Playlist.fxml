@@ -5,7 +5,7 @@
 <?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="300.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<VBox fx:id="root" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="300.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
 <children><StackPane fx:id="optionPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <children>
             <Label fx:id="duration" alignment="CENTER" text="00:00" BorderPane.alignment="CENTER" StackPane.alignment="CENTER" /><MenuBar maxWidth="46.0" prefWidth="46.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" StackPane.alignment="CENTER_LEFT">
@@ -14,7 +14,7 @@
 <items>
     <MenuItem mnemonicParsing="false" onAction="#chooseFiles" text="Add files">
 <accelerator>
-<KeyCodeCombination alt="ANY" code="L" control="UP" meta="UP" shift="UP" shortcut="UP" />
+<KeyCodeCombination alt="UP" code="L" control="UP" meta="UP" shift="UP" shortcut="DOWN" />
 </accelerator></MenuItem>
     <MenuItem mnemonicParsing="false" onAction="#chooseFolder" text="Add folder" /><MenuItem mnemonicParsing="false" onAction="#chooseUrl" text="Add url" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsByOne" text="Duplicate selected (1)" /><MenuItem mnemonicParsing="false" onAction="#duplicateSelectedItemsAsGroup" text="Duplicate selected (+)" />
 </items>

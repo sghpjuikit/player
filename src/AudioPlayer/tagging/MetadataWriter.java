@@ -37,7 +37,7 @@ import static util.async.Async.runNew;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import util.parsing.impl.ColorParser;
+import util.parsing.Parser;
 
 /**
  * 
@@ -440,7 +440,7 @@ public class MetadataWriter extends MetaItem {
     
     /** @param c the color to set */
     public void setColor(Color c) {
-        setField(FieldKey.CUSTOM1, new ColorParser().toS(c));
+        setField(FieldKey.CUSTOM1, Parser.toS(c));
     }
     
     /**

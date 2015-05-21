@@ -3,45 +3,40 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- minimode notificatios dont show
+- seeker option to show chapters as they are passing  
+- tagger disable unsupported fields for type
+- config fields unify with item node
+- split&join add fixed length and % support
+- make generic rater control, use in fileinfo
 - minimode implement properly
 - unify icons + fluent api
-- app modularize animated loading
+- app animated loading
 - tagger add icons to reset and defaults
 - cover download subsequently !work - temp file?
-- bad disc parsing error - metadata- fucking winamp
-- autofill for every tag field
-- support parametrized actions + generate menu items from selection object type
-- improve some of the css
 - enrich tagging type support  aif? mp4a? etc... + playback support aif?
-
-Error: org.jaudiotagger.audio.exceptions.CannotReadException: Unable to read file because it is too small to be valid audio file: O:\music\soundtracks\games\Mass Effect3 (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg Reading metadata failed for file: O:\music\soundtracks\games\Mass Effect3 (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg.Corrupt or inaccessible file or data.
-Error: Tag (gen.field) reading error during: file:/O:/music/soundtracks/series/Kamisama%20no%20Inai%20Nichiyoubi%20O.S.T%20Requiem/CD%201/17%20Farewell.flac For input string: "17/34"[Ljava.lang.StackTraceElement;@171da80
-
 - other problems with songs from <none> category
 - bookmarks reimplement through comment field & metadata table
 - playlist table column resizing and serializing
-- stream for defining activator/deactivator shapes on mouse move
 - app icon
 - library edit on add by drag&drop boolean config
 - tagger cover loading optimize
 - plugin discovery/load
 - library view save selection
-- notification title css
 - Player contorls nullpointer when nothing plays on init()
 - seeker nullpointer when quickly invoking next item
 - popover position jumps when drag starts
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - popover set arrow location automatically based on available screen space
-- mini window bgr stretched, artefact on the right since menu doesnt have bgr
-- miniMode autohide add option, clean code, start autohide on window creation
-- minimode popups should prevent from autohiding, but how?
+- minimode implement properly
+  bgr stretched, artefact on the right since menu doesnt have bgr
+  miniMode autohide add option, clean code, start autohide on window creation
+  minimode popups should prevent from autohiding, but how?
 - tab area - reimplement
-- configurator empt shortcut not defaulting? fix
 - press C to collapse layout containers easily - implement properly
 - clean up Environment + more robust
-- explorer graphics support css skinning
+- Explorer improve
+- cut down on experimentals: bookmarks, visualisations, gal.map, color.map, etc
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - ConfigField (General) disable ok button get rid of
 
@@ -78,6 +73,7 @@ GENERAL
   its parent Node not initializing size correctly
 - some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug)
   length as half of the real one (very irritating bug)
+  (dev note: SmilePrecure OST, also a sole bug case)
 - when app starts with paused song, playing some other songs starts from that
   point rather than the beginning
 - shortut (local & global both) lock needs to be at least 500ms
@@ -87,7 +83,6 @@ GENERAL
   doest block another press which could have happened during that time
   solution: have an incrementing sequence unique per shortcut press - this is
   however kinda hard to implement and i dont think its worth the effort
-- some gif files throw array index out of bounds execption                      (still issue?, javaFX bug)
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
@@ -97,6 +92,12 @@ GENERAL
   - the current time value (and seeker position) is shifted
 - playlist selection quickly changing -> bug in InfoTable text generation       (medium, javaFX bug)
   during summing total duration
+- Error: org.jaudiotagger.audio.exceptions.CannotReadException: Unable to read 
+  file because it is too small to be valid audio file: O:\music\soundtracks\game
+  s\Mass Effect3 (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg 
+  Reading metadata failed for file: O:\music\soundtracks\games\Mass Effect3 
+  (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg.Corrupt or 
+  inaccessible file or data.
 
 
 SOLVED (but the underlying cause still deserves attention)
@@ -160,7 +161,7 @@ UNIFICATIONS, OVERHAULS, REDESIGN
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static
-- finish the whole nextPlayingItem() & LoopMode thing. Better support with GUI
+- finish nextPlayingItem() & LoopMode thing. Better support with GUI
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager
   & add support for tables to vind ObservableLists - decision to make
   but fix playlist table need to override sorting method because of this

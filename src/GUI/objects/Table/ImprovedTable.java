@@ -118,9 +118,9 @@ public class ImprovedTable<T> extends TableView<T> {
     
     /** Refreshes given column. */
     public void refreshColumn(TableColumn c) {
-        Callback cf = c.getCellFactory();
         // c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
-        c.setCellFactory( column->new TableCell());     // use this
+        Callback cf = c.getCellFactory();               // use this
+        c.setCellFactory(column->new TableCell());
         c.setCellFactory(cf);
     }
     

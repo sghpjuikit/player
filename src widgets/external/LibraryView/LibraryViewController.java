@@ -1,6 +1,7 @@
 
 package LibraryView;
 
+import AudioPlayer.Player;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
@@ -30,6 +31,7 @@ import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
+import java.time.Year;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.function.Predicate;
@@ -66,7 +68,7 @@ import util.access.Accessor;
 import util.access.AccessorEnum;
 import util.async.executor.LimitedExecutor;
 import util.collections.Histogram;
-import util.collections.ListCacheMap;
+import util.collections.ListMap;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
@@ -104,13 +106,13 @@ public class LibraryViewController extends FXMLController {
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
     
     // dependencies
-    private Subscription d1;
+    private Subscription d1,d2;
     
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
     private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
     Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
-    private ListCacheMap<Metadata,Object> cache = null;
+    private ListMap<Metadata,Object> cache = null;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -170,11 +172,11 @@ public class LibraryViewController extends FXMLController {
             });
             // update filters
             table.getSearchBox().setPrefTypeSupplier(() -> tuple(VALUE.toString(v), VALUE.getType(v), VALUE));
-            table.getSearchBox().setData(listM(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(v),mgf.getType(v),mgf)));
+            table.getSearchBox().setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(v),mgf.getType(v),mgf)));
             // repopulate
             setItems(DB.views.getValue(lvl.getValue()));
         },
-        ()->list(Metadata.Field.values(), Field::isTypeStringRepresentable)
+        ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
     );  
     
 
@@ -185,6 +187,7 @@ public class LibraryViewController extends FXMLController {
         
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
+        table.scrollFilterField = VALUE;
         
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
@@ -210,8 +213,11 @@ public class LibraryViewController extends FXMLController {
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
         columnInfo = table.getDefaultColumnInfo();
         
-        // row behavior
+        // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
+                // additional css styleclasses
+                .styleRuleAdd("played", mg -> Player.playingtem.get().getField(fieldFilter.getValue()).equals(mg.getValue()))
+                // add behavior
                 .onLeftDoubleClick((row,e) -> playSelected())
                 .onRightSingleClick((row,e) -> {
                     // prep selection for context menu
@@ -221,6 +227,8 @@ public class LibraryViewController extends FXMLController {
                     contxt_menu.show(this, (TableView)table, e);
                 })
         );
+        // maintain playing item css by refreshing index column
+        d2 = Player.playingtem.subscribeToChanges(o -> table.refresh());
         
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
@@ -310,6 +318,7 @@ public class LibraryViewController extends FXMLController {
     public void close() {
         // stop listening for db changes
         d1.unsubscribe();
+        d2.unsubscribe();
     }
 
     @Override
@@ -329,7 +338,7 @@ public class LibraryViewController extends FXMLController {
     
 /******************************** PRIVATE API **********************************/
     
-    private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,String>> h = new Histogram();
+    private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
     
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
@@ -370,8 +379,8 @@ public class LibraryViewController extends FXMLController {
             hist.c += metadata.getLengthInMs();
             hist.d += metadata.getFilesizeInB();
             hist.e += metadata.getRatingPercent();
-            if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
-                hist.f = hist.f==null ? metadata.getYear() : "...";
+            if(!Metadata.EMPTY.getYear().equals(hist.f) && !metadata.getYear().equals(hist.f))
+                hist.f = hist.f==null ? metadata.getYear() : Metadata.EMPTY.getYear();
         };
         h.clear();
         h.accumulate(list);
@@ -426,7 +435,7 @@ public class LibraryViewController extends FXMLController {
         
         // optimisation : compute values ONCE if doable
         Field f = fieldFilter.getValue();
-        List l = listM(mgs,mg->mg.getValue());
+        List l = map(mgs,mg->mg.getValue());
         Predicate<Metadata> p;
         // optimisation : if only 1, dont use list
         if(l.size()==1) {

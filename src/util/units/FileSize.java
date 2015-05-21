@@ -19,10 +19,36 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * @author uranium
  */
 @Immutable
-@StringParseStrategy(from = CONSTRUCTOR_STR, to = TO_STRING_METHOD)
+@StringParseStrategy(
+    from = CONSTRUCTOR_STR, 
+    to = TO_STRING_METHOD,
+    ex = { NumberFormatException.class }
+)
 public final class FileSize implements Comparable<FileSize> {
     
-    private final long size;
+    /** 1024^1 */
+    public static final long Ki = 1024;
+    /** 1024^2 */
+    public static final long Mi = Ki*Ki;
+    /** 1024^3 */
+    public static final long Gi = Ki*Mi;
+    /** 1024^4 */
+    public static final long Ti = Mi*Mi;
+    /** 1024^5 */
+    public static final long Pi = Ti*Ki;
+    /** 1024^6 */
+    public static final long Ei = Ti*Mi;
+    /** 0 */
+    public static final long MIN = 0;
+    /** 2^63-1 */
+    public static final long MAX = Long.MAX_VALUE;
+    /** Not available value. -1 */
+    public static final long NA = -1;
+    /** Not available string value. "Unknown"*/
+    public static final String NAString = "Unknown";
+    
+    
+    private final long v;
     
     /**
      * Creates filesize set to size of the specified file. If the value can not
@@ -40,15 +66,15 @@ public final class FileSize implements Comparable<FileSize> {
      * @throws IllegalArgumentException if param negative
      */
     public FileSize(long bytes) {
-        if(bytes<-1) throw new IllegalArgumentException("Bitrate value must be -1 or larger");
-        
-        size = bytes;
+        if(bytes<-1) throw new IllegalArgumentException("Filesize value must be -1 or larger");
+        v = bytes;
     }
     /**
      * Creates filesize set to specified value.
      * @param number of bytes as String, optionally with unit appended. Consistent
      * with toStrong().
      */
+    @Dependency("Used for parsing.")
     public FileSize(String bytes) {
         this(val(bytes));
     }
@@ -66,19 +92,31 @@ public final class FileSize implements Comparable<FileSize> {
     
     /** @return file size in bytes or -1 if unknown */
     public long inBytes() {
-        return size;
+        return v;
     }
     /** @return file size in kB or -1 if unknown */
     public long inkBytes() {
-        return size==-1 ? -1 : size/1024;
+        return v==-1 ? -1 : v/Ki;
     }
     /** @return file size in MB or -1 if unknown */
     public long inMBytes() {
-        return (long) (size==-1 ? -1 : size/(1024d*1024d));
+        return v==-1 ? -1 : v/Mi;
     }
     /** @return file size in GB or -1 if unknown */
     public long inGBytes() {
-        return (long) (size==-1 ? -1 : size/(1024d*1024d*1024d));
+        return v==-1 ? -1 : v/Gi;
+    }
+    /** @return file size in TB or -1 if unknown */
+    public long inTBytes() {
+        return v==-1 ? -1 : v/Ti;
+    }
+    /** @return file size in PB or -1 if unknown */
+    public long inPBytes() {
+        return v==-1 ? -1 : v/Pi;
+    }
+    /** @return file size in EB or -1 if unknown */
+    public long inEBytes() {
+        return v==-1 ? -1 : v/Ei;
     }
     
     /**
@@ -93,70 +131,81 @@ public final class FileSize implements Comparable<FileSize> {
      */
     @Override
     @Dependency("Designed to be used in tables, filters and gui.")
-    @Dependency("Supports different units. kB - GB")
+    @Dependency("Used for parsing.")
+    @Dependency("Supports different units. B - EB")
     public String toString() {
-        if(size == -1) return "Unknown";
-        
-        double kB = (size / 1024d);
-        double MB = (size / (1024d*1024d));
-        double GB = (size / (1024d*1024d*1024d));
-        
-        if (GB>1024)
-            return String.format("%.2f TB", GB/1024d);
-        if (MB>1024)
-            return String.format("%.2f GB", GB);
-        else if (MB>=1)
-            return String.format("%.2f MB", MB);
-        else if (kB>1)
-            return String.format("%.2f kB", kB);
-        else
-            return String.format("%d B", size);
+        if(v == -1) return NAString;
+        double EB = (v / (double)Ei);
+        if (EB>=1) return String.format("%.2f EB", EB);
+        double PB = (v / (double)Pi);
+        if (PB>=1) return String.format("%.2f PB", PB);
+        double TB = (v / (double)Ti);
+        if (TB>=1) return String.format("%.2f TB", TB);
+        double GB = (v / (double)Gi);
+        if (GB>=1) return String.format("%.2f GB", GB);
+        double MB = (v / (double)Mi);
+        if (MB>=1) return String.format("%.2f MB", MB);
+        double kB = (v / (double)Ki);
+        if (kB>1) return String.format("%.2f kB", kB);
+        else return String.format("%d B", v);
     }
 
     /** @return compares by the value in bytes */
     @Override
     public int compareTo(FileSize o) {
-        return Long.compare(size, o.size);
+        return Long.compare(v, o.v);
     }
     
     /** @return true if the value is the same */
     @Override
     public boolean equals(Object o) {
         if(this==o) return true;
-        return o instanceof Bitrate && ((FileSize)o).size==size;
+        return o instanceof Bitrate && ((FileSize)o).v==v;
     }
 
     @Override
     public int hashCode() {
-        return 13 * 3 + (int) (this.size ^ (this.size >>> 32));
+        return 13 * 3 + (int) (this.v ^ (this.v >>> 32));
     }
     
     
     
-    private static long val(String s) {
-        int i = 0;
+    private static long val(String s) throws NumberFormatException {
+        long unit = 1;
         
+        if(s.equals(NAString)) return NA;
         if (s.contains("B")) {
             int b = s.indexOf("B");
             String prefix = s.substring(b-1, b);
-            boolean number = true;
+            int skip = 0;
             if("k".equalsIgnoreCase(prefix)) {
-                i=1;
-                number = false;
+                unit = Ki;
+                skip++;
             } else
             if("m".equalsIgnoreCase(prefix)) {
-                i=2;
-                number = false;
+                unit = Mi;
+                skip++;
             } else
             if("g".equalsIgnoreCase(prefix)) {
-                i=3;
-                number = false;
+                unit = Gi;
+                skip++;
+            } else
+            if("t".equalsIgnoreCase(prefix)) {
+                unit = Ti;
+                skip++;
+            } else
+            if("p".equalsIgnoreCase(prefix)) {
+                unit = Pi;
+                skip++;
+            } else
+            if("e".equalsIgnoreCase(prefix)) {
+                unit = Ei;
+                skip++;
             }
-            s = s.substring(0, number ? b : b-1).trim();
+            s = s.substring(0, b-skip).trim();
         }
         
-        long number = Long.parseLong(s);
-        int unit = (int) Math.pow(1024, i);
-        return unit*number;
+        double number = Double.parseDouble(s);
+        return (long)(unit*number);
     }
 }

@@ -29,6 +29,7 @@ public class Icon extends Label {
         @Override
         protected void invalidated() {
             super.invalidated();
+            if(get()==null) return;
             Text t = (Text)getGraphic();
             t.setText(get().characterToString());
             t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",get().getFontFamily(), icon_size.get()));

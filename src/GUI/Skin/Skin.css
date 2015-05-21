@@ -1001,7 +1001,7 @@
     -fx-background-color: null;
 }
 .scroll-bar > .thumb {
-    // default" normal scrol;lbar"
+    // default
     // -fx-background-color: rgb(211,211,211);
     // -fx-background-insets: 2, 3, 4;
     // -fx-background-radius: 3, 2, 1;
@@ -1028,15 +1028,15 @@
 }
 .scroll-bar > .increment-button > .increment-arrow,
 .scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar > .increment-button:hover > .increment-arrow,
 .scroll-bar > .decrement-button:hover > .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar > .increment-button:pressed > .increment-arrow,
 .scroll-bar > .decrement-button:pressed > .decrement-arrow {
-    -fx-background-color: rgb(211,211,211);
+    -fx-background-color: -fx-def-font-color;
 }
 .scroll-bar:horizontal > .decrement-button > .decrement-arrow {
     -fx-padding: 0.333em 0.167em 0.333em 0.167em; /* 4 2 4 2 */
@@ -2570,7 +2570,7 @@
 .tooltip {
     -fx-background-color: -fx-popup-def-bgr-color;
     -fx-background-radius: 0;
-    -fx-border-width:1;
+    -fx-border-width: 1;
     -fx-border-color: black;
     -fx-text-fill: -fx-def-font-color;
     -fx-padding: 0.5em 1em 0.5em 1em;
@@ -3321,8 +3321,8 @@
 .dialog-button {
     // the below is the arrow css used for other components like combo-box
     -fx-background-color: -fx-def-font-color;
-    /* use thid to get nice not filled arrow */
-    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    // use thid to get nice not filled arrow
+    //-fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
     -fx-background-insets: 1 0 -1 0, 0;
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
@@ -3335,24 +3335,16 @@
     -fx-stroke-color: black;
 }
 
-//****************************************************************************//
+//***** more row/cell pseudoclasses for ListView, TableView, TreeView, etc ****/
 
-// additional row/cell pseudoclasses for ListView, TableView, TreeView, etc of
-// audio items
-// note that applying pseudoclasses on rows will not affect the cells within them
-// it depends on what attribute is being changed. As such some attributes must be
-// set an the row-cell and some for the cell respectively. The problem could probably
-// be avoided (for all of scenarios?) if the developer never used rowCellFactories
-// and instead set pseudoclasses from cellfactories as usually is the case.
-// But sometimes this is not desired therefore the pseudoclasses will be available for
-// both row-cell classes and cell classes
-// edit: it is possible that indexed-cell actally applies to both row-cell and cell
-// and could clean the duplicity of the css below, but this needs to be confirmed first
-// as for the code - the problem to pass the pseudoclass from row factory to the row's
-// cell children remains
+// dev.note: note that applying pseudoclasses on rows will not affect the cells within them
+// it depends on what attribute is being changed. Pseudoclasses must be
+// set on both row-cell and children cells in the row cell factory.
 
-// played pseudoclass denotes a playing item. For example in the playlist to visually
-// separate the item from the others 
+// indexed-cell applies to both row-cell and cell, so be aware, that using effects
+// (e.g. shadow) will apply it twice
+
+// denotes a currently playd record in the playlist or other table
 .indexed-cell:played,
 .indexed-cell:played:selected {
     -fx-text-fill: rgba(180, 200, 240, 0.8);
@@ -3364,12 +3356,7 @@
     // in general set only non-content properties in row
 }
 
-// the intention behind corrupt pseudoclass varies depending on the context. from
-// context of the playlist any item that can not be played is corrupt. From context
-// of tagging any item that can not have its tag edited (for example item on the web)
-// should be considered corrupt.
-// Note that an Item class has an isCorrupt() method but as the above explains it is
-// not necessarily always the right choice
+// denotes broken or inconsistent record, e.g. unplayable item on playlist
 .indexed-cell:corrupt,
 .indexed-cell:corrupt:selected {
     -fx-text-fill: rgba(250, 180, 180, 0.8);
@@ -3380,12 +3367,28 @@
     // in general set only non-content properties in row
 }
 
+// quick search which scrolls to the item in the table can also highlight any
+// while search is active all items have one of the following pseudoclasses
+// matched items
+.indexed-cell:searchmatch,
+.indexed-cell:searchmatch:selected {
+    // matched items are normal
+}
+// unmatched items
+.indexed-cell:searchmatchnot {
+    -fx-opacity: 0.4;
+}
+.table-row-cell:searchmatchnot {
+    -fx-opacity: 1;
+}
+
 //****************************** ITEM PICKER *********************************//
 
-/** Picker control that provides elements to choose from as a scrollable tile
-    grid.
-    This styleclass extends .block
-    This element is ScrollPane and has all its properties. */
+/** 
+ * Picker displays elements to choose from as a scrollable tile grid.
+ * inherits: ScrollPane, .block
+ * Used in layouts (should mirror the style of widget area), but also popups.
+ */
 .item-picker {
 }
 
@@ -3394,6 +3397,7 @@
     -fx-background-radius: 0;
     -fx-pref-height: 2em;
 }
+
 .item-picker-element:hover {
     -fx-background-color: -fx-pane-color;
     -fx-background-insets: 3;
@@ -3402,59 +3406,45 @@
 
 //******************************** POPOVER ***********************************//
 
-// the popup window itself, not stylable 
-.popover {
-    // similar as content a rectangular area without the arrow
-    // by default set to transparent. Setting to null will cause the popup to pass 
-    // mouse events similar to when pickOnBounds is set to false - only the content 
-    // would receive the events which would break functionalities of the popup
-    -fx-background-color: transparent; // dont set to null
+// the popup window itself, not stylable
+// inherits: Control
+// pseudoclasses : detached - when detached from its location, no arrow
+//                 focused - focus follows focus of the parent window
+.popover {}
+
+// rectangular root - container for .bgr and .content, do not use
+// inherits: StackPane
+.popover-root {
+    // null: let mouse events pass through similar to when pickOnBounds
+    //       is set to false - only the content receives the events
+    // transparent: mouse events dont pass through == normal
+    -fx-background-color: transparent;
 }
 
-// .bgr is Path and Shape and has all its properties
-// available pseudoclasses : detached
-.popover > .bgr {
+// bgr - bgr in the shape of the popover
+// inherits: Path(Shape)
+// radius not stylable, fixed to programmatic value
+.popover-root > .bgr {
     // the shape representing the whole popup area including the arrow
     // use for basic appearance like border or bgr styling
     -fx-fill: -fx-popup-def-bgr-color;
     -fx-text-fill: -fx-def-font-color;
 }
-.popover > .bgr:detached {
-    // appearance in detached mode
+
+// content root - ranctangular area for the actual content of the popup, 
+// includes header, but not the arrow
+// inherits: BorderPane
+.popover-root > .content {
+    -fx-padding: 8;
 }
 
-// content - ranctangular area for the actual content of the popup
-// including header and close button but excluding the arrow
-// .content is BorderPane and has all its properties
-// available pseudoclasses : detached
-.popover > .content {
-
-    // universal popover padding, creates nice natural border if content has its own
-    // background, for example now the border is semi-transparent as the popover bgr
-
-    // be aware that changing this has effect on positioning of the popup near screen
-    // borders. padding value should be canceled out with 'gap' value which is not yet
-    // supported in css - the current gap calue is 6 (but it doesnt scale lineary)
-    // the problem when not caneling the padding value exactly is that the popover's border
-    // supposed to touch the screen border will be outside the screen - whats touching the border:
-    // is popovers content
-
-    // note that padding creates area between the real border and the element, which means
-    // the style of the element will not apply on this gap - like bgr of the elements
-    // - children of this content
-    -fx-padding: 3;
-
-    // set the below to set bgr for the whole content including the padded area
-    //-fx-background-color: yellow;
-}
-
-// header of the popup - rectangular area at the top of the content
-.popover > .content > .popover-header {
+// popover header - rectangular area at the top of the content
+.popover-root > .content > .popover-header {
     -fx-padding: 3 8 0 8;
 }
 
-// title label
-.popover > .content > .popover-header > .title  {
+// popover header title
+.popover-root > .content > .popover-header > .title  {
     -fx-font-weight: bold;
     // give title some space, for small popups the control buttons on the right
     // easily become invasive when they come close to the title, looks ugly
@@ -3471,9 +3461,31 @@
     //-fx-padding: 0 0 0 5; 
 }
 
-/* Application notification popover. Inherites .popover */
+// pseudoclasses examples...
+.popover:detached > .popover-root > .bgr {
+
+}
+.popover:focused > .popover-root > .bgr,
+.popover:detached:focused > .popover-root > .bgr {
+    // -fx-stroke: grey; this would change border
+}
+
+/******************************* NOTIFICATION **********************************
+ * Application notification popover. Does not style notification content.
+ * inherits: .popover
+ * radius fixed to 0 programmatically
+ */
 .notification {
     
+}
+
+.notification > .popover-root > .content > .popover-header {
+    
+}
+
+.notification > .popover-root > .content > .popover-header > .title  {
+    -fx-font-size: 12;
+    -fx-font-weight: bold;
 }
 
 //****************************** THUMBNAIL ***********************************//
@@ -3488,9 +3500,10 @@
     -fx-border-width: 2;
 }
 
-//************************** CHANGEABLE THUMBNAIL ****************************//
-// highlights that file can be added with icon
-// inherits .thumbnail, adds following entries
+/************************** CHANGEABLE THUMBNAIL ******************************
+ * highlights that file can be added with icon
+ * inherits .thumbnail, adds following entries
+ */
 
 // highlighted is active when: mouse hover | drag over
 .thumbnail-image:highlighted {
@@ -3505,8 +3518,10 @@
     -fx-text-fill: -fx-def-font-color;
 }
 
-//****************************** SEEKER ***********************************//
-// inherits slider
+//********************************* SEEKER ***********************************//
+
+// inherits: .slider
+.seeker {}
 
 .seeker .thumb {
     -fx-background-color: -fx-def-font-color;
@@ -3527,9 +3542,8 @@
     -fx-padding: 1; // basically track width (as usually the length is autosized)
 }
 
-// this is a custom element and doesnt belong under slider
-// styles markers on the seekbar. markers mark specific time point on the seeker
-// note: marker is a Rectangle which is a Shape
+// Custom added element - markers on the seeker. Mark specific time point.
+// inherits: Rectangle (Shape)
 .seeker-marker {
     -fx-background-color: -fx-def-font-color;
     -fx-opacity: 0.5;
@@ -3582,21 +3596,65 @@
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 
-// Icon class
-// inherits .glyph
+/** 
+ * Icon
+ * inherits: .glyph
+ */
 .icon {
     //icon: "CLOSE";
 }
 
 .icon:hover {
-    //icon: "LOCK";
     -fx-fill: -fx-def-font-color-hover;
 }
 
+/** 
+ * Toggle icon - checkbox
+ * inherits: .icon
+ * pseudoclases: checked
+ */
+.check-icon {
+   icon: TOGGLE_OFF;
+}
+.check-icon:selected {
+   icon: TOGGLE_ON;
+}
 
 
+/** 
+ * Check icon used to negate filter predicates
+ * inherits: .check-icon
+ */
+.filter-negate-icon {
+   icon: CIRCLE;
+   -fx-padding: 2 0 0 0; // for some reason the icon is misaligned, fix
+}
+.filter-negate-icon:selected {
+   icon: CIRCLE_ALT;
+}
 
+/** 
+ * Ok icon used in config fields to apply change.
+ * inherits: .icon
+ */
+.congfig-field-ok-button {
+    icon: CHECK;
+}
 
+/** 
+ * Warn icon used in config fields to signal erroneous input.
+ * inherits: .icon
+ */
+.congfig-field-warn-button {
+    icon: EXCLAMATION_TRIANGLE;
+    -fx-fill: rgb(130,170,255);
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+.congfig-field-warn-button:hover {
+    -fx-fill: rgb(130,170,255);
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
 
 .congfig-field-default-button {
     -fx-font-size: 0.9em;
@@ -3614,24 +3672,6 @@
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
-.congfig-field-ok-button {
-    -fx-font-size: 0.9em;
-    -fx-background-color: transparent;
-    -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color;
-    -fx-text-fill: -fx-def-font-color;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.4) , 6, 0.0 , 0 , 2 );
-}
- 
-.congfig-field-ok-button:pressed:hover {
-    -icons-color: black;
-    -fx-text-fill: black;
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
-}
- 
-.congfig-field-ok-button:hover {
-    -fx-effect: innershadow( three-pass-box , rgba(0,0,0,0.7) , 6, 0.0 , 0 , 2 );
-}
 
 /***********************************************************************************/
 

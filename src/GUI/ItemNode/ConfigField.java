@@ -7,19 +7,16 @@ import GUI.ItemNode.ItemTextFields.FileTextField;
 import GUI.ItemNode.ItemTextFields.FontTextField;
 import GUI.objects.CheckIcon;
 import GUI.objects.Icon;
-import static de.jensd.fx.glyphs.GlyphsDude.createIconButton;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.CHECK;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.RECYCLE;
+import GUI.objects.combobox.ImprovedComboBox;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.animation.FadeTransition;
-import static javafx.application.Platform.runLater;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
@@ -27,7 +24,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -35,12 +32,9 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import org.controlsfx.control.textfield.CustomTextField;
 import util.Password;
-import static util.Util.enumToHuman;
-import static util.Util.unPrimitivize;
+import static util.Util.*;
 import static util.async.Async.run;
 import static util.functional.Util.cmpareBy;
-import util.parsing.impl.FileParser;
-import util.parsing.impl.FontParser;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -57,7 +51,7 @@ abstract public class ConfigField<T> {
     private static final Tooltip globB_tooltip = new Tooltip("Whether shortcut is global (true) or local.");
     
     private final Label label = new Label();
-    private final HBox box = new HBox();
+    private final HBox root = new HBox();
     final Config<T> config;
     private boolean applyOnChange = true;
     private Icon defB;
@@ -66,18 +60,18 @@ abstract public class ConfigField<T> {
         config = c;
         label.setText(c.getGuiName());
         
-        box.setMinSize(0,0);
-        box.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
-        box.setSpacing(5);
-        box.setAlignment(CENTER_LEFT);
-        box.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
+        root.setMinSize(0,0);
+        root.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
+        root.setSpacing(5);
+        root.setAlignment(CENTER_LEFT);
+        root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
         
         // display default button when hovered for certain time
-        box.addEventFilter(MOUSE_ENTERED, e -> {
+        root.addEventFilter(MOUSE_ENTERED, e -> {
             // wait delay
             run(270, () -> {
                 // no need to do anything if hover ended
-                if(box.isHover()) {
+                if(root.isHover()) {
                     // lazily build the button when requested
                     // we dont want hundreds of buttons we will never use anyway
                     if(defB==null) {
@@ -85,8 +79,8 @@ abstract public class ConfigField<T> {
                         defB.setTooltip(defB_tooltip);
                         defB.setOpacity(0);
                         defB.getStyleClass().setAll("congfig-field-default-button");
-                        box.getChildren().add(defB);
-                        box.setPadding(Insets.EMPTY);
+                        root.getChildren().add(defB);
+                        root.setPadding(Insets.EMPTY);
                     }
                     // show it
                     FadeTransition fa = new FadeTransition(Duration.millis(450), defB);
@@ -97,7 +91,7 @@ abstract public class ConfigField<T> {
             });
         });
         // hide default button
-        box.addEventFilter(MOUSE_EXITED, e-> {
+        root.addEventFilter(MOUSE_EXITED, e-> {
             // return if nothing to hide
             if(defB == null) return;
             // hide it
@@ -123,7 +117,7 @@ abstract public class ConfigField<T> {
      * @param val 
      */
     public void setEditable(boolean val) {
-        getNode().setDisable(!val);
+        getControl().setDisable(!val);
     }
     
     /**
@@ -139,11 +133,11 @@ abstract public class ConfigField<T> {
      * attach it to a scene graph.
      * @return setter control for this field
      */
-    public Node getControl() {
-        if(!box.getChildren().contains(getNode()))
-            box.getChildren().add(0, getNode());
-        box.setHgrow(getNode(), Priority.ALWAYS);
-        return box;
+    public Node getNode() {
+        if(!root.getChildren().contains(getControl()))
+            root.getChildren().add(0, getControl());
+        HBox.setHgrow(getControl(), ALWAYS);
+        return root;
     }
     
     /**
@@ -151,7 +145,11 @@ abstract public class ConfigField<T> {
      * attach it to a scene graph.
      * @return setter control for this field
      */
-    abstract Node getNode();
+    abstract Node getControl();
+    
+    public void focus() {
+        getControl().requestFocus();
+    }
 
     /**
      * {@inheritDoc}
@@ -251,12 +249,9 @@ abstract public class ConfigField<T> {
     public static ConfigField create(Config f) {
         
         ConfigField cf = null;
-        
         if (f.isTypeEnumerable()) cf = new EnumertionField(f);
         else if(f.isMinMax()) cf = new SliderField(f);
-        
-        if(cf==null) 
-            cf = m.getOrDefault(f.getType(), c->new GeneralField(c)).call(f);
+        else cf = m.getOrDefault(f.getType(), GeneralField::new).call(f);
         
         cf.setEditable(f.isEditable());
         
@@ -266,7 +261,7 @@ abstract public class ConfigField<T> {
                     t.setMaxWidth(300);
             cf.getLabel().setTooltip(t);
             if(!cf.getClass().isInstance(ShortcutField.class))
-                Tooltip.install(cf.getNode(),t);
+                Tooltip.install(cf.getControl(),t);
         }
         
         return cf;
@@ -284,7 +279,7 @@ abstract public class ConfigField<T> {
         }
 
         @Override
-        Node getNode() {
+        Node getControl() {
             return passF;
         }
 
@@ -301,11 +296,13 @@ abstract public class ConfigField<T> {
     }    
     
     private static final class GeneralField extends ConfigField<Object> {
+        private static final Tooltip okTooltip = new Tooltip("Apply value");
+        private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
         CustomTextField txtF = new CustomTextField();
         final boolean allow_empty; // only for string
-        Button okBL= createIconButton(CHECK, "", "15","15",GRAPHIC_ONLY);
+        Icon okBL= new Icon();
+        Icon warnB = new Icon();
         AnchorPane okB = new AnchorPane(okBL);
-   
         
         private GeneralField(Config c) {
             super(c);
@@ -317,10 +314,12 @@ abstract public class ConfigField<T> {
 //                InputConstraints.numbersOnly(txtF, !c.isTypeNumberNonegative(), c.isTypeFloatingNumber());
             
             okBL.getStyleClass().setAll("congfig-field-ok-button");
-            Tooltip.install(okB, new Tooltip("Apply value."));
-            // unfortunately the icon button is not aligned well, need to fix that
-            AnchorPane.setBottomAnchor(okBL, 3d);
-            AnchorPane.setLeftAnchor(okBL, 8d);
+            okBL.icon_size.set(11);
+            okBL.setTooltip(okTooltip);
+            setAnchors(okBL,0,0,0,8);       // fix alignment
+            warnB.icon_size.set(11);
+            warnB.getStyleClass().setAll("congfig-field-warn-button");
+            warnB.setTooltip(warnTooltip);
             
             txtF.setContextMenu(null);
             txtF.getStyleClass().setAll("text-field","text-input");
@@ -359,16 +358,25 @@ abstract public class ConfigField<T> {
                 });
             // applying value
             txtF.textProperty().addListener((o,ov,nv)-> {
-                boolean applicable = !nv.isEmpty() && !nv.equals(txtF.getPromptText());
-                showOkButton(applicable);
+                boolean erroneous = getItem()==null;
+                boolean applicable = (allow_empty || (!allow_empty && !nv.isEmpty())) && !nv.equals(txtF.getPromptText());
+                showOkButton(applicable && !erroneous);
+                showWarnButton(erroneous);
             });
             okBL.setOnMouseClicked( e -> apply());
             txtF.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(); });
         }
         
-        @Override public Control getNode() {
+        @Override public Control getControl() {
             return txtF;
         }
+
+        @Override
+        public void focus() {
+            txtF.requestFocus();
+            txtF.selectAll();
+        }
+        
         @Override public Object getItem() {
             String text = txtF.getText();
             if(allow_empty) {
@@ -390,6 +398,11 @@ abstract public class ConfigField<T> {
             else txtF.setLeft(new Region());
             okB.setVisible(val);
         }
+        private void showWarnButton(boolean val) {
+            if (val) txtF.setRight(warnB);
+            else txtF.setRight(new Region());
+            warnB.setVisible(val);
+        }
         
     }
     
@@ -405,7 +418,7 @@ abstract public class ConfigField<T> {
             });
         }
         
-        @Override public Node getNode() {
+        @Override public Node getControl() {
             return cBox;
         }
         @Override public Boolean getItem() {
@@ -472,7 +485,7 @@ abstract public class ConfigField<T> {
             }
         }
         
-        @Override public Node getNode() {
+        @Override public Node getControl() {
             return box;
         }
         @Override public Number getItem() {
@@ -495,25 +508,11 @@ abstract public class ConfigField<T> {
         
         private EnumertionField(Config<Object> c) {
             super(c);
-            // combobox, make factory
-            cBox = new ComboBox();
-            cBox.setCellFactory( cbox -> new ListCell<Object>() {
-                @Override protected void updateItem(Object item, boolean empty) {
-                    super.updateItem(item, empty);
-                    // most of the stuff are enums, so convert it to nice string
-                    setText(empty ? "" : enumToHuman(c.toS(item)));
-                }
-            });
-            cBox.setButtonCell(cBox.getCellFactory().call(null));
-            // stupid factory still uses toString implementation for initial value
-            // for some reason, override manually !
-            runLater(()->cBox.getButtonCell().setText(c.getValueS()));
-            
+            cBox = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));            
             cBox.getItems().addAll(c.enumerateValues());
             cBox.getItems().sort(cmpareBy(v->c.toS(v)));
             cBox.setValue(c.getValue());
-            
-            cBox.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
+            cBox.valueProperty().addListener((o,ov,nv) -> {
                 if(isApplyOnChange()) applyNsetIfNeed();
             });
         }
@@ -527,7 +526,7 @@ abstract public class ConfigField<T> {
         }
 
         @Override
-        Node getNode() {
+        Node getControl() {
             return cBox;
         }
     }
@@ -593,7 +592,7 @@ abstract public class ConfigField<T> {
             group.setPadding(Insets.EMPTY);
         }
         
-        @Override public Node getNode() {
+        @Override public Node getControl() {
             return group;
         }
         @Override public boolean hasUnappliedValue() {
@@ -649,7 +648,7 @@ abstract public class ConfigField<T> {
             });
         }
         
-        @Override public Control getNode() {
+        @Override public Control getControl() {
             return picker;
         }
         @Override public Color getItem() {
@@ -669,13 +668,13 @@ abstract public class ConfigField<T> {
             txtF.setOnItemChange((oldFont,newFont) -> {
                 if(!newFont.equals(oldFont)) {  // we shouldnt rely on Font.equals here
                     applyNsetIfNeed();
-                    txtF.setPromptText(new FontParser().toS(newFont));
+                    txtF.setPromptText(c.toS(newFont));
                 }
                 txtF.setText(""); // always stay in prompt text more
             });
         }
         
-        @Override public Control getNode() {
+        @Override public Control getControl() {
             return txtF;
         }
         @Override public Font getItem() {
@@ -695,13 +694,13 @@ abstract public class ConfigField<T> {
             txtF.setOnItemChange((oldFile,newFile) -> {
                 if(!newFile.equals(oldFile)) {
                     applyNsetIfNeed();
-                    txtF.setPromptText(new FileParser().toS(newFile));
+                    txtF.setPromptText(c.toS(newFile));
                 }
                 txtF.setText(""); // always stay in prompt text more
             });
         }
         
-        @Override public Control getNode() {
+        @Override public Control getControl() {
             return txtF;
         }
         @Override public File getItem() {
@@ -711,4 +710,4 @@ abstract public class ConfigField<T> {
             txtF.setValue(config.getValue());
         }
     }
-}  
+}

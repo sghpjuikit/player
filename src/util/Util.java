@@ -663,7 +663,7 @@ public class Util {
        return methods;
    }
     
-    public static <A extends Annotation> Method getMethod(Class c, Class<A> ca) {
+    public static <A extends Annotation> Method getMethodAnnotated(Class c, Class<A> ca) {
         for(Method m: c.getDeclaredMethods()) {
             A a = m.getAnnotation(ca);
             if(a!=null) return m;
@@ -732,14 +732,14 @@ public class Util {
      * @return 
      */
     public static Class getGenericType(Field f, int i) {
-            ParameterizedType pType = (ParameterizedType) f.getGenericType();
-            Class<?> genericType = (Class<?>) pType.getActualTypeArguments()[i];
-            return genericType;
+        ParameterizedType pType = (ParameterizedType) f.getGenericType();
+        Class<?> genericType = (Class<?>) pType.getActualTypeArguments()[i];
+        return genericType;
     }
     
     /**
      * Returns i-th generic parameter of the class starting from 0.
-     * For example Integer for {@code IntegerList extends List<Integer>}
+     * For example Integer for class {@code IntegerList extends List<Integer>}
      * <p>
      * Will NOT work on variables, using getClass() method on them.
      * 

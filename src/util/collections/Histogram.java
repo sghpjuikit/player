@@ -12,7 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import static util.functional.Util.listM;
+import static util.functional.Util.map;
 
 /**
  * Histogram of H for elements E by their property P (key).
@@ -59,6 +59,6 @@ public final class Histogram<K,E,H> extends HashMap<K,H>{
     
     /** Maps the histogram into list of results, using the provided mapper. */
     public<R> List<R> toList(BiFunction<K,H,R> resultMapper) {
-        return listM(entrySet(), e -> resultMapper.apply(e.getKey(), e.getValue()));
+        return map(entrySet(), e -> resultMapper.apply(e.getKey(), e.getValue()));
     }
 }

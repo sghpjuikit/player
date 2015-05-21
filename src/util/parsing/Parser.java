@@ -1,88 +1,190 @@
 package util.parsing;
 
+import java.io.File;
+import static java.lang.Double.parseDouble;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import static java.lang.reflect.Modifier.isStatic;
+import java.net.URI;
+import java.time.Year;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import static java.util.Objects.requireNonNull;
+import java.util.Set;
 import java.util.function.Function;
-import static util.Util.getMethod;
+import java.util.function.Predicate;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import static javafx.scene.text.FontPosture.ITALIC;
+import static javafx.scene.text.FontPosture.REGULAR;
+import javafx.scene.text.FontWeight;
+import static javafx.scene.text.FontWeight.BOLD;
+import static javafx.scene.text.FontWeight.NORMAL;
+import static util.Util.getMethodAnnotated;
 import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
+import GUI.ItemNode.StringSplitParser;
+import static util.functional.Util.*;
 import util.parsing.StringParseStrategy.From;
 import static util.parsing.StringParseStrategy.From.*;
 import util.parsing.StringParseStrategy.To;
-import util.parsing.impl.ColorParser;
-import util.parsing.impl.FileParser;
-import util.parsing.impl.FontParser;
-import util.parsing.impl.StringStringParser;
 
 /**
- * 
  * Utility class - parser converting Objects to String and back.
+ * <p>
+ * The contract is as follows:
+ * <lu>
+ * <li> Parser must never assume anything about the input. To string parser can
+ * receive an object of particular type in any state. From string parser can 
+ * receive any String as input.
+ * <li> Parser will never receive null as a parameter and {@link NullPointerException}
+ * will be thrown before that happens. This is because the parsers are only used
+ * indirectly using {@link #toS(java.lang.Object)} and {@link #fromS(java.lang.Class, java.lang.String)}.
+ * <li> Parser must never throw an exception as a result of failed parsing and
+ * always return null. Null is not a valid parsing output value. Null return 
+ * value always indicates error.
+ * <li> Only one parser can be registered per single class.
+ * <lu>
+ * <p>
+ * When creating and registering a parser, there are two options:
+ * <lu>
+ * <li> Use {@link StringParseStrategy} and let the parser be created and
+ * registered automatically. This is done lazily (and only once so there is no
+ * performance setback) and keeps the parsing code within the scope of the class
+ * (code cohesion). If the method throws an exception, it is important to let
+ * this know, either by using throws clause or define it in an annotation. Using
+ * both is unnecessary, but recommended.
+ * <p>
+ * This allows only one implementation, tight to the class of
+ * an object.
+ * <li> Create parser manually. It is recommended to register both to string and
+ * from string, although it is not necessary if not needed. The parser must
+ * return null if any problem occurs. This can be done in two ways - return null
+ * when the problem occurs (and in catch blocks, no exception must be thrown!)
+ * or throw an exception and wrap the parser function into noException function
+ * wrapper {@link util.functional.Util#noEx(java.util.function.Function, java.lang.Class...)}.
+ * <p>
+ * This allows arbitrary implementation.
+ * <lu>
  * 
- * There is no complete list of supported types as it depends on what types
- * particular used parsers can handle, but method is provided to check
- * whether the type is supported.
- *
  * @author Plutonium_
  */
 public class Parser {
     
-    private static final Function<?,String> OtoS = Object::toString;
-    private static final Function<?,String> SvOf = String::valueOf;
+    private static final Function<Object,String> os = Object::toString;
+    private static final Function<Object,String> sv = String::valueOf;
     
     private static final Map<Class,Function<?,String>> parsersToS = new HashMap();
     private static final Map<Class,Function<String,?>> parsersFromS = new HashMap();
     
-    static {        
-        registerConverter(new FontParser());
-        registerConverter(new FileParser());
-        registerConverter(new ColorParser());
-        registerConverter(new StringStringParser());
+    static {
+        registerConverter(Font.class,
+            f -> String.format("%s, %s", f.getName(), f.getSize()), 
+            noEx(Font.getDefault(), s -> {
+                int i = s.indexOf(',');
+                String name = s.substring(0, i);
+                FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
+                FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
+                double size = parseDouble(s.substring(i+2));
+                return Font.font(name, weight, style, size);
+            }, NumberFormatException.class, IndexOutOfBoundsException.class)
+        );
+        registerConverter(File.class,os,File::new);
+        registerConverter(Boolean.class,os,Boolean::valueOf);
+        registerConverter(boolean.class,sv,Boolean::valueOf);
+        registerConverter(Integer.class,os,noEx(Integer::valueOf,NumberFormatException.class));
+        registerConverter(int.class,sv,noEx(Integer::valueOf,NumberFormatException.class));
+        registerConverter(Double.class,os,noEx(Double::valueOf,NumberFormatException.class));
+        registerConverter(double.class,sv,noEx(Double::valueOf,NumberFormatException.class));
+        registerConverter(Short.class,os,noEx(Short::valueOf,NumberFormatException.class));
+        registerConverter(short.class,sv,noEx(Short::valueOf,NumberFormatException.class));
+        registerConverter(Long.class,os,noEx(Long::valueOf,NumberFormatException.class));
+        registerConverter(long.class,sv,noEx(Long::valueOf,NumberFormatException.class));
+        registerConverter(Float.class,os,noEx(Float::valueOf,NumberFormatException.class));
+        registerConverter(float.class,sv,noEx(Float::valueOf,NumberFormatException.class));
+        registerConverter(Character.class,os,noEx(s -> s.charAt(0),IndexOutOfBoundsException.class));
+        registerConverter(char.class,sv,noEx(s -> s.charAt(0),IndexOutOfBoundsException.class));
+        registerConverter(Byte.class,os,noEx(Byte::valueOf,NumberFormatException.class));
+        registerConverter(byte.class,sv,noEx(Byte::valueOf,NumberFormatException.class));
+        registerConverter(String.class, s->s, s->s);
+        registerConverter(StringSplitParser.class,os, noEx(StringSplitParser::new, IllegalArgumentException.class));
+        registerConverter(Year.class,os, noEx(Year::parse, DateTimeParseException.class));
+        registerConverter(URI.class,os, noEx(URI::create, IllegalArgumentException.class));
     }
     
-    public static<T> void registerConverter(StringParser<T> parser) {
-        parser.getSupportedClasses().forEach(c -> registerConverterToS(c, parser::toS));
-        parser.getSupportedClasses().forEach(c -> registerConverterFromS(c, parser::fromS));
+    public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {
+        registerConverterToS(c, parser::toS);
+        registerConverterFromS(c, parser::fromS);
     }
     
-    public static<T> void registerConverterToS(Class<T> c, Function<T,String> parser) {
+    public static<T> void registerConverter(Class<T> c, Function<? super T,String> to, Function<String,? super T> from) {
+        registerConverterToS(c, to);
+        registerConverterFromS(c, from);
+    }
+    
+    public static<T> void registerConverterToS(Class<T> c, Function<? super T,String> parser) {
         parsersToS.put(c, parser);
     }
     
-    public static<T> void registerConverterFromS(Class<T> c, Function<String,T> parser) {
+    public static<T> void registerConverterFromS(Class<T> c, Function<String,? super T> parser) {
         parsersFromS.put(c, parser);
     }
     
     
     /**
-     * Parses a string to specified type.
+     * Converts string s to object o of type c.
+     * Null input not allowed. 
+     * Null output if and only if when error occurs. 
      * 
-     * @param c
-     * @param o
+     * @param c specifies type of object
+     * @param s string to parse
      * @return Object of specified type parsed from string
-     * @throws UnsupportedOperationException if class type not supported.
+     * @throws UnsupportedOperationException if object type not supported.
+     * @throws NullPointerException if any parameter null
      */
-    public static <T> T fromS(Class<T> c, String o) {
-        return getParserFromS(c).apply(o);
+    public static <T> T fromS(Class<T> c, String s) {
+        requireNonNull(c,"Parsing type must be specified!");
+        requireNonNull(s,"Parsing null not allowed!");
+        return getParserFromS(c).apply(s);
     }
     
     /** 
      * Converts object to String.
+     * Null input not allowed. 
+     * Null output if and only if when error occurs. 
      * 
-     * @param o Object to parse. Must not be null.
-     * @throws UnsupportedOperationException if class type not supported.
+     * @param o object to parse
+     * @throws UnsupportedOperationException if object type not supported.
      * @throws NullPointerException if parameter null
      */
     public static <T> String toS(T o) {
+        requireNonNull(o,"Parsing null not allowed!");
         return getParserToS((Class<T>)o.getClass()).apply(o);
+    }
+    
+    public static <T> Predicate<String> isParsable(Class<T> c) {
+        return s -> fromS(c, s)==null;
+    }
+    
+    public static <T> StringConverter<T> toConverter(Class<T> c) {
+        return new StringConverter<T>() {
+            @Override public String toS(T object) {
+                return Parser.toS(object);
+            }
+            @Override public T fromS(String source) {
+                return Parser.fromS(c, source);
+            }
+        };
     }
     
     
     private static <T> Function<T,String> getParserToS(Class<T> c) {
         if(!parsersToS.containsKey(c)) {
-            Tuple2<Function<T,String>,Function<String,T>> tp = getOrBuildParser(c);
+            Tuple2<Function<T,String>,Function<String,T>> tp = buildParser(c);
             registerConverterToS(c, tp._1);
             registerConverterFromS(c, tp._2);
         }
@@ -92,7 +194,7 @@ public class Parser {
     }
     private static <T> Function<String,T> getParserFromS(Class<T> c) {
         if(!parsersFromS.containsKey(c)) {
-            Tuple2<Function<T,String>,Function<String,T>> tp = getOrBuildParser(c);
+            Tuple2<Function<T,String>,Function<String,T>> tp = buildParser(c);
             registerConverterToS(c, tp._1);
             registerConverterFromS(c, tp._2);
         }
@@ -101,127 +203,73 @@ public class Parser {
         return p;
     }
 
-    private static <T> Tuple2<Function<T,String>,Function<String,T>> getOrBuildParser(Class<T> c) {
+    private static <T> Tuple2<Function<T,String>,Function<String,T>> buildParser(Class<T> c) {
         
         Function<String,?> fromS = null;
         Function<?,String> toS = null;
-
-        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
-        
-        // handle primitives
-        if (c.equals(boolean.class))      fromS = Boolean::valueOf;
-        else if (c.equals(Boolean.class)) fromS = Boolean::valueOf;
-        else if (c.equals(int.class))     fromS = Integer::valueOf;
-        else if (c.equals(Integer.class)) fromS = Integer::valueOf;
-        else if (c.equals(double.class))  fromS = Double::valueOf;
-        else if (c.equals(Double.class))  fromS = Double::valueOf;
-        else if (c.equals(long.class))    fromS = Long::valueOf;
-        else if (c.equals(Long.class))    fromS = Long::valueOf;
-        else if (c.isEnum())              fromS = s -> Enum.valueOf((Class<Enum>)c, s);
-        else if (c.equals(byte.class))    fromS = Byte::valueOf;
-        else if (c.equals(Byte.class))    fromS = Byte::valueOf;
-        else if (c.equals(short.class))   fromS = Short::valueOf;
-        else if (c.equals(Short.class))   fromS = Short::valueOf;
-        else if (c.equals(float.class))   fromS = Float::valueOf;
-        else if (c.equals(Float.class))   fromS = Float::valueOf;
-        else if (c.equals(String.class))  fromS = s -> s;
+        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class); 
         
         if(fromS==null && a!=null) {
             From strategy = a.from();
             if(strategy==VALUE_OF_METHOD) {
-                if(!hasValueOfMethod(c))
-                    throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".valueOf(String s)");
-                fromS = s -> invokeValueOf(c, s);
+                Method m = getValueOfStatic(c);
+                if(m==null) throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".valueOf(String s)");
+                fromS = parserOfM(m, String.class, c, a);
             } else if (strategy==FROM_STRING_METHOD) {
-                if(!hasMethod("fromString",c))
-                    throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".fromString(String s)");
-                fromS = s -> invokeMethod("fromString",c,s);
+                Method m = getMethodStatic("fromString", c);
+                if(m==null) throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".fromString(String s)");
+                fromS = parserOfM(m, String.class, c, a);
             } else if (strategy==From.NONE) {
-                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ c +"'  has forbids parsing from string.");
+                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ c +"'s parsing strategy forbids parsing from string.");
             } else if (strategy==From.ANNOTATED_METHOD) {
-                Method m = getMethod(c,ParsesFromString.class);
-                if(m==null || m.getParameterCount()!=1 || m.getParameters()[0].getType().equals(String.class))
+                Method m = getMethodAnnotated(c,ParsesFromString.class);
+                if(m==null || !isStatic(m.getModifiers()) || m.getParameterCount()!=1 || m.getParameters()[0].getType().equals(String.class))
                     throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: " + m);
-                else {
-                    fromS = s -> {
-                        try {
-                            return (T) m.invoke(null,s);
-                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                            throw new RuntimeException("String '"+s+"' parsing failed to invoke static method: " + m, ex);
-                        }
-                    };
-                }
+                fromS = parserOfM(m, String.class, c, a);
             } else if (strategy==CONSTRUCTOR) {
-                fromS = s -> {
-                    try {
-                        Constructor<T> cn = c.getConstructor();
-                        return cn.newInstance();
-                    } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                        throw new RuntimeException("String '"+s+"' parsing failed to invoke no param constructor", ex);
-                    }
-                };
+                fromS = parserOfC(a, c);
             } else if (strategy==CONSTRUCTOR_STR) {
-                fromS = s -> {
-                    try {
-                        Constructor<T> cn = c.getConstructor(String.class);
-                        return cn.newInstance(s);
-                    } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                        throw new RuntimeException("String '"+s+"' parsing failed to invoke String param constructor", ex);
-                    }
-                };
-            } else {
+                fromS = parserOfC(a, c, String.class);
             }
         }
         
         // fallback to valueOf or fromString parsers
-        if(fromS==null && hasValueOfMethod(c)) fromS = s -> invokeValueOf(c,s);
-        if(fromS==null && hasMethod("fromString",c)) fromS = s -> invokeMethod("fromString",c,s);
+        if(fromS==null) {
+            Method m = getValueOfStatic(c);
+            if(m!=null) fromS = noEx(parserOfM(m, String.class, c, null), Exception.class);
+        }
+        if(fromS==null) {
+            Method m = getMethodStatic("fromString",c);
+            if(m!=null) fromS = noEx(parserOfM(m, String.class, c, null), Exception.class);
+        }
         
-        
-        // handle primitives
-        if (c.equals(boolean.class))      toS = SvOf;
-        else if (c.equals(Boolean.class)) toS = OtoS;
-        else if (c.equals(int.class))     toS = SvOf;
-        else if (c.equals(Integer.class)) toS = OtoS;
-        else if (c.equals(double.class))  toS = SvOf;
-        else if (c.equals(Double.class))  toS = OtoS;
-        else if (c.equals(long.class))    toS = SvOf;
-        else if (c.equals(Long.class))    toS = OtoS;
-        else if (c.isEnum())              toS = OtoS;
-        else if (c.equals(byte.class))    toS = SvOf;
-        else if (c.equals(Byte.class))    toS = OtoS;
-        else if (c.equals(short.class))   toS = SvOf;
-        else if (c.equals(Short.class))   toS = OtoS;
-        else if (c.equals(float.class))   toS = SvOf;
-        else if (c.equals(Float.class))   toS = OtoS;
-        else if (c.equals(String.class))  toS = s->(String)s;
         
         if(toS==null && a!=null) {
             To strategy = a.to();
             if(strategy==To.CONSTANT) {
                 String constant = a.constant();
-                toS = o -> constant;
+                toS = in -> constant;
             } else if (strategy==To.NONE) {
-                throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"' forbids parsing to string.");
+                throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"'s parsing strategy forbids parsing to string.");
             } else if (strategy==To.ANNOTATED_METHOD) {
-                Method m = getMethod(c,ParsesToString.class);
-                if(m==null || m.getParameterCount()!=0)
+                Method m = getMethodAnnotated(c,ParsesToString.class);
+                if(m==null || m.getParameterCount()!=0 || !m.getReturnType().equals(String.class))
                     throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because responsible method was not found: " + m);
-                else {
-                    toS = o -> {
-                        try {
-                            return (String) m.invoke(o);
-                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-                            throw new RuntimeException("Object parsing failed to invoke instance method: " + m + " on object: " + o, ex);
-                        }
-                    };
-                }
+                Function<?,String> f = in -> {
+                    try {
+                        return (String) m.invoke(in);
+                    } catch( IllegalAccessException | InvocationTargetException e ) {
+                        throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+                    }
+                };
+                toS = noExWrap(m, a, f);
+
             } else if (strategy==To.TO_STRING_METHOD) {
-                toS = OtoS;
+                toS = os;
             }
         }
         // fallback to toString()
-        if(toS==null) toS = OtoS;
+        if(toS==null) toS = os;
         
         
         // throw if cant build parser
@@ -233,7 +281,7 @@ public class Parser {
     }
     
     
-    private static boolean hasValueOfMethod(Class type) {
+    private static Method getValueOfStatic(Class type) {
         // hadle enum with class bodies that dont identify as enums
         // simply fool the parser by changing the class to the enum
         // note: getDeclaringClass() does not seem to work here though
@@ -241,317 +289,72 @@ public class Parser {
             type = type.getEnclosingClass();
         
         try {
-            Method m = type.getDeclaredMethod("valueOf", String.class);
+            return type.getDeclaredMethod("valueOf", String.class);
 //            if (m.getReturnType().equals(type)) throw new NoSuchMethodException();
-            return true;
         } catch ( NoSuchMethodException ex) {
-            return false;
-        }
-    }
-
-    private static <T> T invokeValueOf(Class<T> type, String source) {
-        // hadle enum with class bodies that dont identify as enums
-        // simply fool the parser by changing the class to the enum
-        // note: getDeclaringClass() does not seem to work here though
-        if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
-            type = (Class<T>) type.getEnclosingClass();
-        
-        //try parsing unknown types with valueOf(String) method if available
-        try {
-            Method m = type.getDeclaredMethod("valueOf", String.class);
-            return (T) m.invoke(null, source);
-        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e.getCause());
+            return null;
         }
     }
     
-    private static boolean hasMethod(String name, Class type) {
+    private static Method getMethodStatic(String name, Class type) {
         try {
             Method m = type.getDeclaredMethod(name, String.class);
             if (!m.getReturnType().equals(type)) throw new NoSuchMethodException();
-            return true;
+            return m;
         } catch ( NoSuchMethodException ex) {
-            return false;
+            return null;
         }
     }
-
-    private static <T> T invokeMethod(String name, Class<T> type, String source) {        
+    
+    private static <I,O> Function<I,O> parserOfM(Method m, Class<I> i, Class<O> o, StringParseStrategy a) {       
+        Set<Class<?>> ecs = new HashSet();
+        if(a!=null) ecs.addAll(list(a.ex())); else ecs.add(Exception.class);
+        if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
+        Function<I,O> f = in -> {
+            try {
+                return (O) m.invoke(null, in);
+            } catch( IllegalAccessException | InvocationTargetException e ) {
+                for(Class<?> ec : ecs) {
+                    if(ec.isInstance(e.getCause().getCause())) return null;
+                    if(ec.isInstance(e.getCause())) return null;
+                    if(ec.isInstance(e)) return null;
+                }
+                throw new RuntimeException("Parser cant invoke the method: " + m, e.getCause());
+            }
+        };
+        return noExWrap(m, a, f);
+    }
+    
+    private static <O> Function<String,O> parserOfC(StringParseStrategy a, Class<O> type, Class... params) {        
         try {
-            Method m = type.getDeclaredMethod(name, String.class);
-            return (T) m.invoke(null, source);
-        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e.getCause());
-        }
+            Constructor<O> cn = type.getConstructor(params);
+            boolean passinput = params.length==1;
+            Set<Class<?>> ecs = new HashSet();
+            if(a!=null) ecs.addAll(list(a.ex()));
+            if(cn!=null) ecs.addAll(list(cn.getExceptionTypes()));
+              Function<String,O> f = in -> {
+                    try {
+                        Object[] p = passinput ? new Object[]{in} : new Object[]{};
+                        return cn.newInstance(p);
+                    } catch (ExceptionInInitializerError | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                        for(Class<?> ec : ecs) {
+                            if(ec.isInstance(e.getCause().getCause())) return null;
+                            if(ec.isInstance(e.getCause())) return null;
+                            if(ec.isInstance(e)) return null;
+                        }
+                        throw new RuntimeException("String '"+in+"' parsing failed to invoke constructor in class " + cn.getDeclaringClass(), e);
+                    }
+                };
+              return noExWrap(cn, a, f);
+          } catch (NoSuchMethodException | SecurityException e) {
+              throw new RuntimeException("Parser cant find no param constructor in " + type, e);
+          }
+    }
+    
+    private static <I,O> Function<I,O> noExWrap(Executable m, StringParseStrategy a, Function<I,O> f) {
+        Set<Class<?>> ecs = new HashSet();
+        if(a!=null) ecs.addAll(list(a.ex()));
+        if(m!=null) ecs.addAll(list(m.getExceptionTypes()));
+        return noEx(f, ecs);
     }
 }
-//package util.parsing;
-//
-//import java.lang.reflect.Constructor;
-//import java.lang.reflect.InvocationTargetException;
-//import java.lang.reflect.Method;
-//import java.util.HashMap;
-//import java.util.Map;
-//import java.util.function.Function;
-//import static util.Util.getMethod;
-//import util.parsing.StringParseStrategy.From;
-//import static util.parsing.StringParseStrategy.From.*;
-//import util.parsing.StringParseStrategy.To;
-//import util.parsing.impl.ColorParser;
-//import util.parsing.impl.FileParser;
-//import util.parsing.impl.FontParser;
-//import util.parsing.impl.StringStringParser;
-//
-///**
-// * 
-// * Utility class - parser converting Objects to String and back.
-// * 
-// * There is no complete list of supported types as it depends on what types
-// * particular used parsers can handle, but method is provided to check
-// * whether the type is supported.
-// *
-// * @author Plutonium_
-// */
-//public class Parser {
-//    
-//    private static final Function<?,String> OtoS = Object::toString;
-//    private static final Function<?,String> SvOf = String::valueOf;
-//    
-//    private static final Map<Class,StringParser> parsers = new HashMap();
-//    
-//    static {        
-//        registerConverter(new FontParser());
-//        registerConverter(new FileParser());
-//        registerConverter(new ColorParser());
-//        registerConverter(new StringStringParser());
-//    }
-//    
-//    public static<T> void registerConverter(StringParser<T> parser) {
-//        parser.getSupportedClasses().forEach(c -> parsers.put(c, parser));
-//    }
-//    
-//    /**
-//     * Parses a string to specified type.
-//     * 
-//     * @param c
-//     * @param o
-//     * @return Object of specified type parsed from string
-//     * @throws UnsupportedOperationException if class type not supported.
-//     */
-//    public static <T> T fromS(Class<T> c, String o) {
-//        return (T) getParser(c).fromS(o);
-//    }
-//    
-//    /** 
-//     * Converts object to String.
-//     * 
-//     * @param o Object to parse. Must not be null.
-//     * @throws UnsupportedOperationException if class type not supported.
-//     * @throws NullPointerException if parameter null
-//     */
-//    public static <T> String toS(T o) {
-//        return getParser(o.getClass()).toS(o);
-//    }
-//    
-//    
-//    private static <T> StringParser getParser(Class<T> c) {
-//        StringParser<T> p = parsers.get(c);
-//        if(p==null) {
-//            p = getOrBuildParser(c);
-//            parsers.put(c, p);
-//        }
-//        if(p==null) throw new IllegalArgumentException("Class " + c + " not supported by parser.");
-//        return p;
-//    }
-//
-//    private static <T> StringParser getOrBuildParser(Class<T> c) {
-//        
-//        Function<String,?> fromS = null;
-//        Function<?,String> toS = null;
-//
-//        StringParseStrategy a = c.getAnnotation(StringParseStrategy.class);
-//        
-//        // handle primitives
-//        if (c.equals(boolean.class))      fromS = Boolean::valueOf;
-//        else if (c.equals(Boolean.class)) fromS = Boolean::valueOf;
-//        else if (c.equals(int.class))     fromS = Integer::valueOf;
-//        else if (c.equals(Integer.class)) fromS = Integer::valueOf;
-//        else if (c.equals(double.class))  fromS = Double::valueOf;
-//        else if (c.equals(Double.class))  fromS = Double::valueOf;
-//        else if (c.equals(long.class))    fromS = Long::valueOf;
-//        else if (c.equals(Long.class))    fromS = Long::valueOf;
-//        else if (c.isEnum())              fromS = s -> Enum.valueOf((Class<Enum>)c, s);
-//        else if (c.equals(byte.class))    fromS = Byte::valueOf;
-//        else if (c.equals(Byte.class))    fromS = Byte::valueOf;
-//        else if (c.equals(short.class))   fromS = Short::valueOf;
-//        else if (c.equals(Short.class))   fromS = Short::valueOf;
-//        else if (c.equals(float.class))   fromS = Float::valueOf;
-//        else if (c.equals(Float.class))   fromS = Float::valueOf;
-//        else if (c.equals(String.class))  fromS = s -> s;
-//        
-//        if(fromS==null && a!=null) {
-//            From strategy = a.from();
-//            if(strategy==VALUE_OF_METHOD) {
-//                if(!hasValueOfMethod(c))
-//                    throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".valueOf(String s)");
-//                fromS = s -> invokeValueOf(c, s);
-//            } else if (strategy==FROM_STRING_METHOD) {
-//                if(!hasMethod("fromString",c))
-//                    throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: "+c+".fromString(String s)");
-//                fromS = s -> invokeMethod("fromString",c,s);
-//            } else if (strategy==From.NONE) {
-//                throw new IllegalArgumentException("Failed to create from string converter. Class '"+ c +"'  has forbids parsing from string.");
-//            } else if (strategy==From.ANNOTATED_METHOD) {
-//                Method m = getMethod(c,ParsesFromString.class);
-//                if(m==null || m.getParameterCount()!=1 || m.getParameters()[0].getType().equals(String.class))
-//                    throw new IllegalArgumentException("Failed to create from string converter. Class not parsable from string, because responsible method was not found: " + m);
-//                else {
-//                    fromS = s -> {
-//                        try {
-//                            return (T) m.invoke(null,s);
-//                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-//                            throw new RuntimeException("String '"+s+"' parsing failed to invoke static method: " + m, ex);
-//                        }
-//                    };
-//                }
-//            } else if (strategy==CONSTRUCTOR) {
-//                fromS = s -> {
-//                    try {
-//                        Constructor<T> cn = c.getConstructor();
-//                        return cn.newInstance();
-//                    } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-//                        throw new RuntimeException("String '"+s+"' parsing failed to invoke no param constructor", ex);
-//                    }
-//                };
-//            } else if (strategy==CONSTRUCTOR_STR) {
-//                fromS = s -> {
-//                    try {
-//                        Constructor<T> cn = c.getConstructor(String.class);
-//                        return cn.newInstance(s);
-//                    } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-//                        throw new RuntimeException("String '"+s+"' parsing failed to invoke String param constructor", ex);
-//                    }
-//                };
-//            } else {
-//            }
-//        }
-//        
-//        // fallback to valueOf or fromString parsers
-//        if(fromS==null && hasValueOfMethod(c)) fromS = s -> invokeValueOf(c,s);
-//        if(fromS==null && hasMethod("fromString",c)) fromS = s -> invokeMethod("fromString",c,s);
-//        
-//        
-//        // handle primitives
-//        if (c.equals(boolean.class))      toS = SvOf;
-//        else if (c.equals(Boolean.class)) toS = OtoS;
-//        else if (c.equals(int.class))     toS = SvOf;
-//        else if (c.equals(Integer.class)) toS = OtoS;
-//        else if (c.equals(double.class))  toS = SvOf;
-//        else if (c.equals(Double.class))  toS = OtoS;
-//        else if (c.equals(long.class))    toS = SvOf;
-//        else if (c.equals(Long.class))    toS = OtoS;
-//        else if (c.isEnum())              toS = OtoS;
-//        else if (c.equals(byte.class))    toS = SvOf;
-//        else if (c.equals(Byte.class))    toS = OtoS;
-//        else if (c.equals(short.class))   toS = SvOf;
-//        else if (c.equals(Short.class))   toS = OtoS;
-//        else if (c.equals(float.class))   toS = SvOf;
-//        else if (c.equals(Float.class))   toS = OtoS;
-//        else if (c.equals(String.class))  toS = s->(String)s;
-//        
-//        if(toS==null && a!=null) {
-//            To strategy = a.to();
-//            if(strategy==To.CONSTANT) {
-//                String constant = a.constant();
-//                toS = o -> constant;
-//            } else if (strategy==To.NONE) {
-//                throw new IllegalArgumentException("Failed to create to string converter. Class '"+ c +"' forbids parsing to string.");
-//            } else if (strategy==To.ANNOTATED_METHOD) {
-//                Method m = getMethod(c,ParsesToString.class);
-//                if(m==null || m.getParameterCount()!=0)
-//                    throw new IllegalArgumentException("Failed to create to string converter. Class not parsable to string, because responsible method was not found: " + m);
-//                else {
-//                    toS = o -> {
-//                        try {
-//                            return (String) m.invoke(o);
-//                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-//                            throw new RuntimeException("Object parsing failed to invoke instance method: " + m + " on object: " + o, ex);
-//                        }
-//                    };
-//                }
-//            } else if (strategy==To.TO_STRING_METHOD) {
-//                toS = OtoS;
-//            }
-//        }
-//        // fallback to toString()
-//        if(toS==null) toS = OtoS;
-//        
-//        
-//        // throw if cant build parser
-//        if(toS==null) throw new IllegalStateException("Failed to create to string converter for class '"+c+"'");
-//        if(fromS==null) throw new IllegalStateException("Failed to create from string converter for class '"+c+"'");
-//        
-//        // build parser
-//        Function<String,T> fromSF = (Function)fromS;
-//        Function<T,String> toSF = (Function)toS;
-//        return new StringParser<T>() {
-//            public String toS(T o) {
-//                return toSF.apply(o);
-//            }
-//            public T fromS(String s) {
-//                return fromSF.apply(s);
-//            }
-//        };
-//    }
-//    
-//    
-//    private static boolean hasValueOfMethod(Class type) {
-//        // hadle enum with class bodies that dont identify as enums
-//        // simply fool the parser by changing the class to the enum
-//        // note: getDeclaringClass() does not seem to work here though
-//        if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
-//            type = type.getEnclosingClass();
-//        
-//        try {
-//            Method m = type.getDeclaredMethod("valueOf", String.class);
-////            if (m.getReturnType().equals(type)) throw new NoSuchMethodException();
-//            return true;
-//        } catch ( NoSuchMethodException ex) {
-//            return false;
-//        }
-//    }
-//
-//    private static <T> T invokeValueOf(Class<T> type, String source) {
-//        // hadle enum with class bodies that dont identify as enums
-//        // simply fool the parser by changing the class to the enum
-//        // note: getDeclaringClass() does not seem to work here though
-//        if(type.getEnclosingClass()!=null && type.getEnclosingClass().isEnum())
-//            type = (Class<T>) type.getEnclosingClass();
-//        
-//        //try parsing unknown types with valueOf(String) method if available
-//        try {
-//            Method m = type.getDeclaredMethod("valueOf", String.class);
-//            return (T) m.invoke(null, source);
-//        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-//            throw new RuntimeException(e.getCause());
-//        }
-//    }
-//    
-//    private static boolean hasMethod(String name, Class type) {
-//        try {
-//            Method m = type.getDeclaredMethod(name, String.class);
-//            if (!m.getReturnType().equals(type)) throw new NoSuchMethodException();
-//            return true;
-//        } catch ( NoSuchMethodException ex) {
-//            return false;
-//        }
-//    }
-//
-//    private static <T> T invokeMethod(String name, Class<T> type, String source) {        
-//        try {
-//            Method m = type.getDeclaredMethod(name, String.class);
-//            return (T) m.invoke(null, source);
-//        } catch ( NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-//            throw new RuntimeException(e.getCause());
-//        }
-//    }
-//}

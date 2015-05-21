@@ -107,11 +107,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     });
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
-        String off = "      Enable filter for playback\n Causes the playback "
-                   + "to play only displayed items.";
-        String on = "       Disable filter for playback\n Causes the playback "
+        String of = "Enable filter for playback. Causes the playback "
+                  + "to play only displayed items.";
+        String on = "Disable filter for playback. Causes the playback "
                   + "to ignore the filter.";
-        Tooltip t = new Tooltip(v ? on : off);
+        Tooltip t = new Tooltip(v ? on : of);
                 t.setWrapText(true);
                 t.setMaxWidth(200);
         table.getSearchBox().setButton(v ? ERASER : FILTER, t, filterToggler());
@@ -165,10 +165,9 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
 
     @Override
     public void close() {
-        // remove listeners
         setUseFilterForPlayback(false);
         PlaylistManager.getItems().removeListener(playlistitemsL);
-        table.clearResources();
+        table.dispose();
     }
     
 /******************************** PUBLIC API **********************************/

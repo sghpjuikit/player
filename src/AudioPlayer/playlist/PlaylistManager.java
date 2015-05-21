@@ -605,16 +605,16 @@ public class PlaylistManager implements Configurable {
     private static void addOrEnqueueUrl(boolean add) {
         // build content
         String title = add ? "Add url item." : "Play url item.";
-        SimpleConfigurator content = new SimpleConfigurator<String>(
-            new ValueConfig("Url", "url", title),
+        SimpleConfigurator content = new SimpleConfigurator<URI>(
+            new ValueConfig<URI>("Url", URI.create("http://www.example.com"), title),
             c -> {
-                String url = c.getField("Url").getValue();
+                URI uri = c.getField("Url").getValue();
                 if(add) {
-                    addUrl(url);
+                    addUri(uri);
                 } else {
                     PLAYBACK.stop();
                     removeAllItems();
-                    addUrl(url);
+                    addUri(uri);
                     playFirstItem();
                 }
             });

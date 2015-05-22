@@ -3,9 +3,9 @@ package util.collections;
 
 import java.util.Objects;
 import static util.collections.Tuples.tuple;
-import util.functional.functor.TriConsumer;
-import util.functional.functor.TriFunction;
-import util.functional.functor.TriPredicate;
+import unused.TriConsumer;
+import unused.TriFunction;
+import unused.TriPredicate;
 
 public class Tuple3<A, B, C> {
     public final A _1;

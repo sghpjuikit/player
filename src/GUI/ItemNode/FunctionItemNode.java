@@ -26,13 +26,13 @@ import static util.functional.Util.cmpareNoCase;
  *
  * @author Plutonium_
  */
-public class FunctionConfigField<IN,OUT> extends ItemNode<Function<IN,OUT>> {
+public class FunctionItemNode<IN,OUT> extends ItemNode<Function<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList();
     private final ComboBox<PF<IN,OUT>> fCB;
     
-    public FunctionConfigField(Supplier<PrefList<PF<IN,OUT>>> functionPool) {
+    public FunctionItemNode(Supplier<PrefList<PF<IN,OUT>>> functionPool) {
         fCB = new ImprovedComboBox<>(f->f.name);
         fCB.valueProperty().addListener((o,ov,nv) -> {
             configs.clear();

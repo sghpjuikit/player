@@ -445,11 +445,12 @@ public class MetadataWriter extends MetaItem {
     
     /**
      * Write chapters to tag. This method rewrites any previous chapter data.
-     * In order to not losethe original data, the chapters first need to be
+     * In order to not lose the original data, the chapters first need to be
      * obtained and the modified list passed as an argument to this method.
-     * @param list of chapters that will comprise the entirety of chapter data
-     * in the tag after the writing operation. Recommended use is to pass the
-     * modified list of already obtained Chapters.
+     * 
+     * @param list of chapters that to write to tag
+     * @see addChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
+     * @see removeChapter(AudioPlayer.tagging.Chapters.Chapter, AudioPlayer.tagging.Metadata)
      */
     public void setChapters(List<Chapter> chapters) {
         setCustom2(chapters.stream().map(Chapter::toString).collect(Collectors.joining("|")));
@@ -457,47 +458,38 @@ public class MetadataWriter extends MetaItem {
     
     /**
      * Convenience method. 
-     * Adds the given chapter to the metadata or edits it if it already exists.
-     * The existence of the chapter is obtained through equality check of the
-     * {@link Chapter} (the equals method) comparing the provided with all of
-     * the available chapters.
+     * Adds the given chapter to the metadata or rewrites it if it already exists.
+     * For chapter identity consult {@link Chapter#equals(java.lang.Object)}.
      * <p>
-     * Note: Dont abuse this method and use {@link #setChapters(java.util.List)}
-     * for more invasive changes like adding more chapter at once.
+     * Note: Dont abuse this method in loops and use {@link #setChapters(java.util.List)}.
+     * 
      * @param chapter
-     * @param metadata. Source metadata for chapter data. In order to retain rest
+     * @param metadata Source metadata for chapter data. In order to retain rest
      * of the chapters, the metadata for the item are necessary.
      */
-    public void setChapter(Chapter chapter, Metadata metadata) {
-        // get latest chapters
-        List<Chapter> chaps = metadata.getChaptersFromAny();
-        // look up whether chapter exists
-        int ind = chaps.indexOf(chapter);
-        // replace if exists, add otherwise
-        if(ind==-1) chaps.add(chapter);
-        else chaps.set(ind, chapter);
-        // set
+    public void addChapter(Chapter chapter, Metadata metadata) {
+        List<Chapter> chaps = metadata.getChapters();
+        int i = chaps.indexOf(chapter);
+        if(i==-1) chaps.add(chapter);
+        else chaps.set(i, chapter);
         setChapters(chaps);
     }
     
     /**
      * Convenience method. 
-     * Removes the given chapter from the metadata if it exists.
-     * The existence of the chapter is obtained through equality check of the
-     * {@link Chapter} (the equals method) comparing the provided with all of
-     * the available chapters.
+     * Removes the given chapter from the metadata if it already exists or does
+     * nothing otherwise.
      * <p>
-     * Note: Dont abuse this method and use {@link #setChapters(java.util.List)}
-     * for more invasive changes like removing several chapters at once.
+     * For chapter identity consult {@link Chapter#equals(java.lang.Object)}. 
+     * Dont abuse this method in loops and use {@link #setChapters(java.util.List)}.
+     * 
      * @param chapter
-     * @param metadata. Source metadata for chapter data. In order to retain rest
+     * @param metadata Source metadata for chapter data. In order to retain rest
      * of the chapters, the metadata for the item are necessary.
      */
     public void removeChapter(Chapter chapter, Metadata metadata) {
-        // get latest chapters
-        List<Chapter> chaps = metadata.getChaptersFromAny();
-        chaps.remove(chapter);
-        setChapters(chaps);
+        List<Chapter> cs = metadata.getChapters();
+        if(cs.remove(chapter)) setChapters(cs);
     }
     
     /** @param val the year to set  */
@@ -565,15 +557,19 @@ public class MetadataWriter extends MetaItem {
         // do nothing if nothing to write
         if (!hasFields()) return false;  
         
-        try {
-            // suspend playback if necessary
-            boolean isPlaying = PlaylistManager.isSameItemPlaying(this);
-            if (isPlaying) PLAYBACK.suspend();         
+        try {      
             // save tag
-            audioFile.commit();         
-            // restore playback
-            if (isPlaying) PLAYBACK.loadLastState();
-            
+            try {
+                audioFile.commit();
+            } catch (Throwable ex) {
+                if (PlaylistManager.isSameItemPlaying(this)) {
+                    PLAYBACK.suspend();
+                    audioFile.commit();
+                    PLAYBACK.activate();
+                } else {
+                    throw ex;
+                }
+            }            
             // abandoned
             // update this item for application
             // dont use self as parameter! illegal state could leak
@@ -584,8 +580,7 @@ public class MetadataWriter extends MetaItem {
             
         // problem: commit() throws UnableToRenameFileException, but it appears
         // its undocumented and we can not catch it! catch everything...
-        // note: catching it as Exception doesnt help! catchign as Throwable -
-        // - untested, probably not - weird
+        // note: catching it as Exception doesnt help?!
         // } catch (CannotWriteException | UnableToRenameFileException e) {
         } catch (Throwable e) {
             Log.err("Can not write to tag for file: " + audioFile.getFile().getPath() + e);

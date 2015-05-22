@@ -257,7 +257,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         });
         PopOver p = new PopOver(sc);
                 p.title.set("Save playlist as...");
-                p.show(PopOver.ScreenCentricPos.AppCenter);
+                p.show(PopOver.ScreenCentricPos.App_Center);
     }
     
     @FXML
@@ -276,7 +276,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         });
         PopOver p = new PopOver(sc);
                 p.title.set("Save selected items as...");
-                p.show(PopOver.ScreenCentricPos.AppCenter);
+                p.show(PopOver.ScreenCentricPos.App_Center);
     }
     
 /***************************** HELPER METHODS *********************************/

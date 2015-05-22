@@ -35,6 +35,7 @@ import util.Password;
 import static util.Util.*;
 import static util.async.Async.run;
 import static util.functional.Util.cmpareBy;
+import static util.functional.Util.isInR;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -51,9 +52,10 @@ abstract public class ConfigField<T> {
     private static final Tooltip globB_tooltip = new Tooltip("Whether shortcut is global (true) or local.");
     
     private final Label label = new Label();
-    private final HBox root = new HBox();
-    final Config<T> config;
-    private boolean applyOnChange = true;
+    protected final HBox root = new HBox();
+    protected final Config<T> config;
+    public boolean applyOnChange = true;
+    protected boolean insonsistent_state = false;
     private Icon defB;
     
     private ConfigField(Config<T> c) {
@@ -183,14 +185,6 @@ abstract public class ConfigField<T> {
         return config;
     }
     
-    public boolean isApplyOnChange() {
-        return applyOnChange;
-    }
-    
-    public void setApplyOnChange(boolean val) {
-        applyOnChange = val;
-    }
-    
     /**
      * Convenience method and default implementation of set and apply mechanism.
      * Also calls the {@link #refreshItem()} when needed.
@@ -227,6 +221,22 @@ abstract public class ConfigField<T> {
         }
     }
     
+    protected void apply(boolean user) {
+        if(insonsistent_state) return;
+        T t = getItem();
+        
+        boolean erroneous = t==null;
+        if(erroneous) return;
+        boolean applicable = !config.getValue().equals(t);
+        if(!applicable) return;
+        
+        insonsistent_state = true;
+        if(applyOnChange || user) config.setNapplyValue(t);
+        else config.setValue(t);
+        refreshItem();
+        insonsistent_state = false;
+    }
+    
 /******************************************************************************/
     
     private static Map<Class,Callback<Config,ConfigField>> m = new HashMap();
@@ -240,6 +250,7 @@ abstract public class ConfigField<T> {
         m.put(File.class, f -> new FileField(f));
         m.put(Font.class, f -> new FontField(f));
         m.put(Password.class, f -> new PasswordField(f));
+        m.put(String.class, f -> new StringField(f));
     }
     
     /**
@@ -268,7 +279,9 @@ abstract public class ConfigField<T> {
     }
     
 /***************************** IMPLEMENTATIONS ********************************/
-    
+    private static final Tooltip okTooltip = new Tooltip("Apply value");
+    private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
+        
     private static final class PasswordField extends ConfigField<Password>{
         
         javafx.scene.control.PasswordField passF = new javafx.scene.control.PasswordField();
@@ -294,19 +307,75 @@ abstract public class ConfigField<T> {
         }
         
     }    
-    
+    private static final class StringField extends ConfigField<String> {
+        private CustomTextField txtF = new CustomTextField();
+        
+        private StringField(Config c) {
+            super(c);
+            
+            txtF.getStyleClass().setAll("text-field","text-input");
+            txtF.getStyleClass().add("text-field-config");
+            
+            txtF.setOnMouseClicked( e -> {
+                if (txtF.getText().isEmpty())
+                    txtF.setText(txtF.getPromptText());
+                e.consume();
+            });
+            txtF.focusedProperty().addListener((o,ov,nv) -> {
+                if(nv) {
+                    if (txtF.getText().isEmpty()) 
+                        txtF.setText(txtF.getPromptText());
+                } else {            
+                    refreshItem();
+                }
+            });
+            txtF.addEventHandler(KEY_RELEASED, e -> {
+                if (isInR(e.getCode(), BACK_SPACE,DELETE)) {
+                    boolean firsttime = !txtF.getPromptText().isEmpty();
+                    txtF.setPromptText(firsttime ? "" : config.getValueS());
+                }
+            });
+            txtF.addEventHandler(KEY_RELEASED, e -> {
+                if (e.getCode()==ESCAPE) {
+                    refreshItem();
+                    root.requestFocus();
+                }
+            });
+            txtF.textProperty().addListener((o,ov,nv)-> apply(false));
+            
+            refreshItem();
+        }
+        
+        @Override public Control getControl() {
+            return txtF;
+        }
+
+        @Override public void focus() {
+            txtF.requestFocus();
+            txtF.selectAll();
+        }
+        
+        @Override public String getItem() {
+            String text = txtF.getText();
+            return text.isEmpty() ? txtF.getPromptText() : text;
+        }
+        
+        @Override public void refreshItem() {
+            if(insonsistent_state) return;
+            txtF.setPromptText(config.getValueS());
+            txtF.setText("");
+        }
+        
+    }
     private static final class GeneralField extends ConfigField<Object> {
-        private static final Tooltip okTooltip = new Tooltip("Apply value");
-        private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
+        
         CustomTextField txtF = new CustomTextField();
-        final boolean allow_empty; // only for string
         Icon okBL= new Icon();
         Icon warnB = new Icon();
         AnchorPane okB = new AnchorPane(okBL);
         
         private GeneralField(Config c) {
             super(c);
-            allow_empty = c.getType().equals(String.class);
             
             // doesnt work because of CustomTextField instead f TextField
             // restrict input
@@ -321,8 +390,8 @@ abstract public class ConfigField<T> {
             warnB.getStyleClass().setAll("congfig-field-warn-button");
             warnB.setTooltip(warnTooltip);
             
-            txtF.setContextMenu(null);
             txtF.getStyleClass().setAll("text-field","text-input");
+            txtF.getStyleClass().add("text-field-config");
             txtF.setPromptText(c.getValueS());
             // start edit
             txtF.setOnMouseClicked( e -> {
@@ -347,19 +416,16 @@ abstract public class ConfigField<T> {
                 }
             });
             
-            if (allow_empty)
-                txtF.addEventHandler(KEY_RELEASED, e -> {
-                    if (e.getCode()==BACK_SPACE || e.getCode()==DELETE) {
-                        if (txtF.getPromptText().isEmpty())
-                            txtF.setPromptText(config.getValueS());
-                        else
-                            txtF.setPromptText("");
-                    }
-                });
+            txtF.addEventHandler(KEY_RELEASED, e -> {
+                if (e.getCode()==ESCAPE) {
+                    refreshItem();
+                    root.requestFocus();
+                }
+            });
             // applying value
             txtF.textProperty().addListener((o,ov,nv)-> {
                 boolean erroneous = getItem()==null;
-                boolean applicable = (allow_empty || (!allow_empty && !nv.isEmpty())) && !nv.equals(txtF.getPromptText());
+                boolean applicable = !nv.equals(txtF.getPromptText());
                 showOkButton(applicable && !erroneous);
                 showWarnButton(erroneous);
             });
@@ -379,11 +445,7 @@ abstract public class ConfigField<T> {
         
         @Override public Object getItem() {
             String text = txtF.getText();
-            if(allow_empty) {
-                return text.isEmpty() ? txtF.getPromptText() : text;
-            } else {
-                return text.isEmpty() ? config.getValue() : config.fromS(text);
-            }
+            return text.isEmpty() ? config.getValue() : config.fromS(text);
         }
         @Override public void refreshItem() {
             txtF.setPromptText(config.getValueS());
@@ -391,7 +453,7 @@ abstract public class ConfigField<T> {
             showOkButton(false);
         }
         private void apply() {
-            if(isApplyOnChange()) applyNsetIfNeed();
+            if(applyOnChange) applyNsetIfNeed();
         }
         private void showOkButton(boolean val) {
             if (val) txtF.setLeft(okB);
@@ -414,7 +476,7 @@ abstract public class ConfigField<T> {
             cBox = new CheckIcon();
             refreshItem();
             cBox.selected.addListener((o,ov,nv)->{
-                if(isApplyOnChange()) applyNsetIfNeed();
+                if(applyOnChange) applyNsetIfNeed();
             });
         }
         
@@ -451,11 +513,11 @@ abstract public class ConfigField<T> {
                 // also bug with snap to tick, which doesnt work on mouse drag
                 // so we use getItem() which returns correct value
                 cur.setText(getItem().toString());
-                if(isApplyOnChange() && !slider.isValueChanging())
+                if(applyOnChange && !slider.isValueChanging())
                     applyNsetIfNeed();
             });
             slider.setOnMouseReleased(e -> {
-                if(isApplyOnChange()) applyNsetIfNeed();
+                if(applyOnChange) applyNsetIfNeed();
             });
             
             // add scrolling support
@@ -513,7 +575,7 @@ abstract public class ConfigField<T> {
             cBox.getItems().sort(cmpareBy(v->c.toS(v)));
             cBox.setValue(c.getValue());
             cBox.valueProperty().addListener((o,ov,nv) -> {
-                if(isApplyOnChange()) applyNsetIfNeed();
+                if(applyOnChange) applyNsetIfNeed();
             });
         }
         @Override public Object getItem() {
@@ -559,7 +621,7 @@ abstract public class ConfigField<T> {
                         txtF.setText(t);
                     }
                 } else if(c==ENTER) {
-                    if (isApplyOnChange()) applyNsetIfNeed();
+                    if (applyOnChange) applyNsetIfNeed();
                 } else if(c==ESCAPE) {
                     refreshItem();
                 // handle addition
@@ -585,7 +647,7 @@ abstract public class ConfigField<T> {
             globB.selected.set(a.isGlobal());
             globB.setTooltip(globB_tooltip);
             globB.selected.addListener((o,ov,nv) -> {
-                if (isApplyOnChange()) applyNsetIfNeed();
+                if (applyOnChange) applyNsetIfNeed();
             });
             group = new HBox(5, globB,txtF);
             group.setAlignment(CENTER_LEFT);
@@ -644,7 +706,7 @@ abstract public class ConfigField<T> {
             super(c);
             refreshItem();
             picker.valueProperty().addListener((o,ov,nv) -> {
-                if(isApplyOnChange()) applyNsetIfNeed();
+                if(applyOnChange) applyNsetIfNeed();
             });
         }
         

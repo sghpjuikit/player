@@ -2,9 +2,9 @@ package util.collections;
 
 import java.util.Objects;
 import static util.collections.Tuples.tuple;
-import util.functional.functor.PentaConsumer;
-import util.functional.functor.PentaFunction;
-import util.functional.functor.PentaPredicate;
+import unused.PentaConsumer;
+import unused.PentaFunction;
+import unused.PentaPredicate;
 
 public class Tuple5<A, B, C, D, E> {
     public final A _1;

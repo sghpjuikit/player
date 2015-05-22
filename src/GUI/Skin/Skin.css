@@ -1572,17 +1572,6 @@
     -fx-effect: innershadow( two-pass-box , rgba(0,0,0,0.6) , 4, 0.0 , 0 , 1 );
 }
 
-
-.menu-nochildren > .right-container > .arrow {
-    -fx-padding: 0;
-    -fx-background-color: transparent;
-}
-.menu-nochildren:focused > .right-container > .arrow {
-    -fx-padding: 0;
-    -fx-background-color: transparent;
-    // we should probably remove the added area for the arrow on the right
-}
-
 /*******************************************************************************
  *                                                                             *
  * MenuBar                                                                     *
@@ -1825,11 +1814,7 @@
     -fx-padding: 2;
 }
 
-/*******************************************************************************
- *                                                                             *
- * TitledPane                                                                  *
- *                                                                             *
- ******************************************************************************/
+/********************************* TitledPane *********************************/
 
 .titled-pane {
     -fx-text-fill: -fx-def-font-color;
@@ -1846,12 +1831,7 @@
     -fx-background-color: -fx-faint-focus-color, -fx-focus-color, -fx-inner-border, -fx-body-color; 
     -fx-background-insets: 0, 0.7, 2, 3;    
 }*/
-/* focus purely on the arrow */
-.titled-pane:focused > .title > .arrow-button > .arrow {
-    -fx-background-color: -fx-focus-color, -fx-mark-color;
-    -fx-background-insets: -1, 0;
-    -fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
-}
+
 .titled-pane > .title > .arrow-button {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
@@ -1866,9 +1846,15 @@
     -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
-.titled-pane > .title:hover {
-    -fx-color: -fx-hover-base;
+/* focus purely on the arrow */
+.titled-pane:focused > .title > .arrow-button > .arrow {
+    //-fx-background-color: -fx-focus-color, -fx-mark-color;
+    //-fx-background-insets: -1, 0;
+    //-fx-effect: dropshadow(two-pass-box , -fx-focus-color, 5, 0.2 , 0, 0);
 }
+
+.titled-pane > .title:hover {}
+
 /* alternative content using a border and a grad to transparent background - why should TitledPane content have a colour? */
 .titled-pane > *.content {
     -fx-background: transparent;
@@ -1876,16 +1862,10 @@
     -fx-padding: 0.167em;
 }
 
-
-
-/*******************************************************************************
- *                                                                             *
- * Accordion                                                                   *
- *                                                                             *
- ******************************************************************************/
+/********************************* Accordion **********************************/
 
 .accordion > .titled-pane > .title {
-    -fx-background-color: rgba(255, 255, 255, 0.0);
+    -fx-background-color: null;
     -fx-background-insets: -1 0 0 0, 0 1 1 1, 1 2 2 2;
     -fx-background-radius: 0, 0, 0;
 }
@@ -1897,17 +1877,18 @@
 }
 .accordion .titled-pane:focused,
 .accordion .titled-pane:expanded {
-    -fx-text-fill: white;
+    -fx-text-fill: -fx-focus-color;
 }
 .accordion .titled-pane:focused > .title > .arrow-button .arrow,
-.accordion .titled-pane:expanded > .title > .arrow-button .arrow {
-    -fx-background-color: white;
+.accordion .titled-pane:expanded > .title > .arrow-button .arrow,
+.accordion .titled-pane:expanded:focused > .title > .arrow-button .arrow {
+    -fx-background-color: -fx-focus-color;
 }
+
+.accordion .titled-pane:focused > .title,
+.accordion .titled-pane:expanded > .title,
 .accordion .titled-pane:expanded:focused > .title {
-    -fx-color: white;
-}
-.accordion .titled-pane:hover > .title {
-    -fx-color: -fx-hover-base;
+    -fx-text-color: -fx-focus-color;
 }
 
 /*******************************************************************************
@@ -3550,6 +3531,12 @@
     -fx-padding: 4 1 4 1; // height=4, width=2
 }
 
+// inherits: .icon
+.seeker-add-chapter-button,
+.seeker-add-chapter-button:hover {
+    -fx-effect: none;
+}
+
 //****************************** VOLUME SLIDER *******************************//
 // inherits slider
 
@@ -3599,6 +3586,7 @@
 /** 
  * Icon
  * inherits: .glyph
+ * properties: icon - String of the glyph
  */
 .icon {
     //icon: "CLOSE";
@@ -3620,7 +3608,6 @@
    icon: TOGGLE_ON;
 }
 
-
 /** 
  * Check icon used to negate filter predicates
  * inherits: .check-icon
@@ -3631,6 +3618,34 @@
 }
 .filter-negate-icon:selected {
    icon: CIRCLE_ALT;
+}
+
+/********************************** CONFIG ************************************/
+
+/** 
+ * Text box for configuring objects, e.g. in settings.
+ * The peculiarity is that it only displays text while being edited (and focused)
+ * and displays prompt text otherwise. Prompt text shows the currently set
+ * value, while text shows currently edited one. Once editing is done text is
+ * cleared to display prompt text.
+ * This matters here for consstency. Skin may chose to style prompt text as
+ * (normal) text while styling normal text to be more visible to signal editing
+ * 
+ * inherits: .text-field
+ */
+.text-field-config {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+}
+
+.text-field-config:hover {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+}
+
+.text-field-config:focused {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
 }
 
 /** 
@@ -3663,17 +3678,15 @@
     -icons-color: -fx-def-font-color;
     -fx-text-fill: -fx-def-font-color;
 }
- 
 .congfig-field-default-button:pressed:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
- 
 .congfig-field-default-button:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );
 }
 
 
-/***********************************************************************************/
+/******************************************************************************/
 
 
 
@@ -3736,10 +3749,11 @@
     -fx-stroke-type: inside;
 }
 
-//********************************** SPINNER *********************************//
+/********************************** SPINNER ************************************
+ * Simple progress indicator control.
+ * inherits: .arc ().shape)
+ */
 
-/** Simple progress indicator control.
-    extends .arc, .shape */
 .spinner {
     -fx-fill: null;
     -fx-stroke: -fx-def-font-color;
@@ -3748,4 +3762,30 @@
 }
 .spinner-progress {
     -fx-fill: -fx-def-font-color;
+}
+
+/********************************** MENU ***************************************
+ * Menu item with a check icon
+ * inherits: .menu
+ * pseudoclasses: no support -> use .menu-nochildren styleclass instead
+ */
+.checkicon-menu-item {
+    
+}
+
+// inherits: check-icon
+.checkicon-menu-item-icon {
+    // add 1px below to fix vertical alignment, may depend on icon used
+    // add 5px between icon and menu item text
+    -fx-padding: 0 5 1 0;
+}
+.checkicon-menu-item-icon:selected {
+    // leave default
+}
+
+// hide the arrow if no children
+.menu-nochildren > .right-container > .arrow,
+.menu-nochildren:focused > .right-container > .arrow {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
 }

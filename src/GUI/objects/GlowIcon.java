@@ -7,6 +7,7 @@
 package GUI.objects;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
 import util.Animation.Anim;
@@ -26,10 +27,11 @@ public class GlowIcon extends Icon {
         applyCss();
         
         DropShadow b = new DropShadow(6, Color.rgb(130,170,255));
+        b.setInput(new BoxBlur(1,1,1));
         setEffect(b);
         
-        Anim ia = new Anim(at -> b.setRadius(6+15*at)).dur(100);
-        Anim oa = new Anim(at -> b.setRadius(6+15*(1-at))).dur(450).delay(150);
+        Anim ia = new Anim(at -> b.setRadius(6+13*at)).intpl(x->x*x*x).dur(150);
+        Anim oa = new Anim(at -> b.setRadius(6+13*(1-at))).intpl(x->x*x*x).dur(450).delay(150);
         
         // react on hover
         hoverProperty().addListener((ob,ov,nv) -> {

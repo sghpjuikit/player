@@ -1,4 +1,4 @@
-package util.functional.functor;
+package unused;
 
 
 @FunctionalInterface

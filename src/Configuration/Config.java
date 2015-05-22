@@ -180,7 +180,6 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      */
     @Override
     public final V fromS(String str) {
-//        if(isTypeEnumerable() && getType().equals(String.class)) return (V)str;
         if(isTypeEnumerable()) {
             for(V v : enumerateValues()) 
                 if(toS(v).equals(str)) return v;
@@ -188,8 +187,10 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             Log.warn("Can not parse '" + str + "'. No enumerable config value for: "
                     + getGuiName() + ". Using default value.");
             return getDefaultValue();
-        } else
-            return Parser.fromS(getType(), str);
+        } else {
+            V v = Parser.fromS(getType(), str);
+            return v==null ? getDefaultValue() : v;
+        }
     }
     
 /*************************** configurable methods *****************************/

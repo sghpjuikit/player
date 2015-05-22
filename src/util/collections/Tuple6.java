@@ -2,9 +2,9 @@ package util.collections;
 
 import java.util.Objects;
 import static util.collections.Tuples.tuple;
-import util.functional.functor.HexaConsumer;
-import util.functional.functor.HexaFunction;
-import util.functional.functor.HexaPredicate;
+import unused.HexaConsumer;
+import unused.HexaFunction;
+import unused.HexaPredicate;
 
 public class Tuple6<A, B, C, D, E, F> {
     public final A _1;

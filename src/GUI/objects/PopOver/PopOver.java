@@ -27,8 +27,10 @@
 package GUI.objects.PopOver;
 
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.*;
+import static GUI.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import GUI.objects.Text;
 import GUI.objects.Window.stage.WindowBase;
+import static com.sun.javafx.util.Utils.getScreenForPoint;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +57,7 @@ import javafx.stage.WindowEvent;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import javafx.util.Duration;
 import main.App;
+import static util.functional.Util.*;
 
 /**
  * Customized popup window with enhanced functionalities and customizations.
@@ -399,7 +402,7 @@ public class PopOver<N extends Node> extends PopupControl {
         // position (the furthest from any border)
         // do it after the popup is shown, after the desired cordinates are
         // set - those are needed, before adjusting location
-        adjustArrowLocation();
+        //adjustArrowLocation(); // experimental & busted
         
         // move popover so the arrow points to the desired coordinates
         // avoid when no arrow
@@ -462,8 +465,8 @@ public class PopOver<N extends Node> extends PopupControl {
         showThis(null, GUI.objects.Window.stage.Window.getActive().getStage());
         position(pos.calcX(this), pos.calcY(this));
         
-        if(pos==ScreenBottomLeft || pos==ScreenBottomRight || pos==ScreenCenter 
-                || pos==ScreenTopLeft || pos==ScreenTopRight)
+        if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center 
+                || pos==Screen_Top_Left || pos==Screen_Top_Right)
             uninstallMoveWith();
         
     }
@@ -770,8 +773,9 @@ public class PopOver<N extends Node> extends PopupControl {
     // note that the practical value is (GAP-padding)/2 so if padding is 4
     // then real GAP will be 3
     private static double GAP = 9;
+    public ScreenUse screen_preference = APP_WINDOW;
     
-    public enum NodeCentricPos {
+    public static enum NodeCentricPos {
         Center,
         UpLeft,
         UpCenter,
@@ -845,54 +849,104 @@ public class PopOver<N extends Node> extends PopupControl {
             }
         }
     }
-    public enum ScreenCentricPos {
-        ScreenTopRight,
-        ScreenTopLeft,
-        ScreenCenter,
-        ScreenBottomRight,
-        ScreenBottomLeft,
-        AppTopRight,
-        AppTopLeft,
-        AppCenter,
-        AppBottomRight,
-        AppBottomLeft;
+    
+    /** Defines position within the screen area defined by {@link ScreenUse}. */
+    public static enum ScreenCentricPos {
+        Screen_Top_Right,
+        Screen_Top_Left,
+        Screen_Center,
+        Screen_Bottom_Right,
+        Screen_Bottom_Left,
+        App_Top_Right,
+        App_Top_Left,
+        App_Center,
+        App_Bottom_Right,
+        App_Bottom_Left;
         
         public double calcX(PopOver popup) {
-            double W = popup.getSkinn().root.getWidth() + GAP;
+            double W = popup.getSkinn().root.getWidth();
 //            double W = popup.getContentNode().layoutBoundsProperty().get().getWidth() + GAP;
-            Rectangle2D screen = Screen.getPrimary().getBounds();
+            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
             WindowBase app = App.getWindow();
             switch(this) {
-                case AppTopLeft:
-                case AppBottomLeft:     return app.getX();
-                case AppTopRight:
-                case AppBottomRight:    return app.getX()+app.getWidth()-W;
-                case AppCenter:         return app.getX()+app.getWidth()/2-W/2;
-                case ScreenTopLeft:
-                case ScreenBottomLeft:  return 0;
-                case ScreenTopRight:
-                case ScreenBottomRight: return screen.getWidth()-W;
-                case ScreenCenter:      return screen.getWidth()/2-W/2;
+                case App_Top_Left:
+                case App_Bottom_Left:     return app.getX();
+                case App_Top_Right:
+                case App_Bottom_Right:    return app.getX()+app.getWidth()-W;
+                case App_Center:         return app.getX()+app.getWidth()/2-W/2;
+                case Screen_Top_Left:
+                case Screen_Bottom_Left:  return screen.getMinX()+GAP;
+                case Screen_Top_Right:
+                case Screen_Bottom_Right: return screen.getMaxX()-W-GAP;
+                case Screen_Center:      return screen.getMinX()+screen.getWidth()/2-W/2;
                 default: throw new AssertionError(this + " in default switch value.");
             }
         }
         public double calcY(PopOver popup) {
-            double H = popup.getSkinn().root.getHeight() + GAP;
+            double H = popup.getSkinn().root.getHeight();
 //            double H = popup.getContentNode().layoutBoundsProperty().get().getHeight() + GAP;
-            Rectangle2D screen = Screen.getPrimary().getBounds();
+            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
             WindowBase app = App.getWindow();
             switch(this) {
-                case AppBottomLeft:
-                case AppBottomRight:    return app.getY()+app.getHeight()-H;
-                case AppCenter:         return app.getY()+app.getHeight()/2-H/2;
-                case AppTopLeft:
-                case AppTopRight:       return app.getY();
-                case ScreenBottomLeft:
-                case ScreenBottomRight: return screen.getHeight()-H;
-                case ScreenCenter:      return screen.getHeight()/2-H/2;
-                case ScreenTopLeft:
-                case ScreenTopRight:    return 0;
+                case App_Bottom_Left:
+                case App_Bottom_Right:    return app.getY()+app.getHeight()-H;
+                case App_Top_Left:
+                case App_Top_Right:       return app.getY();
+                case App_Center:         return app.getY()+app.getHeight()/2-H/2;
+                case Screen_Bottom_Left:
+                case Screen_Bottom_Right: return screen.getMaxY()-H-GAP;
+                case Screen_Top_Left:
+                case Screen_Top_Right:    return screen.getMinY()+GAP;
+                case Screen_Center:      return screen.getMinY()+screen.getHeight()/2-H/2;
                 default: throw new AssertionError(this + " in default switch value.");
+            }
+        }
+    }
+
+    /** 
+     * Screen area picking strategy for popover position. Decides a rectangular
+     * screen area for popup positioning.
+     */
+    public static enum ScreenUse {
+        /** Area of a main screen will always be picked. */
+        MAIN,
+        /** 
+         * Area of popover's window owner's screen will be picked. This is the 
+         * screen, which contains the window's centrum.
+         */
+        APP_WINDOW,
+        /** 
+         * All screens will be used. Resulting area is a rectangle ranging from
+         * the left most screen's left edge and topmost screen's top edge to
+         * rightmost screen's right edge and bottomost screen's bottom edge.
+         */
+        ALL;
+        
+        /** Returns rectangular screen area */
+        public Rectangle2D getScreenArea(Window w, ScreenCentricPos pos) {
+            Screen ps = Screen.getPrimary();
+            if(this==MAIN) return ps.getBounds();
+            if(this==APP_WINDOW)
+                // rely on official util (someone hid it..., good work genius)
+                return getScreenForPoint(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
+            else {
+                List<Screen> ss = Screen.getScreens();
+                Screen l = min(ss,ps,cmpareBy(a->a.getBounds().getMinX()));
+                Screen r = max(ss,ps,cmpareBy(a->a.getBounds().getMaxX()));
+                switch(pos) {
+                    case Screen_Bottom_Left:
+                    case Screen_Top_Left: return l.getBounds();
+                    case Screen_Bottom_Right:
+                    case Screen_Top_Right: return r.getBounds();
+                    case Screen_Center: {
+                        Screen t = min(ss,ps,cmpareBy(a->a.getBounds().getMinY()));
+                        Screen b = max(ss,ps,cmpareBy(a->a.getBounds().getMaxY()));
+                        return new Rectangle2D(l.getBounds().getMinX(),t.getBounds().getMinY(),
+                                               r.getBounds().getMaxX()-l.getBounds().getMinX(),
+                                               b.getBounds().getMaxY()-t.getBounds().getMinY());
+                    }
+                    default: return null;
+                }
             }
         }
     }

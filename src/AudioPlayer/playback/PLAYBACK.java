@@ -88,7 +88,10 @@ public final class PLAYBACK implements Configurable {
         player.dispose();
     }
     public static void activate() {
-//        Player.state.
+        player.createPlayback(PlaylistManager.getPlayingItem().getURI().toString(), state);
+        if (state.status.get()== PAUSED || state.status.get()==PLAYING) {
+            seek(state.currentTime.get());
+        }
     }
 /******************************************************************************/
     

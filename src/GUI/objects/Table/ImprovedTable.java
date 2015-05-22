@@ -9,6 +9,9 @@ import GUI.GUI;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
+import javafx.beans.InvalidationListener;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
@@ -20,6 +23,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.reactfx.Subscription;
 import util.Util;
 
@@ -217,4 +221,35 @@ public class ImprovedTable<T> extends TableView<T> {
     final void resizeIndexColumn() {
         getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d));
     }
+    
+/***************************** OBSERVABLE VALUE *******************************/
+    
+    /** Minimalistic value wrapper for POJO table views cell value factories. */
+    @Immutable
+    public static class PojoV<T> implements ObservableValue<T> {
+        private final T v;
+        
+        public PojoV(T v) {
+            this.v = v;
+        }
+
+        @Override
+        public void addListener(ChangeListener<? super T> listener) {}
+
+        @Override
+        public void removeListener(ChangeListener<? super T> listener) {}
+
+        @Override
+        public T getValue() {
+            return v;
+        }
+
+        @Override
+        public void addListener(InvalidationListener listener) {}
+
+        @Override
+        public void removeListener(InvalidationListener listener) {}
+        
+    }
+    
 }

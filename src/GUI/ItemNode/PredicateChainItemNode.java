@@ -18,7 +18,7 @@ import static util.functional.Util.*;
  *
  * @author Plutonium_
  */
-public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>> extends ChainConfigField<Tuple2<Predicate<Object>,F>,FilterGenerator<F>> {
+public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T>> extends ChainConfigField<Tuple2<Predicate<Object>,F>,PredicateItemNode<F>> {
 
     private final List<Tuple3<String,Class,F>> data = new ArrayList();
     private BiFunction<F,Predicate<Object>,Predicate<T>> converter;
@@ -26,11 +26,11 @@ public class FilterGeneratorChain<T extends FieldedValue,F extends FieldEnum<T>>
     private boolean inconsistent_state = false;
     private Consumer<Predicate<T>> onFilterChange;
     
-    public FilterGeneratorChain(Supplier<FilterGenerator<F>> chainedFactory) {
+    public PredicateChainItemNode(Supplier<PredicateItemNode<F>> chainedFactory) {
         this(1,chainedFactory);
     }
 
-    public FilterGeneratorChain(int i, Supplier<FilterGenerator<F>> chainedFactory) {
+    public PredicateChainItemNode(int i, Supplier<PredicateItemNode<F>> chainedFactory) {
         super(i, chainedFactory);
         conjuction = isTRUE;
     }

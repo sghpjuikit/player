@@ -14,14 +14,14 @@ import static util.functional.Util.*;
  *
  * @author Plutonium_
  */
-public class ChainFunctionConfigField<T> extends ChainConfigField<Function<T,T>,FunctionConfigField<T,T>> {
+public class FunctionChainItemNode<T> extends ChainConfigField<Function<T,T>,FunctionItemNode<T,T>> {
 
-    public ChainFunctionConfigField(Supplier<PrefList<PF<T,T>>> functionPool) {
-        super(() -> new FunctionConfigField(functionPool));
+    public FunctionChainItemNode(Supplier<PrefList<PF<T,T>>> functionPool) {
+        super(() -> new FunctionItemNode(functionPool));
     }
     
-    public ChainFunctionConfigField(int i, Supplier<PrefList<PF<T,T>>> functionPool) {
-        super(i,() -> new FunctionConfigField(functionPool));
+    public FunctionChainItemNode(int i, Supplier<PrefList<PF<T,T>>> functionPool) {
+        super(i,() -> new FunctionItemNode(functionPool));
     }
     
     @Override

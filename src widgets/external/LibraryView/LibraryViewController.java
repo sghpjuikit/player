@@ -20,6 +20,7 @@ import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Icon;
 import GUI.objects.Table.FilteredTable;
+import GUI.objects.Table.ImprovedTable.PojoV;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import GUI.objects.TableCell.NumberRatingCellFactory;
@@ -40,7 +41,6 @@ import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
 import static javafx.application.Platform.runLater;
 import javafx.beans.Observable;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
@@ -198,10 +198,7 @@ public class LibraryViewController extends FXMLController {
         table.setColumnFactory( mgf -> {
             Metadata.Field mf = fieldFilter.getValue();
             TableColumn<MetadataGroup,?> c = new TableColumn(mgf.toString(mf));
-            c.setCellValueFactory( cf -> {
-                if(cf.getValue()==null) return null;
-                return new ReadOnlyObjectWrapper(cf.getValue().getField(mgf));
-            });
+            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(mgf)));
             String no_val = mgf==VALUE ? "<none>" : "";
             c.setCellFactory(mgf==AVG_RATING 
                 ? (Callback) App.ratingCell.getValue()
@@ -227,15 +224,23 @@ public class LibraryViewController extends FXMLController {
                     contxt_menu.show(this, (TableView)table, e);
                 })
         );
-        // maintain playing item css by refreshing index column
-        d2 = Player.playingtem.subscribeToChanges(o -> table.refresh());
+        // maintain playing item css by refreshing column
+        d2 = Player.playingtem.subscribeToChanges(o -> table.refreshColumnAny());
         
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
         Stream.of(Field.values())
-              .map(f -> new CheckMenuItem(f.toStringEnum(), false, s -> {
-                            if(s) fieldFilter.setNapplyValue(f);
-                        }))
+              .map(f -> new CheckMenuItem(f.toStringEnum(), false){{
+                  this.setOnMouseClicked(() -> {
+                        if(!selected.get()) {
+                            // refresh menu
+                            m.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(false));
+                            selected.set(true);
+                            // apply
+                            fieldFilter.setNapplyValue(f);
+                        }
+                  });
+              }})
               .forEach(m.getItems()::add);
             // refresh when menu opens
         table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));

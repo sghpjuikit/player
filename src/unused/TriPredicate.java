@@ -1,4 +1,4 @@
-package util.functional.functor;
+package unused;
 
 @FunctionalInterface
 public interface TriPredicate<A, B, C> {

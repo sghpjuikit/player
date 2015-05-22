@@ -15,9 +15,9 @@ import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import static java.lang.Integer.parseInt;
-import java.lang.annotation.ElementType;
+import static java.lang.annotation.ElementType.METHOD;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.Target;
 import java.net.URI;
 import java.time.DateTimeException;
@@ -74,7 +74,7 @@ import util.units.NofX;
  * The class is practically immutable and does not provide any setters, nor
  * allows updating of its state or any of its values.
  * <p>
- * Metadata can be empty. See {@link #EMPTY}
+ * Metadata can be empty and hsould be used instead of null. See {@link #EMPTY}
  * <p>
  * The getters of this class return mostly string. For empty fields the output
  * is "" (empty string) and for non-string getters it varies, but it is never 
@@ -159,8 +159,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * <p>
      * Note: The reference operator works, because there is always only one
      * instance of EMPTY metadata.
-     * <p>
-     * Note: EMPTY metadata must never be serialized.
      */
     public static final Metadata EMPTY = new Metadata();
     
@@ -911,20 +909,19 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         int i = getPlaylistIndex();
         return i==-1 ? "" : i + "/" + PlaylistManager.getSize();
     }
-    
+    public static final boolean chaptersIncludeXML = true;
     /**
-     * Returns chapters associated with this item. A {@link Chapter} is a textual
-     * information associated with time and the song item. There are usually
-     * many chapters per item.
+     * Returns chapters associated with this item. A {@link Chapter} represents
+     * a time specific song comment. The result is ordered by natural order.
      * <p>
      * Chapters are concatenated into string located in the Custom2 tag field.
-     * <p>
-     * The result is ordered by natural order.
+     * 
      * @return ordered list of chapters parsed from tag data
      */
+    @MetadataFieldMethod(Field.CHAPTERS)
     public List<Chapter> getChapters() {
         String chapterString = getCustom2();
-        if(chapterString.isEmpty()) return EMPTY_LIST;
+        if(chapterString.isEmpty()&&!chaptersIncludeXML) return EMPTY_LIST;
         
         List<Chapter> cs = new ArrayList();
         // we have got a regex over here so "||\" is equivalent to '\' character
@@ -936,6 +933,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                 // ignore
             }
         }
+        
+        if(chaptersIncludeXML) cs.addAll(getChaptersFromXML());System.out.println("chapters : " + cs.size());
+        cs.sort(Chapter::compareTo);
         return cs;
     }
     
@@ -951,29 +951,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * The result is ordered by natural order.
      * @return ordered list of chapters parsed from xml data
      */
-    public List<Chapter> getChaptersFromXML() {
+    private List<Chapter> getChaptersFromXML() {
         MetadataExtended me = new MetadataExtended(this);
                          me.readFromFile();
         List<Chapter> cs = me.getChapters();
-                      cs.sort(Chapter::compareTo);
-        return cs;
-    }
-    
-    /**
-     * Convenience method combining the results of {@link #getChapters()} and 
-     * {@link #getChaptersFromXML()}.
-     * <p>
-     * This method should only be used when transferring information in legacy
-     * xml files into tag.
-     * <p>
-     * The result is ordered by natural order.
-     * @return ordered list of chapters parsed from all available sources
-     */
-    @MetadataFieldMethod(Field.CHAPTERS)
-    public List<Chapter> getChaptersFromAny() {
-        List<Chapter> cs = new ArrayList();
-                      cs.addAll(getChapters());
-                      cs.addAll(getChaptersFromXML());
                       cs.sort(Chapter::compareTo);
         return cs;
     }
@@ -1097,7 +1078,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                + "lyrics: " + lyrics + "\n"
                + "mood: " + mood + "\n"
                + "color: " + getColor() + "\n"
-               + "chapters: " + mood + "\n" + getChaptersFromAny().stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
+               + "chapters: " + mood + "\n" + getChapters().stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
                + "custom1: " + custom1 + "\n"
                + "custom2: " + custom2 + "\n"
                + "custom3: " + custom3 + "\n"
@@ -1223,8 +1204,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         }
     }
     
-    @Retention(RetentionPolicy.SOURCE) // !used now, stay at source lvl
-    @Target(ElementType.METHOD) 
+    @Retention(SOURCE) // !used now, stay at source lvl
+    @Target(METHOD) 
     public static @interface MetadataFieldMethod {
         Field value();
     }

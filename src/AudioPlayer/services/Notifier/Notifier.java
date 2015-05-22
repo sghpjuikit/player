@@ -13,7 +13,8 @@ import GUI.InfoNode.ItemInfo;
 import GUI.InfoNode.SongInfo;
 import GUI.objects.PopOver.Notification;
 import GUI.objects.PopOver.PopOver;
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.ScreenTopRight;
+import static GUI.objects.PopOver.PopOver.ScreenCentricPos.Screen_Top_Right;
+import static GUI.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import GUI.objects.Text;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
@@ -65,8 +66,10 @@ public final class Notifier implements Service {
     public static double notifFadeTime = 500;
     @IsConfig(name = "Close notification on click anywhere")
     public static boolean notifAutohide = true;
-    @IsConfig(name = "Notification position")
-    public static PopOver.ScreenCentricPos notifPos = ScreenTopRight;
+    @IsConfig(name = "Position")
+    public static PopOver.ScreenCentricPos notifPos = Screen_Top_Right;
+    @IsConfig(name = "Screen", info = "Decides which screen to use for positioning. Main screen, application window screen or all screens as one")
+    public static PopOver.ScreenUse notifScr = APP_WINDOW;
     @IsConfig(name = "On left click")
     public static final AccessorAction onClickL = new AccessorAction("Show application", null);
     @IsConfig(name = "On right click")
@@ -188,6 +191,7 @@ public final class Notifier implements Service {
             n.lClickAction = onClickL.getValueAction();
             n.rClickAction = onClickR.getValueAction();
             // show
+            n.screen_preference = notifScr;
             n.show(notifPos);
         }
     }

@@ -21,11 +21,11 @@ import static util.functional.Util.cmpareBy;
  *
  * @author Plutonium_
  */
-public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>> extends FilterGeneratorChain<T,F> {
+public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>> extends PredicateChainItemNode<T,F> {
 
     public TableFilterGenerator(FilteredList<T> table_list, F prefFilterType) {
         super(() -> {
-            FilterGenerator<F> g = new FilterGenerator<>(
+            PredicateItemNode<F> g = new PredicateItemNode<>(
                 in -> Functors.getIO(in, Boolean.class),
                 in -> Functors.getPrefIO(in, Boolean.class)
             );

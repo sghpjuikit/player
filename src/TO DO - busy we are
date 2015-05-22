@@ -3,6 +3,11 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- converter widget finish
+- metadata fields: DISC,TRACK, etc + Year
+- replaceFirst regex support
+- function item nodes dont react on default button click
+- config apply on change finish through
 - seeker option to show chapters as they are passing  
 - tagger disable unsupported fields for type
 - config fields unify with item node
@@ -15,7 +20,6 @@
 - cover download subsequently !work - temp file?
 - enrich tagging type support  aif? mp4a? etc... + playback support aif?
 - other problems with songs from <none> category
-- bookmarks reimplement through comment field & metadata table
 - playlist table column resizing and serializing
 - app icon
 - library edit on add by drag&drop boolean config

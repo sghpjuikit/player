@@ -7,7 +7,6 @@ package util.functional;
 
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
-import static java.util.Comparator.naturalOrder;
 import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -18,7 +17,7 @@ import java.util.stream.Stream;
 import javafx.util.Callback;
 import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
-import util.functional.functor.FunctionE;
+import util.functional.Functors.F1E;
 
 /**
  *
@@ -192,18 +191,18 @@ public class Util {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
                 throw e;
             }
         };
     }
 
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noExE(FunctionE<I,O> f, Class<?>... ecs) {
+    public static <I,O> Function<I,O> noExE(F1E<I,O> f, Class<?>... ecs) {
         return noExE(null, f, ecs);
     }
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noExE(FunctionE<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Function<I,O> noExE(F1E<I,O> f, Collection<Class<?>> ecs) {
         return noExE(null, f, ecs);
     }
     /** 
@@ -219,17 +218,17 @@ public class Util {
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
      */
-    public static <I,O> Function<I,O> noExE(O or, FunctionE<I,O> f, Class<?>... ecs) {
+    public static <I,O> Function<I,O> noExE(O or, F1E<I,O> f, Class<?>... ecs) {
         return noExE(or, f, list(ecs));
     }
 
     /** Equivalent to {@link #noExE(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
-    public static <I,O> Function<I,O> noExE(O or, FunctionE<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Function<I,O> noExE(O or, F1E<I,O> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
                 return f.apply(i);
             } catch(Exception e) {
-                for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                for(Class<?> ec : ecs) if(ec.isAssignableFrom(e.getClass())) return or;
                 throw new RuntimeException(e);
             }
         };
@@ -288,6 +287,7 @@ public class Util {
     /**
      * Converts collection to string, joining string representations of the
      * elements by separator
+     * 
      * @param c collection
      * @param m element to string mapper
      * @param s delimiter/separator
@@ -300,21 +300,25 @@ public class Util {
     /**
      * Converts collection to string, joining string representations of the
      * elements by ', '.
+     * 
      * @param c collection
      * @param m element to string mapper
-     * @return comma separated string representation of the collection
+     * @return comma separated string representation of the objects in the
+     * collection
      */
     public static<T> String toS(Collection<T> c, Function<T,String> m) {
         return c.stream().map(m).collect(toCSList);
     }
     
     /**
-     * Equivalent to {@code toString(c, Object::toString)}.
+     * Equivalent to {@link #toS(java.util.Collection, java.util.function.Function)}.
+     * 
      * @param c collection
-     * @return comma separated string representation of the collection
+     * @return comma separated string representations of the objects in the
+     * collection
      */
     public static<T> String toS(Collection<T> c) {
-        return toS(c, Object::toString);
+        return c.stream().map(Object::toString).collect(toCSList);
     }
     
     public static<E> E findOrDie(Collection<E> c, Predicate<E> filter) {
@@ -327,51 +331,66 @@ public class Util {
     }
     
     
-    public static <V> V min(V min, BinaryOperator<V> minimizator, V... c) {
-        return Stream.of(c).reduce(min, minimizator);
-    }
-    
-    public static <V> V min(Collection<V> c, V min, BinaryOperator<V> minimizator) {
-        return c.stream().reduce(min, minimizator);
-    }
-    
+    /** 
+     * Returns minimal element from the array using given comparator.
+     * Returns supplied value if it is the smallest, or array is empty.
+     */
     public static <V> V min(V min, Comparator<V> cmp, V... c) {
-        return max(Stream.of(c), min, cmp);
+        return min(Stream.of(c), min, cmp);
     }
     
+    /** 
+     * Returns minimal element from the collection using given comparator.
+     * Returns supplied value if it is the smallest, or collection is empty.
+     */
     public static <V> V min(Collection<V> c, V min, Comparator<V> cmp) {
-        return max(c.stream(), min, cmp);
+        return min(c.stream(), min, cmp);
     }
     
+    /** 
+     * Returns minimal element from the stream using {@link Comparable#compareTo(java.lang.Object)}.
+     * Returns supplied value if it is the smallest, or stream is empty.
+     */
     public static <V extends Comparable<V>> V min(Stream<V> c, V min) {
-        return max(c, min, naturalOrder());
+        return max(c, min, Comparable::compareTo);
     }
     
+    /** 
+     * Returns minimal element from the stream using given comparator.
+     * Returns supplied value if it is the smallest, or stream is empty.
+     */
     public static <V> V min(Stream<V> c, V min, Comparator<V> cmp) {
         return c.reduce(min, (t,u) -> cmp.compare(t, u)<0 ? t : u);
     }
     
-    
-    public static <V> V max(V max, BinaryOperator<V> maximizator, V... c) {
-        return Stream.of(c).reduce(max, maximizator);
-    }
-    
-    public static <V> V max(Collection<V> c, V max, BinaryOperator<V> maximizator) {
-        return c.stream().reduce(max, maximizator);
-    }
-    
+    /** 
+     * Returns maximal element from the array using given comparator.
+     * Returns supplied value if it is the smallest, or array is empty.
+     */
     public static <V> V max(V max, Comparator<V> cmp, V... c) {
         return max(Stream.of(c), max, cmp);
     }
     
+    /** 
+     * Returns maximal element from the collection using given comparator.
+     * Returns supplied value if it is the smallest, or collection is empty.
+     */
     public static <V> V max(Collection<V> c, V max, Comparator<V> cmp) {
         return max(c.stream(), max, cmp);
     }
     
+    /** 
+     * Returns maximal element from the stream using given comparator.
+     * Returns supplied value if it is the smallest, or stream is empty.
+     */
     public static <V extends Comparable<V>> V max(Stream<V> c, V max) {
-        return max(c, max, naturalOrder());
+        return max(c, max, Comparable::compareTo);
     }
     
+    /** 
+     * Returns maximal element from the stream using given comparator.
+     * Returns supplied value if it is the smallest, or stream is empty.
+     */
     public static <V> V max(Stream<V> c, V max, Comparator<V> cmp) {
         return c.reduce(max, (t,u) -> cmp.compare(t, u)>0 ? t : u);
     }

@@ -7,11 +7,11 @@ import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.PopOver.PopOver;
+import static GUI.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.ArrayList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
-import java.util.function.Consumer;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.beans.property.*;
@@ -29,11 +29,13 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
+import static javafx.util.Duration.*;
 import static util.async.Async.run;
 import util.async.executor.FxTimer;
 import util.graphics.fxml.ConventionFxmlLoader;
@@ -50,10 +52,8 @@ public final class Seeker extends AnchorPane {
     
     public static final String STYLECLASS = "seeker";
     
-    // GUI
-    @FXML Slider position;
+    @FXML Slider seeker;
     private final List<Chap> chapters = new ArrayList();
-    
     private boolean canUpdate = true;
     private boolean snaPosToChap = false;
     
@@ -66,13 +66,13 @@ public final class Seeker extends AnchorPane {
         this.setMaxSize(USE_COMPUTED_SIZE,15);
         this.setPrefSize(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
         
-        position.setMin(0);
-        position.setMax(1);
-        position.setCursor(Cursor.HAND);
-        position.getStyleClass().add(STYLECLASS);
+        seeker.setMin(0);
+        seeker.setMax(1);
+        seeker.setCursor(Cursor.HAND);
+        seeker.getStyleClass().add(STYLECLASS);
         
         
-        position.setOnMouseDragged( e -> {
+        seeker.setOnMouseDragged(e -> {
             if(e.getButton()==PRIMARY) {
                 double distance = e.getX();
                 double width = getWidth();
@@ -81,16 +81,16 @@ public final class Seeker extends AnchorPane {
                 if(snaPosToChap)
                     for (Chap c: chapters)
                         if (chapterSnapDistance.get() > Math.abs(distance-c.position*width)) {
-                            position.setValue(c.position);
+                            seeker.setValue(c.position);
                             return;
                         }
-                position.setValue(distance / width);
+                seeker.setValue(distance / width);
             }
         });
-        position.setOnMousePressed( e -> canUpdate = false );
-        position.setOnMouseReleased( e -> {
+        seeker.setOnMousePressed( e -> canUpdate = false );
+        seeker.setOnMouseReleased(e -> {
             if(e.getButton()==PRIMARY) {
-                PLAYBACK.seek(position.getValue());
+                PLAYBACK.seek(seeker.getValue());
                 run(100, () -> canUpdate = true);
             }
         });
@@ -99,28 +99,28 @@ public final class Seeker extends AnchorPane {
         
         
         // new chapter button
-        AddChapButton addB = new AddChapButton(position);
+        AddChapButton addB = new AddChapButton();
                       addB.l.setOpacity(0);
         addEventFilter(MOUSE_MOVED, e -> {
             if(addB.isVisible() && addB.l.getOpacity()>0) {
                 addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
-                addB.p.setY(position.localToScreen(0,0).getY()+13);
+                addB.p.setY(seeker.localToScreen(0,0).getY()+18);
             }
         });
-        position.addEventFilter(MOUSE_ENTERED, e -> {
+        seeker.addEventFilter(MOUSE_ENTERED, e -> {
             addB.show();
             addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
-            addB.p.setY(position.localToScreen(0,0).getY()+13);
+            addB.p.setY(seeker.localToScreen(0,0).getY()+18);
             addB.l.setDisable(!Player.playingtem.get().isFileBased());
         });
-        position.addEventFilter(MOUSE_EXITED, e -> 
+        seeker.addEventFilter(MOUSE_EXITED, e -> 
             run(300, () -> {
-                if(!addB.l.isHover() && !position.isHover()) 
+                if(!addB.l.getParent().isHover() && !seeker.isHover()) 
                     addB.hide();
         }));
-        addB.l.addEventHandler(MOUSE_EXITED, e ->
+        addB.l.getParent().addEventHandler(MOUSE_EXITED, e ->
             run(150, () -> {
-                 if(!addB.l.isHover() && !position.isHover()) 
+                 if(!addB.l.getParent().isHover() && !seeker.isHover()) 
                     addB.hide();
         }));
     }
@@ -141,7 +141,7 @@ public final class Seeker extends AnchorPane {
         if (!showChapters) return;
         
         // populate
-        for (Chapter ch: m.getChaptersFromAny()) {     
+        for (Chapter ch: m.getChapters()) {     
             Chap c = new Chap(ch, ch.getTime().toMillis()/m.getLength().toMillis());
             getChildren().add(c);
             chapters.add(c);
@@ -203,19 +203,19 @@ public final class Seeker extends AnchorPane {
         double newPos = currentTime.get().toMillis()/totalTime.get().toMillis();
         // turn on if you want discrete§ mode 
 //        double unit = 1;
-//        double oldPos = position.getValue();
-//        double dist = position.getWidth() * Math.abs(newPos-oldPos);
+//        double oldPos = seeker.getValue();
+//        double dist = seeker.getWidth() * Math.abs(newPos-oldPos);
 //        if(dist > unit)
-            position.setValue(newPos);
+            seeker.setValue(newPos);
     };
     
     /**
      * Binds to total and current duration value.
      * @param totalTime length of the song
-     * @param currentTime time position within the playback of the song.
+     * @param currentTime time seeker within the playback of the song.
      */
     public void bindTime(ObjectProperty<Duration> totalTime, ObjectProperty<Duration> currentTime) {
-        // atomical binding to avoid illegal position value
+        // atomical binding to avoid illegal seeker value
         this.totalTime.removeListener(positionUpdater);
         this.currentTime.removeListener(positionUpdater);
         this.totalTime.bind(totalTime);
@@ -227,9 +227,9 @@ public final class Seeker extends AnchorPane {
     public void unbindTime() {
         totalTime.unbind();
         currentTime.unbind();
-        totalTime.set(Duration.ZERO);
-        currentTime.set(Duration.ONE);
-        positionUpdater.changed(null,Duration.ZERO, Duration.ZERO);
+        totalTime.set(ZERO);
+        currentTime.set(ONE);
+        positionUpdater.changed(null,ZERO, ZERO);
     }
     
     
@@ -237,29 +237,31 @@ public final class Seeker extends AnchorPane {
     
     private class AddChapButton {
         Popup p;
-        GlowIcon l = new GlowIcon(PLUS_CIRCLE, 18);
-        Slider s;
-        FadeTransition ft = new FadeTransition(Duration.millis(250), l);
+        Icon l = new Icon(PLUS_CIRCLE, 18);
+        FadeTransition ft = new FadeTransition(millis(250), l);
         
-        public AddChapButton(Slider s) {
+        public AddChapButton() {
             p = new Popup();
-            p.getContent().add(l);
-            this.s = s;
+            Pane pn = new StackPane(l);
+                 pn.setPrefSize(25, 25);
+            p.getContent().add(pn);
             
+            l.getStyleClass().add("seeker-add-chapter-button");
+            l.getGraphic().getStyleClass().add("seeker-add-chapter-button");
             l.setDisable(false);
             l.setOnMouseClicked(e -> {
-                double deltaX = p.getX()-Seeker.this.position.localToScreen(0,0).getX()+p.getWidth();
-                addChapterAt(deltaX/s.getWidth());
+                double deltaX = p.getX()+p.getWidth()/2-seeker.localToScreen(0,0).getX();
+                addChapterAt(deltaX/seeker.getWidth());
             });
             l.setOpacity(0);
-            Tooltip.install(l, new Tooltip("Create chapter."));
+            Tooltip.install(l.getParent(), new Tooltip("Create chapter."));
         }
         public void show() {
             ft.setOnFinished(null);
             ft.stop();
-            p.show(s.getScene().getWindow());
-            FadeTransition ft = new FadeTransition(Duration.millis(250), l);
-            if(l.getOpacity()==0) ft.setDelay(Duration.millis(300));
+            p.show(seeker.getScene().getWindow());
+            FadeTransition ft = new FadeTransition(millis(250), l);
+            if(l.getOpacity()==0) ft.setDelay(millis(300));
             ft.setToValue(1);
             ft.setOnFinished(null);
             ft.play();
@@ -267,7 +269,7 @@ public final class Seeker extends AnchorPane {
         public void hide() {
             ft.setOnFinished(null);
             ft.stop();
-            ft.setDelay(Duration.ZERO);
+            ft.setDelay(ZERO);
             ft.setToValue(0);
             ft.setOnFinished(a -> p.hide());
             ft.play();
@@ -279,16 +281,15 @@ public final class Seeker extends AnchorPane {
     }
     
     
-    
+    private boolean editOnOpen = false;
     private void addChapterAt(double x) {
         Duration now = totalTime.get().multiply(x);
-        Chap c = new Chap(new Chapter(now, ""), position.getValue());
+        Chap c = new Chap(new Chapter(now, ""), seeker.getValue());
              c.setOpacity(0.5);
         getChildren().add(c);
-             c.setLayoutX(x*position.getWidth());
+             c.setLayoutX(x*seeker.getWidth());
              c.showPopup();
-             c.setOnEditFinish( success -> getChildren().remove(c));
-             c.startEdit();
+        editOnOpen = true;
     }
     
 /******************************************************************************/
@@ -318,38 +319,40 @@ public final class Seeker extends AnchorPane {
             // set up skin
             this.getStyleClass().add(STYLECLASS);
             // set up layout
-            double height = //Seeker.this.position.getLayoutY() + 
-                    (Seeker.this.position.getBoundsInParent().getHeight() - getPadding().getTop())/2;
-//            this.layoutYProperty().bind(Seeker.this.position.heightProperty().subtract(heightProperty()).divide(2));
+            double height = //Seeker.this.seeker.getLayoutY() + 
+                    (Seeker.this.seeker.getBoundsInParent().getHeight() - getPadding().getTop())/2;
+//            this.layoutYProperty().bind(Seeker.this.seeker.heightProperty().subtract(heightProperty()).divide(2));
 //            double height = (Seeker.this.getLayoutBounds().getHeight()-getLayoutBounds().getHeight())/4;
             AnchorPane.setTopAnchor(this, 3d);
             // build animations
-            start = new ScaleTransition(Duration.millis(150), this);
+            start = new ScaleTransition(millis(150), this);
             start.setToX(8);
             start.setToY(1);
-            end = new ScaleTransition(Duration.millis(150), this);
+            end = new ScaleTransition(millis(150), this);
             end.setToX(1);
             end.setToY(1);
             // show popup when starting animation ends
-            start.setOnFinished( e-> showPopup() );
+            start.setOnFinished(e -> showPopup() );
             // set off starting animation when mouse hovers
-            this.setOnMouseEntered( e -> {
-                if (popupChapters)start.play();
-            });
+            this.setOnMouseEntered(e -> showPopup());
             // set off ending animation if popup open
-            this.setOnMouseExited( e -> {
+            this.setOnMouseExited(e -> {
                 start.stop();
                 if(p==null || !p.isShowing()) end.play();
             });
             // seek to chapter on click
-            this.setOnMouseClicked( e -> seekTo() );
-//            this.setCursor(Cursor.HAND);
+            this.setOnMouseClicked(e -> seekTo());
         }
         
-        public final void showPopup() {
+        public void showPopup() {
+            start.setOnFinished(popupChapters ? e -> showPopupReal() : null);
+            start.play();
+        }
+        
+        public void showPopupReal() {
             // hide other popups if only one allowed
-            if(Seeker.this.singleChapterPopupMode) 
-                Seeker.this.chapters.forEach(Chap::hidePopup);
+            if(singleChapterPopupMode) 
+                chapters.stream().filter(f->f!=this).forEach(Chap::hidePopup);
             // build popup if not yet built
             if(p==null) {
                 // --------   build
@@ -363,31 +366,27 @@ public final class Seeker extends AnchorPane {
                 // buttons
                 editB = new Icon(PENCIL, 11, "Edit chapter", this::startEdit);
                 commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
-                delB = new Icon(TRASH_ALT, 11, "Remove chapter", e -> {
+                delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
                      Metadata m = Player.playingtem.get();
-//                     // avoid removing chapter that does not exist
-//                     if (!m.containsChapterAt((long) c.getTime().toMillis()))
-//                         return;
                      MetadataWriter.use(m, w->w.removeChapter(c,m));
-                     e.consume();
                 });
                 cancelB = new Icon(REPLY, 11, "Cancel edit", this::cancelEdit);
                 Icon nextB = new Icon(CHEVRON_RIGHT, 11, "Next chapter", () -> {
                     int i = Seeker.this.chapters.indexOf(this) + 1;
-                    if(Seeker.this.chapters.size()>i){
+                    if(chapters.size()>i){
                         hidePopup();
-                        Seeker.this.chapters.get(i).showPopup();
+                        chapters.get(i).showPopup();
                     }
                 });
                 Icon prevB = new Icon(CHEVRON_LEFT, 11, "Previous chapter", () -> {
-                    int i = Seeker.this.chapters.indexOf(this) - 1;
+                    int i = chapters.indexOf(this) - 1;
                     if(0<=i){
                         hidePopup();
-                        Seeker.this.chapters.get(i).showPopup();
+                        chapters.get(i).showPopup();
                     }
                 });
-                int i = Seeker.this.chapters.indexOf(this);
-                if(Seeker.this.chapters.size()-1 == i)
+                int i = chapters.indexOf(this);
+                if(chapters.size()-1 == i)
                     nextB.setDisable(true);
                 if(0 == i)
                     prevB.setDisable(true);
@@ -395,11 +394,11 @@ public final class Seeker extends AnchorPane {
                     // build help content for help popup if not yet built
                     // with this we avoid constructing multuple popups
                     if(helpP == null) {
-                        String t = "Single click : Close\n" +
-                                   "Double L click : Seek\n" +
-                                   "Double R click : Start edit\n" +
-                                   "Enter : Apply edit changes\n" +
-                                   "Escape : Cancel edit";
+                        String t = "Single click : Close\n"
+                                 + "Double L click : Seek\n"
+                                 + "Double R click : Start edit\n"
+                                 + "Enter : Apply edit changes\n"
+                                 + "Escape : Cancel edit";
                         helpP = PopOver.createHelpPopOver(t);
                     }
                     helpP.show((Node)e.getSource());
@@ -408,6 +407,7 @@ public final class Seeker extends AnchorPane {
                 // popup
                 p = new PopOver(content);
                 p.getSkinn().setContentPadding(new Insets(8));
+                p.setArrowLocation(TOP_CENTER);
                 p.setAutoHide(true);
                 p.setHideOnEscape(true);
                 p.setHideOnClick(false); // we will emulate it on our own
@@ -445,6 +445,8 @@ public final class Seeker extends AnchorPane {
             }
             // show if not already
             if(!p.isShowing()) p.show(this);
+            if(editOnOpen) startEdit();
+            editOnOpen = false;
         }
         
         public void hidePopup() {
@@ -504,14 +506,15 @@ public final class Seeker extends AnchorPane {
         /** Ends editable mode and applies changes. */
         public void commitEdit() {
             // apply new value only when changed
-            if (!c.getText().equals(ta.getText())) {
+            String text = ta.getText();
+            if (!c.getText().equals(text)) {
                 // persist changes visually
-                message.setText(ta.getText());
+                message.setText(text);
                 message.setWrappingWidthNatural(true);
                 // and physically 
-                c.setText(ta.getText());
+                c.setText(text);
                 Metadata m = Player.playingtem.get();
-                MetadataWriter.use(m, w->w.setChapter(c,m));
+                MetadataWriter.use(m, w->w.addChapter(c,m));
             }
             // go back visually
             content.getChildren().remove(ta);
@@ -522,8 +525,7 @@ public final class Seeker extends AnchorPane {
             p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);
             // stop edit
             editOn = false;
-            // fire successful edit finish event after edit ends
-            if(onEditFinish!=null) onEditFinish.accept(true);
+            Seeker.this.getChildren().remove(this);
         }
         
         /** Ends editable mode and discards all changes. */
@@ -535,24 +537,12 @@ public final class Seeker extends AnchorPane {
             p.getHeaderIcons().remove(cancelB);
             // stop edit
             editOn = false;
-            // fire unsuccessful edit finish event after edit ends
-            if(onEditFinish!=null) onEditFinish.accept(false);
+            Seeker.this.getChildren().remove(this);
             
         }
         
         public void seekTo() {
             PLAYBACK.seek(c.getTime());
-        }
-        
-        Consumer<Boolean> onEditFinish;
-        
-        /**
-         * Sets behavior executed after editing finishes.
-         * @param procedure to execute with a success parameter where true
-         * signifies changes were applied and false indicates cancellation.
-         */
-        public void setOnEditFinish(Consumer<Boolean> onEditFinish) {
-            this.onEditFinish = onEditFinish;
         }
         
         public void position() {

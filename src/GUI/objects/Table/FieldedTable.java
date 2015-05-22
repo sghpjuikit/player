@@ -188,16 +188,16 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             defColInfo.columns.streamV()
                     .sorted(cmpareBy(c->c.name))
                     .map(c-> {
-                        CheckMenuItem mi = new CheckMenuItem(c.name,c.visible,v->setColumnVisible(c.name, v));
+                        CheckMenuItem m = new CheckMenuItem(c.name,c.visible,v -> setColumnVisible(c.name, v));
                         F f = nameToF(c.name);
                         String desc = f==null ? "" : f.getDescription();
-                        if(!desc.isEmpty()) Tooltip.install(mi.getGraphic(), new Tooltip(desc));
-                        return mi;
+                        if(!desc.isEmpty()) Tooltip.install(m.getGraphic(), new Tooltip(desc));
+                        return m;
                     })
                     .forEach(columnVisibleMenu.getItems()::add);
             // update column menu check icons every time we show it
             // the menu is rarely shown + no need to update it any other time
-            columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(isColumnVisible(mi.getText()))));
+            columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems().forEach(i -> ((CheckMenuItem)i).selected.set(isColumnVisible(i.getText()))));
             // link table column button to our menu instead of an old one
             runLater(()->{
                 TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
@@ -233,6 +233,17 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     public Optional<TableColumn<T,?>> getColumn(F f) {
         return getColumn(f.toString());
+    }
+
+
+    public void refreshColumn(F f) {
+        getColumn(f).ifPresent(this::refreshColumn);
+    }
+    public void refreshColumn(String name) {
+        getColumn(name).ifPresent(this::refreshColumn);
+    }
+    public void refreshColumnAny() {
+        if(!getColumns().isEmpty()) refreshColumn(getColumns().get(0));
     }
     
 /************************************* SORT ***********************************/

@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.*;
@@ -86,14 +85,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         });
         setColumnFactory( f -> {
             TableColumn<PlaylistItem,?> c = new TableColumn(f.toString());
-            if(f==NAME || f==LENGTH) {
-                c.setCellValueFactory(new PropertyValueFactory(f.name()));
-            } else {
-                c.setCellValueFactory( cf -> {
-                    if(cf.getValue()==null) return null;
-                    return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
-                });
-            }
+            c.setCellValueFactory( f==NAME || f==LENGTH
+                    ? new PropertyValueFactory(f.name())
+                    : cf -> cf.getValue()== null ? null : new PojoV(cf.getValue().getField(f))
+            );
             c.setCellFactory(cellFactoryAligned(f.getType(), ""));
             c.setResizable(true);
             return c;

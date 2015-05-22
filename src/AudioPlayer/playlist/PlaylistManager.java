@@ -646,7 +646,7 @@ public class PlaylistManager implements Configurable {
         // build popup
         PopOver p = new PopOver(title, content);
                 p.getHeaderIcons().add(infoB);
-                p.show(PopOver.ScreenCentricPos.AppCenter);
+                p.show(PopOver.ScreenCentricPos.App_Center);
                 p.detached.set(true);
     }
 

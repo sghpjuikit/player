@@ -5,7 +5,7 @@
  */
 package GUI.ItemNode;
 
-import GUI.ItemNode.ChainFunctionConfigField;
+import GUI.ItemNode.FunctionChainItemNode;
 import GUI.ItemNode.ItemNode;
 import java.util.List;
 import java.util.function.Supplier;
@@ -29,11 +29,11 @@ public class TextListArea extends ItemNode<List<String>>{
     private final VBox root = new VBox();
     private final Label nameL = new Label();
     private final TextArea area = new TextArea();
-    private final ChainFunctionConfigField<String> transforms;
+    private final FunctionChainItemNode<String> transforms;
     private List<String> input;
     
     public TextListArea(Supplier<PrefList<PF<String,String>>> functionPool) {
-        transforms = new ChainFunctionConfigField(functionPool);
+        transforms = new FunctionChainItemNode(functionPool);
         transforms.onItemChange = f -> area.setText(input.stream().map(f).collect(Collectors.joining("\n")));
         area.textProperty().addListener((o,ov,nv) -> changeValue(split(nv, "\n", x->x)));
         // layout

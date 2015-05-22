@@ -2,9 +2,9 @@ package util.collections;
 
 import java.util.Objects;
 import static util.collections.Tuples.tuple;
-import util.functional.functor.TetraConsumer;
-import util.functional.functor.TetraFunction;
-import util.functional.functor.TetraPredicate;
+import unused.TetraConsumer;
+import unused.TetraFunction;
+import unused.TetraPredicate;
 
 public class Tuple4<A, B, C, D> {
     public final A _1;

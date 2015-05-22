@@ -20,6 +20,7 @@ import GUI.objects.Icon;
 import GUI.objects.Spinner.Spinner;
 import GUI.objects.Table.FilteredTable;
 import GUI.objects.Table.ImprovedTable;
+import GUI.objects.Table.ImprovedTable.PojoV;
 import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import GUI.objects.TableRow.ImprovedTableRow;
@@ -38,7 +39,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -82,8 +82,8 @@ import static util.async.Async.FX;
 import util.async.executor.FxTimer;
 import util.async.executor.LimitedExecutor;
 import util.async.future.Fut;
-import static util.functional.Util.map;
 import static util.functional.Util.filterMap;
+import static util.functional.Util.map;
 import util.functional.functor.FunctionC;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
@@ -196,10 +196,7 @@ public class LibraryController extends FXMLController {public String a() { retur
         });
         table.setColumnFactory( f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
-            c.setCellValueFactory( cf -> {
-                if(cf.getValue()==null) return null;
-                return new ReadOnlyObjectWrapper(cf.getValue().getField(f));
-            });
+            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
             c.setCellFactory(f==RATING
                 ? (FunctionC) App.ratingCell.getValue()
                 : cellFactoryAligned(f.getType(), ""));
@@ -242,8 +239,8 @@ public class LibraryController extends FXMLController {public String a() { retur
                 })                // additional css styleclasses
                 .styleRuleAdd("played", Player.playingtem.get()::same)
         );
-        // maintain playing item css by refreshing index column
-        d4 = Player.playingtem.subscribeToChanges(o -> table.refresh());
+        // maintain playing item css by refreshing column
+        d4 = Player.playingtem.subscribeToChanges(o -> table.refreshColumnAny());
         
         // key actions
         table.setOnKeyReleased(e -> {

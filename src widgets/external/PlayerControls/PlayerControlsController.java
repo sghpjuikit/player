@@ -101,6 +101,8 @@ public class PlayerControlsController extends FXMLController implements Playback
     public final Accessor<Boolean> popupChapters = new Accessor<>(true, seeker::setChaptersShowPopUp);
     @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
     public final Accessor<Boolean> snapToChap = new Accessor<>(true, seeker::setSnapToChapters);
+    @IsConfig(name = "Show max 1 chapter", info = "Allows only one chapter popup to be visible at any time. Opening new chapter closes all open chapters.")
+    public final Accessor<Boolean> singleChapMode = new Accessor<>(true, seeker::setSinglePopupMode);
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")

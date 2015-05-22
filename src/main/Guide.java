@@ -144,7 +144,7 @@ public final class Guide {
             // - avoids unneded show() call
             // - avoids relocating thepopupas a result of alignment with different popup size
             // - the popup size depends on the text
-            if (!p.isShowing()) p.show(PopOver.ScreenCentricPos.AppCenter);
+            if (!p.isShowing()) p.show(PopOver.ScreenCentricPos.App_Center);
             // progress
             infoL.setText((at+1) + "/" + hints.size());
             // title + text

@@ -89,6 +89,7 @@ public class Icon extends Label {
         getStyleClass().add("icon");
         
         setContentDisplay(CENTER);
+        setCache(true);
         setPickOnBounds(true);
         getGraphic().setPickOnBounds(true);
     }

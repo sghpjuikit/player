@@ -24,7 +24,7 @@ import util.collections.PrefList;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
 import static util.collections.Tuples.tuple;
-import GUI.ItemNode.FunctionConfigField;
+import GUI.ItemNode.FunctionItemNode;
 import util.functional.Functors.PF;
 import static util.functional.Util.isTRUE;
 
@@ -32,12 +32,12 @@ import static util.functional.Util.isTRUE;
  *
  * @author Plutonium_
  */
-public class FilterGenerator<T> extends ItemNode<Tuple2<Predicate<Object>,T>> {
+public class PredicateItemNode<T> extends ItemNode<Tuple2<Predicate<Object>,T>> {
     
     private static final Tooltip negTooltip = new Tooltip("Negate");
         
     private final ComboBox<Tuple3<String,Class,T>> typeCB = new ImprovedComboBox<>(t->t._1);
-    private FunctionConfigField<Object,Boolean> config;
+    private FunctionItemNode<Object,Boolean> config;
     private final CheckIcon negB = new CheckIcon(false, "filter-negate-icon");
     private final HBox root = new HBox(5,negB,typeCB);
     
@@ -46,14 +46,14 @@ public class FilterGenerator<T> extends ItemNode<Tuple2<Predicate<Object>,T>> {
     private Supplier<Tuple3<String,Class,T>> prefTypeSupplier;
     boolean inconsistentState = false;
     
-    public FilterGenerator(Callback<Class,PrefList<PF<?,Boolean>>> predicatePool, Callback<Class,PF<?,Boolean>> prefPredicatePool) {
+    public PredicateItemNode(Callback<Class,PrefList<PF<?,Boolean>>> predicatePool, Callback<Class,PF<?,Boolean>> prefPredicatePool) {
         pPool = predicatePool;
         ppPool = prefPredicatePool;
         root.setAlignment(CENTER_LEFT);
         typeCB.setVisibleRowCount(25);
         typeCB.valueProperty().addListener((o,ov,nv) -> {System.out.println("tt");
             if(config!=null) root.getChildren().remove(config.getNode());
-            config = new FunctionConfigField(() -> pPool.call(nv._2));
+            config = new FunctionItemNode(() -> pPool.call(nv._2));
             root.getChildren().add(config.getNode());
             HBox.setHgrow(config.getNode(), ALWAYS);
             config.onItemChange = v -> generatePredicate();

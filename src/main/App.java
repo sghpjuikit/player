@@ -22,7 +22,6 @@ import GUI.objects.Window.stage.Window;
 import GUI.objects.Window.stage.WindowManager;
 import Layout.Areas.Area;
 import Layout.Widgets.WidgetManager;
-import Library.BookmarkManager;
 import java.io.File;
 import static java.lang.Math.random;
 import java.net.URI;
@@ -298,7 +297,6 @@ public class App extends Application {
                     .forEach(Service::stop);
             Player.state.serialize();            
             Configuration.save();
-            BookmarkManager.saveBookmarks();
         }
         DB.stop();
         Action.stopGlobalListening();

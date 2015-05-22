@@ -425,7 +425,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if(v!=null) {
             PopOver p = new PopOver(new Text(v.text));
-            p.show(PopOver.ScreenCentricPos.AppCenter);
+            p.show(PopOver.ScreenCentricPos.App_Center);
             return;
         }
         

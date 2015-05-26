@@ -46,6 +46,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
@@ -84,7 +86,6 @@ import util.async.executor.LimitedExecutor;
 import util.async.future.Fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
-import util.functional.functor.FunctionC;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -187,7 +188,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     public void init() {
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        table.scrollFilterField = TITLE;
+        table.searchSetColumn(TITLE);
         
         // set up table columns
         table.setColumnStateFacory( f -> {
@@ -197,18 +198,24 @@ public class LibraryController extends FXMLController {public String a() { retur
         table.setColumnFactory( f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
             c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
+            
+            
+            Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
             c.setCellFactory(f==RATING
-                ? (FunctionC) App.ratingCell.getValue()
-                : cellFactoryAligned(f.getType(), ""));
-            if(f==Metadata.Field.TRACK || f==Metadata.Field.DISC || 
-               f==Metadata.Field.TRACKS_TOTAL || f==Metadata.Field.DISCS_TOTAL) {
-                c.setComparator((Comparator) new Comparator<Integer>() {
-                    @Override
-                    public int compare(Integer o1, Integer o2) {
-                        return Integer.compare(o1, o2);
-                    }
-                });
-            }
+                ? (Callback)App.ratingCell.getValue()
+                : (Callback) p -> {
+                    TableCell<Metadata,Object> cell = new TableCell<Metadata,Object>(){
+                        @Override
+                        protected void updateItem(Object item, boolean empty) {
+                            super.updateItem(item, empty);
+                            setText(empty ? "" : f.toS(item,"<none>"));
+                        }
+                    };
+                    cell.setAlignment(a);
+                    return cell;
+                }
+            );
+            
             return c;
         });
         
@@ -236,11 +243,12 @@ public class LibraryController extends FXMLController {public String a() { retur
                         tbl.getSelectionModel().clearAndSelect(r.getIndex());
                     // show context menu
                     contxt_menu.show(table, e);
-                })                // additional css styleclasses
-                .styleRuleAdd("played", Player.playingtem.get()::same)
+                })                
+                // additional css styleclasses
+                .styleRuleAdd("played", m -> Player.playingtem.get().same(m))
         );
         // maintain playing item css by refreshing column
-        d4 = Player.playingtem.subscribeToChanges(o -> table.refreshColumnAny());
+        d4 = Player.playingtem.subscribeToChanges(o -> table.updateStyleRules());
         
         // key actions
         table.setOnKeyReleased(e -> {

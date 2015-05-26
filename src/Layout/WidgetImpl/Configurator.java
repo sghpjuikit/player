@@ -3,11 +3,14 @@ package Layout.WidgetImpl;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.ItemNode.ConfigField;
+import GUI.objects.Icon;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Controller;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.RECYCLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.REFRESH;
 import java.util.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -33,13 +36,14 @@ import util.graphics.fxml.ConventionFxmlLoader;
     + "    OK : Applies any unapplied change\n"
     + "    Default : Set default value for this setting\n",
     notes = "To do: generate active widget settings, allow subcategories.",
-    version = "0.9",
-    year = "2014",
+    version = "1",
+    year = "2015",
     group = Widget.Group.APP
 )
 public final class Configurator extends AnchorPane implements Controller<ClassWidget>, ConfiguringFeature {
 
     // gui & state
+    @FXML Pane controls;
     @FXML Accordion accordion;
     private final Map<String, ConfigGroup> groups = new HashMap();
     private final List<ConfigField> configFields = new ArrayList();
@@ -54,11 +58,14 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         if (groups.containsKey(v))
             accordion.setExpandedPane(groups.get(v).pane);
     });
+    private final Icon reI = new Icon(REFRESH,13,"Refresh al",this::refresh);
+    private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
     public Configurator() {
         
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
+        controls.getChildren().addAll(reI,defI);
 
         // clear previous fields
         configFields.clear();
@@ -88,7 +95,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         groups.values().stream()
             .sorted(cmpareNoCase(ConfigGroup::name))
             .forEach(g -> accordion.getPanes().add(g.pane));
-
+        
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
     }
@@ -114,7 +121,10 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         alignemnt.applyValue();
 //        title_align.applyValue();
         expanded.applyValue();
-        // refresh values
+        refreshConfigs();
+    }
+    
+    public void refreshConfigs() {
         configFields.forEach(ConfigField::refreshItem);
     }
 

@@ -4,7 +4,6 @@
 --------------------------------------------------------------------------------
 
 - converter widget finish
-- metadata fields: DISC,TRACK, etc + Year
 - replaceFirst regex support
 - function item nodes dont react on default button click
 - config apply on change finish through
@@ -26,8 +25,6 @@
 - tagger cover loading optimize
 - plugin discovery/load
 - library view save selection
-- Player contorls nullpointer when nothing plays on init()
-- seeker nullpointer when quickly invoking next item
 - popover position jumps when drag starts
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
@@ -102,6 +99,9 @@ GENERAL
   Reading metadata failed for file: O:\music\soundtracks\games\Mass Effect3 
   (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg.Corrupt or 
   inaccessible file or data.
+- seeker has totaltime null when changing songs very quickly. the root cause    (medium, state inconsistency)
+  probably goes to PLAYER.playback. Fixing seeker causes playback incrementer
+  failure. So... 
 
 
 SOLVED (but the underlying cause still deserves attention)
@@ -139,11 +139,6 @@ SOLVED (but the underlying cause still deserves attention)
   main window this way doesnt execute the necessary actions. Also, with the
   hidden owner window app wont close as one window remains open
   solution: have onCloseRequest event execute close()
-- little bug with position slider on manual seeking                             (minor)
-  cause: it takes a while for seek() to actually seek. During this time the
-  seeker jumps back to back position
-  solution: after mouse is released canUpdate is set to true, set canUpdate     (OK)
-  to true with a 100ms delay.
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
@@ -173,10 +168,7 @@ UNIFICATIONS, OVERHAULS, REDESIGN
 
 PERFORMANCE
 - transparent stage java low FPS bug                                            (major)
-- container & widget closing - implement & document properly, remove memleaks   (medium)
 - skin memory consumption investigate                                           (medium)
-  it appears that the skin eats lot more of memory compared to Modena
-- configs memory - for example COnfigurator widget consumes about 40MB
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------

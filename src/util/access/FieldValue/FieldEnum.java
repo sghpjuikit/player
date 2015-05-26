@@ -14,6 +14,10 @@ import util.access.TypedValue;
  */
 public interface FieldEnum<T> extends TypedValue, SteroidObject {
     
-    public String getDescription();
+    /** Returns name of the field. */
+    public String description();
+    
+    /** Returns description of the field. */
+    public String name();
     
 }

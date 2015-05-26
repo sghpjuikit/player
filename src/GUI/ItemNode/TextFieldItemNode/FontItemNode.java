@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.ItemNode.ItemTextFields;
+package GUI.ItemNode.TextFieldItemNode;
 
 import javafx.scene.text.Font;
 import org.controlsfx.dialog.Dialogs;
@@ -14,9 +14,9 @@ import util.parsing.Parser;
  *
  * @author Plutonium_
  */
-public class FontTextField extends ItemTextField<Font> {
+public class FontItemNode extends TextFieldItemNode<Font> {
 
-    public FontTextField() {
+    public FontItemNode() {
         super(Parser.toConverter(Font.class));
     }
     

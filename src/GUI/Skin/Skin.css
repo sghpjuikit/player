@@ -3202,17 +3202,12 @@
     // -fx-opacity: 0.32;           // emulate -fx-pane-color
 }
 
-/************************************ WINDOW ***********************************/
-
-/* Window. More specifically its root pane. Element with this class will also have class
-   of root, but prefer this class and leave .root empty.
-   available pseudoclasses: focused, hover */
+/************************************ WINDOW ***********************************
+ * Window. More specifically its root pane. 
+ * inherits: .root
+ * pseudoclasses: focused, hover, resized, moved, fullscreen
+ */
 .window {
-    /* We can also use bgr image (see below classes), but always fill some basic 
-       color behind just in case.
-       If no image is set or is partially transparent this color is the basic bgr. */
-    //-fx-background-color: black;
-    //-fx-background-color: null;
 }
 .window:hover {
 }
@@ -3225,6 +3220,7 @@
 }
 .window:fullscreen {
 }
+
 // empty layer right above background for brg-image. It is possible to use more
 // complex backgrounds by specifying both .background and .bgr-image while using
 // sub 1 opacity
@@ -3236,7 +3232,7 @@
     -fx-background-size: stretch;
 }
 
-/* Header. Inherits .block & .header styleclass */
+// Inherits .block, .header
 .window > .header {
 }
 .window:focused > .header {
@@ -3249,26 +3245,49 @@
     -fx-border-insets: -2, -1;
 }
 
-/* left, right, bottom borders of the window. There is no top border as there is
-   a header instead. When header collapses it turns into top border
-   Therefore skinning both header and border to the same background is
-   recommended */
-.window > .w-border {
-    // lets leave borders transparent (note that window content is clipped) so
-    // we will simply see window bgr
-    
-    // good alternative below
-    //-fx-background-color: -fx-pane-color;
+// left, right, bottom borders of the window. There is no top border as there is
+// a header instead. When header collapses it turns into top border.
+// Skinning both header and border to the same background is recommended
+.w-border {
+    -fx-background-color: -fx-pane-color;
 }
 
 /****************************************************************************************/
 
-/* Widget area. Inherits .block styleclass */
+/** 
+ * Pane border created with path.
+ * The path is build out of multiple path objects and does not necessarily create 
+ * a single visual shape
+ * extends .path, .shape
+ */
+.path-border {
+    -fx-fill: null;
+    -fx-stroke: -fx-def-font-color;
+    -fx-stroke-width: 2;
+    -fx-stroke-type: inside;
+}
+
+/** 
+ * Area pane border.
+ * inherits: .path-border.
+ */
+.area-path-border {
+    -fx-fill: null;
+    -fx-stroke: -fx-pane-color;
+    -fx-stroke-width: 2;
+    -fx-stroke-type: inside ;
+    -fx-stroke-line-cap: butt;
+}
+
+/* 
+ * Widget area
+ * inherits: .block
+ */
 .area {
     // default padding for all widgets
-    // note: widget devs should implement their own padding for the widget's
-    // content
-    -fx-padding: 0;
+    // note: widgets shouldnt have their own padding to remain consistent
+    -fx-padding: 4;
+    -fx-background-insets: 2;   // margin, by default set to area-path-border width
 }
 
 /* Widget area in layout mode. Inherits .block styleclas.
@@ -3276,7 +3295,6 @@
 .area-control {
     
 }
-
 
 .freeflowcontainer-window {
     
@@ -3291,6 +3309,7 @@
 /** Choosable element inside layouter. Subclasses .block */
 .layouter-element {
 }
+
 
 /* HBox containing buttons within a header */
 .header-buttons {
@@ -3316,14 +3335,15 @@
     -fx-stroke-color: black;
 }
 
-//***** more row/cell pseudoclasses for ListView, TableView, TreeView, etc ****/
-
-// dev.note: note that applying pseudoclasses on rows will not affect the cells within them
-// it depends on what attribute is being changed. Pseudoclasses must be
-// set on both row-cell and children cells in the row cell factory.
-
-// indexed-cell applies to both row-cell and cell, so be aware, that using effects
-// (e.g. shadow) will apply it twice
+/****** more row/cell pseudoclasses for ListView, TableView, TreeView, etc *****
+ *
+ * dev.note: note that applying pseudoclasses on rows will not affect the cells within them
+ * it depends on what attribute is being changed. Pseudoclasses must be
+ * set on both row-cell and children cells in the row cell factory.
+ *
+ * indexed-cell applies to both row-cell and cell, so be aware, that using effects
+ * (e.g. shadow) will apply it twice
+ */
 
 // denotes a currently playd record in the playlist or other table
 .indexed-cell:played,
@@ -3727,26 +3747,6 @@
 // rating is at max value
 .rating-button:max {
     -fx-fill: derive(-fx-def-font-color,50%);;
-}
-
-//************************************ PANE **********************************//
-
-/** Pane border created with path.
-    extends .path, .shape */
-.path-border {
-    -fx-fill: null;
-    -fx-stroke: -fx-def-font-color;
-    -fx-stroke-width: 2;
-    -fx-stroke-type: inside;
-}
-
-/** Pane border created with path.
-    extends .path, .shape. Does not extend path-border.*/
-.area-path-border {
-    -fx-fill: null;
-    -fx-stroke: -fx-pane-color;
-    -fx-stroke-width: 2;
-    -fx-stroke-type: inside;
 }
 
 /********************************** SPINNER ************************************

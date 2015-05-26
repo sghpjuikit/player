@@ -5,17 +5,12 @@
  */
 package GUI.ItemNode;
 
-import GUI.ItemNode.FunctionChainItemNode;
-import GUI.ItemNode.ItemNode;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
+import static java.util.stream.Collectors.joining;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.StackPane;
+import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
-import static util.Util.capitalizeStrong;
 import util.collections.PrefList;
 import util.functional.Functors.PF;
 import static util.functional.Util.split;
@@ -24,30 +19,29 @@ import static util.functional.Util.split;
  *
  * @author Plutonium_
  */
-public class TextListArea extends ItemNode<List<String>>{
+public class StringListItemNode extends ItemNode<List<String>>{
     
     private final VBox root = new VBox();
-    private final Label nameL = new Label();
     private final TextArea area = new TextArea();
     private final FunctionChainItemNode<String> transforms;
     private List<String> input;
     
-    public TextListArea(Supplier<PrefList<PF<String,String>>> functionPool) {
+    public StringListItemNode(Supplier<PrefList<PF<String,String>>> functionPool) {
         transforms = new FunctionChainItemNode(functionPool);
-        transforms.onItemChange = f -> area.setText(input.stream().map(f).collect(Collectors.joining("\n")));
+        transforms.onItemChange = f -> area.setText(input.stream().map(f).collect(joining("\n")));
         area.textProperty().addListener((o,ov,nv) -> changeValue(split(nv, "\n", x->x)));
         // layout
-        root.getChildren().addAll(new StackPane(nameL),area,transforms.getNode());
+        root.getChildren().addAll(area,transforms.getNode());
+        VBox.setVgrow(area, ALWAYS);
     }
     
-    public void setData(String name, List<String> input) {
-        nameL.setText(capitalizeStrong(name));
+    public void setData(List<String> input) {
         this.input = input;
         transforms.onItemChange.accept(transforms.getValue());
     }
 
     @Override
-    public Node getNode() {
+    public VBox getNode() {
         return root;
     }
     

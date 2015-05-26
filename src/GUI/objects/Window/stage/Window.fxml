@@ -29,10 +29,10 @@
               </children>
           </HBox>
           <HBox fx:id="controls" alignment="CENTER" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="8.0" visible="true" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0" />
-        <AnchorPane fx:id="borders" styleClass="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <AnchorPane fx:id="borders" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
-                <Region fx:id="lBorder" mouseTransparent="true" prefWidth="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
-                <Region fx:id="rBorder" mouseTransparent="true" prefWidth="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" /><Region mouseTransparent="true" prefHeight="4.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
+                <Region fx:id="lBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
+                <Region fx:id="rBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" /><Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
             </children>
         </AnchorPane>
         <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />

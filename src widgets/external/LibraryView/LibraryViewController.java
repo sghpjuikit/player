@@ -45,6 +45,9 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
+import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -187,23 +190,35 @@ public class LibraryViewController extends FXMLController {
         
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        table.scrollFilterField = VALUE;
+        table.searchSetColumn(VALUE);
         
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
-        table.setColumnStateFacory( f -> {
+        table.setColumnStateFacory(f -> {
             double w = f==VALUE ? 250 : 70;
             return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
         });
-        table.setColumnFactory( mgf -> {
+        table.setColumnFactory(f -> {
             Metadata.Field mf = fieldFilter.getValue();
-            TableColumn<MetadataGroup,?> c = new TableColumn(mgf.toString(mf));
-            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(mgf)));
-            String no_val = mgf==VALUE ? "<none>" : "";
-            c.setCellFactory(mgf==AVG_RATING 
+            TableColumn<MetadataGroup,?> c = new TableColumn(f.toString(mf));
+            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
+            Pos a = f.getType(mf).equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+            c.setCellFactory(f==AVG_RATING 
                 ? (Callback) App.ratingCell.getValue()
-                : mgf==W_RATING ? (Callback)new NumberRatingCellFactory()
-                : cellFactoryAligned(mgf.getType(mf), no_val));
+                : f==W_RATING 
+                ? (Callback)new NumberRatingCellFactory()
+                : (Callback) col -> {
+                    TableCell<MetadataGroup,Object> cell = new TableCell<MetadataGroup,Object>(){
+                        @Override
+                        protected void updateItem(Object item, boolean empty) {
+                            super.updateItem(item, empty);
+                            setText(empty ? "" : f.toS(item,"<none>"));
+                        }
+                    };
+                    cell.setAlignment(a);
+                    return cell;
+                }
+            );
             return c;
         });
         // maintain rating column cell style
@@ -225,7 +240,7 @@ public class LibraryViewController extends FXMLController {
                 })
         );
         // maintain playing item css by refreshing column
-        d2 = Player.playingtem.subscribeToChanges(o -> table.refreshColumnAny());
+        d2 = Player.playingtem.subscribeToChanges(o -> table.updateStyleRules());
         
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
@@ -246,7 +261,7 @@ public class LibraryViewController extends FXMLController {
         table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         
         // key actions
-        table.setOnKeyReleased( e -> {
+        table.setOnKeyPressed( e -> {
             if (e.getCode() == ENTER)        // play first of the selected
                 playSelected();
             else if (e.getCode() == ESCAPE)         // deselect

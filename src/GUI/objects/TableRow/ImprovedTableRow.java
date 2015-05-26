@@ -110,20 +110,26 @@ public class ImprovedTableRow<T> extends TableRow<T>{
     @Override 
     protected void updateItem(T item, boolean empty) {
         super.updateItem(item, empty);
-        updatePseudoclassState(item, empty);
+        styleRulesUpdate();
     }
     
     // there are cases where we need this (someone dutiful pls investigate)
     @Override 
     protected void layoutChildren() {
         super.layoutChildren();
-        updatePseudoclassState(getItem(), isEmpty());
+        styleRulesUpdate();
     }
     
-    private void updatePseudoclassState(T item, boolean empty) {
-        if (empty) return;
+    /** 
+     * Updates pseudoclasses based on the rules. Use to manually refresh the 
+     * styles. This is necessary if the condition of the rule stops applying.
+     * In other words, every dynamic rule needs to observe some observable and
+     * call this method to refresh the style.
+     */
+    public void styleRulesUpdate() {
+        if (isEmpty()) return;
         stylerules.forEach(rule -> {
-            boolean v = rule._2.test(item);
+            boolean v = rule._2.test(getItem());
             // set pseudoclass
             pseudoClassStateChanged(rule._1, v);
             // since the content is within cells themselves - the pseudoclass has to be passed down

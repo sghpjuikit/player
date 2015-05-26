@@ -168,13 +168,12 @@ public class Util {
     
     /**
      * Checks and formats String so it can be safely used for naming a File.
-     * Replaces all forbidden characters and " " with "_".
+     * Replaces all forbidden characters with "_".
      * @param str
      * @return 
      */
     public static String filenamizeString(String str) {
         String out = str;
-               out = out.replace(" ", "_");
                out = out.replace("/", "_");
                out = out.replace("\\", "_");
                out = out.replace(":", "_");
@@ -822,8 +821,7 @@ public class Util {
 
     /**
      * Returns enum constants of an enum class in declared order. Works for 
-     * enums with class method
-     * bodies (for which Enum.getEnumConstants) does not work.
+     * enums with class method bodies (where Enum.getEnumConstants) does not work.
      * @param <T>
      * @param c
      * @return 

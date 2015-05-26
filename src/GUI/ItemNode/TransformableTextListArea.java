@@ -16,7 +16,7 @@ import util.functional.Functors.PF;
  *
  * @author Plutonium_
  */
-public class TransformableTextListArea extends TextListArea implements TransformableList<String,String> {
+public class TransformableTextListArea extends StringListItemNode implements TransformableList<String,String> {
     
     private ObservableList<String> inputList;
     private final ObservableList<String> outputList = FXCollections.observableArrayList();

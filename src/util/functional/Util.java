@@ -512,6 +512,16 @@ public class Util {
         return l;
     }
     
+    public static <T> Stream<T> stream(T... t) {
+        return Stream.of(t);
+    }
+    
+    public static <T> Stream<T> stream(Collection<T> t) {
+        return t.stream();
+    }
+    
+    
+    
     
     public static<T> List<T> filter(T[] a, Predicate<T> f) {
         return Stream.of(a).filter(f).collect(toList());

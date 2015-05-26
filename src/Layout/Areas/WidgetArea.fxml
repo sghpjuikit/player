@@ -7,58 +7,65 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root id="entireArea" fx:id="content_root" focusTraversable="true" minHeight="0.0" minWidth="0.0" prefHeight="333.0" prefWidth="333.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root id="entireArea" fx:id="content_root" focusTraversable="true" minHeight="0.0" minWidth="0.0" prefHeight="333.0" prefWidth="333.0" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
   <children>
-      <Path styleClass="area-path-border" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <Path AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
          <elements>
             <MoveTo y="20.0" />
             <LineTo />
             <LineTo x="20.0" />
          </elements>
+         <styleClass>
+            <String fx:value="path-border" />
+            <String fx:value="area-path-border" />
+         </styleClass>
       </Path>
-      <Path styleClass="area-path-border" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <Path AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <elements>
             <MoveTo x="-20.0" />
             <LineTo />
             <LineTo y="20.0" />
          </elements>
+         <styleClass>
+            <String fx:value="path-border" />
+            <String fx:value="area-path-border" />
+         </styleClass>
       </Path>
-      <Path styleClass="area-path-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
+      <Path AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0">
          <elements>
             <MoveTo y="-20.0" />
             <LineTo />
             <LineTo x="-20.0" />
          </elements>
+         <styleClass>
+            <String fx:value="path-border" />
+            <String fx:value="area-path-border" />
+         </styleClass>
       </Path>
-      <Path styleClass="area-path-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
+      <Path AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0">
          <elements>
             <MoveTo y="-20.0" />
             <LineTo />
             <LineTo x="20.0" />
          </elements>
+         <styleClass>
+            <String fx:value="path-border" />
+            <String fx:value="area-path-border" />
+         </styleClass>
       </Path>
       <StackPane layoutX="60.0" layoutY="60.0" minHeight="0.0" minWidth="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <StackPane fx:id="content_padding" minHeight="0.0" minWidth="0.0" StackPane.alignment="CENTER">
                <children>
                 <AnchorPane id="contentPane" fx:id="content" minHeight="0.0" minWidth="0.0" prefHeight="-1.0" prefWidth="-1.0" StackPane.alignment="CENTER">
-                     <StackPane.margin>
-                        <Insets />
-                     </StackPane.margin>
                   </AnchorPane>
                </children>
-               <StackPane.margin>
-                  <Insets />
-               </StackPane.margin>
                <styleClass>
                   <String fx:value="block" />
                   <String fx:value="area" />
                </styleClass>
             </StackPane>
          </children>
-         <padding>
-            <Insets bottom="9.0" left="9.0" right="9.0" top="9.0" />
-         </padding>
       </StackPane>
   </children>
 </fx:root>

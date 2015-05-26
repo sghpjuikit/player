@@ -188,8 +188,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
                     + getGuiName() + ". Using default value.");
             return getDefaultValue();
         } else {
-            V v = Parser.fromS(getType(), str);
-            return v==null ? getDefaultValue() : v;
+            return Parser.fromS(getType(), str);
         }
     }
     

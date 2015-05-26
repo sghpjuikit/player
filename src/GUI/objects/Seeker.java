@@ -9,6 +9,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import GUI.objects.PopOver.PopOver;
 import static GUI.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static java.time.Duration.ofMillis;
 import java.util.ArrayList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
@@ -29,15 +30,18 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.util.Duration;
 import static javafx.util.Duration.*;
+import org.reactfx.EventStreams;
+import static org.reactfx.EventStreams.eventsOf;
 import static util.async.Async.run;
 import util.async.executor.FxTimer;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.BUG;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
@@ -100,29 +104,25 @@ public final class Seeker extends AnchorPane {
         
         // new chapter button
         AddChapButton addB = new AddChapButton();
-                      addB.l.setOpacity(0);
+                      addB.i.setOpacity(0);
         addEventFilter(MOUSE_MOVED, e -> {
-            if(addB.isVisible() && addB.l.getOpacity()>0) {
-                addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
+            if(addB.isVisible() && addB.i.getOpacity()>0) {
+                addB.p.setX(e.getScreenX()-addB.i.getWidth()/2);
                 addB.p.setY(seeker.localToScreen(0,0).getY()+18);
             }
         });
         seeker.addEventFilter(MOUSE_ENTERED, e -> {
             addB.show();
-            addB.p.setX(e.getScreenX()-addB.l.getWidth()/2);
+            addB.p.setX(e.getScreenX()-addB.i.getWidth()/2);
             addB.p.setY(seeker.localToScreen(0,0).getY()+18);
-            addB.l.setDisable(!Player.playingtem.get().isFileBased());
+            addB.i.setDisable(!Player.playingtem.get().isFileBased());
         });
-        seeker.addEventFilter(MOUSE_EXITED, e -> 
-            run(300, () -> {
-                if(!addB.l.getParent().isHover() && !seeker.isHover()) 
-                    addB.hide();
-        }));
-        addB.l.getParent().addEventHandler(MOUSE_EXITED, e ->
-            run(150, () -> {
-                 if(!addB.l.getParent().isHover() && !seeker.isHover()) 
-                    addB.hide();
-        }));
+        
+        EventStreams.merge(
+            eventsOf(seeker, MOUSE_EXITED).reduceSuccessions((a,b)->b, ofMillis(350)),
+            eventsOf(addB.root, MOUSE_EXITED).reduceSuccessions((a,b)->b, ofMillis(200))
+        ).filter(p -> !addB.root.isHover() && !seeker.isHover())
+         .subscribe(e -> addB.hide());
     }
     
     /**
@@ -194,12 +194,12 @@ public final class Seeker extends AnchorPane {
     // data
     private final SimpleObjectProperty<Duration> totalTime = new SimpleObjectProperty();
     private final SimpleObjectProperty<Duration> currentTime = new SimpleObjectProperty();
+    @TODO(purpose = BUG, note = "patched, but the (unknown) cause may have sideffects"
+        + "invoking 'play next item' in rapid succession will cause total time value be null"
+        + " test this with a shortcut")
     private final ChangeListener<Duration> positionUpdater = (o,ov,nv) -> {
         if (!canUpdate) return;
-        requireNonNull(currentTime);
-        requireNonNull(currentTime.get());
-        requireNonNull(totalTime);
-        requireNonNull(totalTime.get());
+        if(totalTime.get()==null) return; // bugfix
         double newPos = currentTime.get().toMillis()/totalTime.get().toMillis();
         // turn on if you want discrete§ mode 
 //        double unit = 1;
@@ -236,32 +236,30 @@ public final class Seeker extends AnchorPane {
 /******************************************************************************/
     
     private class AddChapButton {
-        Popup p;
-        Icon l = new Icon(PLUS_CIRCLE, 18);
-        FadeTransition ft = new FadeTransition(millis(250), l);
+        Icon i = new Icon(PLUS_CIRCLE, 18);
+        StackPane root = new StackPane();
+        FadeTransition ft = new FadeTransition(millis(250), i);
+        Popup p = new Popup();
         
         public AddChapButton() {
-            p = new Popup();
-            Pane pn = new StackPane(l);
-                 pn.setPrefSize(25, 25);
-            p.getContent().add(pn);
-            
-            l.getStyleClass().add("seeker-add-chapter-button");
-            l.getGraphic().getStyleClass().add("seeker-add-chapter-button");
-            l.setDisable(false);
-            l.setOnMouseClicked(e -> {
+            root.setPrefSize(25, 25);
+            p.getContent().add(new StackPane(i,root));
+            i.getStyleClass().add("seeker-add-chapter-button");
+            i.getGraphic().getStyleClass().add("seeker-add-chapter-button");
+            i.setDisable(false);
+            i.setOnMouseClicked(e -> {
                 double deltaX = p.getX()+p.getWidth()/2-seeker.localToScreen(0,0).getX();
                 addChapterAt(deltaX/seeker.getWidth());
             });
-            l.setOpacity(0);
-            Tooltip.install(l.getParent(), new Tooltip("Create chapter."));
+            i.setOpacity(0);
+            Tooltip.install(root, new Tooltip("Create chapter."));
         }
         public void show() {
             ft.setOnFinished(null);
             ft.stop();
             p.show(seeker.getScene().getWindow());
-            FadeTransition ft = new FadeTransition(millis(250), l);
-            if(l.getOpacity()==0) ft.setDelay(millis(300));
+            FadeTransition ft = new FadeTransition(millis(250), i);
+            if(i.getOpacity()==0) ft.setDelay(millis(300));
             ft.setToValue(1);
             ft.setOnFinished(null);
             ft.play();

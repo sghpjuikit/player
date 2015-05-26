@@ -193,7 +193,6 @@ public class Functors {
         add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(min(i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
         add("Retain chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(0,min(i,t.length()-1)) : t.substring(min(i,t.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
         add("Trim",         String.class,String.class, (t) -> t.trim());
-        add("Trim",         String.class,String.class, (t) -> t.trim());
         add("Split-join",   String.class,String.class, (t,spliter,joiner) -> {
             try {
                 Map<String,String> splits = spliter.applyM(t);

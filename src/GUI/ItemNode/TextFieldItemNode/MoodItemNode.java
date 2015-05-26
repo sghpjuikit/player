@@ -1,5 +1,5 @@
 
-package GUI.ItemNode.ItemTextFields;
+package GUI.ItemNode.TextFieldItemNode;
 
 import AudioPlayer.tagging.MoodManager;
 import GUI.objects.Pickers.MoodPicker;
@@ -18,12 +18,12 @@ import util.parsing.Parser;
  *
  * @author Plutonium_
  */
-public class MoodTextField extends ItemTextField<String> {
+public class MoodItemNode extends TextFieldItemNode<String> {
     
     private final Consumer<String> pickMood = this::setValue;
     private PopOver.NodeCentricPos pos = PopOver.NodeCentricPos.RightCenter;
 
-    public MoodTextField() {
+    public MoodItemNode() {
         super(Parser.toConverter(String.class));
         
         // set autocompletion

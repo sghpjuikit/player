@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.ItemNode.ItemTextFields;
+package GUI.ItemNode.TextFieldItemNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ import util.parsing.StringConverter;
  * <p>
  * @author Plutonium_
  */
-public abstract class ItemTextField<T> extends CustomTextField implements AccessibleValue<T> {
+public abstract class TextFieldItemNode<T> extends CustomTextField implements AccessibleValue<T> {
     
     T v;
     private StringConverter<T> converter;
@@ -58,7 +58,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
      * Constructor. Creates instance of the item text field utilizing parser
      * of the provided type.
      */
-    public ItemTextField() {
+    public TextFieldItemNode() {
         // default implementation of value factory
         valueFactory = this::itemToString;   
         
@@ -73,7 +73,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
     }
     
     /***/
-    public ItemTextField(StringConverter<T> parser) {
+    public TextFieldItemNode(StringConverter<T> parser) {
         this();
         converter = parser;
     }
@@ -161,7 +161,7 @@ public abstract class ItemTextField<T> extends CustomTextField implements Access
 /******************************************************************************/
 
     /**
-     * Button for calling dialogs, from within {@link ItemTextField}.
+     * Button for calling dialogs, from within {@link TextFieldItemNode}.
      * The button has its own css style class "dialog-button".
      * <p>
      * @author Plutonium_

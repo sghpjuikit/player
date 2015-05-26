@@ -152,7 +152,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
         }
 
         @Override
-        public String getDescription() {
+        public String description() {
             switch(this) {
                 case VALUE : return "Song field to group by";
                 case ITEMS : return "Number of songs in the group";
@@ -209,5 +209,18 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             return (this==VALUE) ? field.getType() : getType();
         }
         
+        public String toS(Object o, String empty_val) {
+            switch(this) {
+                case VALUE : return "".equals(o) ? empty_val : o.toString();
+                case ITEMS :
+                case ALBUMS :
+                case LENGTH :
+                case SIZE :  
+                case AVG_RATING :
+                case W_RATING : return o.toString();        
+                case YEAR : return Year.of(0).equals(o) ? empty_val : Year.of(-1).equals(o) ? "..." : o.toString();
+                default : throw new AssertionError("Default case should never execute");
+            }
+        }
     }
 }

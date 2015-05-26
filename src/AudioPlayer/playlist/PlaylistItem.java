@@ -399,7 +399,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         }
 
         @Override
-        public String getDescription() {
+        public String description() {
             switch(this) {
                 case NAME : return "'Song artist' - 'Song title'";
                 case TITLE : return "Song title";

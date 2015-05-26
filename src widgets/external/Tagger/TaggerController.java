@@ -11,7 +11,7 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import GUI.ItemNode.ItemTextFields.MoodTextField;
+import GUI.ItemNode.TextFieldItemNode.MoodItemNode;
 import GUI.objects.CheckIcon;
 import GUI.objects.GraphicalTextField;
 import GUI.objects.Icon;
@@ -127,7 +127,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     @FXML CustomTextField RatingPF;
     @FXML CustomTextField PlaycountF;
     @FXML CustomTextField CommentF;
-          MoodTextField MoodF = new MoodTextField();
+          MoodItemNode MoodF = new MoodItemNode();
     @FXML ColorPicker ColorF;
     @FXML CustomTextField Custom1F;
     @FXML CustomTextField Custom2F;

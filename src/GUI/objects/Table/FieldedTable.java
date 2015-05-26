@@ -76,10 +76,11 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     private final Class<F> type;
     public ContextMenu columnVisibleMenu;
     
+    
     public FieldedTable(Class<F> type) {
         super();
+        if(!type.isEnum()) throw new IllegalArgumentException("Fields must be an enum");
         this.type = type;
-        
         
         // show the column control menu on right click ( + hide if shown )
         addEventHandler(MOUSE_CLICKED, e -> {
@@ -92,6 +93,15 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         // column control menu button not needed now (but still optionally usable)
         setTableMenuButtonVisible(false);
     }
+    
+    /** 
+     * Returns all fields of this table. The fields are all values of the
+     * field enum that are string representable.
+     */
+    public List<F> getFields() {
+        return filter(getEnumConstants(type), f->f.isTypeStringRepresentable());
+    }
+    
     
     public void setColumnFactory(FunctionC<F,TableColumn<T,?>> columnFactory) {
         colFact = f -> f==null ? columnIndex : columnFactory.andApply(c -> c.setUserData(f)).call(f);
@@ -170,11 +180,10 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public TableColumnInfo getDefaultColumnInfo() {
         if(defColInfo==null) {
             // generate column states
-            F[] fields = getEnumConstants(type);
-            List<ColumnInfo> l = filterMap(fields,f->f.isTypeStringRepresentable(),colStateFact);
+            List<ColumnInfo> colinfos = map(getFields(),colStateFact);
             defColInfo = new TableColumnInfo();
             defColInfo.nameKeyMapper = keyNameColMapper;
-            defColInfo.columns.addAll(l);
+            defColInfo.columns.addAll(colinfos);
             // insert index column state
             defColInfo.columns.forEach(t->t.position++);
             defColInfo.columns.add(new ColumnInfo("#", 0, true, USE_COMPUTED_SIZE));
@@ -190,14 +199,16 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                     .map(c-> {
                         CheckMenuItem m = new CheckMenuItem(c.name,c.visible,v -> setColumnVisible(c.name, v));
                         F f = nameToF(c.name);
-                        String desc = f==null ? "" : f.getDescription();
+                        String desc = f==null ? "" : f.description();
                         if(!desc.isEmpty()) Tooltip.install(m.getGraphic(), new Tooltip(desc));
                         return m;
                     })
                     .forEach(columnVisibleMenu.getItems()::add);
             // update column menu check icons every time we show it
             // the menu is rarely shown + no need to update it any other time
-            columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems().forEach(i -> ((CheckMenuItem)i).selected.set(isColumnVisible(i.getText()))));
+            columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
+                            .filtered(i -> i instanceof CheckMenuItem)
+                            .forEach(i -> ((CheckMenuItem)i).selected.set(isColumnVisible(i.getText()))));
             // link table column button to our menu instead of an old one
             runLater(()->{
                 TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();

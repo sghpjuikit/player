@@ -8,9 +8,9 @@ package GUI.objects.Table;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.ItemNode.TableFilterGenerator;
+import GUI.objects.ContextMenu.CheckMenuItem;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -23,12 +23,9 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import static javafx.css.PseudoClass.getPseudoClass;
+import javafx.event.Event;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
@@ -40,7 +37,8 @@ import static org.reactfx.EventStreams.changesOf;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
-import static util.functional.Util.cmpareBy;
+import util.async.executor.FxTimer;
+import static util.functional.Util.*;
 
 /**
  * 
@@ -67,11 +65,13 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     /**
      * @param main_field field that will denote main column. Must not be null.
-     * Also initializes {@link #scrollFilterField}.
+     * Also initializes {@link #searchField}.
+     * 
+     * @param main_field WIll be chosen as main and default search field
      */
     public FilteredTable(F main_field) {
         super((Class<F>)main_field.getClass());
-        scrollFilterField = main_field;
+        searchField = main_field;
         
         setItems(sortedItems);
         sortedItems.comparatorProperty().bind(comparatorProperty());
@@ -125,24 +125,22 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 boolean append = scrolFTime==-1 || now-scrolFTime<scrolFTimeMax;
                 scrolFtext = append ? scrolFtext+st : st;
                 scrolFTime = now;
-                // scroll to first item beginning with search string
-                TableColumn c = getColumn(scrollFilterField).orElseGet(null);
-                if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String)
-                    for(int i=0;i<getItems().size();i++) {
-                        String item = (String)getItems().get(i).getField(scrollFilterField);
-                        if(matches(item,scrolFtext)) {
-                            scrollToCenter(i);
-                            updateScrollSearchMatches();
-                            break;
-                        }
-                    }
+                search(scrolFtext);
             }
         });
+        addEventFilter(KEY_PRESSED, e -> {
+            if(e.getCode()==ESCAPE && !scrolFtext.isEmpty()) {
+                searchEnd();
+                e.consume(); // causes all KEY_PRESSED handlers to be ignored
+            }
+        });
+        addEventFilter(Event.ANY, e -> updateSearchStyles());
+        changesOf(getItems()).subscribe(c -> updateSearchStyles());
         
         // resize index column on change of filter & items
         changesOf(filtereditems.predicateProperty()).subscribe(c -> resizeIndexColumn());
         changesOf(allitems).subscribe(c -> resizeIndexColumn());
-        
+
     }
     
     /** @return the table filter */
@@ -235,7 +233,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         return show_original_index ? allitems.size() : getItems().size();
     }
     
-/*********************************** SCROLLSEARCH *****************************/
+/************************************ SCROLL **********************************/
     
     public void scrollToCenter(int i) {
         int items = getItems().size();
@@ -247,52 +245,94 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         scrollTo(i);
     }
     
-    private void updateScrollSearchMatches() {
-        for (TableRow row : chil(this, new ArrayList<>())) {//lookupAll("TableRow")) {
-                Object o = ((TableRow<T>)row).getItem().getField(scrollFilterField); 
-                boolean isMatch = o instanceof String && matches((String)o,scrolFtext);
-                boolean searchOn = !scrolFtext.isEmpty();
-                row.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch);
-                row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch));
-                row.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch);
-                row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch));
-       }
-    }
-    
-    private List<TableRow> chil(Parent n, List<TableRow> li) {
-        for(Node nn : n.getChildrenUnmodifiable()) 
-            if(nn instanceof TableRow)
-                li.add(((TableRow)nn));
-        for(Node nn : n.getChildrenUnmodifiable()) 
-            if(nn instanceof Parent)
-                chil(((Parent)nn), li);
-                
-        return li;
-    }
-    
-/******* SCROLL MATCH - filter text to quick-search content by scrolling ******/
+/************************************ SEARCH **********************************/
     
     /** 
      * If the user types text to quick search content by scrolling table, the
      * text matching will be done by this field. Its column cell data must be
      * String (or search will be ignored) and column should be visible. 
      */
-    public F scrollFilterField;
+    private F searchField;
     private String scrolFtext = "";
     private long scrolFTime = -1;
     private static final PseudoClass searchmatchPC = getPseudoClass("searchmatch");
     private static final PseudoClass searchmatchnotPC = getPseudoClass("searchmatchnot");
+    private final FxTimer scrolFautocancelTimer = new FxTimer(3000,-1,this::searchEnd);
     
-    @IsConfig(name = "Search time delay", info = "Maximal time delay (ms) between key strokes. Search text is reset after the delay runs out.")
+    @IsConfig(name = "Search delay", info = "Maximal time delay (ms) between key strokes. Search text is reset after the delay runs out.")
     private static long scrolFTimeMax = 500;
-    @IsConfig(name = "Search use contains", info = "Uses contains (true) instead of starts with (false) method for string matching.")
+    @IsConfig(name = "Search auto-cancel", info = "Deactivates search after period of inactivity.")
+    private static boolean scrolFautocancel = true;
+    @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity to end search after.")
+    private static long scrolFautocancelTime = 3000;
+    @IsConfig(name = "Search use contains", info = "Use 'contains' instead of 'starts with' for string matching.")
     private static boolean scrolFTimeMatchContain = true;
+
+    /** Sets fields to be used in search. Default is main field. */
+    public void searchSetColumn(F field) {
+        searchField = field;
+    }
     
-    private final boolean matches(String text, String s) {
+    /** 
+     * Returns whether search is active. Every search must be ended, either
+     * automatically {@link #scrolFautocancel}, or manually {@link #searchEnd()}.
+     */
+    public boolean searchIsActive() {
+        return !scrolFtext.isEmpty();
+    }
+    
+    /** 
+     * Starts search, searching for the specified string in the designated
+     * column for field {@link #searchField} (column can be invisible).
+     */
+    public void search(String s) {
+        scrolFtext = s;
+        // scroll to first item beginning with search string
+        TableColumn c = getColumn(searchField).orElseGet(null);
+        if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
+            for(int i=0;i<getItems().size();i++) {
+                String item = (String)getItems().get(i).getField(searchField);
+                if(matches(item,scrolFtext)) {
+                    scrollToCenter(i);
+                    updateSearchStyles();
+                    break;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Ends search manually.
+     */
+    public void searchEnd() {
+        scrolFtext = "";
+        updateSearchStyleRowsNoReset();
+    }
+    
+    private void updateSearchStyles() {
+        if(scrolFautocancel) scrolFautocancelTimer.restart(scrolFautocancelTime);
+        updateSearchStyleRowsNoReset();
+    }
+    
+    private void updateSearchStyleRowsNoReset() {
+        boolean searchOn = searchIsActive();
+        for (TableRow<T> row : getRows()) {
+            T t = row.getItem();
+            Object o = t==null ? null : t.getField(searchField); 
+            boolean isMatch = o instanceof String && matches((String)o,scrolFtext);
+            row.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch);
+            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchPC, searchOn && isMatch));
+            row.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch);
+            row.getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(searchmatchnotPC, searchOn && !isMatch));
+       }
+    }
+    
+    private boolean matches(String text, String s) {
         String x = s.toLowerCase();
         String in = text.toLowerCase();
         return scrolFTimeMatchContain ? in.contains(s) : in.startsWith(x);
     }
+
     
 /************************************* SORT ***********************************/
     
@@ -338,6 +378,30 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 }
             }
         });
+    }
+
+    @Override
+    public TableColumnInfo getDefaultColumnInfo() {
+        boolean b = columnVisibleMenu==null;
+        TableColumnInfo tci = super.getDefaultColumnInfo();
+        if(b) {
+            Menu m = new Menu("Search column");
+            List<MenuItem> mis = filterMap(getFields(),
+                f-> isIn(f.getType(),String.class,Object.class), // objects too, they can be strings
+                f -> {
+                    CheckMenuItem mi = new CheckMenuItem(f.name(),f==searchField);
+                    mi.setOnMouseClicked(() -> {
+                        m.getItems().forEach(i -> ((CheckMenuItem)i).selected.set(false));
+                        mi.selected.set(true);
+                        searchField = f;
+                    });
+                    return mi;
+                }
+            );
+            m.getItems().addAll(mis);
+            columnVisibleMenu.getItems().add(m);            
+        }
+        return tci;
     }
 
 }

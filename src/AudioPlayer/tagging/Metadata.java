@@ -26,7 +26,8 @@ import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import static java.util.stream.Collectors.joining;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -58,6 +59,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import static util.functional.Util.stream;
 import util.parsing.Parser;
 import util.units.Bitrate;
 import util.units.FileSize;
@@ -458,7 +460,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     /** @return the bitrate */
     @MetadataFieldMethod(Field.BITRATE)
     public Bitrate getBitrate() {
-        return new Bitrate(bitrate);
+        return bitrate==-1 ? null : new Bitrate(bitrate);
     }
     
     /**
@@ -582,18 +584,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         return tracks_total;
     }
     
-    /** @return the track, -1 if empty. */
-    @MetadataFieldMethod(Field.TRACK)
-    public String getTrackAsS() {
-        return track==-1 ? "" : String.valueOf(track);
-    }
-    
-    /** @return the tracks total, -1 if empty. */
-    @MetadataFieldMethod(Field.TRACKS_TOTAL)
-    public String getTracksTotalAsS() {
-        return tracks_total==-1 ? "" : String.valueOf(tracks_total);
-    }
-    
     /**
      * Convenience method. Returns complete info about track order within album in
      * format track/tracks_total. If you just need this information as a string
@@ -622,17 +612,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         return discs_total;
     }
 
-    /** @return the disc, -1 if empty. */
-    @MetadataFieldMethod(Field.DISC)
-    public String getDiscAsS() {
-        return disc==-1 ? "" : String.valueOf(disc);
-    }
-    
-    /** @return the discs total, -1 if empty. */
-    @MetadataFieldMethod(Field.DISCS_TOTAL)
-    public String getDiscsTotalAsS() {
-        return discs_total==-1 ? "" : String.valueOf(discs_total);
-    }
     
     /**
      * Convenience method. Returns complete info about disc number in album in
@@ -666,11 +645,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         }
     }
     
-    /** @return the year string or  "" if empty. */
-    public String getYearAsS() {
-        return year==-1 ? "" : String.valueOf(year);
-    }
-    
     /**
      * Returns cover from the respective source.
      * @param source
@@ -696,7 +670,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         if(tag==null) {
             Log.warn("Tag unsupported in item being read: " + getURI());
             cover = null;
-            return;
         } else {
             cover = tag.getFirstArtwork();
         }
@@ -780,18 +753,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
 //        return ratingP;
     }
     
-    /** @return the rating value (can for file type) or "" if empty. */
-    public String getRatingAsString() {
-        if (rating == -1)  return ""; 
-        return String.valueOf(getRating());
-    }
-    
-    /** @return the rating in 0-1 percent range or "" if empty. */
-    public String getRatingPercentAsString() {
-        if (rating == -1)  return ""; 
-        return String.valueOf(getRatingPercent());
-    }
-    
     /**
      * @param max_stars
      * @return the current rating value in 0-max_stars value system. 0 if not available.
@@ -804,14 +765,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     @MetadataFieldMethod(Field.PLAYCOUNT)
     public int getPlaycount() {
         return playcount == -1 ? 0 : playcount;
-    }
-    
-    /**
-     * @return the playcount
-     * "" if empty.
-     */
-    public String getPlaycountAsString() {
-        return (playcount == -1) ? "" : String.valueOf(playcount);
     }
     
     /** 
@@ -968,23 +921,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     /** {@inheritDoc} */
     @Override
     public Object getField(Metadata.Field fieldType) {
-        // reflection implementation that works, but for performance reasons was
-        // scrapped (table cell rendering with this is not a good idea)
-        // it could be improved from O(n) to O(1) though if there was name contract
-        // between the Field name and its getter or if methods werent looked up
-        // but their MethodHandles were in a map
-        // for(Method m : Metadata.class.getDeclaredMethods()) {
-        //     MetadataFieldMethod a = m.getAnnotation(MetadataFieldMethod.class);
-        //     if(a!=null && a.value()==fieldType) {
-        //         try {
-        //             return m.invoke(this);
-        //         } catch (InvocationTargetException | IllegalArgumentException | IllegalAccessException e) {
-        //             throw new RuntimeException("Method for metadata field " + fieldType + " invocation failed.");
-        //         }
-        //     }
-        // }
-        // throw new RuntimeException("Method for metadata field " + fieldType + " not found.");
-        
         switch(fieldType) {
             case PATH :  return getPath();
             case FILENAME :  return getFilename();
@@ -1029,9 +965,21 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             default : throw new AssertionError("Default case should never execute");
         }
     }
+    
+    public String getFieldS(Field f) {
+        Object o = getField(f);
+        return f==null ? "<none>" : f.toS(o, "<none>");
+    }
+    
+    public String getFieldS(Field f, String no_val) {
+        Object o = getField(f);
+        return f==null ? no_val : f.toS(o,no_val);
+    }
+    
     public boolean isFieldEmpty(Metadata.Field fieldType) {
         return EMPTY.getField(fieldType).equals(getField(fieldType));
     }
+    
     /** {@inheritDoc} */
     @Override 
     public Field getMainField() { return Field.TITLE; }
@@ -1039,53 +987,21 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
 /******************************* AS OBJECT ************************************/
     
     /** 
-     * Complete information on this object, non-tag data and chapters are excluded.
-     * 
-     * @return comprehensive information about all fields in string form. 
+     * Complete information on this object, non-tag data and types not
+     * representable by string (e.g. cover) are excluded.
+     * @return comprehensive information about all string representable fields 
      */
     @Override
     public String toString() {
-        String output;
-        
-        output = "path:  " + getPath() + "\n"
-               + "name: " + getFilename() + "\n"
-               + "format: " + getFormat() + "\n"
-               + "filesize: " + getFilesize().toString() + "\n"
+        return stream(Field.values()).filter(f->f.isTypeStringRepresentable())
+            .map(f -> f.name() + ": " + getField(f)).collect(joining("\n"));
+    }
 
-               + "bitrate: " + bitrate + "\n"
-               + "encoder: " + encoder + "\n"
-               + "length: " + getLength().toString() + "\n"
-
-               + "title: " + title + "\n"
-               + "album: " + album + "\n"
-                // nullpointer below
-//               + "artists: " + artists==null ? "" : (artists.size() + "\n" + artists.stream().map(a->"    " + a + "\n").collect(Collectors.joining("")))
-               + "album artist: " + album_artist + "\n"
-               + "composer: " + composer + "\n"
-               + "publisher: " + publisher + "\n"
-
-               + "track: " + getTrackInfo() + "\n"
-               + "disc: " + getDiscInfo() + "\n"
-               + "genre: " + genre + "\n"
-               + "year: " + year + "\n"
-
-               + "cover: " + getCoverInfo() + "\n"
-
-               + "rating: " + getRatingAsString() + "\n"
-               + "playcount: " + getPlaycountAsString() + "\n"
-               + "category: " + category + "\n"
-               + "comment: " + comment + "\n"
-               + "lyrics: " + lyrics + "\n"
-               + "mood: " + mood + "\n"
-               + "color: " + getColor() + "\n"
-               + "chapters: " + mood + "\n" + getChapters().stream().map(a->"    " + a + "\n").collect(Collectors.joining(""))
-               + "custom1: " + custom1 + "\n"
-               + "custom2: " + custom2 + "\n"
-               + "custom3: " + custom3 + "\n"
-               + "custom4: " + custom4 + "\n"
-               + "custom5: " + custom5 + "\n";
-        
-        return output;
+    @Override
+    public boolean equals(Object o) {
+        if(this==o) return true;
+        if (!(o instanceof Metadata)) return false;
+        return Objects.equals(uri, ((Metadata)o).uri);
     }
     
     @Override
@@ -1096,25 +1012,14 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     }
 
     @Override
-    public boolean equals(Object o) {
-        if(this==o) return true;
-        
-        if (!(o instanceof Metadata))
-            return false;
-          
-        Metadata m = (Metadata) o;
-        return uri != null && m.uri != null && uri.equals(m.uri);
-    }
-
-    @Override
     public int compareTo(Metadata i) {
         int r = getArtist().compareTo(i.getArtist());
         if (r!=0) return r;
-        r = getAlbum().compareTo(i.getAlbum());
+            r = getAlbum().compareTo(i.getAlbum());
         if (r!=0) return r;
-        r = Integer.compare(getDisc(), i.getDisc());
+            r = Integer.compare(getDisc(), i.getDisc());
         if (r!=0) return r;
-        r = Integer.compare(getTrack(), i.getTrack());
+            r = Integer.compare(getTrack(), i.getTrack());
         if (r!=0) return r;
         return getTitle().compareTo(i.getTitle());
     }
@@ -1167,6 +1072,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         CUSTOM5("Custom field 5");
         
         private final String desc;
+        private final Function<Object,String> toS = Objects::toString;
         
         private Field(String desc) {
             mapEnumConstant(this, Util::enumToHuman);
@@ -1174,7 +1080,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         }
 
         @Override
-        public String getDescription() {
+        public String description() {
             return desc;
         }
         
@@ -1187,6 +1093,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         /** {@inheritDoc} */
         @Override
         public Class getType() {
+            if(this==BITRATE) return Bitrate.class;
             return Metadata.EMPTY.getField(this).getClass();
         }
 
@@ -1202,9 +1109,59 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             return this==TITLE || this==ALBUM || this==ARTIST || this==RATING || this==PLAYCOUNT ||
                    this==LENGTH || this==BITRATE || this==TRACK_INFO || this==DISCS_INFO;
         }
+        
+        public String toS(Object o, String empty_val) {
+            switch(this) {
+                case YEAR :
+                case TRACK :
+                case TRACKS_TOTAL :
+                case DISC :
+                case DISCS_TOTAL :  
+                case PLAYCOUNT :    return EMPTY.getField(this).equals(o) ? empty_val : o.toString();
+                case PATH :         
+                case FILENAME :     
+                case FORMAT :       
+                case FILESIZE :     
+                case ENCODING :     
+                case BITRATE :      
+                case ENCODER :      
+                case CHANNELS :     
+                case SAMPLE_RATE :  
+                case LENGTH :       
+                case TITLE :        
+                case ALBUM :        
+                case ARTIST :       
+                case ALBUM_ARTIST : 
+                case COMPOSER :     
+                case PUBLISHER :    
+                case TRACK_INFO :
+                case DISCS_INFO :   
+                case GENRE :        
+                case COVER :        
+                case COVER_INFO :   
+                case RATING :       
+                case RATING_RAW :   
+                case CATEGORY :     
+                case COMMENT :      
+                case LYRICS :       
+                case MOOD :         
+                case COLOR :        
+                case CHAPTERS :     
+                case CUSTOM1 :      
+                case CUSTOM2 :      
+                case CUSTOM3 :      
+                case CUSTOM4 :      
+                case CUSTOM5 :      return o.toString();
+                default : throw new AssertionError("Default case should never execute");
+            }
+        }
     }
     
-    @Retention(SOURCE) // !used now, stay at source lvl
+    /** 
+     * Supposed to be used for invoking getField() using reflection. Now used
+     * only to annotate responsible methods, hence the retention being source.
+     */
+    @Retention(SOURCE)
     @Target(METHOD) 
     public static @interface MetadataFieldMethod {
         Field value();

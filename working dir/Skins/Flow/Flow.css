@@ -71,6 +71,8 @@
 .glow-icon:hover {
     -fx-effect: none;
     -fx-fill: -fx-def-font-color;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
 }
 // inherits: .icon
 .seeker-add-chapter-button,

@@ -3,8 +3,8 @@ package GUI.ItemNode;
 
 import Action.Action;
 import Configuration.Config;
-import GUI.ItemNode.ItemTextFields.FileTextField;
-import GUI.ItemNode.ItemTextFields.FontTextField;
+import GUI.ItemNode.TextFieldItemNode.FileItemNode;
+import GUI.ItemNode.TextFieldItemNode.FontItemNode;
 import GUI.objects.CheckIcon;
 import GUI.objects.Icon;
 import GUI.objects.combobox.ImprovedComboBox;
@@ -722,7 +722,7 @@ abstract public class ConfigField<T> {
     }
       
     private static final class FontField extends ConfigField<Font> {
-        FontTextField txtF = new FontTextField();
+        FontItemNode txtF = new FontItemNode();
         
         private FontField(Config<Font> c) {
             super(c);
@@ -748,7 +748,7 @@ abstract public class ConfigField<T> {
     }
     
     private static final class FileField extends ConfigField<File> {
-        FileTextField txtF = new FileTextField();
+        FileItemNode txtF = new FileItemNode();
         
         public FileField(Config<File> c) {
             super(c);

@@ -6,6 +6,7 @@
 package GUI.objects.Table;
 
 import GUI.GUI;
+import GUI.objects.TableRow.ImprovedTableRow;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +17,11 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
@@ -82,6 +86,31 @@ public class ImprovedTable<T> extends TableView<T> {
     public boolean isRowFull(int i) {
         return 0<=i && getItems().size()>i;
     }
+    
+    /** Returns all tablerows using recursive lookup. Dont rely on this much ok. */
+    public List<TableRow<T>> getRows() {
+        return getRows(this, new ArrayList<>());
+    }
+    
+    private List<TableRow<T>> getRows(Parent n, List<TableRow<T>> li) {
+        for(Node nn : n.getChildrenUnmodifiable()) 
+            if(nn instanceof TableRow)
+                li.add(((TableRow)nn));
+        for(Node nn : n.getChildrenUnmodifiable()) 
+            if(nn instanceof Parent)
+                getRows(((Parent)nn), li);
+                
+        return li;
+    }
+    
+    public void updateStyleRules() {
+        for (TableRow<T> row : getRows()) {
+            if(row instanceof ImprovedTableRow) {
+                ((ImprovedTableRow)row).styleRulesUpdate();
+            }
+        }
+    }
+    
     
     /** Returns selected items. The list will continue to reflect changes in selection. */
     public ObservableList<T> getSelectedItems() {

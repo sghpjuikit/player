@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.ItemNode.ItemTextFields;
+package GUI.ItemNode.TextFieldItemNode;
 
 import java.io.File;
 import util.File.Environment;
@@ -16,9 +16,9 @@ import util.parsing.Parser;
  * <p>
  * @author Plutonium_
  */
-public class FileTextField extends ItemTextField<File> {
+public class FileItemNode extends TextFieldItemNode<File> {
     
-    public FileTextField() {
+    public FileItemNode() {
         super(Parser.toConverter(File.class));
     }
 

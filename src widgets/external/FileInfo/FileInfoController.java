@@ -7,6 +7,7 @@ import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import GUI.InfoNode.SongInfo;
@@ -373,29 +374,29 @@ public class FileInfoController extends FXMLController implements SongInfo {
             rater.rating.set(m.getRatingPercent());
 
             // set other fields
-            title.setText("title: "         + m.getTitle());
-            track.setText("track: "         + m.getTrackInfo());
-            disc.setText("disc: "           + m.getDiscInfo());
-            gap1.setText(" ");
-            artist.setText("artist: "       + m.getArtist());
-            album.setText("album: "         + m.getAlbum());
-            album_artist.setText("album artist: " + m.getAlbumArtist());
-            year.setText("year: "           + m.getYearAsS());
-            genre.setText("genre: "         + m.getGenre());
-            composer.setText("composer: "   + m.getComposer());
-            publisher.setText("publisher: " + m.getPublisher());
-            gap2.setText(" ");
-            rating.setText("rating: "       + m.getRatingAsString());
-            playcount.setText("playcount: " + m.getPlaycountAsString());
-            comment.setText("comment: "     + "");
-            category.setText("category: "   + m.getCategory());
-            gap3.setText(" ");
-            filesize.setText("filesize: "   + m.getFilesize().toString());
-            filename.setText("filename: "   + m.getFilenameFull());
-            format.setText("format: "       + m.getFormat());
-            bitrate.setText("bitrate: "     + m.getBitrate().toString());
-            encoding.setText("encoding: "   + m.getEncoder());
-            location.setText("location: "   + m.getPath());
+            title.setText("title: "               + m.getFieldS(TITLE,""));
+            track.setText("track: "               + m.getFieldS(TRACK_INFO,""));
+            disc.setText("disc: "                 + m.getFieldS(DISCS_INFO,""));
+            gap1.setText(" ");      
+            artist.setText("artist: "             + m.getFieldS(ARTIST,""));
+            album.setText("album: "               + m.getFieldS(ALBUM,""));
+            album_artist.setText("album artist: " + m.getFieldS(ALBUM_ARTIST,""));
+            year.setText("year: "                 + m.getFieldS(YEAR,""));
+            genre.setText("genre: "               + m.getFieldS(GENRE,""));
+            composer.setText("composer: "         + m.getFieldS(COMPOSER,""));
+            publisher.setText("publisher: "       + m.getFieldS(PUBLISHER,""));
+            gap2.setText(" ");      
+            rating.setText("rating: "             + m.getFieldS(RATING,""));
+            playcount.setText("playcount: "       + m.getFieldS(PLAYCOUNT,""));
+            comment.setText("comment: "           + "");
+            category.setText("category: "         + m.getFieldS(CATEGORY,""));
+            gap3.setText(" ");      
+            filesize.setText("filesize: "         + m.getFieldS(FILESIZE,""));
+            filename.setText("filename: "         + m.getFieldS(FILENAME,""));
+            format.setText("format: "             + m.getFieldS(FORMAT,""));
+            bitrate.setText("bitrate: "           + m.getFieldS(BITRATE,""));
+            encoding.setText("encoding: "         + m.getFieldS(ENCODING,""));
+            location.setText("location: "         + m.getFieldS(PATH,""));
         } 
         
         // manually applied c.v.

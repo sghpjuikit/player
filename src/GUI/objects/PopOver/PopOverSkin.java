@@ -184,7 +184,7 @@ public class PopOverSkin implements Skin<PopOver> {
         updatePath();
         
         // react on detached state change and initialize
-        maintain(popOver.detached, d -> {System.out.println(d);
+        maintain(popOver.detached, d -> {
             updatePath();
             popOver.pseudoClassStateChanged(DETACHED, d);
             content.setTop(header); // always show header in detached mode
@@ -206,7 +206,6 @@ public class PopOverSkin implements Skin<PopOver> {
             if (popOver.detachable.get()) {
                 double deltaX = e.getScreenX() - xOffset;
                 double deltaY = e.getScreenY() - yOffset;
-                
                 Window window = popOver.getScene().getWindow();
                 
                 window.setX(window.getX() + deltaX);
@@ -214,7 +213,6 @@ public class PopOverSkin implements Skin<PopOver> {
                 
                 xOffset = e.getScreenX();
                 yOffset = e.getScreenY();
-                
                 if (dragStartLocation.distance(xOffset, yOffset) > 20) {
                     tornOff = true;
                     updatePath();

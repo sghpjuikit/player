@@ -43,6 +43,8 @@ public class WindowBase {
     
     Stage s = new Stage();
     
+    /** Indicates whether the window has focus. Read-only. Use {@link #focus()}. */
+    public final ReadOnlyBooleanProperty focused = s.focusedProperty();
     /** Indicates whether this window is always on top. Window always on top
       * will not hide behind other windows. */
     public final ReadOnlyBooleanProperty alwaysOnTop = s.alwaysOnTopProperty();
@@ -57,6 +59,7 @@ public class WindowBase {
     /** Defines whether this window is resizable. Programatically it is still 
       * possible to change the size of the Stage. */
     public final BooleanProperty resizable = s.resizableProperty();
+    
     
     
     public WindowBase() {
@@ -152,13 +155,6 @@ public class WindowBase {
     /** Brings the window to front if it was behind some window on the desktop.*/
     public void focus() {
         s.requestFocus();
-    }
-    /** 
-     * Returns whether this window is focused. Only one window can be focused
-     * at a time.
-     */
-    public boolean isFocused() {
-        return s.isFocused();
     }
     
     /**

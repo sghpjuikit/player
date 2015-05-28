@@ -318,7 +318,7 @@ public class PlayerControlsController extends FXMLController implements Playback
             }
         }
     }
-    private void loopModeChanged(LoopMode new_mode) {System.out.println(new_mode);
+    private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
             case OFF:       loopB.setIcon(ALIGN_CENTER); // linear
                             Tooltip.install(loopB, new Tooltip("Loop mode: off"));

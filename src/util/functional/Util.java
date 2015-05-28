@@ -159,7 +159,17 @@ public class Util {
     public static <NN> Function<? extends Object,NN> mapNulls(NN non_null) {
         return (Function) in -> in==null ? non_null : in;
     }
-
+    
+/***************************** function -> function ***************************/
+    
+    /** Returns function that never produces null, but returns its input instead. */
+    public static <I> Function<I,I> nonNull(Function<I,I> f) {
+        return in -> {
+            I out = f.apply(in);
+            return out==null ? in : out;
+        };
+    }
+    
     /** Equivalent to {@code noEx(f, null, ecs); }*/
     public static <I,O> Function<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
         return noEx(null, f, ecs);

@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.animation.FadeTransition;
+import javafx.css.PseudoClass;
+import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
@@ -34,8 +36,7 @@ import org.controlsfx.control.textfield.CustomTextField;
 import util.Password;
 import static util.Util.*;
 import static util.async.Async.run;
-import static util.functional.Util.cmpareBy;
-import static util.functional.Util.isInR;
+import static util.functional.Util.*;
 
 /**
  * Editable and setable graphic control for configuring {@Config}.
@@ -281,6 +282,7 @@ abstract public class ConfigField<T> {
 /***************************** IMPLEMENTATIONS ********************************/
     private static final Tooltip okTooltip = new Tooltip("Apply value");
     private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
+    private static final PseudoClass editedPC = getPseudoClass("edited");
         
     private static final class PasswordField extends ConfigField<Password>{
         
@@ -308,68 +310,58 @@ abstract public class ConfigField<T> {
         
     }    
     private static final class StringField extends ConfigField<String> {
-        private CustomTextField txtF = new CustomTextField();
+        private CustomTextField n = new CustomTextField();
         
         private StringField(Config c) {
             super(c);
             
-            txtF.getStyleClass().setAll("text-field","text-input");
-            txtF.getStyleClass().add("text-field-config");
-            
-            txtF.setOnMouseClicked( e -> {
-                if (txtF.getText().isEmpty())
-                    txtF.setText(txtF.getPromptText());
-                e.consume();
-            });
-            txtF.focusedProperty().addListener((o,ov,nv) -> {
+            n.getStyleClass().setAll("text-field","text-input");
+            n.getStyleClass().add("text-field-config");
+            n.setPromptText(c.getName());
+            n.setText(c.getValueS());
+
+            n.focusedProperty().addListener((o,ov,nv) -> {
                 if(nv) {
-                    if (txtF.getText().isEmpty()) 
-                        txtF.setText(txtF.getPromptText());
-                } else {            
+                    n.pseudoClassStateChanged(editedPC, true);
+                } else {
+                    n.pseudoClassStateChanged(editedPC, false);
                     refreshItem();
                 }
             });
-            txtF.addEventHandler(KEY_RELEASED, e -> {
+            n.addEventHandler(KEY_RELEASED, e -> {
                 if (isInR(e.getCode(), BACK_SPACE,DELETE)) {
-                    boolean firsttime = !txtF.getPromptText().isEmpty();
-                    txtF.setPromptText(firsttime ? "" : config.getValueS());
+                    boolean firsttime = !n.getPromptText().isEmpty();
+                    n.setPromptText(firsttime ? "" : config.getName());
                 }
             });
-            txtF.addEventHandler(KEY_RELEASED, e -> {
-                if (e.getCode()==ESCAPE) {
-                    refreshItem();
+            n.addEventHandler(KEY_RELEASED, e -> {
+                if (e.getCode()==ESCAPE)
                     root.requestFocus();
-                }
             });
-            txtF.textProperty().addListener((o,ov,nv)-> apply(false));
-            
-            refreshItem();
+            n.textProperty().addListener((o,ov,nv)-> apply(false));
         }
         
         @Override public Control getControl() {
-            return txtF;
+            return n;
         }
 
         @Override public void focus() {
-            txtF.requestFocus();
-            txtF.selectAll();
+            n.requestFocus();
+            n.selectAll();
         }
         
         @Override public String getItem() {
-            String text = txtF.getText();
-            return text.isEmpty() ? txtF.getPromptText() : text;
+            return n.getText();
         }
         
         @Override public void refreshItem() {
             if(insonsistent_state) return;
-            txtF.setPromptText(config.getValueS());
-            txtF.setText("");
+            n.setText(config.getValueS());
         }
         
     }
     private static final class GeneralField extends ConfigField<Object> {
-        
-        CustomTextField txtF = new CustomTextField();
+        CustomTextField n = new CustomTextField();
         Icon okBL= new Icon();
         Icon warnB = new Icon();
         AnchorPane okB = new AnchorPane(okBL);
@@ -390,84 +382,89 @@ abstract public class ConfigField<T> {
             warnB.getStyleClass().setAll("congfig-field-warn-button");
             warnB.setTooltip(warnTooltip);
             
-            txtF.getStyleClass().setAll("text-field","text-input");
-            txtF.getStyleClass().add("text-field-config");
-            txtF.setPromptText(c.getValueS());
-            // start edit
-            txtF.setOnMouseClicked( e -> {
-                if (txtF.getText().isEmpty())
-                    txtF.setText(txtF.getPromptText());
-                e.consume();
-            });
+            n.getStyleClass().setAll("text-field","text-input");
+            n.getStyleClass().add("text-field-config");
+            n.setPromptText(c.getName());
+            n.setText(c.getValueS());
             
-            txtF.focusedProperty().addListener((o,ov,nv) -> {
+            n.focusedProperty().addListener((o,ov,nv) -> {
                 if(nv) {
-                    if (txtF.getText().isEmpty()) 
-                        txtF.setText(txtF.getPromptText());
+                    n.pseudoClassStateChanged(editedPC, true);
                 } else {
-                    // the timer solves a little bug where the focus shift from
-                    // txtF to okB has a delay which we need to jump over
-                    run(80, () -> {
-                        if(!okBL.isFocused() && !okB.isFocused()) {
-                            txtF.setText("");
-                            showOkButton(false);
-                        }
-                    });
+                    n.pseudoClassStateChanged(editedPC, false);
+//                    // the timer solves a little bug where the focus shift from
+//                    // txtF to okB has a delay which we need to jump over
+//                    run(80, () -> {
+//                        if(!okBL.isFocused() && !okB.isFocused()) {
+//                            txtF.setText("");
+//                            showOkButton(false);
+//                        }
+//                    });
+                    refreshItem();
                 }
             });
             
-            txtF.addEventHandler(KEY_RELEASED, e -> {
-                if (e.getCode()==ESCAPE) {
-                    refreshItem();
+            n.addEventHandler(KEY_RELEASED, e -> {
+                if (e.getCode()==ESCAPE)
                     root.requestFocus();
-                }
             });
             // applying value
-            txtF.textProperty().addListener((o,ov,nv)-> {
-                boolean erroneous = getItem()==null;
-                boolean applicable = !nv.equals(txtF.getPromptText());
-                showOkButton(applicable && !erroneous);
+            n.textProperty().addListener((o,ov,nv)-> {
+                Object i = getItem();
+                boolean erroneous = i==null;
+                boolean applicable = !nv.equals(config.getValue().equals(i));
+                showOkButton(!applyOnChange && applicable && !erroneous);
                 showWarnButton(erroneous);
+                if(nv.isEmpty()) return;
+                if(applyOnChange) apply(false);
             });
-            okBL.setOnMouseClicked( e -> apply());
-            txtF.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(); });
+            okBL.setOnMouseClicked( e -> apply(true));
+            n.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(true); });
         }
         
         @Override public Control getControl() {
-            return txtF;
+            return n;
         }
 
         @Override
         public void focus() {
-            txtF.requestFocus();
-            txtF.selectAll();
+            n.requestFocus();
+            n.selectAll();
         }
         
         @Override public Object getItem() {
-            String text = txtF.getText();
-            return text.isEmpty() ? config.getValue() : config.fromS(text);
+            return config.fromS(n.getText());
         }
         @Override public void refreshItem() {
-            txtF.setPromptText(config.getValueS());
-            txtF.setText("");
+            n.setText(config.getValueS());
             showOkButton(false);
         }
-        private void apply() {
-            if(applyOnChange) applyNsetIfNeed();
+        protected void apply(boolean user) {
+            if(insonsistent_state) return;
+            Object t = getItem();
+
+            boolean erroneous = t==null;
+            if(erroneous) return;
+            boolean applicable = !config.getValue().equals(t);
+            if(!applicable) return;
+
+            insonsistent_state = true;
+            if(applyOnChange || user) config.setNapplyValue(t);
+            else config.setValue(t);
+            insonsistent_state = false;
         }
         private void showOkButton(boolean val) {
-            if (val) txtF.setLeft(okB);
-            else txtF.setLeft(new Region());
+            if (val) n.setLeft(okB);
+            else n.setLeft(new Region());
             okB.setVisible(val);
         }
         private void showWarnButton(boolean val) {
-            if (val) txtF.setRight(warnB);
-            else txtF.setRight(new Region());
+            if (val) n.setRight(warnB);
+            else n.setRight(new Region());
             warnB.setVisible(val);
         }
         
     }
-    
     private static final class BooleanField extends ConfigField<Boolean> {
         CheckIcon cBox;
         
@@ -490,7 +487,6 @@ abstract public class ConfigField<T> {
             cBox.selected.set(config.getValue());
         }
     }
-    
     private static final class SliderField extends ConfigField<Number> {
         Slider slider;
         Label cur, min, max;
@@ -524,12 +520,12 @@ abstract public class ConfigField<T> {
             // unfortunately this control is often within scrollpane and user
             // might end up changing value of this config field while scrolling
             // disable this
-            slider.setBlockIncrement((c.getMax()-c.getMin())/20);
 //            slider.setOnScroll( e -> {
 //                if (e.getDeltaY()>0) slider.increment();
 //                else slider.decrement();
 //                e.consume();
 //            });
+            slider.setBlockIncrement((c.getMax()-c.getMin())/20);
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
             slider.setMaxWidth(-1);
@@ -539,8 +535,8 @@ abstract public class ConfigField<T> {
             box.setAlignment(CENTER_LEFT);
             box.setSpacing(5);
             
-            Class<? extends Number> type = unPrimitivize(config.getType());
-            if(Integer.class.equals(type) || type.equals(Long.class)) {
+            Class type = unPrimitivize(config.getType());
+            if(isIn(type, Integer.class,Short.class,Long.class)) {
                 box.getChildren().add(0,cur);
                 slider.setMajorTickUnit(1);
                 slider.setSnapToTicks(true);
@@ -552,7 +548,7 @@ abstract public class ConfigField<T> {
         }
         @Override public Number getItem() {
             Double d = slider.getValue();
-            Class<? extends Number> type = unPrimitivize(config.getType());
+            Class type = unPrimitivize(config.getType());
             if(Integer.class.equals(type)) return d.intValue();
             if(Double.class.equals(type)) return d;
             if(Float.class.equals(type)) return d.floatValue();
@@ -564,35 +560,36 @@ abstract public class ConfigField<T> {
             slider.setValue(config.getValue().doubleValue());
         }
     }
-    
     private static final class EnumertionField extends ConfigField<Object> {
-        ComboBox<Object> cBox;
+        ComboBox<Object> n;
         
         private EnumertionField(Config<Object> c) {
             super(c);
-            cBox = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));            
-            cBox.getItems().addAll(c.enumerateValues());
-            cBox.getItems().sort(cmpareBy(v->c.toS(v)));
-            cBox.setValue(c.getValue());
-            cBox.valueProperty().addListener((o,ov,nv) -> {
+            n = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));            
+            n.getItems().addAll(c.enumerateValues());
+            n.getItems().sort(cmpareBy(v->c.toS(v)));
+            n.setValue(c.getValue());
+            n.valueProperty().addListener((o,ov,nv) -> {
                 if(applyOnChange) applyNsetIfNeed();
             });
+            n.getStyleClass().add("combobox-field-config");
+            n.focusedProperty().addListener((o,ov,nv) -> n.pseudoClassStateChanged(editedPC, nv));
         }
-        @Override public Object getItem() {
-            return cBox.getValue();
+        
+        @Override 
+        public Object getItem() {
+            return n.getValue();
         }
 
-        @Override
+        @Override 
         public void refreshItem() {
-            cBox.setValue(config.getValue());
+            n.setValue(config.getValue());
         }
 
-        @Override
-        Node getControl() {
-            return cBox;
+        @Override Node getControl() {
+            return n;
         }
     }
-    
     private static final class ShortcutField extends ConfigField<Action> {
         TextField txtF;
         CheckIcon globB;
@@ -698,7 +695,6 @@ abstract public class ConfigField<T> {
             globB.selected.set(a.isGlobal());
         }
     }
-    
     private static final class ColorField extends ConfigField<Color> {
         ColorPicker picker = new ColorPicker();
         
@@ -720,7 +716,6 @@ abstract public class ConfigField<T> {
             picker.setValue(config.getValue());
         }
     }
-      
     private static final class FontField extends ConfigField<Font> {
         FontItemNode txtF = new FontItemNode();
         
@@ -746,7 +741,6 @@ abstract public class ConfigField<T> {
             txtF.setValue(config.getValue());
         }
     }
-    
     private static final class FileField extends ConfigField<File> {
         FileItemNode txtF = new FileItemNode();
         

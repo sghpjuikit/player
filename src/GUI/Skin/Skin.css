@@ -1240,7 +1240,7 @@
 
 /*******************************************************************************
  *                                                                             *
- * Text BIXES                                                                  *
+ * Text BOXES                                                                  *
  *                                                                             *
  ******************************************************************************/
 
@@ -3183,23 +3183,13 @@
     -fx-background-color: -fx-pane-color;
 }
 
-/** State when dragged. Only few subclasses actually use this. An example is
-    .area 
-    Note: i was not able to override this in custom skins. Investigate. */
-.block:dragged {
-    -fx-background-color: -fx-pane-color-dragged;
-}
+
 
 /* Default headers style. Unrelated headers might use this class. Each of them
   should also have its own class defined in addition to this one. */
 .header {
-    // BUG FIX (deprecated, use on on reoccurrence)
-    // cant use rgba() color (rgb with non 1 opacity) for header because it creates artefacts
-    // for window header when mouse hovers over content inside it - a bug?
-    // instead emulate the color by setting opacity manually
-    // -fx-background-color: -fx-pane-color;
-    // -fx-background-color: black; // emulate -fx-pane-color
-    // -fx-opacity: 0.32;           // emulate -fx-pane-color
+    // bug causing artefacts on bgr color of nodes in header may appear, in such
+    // case emulate rgba(x,x,x,a) color manualy using rgb(x,x,x) and opacity
 }
 
 /************************************ WINDOW ***********************************
@@ -3232,17 +3222,10 @@
     -fx-background-size: stretch;
 }
 
-// Inherits .block, .header
+// inherits: .header
 .window > .header {
 }
 .window:focused > .header {
-    // lets signal which window has focus by altering the header border
-    // improve this
-    -fx-border-color: 
-        transparent transparent derive(-fx-pane-color,50%) transparent,
-        derive(-fx-pane-color,80%) rgba(0, 0, 222, 0.3) rgba(0, 0, 0, 0.3) derive(-fx-pane-color,80%);
-    -fx-border-width: 2.5, 2.5;
-    -fx-border-insets: -2, -1;
 }
 
 // left, right, bottom borders of the window. There is no top border as there is
@@ -3282,12 +3265,17 @@
 /* 
  * Widget area
  * inherits: .block
+ * pseudoclasses: dragged
  */
 .area {
     // default padding for all widgets
     // note: widgets shouldnt have their own padding to remain consistent
     -fx-padding: 4;
     -fx-background-insets: 2;   // margin, by default set to area-path-border width
+}
+
+.area:dragged {
+    -fx-background-color: -fx-pane-color-dragged;
 }
 
 /* Widget area in layout mode. Inherits .block styleclas.
@@ -3643,27 +3631,16 @@
 /********************************** CONFIG ************************************/
 
 /** 
- * Text box for configuring objects, e.g. in settings.
- * The peculiarity is that it only displays text while being edited (and focused)
- * and displays prompt text otherwise. Prompt text shows the currently set
- * value, while text shows currently edited one. Once editing is done text is
- * cleared to display prompt text.
- * This matters here for consstency. Skin may chose to style prompt text as
- * (normal) text while styling normal text to be more visible to signal editing
- * 
+ * Text box for configuring objects, e.g. in settings. * 
  * inherits: .text-field
+ * pseudoclasses: edited (it is basically focused)
  */
-.text-field-config {
+.text-field-config:edited {
     -fx-text-fill: -fx-focus-color;
     -fx-prompt-text-fill: -fx-def-font-color;
 }
 
-.text-field-config:hover {
-    -fx-text-fill: -fx-focus-color;
-    -fx-prompt-text-fill: -fx-def-font-color;
-}
-
-.text-field-config:focused {
+.combobox-field-config:edited > .list-cell {
     -fx-text-fill: -fx-focus-color;
     -fx-prompt-text-fill: -fx-def-font-color;
 }

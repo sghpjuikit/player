@@ -3,7 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- converter widget finish
+- converter widget add tagging support
 - replaceFirst regex support
 - function item nodes dont react on default button click
 - config apply on change finish through

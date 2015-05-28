@@ -33,23 +33,9 @@
     -fx-background-size: stretch;
 }
 
-
 .header {
-    -fx-background-color: rgb(0,0,0);  // emulate -fx-pane-color
-    -fx-opacity: 0.3;                  // emulate -fx-pane-color
-}
-.window:focused > .header {
-    // lets signal which window has focus by altering the header border
-    // improve this
-    -fx-border-color: 
-        transparent transparent derive(-fx-pane-color,50%) transparent,
-        derive(-fx-pane-color,80%) rgba(0, 0, 222, 0.3) rgba(0, 0, 0, 0.3) derive(-fx-pane-color,80%);
-    -fx-border-width: 2.5, 2.5;
-    -fx-border-insets: -2, -1;
-}
-
-.window > .w-border {
-    -fx-background-color: -fx-pane-color;
+    -fx-background-color: rgb(0,0,20);  // emulate -fx-pane-color - bugfix
+    -fx-opacity: 0.4;                   // emulate -fx-pane-color - bugfix
 }
 
 
@@ -95,7 +81,6 @@
 .indexed-cell:corrupt,
 .indexed-cell:corrupt:selected {
     -fx-text-fill: red;
-    -fx-underline: true;
 }
 
 
@@ -170,4 +155,50 @@
 .accordion .titled-pane:expanded:focused > .title {
     -fx-text-color: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, -fx-focus-color, 9,0 , 0,0);
+}
+
+
+
+// not sure why we need to redefine this or focus color wont get applied
+.text-field-config:edited,
+.text-field-config:hover:edited,
+.text-field-config:focused:edited {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+}
+
+.combobox-field-config:edited > .list-cell {
+    -fx-text-fill: -fx-focus-color;
+    -fx-prompt-text-fill: -fx-def-font-color;
+}
+
+
+.combo-box-popup > .list-view {
+    -fx-padding: 5;
+    -fx-background-color: -fx-popup-def-bgr-color;
+    //-fx-background-insets:  0 -5 -5 -5; //expands menu bgr left,bottom,right
+    -fx-background-radius: 0;
+    -fx-border-width: 1;
+    -fx-border-color: black;
+    //-fx-border-insets:  0 -5 -5 -5;
+    -fx-effect: null;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-padding: 3;
+    -fx-background-color: null;
+    -fx-text-fill:-fx-def-font-color;
+}
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+    -fx-background: null;
+    -fx-background-color: null;
+    -fx-text-fill: -fx-focus-color;
+}
+.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.combo-box-popup  > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+    -fx-background: null;
+    -fx-background-color: null;
+    -fx-text-fill: -fx-focus-color;
+}
+.combo-box-popup > .list-view > .placeholder > .label {
+    -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }

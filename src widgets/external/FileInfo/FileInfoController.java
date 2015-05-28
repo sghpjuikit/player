@@ -7,6 +7,7 @@ import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
@@ -176,7 +177,7 @@ public class FileInfoController extends FXMLController implements SongInfo {
     public boolean allowNoContent = false;
     
     @Override
-    public void init() {        
+    public void init() {
         // initialize gui
         ChangeableThumbnail cover = new ChangeableThumbnail();
                   cover.setBackgroundVisible(false);
@@ -220,8 +221,6 @@ public class FileInfoController extends FXMLController implements SongInfo {
         rater.editable.bind(App.allowRatingChange);
         // write metadata on rating change
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
-        // hide rating if empty
-        rater.visibleProperty().bind(rating.disabledProperty().not());
         
         // accept audio drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
@@ -320,9 +319,6 @@ public class FileInfoController extends FXMLController implements SongInfo {
             actPane.description.setText("left click: " + readMode.next().toString() + "\n" +
                                         "right click: " + readMode.previous().toString());
         });
-        
-        // needs run later to properly initialize
-        run(1000,()->resize(entireArea.getWidth(), entireArea.getHeight()));
     }
     
     ActionChooser<File> actPane;
@@ -359,7 +355,7 @@ public class FileInfoController extends FXMLController implements SongInfo {
     @Override
     public void setValue(Metadata m) {
         // prevent refreshing location if shouldnt
-        if(!allowNoContent && m==Metadata.EMPTY) return;
+        if(!allowNoContent && m==EMPTY) return;
         
         // remember data
         data = m;
@@ -430,7 +426,7 @@ public class FileInfoController extends FXMLController implements SongInfo {
         location.setText("location: ");
     }
     
-    private void setVisibility() {        
+    private void setVisibility() {
         // initialize
         visible_labels.clear();
         visible_labels.addAll(labels);
@@ -492,6 +488,8 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // rating is empty (same way the other labels)
         // in the end we must remove the text because we use stars instead
         rating.setText("rating: ");
+        
+        resize(entireArea.getWidth(), entireArea.getHeight());
     }
     
     private void setCover(CoverSource source) {
@@ -525,7 +523,9 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // adhere to requested minimum size
         cellW = max(cellW, minColumnWidth.getValue());
         
-        tiles.setPrefTileWidth(cellW);
+        double w = cellW;
+        tiles.setPrefTileWidth(w);
+        visible_labels.forEach(l -> l.setMaxWidth(w));
     }
     
 }

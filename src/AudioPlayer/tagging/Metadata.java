@@ -47,6 +47,8 @@ import org.jaudiotagger.tag.id3.ID3v24Frames;
 import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
+import org.jaudiotagger.tag.mp4.Mp4FieldKey;
+import org.jaudiotagger.tag.mp4.Mp4Tag;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import static util.File.FileUtil.EMPTY_COLOR;
@@ -207,18 +209,12 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         Tag tag = audiofile.getTagOrCreateAndSetDefault();
         loadGeneralFields(audiofile, tag);
         switch (getFormat()) {
-            case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);
-                        break;
-            case flac:  //FLACFile flac = (MP3File)audioFile;
-                        loadSpecificFieldsFLAC((FlacTag)tag);
-                        break;
-            case ogg:   //MP3File ogg = (MP3File)audioFile;
-                        loadSpecificFieldsOGG(tag);
-                        break;
-            case wav:   //MP3File ogg = (MP3File)audioFile;
-                        loadSpecificFieldsWAV();
-                        break;
-            default:
+            case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);  break;
+            case flac:  loadSpecificFieldsFLAC((FlacTag)tag);       break;
+            case ogg:   loadSpecificFieldsOGG(tag);                 break;
+            case wav:   loadSpecificFieldsWAV();                    break;
+            case m4a:   loadSpecificFieldsMP4((Mp4Tag)tag);         break;
+            default: throw new AssertionError("Illegal case in switch");
         }        
         
     }
@@ -274,7 +270,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         genre = getGeneral(tag,FieldKey.GENRE);
         year = getNumber(tag,FieldKey.YEAR);
         category = getGeneral(tag,FieldKey.GROUPING);
-        // cover = tag.getFirstArtwork();               // lazy
         comment = getComment(tag);
         lyrics = getGeneral(tag,FieldKey.LYRICS);
         mood = getGeneral(tag,FieldKey.MOOD);
@@ -285,15 +280,18 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         custom5 = getGeneral(tag,FieldKey.CUSTOM5);
     }
     
+    
+    // use to debug tag
+    // tag.getFields().forEachRemaining(f->System.out.println(f.getId()+" "+f));
+    
+    
     private String getGeneral(Tag tag, FieldKey f) {
         if (!tag.hasField(f)) return "";
         return Util.emptifyString(tag.getFirst(f));
     }
-    
     private int getNumber(Tag tag, FieldKey field) {
         return getNumber(getGeneral(tag, field));
-    }
-    
+    } 
     private int getNumber(String s) {
         try {
             return s.isEmpty() ? -1 : parseInt(s);
@@ -301,7 +299,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             return -1;
         }
     }
-    
     // use this to get comment, not getField(COMMENT); because it is bugged
     private String getComment(Tag tag) { 
         // there is a bug where getField(Comment) returns CUSTOM1 field, this is workaround
@@ -319,7 +316,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         if(i>-1) return tag.getValue(FieldKey.COMMENT, i);
         else return "";
     }
-    
     private List<String> getGenerals(Tag tag, FieldKey f) {
         List<String> out = new ArrayList<>(); 
         if (!tag.hasField(f)) return out;
@@ -341,6 +337,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         }
         return out;
     }
+    
     
     private void loadSpecificFieldsMP3(MP3File mp3) {
         Objects.requireNonNull(mp3);
@@ -386,6 +383,36 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         rating = -1;
         playcount = -1;
         publisher = "";
+    }
+    private void loadSpecificFieldsMP4(Mp4Tag tag) {
+        // RATING --------------------------------------------------------------
+        // id: 'rate'
+        // all are equivalent:
+        //      tag.getFirst(FieldKey.RATING)
+        //      tag.getValue(FieldKey.RATING,0)
+        //      tag.getItem("rate",0) 
+        int r = getNumber(tag, FieldKey.RATING);
+        // sometimes we get unintelligible values for some reason (dont ask me),
+        // Mp3Tagger app can recognize them somehow
+        // the values appear consistent so lets use them
+        if(r==12592) rating = 100;
+        else if(r==14384) rating = 80;
+        else if(r==13872) rating = 60;
+        else if(r==13360) rating = 40;
+        else if(r==12848) rating = 20;
+        // handle normally
+        else rating = (r<0 || r>100) ? -1 : r;
+        
+        // PLAYCOUNT -----------------------------------------------------------
+        playcount = -1;
+        
+        // PUBLISHER -----------------------------------------------------------
+        // id: '----:com.nullsoft.winamp:publisher'
+        //      tag.getFirst(FieldKey.PRODUCER) // nope
+        //      tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER) // works
+        //      tag.getFirst(Mp4FieldKey.LABEL) // not same as WINAMP_PUBLISHER, but perhaps also valid
+        //      tag.getFirst(FieldKey.KEY)
+        publisher = emptifyString(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
     }
     private void loadSpecificFieldsOGG(Tag tag) {
         rating = -1;
@@ -666,7 +693,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     private void loadCover() {
         if(cover!=null || cover_loaded) return;
         cover_loaded = true;
-        Tag tag = isFileBased() ? readAudioFile(getFile()).getTag() : null;
+        AudioFile af = isFileBased() ? readAudioFile(getFile()) : null;
+        Tag tag = af!=null ? af.getTagOrCreateAndSetDefault() : null;
         if(tag==null) {
             Log.warn("Tag unsupported in item being read: " + getURI());
             cover = null;
@@ -887,7 +915,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             }
         }
         
-        if(chaptersIncludeXML) cs.addAll(getChaptersFromXML());System.out.println("chapters : " + cs.size());
+        if(chaptersIncludeXML) cs.addAll(getChaptersFromXML());
         cs.sort(Chapter::compareTo);
         return cs;
     }
@@ -968,12 +996,12 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     
     public String getFieldS(Field f) {
         Object o = getField(f);
-        return f==null ? "<none>" : f.toS(o, "<none>");
+        return o==null ? "<none>" : f.toS(o, "<none>");
     }
     
     public String getFieldS(Field f, String no_val) {
         Object o = getField(f);
-        return f==null ? no_val : f.toS(o,no_val);
+        return o==null ? no_val : f.toS(o,no_val);
     }
     
     public boolean isFieldEmpty(Metadata.Field fieldType) {

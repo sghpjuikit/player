@@ -17,6 +17,7 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
+import static javafx.application.Platform.runLater;
 import javafx.beans.value.WritableValue;
 import org.reactfx.EventStream;
 import org.reactfx.EventStreams;
@@ -144,14 +145,6 @@ public class Player {
         PlaylistManager.getItems().stream().filter(p->p.same(m)).forEach(p -> p.update(m));
 
         // update library
-//                List<Metadata> db = DB.views.getValue(1);
-//                for(int i=0; i<db.size(); i++) {
-//                    if(db.get(i).same(m)) {
-//                        db.set(i, m);
-//                        DB.views.push(1, db);
-//                        break;
-//                    }
-//                }
         DB.updateItems(singletonList(m));
 
         // rfresh playing item data
@@ -173,16 +166,6 @@ public class Player {
         PlaylistManager.getItems().forEach(p -> mm.ifHasK(p.getURI(), p::update));
 
         // update library
-//                final List<Metadata> db = DB.views.getValue(1);
-//                final BooleanProperty changed = new SimpleBooleanProperty(false);
-//                for(int i=0; i<db.size(); i++) {
-//                    final int j = i;
-//                    mm.ifHasE(db.get(i), m -> {
-//                        db.set(j, m);
-//                        changed.set(true);
-//                    });
-//                }
-//                if(changed.get()) DB.views.push(1, db);
         DB.updateItems(metas);
 
         // rfresh playing item data
@@ -191,5 +174,24 @@ public class Player {
         // refresh selection event streams
         mm.ifHasE(librarySelectedItemES.getValue(), librarySelectedItemES::push);
         mm.ifHasE(playlistSelectedItemES.getValue(), playlistSelectedItemES::push);
+    }
+    public static void refreshItemsWithUpdatedBgr(List<Metadata> metas) {
+        requireNonNull(metas);
+        if(metas.isEmpty()) return;
+        
+        // metadata map hashed with resource identity : O(n^2) -> O(n)
+        MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,metas);
+
+        DB.updateItemsBgr(metas);
+        
+        runLater(() -> {
+            // update all playlist items referring to this updated metadata
+            PlaylistManager.getItems().forEach(p -> mm.ifHasK(p.getURI(), p::update));
+            // rfresh playing item data
+            mm.ifHasE(playingtem.get(), playingtem::update);
+            // refresh selection event streams
+            mm.ifHasE(librarySelectedItemES.getValue(), librarySelectedItemES::push);
+            mm.ifHasE(playlistSelectedItemES.getValue(), playlistSelectedItemES::push);
+        });
     }
 }

@@ -1,7 +1,6 @@
 
 package Layout.Areas;
 
-import util.graphics.drag.DragUtil;
 import GUI.GUI;
 import static GUI.GUI.openAndDo;
 import Layout.Component;
@@ -17,6 +16,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import static util.Util.setAnchors;
+import util.graphics.drag.DragUtil;
 
 /**
  * Implementation of Area for UniContainer.
@@ -106,9 +106,6 @@ public final class WidgetArea extends Area<Container> {
         // put controls to new widget
         controls.title.setText(w.name());
         controls.propB.setDisable(w.getFields().isEmpty());
-        
-        // put container properties (just in case)
-        setPadding(container.properties.getD("padding"));
         
         // put up activity node
         Node an = w.getController().getActivityNode();

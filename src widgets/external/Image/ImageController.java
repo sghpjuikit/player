@@ -173,7 +173,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
             Image img = null;
             thumb.loadImage(img);
             active_image = -1;
-        } else {System.out.println(i + " " + images.size());
+        } else {
             thumb.loadImage(images.get(i));
             active_image = i;
         }

@@ -10,6 +10,12 @@
 <fx:root id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="window" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
     <children>
         <AnchorPane fx:id="bgrImgLayer" mouseTransparent="true" styleClass="brg-image" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+        <AnchorPane fx:id="borders" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <Region fx:id="lBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
+                <Region fx:id="rBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" /><Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
+            </children>
+        </AnchorPane>
           <BorderPane fx:id="header" prefHeight="25.0" styleClass="block,header" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <opaqueInsets>
                   <Insets />
@@ -18,7 +24,7 @@
                   <Insets left="5.0" right="5.0" />
               </padding>
           </BorderPane>
-          <HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="8.0" AnchorPane.leftAnchor="4.0" AnchorPane.topAnchor="4.0">
+          <HBox fx:id="leftHeaderBox" alignment="CENTER" fillHeight="false" pickOnBounds="false" spacing="8.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0">
               <children>
                   <ImageView fx:id="iconI" fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="5.0" />
             <Label fx:id="titleL" BorderPane.alignment="CENTER">
@@ -28,13 +34,7 @@
             </Label>
               </children>
           </HBox>
-          <HBox fx:id="controls" alignment="CENTER" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="8.0" visible="true" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0" />
-        <AnchorPane fx:id="borders" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-            <children>
-                <Region fx:id="lBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="25.0" />
-                <Region fx:id="rBorder" mouseTransparent="true" prefWidth="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0" /><Region mouseTransparent="true" prefHeight="5.0" styleClass="w-border" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="4.0" AnchorPane.rightAnchor="4.0" />
-            </children>
-        </AnchorPane>
+          <HBox fx:id="controls" alignment="CENTER" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="8.0" visible="true" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
         <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
       <Pane fx:id="header_activator" prefHeight="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
           <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">

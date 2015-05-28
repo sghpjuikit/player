@@ -8,12 +8,11 @@ import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.Widget;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import javafx.css.PseudoClass;
+import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
@@ -21,6 +20,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import util.Closable;
 import static util.Util.setAnchors;
+import static util.functional.Util.list;
 
 /**
  * Graphical part of the container within layout.
@@ -35,8 +35,8 @@ import static util.Util.setAnchors;
  */
 public abstract class Area<T extends Container> implements ContainerNode, Closable {
     
-    public static final PseudoClass draggedPSEUDOCLASS = PseudoClass.getPseudoClass("dragged");
-    public static final List<String> bgr_STYLECLASS = Arrays.asList("block", "area");
+    public static final PseudoClass draggedPSEUDOCLASS = getPseudoClass("dragged");
+    public static final List<String> bgr_STYLECLASS = list("block", "area");
     
     /** Container this are is associated with. The relationship can not be 
       changed. */
@@ -66,23 +66,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
         
         // init properties
         c.properties.initProperty(Double.class, "padding", 0d);
-        
-        // init behavior
-//        root.addEventHandler(SCROLL,e -> {
-//            if(controls.isShowing()) {
-//                if(e.getDeltaY()<0) collapse();
-//                else if(e.getDeltaY()>0) expand();
-//                e.consume();
-//            }
-//        });
-//        root.setOnMouseClicked(e->{
-//            if(controls.isShowing())
-//                if(e.getButton()==MIDDLE) {
-//                    setPadding(0);
-//                    e.consume();
-//                }
-//        });
-        
+
         // load controls
         activityPane = new StackPane();
         activityPane.setPickOnBounds(false);
@@ -163,30 +147,6 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     @Override
     public Pane getRoot() {
         return root;
-    }
-    
-/******************************************************************************/
-    
-    public final void expand() {
-        changePadding(-1);
-    }
-    public final void collapse() {
-        changePadding(+1);
-    }
-    public final void changePadding(double by) {
-        Insets pad = root.getPadding();
-        double to = pad.getTop()+by;
-        if(to<0) to = 0;
-        else if(to>root.getWidth()/2) to = root.getWidth()/2;
-        else if(to>root.getHeight()/2) to = root.getHeight()/2;
-        
-        setPadding(to);
-    }
-    public final void setPadding(double to) {
-        // update properties if changed
-        if(root.getPadding().getTop()!=to)
-            container.properties.put("padding", to);
-        root.setPadding(new Insets(to));
     }
     
 /******************************* layout mode **********************************/

@@ -51,8 +51,8 @@ public abstract class MetaItem<CI extends Item> extends Item<CI> {
     static AudioFile readAudioFile(File file) {
         try {
             return AudioFileIO.read(file);
-        } catch ( CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException ex) {
-            Log.err(ex + " Reading metadata failed for file: " + file.toPath() + "."
+        } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException e) {
+            Log.err(e + " Reading metadata failed for file: " + file.toPath() + "."
                     + "Corrupt or inaccessible file or data.");
             return null;
         }

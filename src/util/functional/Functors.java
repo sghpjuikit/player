@@ -11,9 +11,10 @@ import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import static java.util.Objects.requireNonNull;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.regex.PatternSyntaxException;
+import java.util.regex.Pattern;
 import static org.atteo.evo.inflector.English.plural;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.Use.APP;
@@ -58,6 +59,29 @@ public class Functors {
                     throw e;
                 }
             };
+        }
+
+        @Override
+        default <V> F1<I, V> andThen(Function<? super O, ? extends V> after) {
+            requireNonNull(after);
+            return (I t) -> after.apply(apply(t));
+        }
+        
+        @Override
+        default <V> F1<V,O> compose(Function<? super V, ? extends I> before) {
+            requireNonNull(before);
+            return (V v) -> apply(before.apply(v));
+        }
+        
+        default F1<I,I> nonNull() {
+            return in -> {
+                I out = (I)apply(in);
+                return out==null ? in : out;
+            };
+        }
+        
+        default F1<I,O> nonNull(O or) {
+            return andThen(o -> o==null ? or : o);
         }
     }
     public static interface F1E<I,O> {
@@ -148,7 +172,6 @@ public class Functors {
         }
     }
     
-    
     private static final PrefListMap<PF,Class> fsI = new PrefListMap<>(pf -> pf.in);
     private static final PrefListMap<PF,Class> fsO = new PrefListMap<>(pf -> pf.out);
     private static final PrefListMap<PF,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
@@ -184,10 +207,12 @@ public class Functors {
             return s;
         });
         add("Plural",       String.class,String.class, (t) -> plural(t));
-        add("Replace 1st",  String.class,String.class, (t,o,n) -> t.replaceFirst(o,n), String.class,String.class ,"","");
-        add("Replace all",  String.class,String.class, (t,o,n,b) -> b ? t.replaceAll(o,n) : t.replace(o,n), String.class,String.class,Boolean.class, "","",false , null,PatternSyntaxException.class);
-        add("Remove first", String.class,String.class, (t,r) -> t.replaceFirst(r, ""), String.class,"");
-        add("Remove all",   String.class,String.class, (t,r,b) -> b ? t.replaceAll(r,"") : t.replace(r,""), String.class,Boolean.class, "",false, null,PatternSyntaxException.class);
+        add("Replace 1st (regex)",  String.class,String.class, (t,r,n) -> r.matcher(t).replaceFirst(n), Pattern.class,String.class ,Pattern.compile(""),"");
+        add("Remove first (regex)", String.class,String.class, (t,r) -> r.matcher(t).replaceFirst(""), Pattern.class, Pattern.compile(""));
+        add("Replace all",          String.class,String.class, (t,o,n) -> t.replace(o,n), String.class,String.class, "","");
+        add("Replace all (regex)",  String.class,String.class, (t,r,n) -> r.matcher(t).replaceAll(n), Pattern.class,String.class, Pattern.compile(""),"");
+        add("Remove all",           String.class,String.class, (t,r) -> t.replace(r,""), String.class, "");
+        add("Remove all (regex)",   String.class,String.class, (t,r) -> r.matcher(t).replaceAll(""), Pattern.class, Pattern.compile(""));
         add("Text",         String.class,String.class, (t,r) -> r, String.class,"");
         add("Add text",     String.class,String.class, (t,a,d) -> d==FROM_START ? a+t : t+a, String.class, StringDirection.class,"",FROM_START);
         add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(min(i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
@@ -229,16 +254,16 @@ public class Functors {
         add("Contains (no case)",   String.class,Boolean.class,(text,b) -> text.toLowerCase().contains(b.toLowerCase()),String.class,"",false,false,true);
         add("Ends with (no case)",  String.class,Boolean.class,(text,b) -> text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
         add("Starts with (no case)",String.class,Boolean.class,(text,b) -> text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
-        add("Matches regular expression", String.class,Boolean.class,(text,b) -> text.matches(b), String.class,"", null,PatternSyntaxException.class);
+        add("Matches regex",        String.class,Boolean.class,(text,r) -> r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
         add("Is not",               String.class,Boolean.class,(text,b) -> !text.equals(b), String.class,"");
         add("Contains not",         String.class,Boolean.class,(text,b) -> !text.contains(b), String.class,"");
         add("Not ends with",        String.class,Boolean.class,(text,b) -> !text.endsWith(b), String.class,"");
         add("Not starts with",      String.class,Boolean.class,(text,b) -> !text.startsWith(b), String.class,"");
         add("Is not (no case)",     String.class,Boolean.class,(text,b) -> !text.equalsIgnoreCase(b), String.class,"");
-        add("Contains not (no case)",         String.class,Boolean.class,(text,b) -> !text.toLowerCase().contains(b.toLowerCase()), String.class,"");
-        add("Not ends with (no case)",        String.class,Boolean.class,(text,b) -> !text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
-        add("Not starts with (no case)",      String.class,Boolean.class,(text,b) -> !text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
-        add("Not matches regular expression", String.class,Boolean.class,(text,b) -> !text.matches(b), String.class,"", null,PatternSyntaxException.class);
+        add("Contains not (no case)",        String.class,Boolean.class,(text,b) -> !text.toLowerCase().contains(b.toLowerCase()), String.class,"");
+        add("Not ends with (no case)",       String.class,Boolean.class,(text,b) -> !text.toLowerCase().endsWith(b.toLowerCase()), String.class,"");
+        add("Not starts with (no case)",     String.class,Boolean.class,(text,b) -> !text.toLowerCase().startsWith(b.toLowerCase()), String.class,"");
+        add("Not matches regex",             String.class,Boolean.class,(text,r) -> !r.matcher(text).matches(), Pattern.class,Pattern.compile(""));
         add("More",             String.class,Boolean.class,(x,y) -> x.compareTo(y)>0, String.class,"");
         add("Less",             String.class,Boolean.class,(x,y) -> x.compareTo(y)<0, String.class,"");
         add("Not more",         String.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, String.class,"");
@@ -310,26 +335,14 @@ public class Functors {
     public static<I,O> void add(String name, Class<I> i ,Class<O> o, F1<I,O> f) {
         addF(new PF0(name,i,o,f));
     }
-    public static<I,O> void add(String name, Class<I> i ,Class<O> o, F1<I,O> f, O or, Class<? extends Exception>... e) {
-        addF(new PF0(name,i,o,f.onEx(or, e)));
-    }
     public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def) {
         addF(new PF1(name,i,o,p1,p1def,f));
-    }
-    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def, O or, Class<? extends Exception>... e) {
-        addF(new PF1(name,i,o,p1,p1def,f.onEx(or, e)));
     }
     public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
         addF(new PF2(name,i,o,p1,p2,p1def,p2def,f));
     }
-    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, O or, Class<? extends Exception>... e) {
-        addF(new PF2(name,i,o,p1,p2,p1def,p2def,f.onEx(or, e)));
-    }
     public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
         addF(new PF3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f));
-    }
-    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, O or, Class<? extends Exception>... e) {
-        addF(new PF3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f.onEx(or, e)));
     }
     
     public static<I,O> void add(String name, Class<I> i ,Class<O> o, F1<I,O> f, boolean pi, boolean po, boolean pio) {
@@ -546,7 +559,7 @@ public class Functors {
         }
 
         @Override
-        public O apply(I t, Object... ps) {System.out.println(ps[0] + " " + ps[1] + " " + ps[2]);
+        public O apply(I t, Object... ps) {
              return f.apply(t, (P1)ps[0], (P2)ps[1], (P3)ps[2]);
         }
     }

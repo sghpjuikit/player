@@ -32,6 +32,7 @@ import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
+import static java.time.Duration.ofMillis;
 import java.time.Year;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
@@ -40,7 +41,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
 import static javafx.application.Platform.runLater;
-import javafx.beans.Observable;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
@@ -64,12 +64,15 @@ import javafx.scene.layout.VBox;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import javafx.util.Callback;
 import main.App;
+import org.reactfx.EventStreams;
 import org.reactfx.Subscription;
 import util.File.Environment;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
+import static util.async.Async.runNew;
 import util.async.executor.LimitedExecutor;
+import util.async.future.Fut;
 import util.collections.Histogram;
 import util.collections.ListMap;
 import util.collections.TupleM6;
@@ -112,7 +115,6 @@ public class LibraryViewController extends FXMLController {
     private Subscription d1,d2;
     
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
-    private boolean lock = false;
     ActionChooser actPane = new ActionChooser();
     Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
     private ListMap<Metadata,Object> cache = null;
@@ -137,20 +139,10 @@ public class LibraryViewController extends FXMLController {
         if(d1!=null) d1.unsubscribe();
         // listen for database changes to refresh library
         d1 = DB.views.subscribe(v, (lvl,list) -> {
-            // remember selected
-            Set oldSel = table.getSelectedItems().stream()
-                              .map(MetadataGroup::getValue).collect(toSet());
-            // prevent selection from propagating change
-            lock = true;
+            selectionStore();
             // update list
             setItems(list);
-            // update selected - restore every available old one
-            forEachI(table.getItems(), (i,mg) -> {
-                if(oldSel.contains(mg.getValue()))
-                    table.getSelectionModel().select(i);
-            });
-            // enable propagation
-            lock = false;
+            selectionReStore();
             // propagate in 1 event
             forwardItems(filerList(list,true,false));
         });
@@ -293,18 +285,11 @@ public class LibraryViewController extends FXMLController {
             return b;
         });
         
-        // send selection changed events, do not use InvalidationListener
-        
-//        EventSource<Void> ses = new EventSource<>();
-//        table.getSelectionModel().getSelectedItems().addListener((Observable o) -> ses.push(null));
-//        ses.successionEnds(Duration.ofMillis(100)).subscribe(a -> forwardItems(DB.views.getValue(lvl.getValue())));
-        
-//        table.getSelectionModel().getSelectedItems().addListener(
-//                (Observable o) -> forwardItems(DB.views.getValue(lvl.getValue())));
-        
-        table.getSelectionModel().getSelectedItems().addListener(
-                (Observable o) -> runLater(()->forwardItems(DB.views.getValue(lvl.getValue()))));
-//        EventStreams.changesOf(table.getItemsFiltered().predicateProperty()).successionEnds(Duration.ofMillis(200)).subscribe(e->forwardItems(DB.views.getValue(lvl.getValue())));
+        // forward on selection
+        EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b,ofMillis(100)).subscribe(c -> {
+            if(!sel_lock)
+                forwardItems(DB.views.getValue(lvl.getValue()));
+        });
         
         // prevent selection change on right click
         table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
@@ -314,7 +299,6 @@ public class LibraryViewController extends FXMLController {
         // prevent volume change
         table.setOnScroll(Event::consume);
     }
-
     
     @Override
     public void refresh() {
@@ -329,10 +313,6 @@ public class LibraryViewController extends FXMLController {
         // apply last as it loads data
         lvl.applyValue();
     }
-    
-//    public void resizeMainColumn() {
-
-//    }
 
     @Override
     public void close() {
@@ -363,57 +343,60 @@ public class LibraryViewController extends FXMLController {
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
         // doesnt work ?
-//        new Fut<>()
-//            .supply(() -> {
-//            Field f = fieldFilter.getValue();
-//            // make histogram
-//            h.keyMapper = metadata -> metadata.getField(f);
-//            h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
-//            h.elementAccumulator = (hist,metadata) -> {
-//                hist.a++;
-//                hist.b.add(metadata.getAlbum());
-//                hist.c += metadata.getLengthInMs();
-//                hist.d += metadata.getFilesizeInB();
-//                hist.e += metadata.getRatingPercent();
-//                if(!"...".equals(hist.f) && !metadata.getYear().equals(hist.f))
-//                    hist.f = hist.f==null ? metadata.getYear() : "...";
-//            };
-//            h.clear();
-//            h.accumulate(list);
-//            // read histogram
-//            return h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
-//        })
-//        .use(l -> {
-//            table.setItemsRaw(l);
-//            forwardItems(list);
-//        })
-//        .run();
+        new Fut<>(fieldFilter.getValue())
+            .use(f -> {
+                // make histogram
+                h.keyMapper = metadata -> metadata.getField(f);
+                h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+                h.elementAccumulator = (hist,metadata) -> {
+                    hist.a++;
+                    hist.b.add(metadata.getAlbum());
+                    hist.c += metadata.getLengthInMs();
+                    hist.d += metadata.getFilesizeInB();
+                    hist.e += metadata.getRatingPercent();
+                    if(!Metadata.EMPTY.getYear().equals(hist.f) && !metadata.getYear().equals(hist.f))
+                        hist.f = hist.f==null ? metadata.getYear() : Metadata.EMPTY.getYear();
+                };
+                h.clear();
+                h.accumulate(list);
+                // read histogram
+                List<MetadataGroup> l = h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
+                runLater(() -> {
+                    selectionStore();
+                    table.setItemsRaw(l);
+                    selectionReStore();
+                    runNew(() -> {
+                        List<Metadata> ml = filerList(list,true,false);
+                        runLater(() -> DB.views.push(lvl.getValue()+1, ml));
+                    });
+                });
+            })
+            .run();
         
-        Field f = fieldFilter.getValue();
-        // make histogram
-        h.keyMapper = metadata -> metadata.getField(f);
-        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
-        h.elementAccumulator = (hist,metadata) -> {
-            hist.a++;
-            hist.b.add(metadata.getAlbum());
-            hist.c += metadata.getLengthInMs();
-            hist.d += metadata.getFilesizeInB();
-            hist.e += metadata.getRatingPercent();
-            if(!Metadata.EMPTY.getYear().equals(hist.f) && !metadata.getYear().equals(hist.f))
-                hist.f = hist.f==null ? metadata.getYear() : Metadata.EMPTY.getYear();
-        };
-        h.clear();
-        h.accumulate(list);
-        // read histogram
-        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
-        // pass down the chain
-        forwardItems(list);
+//        Field f = fieldFilter.getValue();
+//        // make histogram
+//        h.keyMapper = metadata -> metadata.getField(f);
+//        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
+//        h.elementAccumulator = (hist,metadata) -> {
+//            hist.a++;
+//            hist.b.add(metadata.getAlbum());
+//            hist.c += metadata.getLengthInMs();
+//            hist.d += metadata.getFilesizeInB();
+//            hist.e += metadata.getRatingPercent();
+//            if(!Metadata.EMPTY.getYear().equals(hist.f) && !metadata.getYear().equals(hist.f))
+//                hist.f = hist.f==null ? metadata.getYear() : Metadata.EMPTY.getYear();
+//        };
+//        h.clear();
+//        h.accumulate(list);
+//        // read histogram
+//        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
+//        // pass down the chain
+//        forwardItems(list);
     }
     
-    /** Sends event to next level. */
+    // Sends event to next level
     private void forwardItems(List<Metadata> list) {
-        if(!lock)
-            DB.views.push(lvl.getValue()+1, filerList(list,true,false));
+        DB.views.push(lvl.getValue()+1, filerList(list,true,false));
     }
     
     private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
@@ -482,6 +465,37 @@ public class LibraryViewController extends FXMLController {
     }
     private void playSelected() {
         play(filerList(DB.views.getValue(lvl.getValue()),false,true));
+    }
+    
+/******************************* SELECTION RESTORE ****************************/
+    
+    private boolean sel_lock = false;
+    private Set sel_old;
+    
+    private void selectionStore() {
+        // remember selected
+        sel_old = table.getSelectedItems().stream().map(MetadataGroup::getValue).collect(toSet());
+        sel_lock = true;    // prevent selection from propagating change
+    }
+    private void selectionReStore() {
+        // update selected - restore every available old one
+        forEachI(table.getItems(), (i,mg) -> {
+            if(sel_old.contains(mg.getValue()))
+                table.getSelectionModel().select(i);
+        });
+        sel_lock = false;   // enable propagation
+    }
+    
+/******************************* SELECTION FREQUENCY **************************/
+    
+    private long sel_last = 0;
+    
+    private void selectionChangeStore() {
+        sel_last = System.currentTimeMillis();
+    }
+    
+    private boolean selectionChangeTooSoon() {
+        return System.currentTimeMillis() - sel_last < 250;
     }
     
 /******************************** CONTEXT MENU ********************************/

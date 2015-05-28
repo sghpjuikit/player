@@ -1,5 +1,6 @@
 package util.parsing;
 
+import GUI.ItemNode.StringSplitParser;
 import java.io.File;
 import static java.lang.Double.parseDouble;
 import java.lang.reflect.Constructor;
@@ -17,6 +18,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import static javafx.scene.text.FontPosture.ITALIC;
@@ -27,7 +30,6 @@ import static javafx.scene.text.FontWeight.NORMAL;
 import static util.Util.getMethodAnnotated;
 import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
-import GUI.ItemNode.StringSplitParser;
 import static util.functional.Util.*;
 import util.parsing.StringParseStrategy.From;
 import static util.parsing.StringParseStrategy.From.*;
@@ -114,6 +116,7 @@ public class Parser {
         registerConverter(StringSplitParser.class,os, noEx(StringSplitParser::new, IllegalArgumentException.class));
         registerConverter(Year.class,os, noEx(Year::parse, DateTimeParseException.class));
         registerConverter(URI.class,os, noEx(URI::create, IllegalArgumentException.class));
+        registerConverter(Pattern.class,os, noEx(Pattern::compile, PatternSyntaxException.class));
     }
     
     public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {

@@ -12,6 +12,7 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
+import static javafx.application.Platform.runLater;
 import javax.persistence.*;
 import main.App;
 import util.access.Accessor;
@@ -32,6 +33,14 @@ public class DB {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
         
+        List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
+        ss = sss.isEmpty() ? new StringStore() : sss.get(0);
+        
+        addString("calm","mood");
+        addString("cheerful","mood");
+        addString("chill","mood");
+        addString("cold","mood");
+        
         new Fut<>()
             // read db on bgr thread
             .supply(DB::getAllItems)                        
@@ -39,8 +48,15 @@ public class DB {
             // todo: detect when app starts up and run right afterwards
             // .use(i -> views.push(1, i), FX)
             .use(i -> views.push(1, i), FXAFTER(7000))
+//            .use(i -> {
+//                
+//                em.getTransaction().begin();
+//                em.merge(ss);
+//                em.getTransaction().commit();
+//            })
             .showProgress(App.getWindow().taskAdd())
             .run();
+        
     }
     
     public static void stop() {
@@ -147,6 +163,14 @@ public class DB {
         // update model
         updateLib();
     }
+    public static void updateItemsBgr(List<Metadata> items) {
+        // update db
+        em.getTransaction().begin();
+        items.forEach(em::merge);
+        em.getTransaction().commit();
+        // update model
+        runLater(() -> views.push(1, getAllItems()));
+    }
 
     public static void updateLib() {
         views.push(1, getAllItems());
@@ -175,15 +199,16 @@ public class DB {
     
 /******************************************************************************/
     
-    public static StringStore getStrings(String name) {System.out.println("fuckme");
-        StringStore s = em.find(StringStore.class, name);s.add("aaaa");s.add("hol");System.out.println(s==null);System.out.println("wtf");
-        return s;//s==null ? new StringStore(name) : new StringStore(name,s);
+    private static StringStore ss;
+    
+    public static Set<String> getStrings(String name) {
+        String n = name.toLowerCase();
+        if (!ss.containsKey(n)) ss.put(n, new HashSet());
+        return ss.get(n);
     }
     
-    public static void addString(String name, String s) {
-        // update db
-        StringStore ss = getStrings(name);
-        boolean b = ss.add(s);
+    public static void addString(String s,String name) {
+        boolean b = getStrings(name.toLowerCase()).add(s);
         if(b) {
             em.getTransaction().begin();
             em.merge(ss);
@@ -192,38 +217,7 @@ public class DB {
     }
     
     @Entity(name = "StringStore")
-    public static class StringStore extends HashSet<String> {
-        @Id
-        public String name;
-
-        public StringStore() {
-        }
-        
-        public StringStore(String name) {
-            this.name = name;
-        }
-
-        public StringStore(String name, Collection<? extends String> c) {
-            this.name = name;
-            addAllPrivately(c);
-        }
-//
-//        @Override
-//        public boolean add(String e) {
-//            boolean b = super.add(e);
-//            if(b) 
-//            return b;
-//        }
-//
-//        @Override
-//        public boolean addAll(Collection<? extends String> c) {
-//            return super.addAll(c); //To change body of generated methods, choose Tools | Templates.
-//        }
-        
-         boolean addAllPrivately(Collection<? extends String> c) {
-            return super.addAll(c);
-        }
-        
+    public static class StringStore extends HashMap<String,HashSet<String>> {
         
     }
 }

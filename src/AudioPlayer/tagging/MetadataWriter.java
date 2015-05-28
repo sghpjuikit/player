@@ -22,17 +22,20 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
+import static org.jaudiotagger.tag.FieldKey.RATING;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
-import org.jaudiotagger.tag.id3.ID3v24Tag;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
+import org.jaudiotagger.tag.mp4.Mp4FieldKey;
+import org.jaudiotagger.tag.mp4.Mp4Tag;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
+import static util.Util.clip;
 import static util.async.Async.runNew;
 import util.dev.Log;
 import util.dev.TODO;
@@ -260,7 +263,7 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
-            case m4a:   Log.info("Unsupported operation."); break;
+            case m4a:   setRatingMP4(val); break;
             default: throw new AssertionError("corrupted switch statement");
         } 
     }
@@ -268,14 +271,11 @@ public class MetadataWriter extends MetaItem {
     private void setRatingMP3(double val) {
         MP3File mp3File = ((MP3File)audioFile);
                 mp3File.getTagOrCreateAndSetDefault();
-        ID3v24Tag tag = mp3File.getID3v2TagAsv24();
-//                  tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         AbstractID3v2Frame f = mp3File.getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         if ( f == null) { 
              f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER); 
              f.setBody(new FrameBodyPOPM());
         }
-        // set value, prevent writing corrupt data
         try {
             if (val == -1) {
                 ((FrameBodyPOPM) f.getBody()).setRating(0);
@@ -283,6 +283,19 @@ public class MetadataWriter extends MetaItem {
             } else {
                 ((FrameBodyPOPM) f.getBody()).setRating((long)val);
                 ((MP3File)audioFile).getID3v2Tag().setField(f);
+            }
+            fields_changed++;
+        } catch (FieldDataInvalidException ex) {
+            Log.info("Ignoring rating field. Data invalid.");
+        }
+    }
+    private void setRatingMP4(double val) {
+        try {
+            if (val == -1) {
+                tag.deleteField(RATING);
+            } else {
+                int r = clip(0, (int) val, 100);
+                tag.setField(RATING, Integer.toString(r));
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
@@ -365,7 +378,7 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
-            case m4a:   Log.info("Unsupported operation."); break;
+            case m4a:   setPublisherMP4(val); break;
             default: throw new AssertionError("corrupted switch statement");
         }        
     }
@@ -383,6 +396,18 @@ public class MetadataWriter extends MetaItem {
             else {
                 ((FrameBodyTPUB) f.getBody()).setText(val);
                 ((MP3File)audioFile).getID3v2Tag().setField(f);
+            }
+            fields_changed++;
+        } catch (FieldDataInvalidException ex) {
+            Log.info("Ignoring publisher field. Data invalid.");
+        }
+    }
+    private void setPublisherMP4(String val) {
+        try {
+            if (val == null || val.isEmpty()) {
+                ((Mp4Tag)tag).deleteField(Mp4FieldKey.WINAMP_PUBLISHER);
+            } else {
+                ((Mp4Tag)tag).setField(Mp4FieldKey.WINAMP_PUBLISHER, val);
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
@@ -636,7 +661,7 @@ public class MetadataWriter extends MetaItem {
     }
     
     public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
-        runNew(()->{
+        runNew(()-> {
             MetadataWriter w = new MetadataWriter();
             for(I i : items) {
                 w.reset(i);
@@ -647,7 +672,7 @@ public class MetadataWriter extends MetaItem {
             MetadataReader.readMetadata(items, (ok,metas) -> {
                 if (ok) {
                     if(action!=null) action.accept(metas);
-                    Player.refreshItemsWithUpdated(metas);
+                    runNew(() -> Player.refreshItemsWithUpdatedBgr(metas));
                 }
             });
         });

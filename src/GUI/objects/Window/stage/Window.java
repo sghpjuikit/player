@@ -54,7 +54,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
-import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
@@ -70,6 +69,7 @@ import util.Animation.Anim;
 import util.Animation.Interpolators.ElasticInterpolator;
 import static util.File.Environment.browse;
 import util.Util;
+import static util.Util.*;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
 import util.access.Accessor;
@@ -122,7 +122,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      @return focused window or null if none focused.
      */
     public static Window getFocused() {
-	return find(windows, Window::isFocused).orElse(null);
+	return find(windows, w->w.focused.get()).orElse(null);
     }
 
     /**
@@ -139,14 +139,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      @return focused window or main window if none. Never null.
      */
     public static Window getActive() {
-	return find(windows, Window::isFocused).orElse(App.getWindow());
+	return find(windows, w->w.focused.get()).orElse(App.getWindow());
     }
 
-    /**
-     ****************************** Configs ************************************
-     */
-    @IsConfig(name = "Window header visiblility preference", info = "Remembers header state for both fullscreen and not. When selected 'auto off' is true ")
-    public static boolean headerVisiblePreference = true;
+/******************************** Configs *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
     public static final Accessor<Double> windowOpacity = new Accessor<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
@@ -173,12 +169,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     @IsConfig(name = "Headerless", info = "Hides header.")
     public static final Accessor<Boolean> window_headerless = new Accessor<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
-
-    @AppliesConfig("headerVisiblePreference")
-    private static void applyHeaderVisiblePreference() {
-	// weird that this still doesnt apply it correctly, whats wrong?
-	windows.forEach(w -> w.setHeaderVisible(w.headerVisible));
-    }
 
     @AppliesConfig("overlay_norm_factor")
     @AppliesConfig("gui_overlay_use_song")
@@ -305,6 +295,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
         // normally we would bind bgr size, but we will bind it more dynamically later
 	// bgrImgLayer.prefWidthProperty().bind(root.widthProperty());
+        
 	// avoid some instances of not closing properly
 	s.setOnCloseRequest(e -> close());
 
@@ -314,11 +305,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	s.setFullScreenExitKeyCombination(KeyCombination.NO_MATCH);
 	// implement the functionality properly
 	s.addEventHandler(KEY_PRESSED, e -> {
-	    if (e.getCode() == ESCAPE && isFullscreen()) setFullscreen(false);
+	    if (e.getCode() == ESCAPE && isFullscreen()) {
+                setFullscreen(false);
+                e.consume();
+            }
 	});
 
 	// maintain custom pseudoclasses for .window styleclass
-	s.focusedProperty().addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
+	focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
 	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
 	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 	fullscreen.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
@@ -351,12 +345,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		    setHeaderVisible(!headerVisible);
 	});
         
+        // header open/close
         header_activator.addEventFilter(MOUSE_ENTERED, e -> {
             if(!headerVisible)
                 applyHeaderVisible(true);
         });
-        header.addEventFilter(MOUSE_EXITED_TARGET, e -> {
-            if(!headerVisible)
+        header.addEventFilter(MOUSE_EXITED, e -> {
+            if(!headerVisible && !moving.get() && resizing.get()==NONE)
                 applyHeaderVisible(false);
         });
 
@@ -368,25 +363,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    else if (e.getDeltaY() < 0) PLAYBACK.decVolume();
 	});
 
-	root.addEventFilter(KEY_PRESSED, e -> {
+        // layout mode on key press/release
+	root.addEventFilter(KeyEvent.ANY, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
-		GUI.setLayoutMode(true);
-		applyHeaderVisible(true);
+		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
 	    }
-	});
-
-	root.addEventFilter(KEY_RELEASED, e -> {
-	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
-		GUI.setLayoutMode(false);
-
-		if (headerVisiblePreference)
-                    applyHeaderVisible(isFullscreen() ? false : headerVisible);
-		else
-		    applyHeaderVisible(headerVisible);
-	    }
-	});
-        
-        
+	});        
         
 	// github button - show all available FontAwesome icons in a popup
 	Icon gitB = new Icon(GITHUB, 13, "Open github project page for this application",
@@ -724,13 +706,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     @Override
     public void setFullscreen(boolean v) {
-	super.setFullscreen(v);                 // fullscreen
-        applyBorderless(v ? true : borderless); // borderless
-	if (headerVisiblePreference)            // headerless
-	    if (v) applyHeaderVisible(false);
-	    else applyHeaderVisible(headerVisible);
-	else
-	    setHeaderVisible(!headerVisible);
+	super.setFullscreen(v);                         // fullscreen
+        applyBorderless(v ? true : borderless);         // borderless
+	applyHeaderVisible(v ? false : headerVisible);  // headerless
     }
 
     public boolean isBorderless() {

@@ -7,18 +7,16 @@ package GUI.ItemNode;
 
 import Configuration.AccessorConfig;
 import Configuration.Config;
-import GUI.ItemNode.ConfigField;
-import GUI.ItemNode.ItemNode;
 import GUI.objects.combobox.ImprovedComboBox;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import util.access.Accessor;
 import util.collections.PrefList;
+import util.functional.Functors.F1;
 import util.functional.Functors.PF;
 import static util.functional.Util.cmpareNoCase;
 
@@ -26,7 +24,7 @@ import static util.functional.Util.cmpareNoCase;
  *
  * @author Plutonium_
  */
-public class FunctionItemNode<IN,OUT> extends ItemNode<Function<IN,OUT>> {
+public class FunctionItemNode<IN,OUT> extends ItemNode<F1<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList();

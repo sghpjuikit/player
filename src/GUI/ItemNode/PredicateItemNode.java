@@ -5,7 +5,6 @@
  */
 package GUI.ItemNode;
 
-import GUI.ItemNode.ItemNode;
 import GUI.objects.CheckIcon;
 import GUI.objects.combobox.ImprovedComboBox;
 import java.util.ArrayList;
@@ -24,7 +23,6 @@ import util.collections.PrefList;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
 import static util.collections.Tuples.tuple;
-import GUI.ItemNode.FunctionItemNode;
 import util.functional.Functors.PF;
 import static util.functional.Util.isTRUE;
 
@@ -51,7 +49,7 @@ public class PredicateItemNode<T> extends ItemNode<Tuple2<Predicate<Object>,T>> 
         ppPool = prefPredicatePool;
         root.setAlignment(CENTER_LEFT);
         typeCB.setVisibleRowCount(25);
-        typeCB.valueProperty().addListener((o,ov,nv) -> {System.out.println("tt");
+        typeCB.valueProperty().addListener((o,ov,nv) -> {
             if(config!=null) root.getChildren().remove(config.getNode());
             config = new FunctionItemNode(() -> pPool.call(nv._2));
             root.getChildren().add(config.getNode());

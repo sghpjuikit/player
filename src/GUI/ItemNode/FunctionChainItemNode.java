@@ -7,6 +7,7 @@ package GUI.ItemNode;
 
 import java.util.function.*;
 import util.collections.PrefList;
+import util.functional.Functors.F1;
 import util.functional.Functors.PF;
 import static util.functional.Util.*;
 
@@ -14,7 +15,7 @@ import static util.functional.Util.*;
  *
  * @author Plutonium_
  */
-public class FunctionChainItemNode<T> extends ChainConfigField<Function<T,T>,FunctionItemNode<T,T>> {
+public class FunctionChainItemNode<T> extends ChainConfigField<F1<T,T>,FunctionItemNode<T,T>> {
 
     public FunctionChainItemNode(Supplier<PrefList<PF<T,T>>> functionPool) {
         super(() -> new FunctionItemNode(functionPool));
@@ -26,9 +27,10 @@ public class FunctionChainItemNode<T> extends ChainConfigField<Function<T,T>,Fun
     
     @Override
     protected void generateValue() {
-        Function<T,T> f = generators.stream().filter(g->g.on.selected.get())
-                                    .map(g->g.chained.getValue()).filter(isNotNULL)
-                                    .reduce(Function::andThen).orElse(x->x);
-        changeValue(f);
+        F1<T,T> v = generators.stream().filter(g->g.on.selected.get())
+                                    .map(g -> g.chained.getValue()).filter(isNotNULL)
+                                    .map(F1::nonNull)
+                                    .reduce(F1::andThen).orElse(x->x);
+        changeValue(v);
     }
 }

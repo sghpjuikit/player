@@ -3,6 +3,7 @@ package Tagger;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Cover.Cover;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.TAG;
@@ -656,8 +657,8 @@ public class TaggerController extends FXMLController implements TaggingFeature {
             });
             
              if(c instanceof TextField) {
-                TextFields.bindAutoCompletion((TextField)c, p -> filter(list("abcd","holo"),t -> t.startsWith(p.getUserText())));
-//                TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.getStrings(f.name()),t -> t.startsWith(p.getUserText())));
+//                TextFields.bindAutoCompletion((TextField)c, p -> filter(list("abcd","holo"),t -> t.startsWith(p.getUserText())));
+                TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.getStrings("mood"),t -> t.startsWith(p.getUserText())));
              }
         }
         void enable() { 

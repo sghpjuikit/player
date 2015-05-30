@@ -939,41 +939,37 @@
     -fx-background-insets: 1 0 -1 0, 0;
 }
 
-/*******************************************************************************
- *                                                                             *
- * Slider                                                                      *
- *                                                                             *
- ******************************************************************************/
+/********************************** Slider *************************************
+ * 
+ * pseudoclasses: vertical
+ */
 
 .slider .thumb {
-    -fx-background-color: rgba(0, 0, 40, 0.5);
-    -fx-padding: 4;
-    -fx-background-radius:0;
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
 }
-.slider .thumb:hover {
-    -fx-background-color: rgba(0, 0, 40, 0.6);
-    -fx-padding: 4;
-    -fx-background-radius:0;
+.slider .thumb:hover,
+.slider .thumb:pressed {
+    -fx-background-color: -fx-def-font-color;
+    -fx-padding: 2;
+    -fx-background-radius:1;
 }
 .slider:focused .thumb {
-    // lets stay rectangular
-    /*-fx-background-radius: 1.0em;  makes sure this remains circular*/ 
+    // i say lets stay rectangular
+    // -fx-background-radius: 1.0em;  // makes sure this remains circular
 }
 .slider .track {
-    -fx-background-color:
-        rgba(255, 255, 255, 0.3),
-        linear-gradient(rgba(0, 0, 0, 0.5),
-        rgba(0, 0, 0, 0.8) 50%),
-        rgb(218, 226, 224);
-    -fx-background-insets: 0 -4 -1 -4, 0 -4 0 -4, 1.5 -2.5 1.5 -2.5;
-    -fx-background-radius: 0;
-    -fx-padding: 4 4 4 4;
+    -fx-background-color: rgba(255,255,255,0.3);
+    -fx-background-insets: 0;
+    -fx-background-radius: 1;
+    -fx-padding: 1;     // basically track width
 }
 .slider:vertical .track {
 }
 .slider .axis {
     -fx-tick-mark-stroke: ladder(-fx-background, derive(-fx-background,30%) 40%, derive(-fx-background,-30%) 41%);
-    -fx-tick-label-fill: white;
+    -fx-tick-label-fill: -fx-def-font-color;
     -fx-background-insets: -6,5,4,3;
     /*-fx-translate-y: -0; // THIS NEEDS TO BE SOLVED - it leaves space in the bottom so the control is not aligned properly*/
     -fx-opacity:0.9;
@@ -3507,64 +3503,41 @@
     -fx-text-fill: -fx-def-font-color;
 }
 
-//********************************* SEEKER ***********************************//
+/********************************** SEEKER *************************************
+ * 
+ * inherits: .slider
+ */
 
-// inherits: .slider
 .seeker {}
-
-.seeker .thumb {
-    -fx-background-color: -fx-def-font-color;
-    -fx-padding: 2;
-    -fx-background-radius:1;
-}
+.seeker .thumb {}
 .seeker .thumb:hover,
-.seeker .thumb:pressed {
-    -fx-background-color: -fx-def-font-color;
-    -fx-padding: 2;
-    -fx-background-radius:1;
-}
+.seeker .thumb:pressed {}
+.seeker .track {}
 
-.seeker .track {
-    -fx-background-color: rgba(255,255,255,0.3);
-    -fx-background-insets: 0; // this actually puts width back to original 100%
-    -fx-background-radius: 1;
-    -fx-padding: 1; // basically track width (as usually the length is autosized)
-}
-
-// Custom added element - markers on the seeker. Mark specific time point.
+// Chapter marker on the seeker. Marks specific time point.
 // inherits: Rectangle (Shape)
 .seeker-marker {
     -fx-background-color: -fx-def-font-color;
     -fx-opacity: 0.5;
-    -fx-padding: 4 1 4 1; // height=4, width=2
+    -fx-padding: 4 1 4 1;   // sets height=4, width=2
+    -fx-translate-y: 3;     // verically center align, use if you change height
 }
 
+// Add chapter button
 // inherits: .icon
 .seeker-add-chapter-button,
 .seeker-add-chapter-button:hover {
     -fx-effect: none;
 }
 
-//****************************** VOLUME SLIDER *******************************//
-// inherits slider
-
-.volume .thumb {
-    -fx-background-color: -fx-def-font-color;
-    -fx-padding: 2;
-    -fx-background-radius:1;
-}
-.volume .thumb:hover {
-    -fx-background-color: -fx-def-font-color;
-    -fx-padding: 2;
-    -fx-background-radius:1;
-}
-
-.volume .track {
-    -fx-background-color: rgba(255,255,255,0.3);
-    -fx-background-insets: 0; // this actually puts width back to original 100%
-    -fx-background-radius: 1;
-    -fx-padding: 1; // basically track width (as usually the length is autosized)
-}
+/******************************* VOLUME SLIDER *******************************
+ *
+ * inherits .slider
+ */
+.volume {}
+.volume .thumb {}
+.volume .thumb:hover {}
+.volume .track {}
 
 //*********************************** TEXT ***********************************//
 

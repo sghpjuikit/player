@@ -5,6 +5,7 @@ import Action.IsAction;
 import Action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.MediaSupport.GeneralPlayer;
+import static AudioPlayer.playback.PlayTimeHandler.at;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
@@ -43,7 +44,7 @@ public final class PLAYBACK implements Configurable {
     public static boolean seekPercent = true;    
     @IsConfig(name="Seek time unit", info = "Fixed time unit in milliseconds to jump, when seeking forward/backward.")
     public static long seekUnitT = 4000;
-    @IsConfig(name="Seek fraction", info = "Relative time in fracton of song's length to seek forward/backward by.", min=0, max=1)
+    @IsConfig(name="Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.", min=0, max=1)
     public static double seekUnitP = 0.05;
     
     public static final PlaybackState state = Player.state.playback;
@@ -52,6 +53,7 @@ public final class PLAYBACK implements Configurable {
     /** Initializes the Playback. */
     public static void initialize() {
         player.realTime.initialize();
+        addOnPlaybackAt(at(1, () -> onTimeHandlers.forEach(h->h.restart(PlaylistManager.getPlayingItem().getTime()))));
         
         // add end of player behavior
         addOnPlaybackEnd(() -> {
@@ -423,6 +425,21 @@ public final class PLAYBACK implements Configurable {
      */
     public static void removeOnPlaybackEnd(Runnable b) {
         onEndHandlers.remove(b);
+    }
+    
+//********************************** ON TIME **********************************/
+
+    public static final List<PlayTimeHandler> onTimeHandlers = new ArrayList<>();
+    
+    /** Add behavior that executes when playback is at certain time. */
+    public static void addOnPlaybackAt(PlayTimeHandler b) {
+        onTimeHandlers.add(b);
+    }
+    
+    /** Remove behavior that executes when playback is at certain time. */
+    public static void removeOnPlaybackAt(PlayTimeHandler b) {
+        onTimeHandlers.remove(b);
+        b.stop();
     }
     
 //******************************* SPECTRUM ************************************/

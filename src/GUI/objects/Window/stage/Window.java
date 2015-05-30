@@ -66,18 +66,17 @@ import static javafx.stage.StageStyle.*;
 import main.App;
 import org.reactfx.Subscription;
 import util.Animation.Anim;
+import static util.Animation.Anim.par;
 import util.Animation.Interpolators.ElasticInterpolator;
 import static util.File.Environment.browse;
 import util.Util;
-import static util.Util.*;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
 import util.access.Accessor;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
-import static util.functional.Util.find;
-import static util.functional.Util.mapB;
+import static util.functional.Util.*;
 import util.graphics.Icons;
 import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
@@ -350,8 +349,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             if(!headerVisible)
                 applyHeaderVisible(true);
         });
-        header.addEventFilter(MOUSE_EXITED, e -> {
-            if(!headerVisible && !moving.get() && resizing.get()==NONE)
+        header.addEventFilter(MOUSE_EXITED_TARGET, e -> {
+            if(!headerVisible && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)
                 applyHeaderVisible(false);
         });
 
@@ -587,6 +586,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
 
     private void applyHeaderVisible(boolean val) {
+        if(controls.isVisible()==val) return;
 	controls.setVisible(val);
 	leftHeaderBox.setVisible(val);
 	if (val) {
@@ -594,6 +594,21 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    AnchorPane.setTopAnchor(content, 25d);
 	    AnchorPane.setTopAnchor(lBorder, 25d);
 	    AnchorPane.setTopAnchor(rBorder, 25d);
+            
+            
+
+            Anim.par(
+                par(
+                    forEachIStream(left_icons.box.getChildren(),(i,icon)-> 
+                        new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
+                ),
+                par(
+                    forEachIRStream(right_icons.box.getChildren(),(i,icon)-> 
+                        new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
+                )
+            ).play();
+            
+            
 	} else {
 	    header.setPrefHeight(isBorderlessApplied()? 0 : 5);
 	    AnchorPane.setTopAnchor(content, 5d);

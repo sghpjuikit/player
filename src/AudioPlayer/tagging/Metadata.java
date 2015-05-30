@@ -210,10 +210,11 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         loadGeneralFields(audiofile, tag);
         switch (getFormat()) {
             case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);  break;
-            case flac:  loadSpecificFieldsFLAC((FlacTag)tag);       break;
-            case ogg:   loadSpecificFieldsOGG(tag);                 break;
-            case wav:   loadSpecificFieldsWAV();                    break;
-            case m4a:   loadSpecificFieldsMP4((Mp4Tag)tag);         break;
+            case flac:  loadFieldsFLAC((FlacTag)tag);       break;
+            case ogg:   loadFieldsOGG(tag);                 break;
+            case wav:   loadFieldsWAV();                    break;
+            case mp4:
+            case m4a:   loadFieldsMP4((Mp4Tag)tag);         break;
             default: throw new AssertionError("Illegal case in switch");
         }        
         
@@ -267,6 +268,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             discs_total = getNumber(tag,FieldKey.DISC_TOTAL);
         }
         
+        playcount = getNumber(tag, FieldKey.CUSTOM3);
         genre = getGeneral(tag,FieldKey.GENRE);
         year = getNumber(tag,FieldKey.YEAR);
         category = getGeneral(tag,FieldKey.GROUPING);
@@ -371,7 +373,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                 } catch (ArithmeticException e){}
 
                 try {
-                    playcount = Math.toIntExact(cou);
+                    int pc = Math.toIntExact(cou);
+                    if(pc>playcount) playcount = pc;
                 } catch (ArithmeticException e) {}
             }
         }
@@ -379,12 +382,11 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         // we obtain publisher
         publisher = emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
-    private void loadSpecificFieldsWAV() {
+    private void loadFieldsWAV() {
         rating = -1;
-        playcount = -1;
         publisher = "";
     }
-    private void loadSpecificFieldsMP4(Mp4Tag tag) {
+    private void loadFieldsMP4(Mp4Tag tag) {
         // RATING --------------------------------------------------------------
         // id: 'rate'
         // all are equivalent:
@@ -403,9 +405,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         // handle normally
         else rating = (r<0 || r>100) ? -1 : r;
         
-        // PLAYCOUNT -----------------------------------------------------------
-        playcount = -1;
-        
         // PUBLISHER -----------------------------------------------------------
         // id: '----:com.nullsoft.winamp:publisher'
         //      tag.getFirst(FieldKey.PRODUCER) // nope
@@ -413,17 +412,16 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         //      tag.getFirst(Mp4FieldKey.LABEL) // not same as WINAMP_PUBLISHER, but perhaps also valid
         //      tag.getFirst(FieldKey.KEY)
         publisher = emptifyString(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
+        if(publisher.isEmpty()) publisher = emptifyString(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
     }
-    private void loadSpecificFieldsOGG(Tag tag) {
+    private void loadFieldsOGG(Tag tag) {
         rating = -1;
-        playcount = -1;
         publisher = "";
         // try to get category as winamp does it
         if(category.isEmpty()) category = Util.emptifyString(tag.getFirst("CATEGORY"));
     }
-    private void loadSpecificFieldsFLAC(FlacTag tag) {
+    private void loadFieldsFLAC(FlacTag tag) {
         rating = -1;
-        playcount = -1;
         publisher = "";
         // try to get category as winamp does it
         if(category.isEmpty()) category = Util.emptifyString(tag.getFirst("CATEGORY"));

@@ -113,7 +113,6 @@ public class App extends Application {
     
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
     public static final AccessorEnum<RatingCellFactory> ratingCell = new AccessorEnum<>(new TextStarRatingCellFactory(),() -> plugins.getPlugins(RatingCellFactory.class));
-//    public static final AccessorEnum<RatingCellFactory> ratingCell = new AccessorEnum<>(() -> RatingStyle.values(),STARS);
     @IsConfig(name = "Rating icon amount", info = "Number of icons in rating control.", min = 1, max = 10)
     public static final IntegerProperty maxRating = new SimpleIntegerProperty(5);
     @IsConfig(name = "Rating allow partial", info = "Allow partial values for rating.")

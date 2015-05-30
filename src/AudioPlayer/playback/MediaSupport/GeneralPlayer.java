@@ -34,10 +34,7 @@ public class GeneralPlayer {// implements MediaWrap{
     public boolean needs_bind = true; // must be initialized to true
     public boolean needs_seek = false;
     public Duration seekTo;
-    public final RealTimeProperty realTime = 
-            new RealTimeProperty(PLAYBACK.state.duration, PLAYBACK.state.currentTime);
-    
-    
+    public final RealTimeProperty realTime = new RealTimeProperty(PLAYBACK.state.duration, PLAYBACK.state.currentTime);
     
     
     public void play(PlaylistItem item) {
@@ -53,29 +50,31 @@ public class GeneralPlayer {// implements MediaWrap{
         playback.play();
         
         realTime.synchroRealTime_onPlayed();
-        // fire playing item change event
+        // first throw item change event
         Player.playingtem.itemChanged(item);
         PlaylistManager.setPlayingItem(item);
+        // then start other events (that may rely on the above)
         PLAYBACK.playbackStartDistributor.run();
+        PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
     }
     
     public void resume() {
         if (playback.getMedia() == null) return;
         playback.play();
+        PLAYBACK.onTimeHandlers.forEach(t -> t.unpause());
     }
     
     public void pause() {
         if (playback.getMedia() == null) return;
         playback.pause();
+        PLAYBACK.onTimeHandlers.forEach(t -> t.pause());
     }
     
     public void pause_resume() {
         if (playback == null || playback.getMedia() == null) return;
 
-        if (playback.getStatus() == PLAYING)
-            pause();
-        else
-            resume();
+        if (playback.getStatus() == PLAYING) pause();
+        else resume();
     }
     
     public void stop() {
@@ -83,6 +82,7 @@ public class GeneralPlayer {// implements MediaWrap{
         
         playback.stop();
         realTime.synchroRealTime_onStopped();
+        PLAYBACK.onTimeHandlers.forEach(t -> t.stop());
     }
     
     public void seek(Duration duration) {

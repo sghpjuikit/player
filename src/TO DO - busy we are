@@ -4,11 +4,9 @@
 --------------------------------------------------------------------------------
 
 - converter widget add tagging support
-- replaceFirst regex support
 - function item nodes dont react on default button click
 - config apply on change finish through
-- seeker option to show chapters as they are passing  
-- tagger disable unsupported fields for type
+- seeker option to show chapters as they are passing
 - config fields unify with item node
 - split&join add fixed length and % support
 - make generic rater control, use in fileinfo
@@ -17,7 +15,6 @@
 - app animated loading
 - tagger add icons to reset and defaults
 - cover download subsequently !work - temp file?
-- enrich tagging type support  aif? mp4a? etc... + playback support aif?
 - other problems with songs from <none> category
 - playlist table column resizing and serializing
 - app icon
@@ -77,13 +74,8 @@ GENERAL
   (dev note: SmilePrecure OST, also a sole bug case)
 - when app starts with paused song, playing some other songs starts from that
   point rather than the beginning
-- shortut (local & global both) lock needs to be at least 500ms
-  holding the shortut fires event every 33ms, however after pressing it, there
-  is 500ms pause
-  how does one use lock ~ 100ms and blocks the shortcut after those 500ms, but
-  doest block another press which could have happened during that time
-  solution: have an incrementing sequence unique per shortcut press - this is
-  however kinda hard to implement and i dont think its worth the effort
+- shortut: holding the key fires event every 33ms, however, there is            (not a bug, standard windows behavior)
+  500ms pause first
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 
@@ -93,12 +85,6 @@ GENERAL
   - the current time value (and seeker position) is shifted
 - playlist selection quickly changing -> bug in InfoTable text generation       (medium, javaFX bug)
   during summing total duration
-- Error: org.jaudiotagger.audio.exceptions.CannotReadException: Unable to read 
-  file because it is too small to be valid audio file: O:\music\soundtracks\game
-  s\Mass Effect3 (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg 
-  Reading metadata failed for file: O:\music\soundtracks\games\Mass Effect3 
-  (folder)\Wwise_End002_Streaming\Wwise_End002_Streaming.057.ogg.Corrupt or 
-  inaccessible file or data.
 - seeker has totaltime null when changing songs very quickly. the root cause    (medium, state inconsistency)
   probably goes to PLAYER.playback. Fixing seeker causes playback incrementer
   failure. So... 
@@ -144,31 +130,22 @@ SOLVED (but the underlying cause still deserves attention)
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
 --------------------------------------------------------------------------------
 
-CLEANUP
-- Serializator and serialization
-- window manager
-- window color overlay effect, colr skin change + use song color
-  using setStyle on main color
-- get rid of layout aggregators
-  deserializing and creating windows, or make it into a container?
-
-UNIFICATIONS, OVERHAULS, REDESIGN
+UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - Playback/Player/Playlist state and suspending/restoring them
-- file format discovery. Unite Image and Audio types add category               (not needed)
 - gui traits add uninstall, put into setters, remove from constructors          (minor, but very desirable and very doable)
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
-- make AppConfigurable and make all managers non static
+- make AppConfigurable and make all managers non static & configurable
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager
   & add support for tables to vind ObservableLists - decision to make
   but fix playlist table need to override sorting method because of this
-- onTime events, make sur ethey fire correctly and dont degrade performance
-
-PERFORMANCE
-- transparent stage java low FPS bug                                            (major)
-- skin memory consumption investigate                                           (medium)
+- Serializator and serialization
+- window manager
+- window color overlay effect
+- window layout aggregators
+- deserializing and creating windows
 
 --------------------------------------------------------------------------------
 --------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------

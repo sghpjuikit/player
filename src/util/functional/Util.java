@@ -341,6 +341,15 @@ public class Util {
     }
     
     
+    
+    public static <C extends Comparable> C min(C a, C b) {
+        return a.compareTo(b)<0 ? a : b;
+    }
+    
+    public static <C extends Comparable> C max(C a, C b) {
+        return a.compareTo(b)>0 ? a : b;
+    }
+    
     /** 
      * Returns minimal element from the array using given comparator.
      * Returns supplied value if it is the smallest, or array is empty.

@@ -7,9 +7,6 @@ package AudioPlayer.services.LastFM;
  */
 
 import AudioPlayer.Player;
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playback.PercentTimeEventHandler;
-import AudioPlayer.playback.TimeEventHandler;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -101,8 +98,8 @@ public class LastFMManager {
     public static void start() {
         playingItemMonitoring = Player.playingtem.subscribeToChanges(itemChangeHandler);
 
-        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
-        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
+//        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
+//        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);
     }
     
     
@@ -169,21 +166,21 @@ public class LastFMManager {
     
     private static Subscription playingItemMonitoring;
        
-    private static final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
-            0.5,
-            () -> {
-                Log.deb("Percent event for scrobbling fired");
-                setPercentSatisfied(true);
-            },
-            "LastFM percent event handler.");
-
-    private static final TimeEventHandler timeEvent = new TimeEventHandler(
-            Duration.minutes(4),
-            () -> {
-                Log.deb("Time event for scrobbling fired");
-                setTimeSatisfied(true);
-            },
-            "LastFM time event handler");
+//    private static final PercentTimeEventHandler percentEvent = new PercentTimeEventHandler(
+//            0.5,
+//            () -> {
+//                Log.deb("Percent event for scrobbling fired");
+//                setPercentSatisfied(true);
+//            },
+//            "LastFM percent event handler.");
+//
+//    private static final TimeEventHandler timeEvent = new TimeEventHandler(
+//            Duration.minutes(4),
+//            () -> {
+//                Log.deb("Time event for scrobbling fired");
+//                setTimeSatisfied(true);
+//            },
+//            "LastFM time event handler");
     
     private static final Consumer<Metadata> itemChangeHandler = item -> {
             if ((timeSatisfied || percentSatisfied)
@@ -223,7 +220,7 @@ public class LastFMManager {
     
       public static void stop() {
         if (playingItemMonitoring!=null) playingItemMonitoring.unsubscribe();
-        PLAYBACK.realTimeProperty().removeOnTimeAt(percentEvent);
-        PLAYBACK.realTimeProperty().removeOnTimeAt(timeEvent);
+//        PLAYBACK.realTimeProperty().removeOnTimeAt(percentEvent);
+//        PLAYBACK.realTimeProperty().removeOnTimeAt(timeEvent);
     }
 }

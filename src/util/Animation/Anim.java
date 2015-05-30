@@ -146,6 +146,10 @@ public class Anim extends Transition {
         t.setDelay(delay);
         return t;
     }
+    public static Transition seq(Stream<Transition> ts) {
+        Transition t = new SequentialTransition(ts.toArray(Transition[]::new));
+        return t;
+    }
     
     public static Transition par(Transition... ts) {
         return par(ZERO, ts);

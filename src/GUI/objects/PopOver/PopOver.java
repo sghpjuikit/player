@@ -739,7 +739,7 @@ public class PopOver<N extends Node> extends PopupControl {
             return getCornerRadius() + getArrowIndent() + getArrowSize();
         case TOP_CENTER:
         case BOTTOM_CENTER:
-            return getContentNode().prefWidth(-1) / 2;
+            return getContentNode().prefWidth(-1) / 2 + getArrowSize()+getArrowIndent();
         case TOP_RIGHT:
         case BOTTOM_RIGHT:
             return getContentNode().prefWidth(-1) - getArrowIndent()
@@ -756,7 +756,7 @@ public class PopOver<N extends Node> extends PopupControl {
             return getCornerRadius() + getArrowIndent() + getArrowSize();
         case LEFT_CENTER:
         case RIGHT_CENTER:
-            return getContentNode().prefHeight(-1) / 2;
+            return getContentNode().prefHeight(-1) / 2 + getArrowSize()+getArrowIndent();
         case LEFT_BOTTOM:
         case RIGHT_BOTTOM:
             return getContentNode().prefHeight(-1) - getCornerRadius()

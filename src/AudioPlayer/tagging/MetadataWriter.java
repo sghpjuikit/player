@@ -9,11 +9,13 @@ import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Math.max;
 import java.net.URI;
 import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import static javafx.application.Platform.runLater;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
@@ -22,12 +24,14 @@ import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
+import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
+import org.jaudiotagger.tag.id3.framebody.FrameBodyPCNT;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
@@ -263,6 +267,7 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
+            case mp4:
             case m4a:   setRatingMP4(val); break;
             default: throw new AssertionError("corrupted switch statement");
         } 
@@ -336,34 +341,52 @@ public class MetadataWriter extends MetaItem {
     
     /** @param val rating to set. -1 to remove the field from tag. */
     public void setPlaycount(int val) {
-        
         AudioFileFormat f = getFormat();
         switch(f) {
+            case ogg:
+            case wav:
+            case mp4:
+            case m4a:
+            case flac:  break;
             case mp3:   setPlaycountMP3(val); break;
-            case flac:  Log.info("Unsupported operation."); break;
-            case ogg:   Log.info("Unsupported operation."); break;
-            case wav:   Log.info("Unsupported operation."); break;
-            case m4a:   Log.info("Unsupported operation."); break;
             default: throw new AssertionError("corrupted switch statement");
         } 
+        setField(CUSTOM3, val<0 ? "" : String.valueOf(val));
+    }
+    
+    /** @param increments playcount by 1. */
+    public void inrPlaycount(Metadata m) {
+        setPlaycount(m.getPlaycount()+1);
     }
     
     private void setPlaycountMP3(int val) {
+        // POPM COUNT
         try {
+            // get tag
             AbstractID3v2Frame f = ((MP3File)audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
-            // prevent null
             if ( f == null) { 
                  f = new ID3v24Frame(ID3v24Frames.FRAME_ID_POPULARIMETER); 
-                 f.setBody(new FrameBodyPOPM()); }
-            // set value
-            if (val == -1) {
-                ((FrameBodyPOPM) f.getBody()).setCounter(0);
-                ((MP3File)audioFile).getID3v2Tag().setField(f);
-            } else {
-                ((FrameBodyPOPM) f.getBody()).setCounter(val);
-                ((MP3File)audioFile).getID3v2Tag().setField(f);
+                 f.setBody(new FrameBodyPOPM()); 
             }
-            fields_changed++;
+            // set value
+            ((FrameBodyPOPM) f.getBody()).setCounter(max(0,val));
+            ((MP3File)audioFile).getID3v2Tag().setField(f);
+            // fields_changed++;
+        } catch (FieldDataInvalidException ex) {
+            Log.info("Ignoring playcount field. Data invalid.");
+        }
+        // PLAY COUNT
+        try {
+            // get tag
+            AbstractID3v2Frame f = ((MP3File)audioFile).getID3v2TagAsv24().getFirstField(ID3v24Frames.FRAME_ID_PLAY_COUNTER);
+            if ( f == null) { 
+                 f = new ID3v24Frame(ID3v24Frames.FRAME_ID_PLAY_COUNTER); 
+                 f.setBody(new FrameBodyPCNT()); 
+            }
+            // set value
+            ((FrameBodyPCNT) f.getBody()).setCounter((max(0,val)));
+            ((MP3File)audioFile).getID3v2Tag().setField(f);
+            // fields_changed++;
         } catch (FieldDataInvalidException ex) {
             Log.info("Ignoring playcount field. Data invalid.");
         }
@@ -406,8 +429,10 @@ public class MetadataWriter extends MetaItem {
         try {
             if (val == null || val.isEmpty()) {
                 ((Mp4Tag)tag).deleteField(Mp4FieldKey.WINAMP_PUBLISHER);
+                ((Mp4Tag)tag).deleteField(Mp4FieldKey.MM_PUBLISHER);
             } else {
                 ((Mp4Tag)tag).setField(Mp4FieldKey.WINAMP_PUBLISHER, val);
+                ((Mp4Tag)tag).setField(Mp4FieldKey.MM_PUBLISHER, val);
             }
             fields_changed++;
         } catch (FieldDataInvalidException ex) {
@@ -427,6 +452,7 @@ public class MetadataWriter extends MetaItem {
             case flac:  Log.info("Unsupported operation."); break;
             case ogg:   Log.info("Unsupported operation."); break;
             case wav:   Log.info("Unsupported operation."); break;
+            case mp4:
             case m4a:   Log.info("Unsupported operation."); break;
             default: throw new AssertionError("corrupted switch statement");
         }
@@ -554,8 +580,8 @@ public class MetadataWriter extends MetaItem {
     /** sets field */
     private void setField(FieldKey field, String val) {
         try {
-            boolean is_empty = val == null || val.isEmpty();
-            if (is_empty) tag.deleteField(field);
+            boolean e = val == null || val.isEmpty();
+            if (e) tag.deleteField(field);
             else tag.setField(field, val);
             fields_changed++;
         } catch (KeyNotFoundException ex) {
@@ -574,7 +600,7 @@ public class MetadataWriter extends MetaItem {
      * @return true if data were written to tag or false if tag didnt change,
      * either because there was nothing to change or writing failed.
      */
-    private boolean write(boolean autorefresh) {
+    private boolean write() {
         // write changes to tag
         String f = (fields_changed == 1) ? "field" : "fields";
         Log.deb("Writing " + fields_changed + f + " to tag for: " + getURI() + ".");
@@ -595,10 +621,6 @@ public class MetadataWriter extends MetaItem {
                     throw ex;
                 }
             }            
-            // abandoned
-            // update this item for application
-            // dont use self as parameter! illegal state could leak
-            // if(autorefresh) refreshesSource.push(toSimple());
             
             Log.deb("Saving tag for " + getURI() + " finished successfuly.");
             return true;
@@ -666,7 +688,7 @@ public class MetadataWriter extends MetaItem {
             for(I i : items) {
                 w.reset(i);
                 setter.accept(w);
-                w.write(false);
+                w.write();
             }
 
             MetadataReader.readMetadata(items, (ok,metas) -> {
@@ -678,14 +700,18 @@ public class MetadataWriter extends MetaItem {
         });
     }
     
-    /**
-     * Increments playcount of item by exactly one for specified item.
-     * @param item to increment playcount of.
-     */
-    public static void useToIncrPlaycount(Metadata item) {
-        int count = item.getPlaycount() + 1;
-        use(item, w->w.setPlaycount(count));
-        App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + count, "Update"));
+    public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
+        runNew(()-> {
+            MetadataWriter w = new MetadataWriter();
+            w.reset(item);
+            setter.accept(w);
+            boolean b = w.write();
+            runLater(() -> action.accept(b));
+            
+            MetadataReader.readMetadata(singletonList(item), (ok,metas) -> {
+                if (ok) runNew(() -> Player.refreshItemsWithUpdatedBgr(metas));
+            });
+        });
     }
     
     /**
@@ -699,34 +725,5 @@ public class MetadataWriter extends MetaItem {
         use(item, w->w.setRatingPercent(rating));
         App.use(Notifier.class, n -> n.showTextNotification("Song rating changed to: " + rating, "Update"));
     }
-    
-/******************************************************************************/
-    // abandoned idea
-    
-    // we queue up all written to items and do group refresh, all while keeping
-    // refreshing code as a cross cutting concern at one place
-    // works, but unfortunately this solution cant provide the updated medatada
-    // back to the caller (because the calls add up to one), which we need
-    // for some operations (for ecample intagger widget to confirm operation 
-    // result with 100% certainty)
-    
-    // we would push into the stream in MetadataWriter.write() method on commit
-    
-    // private static final List<Item> refresh_queue = new ArrayList();
-    // private static final EventSource<Item> refreshesSource = new EventSource<>();
-    // static {
-    //     refreshesSource.hook(refresh_queue::add).successionEnds(Duration.ofSeconds(1))
-    //     .subscribe( ignored -> {
-    //         if(refresh_queue.size()==1) {
-    //             Item i = refresh_queue.get(0);System.out.println("updating " + i.getURI());
-    //             refresh_queue.clear();
-    //             Player.refreshItem(i);
-    //         } else {
-    //             List<Item> items = new ArrayList(refresh_queue);
-    //             refresh_queue.clear();
-    //             Player.refreshItems(items);
-    //         }
-    //     });
-    // 
     
 }

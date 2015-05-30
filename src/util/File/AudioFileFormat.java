@@ -28,6 +28,7 @@ public enum AudioFileFormat {
     flac,
     wav,
     m4a,
+    mp4,
     UNKNOWN;
     
     /**
@@ -51,11 +52,12 @@ public enum AudioFileFormat {
     /** Returns whether writing the field to tag for this format is supported. */
     public boolean isTagWriteSupported(Metadata.Field f) {
         switch(this) {
+            case mp4 :
+            case m4a :
             case mp3 : return true;
             case wav : return false;
-            case ogg : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
-            case flac : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER && f!=PLAYCOUNT;
-            case m4a : return f!=PLAYCOUNT;
+            case ogg : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
+            case flac: return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
             case UNKNOWN : return false;
             default: throw new AssertionError("corrupted switch statement");
         }

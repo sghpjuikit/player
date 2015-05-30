@@ -4,78 +4,73 @@ package AudioPlayer.playback;
 import Action.IsAction;
 import Action.IsActionable;
 import AudioPlayer.Player;
+import static AudioPlayer.playback.PlaycountIncrStrategy.*;
+import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
-import AudioPlayer.tagging.Playcount;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import static java.awt.TrayIcon.MessageType.INFO;
 import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import main.App;
-import util.dev.Log; 
+import static util.functional.Util.max;
+import static util.functional.Util.min;
 
 /**
  *
  * @author uranium
  */
-@IsConfigurable
+@IsConfigurable(value = "Playcount Incrementing")
 @IsActionable
 public class PlaycountIncrementer implements Service {
     
     @IsConfig(name="Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    public static Playcount.IncrStrategy increment_playcount = Playcount.IncrStrategy.NEVER;
+    public static PlaycountIncrStrategy increment_playcount = ON_PERCENT;
     @IsConfig(name="Increment at percent", info = "Percent at which playcount is incremented.")
-    public static double increment_playcount_at_percent = 0.5;
+    public static double increment_playcount_at_percent = 0.4;
     @IsConfig(name="Increment at time", info = "Time at which playcount is incremented.")
     public static double increment_playcount_at_time = Duration.seconds(5).toMillis();
-    @IsConfig(name="Increment at min percent", info = "Minimum percent at which playcount is incremented.")
-    public static double increment_playcount_min_percent = 0.0;
-    @IsConfig(name="Increment at min time", info = "Minimum time at which playcount is incremented.")
-    public static double increment_playcount_min_time = Duration.seconds(0).toMillis();
+    @IsConfig(name="Show notification", info = "Shows notification when playcount is incremented.")
+    public static boolean increment_pcnt_notif = false;
+    @IsConfig(name="Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
+    public static boolean increment_pcnt_bubble = false;
     
     @IsAction(name = "Increment playcount", description = "Rises the number of times the song has been played by one.")
     private static void incrementPlayback() {
         Metadata m = Player.playingtem.get();
         if (!m.isEmpty() && m.isFileBased() ) {
-            MetadataWriter.useToIncrPlaycount(m);
-            Log.info("Incrementing playount of played item.");
-            App.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted", INFO));
+            int p = m.getPlaycount()+1;
+            MetadataWriter.use(m, w -> w.setPlaycount(p), ok -> {
+                if(ok) {
+                    if(increment_pcnt_notif) App.use(Notifier.class, n -> n.showTextNotification("Song playcount incremented to: " + p, "Update"));
+                    if(increment_pcnt_bubble) App.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted to: " + p, INFO));
+                }
+            });
         }
     };
     
-    private static PercentTimeEventHandler percIncrementer;
-    private static TimeEventHandler timeIncrementer;
-    private static Runnable pIncr = PlaycountIncrementer::incrementPlayback;
-    
+    private static final Runnable incr = PlaycountIncrementer::incrementPlayback;
+    private static PlayTimeHandler incrHand;
     
     
     @Override
     public void start() {
-        // initialize percent incrementer
-        percIncrementer = new PercentTimeEventHandler(increment_playcount_at_percent, pIncr, "Playcount percent event handler");
-        percIncrementer.setPercMin(increment_playcount_min_percent);
-        percIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
-        // initialize time incrementer
-        timeIncrementer = new TimeEventHandler(Duration.millis(increment_playcount_at_time), pIncr, "Playcount time event handler");
-        timeIncrementer.setPercMin(increment_playcount_min_percent);
-        timeIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
-        
         configureIncrementation();
-        rereadSettings();
     }
 
     @Override
     public boolean isRunning() {
-        return pIncr != null;
+        return incrHand != null;
     }
     
     @Override
     public void stop() {
         removeOld();
-        pIncr=null;
+        incrHand=null;
     }
 
     @Override
@@ -92,44 +87,30 @@ public class PlaycountIncrementer implements Service {
     @AppliesConfig("increment_playcount")
     @AppliesConfig("increment_playcount_at_percent")
     @AppliesConfig("increment_playcount_at_time")
-    @AppliesConfig("increment_playcount_min_percent")
-    @AppliesConfig("increment_playcount_min_time")
     private static void configureIncrementation() {
-        Log.info("Resetting playcount incrementer settings.");
-        if (increment_playcount == Playcount.IncrStrategy.ON_PERCENT) {
-            removeOld();
-            rereadSettings();
-            PLAYBACK.realTimeProperty().setOnTimeAt(percIncrementer);
-        } else if (increment_playcount == Playcount.IncrStrategy.ON_TIME) {
-            removeOld();
-            rereadSettings();
-            PLAYBACK.realTimeProperty().setOnTimeAt(timeIncrementer);
-        } else if (increment_playcount == Playcount.IncrStrategy.ON_START) {
-            removeOld();
-            rereadSettings();
-            PLAYBACK.addOnPlaybackStart(pIncr);
-        } else if (increment_playcount == Playcount.IncrStrategy.ON_END) {
-            removeOld();
-            rereadSettings();
-            PLAYBACK.addOnPlaybackEnd(pIncr);
-        } else if (increment_playcount == Playcount.IncrStrategy.NEVER) {
-            removeOld();
-        }
+        removeOld();
+        if (increment_playcount == ON_PERCENT) {
+            incrHand = new PlayTimeHandler(total -> total.multiply(increment_playcount_at_percent),incr);
+            PLAYBACK.addOnPlaybackAt(incrHand);
+        } else if (increment_playcount == ON_TIME) {
+            incrHand = new PlayTimeHandler(total -> millis(increment_playcount_at_time), incr);
+            PLAYBACK.addOnPlaybackAt(incrHand);
+        } else if (increment_playcount == ON_TIME_AND_PERCENT) {
+            incrHand = new PlayTimeHandler(total -> min(millis(increment_playcount_at_time),total.multiply(increment_playcount_at_percent)),incr);
+            PLAYBACK.addOnPlaybackAt(incrHand);
+        } else if (increment_playcount == ON_TIME_OR_PERCENT) {
+            incrHand = new PlayTimeHandler(total -> max(millis(increment_playcount_at_time),total.multiply(increment_playcount_at_percent)),incr);
+            PLAYBACK.addOnPlaybackAt(incrHand);
+        } else if (increment_playcount == ON_START) {
+            PLAYBACK.addOnPlaybackStart(incr);
+        } else if (increment_playcount == ON_END) {
+            PLAYBACK.addOnPlaybackEnd(incr);
+        } else if (increment_playcount == NEVER) {}
     }
     
     private static void removeOld() {
-        PLAYBACK.realTimeProperty().removeOnTimeAt(percIncrementer);
-        PLAYBACK.realTimeProperty().removeOnTimeAt(timeIncrementer);
-        PLAYBACK.removeOnPlaybackStart(pIncr);
-        PLAYBACK.removeOnPlaybackEnd(pIncr);
-    }
-    
-    private static void rereadSettings() {
-        percIncrementer.setPercent(increment_playcount_at_percent);
-        percIncrementer.setPercMin(increment_playcount_min_percent);
-        percIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
-        timeIncrementer.setTimeAt(Duration.millis(increment_playcount_at_time));
-        timeIncrementer.setPercMin(increment_playcount_min_percent);
-        timeIncrementer.setTimeMin(Duration.millis(increment_playcount_min_time));
+        if(incrHand!=null) PLAYBACK.removeOnPlaybackAt(incrHand);
+        PLAYBACK.removeOnPlaybackStart(incr);
+        PLAYBACK.removeOnPlaybackEnd(incr);
     }
 }

@@ -161,7 +161,7 @@ public final class Seeker extends AnchorPane {
      * Default true.
      */
     public void setChaptersShowPopUp(boolean val) {
-        popupChapters = val;
+//        popupChapters = val;
     }
     
     /** Set whether chapters should be displayed on the seeker. Default true */
@@ -247,7 +247,7 @@ public final class Seeker extends AnchorPane {
             i.getStyleClass().add("seeker-add-chapter-button");
             i.getGraphic().getStyleClass().add("seeker-add-chapter-button");
             i.setDisable(false);
-            i.setOnMouseClicked(e -> {
+            root.setOnMouseClicked(e -> {
                 double deltaX = p.getX()+p.getWidth()/2-seeker.localToScreen(0,0).getX();
                 addChapterAt(deltaX/seeker.getWidth());
             });
@@ -279,15 +279,12 @@ public final class Seeker extends AnchorPane {
     }
     
     
-    private boolean editOnOpen = false;
     private void addChapterAt(double x) {
-        Duration now = totalTime.get().multiply(x);
-        Chap c = new Chap(new Chapter(now, ""), seeker.getValue());
+        Chap c = new Chap(x);
              c.setOpacity(0.5);
         getChildren().add(c);
              c.setLayoutX(x*seeker.getWidth());
              c.showPopup();
-        editOnOpen = true;
     }
     
 /******************************************************************************/
@@ -297,6 +294,7 @@ public final class Seeker extends AnchorPane {
         // inherent properties of the chapter
         private final double position;
         private Chapter c;
+        private boolean just_created = false;
         // lazy initialized, we dont want to spam rarely used objects
         StackPane content;
         Text message;
@@ -310,41 +308,34 @@ public final class Seeker extends AnchorPane {
         private final ScaleTransition start;
         private final ScaleTransition end;
             
-        Chap(Chapter c, double pos) {
-            // resources
-            this.c = c;
+        Chap(double x) {
+            this(new Chapter(totalTime.get().multiply(x), ""), seeker.getValue());
+            just_created = true;
+        }
+        Chap(Chapter ch, double pos) {
+            c = ch;
             position = pos;
-            // set up skin
-            this.getStyleClass().add(STYLECLASS);
-            // set up layout
-            double height = //Seeker.this.seeker.getLayoutY() + 
-                    (Seeker.this.seeker.getBoundsInParent().getHeight() - getPadding().getTop())/2;
-//            this.layoutYProperty().bind(Seeker.this.seeker.heightProperty().subtract(heightProperty()).divide(2));
-//            double height = (Seeker.this.getLayoutBounds().getHeight()-getLayoutBounds().getHeight())/4;
-            AnchorPane.setTopAnchor(this, 3d);
-            // build animations
+            
+            getStyleClass().add(STYLECLASS);
+            setOnMouseEntered(e -> showPopup());
+            setOnMouseClicked(e -> seekTo());
+
             start = new ScaleTransition(millis(150), this);
             start.setToX(8);
             start.setToY(1);
             end = new ScaleTransition(millis(150), this);
             end.setToX(1);
             end.setToY(1);
-            // show popup when starting animation ends
-            start.setOnFinished(e -> showPopup() );
-            // set off starting animation when mouse hovers
-            this.setOnMouseEntered(e -> showPopup());
-            // set off ending animation if popup open
-            this.setOnMouseExited(e -> {
-                start.stop();
-                if(p==null || !p.isShowing()) end.play();
-            });
-            // seek to chapter on click
-            this.setOnMouseClicked(e -> seekTo());
         }
         
         public void showPopup() {
             start.setOnFinished(popupChapters ? e -> showPopupReal() : null);
             start.play();
+        }
+        
+        public void hidePopup() {
+            if(p!=null && p.isShowing()) p.hideStrong();
+            else end.play();
         }
         
         public void showPopupReal() {
@@ -410,11 +401,13 @@ public final class Seeker extends AnchorPane {
                 p.setHideOnEscape(true);
                 p.setHideOnClick(false); // we will emulate it on our own
                 p.setAutoFix(false);
-                p.title.set(c.getTime().toString());
-                p.setOnHidden( e -> {
+                p.setOnHidden(e -> {
                     if (editOn) cancelEdit();
+                    if(just_created) 
+                        end.setOnFinished(ee -> Seeker.this.getChildren().remove(this));
                     end.play();
                 });
+                p.title.set(c.getTime().toString());
                 p.getHeaderIcons().addAll(prevB, nextB, editB, delB, helpB);
                 content.setOnMouseClicked( e -> {
                     // if info popup displayed close it and act as if content is
@@ -443,12 +436,7 @@ public final class Seeker extends AnchorPane {
             }
             // show if not already
             if(!p.isShowing()) p.show(this);
-            if(editOnOpen) startEdit();
-            editOnOpen = false;
-        }
-        
-        public void hidePopup() {
-            if(p!=null && p.isShowing()) p.hideStrong();
+            if(just_created) startEdit();
         }
         
         private boolean can_hide = true;
@@ -493,6 +481,7 @@ public final class Seeker extends AnchorPane {
             });
             // maintain proper content
             content.getChildren().add(ta);
+            message.setVisible(false);
             p.getHeaderIcons().set(0, commitB);
             p.getHeaderIcons().add(1, cancelB);
             p.getHeaderIcons().remove(editB);                                   // testing bug
@@ -516,6 +505,7 @@ public final class Seeker extends AnchorPane {
             }
             // go back visually
             content.getChildren().remove(ta);
+            message.setVisible(true);
             // maintain proper content
             p.getHeaderIcons().set(0, editB);
             p.getHeaderIcons().remove(cancelB);
@@ -523,20 +513,23 @@ public final class Seeker extends AnchorPane {
             p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);
             // stop edit
             editOn = false;
-            Seeker.this.getChildren().remove(this);
+            if(just_created) Seeker.this.getChildren().remove(this);
         }
         
         /** Ends editable mode and discards all changes. */
         public void cancelEdit() {
-            // go back & dont persist changes
-            content.getChildren().remove(ta);
-            // maintain proper content
-            p.getHeaderIcons().set(0, editB);
-            p.getHeaderIcons().remove(cancelB);
+            if(just_created) {
+                hidePopup();
+            } else {
+                // go back & dont persist changes
+                content.getChildren().remove(ta);
+                message.setVisible(true);
+                // maintain proper content
+                p.getHeaderIcons().set(0, editB);
+                p.getHeaderIcons().remove(cancelB);
+            }
             // stop edit
             editOn = false;
-            Seeker.this.getChildren().remove(this);
-            
         }
         
         public void seekTo() {

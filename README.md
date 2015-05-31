@@ -78,21 +78,19 @@ Song tables:
   
 - ### extensibility & modularity
 
-  Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added for created as plugins. Some of the existing widgets are:
-  Playback & Mini - controls for playback, like seeking. Supports chapters.
-  FileInfo - shows cover and information about song (e.g. playing). Allows cover download on drag&drop.
-  Tagger - for tagging
-  Library & LibraryView - song tables
-  ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
-  Settings - application settings, but it is also a generic configurator for any object exposing its Configurable API (like widgets or even GUI itself)
-  Converter - text -> text converting. Also very handy file renamer. Supports text transformation chaining similar to table filters. Also manual editing using text area, regex, etc.
-  Explorer - simple file system browser. Currently slow for big folders.
-  Gui Inspector - displays gui objects hierarchically and uses Settings for editing their properties
-  Image - displays static image
-  Action - contains icon that can execute any application action (supported by shortcut)
-  
-  
-  There is plan for visualisations and some more cool ideas like song graphs.
+  Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added for created as plugins.
+  Some of the existing widgets are:
+- Playback & Mini - controls for playback, like seeking. Supports chapters.
+- FileInfo - shows cover and information about song (e.g. playing). Allows cover download on drag&drop.
+- Tagger - for tagging
+- Library & LibraryView - song tables
+- ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
+- Settings - application settings, but it is also a generic configurator for any object exposing its Configurable API (like widgets or even GUI itself)
+- Converter - text -> text converting. Also very handy file renamer. Supports text transformation chaining similar to table filters. Also manual editing using text area, regex, etc.
+- Explorer - simple file system browser. Currently slow for big folders.
+- Gui Inspector - displays gui objects hierarchically and uses Settings for editing their properties
+- Image - displays static image
+- Action - contains icon that can execute any application action (supported by shortcut)
   
 - ### gui
 

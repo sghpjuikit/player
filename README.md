@@ -11,13 +11,13 @@ Aims:
 
 ## Features
 
-- ###playback
+- ###playback 
 
 Filetypes:
 - mp3
 - mp4, m4a
 - wav
-- ogg,flac (not yet, but planned)
+- ogg, flac (not yet, but planned)
 
 Protocols:
 - file
@@ -54,9 +54,11 @@ Song tables:
 - granularity limited only by tag (1/255 for mp3, 1/100 for other formats)
 - interoperable with other players, but most of them will only recognize the value as 3/5 or so
   
-  **Playcount** signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
+  **Playcount**
+Signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
   
-  **Chapters** are comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value remains a mystery, but surpasses 500 characters (definitely for all chapters together) - probably by a large margin).
+  **Chapters**
+Comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value remains a mystery, but surpasses 500 characters (definitely for all chapters together) - probably by a large margin).
   
   **Cover**
 - image in tag can be imported/exported

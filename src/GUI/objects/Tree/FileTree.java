@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package GUI.objects.Tree;
 
 import de.jensd.fx.glyphs.GlyphsDude;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
@@ -37,11 +37,9 @@ import util.File.FileUtil;
 public class FileTree extends TreeView<File>{
 
     public FileTree() {
-        FileTree.from(this);
+        from(this);
     }
-    
-    
-    
+        
     
     public static void from(TreeView<File> tree) {
         // set value factory

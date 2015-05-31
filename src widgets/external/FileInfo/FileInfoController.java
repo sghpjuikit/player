@@ -11,13 +11,13 @@ import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import GUI.InfoNode.SongInfo;
 import GUI.Panes.ImageFlowPane;
 import GUI.objects.ActionChooser;
 import GUI.objects.Icon;
 import GUI.objects.Rater.Rating;
 import GUI.objects.Thumbnail.ChangeableThumbnail;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.SongInfo;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
@@ -489,6 +489,8 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // in the end we must remove the text because we use stars instead
         rating.setText("rating: ");
         
+        entireArea.layout();
+        entireArea.requestLayout();
         resize(entireArea.getWidth(), entireArea.getHeight());
     }
     

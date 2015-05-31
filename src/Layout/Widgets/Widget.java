@@ -11,6 +11,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collection;
+import static java.util.Collections.singletonList;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.Node;
@@ -223,14 +225,14 @@ public abstract class Widget<C extends Controller> extends Component implements 
     }
     
     /**
-     * Returns the controller of this widget
+     * Returns singleton list containing the controller of this widget
      * <p>
      * {@inheritDoc}
      */
     @Override
-    public Configurable getSubConfigurable() {
-        return controller;
-    }
+    public Collection<Configurable<Object>> getSubConfigurable() {
+        return singletonList(controller);
+    }    
     
     // the following two methods help with serialising the widget settings
     public void rememberConfigs() {

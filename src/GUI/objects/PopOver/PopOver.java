@@ -931,16 +931,16 @@ public class PopOver<N extends Node> extends PopupControl {
                 return getScreenForPoint(w.getX()+w.getWidth()/2, w.getY()+w.getHeight()/2).getBounds();
             else {
                 List<Screen> ss = Screen.getScreens();
-                Screen l = min(ss,ps,cmpareBy(a->a.getBounds().getMinX()));
-                Screen r = max(ss,ps,cmpareBy(a->a.getBounds().getMaxX()));
+                Screen l = min(ss,ps,by(a->a.getBounds().getMinX()));
+                Screen r = max(ss,ps,by(a->a.getBounds().getMaxX()));
                 switch(pos) {
                     case Screen_Bottom_Left:
                     case Screen_Top_Left: return l.getBounds();
                     case Screen_Bottom_Right:
                     case Screen_Top_Right: return r.getBounds();
                     case Screen_Center: {
-                        Screen t = min(ss,ps,cmpareBy(a->a.getBounds().getMinY()));
-                        Screen b = max(ss,ps,cmpareBy(a->a.getBounds().getMaxY()));
+                        Screen t = min(ss,ps,by(a->a.getBounds().getMinY()));
+                        Screen b = max(ss,ps,by(a->a.getBounds().getMaxY()));
                         return new Rectangle2D(l.getBounds().getMinX(),t.getBounds().getMinY(),
                                                r.getBounds().getMaxX()-l.getBounds().getMinX(),
                                                b.getBounds().getMaxY()-t.getBounds().getMinY());

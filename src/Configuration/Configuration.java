@@ -2,6 +2,8 @@
 package Configuration;
 
 import Action.Action;
+import Configuration.Config.PropertyConfig;
+import Configuration.Config.ReadOnlyPropertyConfig;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -14,12 +16,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 import main.App;
 import org.atteo.classindex.ClassIndex;
-import util.dev.Log;
 import util.File.FileUtil;
 import static util.Util.getAllFields;
+import util.dev.Log;
+import static util.dev.Util.forbidFinal;
+import static util.dev.Util.requireFinal;
 
 /**
  * Provides methods to access configs of the application.
@@ -108,17 +113,14 @@ public class Configuration {
     private static Config createConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
         Class c = f.getType();
         if(Config.class.isAssignableFrom(c)) {
-            return extractConfig(f, instance);
+            return newFromConfig(f, instance);
         }
-        else if(WritableValue.class.isAssignableFrom(c))
-            return createPropertyConfig(f, instance, name, anotation, group);
+        else if(WritableValue.class.isAssignableFrom(c) || ReadOnlyProperty.class.isAssignableFrom(c))
+            return newFromProperty(f, instance, name, anotation, group);
         else {
-            if(Modifier.isFinal(f.getModifiers()))
-                // if final -> runtime exception, dev needs to fix his code
-                throw new IllegalStateException("Field config must not be final.");
-            
             try {
-                f.setAccessible(true);
+                forbidFinal(f);            // make sure the field is not final
+                f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);
                 return new FieldConfig(name, anotation, instance, group, getter, setter);
@@ -130,32 +132,24 @@ public class Configuration {
         }
     }
     
-    private static PropertyConfig createPropertyConfig(Field f, Object instance, String name, IsConfig anotation, String group) {
+    private static Config newFromProperty(Field f, Object instance, String name, IsConfig anotation, String group) {
         try {
-            // make sure the field is final
-            if(!Modifier.isFinal(f.getModifiers())) 
-                // if not -> runtime exception, dev needs to fix his code
-                throw new IllegalStateException("Property config must be final.");
-            // make sure the field is accessible
-            f.setAccessible(true);
-            // get the property
-            WritableValue val = (WritableValue)f.get(instance);
-            // make property config based on the property
-            return new PropertyConfig(name, anotation, val, group);
+            requireFinal(f);            // make sure the field is final
+            f.setAccessible(true);      // make sure the field is accessible
+            if(WritableValue.class.isAssignableFrom(f.getType()))
+                return new PropertyConfig(name, anotation, (WritableValue)f.get(instance), group);
+            if(ReadOnlyProperty.class.isAssignableFrom(f.getType()))
+                return new ReadOnlyPropertyConfig(name, anotation, (ReadOnlyProperty)f.get(instance), group);
+            throw new IllegalArgumentException("Wrong class");
         } catch (IllegalAccessException | SecurityException e) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
     }
     
-    private static Config extractConfig(Field f, Object instance) {
+    private static Config newFromConfig(Field f, Object instance) {
         try {
-            // make sure the field is final
-            if(!Modifier.isFinal(f.getModifiers())) 
-                // if not -> runtime exception, dev needs to fix his code
-                throw new IllegalStateException("Field of type Config must be final to be able to be extracted.");
-            // make sure the field is accessible
-            f.setAccessible(true);
-            // get the property
+            requireFinal(f);            // make sure the field is final
+            f.setAccessible(true);      // make sure the field is accessible
             return (Config)f.get(instance);
         } catch (IllegalAccessException | SecurityException ex) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());

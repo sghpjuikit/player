@@ -10,13 +10,18 @@ import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ContextMenu.ContentContextMenu;
 import GUI.objects.ContextMenu.TreeContextMenuInstance;
-import GUI.objects.FileTree;
+import GUI.objects.Tree.FileTree;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.FileExplorerFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.SelectionMode;
@@ -51,7 +56,7 @@ import util.access.Accessor;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class ExplorerController extends FXMLController {
+public class ExplorerController extends FXMLController implements FileExplorerFeature {
     
     // gui
     @FXML AnchorPane root;
@@ -123,6 +128,24 @@ public class ExplorerController extends FXMLController {
     @Override
     public void refresh() {
         rootDir.applyValue();
+    }
+
+    
+    @Override
+    public void exploreFile(File f) {
+        Path p = f.toPath().getRoot();
+        Optional<TreeItem<File>> item = tree.getRoot().getChildren().stream().filter(i -> i.getValue().toString().contains(f.toPath().getRoot().toString())).findFirst();
+        item.ifPresent(e->e.setExpanded(true));
+        ObjectProperty<TreeItem<File>> it = new SimpleObjectProperty(item.orElse(null));
+        
+        f.getAbsoluteFile().toPath().forEach(pth -> {
+            if(it.get()==null) return;
+            else {
+                it.get().setExpanded(true);
+                it.set(it.get().getChildren().stream().filter(i -> i.getValue().toString().contains(pth.toString())).findFirst().orElse(null));
+            }
+        });
+        
     }
     
 /****************************** CONTEXT MENU **********************************/

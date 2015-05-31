@@ -1,5 +1,6 @@
 package Layout.WidgetImpl;
 
+import Configuration.Config;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.ItemNode.ConfigField;
@@ -9,20 +10,23 @@ import Layout.Widgets.Controller;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.RECYCLE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.REFRESH;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
+import static javafx.geometry.HPos.RIGHT;
 import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.*;
+import static util.Util.setAnchors;
 import util.access.Accessor;
-import static util.functional.Util.cmpareNoCase;
+import static util.functional.Util.byNC;
+import static util.functional.Util.list;
 import util.graphics.fxml.ConventionFxmlLoader;
 @IsWidget
 @Layout.Widgets.Widget.Info(
@@ -50,51 +54,25 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
 
     // auto applied configurables
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public final Accessor<HPos> alignemnt = new Accessor<>(HPos.RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(1).setHalignment(v)));
+    public final Accessor<HPos> alignemnt = new Accessor<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(1).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
-    public final ObjectProperty<Pos> title_align = new SimpleObjectProperty(Pos.CENTER);
+    public final ObjectProperty<Pos> title_align = new SimpleObjectProperty(CENTER);
     @IsConfig(editable = false)
     public final Accessor<String> expanded = new Accessor<>("", v -> {
         if (groups.containsKey(v))
             accordion.setExpandedPane(groups.get(v).pane);
     });
-    private final Icon reI = new Icon(REFRESH,13,"Refresh al",this::refresh);
+    private final Icon appI = new Icon(HOME,13,"App settings",() -> configure(Configuration.getFields()));
+    private final Icon reI = new Icon(REFRESH,13,"Refresh all",this::refresh);
     private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
     public Configurator() {
-        
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
-        controls.getChildren().addAll(reI,defI);
-
-        // clear previous fields
-        configFields.clear();
-        accordion.getPanes().clear();
-        groups.forEach((n, g) -> g.grid.getChildren().clear());
-        groups.forEach((n, g) -> g.grid.getRowConstraints().clear());
-
-        // sort & populate fields
-        Configuration.getFields().stream().sorted(cmpareNoCase(o -> o.getGuiName())).forEach(f -> {
-            if (f.isEditable()) {        // ignore noneditabe
-                // create graphics
-                ConfigField cf = ConfigField.create(f);
-                configFields.add(cf);
-
-                // get group
-                String cat = f.getGroup();
-                ConfigGroup g = groups.containsKey(cat) ? groups.get(cat) : new ConfigGroup(cat);
-
-                // add to grid
-                g.grid.getRowConstraints().add(new RowConstraints());
-                g.grid.add(cf.getLabel(), 1, g.grid.getRowConstraints().size());
-                g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size());
-            }
-        });
-
-        // sort & populate groups
-        groups.values().stream()
-            .sorted(cmpareNoCase(ConfigGroup::name))
-            .forEach(g -> accordion.getPanes().add(g.pane));
+        controls.getChildren().addAll(appI,new Region(),reI,defI);
+        
+        // init content
+        configure(Configuration.getFields());
         
         // consume scroll event to prevent other scroll behavior // optional
         setOnScroll(Event::consume);
@@ -103,7 +81,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     /** Set and apply values and refresh if needed (no need for hard refresh) */
     @FXML
     public void ok() {
-        configFields.forEach(ConfigField::applyNsetIfNeed);
+        configFields.forEach(ConfigField::apply);
     }
 
     /** Set default app settings. */
@@ -119,9 +97,55 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     @Override
     public void refresh() {
         alignemnt.applyValue();
-//        title_align.applyValue();
         expanded.applyValue();
         refreshConfigs();
+    }
+
+    @Override
+    public void configure(Collection<Config> c) {
+        // clear previous fields
+        configFields.clear();
+        accordion.getPanes().clear();
+        groups.clear();
+
+        // sort & populate fields
+        c.stream().sorted(byNC(o -> o.getGuiName())).forEach(f -> {
+            // create graphics
+            ConfigField cf = ConfigField.create(f);
+            configFields.add(cf);
+
+            // get group
+            String cat = f.getGroup();
+            ConfigGroup g = groups.containsKey(cat) ? groups.get(cat) : new ConfigGroup(cat);
+
+            // add to grid
+            g.grid.getRowConstraints().add(new RowConstraints());
+            g.grid.add(cf.getLabel(), 1, g.grid.getRowConstraints().size());
+            g.grid.add(cf.getNode(), 2, g.grid.getRowConstraints().size());
+        });
+
+
+//        // autoexpand group if only one
+//        if(groups.size()==1) accordion.setExpandedPane(list(groups.values()).get(0).pane);
+        
+        boolean single = groups.size()==1;
+        accordion.setVisible(!single);
+        ((AnchorPane)accordion.getParent()).getChildren().retainAll(accordion);
+        if(single) {
+            Pane t = list(groups.values()).get(0).grid;
+            ((AnchorPane)accordion.getParent()).getChildren().add(t);
+            setAnchors(t,0);
+//            TitledPane t = list(groups.values()).get(0).pane;
+//            ((AnchorPane)accordion.getParent()).getChildren().add(t);
+//            setAnchors(t,0);
+//            t.setCollapsible(false);
+            
+        } else {
+            groups.values().stream()
+                .sorted(byNC(ConfigGroup::name))
+                .forEach(g -> accordion.getPanes().add(g.pane));
+        }
+        alignemnt.applyValue();
     }
     
     public void refreshConfigs() {
@@ -141,14 +165,15 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
     public ClassWidget getWidget() {
         return w;
     }
-
     
-    private final class ConfigGroup {
+/******************************************************************************/
+    
+    class ConfigGroup {
 
         final TitledPane pane = new TitledPane();
         final GridPane grid = new GridPane();
 
-        public ConfigGroup(String name) {
+        ConfigGroup(String name) {
             pane.setText(name);
             pane.setContent(grid);
             pane.expandedProperty().addListener((o, ov, nv) -> {
@@ -177,7 +202,7 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
             groups.put(name, this);
         }
 
-        public String name() {
+        String name() {
             return pane.getText();
         }
     }

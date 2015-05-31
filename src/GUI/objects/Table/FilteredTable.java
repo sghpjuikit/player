@@ -340,7 +340,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     @Override
     public void sortBy(F field) {
         getSortOrder().clear();
-        allitems.sort(cmpareBy(p -> (Comparable) p.getField(field)));
+        allitems.sort(by(p -> (Comparable) p.getField(field)));
     }
     
     /***

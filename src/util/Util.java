@@ -818,13 +818,27 @@ public class Util {
     public static<E extends Enum>void mapEnumConstant(E e, Function<E, String> mapper) {
         setField(e.getClass().getSuperclass(), e, "name", mapper.apply(e));
     }
+    
+    /**
+     * Returns whether class is an enum. Works for 
+     * enums with class method bodies (where Class.isEnum) does not work.
+     * 
+     * @return true if class is enum or false otherwise
+     * @see #getEnumConstants(java.lang.Class)
+     */
+    public static boolean isEnum(Class c) {
+        return c.isEnum() || (c.getEnclosingClass()!=null && c.getEnclosingClass().isEnum());
+    }
 
     /**
      * Returns enum constants of an enum class in declared order. Works for 
      * enums with class method bodies (where Enum.getEnumConstants) does not work.
-     * @param <T>
+     * <p>
+     * Always use {@link #isEnum(java.lang.Class)} before this method.
+     * 
      * @param c
-     * @return 
+     * @return array of enum constants, never null
+     * @throws IllegalArgumentException if class not an enum
      */
     public static <T> T[] getEnumConstants(Class c) {
         // handle enums

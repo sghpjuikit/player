@@ -25,6 +25,7 @@ import GUI.objects.Table.TableColumnInfo;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import GUI.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.FileExplorerFeature;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
@@ -58,7 +59,6 @@ import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -287,11 +287,6 @@ public class LibraryController extends FXMLController {public String a() { retur
             e.consume();
         });
         
-        // prevent selection change on right click
-        table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        // table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        // prevent context menu changing selection
-        // table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
         // prevent volume change
         table.setOnScroll(Event::consume);
         
@@ -448,6 +443,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     
     private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
         () -> {
+            
             ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {                     
                     List<PlaylistItem> to_play = map(m.getValue(), Metadata::toPlaylist);
@@ -474,6 +470,11 @@ public class LibraryController extends FXMLController {public String a() { retur
                     List<File> files = filterMap(items,Item::isFileBased,Item::getLocation);
                     Environment.browse(files,true);
                 }),
+                new Menu("Explore items's directory in",null,
+                    menuItems(WidgetManager.getFactories().filter(f->f.hasFeature(FileExplorerFeature.class)).map(f->f.name()).collect(toList()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NOLAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
+                ),
                 new Menu("Search album cover",null,
                     menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
                             q -> "in " + Parser.toS(q),

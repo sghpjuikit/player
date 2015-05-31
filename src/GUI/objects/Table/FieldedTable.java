@@ -195,7 +195,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             // build new table column menu
             columnVisibleMenu = new ContextMenu();
             defColInfo.columns.streamV()
-                    .sorted(cmpareBy(c->c.name))
+                    .sorted(by(c->c.name))
                     .map(c-> {
                         CheckMenuItem m = new CheckMenuItem(c.name,c.visible,v -> setColumnVisible(c.name, v));
                         F f = nameToF(c.name);
@@ -275,7 +275,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      */
     public void sortBy(F field) {
         getSortOrder().clear();
-        getItems().sort(cmpareBy(p -> (Comparable) p.getField(field)));
+        getItems().sort(by(p -> (Comparable) p.getField(field)));
     }
     
     /**

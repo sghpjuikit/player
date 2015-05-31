@@ -56,7 +56,6 @@ import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
@@ -291,11 +290,6 @@ public class LibraryViewController extends FXMLController {
                 forwardItems(DB.views.getValue(lvl.getValue()));
         });
         
-        // prevent selection change on right click
-        table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        // table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        // prevent context menu changing selection
-        // table.addEventFilter(ContextMenuEvent.ANY, Event::consume);
         // prevent volume change
         table.setOnScroll(Event::consume);
     }

@@ -7,7 +7,7 @@ package GUI.InfoNode;
 
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
-import GUI.InfoNode.SongInfo;
+import Layout.Widgets.Features.SongInfo;
 import GUI.objects.Thumbnail.Thumbnail;
 import java.io.IOException;
 import java.net.URL;

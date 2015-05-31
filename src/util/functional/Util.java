@@ -92,7 +92,7 @@ public class Util {
     public static final Runnable do_NOTHING = () -> {};
     
     /** Function transforming object into its string representation by invoking its toString() method*/
-    public static final Function<?,String> toString = Object::toString;
+    public static final Function<Object,String> toString = Object::toString;
     
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      *  by delimiter ", ". */
@@ -119,7 +119,7 @@ public class Util {
      * 
      * @param toComparableConverter E to Comparable mapper, derives Comparable from E.
      */
-    public static<E> Comparator<E> cmpareBy(Callback<E,Comparable> toComparableConverter) {
+    public static<E> Comparator<E> by(Callback<E,Comparable> toComparableConverter) {
         return (a,b) -> toComparableConverter.call(a).compareTo(toComparableConverter.call(b));
     }
     
@@ -132,7 +132,7 @@ public class Util {
      * @param cmpGetter E to String mapper, derives String from E.
      * the object.
      */
-    public static<E> Comparator<E> cmpareNoCase(Callback<E,String> toStringConverter) {
+    public static<E> Comparator<E> byNC(Callback<E,String> toStringConverter) {
         return (a,b) -> toStringConverter.call(a).compareToIgnoreCase(toStringConverter.call(b));
     }
     
@@ -168,6 +168,15 @@ public class Util {
             I out = f.apply(in);
             return out==null ? in : out;
         };
+    }
+    public static <I,O> Function<I,O> nonNull(Function<I,O> f, O or) {
+        return in -> {
+            O out = f.apply(in);
+            return out==null ? or : out;
+        };
+    }
+    public static <I> I noNull(I o, I or) {
+        return o==null ? or : o;
     }
     
     /** Equivalent to {@code noEx(f, null, ecs); }*/
@@ -518,6 +527,9 @@ public class Util {
     public static<T> List<T> list(T... a) {
         return Arrays.asList(a);
     }
+    public static<T> List<T> list(Collection<T> a) {
+        return new ArrayList(a);
+    }
     
     public static<T> List<T> list(int i, T a) {
         List<T> l = new ArrayList(i);
@@ -537,6 +549,13 @@ public class Util {
     
     public static <T> Stream<T> stream(Collection<T> t) {
         return t.stream();
+    }
+    
+    /** @return stream equivalent to a for loop */
+    public static <T> Stream<T> stream(T seed, Predicate<T> cond, UnaryOperator<T> op) {
+        Stream.Builder<T> b = Stream.builder();
+        for(T t = seed; cond.test(t); t=op.apply(t)) b.accept(t);
+        return b.build();
     }
     
     

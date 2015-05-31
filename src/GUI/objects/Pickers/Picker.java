@@ -128,7 +128,7 @@ public class Picker<E> {
         // get items
         itemSupply.get()
             // & sort
-            .sorted(Util.cmpareNoCase(textCoverter::toS))
+            .sorted(Util.byNC(textCoverter::toS))
             // & create cells
             .forEach( item -> {
                 Node cell = cellFactory.apply(item);

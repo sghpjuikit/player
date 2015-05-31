@@ -15,7 +15,7 @@ import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple3;
 import static util.collections.Tuples.tuple;
 import util.functional.Functors;
-import static util.functional.Util.cmpareBy;
+import static util.functional.Util.by;
 
 /**
  *
@@ -47,7 +47,7 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
         return Stream.of(es)
                 .filter(FieldEnum::isTypeStringRepresentable)
                 .map(mf->tuple(mf.toString(),mf.getType(),mf))
-                .sorted(cmpareBy(e->e._1))
+                .sorted(by(e->e._1))
                 .collect(toList());
     }
 }

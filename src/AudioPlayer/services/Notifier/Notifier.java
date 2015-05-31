@@ -10,7 +10,7 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.InfoNode.ItemInfo;
-import GUI.InfoNode.SongInfo;
+import Layout.Widgets.Features.SongInfo;
 import GUI.objects.PopOver.Notification;
 import GUI.objects.PopOver.PopOver;
 import static GUI.objects.PopOver.PopOver.ScreenCentricPos.Screen_Top_Right;

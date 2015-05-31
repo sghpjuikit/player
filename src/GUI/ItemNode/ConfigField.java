@@ -49,8 +49,11 @@ import static util.functional.Util.*;
  */
 abstract public class ConfigField<T> {
     
-    private static final Tooltip defB_tooltip = new Tooltip("Default value");
-    private static final Tooltip globB_tooltip = new Tooltip("Whether shortcut is global (true) or local.");
+    private static final PseudoClass editedPC = getPseudoClass("edited");
+    private static final Tooltip okTooltip = new Tooltip("Apply value");
+    private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
+    private static final Tooltip defTooltip = new Tooltip("Default value");
+    private static final Tooltip globTooltip = new Tooltip("Whether shortcut is global (true) or local.");
     
     private final Label label = new Label();
     protected final HBox root = new HBox();
@@ -71,6 +74,7 @@ abstract public class ConfigField<T> {
         
         // display default button when hovered for certain time
         root.addEventFilter(MOUSE_ENTERED, e -> {
+            if(!config.isEditable()) return;
             // wait delay
             run(270, () -> {
                 // no need to do anything if hover ended
@@ -79,7 +83,7 @@ abstract public class ConfigField<T> {
                     // we dont want hundreds of buttons we will never use anyway
                     if(defB==null) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
-                        defB.setTooltip(defB_tooltip);
+                        defB.setTooltip(defTooltip);
                         defB.setOpacity(0);
                         defB.getStyleClass().setAll("congfig-field-default-button");
                         root.getChildren().add(defB);
@@ -187,30 +191,6 @@ abstract public class ConfigField<T> {
     }
     
     /**
-     * Convenience method and default implementation of set and apply mechanism.
-     * Also calls the {@link #refreshItem()} when needed.
-     * <p>
-     * Checks te current value and compares it with the value obtainable from
-     * the config (representing the currently set value) and sets and applies
-     * the current value of the values differ.
-     * <p>
-     * To understand the difference
-     * between changing and applying refer to {@link Config}.
-     * 
-     * @return whether any change occured. Occurs when change needs to be applied.
-     * Equivalent to calling {@link #hasUnappliedValue()} method.
-     */
-    public boolean applyNsetIfNeed() {
-        if(hasUnappliedValue()) {
-            config.setNapplyValue(getItem());
-            refreshItem();
-            return true;
-        } else {
-            return false;
-        }
-    }
-    
-    /**
      * Sets and applies default value of the config if it has different value
      * set.
      */
@@ -221,7 +201,9 @@ abstract public class ConfigField<T> {
             refreshItem();
         }
     }
-    
+    public void apply() {
+        apply(true);
+    }
     protected void apply(boolean user) {
         if(insonsistent_state) return;
         T t = getItem();
@@ -275,14 +257,10 @@ abstract public class ConfigField<T> {
             if(!cf.getClass().isInstance(ShortcutField.class))
                 Tooltip.install(cf.getControl(),t);
         }
-        
         return cf;
     }
     
 /***************************** IMPLEMENTATIONS ********************************/
-    private static final Tooltip okTooltip = new Tooltip("Apply value");
-    private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
-    private static final PseudoClass editedPC = getPseudoClass("edited");
         
     private static final class PasswordField extends ConfigField<Password>{
         
@@ -412,7 +390,7 @@ abstract public class ConfigField<T> {
             n.textProperty().addListener((o,ov,nv)-> {
                 Object i = getItem();
                 boolean erroneous = i==null;
-                boolean applicable = !nv.equals(config.getValue().equals(i));
+                boolean applicable = !config.getValue().equals(i);
                 showOkButton(!applyOnChange && applicable && !erroneous);
                 showWarnButton(erroneous);
                 if(nv.isEmpty()) return;
@@ -438,7 +416,9 @@ abstract public class ConfigField<T> {
         @Override public void refreshItem() {
             n.setText(config.getValueS());
             showOkButton(false);
+            showWarnButton(false);
         }
+        @Override
         protected void apply(boolean user) {
             if(insonsistent_state) return;
             Object t = getItem();
@@ -472,9 +452,7 @@ abstract public class ConfigField<T> {
             super(c);
             cBox = new CheckIcon();
             refreshItem();
-            cBox.selected.addListener((o,ov,nv)->{
-                if(applyOnChange) applyNsetIfNeed();
-            });
+            cBox.selected.addListener((o,ov,nv)-> apply(false));
         }
         
         @Override public Node getControl() {
@@ -509,22 +487,12 @@ abstract public class ConfigField<T> {
                 // also bug with snap to tick, which doesnt work on mouse drag
                 // so we use getItem() which returns correct value
                 cur.setText(getItem().toString());
-                if(applyOnChange && !slider.isValueChanging())
-                    applyNsetIfNeed();
+                if(!slider.isValueChanging())
+                    apply(false);
             });
             slider.setOnMouseReleased(e -> {
-                if(applyOnChange) applyNsetIfNeed();
+                if(applyOnChange) apply(false);
             });
-            
-            // add scrolling support
-            // unfortunately this control is often within scrollpane and user
-            // might end up changing value of this config field while scrolling
-            // disable this
-//            slider.setOnScroll( e -> {
-//                if (e.getDeltaY()>0) slider.increment();
-//                else slider.decrement();
-//                e.consume();
-//            });
             slider.setBlockIncrement((c.getMax()-c.getMin())/20);
             slider.setMinWidth(-1);
             slider.setPrefWidth(-1);
@@ -567,11 +535,9 @@ abstract public class ConfigField<T> {
             super(c);
             n = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));            
             n.getItems().addAll(c.enumerateValues());
-            n.getItems().sort(cmpareBy(v->c.toS(v)));
+            n.getItems().sort(by(v->c.toS(v)));
             n.setValue(c.getValue());
-            n.valueProperty().addListener((o,ov,nv) -> {
-                if(applyOnChange) applyNsetIfNeed();
-            });
+            n.valueProperty().addListener((o,ov,nv) -> apply(false));
             n.getStyleClass().add("combobox-field-config");
             n.focusedProperty().addListener((o,ov,nv) -> n.pseudoClassStateChanged(editedPC, nv));
         }
@@ -618,7 +584,7 @@ abstract public class ConfigField<T> {
                         txtF.setText(t);
                     }
                 } else if(c==ENTER) {
-                    if (applyOnChange) applyNsetIfNeed();
+                    apply(true);
                 } else if(c==ESCAPE) {
                     refreshItem();
                 // handle addition
@@ -642,10 +608,8 @@ abstract public class ConfigField<T> {
             
             globB = new CheckIcon();
             globB.selected.set(a.isGlobal());
-            globB.setTooltip(globB_tooltip);
-            globB.selected.addListener((o,ov,nv) -> {
-                if (applyOnChange) applyNsetIfNeed();
-            });
+            globB.setTooltip(globTooltip);
+            globB.selected.addListener((o,ov,nv) -> apply(false));
             group = new HBox(5, globB,txtF);
             group.setAlignment(CENTER_LEFT);
             group.setPadding(Insets.EMPTY);
@@ -661,7 +625,7 @@ abstract public class ConfigField<T> {
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
         }
-        @Override public final boolean applyNsetIfNeed() {
+        @Override protected void apply(boolean b) {
             // its pointless to make new Action just for this
             // config.applyValue(getItem()); 
             // rather operate on the Action manually
@@ -679,11 +643,8 @@ abstract public class ConfigField<T> {
                 a.setGlobal(globB.selected.get());
             else {
                 refreshItem();
-                return false;
             }
-
             refreshItem();
-            return true;
         }
         @Override public Action getItem() {
             return a;
@@ -701,9 +662,7 @@ abstract public class ConfigField<T> {
         private ColorField(Config<Color> c) {
             super(c);
             refreshItem();
-            picker.valueProperty().addListener((o,ov,nv) -> {
-                if(applyOnChange) applyNsetIfNeed();
-            });
+            picker.valueProperty().addListener((o,ov,nv) -> apply(false));
         }
         
         @Override public Control getControl() {
@@ -722,13 +681,7 @@ abstract public class ConfigField<T> {
         private FontField(Config<Font> c) {
             super(c);
             refreshItem();
-            txtF.setOnItemChange((oldFont,newFont) -> {
-                if(!newFont.equals(oldFont)) {  // we shouldnt rely on Font.equals here
-                    applyNsetIfNeed();
-                    txtF.setPromptText(c.toS(newFont));
-                }
-                txtF.setText(""); // always stay in prompt text more
-            });
+            txtF.setOnItemChange((ov,nv) -> apply(false));
         }
         
         @Override public Control getControl() {
@@ -747,13 +700,7 @@ abstract public class ConfigField<T> {
         public FileField(Config<File> c) {
             super(c);
             refreshItem();
-            txtF.setOnItemChange((oldFile,newFile) -> {
-                if(!newFile.equals(oldFile)) {
-                    applyNsetIfNeed();
-                    txtF.setPromptText(c.toS(newFile));
-                }
-                txtF.setText(""); // always stay in prompt text more
-            });
+            txtF.setOnItemChange((ov,nv) -> apply(false));
         }
         
         @Override public Control getControl() {

@@ -20,26 +20,31 @@ import java.util.Collection;
  * @author Plutonium_
  */
 public interface CompositeConfigurable<T> extends Configurable<T> {
-
+    
     /** {@inheritDoc} */
     @Override
     public default Collection<Config<T>> getFields() {
         Collection<Config<T>> l = new ArrayList(Configurable.super.getFields());
-        if (getSubConfigurable()!=null)
-            l.addAll(getSubConfigurable().getFields());
+        getSubConfigurable().forEach(c->c.getFields().forEach(l::add));
         return l;
     }
 
     /** {@inheritDoc} */
     @Override
     public default Config getField(String name) {
-        Config c = Configurable.super.getField(name);
-        return c == null && getSubConfigurable()!=null ? getSubConfigurable().getField(name) : c;
+        Config cf = Configurable.super.getField(name);
+        if(cf!=null) return cf;
+        
+        for(Configurable c : getSubConfigurable()) {
+            Config f = c.getField(name);
+            if(f!=null) return f;
+        }
+        return null;
     }
-    
+
     /** 
-     * Returns a configurable that is a composite of this object. 
-     * @return sub Configurable or null if not available
+     * Returns configurables composing this object. 
+     * @return collection of subocnfigurable, never null
      */
-    public Configurable getSubConfigurable();
+    public Collection<Configurable<T>> getSubConfigurable();
 }

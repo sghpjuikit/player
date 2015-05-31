@@ -3,15 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.InfoNode;
+package Layout.Widgets.Features;
 
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.Features.Feature;
 
 /**
-Graphical representation of {@link Metadata}
- <p>
- @author Plutonium_
+ * Graphical representation of {@link Metadata}
+ * 
+ * @author Plutonium_
  */
 @Feature(
   name = "Song info",

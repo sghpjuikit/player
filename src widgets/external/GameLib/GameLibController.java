@@ -6,7 +6,7 @@
 package GameLib;
 
 import GUI.GUI;
-import GUI.objects.FileTree;
+import GUI.objects.Tree.FileTree;
 import GUI.objects.Icon;
 import GUI.objects.Thumbnail.Thumbnail;
 import static GameLib.GameLibController.InfoType.EXPLORER;

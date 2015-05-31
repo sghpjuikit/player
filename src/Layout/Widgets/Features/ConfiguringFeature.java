@@ -6,14 +6,13 @@
 
 package Layout.Widgets.Features;
 
+import Configuration.Config;
+import Configuration.Configurable;
+import java.util.Collection;
+
 /**
- * Configures.
+ * Editor for {@link Configurable}.
  * 
- * @author Plutonium_
- */
-/**
- * Displays images.
- *
  * @author Plutonium_
  */
 @Feature(
@@ -21,4 +20,13 @@ package Layout.Widgets.Features;
   description = "Provides settings and configurations",
   type = ConfiguringFeature.class
 )
-public interface ConfiguringFeature { }
+public interface ConfiguringFeature {
+    
+    /** Displays configs of the specified configurable object for user to edit. */
+    default void configure(Configurable c) {
+        configure(c.getFields());
+    };
+    
+    /** Displays specified configs for user to edit. */
+    void configure(Collection<Config> c);
+}

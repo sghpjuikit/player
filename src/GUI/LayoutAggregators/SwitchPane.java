@@ -112,6 +112,7 @@ public class SwitchPane implements LayoutAggregator {
         // technically we only need to consume MOUSE_PRESSED and ContextMenuEvent.ANY
         root.addEventFilter(Event.ANY, e -> {
             if(uiDragActive) e.consume();
+            else if(e.getEventType().equals(MOUSE_PRESSED) && ((MouseEvent)e).getButton()==SECONDARY) e.consume();
         });
         
 //        PerspectiveTransform pt = new PerspectiveTransform();

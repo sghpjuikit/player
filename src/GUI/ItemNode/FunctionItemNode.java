@@ -18,7 +18,7 @@ import util.access.Accessor;
 import util.collections.PrefList;
 import util.functional.Functors.F1;
 import util.functional.Functors.PF;
-import static util.functional.Util.cmpareNoCase;
+import static util.functional.Util.byNC;
 
 /**
  *
@@ -47,7 +47,7 @@ public class FunctionItemNode<IN,OUT> extends ItemNode<F1<IN,OUT>> {
         });
         
         fCB.getItems().setAll(functionPool.get());
-        fCB.getItems().sort(cmpareNoCase(f->f.name));
+        fCB.getItems().sort(byNC(f->f.name));
         generateValue(functionPool.get().getPrefered());
         changeValue(null);   // initializes value, dont fire update yet
         
@@ -74,4 +74,5 @@ public class FunctionItemNode<IN,OUT> extends ItemNode<F1<IN,OUT>> {
         fCB.setValue(f);
         changeValue(in -> f.apply(in,configs.stream().map(ConfigField::getItem).toArray()));
     }
+
 }

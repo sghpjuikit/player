@@ -1,16 +1,17 @@
 package util.functional;
 
 import AudioPlayer.tagging.Metadata;
+import Configuration.AccessorConfig;
+import Configuration.Config;
+import Configuration.Configurable;
 import GUI.ItemNode.StringSplitParser;
 import java.io.File;
 import static java.lang.Integer.min;
 import static java.lang.Math.max;
 import java.time.Year;
+import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import static java.util.Objects.requireNonNull;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -24,10 +25,12 @@ import util.File.ImageFileFormat;
 import util.Util;
 import static util.Util.isNonEmptyPalindrome;
 import static util.Util.unPrimitivize;
+import util.access.Accessor;
 import util.collections.PrefList;
 import util.collections.PrefListMap;
 import static util.functional.Functors.StringDirection.FROM_START;
 import static util.functional.Util.list;
+import static util.functional.Util.map;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
@@ -466,6 +469,11 @@ public class Functors {
         @Override
         public abstract O apply(I t, Object... u);
         
+        
+//        public CF<I,O> toConfigurable() {
+//            return new CF<>(this);
+//        }
+        
     }
     public static class PF0<I,O> extends PF<I,O> {
         private F1<I,O> f;
@@ -566,5 +574,24 @@ public class Functors {
     public static enum StringDirection {
         FROM_START,
         FROM_END;
+    }
+    public static class CF<I,O> implements F1<I,O>, Configurable<Object> {
+        
+        public final PF<I,O> pf;
+        private final List<Config<Object>> cs = new ArrayList();
+        
+        public CF(PF<I, O> pf) {
+            this.pf = pf;
+            cs.addAll(map(pf.getParameters(),p->{
+                Accessor a = new Accessor(p.defaultValue);
+                return new AccessorConfig("",a::setValue,a::getValue);
+            }));
+        }
+
+        @Override
+        public O apply(I i) {
+            return pf.apply(i, cs.stream().map(c->c.getValue()).toArray());
+        }
+        
     }
 }

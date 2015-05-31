@@ -15,7 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import static util.functional.Util.cmpareNoCase;
+import static util.functional.Util.byNC;
 import util.graphics.fxml.ConventionFxmlLoader;
 
 /**
@@ -76,7 +76,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
         configFields.clear();
         fields.getChildren().clear();
         c.getFields().stream()
-         .sorted(cmpareNoCase(Config::getGuiName))
+         .sorted(byNC(Config::getGuiName))
          .filter(Config::isEditable)
          .forEach( f -> { 
             ConfigField cf = ConfigField.create(f);                 // create
@@ -98,7 +98,7 @@ public class SimpleConfigurator<T> extends AnchorPane {
     @FXML
     public void ok() {
         // set and apply values and refresh if needed
-        configFields.forEach(ConfigField::applyNsetIfNeed);
+        configFields.forEach(ConfigField::apply);
         onOK.accept(configurable);
     }
     

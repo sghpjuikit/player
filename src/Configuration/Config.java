@@ -1,19 +1,22 @@
 
 package Configuration;
 
-import static java.util.Arrays.asList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import javafx.beans.property.ReadOnlyProperty;
+import javafx.beans.value.WritableValue;
 import util.Util;
+import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import static util.functional.Util.list;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 
@@ -207,26 +210,13 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     
     @Override
     public Collection<V> enumerateValues() {
-        if(!init && valueEnumerator==null) {
-            valueEnumerator = buildEnumEnumerator(getDefaultValue());
-            init = true;
-        }
-        return valueEnumerator.get();
+        if(isTypeEnumerable()) return valueEnumerator.get();
+        throw new RuntimeException(getType() + " not enumerable.");
     }
     
     private static <T> Supplier<Collection<T>> buildEnumEnumerator(T v) {
-        // handle enums
         Class c = v.getClass();
-        if(c.isEnum()) {
-            return () -> asList((T[]) Util.getEnumConstants(c));
-        // enums with class method bodies (they are not recognized as enums)
-        } else {
-            Class ec = c.getEnclosingClass();
-            if(ec!=null && ec.isEnum()) {
-                return () -> asList((T[]) ec.getEnumConstants());
-            } else
-                return null;
-        }
+        return isEnum(c) ? () -> list((T[]) Util.getEnumConstants(c)) : null;
     }
     
 /*************************** configurable methods *****************************/
@@ -265,6 +255,19 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     }
     
     
+    
+    
+/********************************* CREATING ***********************************/
+    
+    public static <T> Config<T> fromProperty(String name, Object property) {
+        if(property instanceof WritableValue)
+            return new PropertyConfig<>(name,(WritableValue<T>)property);
+        if(property instanceof ReadOnlyProperty)
+            return new ReadOnlyPropertyConfig<>(name,(ReadOnlyProperty<T>)property);
+        throw new RuntimeException("Must be WritableValue or ReadOnlyValue");
+    }
+            
+/******************************* IMPLEMENTATIONS ******************************/
     
     public static abstract class ConfigBase<T> extends Config<T> {
     
@@ -374,4 +377,209 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             return defaultValue;
         }
     }
+    public static class PropertyConfig<T> extends ConfigBase<T> {
+
+        private final WritableValue<T> value;
+
+        /**
+         * Constructor to be used with framework
+         * @param _name
+         * @param c the annotation
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param category
+         * @throws IllegalStateException if the property field is not final
+         */
+        public PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
+            super(_name, c, property.getValue(), category);
+            value = property;
+
+            // support enumeration by delegation if property supports is
+            if(property instanceof EnumerableValue)
+                valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
+        }
+        /**
+         * @param _name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @throws IllegalStateException if the property field is not final
+         */
+        public PropertyConfig(String name, WritableValue<T> property) {
+            this(name, name, property, "", "", true, Double.NaN, Double.NaN);
+        }
+         /**
+         * @param _name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param info description, for tooltip for example
+         * @throws IllegalStateException if the property field is not final
+         */
+        public PropertyConfig(String name, WritableValue<T> property, String info) {
+            this(name, name, property, "", info, true, Double.NaN, Double.NaN);
+        }
+        /**
+         * @param _name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param category category, for generating config groups
+         * @param info description, for tooltip for example
+         * @param editable 
+         * @param min use in combination with max if value is Number
+         * @param max use in combination with min if value is Number
+         * @throws IllegalStateException if the property field is not final
+         */
+        public PropertyConfig(String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
+            super(name, gui_name, property.getValue(), category, info, editable, min, max);
+            value = property;
+        }
+
+        @Override
+        public T getValue() {
+            return value.getValue();
+        }
+
+        @Override
+        public void setValue(T val) {
+            value.setValue(val);
+        }
+
+        @Override
+        public void applyValue() {
+            // apply if value applicable
+            if (value instanceof ApplicableValue)
+                ApplicableValue.class.cast(value).applyValue();
+        }
+
+        @Override
+        public void applyValue(T val) {
+            // apply if value applicable
+            if (val instanceof ApplicableValue)
+                ApplicableValue.class.cast(val).applyValue(val);
+        }
+
+        @Override
+        public Class getType() {
+            return getValue().getClass();
+        }
+
+        public WritableValue<T> getProperty() {
+            return value;
+        }
+
+        /**
+         * Equals if and only if object instance of PropertyConfig and its property
+         * is the same property as property of this: property==o.property;
+         * @param o
+         * @return 
+         */
+        @Override
+        public boolean equals(Object o) {
+            if(o==this) return true;
+            return (o instanceof PropertyConfig && value==((PropertyConfig)o).value);
+        }
+
+        @Override
+        public int hashCode() {
+            return 43 * 7 + Objects.hashCode(this.value);
+        }
+    }
+    public static class ReadOnlyPropertyConfig<T> extends ConfigBase<T> {
+
+        private final ReadOnlyProperty<T> value;
+
+        /**
+         * Constructor to be used with framework
+         * @param _name
+         * @param c the annotation
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param category
+         * @throws IllegalStateException if the property field is not final
+         */
+        ReadOnlyPropertyConfig(String _name, IsConfig c, ReadOnlyProperty<T> property, String category) {
+            super(_name, c, property.getValue(), category);
+            value = property;
+
+            // support enumeration by delegation if property supports is
+            if(property instanceof EnumerableValue)
+                valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
+        }
+        /**
+         * @param _name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @throws IllegalStateException if the property field is not final
+         */
+        public ReadOnlyPropertyConfig(String name, ReadOnlyProperty<T> property) {
+            this(name, name, property, "", "", Double.NaN, Double.NaN);
+        }
+         /**
+         * @param _name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param info description, for tooltip for example
+         * @throws IllegalStateException if the property field is not final
+         */
+        public ReadOnlyPropertyConfig(String name, ReadOnlyProperty<T> property, String info) {
+            this(name, name, property, "", info, Double.NaN, Double.NaN);
+        }
+        /**
+         * @param _name
+         * @param property WritableValue to wrap. Mostly a {@link Property}.
+         * @param category category, for generating config groups
+         * @param info description, for tooltip for example
+         * @param editable 
+         * @param min use in combination with max if value is Number
+         * @param max use in combination with min if value is Number
+         * @throws IllegalStateException if the property field is not final
+         */
+        public ReadOnlyPropertyConfig(String name, String gui_name, ReadOnlyProperty<T> property, String category, String info, double min, double max) {
+            super(name, gui_name, property.getValue(), category, info, false, min, max);
+            value = property;
+        }
+
+        @Override
+        public T getValue() {
+            return value.getValue();
+        }
+
+        @Override
+        public void setValue(T val) {
+        }
+
+        @Override
+        public void applyValue() {
+            // apply if value applicable
+            if (value instanceof ApplicableValue)
+                ApplicableValue.class.cast(value).applyValue();
+        }
+
+        @Override
+        public void applyValue(T val) {
+            // apply if value applicable
+            if (val instanceof ApplicableValue)
+                ApplicableValue.class.cast(val).applyValue(val);
+        }
+
+        @Override
+        public Class getType() {
+            return getValue().getClass();
+        }
+
+        public ReadOnlyProperty<T> getProperty() {
+            return value;
+        }
+
+        /**
+         * Equals if and only if object instance of PropertyConfig and its property
+         * is the same property as property of this: property==o.property;
+         * @param o
+         * @return 
+         */
+        @Override
+        public boolean equals(Object o) {
+            if(o==this) return true;
+            return (o instanceof ReadOnlyPropertyConfig && value==((ReadOnlyPropertyConfig)o).value);
+        }
+
+        @Override
+        public int hashCode() {
+            return 43 * 7 + Objects.hashCode(this.value);
+        }
+        
+    }
+    
 }

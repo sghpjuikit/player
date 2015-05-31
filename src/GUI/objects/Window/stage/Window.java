@@ -449,7 +449,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         rtB.setPadding(new Insets(0, 15, 0, 0));
 	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
         
-        
         Icon miniB = new Icon(null, 13, "Close window", this::toggleMini);
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
         Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
@@ -461,6 +460,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize window", this::toggleMaximize);
         // maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
         Icon closeB = new Icon(CLOSE, 13, "Close window", this::close);
+        // maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
         
         // right header
 	right_icons = new IconBox(controls, RIGHT_TO_LEFT);

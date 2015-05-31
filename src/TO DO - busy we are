@@ -3,9 +3,10 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- converter widget add tagging support
+
+- Explorer + gui inspector + converter widgets improve
+- cut down on experimentals: bookmarks, visualisations, gal.map, color.map, etc
 - function item nodes dont react on default button click
-- config apply on change finish through
 - seeker option to show chapters as they are passing
 - config fields unify with item node
 - split&join add fixed length and % support
@@ -15,14 +16,13 @@
 - app animated loading
 - tagger add icons to reset and defaults
 - cover download subsequently !work - temp file?
-- other problems with songs from <none> category
 - playlist table column resizing and serializing
 - app icon
 - library edit on add by drag&drop boolean config
 - tagger cover loading optimize
 - plugin discovery/load
 - library view save selection
-- popover position jumps when drag starts
+- popover position jumps on app drag start
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
 - popover set arrow location automatically based on available screen space
@@ -33,8 +33,6 @@
 - tab area - reimplement
 - press C to collapse layout containers easily - implement properly
 - clean up Environment + more robust
-- Explorer improve
-- cut down on experimentals: bookmarks, visualisations, gal.map, color.map, etc
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 - ConfigField (General) disable ok button get rid of
 

@@ -39,7 +39,7 @@ import util.Util;
 import static util.Util.*;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
-import static util.functional.Util.cmpareBy;
+import static util.functional.Util.by;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -272,7 +272,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     @Override
     public void sortBy(PlaylistItem.Field f) {
         getSortOrder().clear();
-        PlaylistManager.getItems().sort(cmpareBy(p -> (Comparable) p.getField(f)));
+        PlaylistManager.getItems().sort(by(p -> (Comparable) p.getField(f)));
     }
     
 /********************************** SELECTION *********************************/

@@ -1,43 +1,96 @@
 # Player
 
 JavaFX based audio player application.
-The project focuses on modular graphical user interface (GUI) and customizability, aiming to provide put-anything-anywhere functionality. Indivindual functionalities are represented by pluggable modules called widgets, that can be used anywhere within the layout.
+Aims:
+- customizability - allow user use the application how he wants, lots of settngs, skins, etc
+- modular user interface - ability to 'make your own gui'
+- support fancy features like: rating in tag, time comments, big covers, advanced & intuitive library management
+- song independence from library (you can freely move files, rename them and never lose any metadata information)
+- usability - efficient workflow and no repetitive tasks
+- responsive - no waiting for tasks, no modal dialogs
 
 ## Features
 
 - ###playback
 
-  For now only mp3 and wav files are supported. Hopefully, flac and ogg will come soon.
-  
+Filetypes:
+- mp3
+- mp4, m4a
+- wav
+- ogg,flac (not yet, but planned)
+
+Protocols:
+- file
+- http
+
+In addition:
+- rate of play changable
+- left-right stereo volume
+
 - ###media library 
   
-  Application creates a library for song metadata. The database has small footprint (roughly about 10MB for 20000 files). The library can handle lots of songs and provides powerfull tables to display them. Songs can be ordered by any and multiple attributes. They can be filtered out by multiple attributes at once at each table. The tables can be linked to each other arbitrarily. Besides song table, there is also table that displays song groups, again per any song attribute (authors, genres, years, comments, rating, anything...). GENRE values can be predefined and provide auto-complete functionality when typing
+Song library database
+- small footprint: roughly about 10MB for 20000 files
+- can handle big collections: 40000 no problem. The only drawback can be real-time library refresh speed.
+- no dependency: songs always store all data in tag, moving or renaming files poses no problem
+- no inconsistencies: any song data changes are always reconfirmed with the files 
+- no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a cache, rather than storage.
+
+Song tables:
+- big - 30000 songs in playlist = 0 problem
+- column customization - set visibility, width, sorting, order of any column for any song attribute
+- real-time searching (on type) by any (textual) attribute (artist, composer, title, etc). Scrolls to center and highlights rows - the matches 'pop' visually - the result is very convenient search, particularly on sorted tables.
+- real-time chainable filtering by any attribute. Stack filters, individually turn them on/off, negate, filter 
+- group by - e.g. table of songs per year, artist, etc. Searching, filtering and sorting fully supported.
+- multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
+- cascading - link tables to other tables as filters and display only selected items (e.g. show songs by authors selected in linked table)
 
 - ###tag editing
 
-  Application supports reading and writing song tag information, individually or for number of songs at once. The support goes far beyond basic fields (like AUTHOR or TITLE or COVER) and includes fields like COLOR, PLAYCOUNT, RATING. All supported tags can be stored in the database and in the tag of the song and you will never lose them again, ever. There is planned support for multiple artists.
+  Application supports reading and writing song tag information, individually or for number of songs at once. The supported are standard fields like artist or title, but possibly many more later. Interoperability with other players is intended. Some of the less supported by other players, but fully supported (read/write) tags are:
+
+  **Rating** 
+- values are in percent values
+- granularity limited only by tag (1/255 for mp3, 1/100 for other formats)
+- interoperable with other players, but most of them will only recognize the value as 3/5 or so
   
-  **Playcount** signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation accordingly. Playcount can also be edited manually.
+  **Playcount** signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
   
-  **Rating** values are in percent values, specifically real number from <0;1>. Standard POPM id3tag is used and therefore, the values are interoperable with other players. Most of them however do not support partial values and will only recognize the value as 3/5 or 55/100 depending on their implementation.
+  **Chapters** are comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value remains a mystery, but surpasses 500 characters (definitely for all chapters together) - probably by a large margin).
   
-  **Chapters** are comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments can be decently long (the upper value remains a mystery, but surpasses 500 characters (for all chapters together) and probably by a large margin - possibly up to 16MB).
-  
-  **Cover** is fully upported. The image in tag can be easily imported/exported by drag and drop.
+  **Cover**
+- image in tag can be imported/exported
+- cover read from file location is supported too, looking for image files named:
+  - song title
+  - song album
+  - "cover" or "folder"
 
 - ### portability 
 
-  The application does not require installation and runs from anywhere. It is self-contained, which means it does not require java to be installed on the system at all. It is executable as exe and can be used like any other application.
+  The application in its self-contained form:
+- has executable .exe
+- requires no installation
+- requires no software (e.g. java) preinstalled
+- runs from anywhere
+- does not require internet access
+- does not create any file outside its directory
+- writes to registry only as long as java itself requires it, an example is cached data by WebView (in-app web browser)
   
 - ### extensibility & modularity
 
-  Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or even popup windows. New widgets can be added for anything. Some of the existing widgets are:
-  FileInfo - shows cover and information about the song with set/download cover on drag & drop
+  Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added for created as plugins. Some of the existing widgets are:
+  Playback & Mini - controls for playback, like seeking. Supports chapters.
+  FileInfo - shows cover and information about song (e.g. playing). Allows cover download on drag&drop.
   Tagger - for tagging
-  Library - actually broken down to 2 widgets to further separate the functionality
+  Library & LibraryView - song tables
   ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
+  Settings - application settings, but it is also a generic configurator for any object exposing its Configurable API (like widgets or even GUI itself)
+  Converter - text -> text converting. Also very handy file renamer. Supports text transformation chaining similar to table filters. Also manual editing using text area, regex, etc.
   Explorer - simple file system browser. Currently slow for big folders.
-  Settings - rich configurations, including custom shortcuts
+  Gui Inspector - displays gui objects hierarchically and uses Settings for editing their properties
+  Image - displays static image
+  Action - contains icon that can execute any application action (supported by shortcut)
+  
   
   There is plan for visualisations and some more cool ideas like song graphs.
   
@@ -49,11 +102,16 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
   
 - ### global & media hotkeys
 
-  Support for custom shortcuts for number of actions, in-app and global, as well as media keys.
+- global hotkey supported - shortcuts dont need application focus if so desired
+- media keys supported
+- customizable (any combination of keys:  "F5", "CTRL+L", etc)
+- number of actions (playback control, layout, etc)
 
 - ### skin support
 
-  Css file completely skins entire application. Support for skin discovery, skin change and reload without requiring application restart. Skins are easy to create (edit file) and apply (hit F6 reload), with plenty of documentation.
+- skinnable completely by css
+- skin discovery + change + relfresh without requiring application restart
+- custom skins
 
 ## Screenshots
 
@@ -63,9 +121,10 @@ The project focuses on modular graphical user interface (GUI) and customizabilit
 
 ## The Catch XXII
 
-- *Memory consumption* can get a bit high. On (my) average use is about 250MB, but it depends on use case, platform and other factors, like 32bit vs 64bit java (64bit effectively doubles needed memory - so it is advised to stay away from it)
-- Some of the widgets or features are too **experimental**, confusing or outright do not work. It is a **work in progress**, so consider this early alpha version.
-- nothing im aware of
+- Memory consumption varies, but is higher than native apps. Normally i have get about 250-400MB, but it depends on use case. Lots of widgets will eat more MB. 32bit is more effective (64bit effectively doubles memory - so ill only provide 32-bit version). Handling large pictures (4000^2 px) fullscreen on large monitors can also rapidly increase memory consumption (but picture quality stays great).
+- Some of the widgets or features are **experimental** or confusing
+- No flac and ogg playback. Library supports them.
+- No playlist file support (.m3u, etc)
 
 ## Download & Use
 
@@ -79,18 +138,18 @@ Platforms:
 - Mac (untested).
 
 Tips:
-- Some widgets, popups or containers have informative buttons (marked "i") that can display available actions and further explain the functionalities of given module. 
-- Most of the controls like buttons have informative tooltips explaining their functionality. Mouse over the controls to display tooltips if you would like to know what each button does.
+- use tooltips! Cant stress enough.
+- widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
 
 ## Contribution
 
-In case you are interested in the development or in contribution, send mail to the address associated with this github account. I welcome you.
+In case you are interested in the development or in contribution, send mail to the address associated with this github account.
 
 There are several areas that one can contribute to:
 - application core - involves java & javaFX code, OOP + Functional + Reactive styles
-- skins - requires very basic knowledge of css, but lots of patience
+- skins - requires very basic knowledge of css and a lots of patience
 - widgets - involves java & javaFX code
-- testing - simply run the application from IDE and report bugs ?
+- testing & bug reporting
 - design - logos, overal app motives and spreading the word (no, not yet...)
 
 ### Development
@@ -109,7 +168,7 @@ Proper manuals and HOWTOs will be provided later.
 ### Skinning
 
 A skin is a single css file that works the same way as if you are skinning a html web site. [a link](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
-The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder.
+The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder. Press F5 (by default) to refresh skin changes.
 
 ## Credits & Licence
 

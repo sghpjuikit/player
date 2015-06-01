@@ -288,7 +288,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public void search(String s) {
         scrolFtext = s;
         // scroll to first item beginning with search string
-        TableColumn c = getColumn(searchField).orElseGet(null);
+        TableColumn c = getColumn(searchField).orElse(null);
         if(!getItems().isEmpty() && c!=null && c.getCellData(0) instanceof String) {
             for(int i=0;i<getItems().size();i++) {
                 String item = (String)getItems().get(i).getField(searchField);

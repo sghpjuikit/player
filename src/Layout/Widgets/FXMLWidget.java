@@ -11,16 +11,15 @@ import javafx.scene.Node;
 import util.dev.Log;
 
 /**
- * Generic widget based on .fxml file. 
+ * Widget based on .fxml file. Uses {@link FXMLController}.
  * <p>
  * This class wraps any desired .fxml file denoted by its location into widget
  * so it can be recognized by the application as a component for layout.
  * <p>
  * Widget is loaded dynamically from its location. It adopts the standard fxml +
- * controller pattern. The controller object must however in addition implement 
- * {@link FXMLController} interface.
+ * controller pattern.
  * More on the creation process of this widget: {@link FXMLWidgetFactory}
- * <p>
+ * 
  * @author uranium
  */
 public final class FXMLWidget extends Widget<FXMLController> {

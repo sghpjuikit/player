@@ -6,19 +6,18 @@
 package Layout.WidgetImpl;
 
 import GUI.objects.Tree.PropertyTree;
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.Controller;
+import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.APP;
 import javafx.scene.Parent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import javafx.scene.layout.AnchorPane;
 import main.App;
 import static util.Util.setAnchors;
 import static util.async.Async.run;
 
 @IsWidget
-@Layout.Widgets.Widget.Info(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Gui Inspector",
@@ -31,9 +30,9 @@ import static util.async.Async.run;
     notes = "To do: generate active widget settings, allow subcategories.",
     version = "1",
     year = "2015",
-    group = Widget.Group.APP
+    group = APP
 )
-public class GuiInspector extends AnchorPane implements Controller<ClassWidget> {
+public class GuiInspector extends ClassWidgetController {
     
     public GuiInspector() {
         PropertyTree pt = new PropertyTree();
@@ -58,27 +57,4 @@ public class GuiInspector extends AnchorPane implements Controller<ClassWidget> 
         });
         
     }
-
-    @Override
-    public void refresh() {
-    }
-
-    @Override
-    public void close() {
-    }
-    
-/******************************************************************************/
-    
-    private ClassWidget w;
-
-    @Override
-    public void setWidget(ClassWidget w) {
-        this.w = w;
-    }
-
-    @Override
-    public ClassWidget getWidget() {
-        return w;
-    }
-
 }

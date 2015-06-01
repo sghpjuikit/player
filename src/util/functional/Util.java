@@ -557,6 +557,7 @@ public class Util {
         for(T t = seed; cond.test(t); t=op.apply(t)) b.accept(t);
         return b.build();
     }
+
     
     
     

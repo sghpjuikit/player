@@ -7,80 +7,156 @@
 
 package Layout.WidgetImpl;
 
-import Layout.Widgets.Controller;
+import Configuration.Config;
+import GUI.ItemNode.ConfigField;
+import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.DEVELOPMENT;
+import java.util.function.Function;
+import javafx.beans.binding.Bindings;
+import javafx.geometry.Insets;
+import javafx.geometry.Side;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
-import javafx.scene.chart.XYChart;
-import javafx.scene.chart.XYChart.Series;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.*;
+import static javafx.scene.layout.Priority.ALWAYS;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
 import util.Util;
+import util.access.Accessor;
+import util.functional.SDF;
 
 @IsWidget
-@Layout.Widgets.Widget.Info(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "FunctionPlotter",
     description = "Plots functions",
     howto = "",
     notes = "",
-    version = "0.6",
-    year = "2014",
-    group = Widget.Group.VISUALISATION
+    version = "0.7",
+    year = "2015",
+    group = DEVELOPMENT
 )
-public class FunctionPlotter extends AnchorPane implements Controller<Widget>  {
-    
-    ScatterChart<Number,Number> chart = new ScatterChart<>(new NumberAxis(0, 1, 0.1),new NumberAxis(0, 1, 0.1));
+public class FunctionPlotter extends ClassWidgetController  {
+    private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
+    private final Plot plot = new Plot(-1,1,0.01, axes);
     
     public FunctionPlotter() {
-        initialize();
-    }
-    
-    private void initialize() {
-        chart.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-        chart.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-        chart.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         
-        
-        this.getChildren().add(chart);
-        Util.setAnchors(chart, 0);
-        
-//        Series<Number,Number> s = new XYChart.Series<>();
-//        for(double x = 0; x<=1; x+=0.001)
-//            s.getData().add(new XYChart.Data<>(x, Anim.Interpolators.isAroundMin1(1, 0.4,0.5,0.7).apply(x)));
-//        chart.getData().add(s);
-//        
-        Series<Number,Number> s2 = new XYChart.Series<>();
-        for(double x = 0; x<=1; x+=0.001)
-            s2.getData().add(new XYChart.Data<>(x, x*x));
-        chart.getData().add(s2);
-        
-        Series<Number,Number> s3 = new XYChart.Series<>();
-        for(double x = 0; x<=1; x+=0.001)
-            s3.getData().add(new XYChart.Data<>(x, x));
-        chart.getData().add(s3);
-    }
-    
-    
-    
-    private Widget widget;
-    
-    @Override public void refresh() {        
-    }
+        Accessor<SDF> sdf = new Accessor<>(new SDF("x"),this::plot);
+        ConfigField c = ConfigField.create(Config.fromProperty("Function", sdf));
 
-    @Override
-    public void close() {}
-
-    @Override public void setWidget(Widget w) {
-        widget = w;
-    }
-
-    @Override public Widget getWidget() {
-        return widget;
+        
+        StackPane la = new StackPane(new HBox(5,c.getLabel(),c.getNode()));
+        StackPane lb = new StackPane(plot);
+        VBox l = new VBox(5,la,lb);
+             l.setPadding(new Insets(20));
+        VBox.setVgrow(lb, ALWAYS);
+        this.getChildren().add(l);
+        Util.setAnchors(l, 0);
     }
     
+    public void plot(Function<Double,Double> f) {        
+        plot.plot(f);
+    }
+    
+    @Override public void refresh() {
+        plot.plot(x->x);
+    }
+    
+    
+    private class Axes extends Pane {
+        private NumberAxis xAxis;
+        private NumberAxis yAxis;
+
+        public Axes(int width, int height, double xLow, double xHi, double xTickUnit, double yLow, double yHi, double yTickUnit) {
+            setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+            setPrefSize(width, height);
+            setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+
+            xAxis = new NumberAxis(xLow, xHi, xTickUnit);
+            xAxis.setSide(Side.BOTTOM);
+            xAxis.setMinorTickVisible(false);
+            xAxis.setPrefWidth(width);
+            xAxis.setLayoutY(height / 2);
+
+            yAxis = new NumberAxis(yLow, yHi, yTickUnit);
+            yAxis.setSide(Side.LEFT);
+            yAxis.setMinorTickVisible(false);
+            yAxis.setPrefHeight(height);
+            yAxis.layoutXProperty().bind(
+                Bindings.subtract(
+                    (width / 2) + 1,
+                    yAxis.widthProperty()
+                )
+            );
+
+            getChildren().setAll(xAxis, yAxis);
+        }
+
+        public NumberAxis getXAxis() {
+            return xAxis;
+        }
+
+        public NumberAxis getYAxis() {
+            return yAxis;
+        }
+    }
+    private class Plot extends Pane {
+        private double xmin;
+        private double xmax;
+        private double xinc;
+        private Axes a;
+        
+        public Plot(double xMin, double xMax, double xInc, Axes axes) {
+            xmin = xMin;
+            xmax = xMax;
+            xinc = xInc;
+            a = axes;
+            
+            setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+            setPrefSize(a.getPrefWidth(), a.getPrefHeight());
+            setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
+        }
+        
+        public void plot(Function<Double,Double> f) {
+            Path path = new Path();
+            path.setStroke(Color.ORANGE);
+            path.setStrokeWidth(2);
+            path.setClip(new Rectangle(0, 0,a.getPrefWidth(),a.getPrefHeight()));
+
+            PathElement pe=null;
+            double x = xmin+xinc;
+            while (x < xmax) {
+                try {
+                    double y = f.apply(x);
+                    pe = pe==null ? new MoveTo(mapX(x),mapY(y)) : new LineTo(mapX(x),mapY(y));
+                    path.getElements().add(pe);
+                    x += xinc;
+                } catch(ArithmeticException e){}
+            }
+
+            getChildren().setAll(a, path);
+        }
+
+        private double mapX(double x) {
+            double tx = a.getPrefWidth() / 2;
+            double sx = a.getPrefWidth() / 
+               (a.getXAxis().getUpperBound() - a.getXAxis().getLowerBound());
+
+            return x * sx + tx;
+        }
+
+        private double mapY(double y) {
+            double ty = a.getPrefHeight() / 2;
+            double sy = a.getPrefHeight() / 
+                (a.getYAxis().getUpperBound() - a.getYAxis().getLowerBound());
+
+            return -y * sy + ty;
+        }
+    }
 }

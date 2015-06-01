@@ -7,11 +7,11 @@ package Layout.Widgets;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import static java.util.Objects.nonNull;
 import javafx.scene.layout.Pane;
+import static util.dev.Util.require;
 
 /**
- * Template for fxml based Controller implementation.
+ * Controller for {@link FXMLWidget}
  * 
  * @author uranium
  */
@@ -19,13 +19,10 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     
     private FXMLWidget widget;
     
-    public FXMLController() {}
-    
     /** {@inheritDoc} */
     @Override
     public void setWidget(FXMLWidget w) {
-        if (nonNull(widget)) throw new AssertionError("Controller already"
-                + " has assigned widget. The relationship should be final.");
+        require(widget==null);
         widget = w;
     }
     

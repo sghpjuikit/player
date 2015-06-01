@@ -3632,11 +3632,11 @@
  */
 .congfig-field-warn-button {
     icon: EXCLAMATION_TRIANGLE;
-    -fx-fill: rgb(130,170,255);
+    -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .congfig-field-warn-button:hover {
-    -fx-fill: rgb(130,170,255);
+    -fx-fill: -fx-focus-color;
     -fx-scale-x: 1;
     -fx-scale-y: 1;
 }

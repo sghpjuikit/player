@@ -5,8 +5,7 @@ import Configuration.Configuration;
 import Configuration.IsConfig;
 import GUI.ItemNode.ConfigField;
 import GUI.objects.Icon;
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.Controller;
+import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
@@ -44,7 +43,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
     year = "2015",
     group = Widget.Group.APP
 )
-public final class Configurator extends AnchorPane implements Controller<ClassWidget>, ConfiguringFeature {
+public final class Configurator extends ClassWidgetController implements ConfiguringFeature {
 
     // gui & state
     @FXML Pane controls;
@@ -152,20 +151,6 @@ public final class Configurator extends AnchorPane implements Controller<ClassWi
         configFields.forEach(ConfigField::refreshItem);
     }
 
-/******************************************************************************/
-    
-    private ClassWidget w;
-
-    @Override
-    public void setWidget(ClassWidget w) {
-        this.w = w;
-    }
-
-    @Override
-    public ClassWidget getWidget() {
-        return w;
-    }
-    
 /******************************************************************************/
     
     class ConfigGroup {

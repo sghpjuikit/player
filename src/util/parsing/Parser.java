@@ -125,6 +125,7 @@ public class Parser {
         registerConverter(Year.class,toString, noEx(Year::parse, DateTimeParseException.class));
         registerConverter(URI.class,toString, noEx(URI::create, IllegalArgumentException.class));
         registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
+        registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
     }
     
     public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {

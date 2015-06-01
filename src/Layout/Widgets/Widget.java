@@ -383,6 +383,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         LIBRARY,
         VISUALISATION,
         OTHER,
+        DEVELOPMENT,
         UNKNOWN;
     }
 }

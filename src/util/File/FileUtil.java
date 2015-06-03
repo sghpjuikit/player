@@ -266,33 +266,55 @@ public final class FileUtil {
     }
     
     /**
-     * Returns common root directory for specified files.
+     * Returns first common parent directory for specified files.
      * 
      * @param files
-     * @return common root
+     * @return common parent directory or null if list empty or in different
+     * partitions
      */
     public static File getCommonRoot(Collection<File> files) {
-            File d = null;
-            for (File f : files) {
-                if (f !=null) {
-                    if(d==null) d = f;
-                    if(d.toPath().compareTo(f.toPath())<0) d=f;
-                }
+        int size = files.size();
+        if(size==0) return null;
+        if(size==1) return files.stream().findFirst().get();
+        
+        File d = null;
+        for (File f : files) {
+            if (f !=null) {
+                if(d==null) d = f;
+                if(d.toPath().compareTo(f.toPath())<0) d=f;
             }
-            return d==null ? null : d.isFile() ? d.getParentFile() : d;
+        }
+        return d==null ? null : d.isFile() ? d.getParentFile() : d;
     }
     
     /**
-     * Returns name of the file without suffix. If the file denotes a directory
-     * its name will be returned.
+     * For files name with no extension is returned. 
+     * For directories name is returned.
+     * Root directory returns 'X:\' string.
+     * 
      * @param f
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null
      */
     public static String getName(File f) {
-        String whole_name = f.getName();
-        int i = whole_name.lastIndexOf('.');
-        return i==-1 ? whole_name : whole_name.substring(0,i);
+        String n = f.getName();
+        if(n.isEmpty()) return f.toString();
+        int i = n.lastIndexOf('.');
+        return i==-1 ? n : n.substring(0,i);
+    }
+    /** 
+     * For files 'filename.extension' is returned. 
+     * For directories only name is returned.
+     * Root directory returns 'X:\' string.
+     * <p>
+     * Use instead of {@link File#getName()} which returns empty string for root
+     * directories.
+     * 
+     * @return name of the file with suffix
+     */
+    public static String getNameFull(File f) {
+        String n = f.getName();
+        return n.isEmpty() ? f.toString() : n;
     }
     /**
      * Returns name of the file without suffix denoted by this URI. This is just
@@ -302,7 +324,7 @@ public final class FileUtil {
      * a file its path will still be parsed and last name in the pathname's
      * sequence will be attempted to be returned. Therefore if the URI denotes 
      * file accessed by http protocol the returned string will be the name of
-     * the file without suffix - consistent result with file system based URIs.
+     * the file without suffix - consistent with file based URIs.
      * However that doesnt have to be true for all schemes and URIs.
      * <p>
      * For file based URIs, this method is equivalent to 

@@ -17,12 +17,12 @@ import util.SingleInstance;
  *
  * @author Plutonium_
  */
-public class TableContextMenuRInstance<E,R> extends SingleInstance<ContentContextMenu<List<E>>,R> {
+public class TableContextMenuRInstance<E,R> extends SingleInstance<ImprovedContextMenu<List<E>>,R> {
     
-    public TableContextMenuRInstance(Supplier<ContentContextMenu<List<E>>> builder) {
+    public TableContextMenuRInstance(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuRInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, R> mutator) {
+    public TableContextMenuRInstance(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, R> mutator) {
         super(builder, mutator);
     }
     

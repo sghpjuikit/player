@@ -489,8 +489,12 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // in the end we must remove the text because we use stars instead
         rating.setText("rating: ");
         
+        // bugfix (work in progress)
+        entireArea.applyCss();
+        entireArea.autosize();
         entireArea.layout();
         entireArea.requestLayout();
+        
         resize(entireArea.getWidth(), entireArea.getHeight());
     }
     

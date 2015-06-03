@@ -1,6 +1,8 @@
 
 package Layout;
 
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetManager;
 import java.util.UUID;
 import javafx.scene.Node;
 
@@ -27,5 +29,16 @@ public abstract class Component {
      */
     abstract public Node load();
     
-
+    /** @return whether this component is currently open*/
+    public boolean isOpen() {
+        // check if this isnt standalone widget (not in a layout)
+        if(WidgetManager.standaloneWidgets.contains(this)) return true;
+        
+        Component c = this;
+        do c = c instanceof Widget ? null : ((Container)c).getParent();
+        while(c!=null);
+        
+        // top container is always layout
+        return c instanceof Layout;
+    }
 }

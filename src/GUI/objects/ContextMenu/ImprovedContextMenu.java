@@ -14,18 +14,21 @@ import javafx.scene.input.MouseEvent;
 import util.access.AccessibleValue;
 
 /**
+ * Context menu which contains an object.
+ * Usually, this object is set before showing the menu and allows menu items
+ * to use this value for action.
  *
  * @author Plutonium_
  */
-public class ContentContextMenu<E> extends ContextMenu implements AccessibleValue<E> {
+public class ImprovedContextMenu<E> extends ContextMenu implements AccessibleValue<E> {
     
     E v;
     
-    public ContentContextMenu() {
+    public ImprovedContextMenu() {
         setConsumeAutoHidingEvents(false);
     }
     
-    public ContentContextMenu(MenuItem ... items) {
+    public ImprovedContextMenu(MenuItem ... items) {
         this();
         getItems().addAll(items);
     }

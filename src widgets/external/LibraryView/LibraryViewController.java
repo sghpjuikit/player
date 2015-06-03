@@ -16,7 +16,7 @@ import Configuration.IsConfig;
 import GUI.GUI;
 import GUI.objects.ActionChooser;
 import GUI.objects.ContextMenu.CheckMenuItem;
-import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.ImprovedContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuRInstance;
 import GUI.objects.Icon;
 import GUI.objects.Table.FilteredTable;
@@ -30,7 +30,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import static java.time.Duration.ofMillis;
 import java.time.Year;
@@ -497,17 +497,16 @@ public class LibraryViewController extends FXMLController {
     private static Menu searchMenu;
     private static final TableContextMenuRInstance<Metadata, LibraryViewController> contxt_menu = new TableContextMenuRInstance<>(
         () -> {
-            ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
+            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
                                       q -> "in " + Parser.toS(q),
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);
-            m.getItems().addAll(
-                menuItem("Play items", e -> play(m.getValue())),
+            m.getItems().addAll(menuItem("Play items", e -> play(m.getValue())),
                 menuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
-                menuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NOLAYOUT,w->w.read(m.getValue()))),
+                menuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NO_LAYOUT,w->w.read(m.getValue()))),
                 searchMenu
             );
             return m;

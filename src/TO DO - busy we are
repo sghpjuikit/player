@@ -3,9 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-
+- improve lib refresh + starting performance
+- playlist updating too eager, sth is screwed up
 - Explorer + gui inspector + converter widgets improve
-- cut down on experimentals: bookmarks, visualisations, gal.map, color.map, etc
 - function item nodes dont react on default button click
 - seeker option to show chapters as they are passing
 - config fields unify with item node
@@ -65,7 +65,7 @@ GENERAL
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug ?)
   this happens when something has null skin, investigate & fix
 - Configurator group title alignment doesnt get applied sometimes               (javaFX bug)
-- context menu position sometimes off (even default ones). The cause must be
+- context menu position sometimes off (even default ones). The cause must be    (still an issue?)
   its parent Node not initializing size correctly
 - some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug)
   length as half of the real one (very irritating bug)

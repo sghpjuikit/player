@@ -11,13 +11,13 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import GUI.GUI;
-import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.ImprovedContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Table.TableColumnInfo.ColumnInfo;
 import GUI.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -353,7 +353,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     
     private static final TableContextMenuInstance<PlaylistItem> contxt_menu = new TableContextMenuInstance<> (
         () -> {
-            ContentContextMenu<List<PlaylistItem>> m = new ContentContextMenu();
+            ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {
                     PlaylistManager.playItem(m.getValue().get(0));
                 }),
@@ -361,7 +361,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     PlaylistManager.removeItems(m.getValue());
                 }),
                 menuItem("Edit the item/s in tag editor", e -> {
-                    WidgetManager.use(TaggingFeature.class,NOLAYOUT, w->w.read(m.getValue()));
+                    WidgetManager.use(TaggingFeature.class,NO_LAYOUT, w->w.read(m.getValue()));
                 }),
                 menuItem("Crop items", e -> {
                     PlaylistManager.retainItems(m.getValue());

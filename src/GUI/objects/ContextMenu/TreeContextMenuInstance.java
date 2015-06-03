@@ -16,12 +16,12 @@ import util.SingleInstance;
  *
  * @author Plutonium_
  */
-public class TreeContextMenuInstance<E> extends SingleInstance<ContentContextMenu<List<E>>,TreeView<E>> {
+public class TreeContextMenuInstance<E> extends SingleInstance<ImprovedContextMenu<List<E>>,TreeView<E>> {
     
-    public TreeContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder) {
+    public TreeContextMenuInstance(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TreeContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, TreeView<E>> mutator) {
+    public TreeContextMenuInstance(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TreeView<E>> mutator) {
         super(builder, mutator);
     }
     

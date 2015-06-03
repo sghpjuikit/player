@@ -13,6 +13,7 @@ import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.DEVELOPMENT;
+import static java.lang.Math.max;
 import java.util.function.Function;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -40,7 +41,7 @@ import util.functional.SDF;
 )
 public class FunctionPlotter extends ClassWidgetController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
-    private final Plot plot = new Plot(-1,1,0.01, axes);
+    private final Plot plot = new Plot(-1,1, axes);
     
     public FunctionPlotter() {
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
@@ -109,13 +110,11 @@ public class FunctionPlotter extends ClassWidgetController  {
     private class Plot extends Pane {
         private double xmin;
         private double xmax;
-        private double xinc;
         private Axes a;
         
-        public Plot(double xMin, double xMax, double xInc, Axes axes) {
+        public Plot(double xMin, double xMax, Axes axes) {
             xmin = xMin;
             xmax = xMax;
-            xinc = xInc;
             a = axes;
             
             setMinSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
@@ -128,15 +127,16 @@ public class FunctionPlotter extends ClassWidgetController  {
             path.setStroke(Color.ORANGE);
             path.setStrokeWidth(2);
             path.setClip(new Rectangle(0, 0,a.getPrefWidth(),a.getPrefHeight()));
+            double inc = (xmax-xmin)/max(1,getWidth()); // inc by 1 px
 
             PathElement pe=null;
-            double x = xmin+xinc;
+            double x = xmin+inc;
             while (x < xmax) {
                 try {
                     double y = f.apply(x);
                     pe = pe==null ? new MoveTo(mapX(x),mapY(y)) : new LineTo(mapX(x),mapY(y));
                     path.getElements().add(pe);
-                    x += xinc;
+                    x += inc;
                 } catch(ArithmeticException e){}
             }
 

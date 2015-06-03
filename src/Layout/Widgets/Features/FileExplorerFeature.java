@@ -6,6 +6,8 @@
 package Layout.Widgets.Features;
 
 import java.io.File;
+import java.util.Collection;
+import static util.File.FileUtil.getCommonRoot;
 
 /**
  * File system viewer.
@@ -18,6 +20,24 @@ import java.io.File;
   type = FileExplorerFeature.class
 )
 public interface FileExplorerFeature {
-    /** Explores file in the file system hierarchy. */
+    
+    /** 
+     * Explores file in the file system hierarchy.
+     * Expands file tree up to the file.
+     * If file denotes directory, it will expand the directory too.
+     */
     void exploreFile(File f);
+    
+    /** 
+     * Explores first common parent directory files in the file system hierarchy. 
+     * <p>
+     * @param files
+     * <li> if empty, does nothing
+     * <li> if has one file, explores the file
+     * <li> if has multiple files, explores their first common parent directory.
+     */
+    default void exploreFiles(Collection<File> files) {
+        File f = getCommonRoot(files);
+        if(f!=null) exploreFile(f);
+    }
 }

@@ -547,6 +547,14 @@ public class Util {
         return Stream.of(t);
     }
     
+    public static <T> Stream<T> stream(Stream<T> s1, Stream<T> s2) {
+        return Stream.concat(s1,s2);
+    }
+    
+    public static <T> Stream<T> stream(T o, Stream<T> t) {
+        return Stream.concat(Stream.of(o), t);
+    }
+    
     public static <T> Stream<T> stream(Collection<T> t) {
         return t.stream();
     }

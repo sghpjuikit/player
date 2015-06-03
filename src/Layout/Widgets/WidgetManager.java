@@ -89,11 +89,11 @@ public final class WidgetManager {
             case LAYOUT:
                 return LayoutManager.getLayouts().flatMap(l->l.getAllWidgets());
             case STANDALONE:
-            case NOLAYOUT:
+            case NO_LAYOUT:
                 return standaloneWidgets.stream();
             case NEW:
                 return Stream.empty();
-            case ACTIVE:
+            case OPEN:
             case ANY:
                 return Stream.concat(findAll(STANDALONE),findAll(LAYOUT));
             default: throw new AssertionError(source + " in default switch value.");
@@ -212,6 +212,21 @@ public final class WidgetManager {
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for
          * example located in the popup. Most limited source.
+         *//**
+         * The source is be all currently active widgets contained within all 
+         * of the layouts in all of the windows. Does not contain standalone
+         * widgets. Standalone widget is one that is not part of the layout. for
+         * example located in the popup. Most limited source.
+         *//**
+         * The source is be all currently active widgets contained within all 
+         * of the layouts in all of the windows. Does not contain standalone
+         * widgets. Standalone widget is one that is not part of the layout. for
+         * example located in the popup. Most limited source.
+         *//**
+         * The source is be all currently active widgets contained within all 
+         * of the layouts in all of the windows. Does not contain standalone
+         * widgets. Standalone widget is one that is not part of the layout. for
+         * example located in the popup. Most limited source.
          */
         LAYOUT,
         
@@ -226,7 +241,7 @@ public final class WidgetManager {
          * <p>
          * This is the recommended source when creating widget is not intended.
          */
-        ACTIVE,
+        OPEN,
         
         /**
          * The source is all available widget factories. In other words new
@@ -235,22 +250,22 @@ public final class WidgetManager {
         NEW,
         
         /**
-         * Union of {@link #NOLAYOUT}, {@link #STANDALONE}. 
+         * Union of {@link #NEW}, {@link #STANDALONE}. 
          * <p>
          * This is the recommended source when it is expected to call the widget
          * multiple times and layout is not to be included,
          * because it creates new widget, but reuses standalone ones.
          */
-        NOLAYOUT,
+        NO_LAYOUT,
         
         /**
-         * Union of {@link #LAYOUT}, {@link #STANDALONE} and {@link #NOLAYOUT}
+         * Union of {@link #LAYOUT}, {@link #STANDALONE} and {@link #NO_LAYOUT}
          * Most complete source.
          */
         ANY;
         
         public boolean newWidgetsAllowed() {
-            return this==NOLAYOUT || this==ANY || this==NEW;
+            return this==NO_LAYOUT || this==ANY || this==NEW;
         }
     }
     

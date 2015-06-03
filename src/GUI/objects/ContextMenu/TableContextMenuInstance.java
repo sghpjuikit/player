@@ -18,10 +18,10 @@ import javafx.scene.input.MouseEvent;
  */
 public class TableContextMenuInstance<E> extends TableContextMenuRInstance<E,TableView<E>> {
     
-    public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder) {
+    public TableContextMenuInstance(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuInstance(Supplier<ContentContextMenu<List<E>>> builder, BiConsumer<ContentContextMenu<List<E>>, TableView<E>> mutator) {
+    public TableContextMenuInstance(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TableView<E>> mutator) {
         super(builder, mutator);
     }
     

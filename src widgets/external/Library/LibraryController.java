@@ -14,7 +14,7 @@ import GUI.InfoNode.InfoTable;
 import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import GUI.InfoNode.InfoTask;
 import GUI.objects.ActionChooser;
-import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.ImprovedContextMenu;
 import GUI.objects.ContextMenu.TableContextMenuInstance;
 import GUI.objects.Icon;
 import GUI.objects.Spinner.Spinner;
@@ -30,7 +30,7 @@ import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import java.io.File;
@@ -402,7 +402,7 @@ public class LibraryController extends FXMLController {public String a() { retur
             .use(items ->{
                 Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
                     if(ok & edit)
-                        WidgetManager.use(TaggingFeature.class, NOLAYOUT, w -> w.read(added));
+                        WidgetManager.use(TaggingFeature.class, NO_LAYOUT, w -> w.read(added));
 
                     hideInfo.restart();
 //                    taskInfo.hideNunbind();
@@ -444,7 +444,7 @@ public class LibraryController extends FXMLController {public String a() { retur
     private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
         () -> {
             
-            ContentContextMenu<List<Metadata>> m = new ContentContextMenu();
+            ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {                     
                     List<PlaylistItem> to_play = map(m.getValue(), Metadata::toPlaylist);
                     PlaylistManager.playPlaylist(new Playlist(to_play));
@@ -463,7 +463,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                 }),
                 menuItem("Edit the item/s in tag editor", e -> {
                     List<Metadata> items = m.getValue();
-                    WidgetManager.use(TaggingFeature.class, NOLAYOUT ,w->w.read(items));
+                    WidgetManager.use(TaggingFeature.class, NO_LAYOUT ,w->w.read(items));
                 }),
                 menuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
@@ -473,7 +473,7 @@ public class LibraryController extends FXMLController {public String a() { retur
                 new Menu("Explore items's directory in",null,
                     menuItems(WidgetManager.getFactories().filter(f->f.hasFeature(FileExplorerFeature.class)).map(f->f.name()).collect(toList()),
                             (String f) -> f,
-                            (String f) -> WidgetManager.use(w->w.name().equals(f),NOLAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
                 ),
                 new Menu("Search album cover",null,
                     menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 

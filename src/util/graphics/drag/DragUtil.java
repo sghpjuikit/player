@@ -11,6 +11,7 @@ import java.io.IOException;
 import static java.lang.Integer.MAX_VALUE;
 import java.net.URI;
 import java.util.*;
+import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import java.util.concurrent.CompletableFuture;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -20,7 +21,7 @@ import javafx.event.EventHandler;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
+import static javafx.scene.input.TransferMode.ANY;
 import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
@@ -60,7 +61,7 @@ public final class DragUtil {
      */
     public static final EventHandler<DragEvent> componentDragAcceptHandler = e -> {
         if (hasComponent()) {
-            e.acceptTransferModes(TransferMode.ANY);
+            e.acceptTransferModes(ANY);
             e.consume();
         }
     };
@@ -71,29 +72,54 @@ public final class DragUtil {
      * <p>
      * Reusing this handler spares code duplication and multiple object instances.
      * 
-     * @see #getAudioItems(javafx.scene.input.DragEvent)
+     * @see #hasAudio(javafx.scene.input.Dragboard) 
+     * @see #getAudioItems(javafx.scene.input.DragEvent) 
      */
     public static final EventHandler<DragEvent> audioDragAccepthandler = e -> {
         if (hasAudio(e.getDragboard())) {
-            e.acceptTransferModes(TransferMode.ANY);
+            e.acceptTransferModes(ANY);
             e.consume();
         }
     };
     
     /**
-     * Accepts and consumes drag over event if contains at least 1 image file.
-     * @see #getImageFiles(javafx.scene.input.DragEvent)
+     * Accepts and consumes drag over event if contains files
+     * @see #hasFiles(javafx.scene.input.DragEvent) 
+     * @see #getFiles(javafx.scene.input.DragEvent) 
      */
     public static final EventHandler<DragEvent> imageFileDragAccepthandler = e -> {
         if (hasImage(e.getDragboard())) {
-            e.acceptTransferModes(TransferMode.ANY);
+            e.acceptTransferModes(ANY);
             e.consume();
         }
     };
     
+/********************************** FILES *************************************/
+    
+    /** Accepts and consumes drag over event if contains at least 1 image file. */
+    public static final EventHandler<DragEvent> fileDragAccepthandler = e -> {
+        if (e.getDragboard().hasFiles()) {
+            e.acceptTransferModes(ANY);
+            e.consume();
+        }
+    };
+        
+    /** 
+     * Returns filed from dragboard.
+     * @return list of files in dragboard. Never null.
+     */
+    public static List<File> getFiles(DragEvent e) {
+        List<File> o = e.getDragboard().getFiles();
+        return o==null ? EMPTY_LIST : o;
+    }
+    
+    /** Returns whether dragboard contains files. */
+    public static boolean hasFiles(DragEvent e) {
+        return e.getDragboard().hasFiles();
+    }
     
 /******************************************************************************/
-
+    
     public static void setPlaylist(Playlist p, Dragboard db) {
         // put fake data into dragboard
         db.setContent(Collections.singletonMap(playlistDF, ""));
@@ -137,7 +163,6 @@ public final class DragUtil {
     public static boolean hasComponent() {
         return dataFormat == componentDF;
     }
-    
     
     /**
      * Obtains all supported audio items from dragboard. Looks for files, url,

@@ -8,7 +8,7 @@ import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import GUI.Traits.ScaleOnHoverTrait;
-import GUI.objects.ContextMenu.ContentContextMenu;
+import GUI.objects.ContextMenu.ImprovedContextMenu;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
@@ -455,9 +455,9 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
 
 /******************************************************************************/
     
-    private static final SingleInstance<ContentContextMenu<Image>,Thumbnail> img_context_menu = new SingleInstance<>(
+    private static final SingleInstance<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleInstance<>(
         () -> {
-            ContentContextMenu<Image> m = new ContentContextMenu<>();
+            ImprovedContextMenu<Image> m = new ImprovedContextMenu<>();
             m.getItems().addAll(
                 menuItem("Save the image as ...", e -> {
                     FileChooser fc = new FileChooser();
@@ -485,9 +485,9 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         }
     );
     
-    private static final SingleInstance<ContentContextMenu<File>,Thumbnail> file_context_menu = new SingleInstance<>(
+    private static final SingleInstance<ImprovedContextMenu<File>,Thumbnail> file_context_menu = new SingleInstance<>(
         () -> {
-            ContentContextMenu<File> m = new ContentContextMenu<>();
+            ImprovedContextMenu<File> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Browse location", e ->
                     Environment.browse(m.getValue().toURI())
                 ),

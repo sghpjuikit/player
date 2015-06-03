@@ -387,7 +387,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 //            e -> new PopOver(new GlyphsBrowser()).show((Node)e.getSource()));
 	// settings button - show application settings in a popup
 	Icon propB = new Icon(GEARS, 13, "Application settings",
-	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NOLAYOUT));
+	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT));
 	// manage layout button - sho layout manager in a popp
 	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));

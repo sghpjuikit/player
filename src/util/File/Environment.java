@@ -10,7 +10,7 @@ import GUI.GUI;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NOLAYOUT;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import java.awt.Desktop;
 import static java.awt.Desktop.Action.*;
 import java.io.File;
@@ -157,7 +157,7 @@ public class Environment {
         // open widget
         else if((f.isDirectory() && App.WIDGET_FOLDER().equals(f.getParentFile())) || FileUtil.isValidWidgetFile(f)) {
             String n = FileUtil.getName(f);
-            WidgetManager.find(wi -> wi.name().equals(n), NOLAYOUT);
+            WidgetManager.find(wi -> wi.name().equals(n), NO_LAYOUT);
         }
         
         // open audio file
@@ -167,7 +167,7 @@ public class Environment {
         
         // open image file
         else if (inApp && ImageFileFormat.isSupported(f)) {
-            WidgetManager.use(ImageDisplayFeature.class, NOLAYOUT, w->w.showImage(f));
+            WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImage(f));
         }
         
         // delegate to native app cant handle
@@ -187,9 +187,9 @@ public class Environment {
                     PlaylistManager.addUris(audio.stream().map(f->f.toURI()).collect(Collectors.toList()));
 
                 if(images.size()==1) {
-                    WidgetManager.use(ImageDisplayFeature.class,NOLAYOUT, w->w.showImage(images.get(0)));
+                    WidgetManager.use(ImageDisplayFeature.class,NO_LAYOUT, w->w.showImage(images.get(0)));
                 } else if (images.size()>1) {
-                    WidgetManager.use(ImagesDisplayFeature.class,NOLAYOUT, w->w.showImages(images));
+                    WidgetManager.use(ImagesDisplayFeature.class,NO_LAYOUT, w->w.showImages(images));
                 }
             } else {
                 browse(files, true);

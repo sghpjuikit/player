@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Table;
+package gui.objects.Table;
 
-import GUI.GUI;
-import GUI.objects.TableRow.ImprovedTableRow;
+import gui.GUI;
+import gui.objects.TableRow.ImprovedTableRow;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;

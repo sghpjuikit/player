@@ -1,5 +1,5 @@
 
-package GUI.Traits;
+package gui.Traits;
 
 import javafx.animation.ScaleTransition;
 import javafx.beans.property.ObjectProperty;

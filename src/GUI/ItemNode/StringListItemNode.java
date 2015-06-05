@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.ItemNode;
+package gui.ItemNode;
 
+import gui.ItemNode.ItemNode.ItemNodeBase;
 import java.util.List;
 import java.util.function.Supplier;
 import static java.util.stream.Collectors.joining;
@@ -19,7 +20,7 @@ import static util.functional.Util.split;
  *
  * @author Plutonium_
  */
-public class StringListItemNode extends ItemNode<List<String>>{
+public class StringListItemNode extends ItemNodeBase<List<String>>{
     
     private final VBox root = new VBox();
     private final TextArea area = new TextArea();

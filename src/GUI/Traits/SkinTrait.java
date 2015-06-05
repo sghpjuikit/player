@@ -1,5 +1,5 @@
 
-package GUI.Traits;
+package gui.Traits;
 
 import java.io.File;
 import java.net.MalformedURLException;

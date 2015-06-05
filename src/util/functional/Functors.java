@@ -4,7 +4,7 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.AccessorConfig;
 import Configuration.Config;
 import Configuration.Configurable;
-import GUI.ItemNode.StringSplitParser;
+import gui.ItemNode.StringSplitParser;
 import java.io.File;
 import static java.lang.Integer.min;
 import static java.lang.Math.max;

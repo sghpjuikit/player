@@ -941,6 +941,18 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     public boolean containsChapterAt(Duration at) {
         return getChapters().stream().anyMatch(ch->ch.getTime().equals(at));
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public Metadata toMeta() {
+        return this;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public PlaylistItem toPlaylist() {
+        return new PlaylistItem(getURI(), getArtist(), getTitle(), getLengthInMs());
+    }
     
 /***************************** AS FIELDED TYPE ********************************/
 
@@ -1136,6 +1148,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
                    this==LENGTH || this==BITRATE || this==TRACK_INFO || this==DISCS_INFO;
         }
         
+        @Override
         public String toS(Object o, String empty_val) {
             switch(this) {
                 case YEAR :

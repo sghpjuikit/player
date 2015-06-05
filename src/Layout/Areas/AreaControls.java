@@ -6,23 +6,21 @@
 package Layout.Areas;
 
 import util.graphics.drag.DragUtil;
-import GUI.GUI;
-import static GUI.GUI.OpenStrategy.INSIDE;
-import static GUI.GUI.OpenStrategy.POPUP;
-import static GUI.GUI.closeAndDo;
-import static GUI.GUI.openAndDo;
-import GUI.objects.Icon;
-import GUI.objects.Pickers.WidgetPicker;
-import GUI.objects.PopOver.PopOver;
-import GUI.objects.SimpleConfigurator;
-import GUI.objects.Text;
+import gui.GUI;
+import static gui.GUI.OpenStrategy.INSIDE;
+import static gui.GUI.OpenStrategy.POPUP;
+import static gui.GUI.closeAndDo;
+import static gui.GUI.openAndDo;
+import gui.objects.Icon;
+import gui.objects.Pickers.WidgetPicker;
+import gui.objects.PopOver.PopOver;
+import gui.objects.SimpleConfigurator;
+import gui.objects.Text;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Container;
-import Layout.Widgets.Features.Feature;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import java.util.List;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
@@ -51,7 +49,6 @@ import util.Animation.Anim;
 import util.SingleInstance;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
-import static util.functional.Util.toS;
 import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
 
@@ -70,7 +67,7 @@ public final class AreaControls {
 	() -> PopOver.createHelpPopOver(""),
 	(p, ac) -> {
             // set text
-	    p.getContentNode().setText(ac.getWindgetInfo());
+	    p.getContentNode().setText(ac.getInfo());
             // for some reason we need to put this every time, which
 	    // should not be the case, investigate
 	    p.getContentNode().setWrappingWidth(400);
@@ -327,7 +324,7 @@ public final class AreaControls {
         } else 
         if (GUI.open_strategy==INSIDE) {
             closeAndDo(area.content_root, ()->{
-                Text t = new Text(getWindgetInfo());
+                Text t = new Text(getInfo());
                      t.setMouseTransparent(true);
                 ScrollPane s = new ScrollPane(t);
                 s.setPadding(new Insets(15));
@@ -450,21 +447,8 @@ public final class AreaControls {
     
 /******************************************************************************/
 
-    public String getWindgetInfo() {
+    public String getInfo() {
         Widget w = area.getActiveWidget();
-        String info = "";
-        if (w != null) {
-            info += "\n\nWidget: " + w.name();
-            if (!w.description().isEmpty())
-                info += "\n\n" + w.description();
-            if (!w.notes().isEmpty()) info += "\n\n" + w.notes();
-            if (!w.howto().isEmpty()) info += "\n\n" + w.howto();
-            
-            List<Feature> ff = w.getController().getFeatures();
-            String s = ff.isEmpty() ? "none" : "\n" + toS(ff, f -> "    " + f.name() + ": " + f.description() + "\n");
-            info += "\n\nFeatures: " + s;
-        }
-
         return "Available actions:\n"
              + "    Close : Closes the widget\n"
              + "    Detach : Opens the widget in new window\n"
@@ -479,7 +463,7 @@ public final class AreaControls {
              + "    Drag & Drop : Drags widget to other area\n"
              + "    Sroll : Changes widget area size\n"
              + "    Middle click : Set widget area size to max\n"
-             + info;
+             + w==null ? "" : w.getInfo().toStr();
     }
     
 }

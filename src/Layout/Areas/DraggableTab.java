@@ -1,6 +1,6 @@
 package Layout.Areas;
 
-import GUI.objects.Text;
+import gui.objects.Text;
 import Layout.Component;
 import java.util.HashSet;
 import java.util.Set;

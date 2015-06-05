@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.ItemNode;
+package gui.ItemNode;
 
 import Configuration.AccessorConfig;
 import Configuration.Config;
-import GUI.objects.combobox.ImprovedComboBox;
+import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.objects.combobox.ImprovedComboBox;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -24,7 +25,7 @@ import static util.functional.Util.byNC;
  *
  * @author Plutonium_
  */
-public class FunctionItemNode<IN,OUT> extends ItemNode<F1<IN,OUT>> {
+public class FunctionItemNode<IN,OUT> extends ItemNodeBase<F1<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList();

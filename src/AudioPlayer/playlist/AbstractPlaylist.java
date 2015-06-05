@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javafx.util.Duration;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
 import static util.async.Async.NEW;
+import static util.functional.Util.map;
 
 /**
  * Playlist handles PlaylistItem groups and provides methods for easy
@@ -176,59 +177,52 @@ abstract public class AbstractPlaylist {
     public void addItem(Item item) {
         addItems(Collections.singletonList(item), list().size());
     }
-    /**
-     * Adds all specified items to end of this playlist.
-     * @param items
-     * @throws NullPointerException when param null.
+    /** 
+     * Maps items to playlist items and ads items at the end.
+     * Equivalent to {@code addItems(items, list().size());} 
      */
     public void addItems(List<? extends Item> items) {
         addItems(items, list().size());
     }
-    /**
-     * Adds all specified items to specified position of this playlist.
-     * @param items
-     * @param at
-     * Index at which items will be added. Out of bounds index will be converted:
-     * index < 0     --> 0(first)
-     * index >= size --> size (last item)
-     * @throws NullPointerException when param null.
+    /** 
+     * Adds items at the position.
+     * Equivalent to {@code addPlaylist(map(items, Item::toPlaylist), at);} 
      */
     public void addItems(List<? extends Item> items, int at) {
-        int _at = at;
-        if (_at < 0)             _at = 0;
-        if (_at > list().size()) _at = list().size();
-        
-        Playlist p = new Playlist();
-        items.stream().map(Item::toPlaylist).forEach(p.list()::add);
-        
-        addPlaylist(p, _at);
+        addPlaylist(map(items, Item::toPlaylist), at);
     }
-    /**
-     * Adds all playlist items on the specified playlist at the end of this
-     * playlist.
-     * @param p
-     * @throws NullPointerException when param null.
+    
+    /** 
+     * Adds playlist at the end.
+     * Equivalent to {@code addPlaylist(p, list().size());} 
      */
     public void addPlaylist(Playlist p) {
         addPlaylist(p, list().size());
     }
+    /** 
+     * Adds playlist at the position.
+     * Equivalent to {@code addPlaylist(p.list(), at);} 
+     */
+    public void addPlaylist(Playlist p, int at) {
+        addPlaylist(p.list(), at);
+    }
     /**
-     * Adds all items on the specified playlist to the specified position of this
-     * playlist.
-     * @param p
+     * Adds all items to the specified position of this playlist.
+     * 
+     * @param ps playlist items
      * @param at Index at which items will be added. Out of bounds index will be
      * converted:
      * index < 0     --> 0(first)
      * index >= size --> size (last item)
      * @throws NullPointerException when param null.
      */
-    public void addPlaylist(Playlist p, int at) {
+    public void addPlaylist(List<PlaylistItem> ps, int at) {
         int _at = at;
         if (_at < 0)             _at = 0;
         if (_at > list().size()) _at = list().size();
         
-        list().addAll(_at, p.list());
-        updateItems(p.list());
+        list().addAll(_at, ps);
+        updateItems(ps);
         updateDuration();
     }
     /**
@@ -237,9 +231,7 @@ abstract public class AbstractPlaylist {
      */
     public void setItems(Playlist p) {
         list().clear();
-        list().addAll(p.getItems());
-        updateItems(list());
-        updateDuration();
+        addPlaylist(p);
     }
     /**
      * Returns PlaylistItem at specified index.

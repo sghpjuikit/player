@@ -5,7 +5,7 @@
  */
 package util.hierarchy;
 
-import GUI.objects.Icon;
+import gui.objects.Icon;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FILE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
 import java.io.File;

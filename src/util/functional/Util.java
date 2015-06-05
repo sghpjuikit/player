@@ -7,6 +7,7 @@ package util.functional;
 
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -423,6 +424,49 @@ public class Util {
         return c.reduce(max, (t,u) -> cmp.compare(t, u)>0 ? t : u);
     }
     
+    public static <V> V get(Collection<V> c, Predicate<V> p) {
+        return c.stream().filter(p).findFirst().get();
+    }
+    
+    /**
+     * Checks whether all elements of the list are equal by some property 
+     * obtained using specified transformation.
+     * <p>
+     * For example checking whether all lists have the same size:
+     * <pre>{@code equalBy(lists,List::size) }</pre>
+     * 
+     * @return true if transformation of each element in the list produces equal
+     * result.
+     */
+    public static <V,R> boolean equalBy(List<V> o, Function<V,R> by) {
+        if(o.size()<2) return true;
+        R r = by.apply(o.get(0));
+        for(int i=1; i<o.size(); i++)
+            if(!r.equals(by.apply(o.get(i)))) return false;
+        return true;
+    }
+    
+    /** 
+     * Assuming a map of lists, i-slice is a list i-th elements in every list.
+     * @return i-th slice of the map m
+     */
+    public static <K,T> Map<K,T> mapSlice(Map<K,List<T>> m, int i) {
+        Map<K,T> o = new HashMap();
+        m.entrySet().forEach(e -> o.put(e.getKey(), e.getValue().get(i)));
+        return o;
+    }
+    
+    /** 
+     * Creates map which remaps all elements to different key, using key mapper
+     * function.
+     * @return new map containing all elements mapped to transformed keys
+     */
+    public static <K1,K2,V> Map<K2,V> mapKeys(Map<K1,V> m, Function<K1,K2>f) {
+        Map<K2,V> o = new HashMap();
+        m.forEach((key,val) -> o.put(f.apply(key), val));
+        return o;
+    }
+    
 /************************************ for *************************************/
     
     /** 
@@ -512,7 +556,7 @@ public class Util {
         return b.build();
     }
     
-/****************************** -> collection *********************************/
+/****************************** () -> collection ******************************/
     
     public static<T> Stream<Tuple2<Integer,T>> toIndexedStream(Collection<T> c) {
         int i=0;
@@ -524,19 +568,43 @@ public class Util {
         return b.build();
     }
     
+    /** Returns modifiable list containing specified elements. */
     public static<T> List<T> list(T... a) {
-        return Arrays.asList(a);
+        return new ArrayList(Arrays.asList(a));
     }
+    /** 
+     * Returns unmodifiable list containing specified elements. Optimized:
+     * <ul>
+     * <li> if zero parameters - {@link Collections#EMPTY_LIST}
+     * <li> if 1 parameters - {@link Collections#singletonList(java.lang.Object)}
+     * <li> else parameters - {@link Arrays#asList(java.lang.Object...)}
+     * </ul>
+     */
+    public static<T> List<T> listRO(T... a) {
+        int l = a.length;
+        if(l==0) return EMPTY_LIST;
+        if(l==1) return singletonList(a[0]);
+        else return Arrays.asList(a);
+    }
+    /** Returns modifiable list containing elements in the specified collection. */
     public static<T> List<T> list(Collection<T> a) {
         return new ArrayList(a);
     }
+    /** Returns modifiable list containing elements in both specified collection and array. */
+    public static<T> List<T> list(Collection<T> a, T... ts) {
+        List<T> out = new ArrayList(a);
+        for(int i=0; i<ts.length; i++) out.add(ts[i]);
+        return out;
+    }
     
+    /** Returns modifiable list containing specified element i times */
     public static<T> List<T> list(int i, T a) {
         List<T> l = new ArrayList(i);
         for(int j=0; j<i; j++) l.add(a);
         return l;
     }
     
+    /** Returns modifiable list containing element supplied by specified supplier i times. */
     public static<T> List<T> list(int i, Supplier<T> factory) {
         List<T> l = new ArrayList(i);
         for(int j=0; j<i; j++) l.add(factory.get());
@@ -566,36 +634,43 @@ public class Util {
         return b.build();
     }
 
+/************************* collection -> collection ***************************/
     
-    
-    
-    
+    /** Filters array. Returns list. Source remains unchanged. */
     public static<T> List<T> filter(T[] a, Predicate<T> f) {
         return Stream.of(a).filter(f).collect(toList());
     }
     
+    /** Filters collection. Returns list. Source remains unchanged. */
     public static<T> List<T> filter(Collection<T> c, Predicate<T> f) {
         return c.stream().filter(f).collect(toList());
     }
     
+    /** Maps array. Returns list. Source remains unchanged. */
     public static<T,R> List<R> map(T[] a, Function<T,R> m) {
         return Stream.of(a).map(m).collect(toList());
     }
     
+    /** Maps collection. Returns list. Source remains unchanged. */
     public static<T,R> List<R> map(Collection<T> c, Function<T,R> m) {
         return c.stream().map(m).collect(toList());
     }
     
-    
+    /** Filters and then maps array. Returns list. Source remains unchanged. */
     public static<T,R> List<R> filterMap(T[] a, Predicate<T> f, Function<T,R> m) {
         return Stream.of(a).filter(f).map(m).collect(toList());
     }
     
+    /** Filters and then maps collection. Returns list. Source remains unchanged. */
     public static<T,R> List<R> filterMap(Collection<T> c, Predicate<T> f, Function<T,R> m) {
         return c.stream().filter(f).map(m).collect(toList());
     }
     
-    
+    /** Filters and then maps stream. Returns list. */
+    public static<T,R> List<R> filterMap(Stream<T> c, Predicate<T> f, Function<T,R> m) {
+        return c.filter(f).map(m).collect(toList());
+    }
+
     
     
     public static<T> List<T> split(String txt, String regex, int i, Function<String,T> m) {

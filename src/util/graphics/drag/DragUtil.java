@@ -38,8 +38,6 @@ public final class DragUtil {
     
 /******************************* data formats *********************************/
     
-    /** Data Format for Playlist. A;ways use Playlist as wrapper for List<PlaylistItem> */
-    public static final DataFormat playlistDF = new DataFormat("playlist");
     /** Data Format for List<Item>. */
     public static final DataFormat itemsDF = new DataFormat("items");
     /** Data Format for WidgetTransfer. */
@@ -118,22 +116,7 @@ public final class DragUtil {
         return e.getDragboard().hasFiles();
     }
     
-/******************************************************************************/
-    
-    public static void setPlaylist(Playlist p, Dragboard db) {
-        // put fake data into dragboard
-        db.setContent(Collections.singletonMap(playlistDF, ""));
-        data = p;
-        dataFormat = playlistDF;
-    }
-    public static Playlist getPlaylist() {
-        if(dataFormat != playlistDF) throw new RuntimeException("No playlist in data available.");
-        return (Playlist) data;
-    }
-    public static boolean hasPlaylist() {
-        return dataFormat == playlistDF;
-    }
-    
+/*********************************** SONGS ************************************/
     
     public static void setItemList(List<? extends Item> itemList, Dragboard db) {
         // put fake data into dragboard
@@ -149,6 +132,7 @@ public final class DragUtil {
         return dataFormat == itemsDF;
     }
     
+/********************************** LAYOUT ************************************/
     
     public static void setComponent(Container parent, Component child, Dragboard db) {
         // put fake data into dragboard
@@ -189,9 +173,6 @@ public final class DragUtil {
                         .filter(i->!i.isCorrupt(Use.APP)) // isnt this pointless?
                         .ifPresent(o::add);
         } else
-        if (hasPlaylist()) {
-            o.addAll(getPlaylist().getItems());
-        } else 
         if (hasItemList()) {
             o.addAll(getItemsList());
         }
@@ -205,8 +186,7 @@ public final class DragUtil {
     public static boolean hasAudio(Dragboard d) {
         return (d.hasFiles() && FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
-                        hasPlaylist() ||
-                            hasItemList();
+                         hasItemList();
     }
     
      /**
@@ -286,9 +266,6 @@ public final class DragUtil {
             return completedFuture(AudioFileFormat.isSupported(url,APP)
                                 ? Stream.of(new SimpleItem(URI.create(url)))
                                 : null);
-        } else
-        if (hasPlaylist()) {
-            return completedFuture((Stream)getPlaylist().getItems().stream());
         } else 
         if (hasItemList()) {
             return completedFuture(getItemsList().stream());

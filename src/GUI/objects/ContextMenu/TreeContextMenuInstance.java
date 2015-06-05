@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.ContextMenu;
+package gui.objects.ContextMenu;
 
 import java.util.List;
 import java.util.function.BiConsumer;

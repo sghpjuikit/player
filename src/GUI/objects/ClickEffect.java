@@ -1,10 +1,10 @@
 
-package GUI.objects;
+package gui.objects;
 
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.objects.Window.stage.Window;
+import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.animation.FadeTransition;

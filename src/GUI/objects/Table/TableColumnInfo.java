@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Table;
+package gui.objects.Table;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.parseDouble;

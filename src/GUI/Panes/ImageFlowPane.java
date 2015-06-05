@@ -1,7 +1,7 @@
 
-package GUI.Panes;
+package gui.Panes;
 
-import GUI.objects.Thumbnail.ImageNode;
+import gui.objects.Thumbnail.ImageNode;
 import java.io.File;
 import java.util.List;
 import javafx.beans.binding.Bindings;

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.objects;
+package gui.objects;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

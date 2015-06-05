@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.virtual;
+package gui.virtual;
 
 import static java.util.Collections.reverseOrder;
 import javafx.geometry.NodeOrientation;

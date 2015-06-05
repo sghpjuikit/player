@@ -1,10 +1,10 @@
 
-package GUI.LayoutAggregators;
+package gui.LayoutAggregators;
 
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.objects.Window.stage.Window;
+import gui.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Layout;
 import static java.lang.Double.*;
@@ -170,7 +170,7 @@ public class SwitchPane implements LayoutAggregator {
         });
         
         root.addEventHandler(SCROLL, e-> {
-            if(GUI.GUI.isLayoutMode()) {
+            if(gui.GUI.isLayoutMode()) {
                 double i = zoom.getScaleX() + Math.signum(e.getDeltaY())/10d;
                        i = clip(0.2d,i,1d);
                 byx = signum(-1*e.getDeltaY())*(e.getX()-uiWidth()/2);
@@ -542,7 +542,7 @@ public class SwitchPane implements LayoutAggregator {
         if (d!=1) zoomScaleFactor = d;
         // play
         z.stop();
-        z.setDuration(Duration.millis(GUI.GUI.duration_LM));
+        z.setDuration(Duration.millis(gui.GUI.duration_LM));
         z.setToX(d);
         z.play();
         zt.stop();

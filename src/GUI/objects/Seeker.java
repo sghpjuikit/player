@@ -1,13 +1,13 @@
 
-package GUI.objects;
+package gui.objects;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.tagging.Chapters.Chapter;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
-import GUI.objects.PopOver.PopOver;
-import static GUI.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
+import gui.objects.PopOver.PopOver;
+import static gui.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import static java.time.Duration.ofMillis;
 import java.util.ArrayList;

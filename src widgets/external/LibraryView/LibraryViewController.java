@@ -13,18 +13,18 @@ import AudioPlayer.tagging.MetadataGroup;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
-import GUI.GUI;
-import GUI.objects.ActionChooser;
-import GUI.objects.ContextMenu.CheckMenuItem;
-import GUI.objects.ContextMenu.ImprovedContextMenu;
-import GUI.objects.ContextMenu.TableContextMenuRInstance;
-import GUI.objects.Icon;
-import GUI.objects.Table.FilteredTable;
-import GUI.objects.Table.ImprovedTable.PojoV;
-import GUI.objects.Table.TableColumnInfo;
-import GUI.objects.Table.TableColumnInfo.ColumnInfo;
-import GUI.objects.TableCell.NumberRatingCellFactory;
-import GUI.objects.TableRow.ImprovedTableRow;
+import gui.GUI;
+import gui.objects.ActionChooser;
+import gui.objects.ContextMenu.CheckMenuItem;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.ContextMenu.TableContextMenuRInstance;
+import gui.objects.Icon;
+import gui.objects.Table.FilteredTable;
+import gui.objects.Table.ImprovedTable.PojoV;
+import gui.objects.Table.TableColumnInfo;
+import gui.objects.Table.TableColumnInfo.ColumnInfo;
+import gui.objects.TableCell.NumberRatingCellFactory;
+import gui.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import static Layout.Widgets.Widget.Group.LIBRARY;
@@ -197,18 +197,8 @@ public class LibraryViewController extends FXMLController {
             c.setCellFactory(f==AVG_RATING 
                 ? (Callback) App.ratingCell.getValue()
                 : f==W_RATING 
-                ? (Callback)new NumberRatingCellFactory()
-                : (Callback) col -> {
-                    TableCell<MetadataGroup,Object> cell = new TableCell<MetadataGroup,Object>(){
-                        @Override
-                        protected void updateItem(Object item, boolean empty) {
-                            super.updateItem(item, empty);
-                            setText(empty ? "" : f.toS(item,"<none>"));
-                        }
-                    };
-                    cell.setAlignment(a);
-                    return cell;
-                }
+                ? (Callback) new NumberRatingCellFactory()
+                : (Callback) col -> { TableCell cel = table.buildDefaultCell(f); cel.setAlignment(a); return cel;}
             );
             return c;
         });
@@ -506,7 +496,11 @@ public class LibraryViewController extends FXMLController {
                 menuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
-                menuItem("Edit the item/s in tag editor", e -> WidgetManager.use(TaggingFeature.class, NO_LAYOUT,w->w.read(m.getValue()))),
+                new Menu("Edit tags in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(TaggingFeature.class),f->f.name()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((TaggingFeature)c.getController()).read(m.getValue())))
+                ),
                 searchMenu
             );
             return m;

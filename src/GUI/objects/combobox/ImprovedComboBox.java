@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.combobox;
+package gui.objects.combobox;
 
 import static java.util.Objects.requireNonNull;
 import java.util.function.Function;

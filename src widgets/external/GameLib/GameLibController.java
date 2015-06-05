@@ -5,10 +5,10 @@
  */
 package GameLib;
 
-import GUI.GUI;
-import GUI.objects.Tree.FileTree;
-import GUI.objects.Icon;
-import GUI.objects.Thumbnail.Thumbnail;
+import gui.GUI;
+import gui.objects.tree.FileTree;
+import gui.objects.Icon;
+import gui.objects.Thumbnail.Thumbnail;
 import static GameLib.GameLibController.InfoType.EXPLORER;
 import static GameLib.GameLibController.InfoType.PLAY;
 import Layout.Widgets.FXMLController;

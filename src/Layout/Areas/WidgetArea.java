@@ -1,8 +1,8 @@
 
 package Layout.Areas;
 
-import GUI.GUI;
-import static GUI.GUI.openAndDo;
+import gui.GUI;
+import static gui.GUI.openAndDo;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
@@ -104,7 +104,7 @@ public final class WidgetArea extends Area<Container> {
         openAndDo(content_root, null);
         
         // put controls to new widget
-        controls.title.setText(w.name());
+        controls.title.setText(w.getInfo().name());
         controls.propB.setDisable(w.getFields().isEmpty());
         
         // put up activity node

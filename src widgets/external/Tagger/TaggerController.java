@@ -12,14 +12,14 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import GUI.ItemNode.TextFieldItemNode.MoodItemNode;
-import GUI.objects.CheckIcon;
-import GUI.objects.GraphicalTextField;
-import GUI.objects.Icon;
-import GUI.objects.PopOver.PopOver;
-import GUI.objects.PopOver.PopOver.NodeCentricPos;
-import static GUI.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
-import GUI.objects.Thumbnail.ChangeableThumbnail;
+import gui.ItemNode.TextFieldItemNode.MoodItemNode;
+import gui.objects.CheckIcon;
+import gui.objects.GraphicalTextField;
+import gui.objects.Icon;
+import gui.objects.PopOver.PopOver;
+import gui.objects.PopOver.PopOver.NodeCentricPos;
+import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
+import gui.objects.Thumbnail.ChangeableThumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.Widget;
@@ -189,7 +189,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
         
-        progressI = new GUI.objects.Spinner.Spinner();
+        progressI = new gui.objects.Spinner.Spinner();
         progressI.setVisible(false);
         header.setRight(progressI);
         
@@ -420,7 +420,7 @@ public class TaggerController extends FXMLController implements TaggingFeature {
      * happened.
      * If no items are loaded then this method is a no-op.
      */
-    @FXML @Override
+    @FXML
     public void write() {
         
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);

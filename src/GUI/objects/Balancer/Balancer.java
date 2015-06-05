@@ -1,6 +1,6 @@
 
 
-package GUI.objects.Balancer;
+package gui.objects.Balancer;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;

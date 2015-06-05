@@ -13,11 +13,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package GUI.objects.Rater;
+package gui.objects.Rater;
 
 import Configuration.IsConfig;
-import GUI.Traits.EditableTrait;
-import GUI.Traits.ScaleOnHoverTrait;
+import gui.Traits.EditableTrait;
+import gui.Traits.ScaleOnHoverTrait;
 import java.util.function.Consumer;
 import javafx.beans.property.*;
 import javafx.scene.Node;

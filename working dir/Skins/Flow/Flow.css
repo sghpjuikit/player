@@ -202,3 +202,11 @@
 .combo-box-popup > .list-view > .placeholder > .label {
     -fx-text-fill: derive(-fx-control-inner-background,-30%);
 }
+
+
+
+.text-area > .scroll-pane > .scroll-bar > .thumb {
+    -fx-background-color: -fx-def-font-color;
+    -fx-background-insets: 5.5;
+    -fx-background-radius: 3;
+}

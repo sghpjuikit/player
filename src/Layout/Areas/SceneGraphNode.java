@@ -14,7 +14,9 @@ import javafx.scene.layout.Pane;
  * @author Plutonium_
  */
 public interface SceneGraphNode {
+    
     Pane getRoot();
+    
     public default Parent getParent() {
         return getRoot()==null ? null : getRoot().getParent();
     }

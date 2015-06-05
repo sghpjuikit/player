@@ -29,16 +29,6 @@ import javafx.util.Duration;
  */
 public interface AltState {
     /**
-     * Switch states transition min opacity. Its consistent for all AltState
-     * implementations.
-     */ 
-    static final double OPACITY_MIN = 0.0;
-    /**
-     * Switch states transition max opacity. Its consistent for all AltState
-     * implementations.
-     */
-    static final double OPACITY_MAX = 1.0;
-    /**
      * Switch states transition duration. Its consistent for all AltState
      * implementations.
      */

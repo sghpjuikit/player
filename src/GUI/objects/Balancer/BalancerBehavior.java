@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.objects.Balancer;
+package gui.objects.Balancer;
 
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.behavior.KeyBinding;

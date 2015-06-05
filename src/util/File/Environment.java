@@ -6,7 +6,7 @@
 package util.File;
 
 import AudioPlayer.playlist.PlaylistManager;
-import GUI.GUI;
+import gui.GUI;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.WidgetManager;

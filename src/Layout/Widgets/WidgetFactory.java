@@ -181,7 +181,8 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
         return feature.isAssignableFrom(controller_class);
     }
     
-    /** @return all implemented features */
+    /** {@inheritDoc} */
+    @Override
     public List<Feature> getFeatures() {
         List<Feature> out = new ArrayList();
         for(Class c : controller_class.getInterfaces()) {

@@ -1,6 +1,7 @@
 
 package Configuration;
 
+import static Configuration.Configuration.configsOf;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -266,7 +267,10 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             return new ReadOnlyPropertyConfig<>(name,(ReadOnlyProperty<T>)property);
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue");
     }
-            
+    public static Collection<Config> configs(Object o) {
+        return configsOf(o.getClass(), o, false, true).values();
+    }
+    
 /******************************* IMPLEMENTATIONS ******************************/
     
     public static abstract class ConfigBase<T> extends Config<T> {
@@ -427,6 +431,10 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public PropertyConfig(String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
             super(name, gui_name, property.getValue(), category, info, editable, min, max);
             value = property;
+
+            // support enumeration by delegation if property supports is
+            if(property instanceof EnumerableValue)
+                valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
         }
 
         @Override

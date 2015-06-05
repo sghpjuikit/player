@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Window.Pane;
+package gui.objects.Window.Pane;
 
-import GUI.objects.Window.Resize;
-import GUI.objects.Window.stage.WindowBase.Maximized;
-import static GUI.objects.Window.stage.WindowBase.Maximized.ALL;
+import gui.objects.Window.Resize;
+import gui.objects.Window.stage.WindowBase.Maximized;
+import static gui.objects.Window.stage.WindowBase.Maximized.ALL;
 import static java.lang.Math.abs;
 import static java.lang.Math.ceil;
 import java.util.List;

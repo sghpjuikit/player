@@ -1,7 +1,7 @@
 package Image;
 
 import Configuration.IsConfig;
-import GUI.objects.Thumbnail.Thumbnail;
+import gui.objects.Thumbnail.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;

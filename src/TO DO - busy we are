@@ -4,37 +4,30 @@
 --------------------------------------------------------------------------------
 
 - improve lib refresh + starting performance
-- playlist updating too eager, sth is screwed up
-- Explorer + gui inspector + converter widgets improve
+- Inspector
 - function item nodes dont react on default button click
 - seeker option to show chapters as they are passing
 - config fields unify with item node
 - split&join add fixed length and % support
 - make generic rater control, use in fileinfo
-- minimode implement properly
 - unify icons + fluent api
 - app animated loading
 - tagger add icons to reset and defaults
 - cover download subsequently !work - temp file?
 - playlist table column resizing and serializing
 - app icon
-- library edit on add by drag&drop boolean config
 - tagger cover loading optimize
 - plugin discovery/load
 - library view save selection
 - popover position jumps on app drag start
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
-- popover set arrow location automatically based on available screen space
 - minimode implement properly
-  bgr stretched, artefact on the right since menu doesnt have bgr
-  miniMode autohide add option, clean code, start autohide on window creation
   minimode popups should prevent from autohiding, but how?
 - tab area - reimplement
 - press C to collapse layout containers easily - implement properly
 - clean up Environment + more robust
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
-- ConfigField (General) disable ok button get rid of
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dont want to hear about ------------------
@@ -144,27 +137,3 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - window color overlay effect
 - window layout aggregators
 - deserializing and creating windows
-
---------------------------------------------------------------------------------
---------- "PERKS" & WHAT ONE SHOULD KNOW ABOUT - the developer traps -----------
---------------------------------------------------------------------------------
-
-- table row heights are fixed
-- scrollbar width should be 15px. Or table resize (and more) might break.
-- instead of javafx.scene.text.Text use Text class provided by the project. It
-  is exactly the same but provides css styleclass and support for skinning. Also
-  comes in with a handy resize methods
-- real main app window is hidden and owner of the others. this way they share
-  some of the state like minimized
-- when implementing DragEvent make sure to properly accept the incoming drag
-  only when all necessary onditions are met, not always. For example if we
-  accept only certain type of files we need to query the dragboard files and see
-  whether we should accept or not. The accepting has a visual effect and indicates
-  to the user whether the drag can be dropped on the specific Node or now with
-  an icon - so it should work reflect the reality.
-  Also: try to set the correct TransferMode (COPY | MOVE | ANY) to indicate
-  transfer (both accepting and firing event)
-  Also: always use setCompleted(true) when drag drops and is handled
-- when showing ContextMenu, there is a big difference between show(Window,x,y)
-  and (Node,x,y). The former will not hide the menu when next click happens
-  within the node itself!

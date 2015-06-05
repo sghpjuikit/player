@@ -1,10 +1,10 @@
 
-package GUI.objects.Window.stage;
+package gui.objects.Window.stage;
 
 import Configuration.IsConfigurable;
-import GUI.objects.Icon;
-import GUI.objects.PopOver.PopOver;
-import GUI.objects.SimpleConfigurator;
+import gui.objects.Icon;
+import gui.objects.PopOver.PopOver;
+import gui.objects.SimpleConfigurator;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.COGS;
@@ -66,7 +66,7 @@ public final class ContextManager {
               });
         // build popup
         PopOver p = new PopOver(w.load());
-                p.title.set(w.name());
+                p.title.set(w.getInfo().name());
                 p.setAutoFix(false);
                 p.getHeaderIcons().addAll(propB);
                 p.show(Window.getActive().getStage(),getX(),getY());

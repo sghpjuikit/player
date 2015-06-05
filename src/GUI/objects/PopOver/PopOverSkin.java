@@ -24,10 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package GUI.objects.PopOver;
+package gui.objects.PopOver;
 
-import GUI.objects.Icon;
-import GUI.objects.PopOver.PopOver.ArrowLocation;
+import gui.objects.Icon;
+import gui.objects.PopOver.PopOver.ArrowLocation;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.ArrayList;
 import java.util.List;

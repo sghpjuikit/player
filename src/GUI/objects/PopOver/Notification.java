@@ -1,7 +1,7 @@
 
-package GUI.objects.PopOver;
+package gui.objects.PopOver;
 
-import GUI.objects.PopOver.PopOver.ScreenCentricPos;
+import gui.objects.PopOver.PopOver.ScreenCentricPos;
 import javafx.scene.Node;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;

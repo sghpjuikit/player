@@ -8,8 +8,8 @@
 <children><VBox fx:id="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><MenuBar fx:id="controlsBar" layoutX="28.0" layoutY="75.0">
   <menus>
     <Menu fx:id="addMenu" mnemonicParsing="false" text="+">
-      <items><MenuItem mnemonicParsing="false" onAction="#addDirectory" text="Add directory" /><MenuItem mnemonicParsing="false" onAction="#addDirectoryNedit" text="Add directory and edit" />
-        <MenuItem mnemonicParsing="false" onAction="#addFiles" text="Add files" /><MenuItem mnemonicParsing="false" onAction="#addFilesNedit" text="Add files and edit" />
+      <items><MenuItem mnemonicParsing="false" onAction="#addDirectory" text="Add directory" />
+        <MenuItem mnemonicParsing="false" onAction="#addFiles" text="Add files" />
       </items>
     </Menu>
     <Menu fx:id="remMenu" mnemonicParsing="false" text="-">

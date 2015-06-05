@@ -1,13 +1,13 @@
 
-package GUI.ItemNode;
+package gui.ItemNode;
 
 import Action.Action;
 import Configuration.Config;
-import GUI.ItemNode.TextFieldItemNode.FileItemNode;
-import GUI.ItemNode.TextFieldItemNode.FontItemNode;
-import GUI.objects.CheckIcon;
-import GUI.objects.Icon;
-import GUI.objects.combobox.ImprovedComboBox;
+import gui.ItemNode.TextFieldItemNode.FileItemNode;
+import gui.ItemNode.TextFieldItemNode.FontItemNode;
+import gui.objects.CheckIcon;
+import gui.objects.Icon;
+import gui.objects.combobox.ImprovedComboBox;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.HashMap;

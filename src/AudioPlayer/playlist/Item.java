@@ -17,6 +17,7 @@ import util.units.FileSize;
  * Representation of audio resource referenced by {@link URI}.
  * <p>
  * Item has two distinct identities:
+ * <ul>
  * <li> Resource identity revolves around the underlying resource this item 
  * represents. Implementation independent (all subclasses will work this way).
  * Obtained by {@link #getURI()} and compared by {@link #same(AudioPlayer.playlist.Item)}
@@ -27,6 +28,7 @@ import util.units.FileSize;
  * Implementation dependent - check each subclass for specific
  * information
  * Represented by {@link #hashCode()} and compared by {@link #equals(java.lang.Object)}
+ * </ul>
  * 
  * @param <CT> ComparableType. Subclasses should implements their own - self.
  * 

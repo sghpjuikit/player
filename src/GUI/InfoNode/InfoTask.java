@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.InfoNode;
+package gui.InfoNode;
 
 import javafx.concurrent.Task;
 import javafx.scene.control.Labeled;

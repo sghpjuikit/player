@@ -1,6 +1,6 @@
 package util.parsing;
 
-import GUI.ItemNode.StringSplitParser;
+import gui.ItemNode.StringSplitParser;
 import java.io.File;
 import static java.lang.Double.parseDouble;
 import java.lang.reflect.Constructor;
@@ -38,7 +38,7 @@ import util.parsing.StringParseStrategy.To;
  * object parsers per class in a map.
  * <p>
  * Each parser must adhere to convention:
- * <lu>
+ * <ul>
  * <li> Parser must never assume anything about the input. To string parser can
  * receive an object of particular type in any state. From string parser can 
  * receive any String as input.
@@ -49,18 +49,18 @@ import util.parsing.StringParseStrategy.To;
  * instead return null. Null is not a valid parsing output value. It always 
  * indicates error.
  * <li> Only one parser can be registered per single class.
- * <lu>
+ * </ul>
  * <p>
  * This class acts as a generic parser. It:
- * <lu>
+ * <ul>
  * <li> tries to build parser if no is available looking for {@link StringParseStrategy}
  * and valueOf(), fromString() methods.
  * <li> if no parser is avalable, toString() method is used for to string parsing
  * and an error parser always producing null for string to object parsing.
- * <lu>
+ * </ul>
  * <p>
  * For registering a parser, there are two options:
- * <lu>
+ * <ul>
  * <li> Use {@link StringParseStrategy} and let the parser be created and
  * registered automatically. This is done lazily (and only once so there is no
  * performance setback) and keeps the parsing code within the scope of the class
@@ -78,7 +78,7 @@ import util.parsing.StringParseStrategy.To;
  * wrapper {@link util.functional.Util#noEx(java.util.function.Function, java.lang.Class...)}.
  * <p>
  * This allows arbitrary implementation.
- * <lu>
+ * </ul>
  * 
  * @author Plutonium_
  */

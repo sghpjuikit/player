@@ -2,10 +2,10 @@
 package Layout.Areas;
 
 import Configuration.Configurable;
-import GUI.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.ContextManager;
 import util.graphics.drag.DragUtil;
-import GUI.GUI;
-import GUI.objects.Window.stage.Window;
+import gui.GUI;
+import gui.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Container;
 import Layout.PolyContainer;

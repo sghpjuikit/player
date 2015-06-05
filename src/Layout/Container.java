@@ -2,7 +2,7 @@
 package Layout;
 
 import util.graphics.drag.DragUtil.WidgetTransfer;
-import GUI.GUI;
+import gui.GUI;
 import Layout.Areas.ContainerNode;
 import Layout.Widgets.Widget;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;

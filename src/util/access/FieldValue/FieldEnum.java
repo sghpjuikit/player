@@ -14,10 +14,15 @@ import util.access.TypedValue;
  */
 public interface FieldEnum<T> extends TypedValue, SteroidObject {
     
-    /** Returns name of the field. */
+    /** Returns description of the field. */
     public String description();
     
-    /** Returns description of the field. */
+    /** Returns name of the field. */
     public String name();
     
+    /** 
+     * Used as string converter for fielded values. For example in tables. 
+     * When the object signifies empty value, empty string is returned.
+     */
+    public String toS(Object o, String empty_val);
 }

@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.ItemNode.TextFieldItemNode;
+package gui.ItemNode.TextFieldItemNode;
 
 import java.util.ArrayList;
 import java.util.List;

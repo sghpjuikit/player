@@ -1,14 +1,14 @@
 
-package GUI;
+package gui;
 
 import Action.IsAction;
 import Action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import static GUI.GUI.OpenStrategy.INSIDE;
-import GUI.LayoutAggregators.LayoutAggregator;
-import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.Window.stage.Window;
+import static gui.GUI.OpenStrategy.INSIDE;
+import gui.LayoutAggregators.LayoutAggregator;
+import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Window.stage.Window;
 import Layout.Layout;
 import Layout.LayoutManager;
 import com.sun.javafx.css.StyleManager;

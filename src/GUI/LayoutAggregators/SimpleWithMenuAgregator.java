@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.LayoutAggregators;
+package gui.LayoutAggregators;
 
 import Layout.Layout;
 import java.util.Collections;
@@ -28,7 +28,7 @@ public class SimpleWithMenuAgregator implements LayoutAggregator {
     
     public SimpleWithMenuAgregator() {
          root = new BorderPane();
-         menu = new HBox(5);
+         menu = new HBox(8);
          menu.setAlignment(Pos.CENTER_RIGHT);
          menu.setFillHeight(false);
          root.setRight(menu);

@@ -1,10 +1,10 @@
 
-package GUI.objects.Window.stage;
+package gui.objects.Window.stage;
 
-import GUI.GUI;
-import GUI.objects.Window.Resize;
-import static GUI.objects.Window.stage.WindowBase.Maximized.ALL;
-import static GUI.objects.Window.stage.WindowBase.Maximized.NONE;
+import gui.GUI;
+import gui.objects.Window.Resize;
+import static gui.objects.Window.stage.WindowBase.Maximized.ALL;
+import static gui.objects.Window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
 import javafx.beans.property.*;
 import javafx.stage.Screen;

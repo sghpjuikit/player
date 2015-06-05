@@ -78,8 +78,9 @@ public class FreeFormContainer extends Container {
 
     @Override
     public void hide() {
-        super.hide();
-        if(gui !=null) gui.widgets.values().forEach(Area::hide);
+//        super.hide();
+//        if(gui !=null) gui.widgets.values().forEach(Area::hide);
+                if(gui!=null) gui.hide();
     }
     
 }

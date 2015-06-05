@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.Traits;
+package gui.Traits;
 
 import javafx.scene.Node;
 

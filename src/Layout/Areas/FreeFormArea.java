@@ -5,15 +5,15 @@
  */
 package Layout.Areas;
 
-import util.graphics.drag.DragUtil;
-import GUI.GUI;
-import static GUI.GUI.closeAndDo;
-import GUI.objects.Icon;
-import GUI.objects.Window.Pane.PaneWindowControls;
 import Layout.*;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS_SQUARE_ALT;
+import gui.GUI;
+import static gui.GUI.closeAndDo;
+import gui.objects.Icon;
+import gui.objects.Window.Pane.PaneWindowControls;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -25,29 +25,31 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import static util.Util.setAnchors;
 import util.collections.TupleM4;
 import static util.functional.Util.findFirstEmpty;
+import util.graphics.drag.DragUtil;
 import static util.reactive.Util.maintain;
 
 /**
  <p>
  @author Plutonium_
  */
-public class FreeFormArea implements ContainerNode {
+public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     
-    private final FreeFormContainer container;
-    private final AnchorPane root = new AnchorPane();
+    private final AnchorPane rt = new AnchorPane();
     private final Map<Integer,PaneWindowControls> windows = new HashMap();
     public final Map<Integer,WidgetArea> widgets = new HashMap();
     
     public FreeFormArea(FreeFormContainer con) {
-        container = con;
+        super(con);
+        root.getChildren().add(rt);
+        setAnchors(rt, 0);
+        
         BooleanProperty isHere = new SimpleBooleanProperty(false);
-        root.setOnMousePressed(e -> isHere.set(isHere(e)));
-        root.setOnMouseClicked(e -> {
-            if(GUI.isLayoutMode() || !container.isUnderLock()) {
+        rt.setOnMousePressed(e -> isHere.set(isHere(e)));
+        rt.setOnMouseClicked(e -> {
+            if(!isAltCon && (GUI.isLayoutMode() || !container.isUnderLock())) {
                 isHere.set(isHere.get() && isHere(e));
                 // add new widget on left click
                 if(e.getButton()==PRIMARY && isHere.get())
@@ -61,13 +63,13 @@ public class FreeFormArea implements ContainerNode {
         });
         
         // do not support drag from (widget areas already do that for us)
-        root.setOnDragDetected(null);
+        rt.setOnDragDetected(null);
         // return graphics to normal
-        root.setOnDragDone( e -> root.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        rt.setOnDragDone( e -> rt.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         // accept drag onto
-        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
+        rt.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto
-        root.setOnDragDropped( e -> {
+        rt.setOnDragDropped( e -> {
             if (DragUtil.hasComponent()) {
                 int i = addEmptyWindowAt(e.getX(), e.getY());
                 container.swapChildren(i,DragUtil.getComponent());
@@ -75,7 +77,7 @@ public class FreeFormArea implements ContainerNode {
                 e.consume();
             }
         });
-        root.widthProperty().addListener((o,ov,nv) -> {
+        rt.widthProperty().addListener((o,ov,nv) -> {
             windows.forEach((i,w) -> {
                 boolean s = w.snappable.get();
                 w.snappable.unbind();
@@ -85,7 +87,7 @@ public class FreeFormArea implements ContainerNode {
                 maintain(GUI.snapping, w.snappable);
             });
         });
-        root.heightProperty().addListener((o,ov,nv) -> {
+        rt.heightProperty().addListener((o,ov,nv) -> {
             windows.forEach((i,w) -> {
                 boolean s = w.snappable.get();
                 w.snappable.unbind();
@@ -122,10 +124,10 @@ public class FreeFormArea implements ContainerNode {
                        // add maximize button
                        wa.controls.header_buttons.getChildren().add(1, new Icon(PLUS_SQUARE_ALT, 12, "Maximize & align", () -> {
                            TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
-                           w.x.set(p.a*root.getWidth());
-                           w.y.set(p.b*root.getHeight());
-                           w.w.set(p.c*root.getWidth());
-                           w.h.set(p.d*root.getHeight());
+                           w.x.set(p.a*rt.getWidth());
+                           w.y.set(p.b*rt.getHeight());
+                           w.w.set(p.c*rt.getWidth());
+                           w.h.set(p.d*rt.getHeight());
                        }));
                        wa.loadWidget((Widget)cm);
                        widgets.put(i,wa);
@@ -158,18 +160,15 @@ public class FreeFormArea implements ContainerNode {
     }
 
     @Override
-    public Pane getRoot() {
-        return root;
+    public void showChildren() {
+    
     }
 
     @Override
-    public void show() { }
-
-    @Override
-    public void hide() {
-        windows.forEach((i,w) -> {
-            if(container.getChildren().get(i)==null) closeAndDo(w.root, () -> container.removeChild(i));
-        });
+    public void hideChildren() {
+//        windows.forEach((i,w) -> {
+//            if(container.getChildren().get(i)==null) closeAndDo(w.root, () -> container.removeChild(i));
+//        });
     }
     
     
@@ -182,7 +181,7 @@ public class FreeFormArea implements ContainerNode {
         return w;
     }
     private PaneWindowControls buidWindow(int i) {
-        PaneWindowControls w = new PaneWindowControls(root);
+        PaneWindowControls w = new PaneWindowControls(rt);
         w.root.getStyleClass().add("freeflowcontainer-window");
         w.setHeaderVisible(false);
         w.offscreenFixOn.set(false);
@@ -192,16 +191,16 @@ public class FreeFormArea implements ContainerNode {
         w.alignCenter();
         w.snappable.set(false);
         // values from previous session (used when deserializing)
-        if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*root.getWidth());
-        if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*root.getHeight());
-        if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*root.getWidth());
-        if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*root.getHeight());
+        if(container.properties.containsKey(i+"x")) w.x.set(container.properties.getD(i+"x")*rt.getWidth());
+        if(container.properties.containsKey(i+"y")) w.y.set(container.properties.getD(i+"y")*rt.getHeight());
+        if(container.properties.containsKey(i+"w")) w.w.set(container.properties.getD(i+"w")*rt.getWidth());
+        if(container.properties.containsKey(i+"h")) w.h.set(container.properties.getD(i+"h")*rt.getHeight());
         // store for restoration (runLater avoids initialization problems)
         runLater(()->{
-            maintain(w.x, v -> { container.properties.put(i+"x", v.doubleValue()/root.getWidth());}); 
-            maintain(w.y, v -> { container.properties.put(i+"y", v.doubleValue()/root.getHeight());});
-            maintain(w.w, v -> { container.properties.put(i+"w", v.doubleValue()/root.getWidth());});
-            maintain(w.h, v -> { container.properties.put(i+"h", v.doubleValue()/root.getHeight());});
+            maintain(w.x, v -> { container.properties.put(i+"x", v.doubleValue()/rt.getWidth());}); 
+            maintain(w.y, v -> { container.properties.put(i+"y", v.doubleValue()/rt.getHeight());});
+            maintain(w.w, v -> { container.properties.put(i+"w", v.doubleValue()/rt.getWidth());});
+            maintain(w.h, v -> { container.properties.put(i+"h", v.doubleValue()/rt.getHeight());});
         maintain(GUI.snapDistance, d->d, w.snapDistance);
         maintain(GUI.snapping, w.snappable);
 //            maintain(w.x, v -> { if(w.resizing.get()==NONE) container.properties.put(i+"x", v.doubleValue()/root.getWidth());}); 
@@ -214,7 +213,7 @@ public class FreeFormArea implements ContainerNode {
     
     /** Optimal size/position strategy returning greatest empty square. */
     TupleM4<Double,Double,Double,Double> bestRec(double x, double y, PaneWindowControls new_w) {
-        TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, root.getWidth(), 0d, root.getHeight());
+        TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
         
         for(PaneWindowControls w : windows.values()) {
            if(w==new_w) continue;   // ignore self
@@ -228,15 +227,15 @@ public class FreeFormArea implements ContainerNode {
            if(hb>y && hb<b.d) b.d = hb;
         }
         
-        return new TupleM4<>(b.a/root.getWidth(),b.c/root.getHeight(),
-                            (b.b-b.a)/root.getWidth(),(b.d-b.c)/root.getHeight());
+        return new TupleM4<>(b.a/rt.getWidth(),b.c/rt.getHeight(),
+                            (b.b-b.a)/rt.getWidth(),(b.d-b.c)/rt.getHeight());
     }
     
     /** Optimal size/position strategy returning centeraligned 3rd of window size
       dimensions. */
     TupleM4<Double,Double,Double,Double> bestRecSimple(double x, double y) {
-        return new TupleM4<>(x/root.getWidth()-1/6d,
-                             y/root.getHeight()-1/6d,
+        return new TupleM4<>(x/rt.getWidth()-1/6d,
+                             y/rt.getHeight()-1/6d,
                              1/3d, 1/3d);
     }
     
@@ -264,5 +263,18 @@ public class FreeFormArea implements ContainerNode {
         
         return i;
     }
-    
+
+    @Override
+    Collection<WidgetArea> getAreas() {
+        return widgets.values();
+    }
+    public void bestLayout() {
+        windows.forEach((i,w) -> {
+            TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
+            w.x.set(p.a*rt.getWidth());
+            w.y.set(p.b*rt.getHeight());
+            w.w.set(p.c*rt.getWidth());
+            w.h.set(p.d*rt.getHeight());
+        });
+    }
 }

@@ -8,11 +8,11 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import GUI.InfoNode.InfoTable;
-import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
-import GUI.objects.PopOver.PopOver;
-import GUI.objects.SimpleConfigurator;
-import GUI.objects.Table.PlaylistTable;
+import gui.InfoNode.InfoTable;
+import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import gui.objects.PopOver.PopOver;
+import gui.objects.SimpleConfigurator;
+import gui.objects.Table.PlaylistTable;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -42,6 +42,7 @@ import static util.Util.consumeOnSecondaryButton;
 import static util.Util.menuItem;
 import util.access.Accessor;
 import util.async.runnable.Run;
+import static util.functional.Util.isNotNULL;
 import util.graphics.Icons;
 import util.units.FormattedDuration;
 
@@ -132,7 +133,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         // information label
         InfoTable<PlaylistItem> infoL = new InfoTable(duration, table);
         infoL.textFactory = (all, list) -> {
-            double d = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
+            if(list==null)return "";
+            double d = list.stream().filter(isNotNULL).mapToDouble(PlaylistItem::getTimeMs).sum();
             return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
         };
         

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.ItemNode;
+package gui.ItemNode;
 
 import java.util.List;
 import static java.util.stream.Collectors.toList;

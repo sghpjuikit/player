@@ -2,13 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Thumbnail;
+package gui.objects.Thumbnail;
 
 import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.Traits.ScaleOnHoverTrait;
-import GUI.objects.ContextMenu.ImprovedContextMenu;
+import gui.Traits.ScaleOnHoverTrait;
+import gui.objects.ContextMenu.ImprovedContextMenu;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
@@ -67,14 +67,15 @@ import util.graphics.fxml.ConventionFxmlLoader;
  * factor determining the load size. For details see {@link #LOAD_COEFICIENT}
  * and {@link #calculateImageLoadSize()}.
  * <p>
- * Supports:
+ * Features:
+ * </ul>
  * <li> resizing - use preferred size of the root, see {@link #getPane()}
  * <li> file awareness - if file (representing the image) can be set in addition
  * to the the image
  * <li> image file drag
  * <li> border can be set to frame whole thumbnail or image respectively.
  * <li> image context menu
- * <li> image context menu
+ * </ul>
  */
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable

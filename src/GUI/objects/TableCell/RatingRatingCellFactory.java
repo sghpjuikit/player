@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.TableCell;
+package gui.objects.TableCell;
 
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
-import GUI.objects.Rater.Rating;
+import gui.objects.Rater.Rating;
 import javafx.geometry.Pos;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.control.TableCell;

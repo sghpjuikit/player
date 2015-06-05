@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.TableRow;
+package gui.objects.TableRow;
 
 import java.util.ArrayList;
 import java.util.List;

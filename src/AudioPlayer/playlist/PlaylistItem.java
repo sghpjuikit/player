@@ -168,16 +168,22 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
 /******************************************************************************/
 
     /**
-     * Updates this item by reading the tag of the source. Invokes costly I/O
-     * operation.
+     * Updates this item by reading the tag of the source file.
+     * Involves I/O, so dont use on main thread.
      * <p>
-     * This playlist item will be updated after this method is invoked.
+     * Calling this method on updated playlist item has no effect. E.g.:
+     * <ul>
+     * <li> calling this method more than once
+     * <li> calling this method on playlist item created from metadata
      * <p>
-     * Dont use this method for lots of items at once on application thread!
+     * note: {@code this.toMeta().toPlaylist()} effectively
+     * prevents unupdated items from ever updating.
+     * </ul>
      */
     public void update() {
-        if (isCorrupt(APP)) return;
-        
+        if (updated || isCorrupt(APP)) return;
+        updated = true;
+        System.out.println(getPath());
         if(isFileBased()) {
             // update as file based item
             try {
@@ -194,7 +200,6 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                 // set values
                 
                 time.set(new FormattedDuration(length));
-                updated = true;
             } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException ex) {
                 Log.err("Playlist item update failed.\n"+getURI());
             }
@@ -210,9 +215,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         }
     }
     
-    /** Updates this playlist item to data from provided metadata. No I/O.
-     * <p>
-     * This playlist item will be updated after this method is invoked. */
+    /** 
+     * Updates this playlist item to data from provided metadata. No I/O.
+     * This playlist item will be updated after this method is invoked.
+     */
     public void update(Metadata m) {
         uri.set(m.getURI());
         setATN(m.getArtist(), m.getTitle());
@@ -253,7 +259,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         AudioFileFormat f = getFormat();
         boolean c = isCorruptWeak();
         corrupted = !f.isSupported(Use.PLAYBACK) || c;
-        return !f.isSupported(Use.PLAYBACK) || c;
+        return corrupted;
     }
     
     /**
@@ -435,5 +441,17 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         @Override
         public boolean isTypeNumberNonegative() { return true; }
         
+        @Override
+        public String toS(Object o, String empty_val) {
+            switch(this) {
+                case NAME : 
+                case TITLE :
+                case ARTIST : return "".equals(o) ? empty_val : o.toString();
+                case LENGTH :
+                case PATH :  
+                case FORMAT : return o.toString();        
+                default : throw new AssertionError("Default case should never execute");
+            }
+        }
     }
 }

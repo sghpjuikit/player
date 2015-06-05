@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.objects.Pickers;
+package gui.objects.Pickers;
 
 import AudioPlayer.tagging.MoodManager;
 

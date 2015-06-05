@@ -1,9 +1,9 @@
 
-package GUI.objects;
+package gui.objects;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import GUI.ItemNode.ConfigField;
+import gui.ItemNode.ConfigField;
 import com.sun.glass.ui.Screen;
 import java.util.ArrayList;
 import java.util.List;

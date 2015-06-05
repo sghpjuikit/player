@@ -30,11 +30,13 @@ public interface FileExplorerFeature {
     
     /** 
      * Explores first common parent directory files in the file system hierarchy. 
-     * <p>
+     * 
      * @param files
+     * <ul>
      * <li> if empty, does nothing
      * <li> if has one file, explores the file
      * <li> if has multiple files, explores their first common parent directory.
+     * </ul>
      */
     default void exploreFiles(Collection<File> files) {
         File f = getCommonRoot(files);

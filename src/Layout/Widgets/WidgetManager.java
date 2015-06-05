@@ -1,7 +1,7 @@
 
 package Layout.Widgets;
 
-import GUI.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.ContextManager;
 import Layout.LayoutManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
 import java.io.File;
@@ -144,9 +144,9 @@ public final class WidgetManager {
         
         // get viable widgets - widgets of the feature & of preferred type if any
         List<Widget> widgets = findAll(source)
-                .filter(filter::test)
+                .filter(w -> filter.test(w.getInfo()))
                 .filter(w -> !w.isIgnored())
-                .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
+                .filter(preferred.isEmpty() ? w->true : w->w.getInfo().name().equals(preferred))
                 .collect(Collectors.toList());
         
         // get preferred widget or any if none preferred

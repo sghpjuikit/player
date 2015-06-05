@@ -7,9 +7,9 @@ import Configuration.IsConfig;
 import Layout.Component;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.ObjectStreamException;
-import java.lang.annotation.ElementType;
+import static java.lang.annotation.ElementType.TYPE;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Target;
 import java.util.Collection;
 import static java.util.Collections.singletonList;
@@ -41,19 +41,15 @@ import util.dev.Log;
  * 
  * @author uranium
  */
-public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable<Object>, WidgetInfo {
+public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable<Object> {
     
     // Name of the widget. Permanent. same as factory name
     // it needs to be declared to support deserialization
     final String name;
-    @XStreamOmitField
-    private WidgetFactory factory;
     
-    @XStreamOmitField
-    C controller;
-    // cache gui to avoid loading more than once
-    @XStreamOmitField
-    private Node root;  
+    @XStreamOmitField private WidgetFactory factory;
+    @XStreamOmitField protected C controller;
+    @XStreamOmitField private Node root;  // loaded only once
     
     // configuration
     @XStreamOmitField
@@ -81,52 +77,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
     /** {@inheritDoc} */
     @Override
     public String getName() { return name; }
-        
-    /** {@inheritDoc} */
-    @Override
-    public String name() { return getFactory().name(); }
-        
-    /** {@inheritDoc} */
-    @Override
-    public String description() { return getFactory().description; }
-
-    /** {@inheritDoc} */
-    @Override
-    public String version() { return getFactory().version; }
-        
-    /** {@inheritDoc} */
-    @Override
-    public String author() { return getFactory().author; }
-
-    /** {@inheritDoc} */
-    @Override
-    public String programmer() { return getFactory().programmer; }
-        
-    /** {@inheritDoc} */
-    @Override
-    public String contributor() { return getFactory().contributor; }
-
-    /** {@inheritDoc} */
-    @Override
-    public String year() { return getFactory().year; }
-
-    /** {@inheritDoc} */
-    @Override
-    public String howto() { return getFactory().howto; }
-
-    /** {@inheritDoc} */
-    @Override
-    public String notes() { return getFactory().notes; }
-
-    /** {@inheritDoc} */
-    @Override
-    public Widget.Group group() { return getFactory().group; }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean hasFeature(Class feature) {
-        return getFactory().hasFeature(feature);
-    }
     
     /**
      * Loads this widget's content.
@@ -208,17 +158,19 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return factory;
     }
     
+    /** @return factory information about this widget */
+    public WidgetInfo getInfo() {
+        return factory;
+    }
+    
 /******************************************************************************/
 
     
     /**
-     * Returns whether this widget is intended to store an actual content or 
-     * serves different purpose such as substitution for null value.
+     * Returns whether this widget is empty.
      * <p>
-     * The value returned by this method should be hard coded by design per widget
-     * type (by default is false). Dont mistake this method for isEmpty() in 
-     * {@link Controller}. Empty widget might require different handling, while 
-     * empty controller simply indicates that the widget has currently no content.
+     * Empty widget has no graphics. {@link Controller#isEmpty()} indicates 
+     * state - that there is no data to display within widget's graphics.
      */
     public boolean isEmpty() {
         return this instanceof EmptyWidget;
@@ -294,14 +246,11 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return factory==null ? Widget.EMPTY().load() : this;
     }
     
+/******************************************************************************/
 
-    /**
-     * Annotation to pass information about widget. Use on widget's controller.
-     * 
-     * @author uranium
-     */
-    @Retention(value = RetentionPolicy.RUNTIME)
-    @Target(value = ElementType.TYPE)
+    /** Widget metadata. Passed from code to program. Use on controller class. */
+    @Retention(value = RUNTIME)
+    @Target(value = TYPE)
     public static @interface Info {
 
         /**
@@ -372,9 +321,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         Widget.Group group() default Widget.Group.UNKNOWN;
     }
     
-/******************************************************************************/
-    
-    /** Marks widget's intended functionality. */
+    /** Widget's intended functionality. */
     public enum Group {
         APP,
         PLAYBACK,

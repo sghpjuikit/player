@@ -1,6 +1,8 @@
 
 package main;
 
+import gui.objects.TableCell.RatingCellFactory;
+import gui.objects.TableCell.TextStarRatingCellFactory;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
@@ -15,11 +17,10 @@ import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MoodManager;
 import Configuration.*;
-import GUI.GUI;
-import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.TableCell.*;
-import GUI.objects.Window.stage.Window;
-import GUI.objects.Window.stage.WindowManager;
+import gui.GUI;
+import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Window.stage.Window;
+import gui.objects.Window.stage.WindowManager;
 import Layout.Areas.Area;
 import Layout.Widgets.WidgetManager;
 import java.io.File;

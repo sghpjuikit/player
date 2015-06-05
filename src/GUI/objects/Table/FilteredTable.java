@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Table;
+package gui.objects.Table;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import GUI.ItemNode.TableFilterGenerator;
-import GUI.objects.ContextMenu.CheckMenuItem;
+import gui.ItemNode.TableFilterGenerator;
+import gui.objects.ContextMenu.CheckMenuItem;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import java.util.Collection;

@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.ItemNode;
+package gui.ItemNode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
+import java.util.stream.Stream;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple2;
@@ -43,7 +44,7 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
     public void setData(List<Tuple3<String,Class,F>> classes) {
 //        data.clear(); // causes serious problems, unknown
         data.addAll(classes);
-        generators.forEach(g->g.chained.setData(classes));
+        chain.forEach(g->g.chained.setData(classes));
     }
 
     public void setMapper(BiFunction<F,Predicate<Object>,Predicate<T>> mapper) {
@@ -56,17 +57,17 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
     
     
     public void setPrefTypeSupplier(Supplier<Tuple3<String,Class,F>> supplier) {
-        generators.forEach(g->g.chained.setPrefTypeSupplier(supplier));
+        chain.forEach(g->g.chained.setPrefTypeSupplier(supplier));
     }
 
     public boolean isEmpty() {
-        return generators.stream().allMatch(c->c.chained.isEmpty());
+        return chain.stream().allMatch(c->c.chained.isEmpty());
     }
 
     public void clear() {
         inconsistent_state = true;
-        generators.setAll(generators.get(0));
-        generators.forEach(c->c.chained.clear());
+        chain.setAll(chain.get(0));
+        chain.forEach(c->c.chained.clear());
         inconsistent_state = false;
         generateValue();
     }
@@ -74,11 +75,16 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
     @Override
     protected void generateValue() {
         if(inconsistent_state) return;
-        conjuction = generators.stream().filter(g->g.on.selected.get())
+        conjuction = chain.stream().filter(g->g.on.selected.get())
                                     .map(g->g.chained.getValue()).filter(isNotNULL)
                                     .map(g->converter.apply(g._2,g._1))
                                     .reduce(Predicate::and).orElse(isTRUE);
         if(onFilterChange!=null) onFilterChange.accept(conjuction);
+    }
+
+    @Override
+    protected Tuple2<Predicate<Object>, F> reduce(Stream<Tuple2<Predicate<Object>, F>> values) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
 }

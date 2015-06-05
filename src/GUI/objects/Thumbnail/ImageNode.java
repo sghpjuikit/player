@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Thumbnail;
+package gui.objects.Thumbnail;
 
 import java.io.File;
 import javafx.geometry.Point2D;

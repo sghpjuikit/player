@@ -209,6 +209,7 @@ public final class MetadataGroup implements FieldedValue<MetadataGroup,MetadataG
             return (this==VALUE) ? field.getType() : getType();
         }
         
+        @Override
         public String toS(Object o, String empty_val) {
             switch(this) {
                 case VALUE : return "".equals(o) ? empty_val : o.toString();

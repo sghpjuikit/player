@@ -625,9 +625,6 @@ public class MetadataWriter extends MetaItem {
             Log.deb("Saving tag for " + getURI() + " finished successfuly.");
             return true;
             
-        // problem: commit() throws UnableToRenameFileException, but it appears
-        // its undocumented and we can not catch it! catch everything...
-        // note: catching it as Exception doesnt help?!
         // } catch (CannotWriteException | UnableToRenameFileException e) {
         } catch (Throwable e) {
             Log.err("Can not write to tag for file: " + audioFile.getFile().getPath() + e);

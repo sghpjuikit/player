@@ -1,20 +1,19 @@
 
-package GUI.objects.Table;
+package gui.objects.Table;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
 import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import GUI.GUI;
-import GUI.objects.ContextMenu.ImprovedContextMenu;
-import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.Table.TableColumnInfo.ColumnInfo;
-import GUI.objects.TableRow.ImprovedTableRow;
+import gui.GUI;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.ContextMenu.TableContextMenuInstance;
+import gui.objects.Table.TableColumnInfo.ColumnInfo;
+import gui.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.Features.TaggingFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
@@ -32,6 +31,7 @@ import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.util.Callback;
 import main.App;
 import org.reactfx.Subscription;
 import util.File.Environment;
@@ -40,6 +40,7 @@ import static util.Util.*;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.by;
+import static util.functional.Util.filterMap;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -89,7 +90,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     ? new PropertyValueFactory(f.name())
                     : cf -> cf.getValue()== null ? null : new PojoV(cf.getValue().getField(f))
             );
-            c.setCellFactory(cellFactoryAligned(f.getType(), ""));
+            c.setCellFactory((Callback)col->buildDefaultCell(f));
             c.setResizable(true);
             return c;
         });
@@ -204,8 +205,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     PlaylistManager.playItem(getSelectedItems().get(0));
             } else
             if (e.getCode() == KeyCode.DELETE) {    // delete selected
-                PlaylistManager.removeItems(getSelectedItems());
+                List<PlaylistItem> p = getSelectedItemsCopy();
                 getSelectionModel().clearSelection();
+                PlaylistManager.removeItems(p);
             } else
             if (e.getCode() == KeyCode.ESCAPE) {    // deselect
                 getSelectionModel().clearSelection();
@@ -230,7 +232,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                         && isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
                 
                 Dragboard db = startDragAndDrop(TransferMode.COPY);
-                DragUtil.setPlaylist(new Playlist(getSelectedItems()),db);
+                DragUtil.setItemList(getSelectedItemsCopy(),db);
             }
             e.consume();
         });
@@ -360,9 +362,11 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 menuItem("Remove items", e -> {
                     PlaylistManager.removeItems(m.getValue());
                 }),
-                menuItem("Edit the item/s in tag editor", e -> {
-                    WidgetManager.use(TaggingFeature.class,NO_LAYOUT, w->w.read(m.getValue()));
-                }),
+                new Menu("Edit tags in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(TaggingFeature.class),f->f.name()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((TaggingFeature)c.getController()).read(m.getValue())))
+                ),
                 menuItem("Crop items", e -> {
                     PlaylistManager.retainItems(m.getValue());
                 }),

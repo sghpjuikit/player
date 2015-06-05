@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.ContextMenu;
+package gui.objects.ContextMenu;
 
-import GUI.objects.CheckIcon;
+import gui.objects.CheckIcon;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.beans.property.BooleanProperty;
@@ -21,11 +21,11 @@ import javafx.scene.control.MenuItem;
  * it.
  * <p>
  * Features:
+ * <ul>
  * <li> Check icon reflecting selection state
  * <li> Observable selection state
  * <li> Custom click implementation
- * <p>
- * 
+ * </ul>
  * 
  * @author Plutonium_
  */

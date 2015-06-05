@@ -1,5 +1,5 @@
 
-package GUI.objects.Pickers;
+package gui.objects.Pickers;
 
 import static java.lang.Math.*;
 import java.util.ArrayList;

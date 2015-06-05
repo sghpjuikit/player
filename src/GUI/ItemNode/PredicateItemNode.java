@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.ItemNode;
+package gui.ItemNode;
 
-import GUI.objects.CheckIcon;
-import GUI.objects.combobox.ImprovedComboBox;
+import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.objects.CheckIcon;
+import gui.objects.combobox.ImprovedComboBox;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -30,7 +31,7 @@ import static util.functional.Util.isTRUE;
  *
  * @author Plutonium_
  */
-public class PredicateItemNode<T> extends ItemNode<Tuple2<Predicate<Object>,T>> {
+public class PredicateItemNode<T> extends ItemNodeBase<Tuple2<Predicate<Object>,T>> {
     
     private static final Tooltip negTooltip = new Tooltip("Negate");
         

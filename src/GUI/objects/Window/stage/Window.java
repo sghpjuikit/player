@@ -1,4 +1,4 @@
-package GUI.objects.Window.stage;
+package gui.objects.Window.stage;
 
 import Action.Action;
 import AudioPlayer.Player;
@@ -6,16 +6,6 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.LastFM.LastFMManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.*;
-import GUI.GUI;
-import GUI.LayoutAggregators.LayoutAggregator;
-import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.Icon;
-import GUI.objects.PopOver.PopOver;
-import GUI.objects.Spinner.Spinner;
-import GUI.objects.Text;
-import GUI.objects.Window.Resize;
-import static GUI.objects.Window.Resize.*;
-import GUI.virtual.IconBox;
 import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
@@ -34,6 +24,16 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
+import gui.GUI;
+import gui.LayoutAggregators.LayoutAggregator;
+import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Icon;
+import gui.objects.PopOver.PopOver;
+import gui.objects.Spinner.Spinner;
+import gui.objects.Text;
+import gui.objects.Window.Resize;
+import static gui.objects.Window.Resize.*;
+import gui.virtual.IconBox;
 import java.io.*;
 import static java.lang.Math.*;
 import java.util.ArrayList;
@@ -449,7 +449,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         rtB.setPadding(new Insets(0, 15, 0, 0));
 	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
         
-        Icon miniB = new Icon(null, 13, "Close window", this::toggleMini);
+        Icon miniB = new Icon(null, 13, "Docked mode", this::toggleMini);
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
         Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
         maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
@@ -576,7 +576,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      of the window (close, etc).
      */
     public void setHeaderVisible(boolean val) {
-	if (!headerAllowed) return;
 	headerVisible = val;
 	applyHeaderVisible(val);
     }
@@ -586,6 +585,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
 
     private void applyHeaderVisible(boolean val) {
+        if (!headerAllowed & val) return;
         if(controls.isVisible()==val) return;
 	controls.setVisible(val);
 	leftHeaderBox.setVisible(val);
@@ -595,8 +595,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    AnchorPane.setTopAnchor(lBorder, 25d);
 	    AnchorPane.setTopAnchor(rBorder, 25d);
             
-            
-
             Anim.par(
                 par(
                     forEachIStream(left_icons.box.getChildren(),(i,icon)-> 
@@ -617,11 +615,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	}
     }
 
-    /**
-     Set false to permanently hide header.
-     */
+    /** Set false to never show header. */
     public void setHeaderAllowed(boolean val) {
-	setHeaderVisible(val);
+	setHeaderVisible(val ? headerVisible : false);
 	headerAllowed = val;
     }
     

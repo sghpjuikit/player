@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.LayoutAggregators;
+package gui.LayoutAggregators;
 
 import Layout.Layout;
 import java.util.Collections;

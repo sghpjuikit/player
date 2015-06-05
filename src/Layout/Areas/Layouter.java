@@ -1,10 +1,11 @@
 
 package Layout.Areas;
 
+import gui.objects.Pickers.Picker;
+import gui.objects.Pickers.WidgetPicker;
 import util.graphics.drag.DragUtil;
-import GUI.GUI;
-import static GUI.GUI.*;
-import GUI.objects.Pickers.*;
+import gui.GUI;
+import static gui.GUI.*;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.FreeFormContainer;

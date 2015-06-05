@@ -2,8 +2,8 @@
 package Layout;
 
 import Configuration.Configurable;
-import GUI.objects.Window.stage.ContextManager;
-import GUI.objects.Window.stage.Window;
+import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.Window;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

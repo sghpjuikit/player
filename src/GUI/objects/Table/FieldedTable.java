@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Table;
+package gui.objects.Table;
 
-import GUI.objects.ContextMenu.CheckMenuItem;
-import GUI.objects.Table.TableColumnInfo.ColumnInfo;
+import gui.objects.ContextMenu.CheckMenuItem;
+import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 import com.sun.javafx.scene.control.skin.TableViewSkinBase;
 import java.lang.reflect.Field;
@@ -20,11 +20,12 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static javafx.application.Platform.runLater;
+import javafx.geometry.Pos;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.SortType;
-import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.Pane;
@@ -287,4 +288,28 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     public void sortBy(F field, SortType type) {
         getColumn(field).ifPresent(c -> sortBy(c, type));
     }
+    
+/******************************** CELL FACTORY ********************************/
+    
+    /** 
+     * Use as cell factory for columns created in column factory.
+     * <p>
+     * This cell factory
+     * <ul>
+     * <li> sets text using {@link FieldEnum#toS(java.lang.Object, java.lang.String)}
+     * <li> sets alignment to CENTER_LEFT for Strings and CENTER_RIGHT otherwise
+     * </ul>
+     */
+    public TableCell<T,?> buildDefaultCell(F f) {
+        Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
+        TableCell<T,Object> cell = new TableCell<T,Object>(){
+            @Override
+            protected void updateItem(Object item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? "" : f.toS(item,""));
+            }
+        };
+        cell.setAlignment(a);
+        return cell;
+    } 
 }

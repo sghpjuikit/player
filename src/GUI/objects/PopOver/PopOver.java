@@ -24,13 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package GUI.objects.PopOver;
+package gui.objects.PopOver;
 
-import static GUI.objects.PopOver.PopOver.ScreenCentricPos.*;
-import static GUI.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
-import GUI.objects.Text;
-import GUI.objects.Window.stage.WindowBase;
 import static com.sun.javafx.util.Utils.getScreenForPoint;
+import static gui.objects.PopOver.PopOver.ScreenCentricPos.*;
+import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
+import gui.objects.Text;
+import gui.objects.Window.stage.WindowBase;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -462,7 +462,7 @@ public class PopOver<N extends Node> extends PopupControl {
     /** Display at specified designated screen position */
     public void show(ScreenCentricPos pos) {
         setArrowSize(0); // disable arrow
-        showThis(null, GUI.objects.Window.stage.Window.getActive().getStage());
+        showThis(null, pos.isAppCentric() ? gui.objects.Window.stage.Window.getActive().getStage() : App.getWindowOwner().getStage());
         position(pos.calcX(this), pos.calcY(this));
         
         if(pos==Screen_Bottom_Left || pos==Screen_Bottom_Right || pos==Screen_Center 
@@ -862,6 +862,11 @@ public class PopOver<N extends Node> extends PopupControl {
         App_Center,
         App_Bottom_Right,
         App_Bottom_Left;
+        
+        public boolean isAppCentric() {
+            return this==App_Bottom_Left || this==App_Bottom_Right || this==App_Center ||
+                   this==App_Top_Left || this==App_Top_Right;
+        }
         
         public double calcX(PopOver popup) {
             double W = popup.getSkinn().root.getWidth();

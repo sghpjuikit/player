@@ -1,9 +1,9 @@
 
-package GUI.ItemNode.TextFieldItemNode;
+package gui.ItemNode.TextFieldItemNode;
 
 import AudioPlayer.tagging.MoodManager;
-import GUI.objects.Pickers.MoodPicker;
-import GUI.objects.PopOver.PopOver;
+import gui.objects.Pickers.MoodPicker;
+import gui.objects.PopOver.PopOver;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javafx.scene.layout.Region;

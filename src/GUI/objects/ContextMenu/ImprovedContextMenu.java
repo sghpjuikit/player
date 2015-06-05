@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package GUI.objects.ContextMenu;
+package gui.objects.ContextMenu;
 
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;

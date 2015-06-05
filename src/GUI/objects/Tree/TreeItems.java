@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Tree;
+package gui.objects.tree;
 
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.ListConfigurable;
-import GUI.objects.ContextMenu.ImprovedContextMenu;
-import static GUI.objects.Tree.FileTree.createTreeItem;
-import GUI.objects.Window.stage.Window;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import static gui.objects.tree.FileTree.createTreeItem;
+import gui.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Container;
 import Layout.LayoutManager;
@@ -90,7 +90,7 @@ public class TreeItems {
     public static TreeItem<Object> tree(Object o) {
         if(o instanceof Widget)         return new WidgetItem((Widget)o);
         if(o instanceof WidgetFactory)  return new STreeItem(o,()->Stream.empty());
-        if(o instanceof Widget.Group)   return new STreeItem(o,()->WidgetManager.findAll(OPEN).filter(w->w.group()==o));
+        if(o instanceof Widget.Group)   return new STreeItem(o,()->WidgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o));
         if(o instanceof WidgetSource)   return new STreeItem(o,()->WidgetManager.findAll((WidgetSource)o));
         if(o instanceof Container)      return new LayoutItem((Component)o);
         if(o instanceof File)           return (TreeItem) new FileTreeItem((File)o);

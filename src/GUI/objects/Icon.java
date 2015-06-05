@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects;
+package gui.objects;
 
 import de.jensd.fx.glyphs.GlyphIconName;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;

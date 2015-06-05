@@ -8,7 +8,7 @@ package AudioPlayer.services.Tray;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service;
-import GUI.GUI;
+import gui.GUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

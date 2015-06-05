@@ -6,7 +6,7 @@
 
 package Layout.WidgetImpl;
 
-import GUI.objects.Spectrum;
+import gui.objects.Spectrum;
 import Layout.Widgets.Controller;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;

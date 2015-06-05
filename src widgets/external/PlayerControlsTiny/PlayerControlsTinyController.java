@@ -8,9 +8,9 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import GUI.GUI;
-import GUI.objects.Icon;
-import GUI.objects.Seeker;
+import gui.GUI;
+import gui.objects.Icon;
+import gui.objects.Seeker;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaybackFeature;
 import Layout.Widgets.Widget;
@@ -31,6 +31,7 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.Util;
 import util.access.Accessor;
+import static util.functional.Util.map;
 import util.graphics.drag.DragUtil;
 import static util.reactive.Util.maintain;
 
@@ -117,7 +118,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 e.consume();
                 // handle result
                 if(playDropped) {
-                    PlaylistManager.playPlaylist(new Playlist(items.stream().map(Item::getURI), true));
+                    PlaylistManager.playPlaylist(new Playlist(map(items, Item::toPlaylist)));
                 } else {
                     PlaylistManager.addItems(items);
                 }

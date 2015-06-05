@@ -1,5 +1,5 @@
 
-package GUI.objects.Window;
+package gui.objects.Window;
 
 /**
  *

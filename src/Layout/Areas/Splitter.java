@@ -2,9 +2,9 @@
 package Layout.Areas;
 
 import util.graphics.drag.DragUtil;
-import GUI.GUI;
-import static GUI.GUI.closeAndDo;
-import GUI.objects.Icon;
+import gui.GUI;
+import static gui.GUI.closeAndDo;
+import gui.objects.Icon;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Component;

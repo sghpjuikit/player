@@ -9,21 +9,6 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import GUI.GUI;
-import GUI.InfoNode.InfoTable;
-import static GUI.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
-import GUI.InfoNode.InfoTask;
-import GUI.objects.ActionChooser;
-import GUI.objects.ContextMenu.ImprovedContextMenu;
-import GUI.objects.ContextMenu.TableContextMenuInstance;
-import GUI.objects.Icon;
-import GUI.objects.Spinner.Spinner;
-import GUI.objects.Table.FilteredTable;
-import GUI.objects.Table.ImprovedTable;
-import GUI.objects.Table.ImprovedTable.PojoV;
-import GUI.objects.Table.TableColumnInfo;
-import GUI.objects.Table.TableColumnInfo.ColumnInfo;
-import GUI.objects.TableRow.ImprovedTableRow;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.FileExplorerFeature;
 import Layout.Widgets.Features.TaggingFeature;
@@ -33,6 +18,21 @@ import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
+import gui.GUI;
+import gui.InfoNode.InfoTable;
+import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import gui.InfoNode.InfoTask;
+import gui.objects.ActionChooser;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.ContextMenu.TableContextMenuInstance;
+import gui.objects.Icon;
+import gui.objects.Spinner.Spinner;
+import gui.objects.Table.FilteredTable;
+import gui.objects.Table.ImprovedTable;
+import gui.objects.Table.ImprovedTable.PojoV;
+import gui.objects.Table.TableColumnInfo;
+import gui.objects.Table.TableColumnInfo.ColumnInfo;
+import gui.objects.TableRow.ImprovedTableRow;
 import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -47,8 +49,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.CENTER_RIGHT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
@@ -182,6 +182,8 @@ public class LibraryController extends FXMLController {public String a() { retur
     
     @IsConfig(editable = false)
     private File last_file = new File("");
+    @IsConfig(name = "Auto-edit added items")
+    private final BooleanProperty editOnAdd = new SimpleBooleanProperty(false);
     
     
     @Override
@@ -198,24 +200,10 @@ public class LibraryController extends FXMLController {public String a() { retur
         table.setColumnFactory( f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
             c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
-            
-            
-            Pos a = f.getType().equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
             c.setCellFactory(f==RATING
                 ? (Callback)App.ratingCell.getValue()
-                : (Callback) p -> {
-                    TableCell<Metadata,Object> cell = new TableCell<Metadata,Object>(){
-                        @Override
-                        protected void updateItem(Object item, boolean empty) {
-                            super.updateItem(item, empty);
-                            setText(empty ? "" : f.toS(item,"<none>"));
-                        }
-                    };
-                    cell.setAlignment(a);
-                    return cell;
-                }
+                : (Callback) col -> table.buildDefaultCell(f)
             );
-            
             return c;
         });
         
@@ -273,7 +261,7 @@ public class LibraryController extends FXMLController {public String a() { retur
         });
         // drag&drop to
         table.setOnDragDropped(e-> {
-            addNeditDo(DragUtil.getSongs(e), false);
+            addNeditDo(DragUtil.getSongs(e), editOnAdd.get());
             e.setDropCompleted(true);
             e.consume();
         });
@@ -327,6 +315,10 @@ public class LibraryController extends FXMLController {public String a() { retur
         Icons.setIcon(addMenu, FontAwesomeIconName.PLUS, "11", "11");
         Icons.setIcon(remMenu, FontAwesomeIconName.MINUS, "11", "11");
         
+        // add 'edit on add to library' option menu
+        gui.objects.ContextMenu.CheckMenuItem editOnAddmi = new gui.objects.ContextMenu.CheckMenuItem("Edit added items");
+        editOnAddmi.selected.bindBidirectional(editOnAdd);
+        controlsBar.getMenus().get(0).getItems().add(editOnAddmi);
         
         content.getChildren().addAll(table.getRoot(), controls);
         VBox.setVgrow(table.getRoot(),ALWAYS);
@@ -351,21 +343,11 @@ public class LibraryController extends FXMLController {public String a() { retur
         d4.unsubscribe();
     }
     
-    
     @FXML private void addDirectory() {
-        addNedit(false,true);
+        addNedit(editOnAdd.get(),true);
     }
-    
-    @FXML private void addDirectoryNedit() {
-        addNedit(true,true);
-    }
-    
     @FXML private void addFiles() {
-        addNedit(false,false);
-    }
-    
-    @FXML private void addFilesNedit() {
-        addNedit(true,false);
+        addNedit(editOnAdd.get(),false);
     }
     
     private void addNedit(boolean edit, boolean dir) {
@@ -461,17 +443,18 @@ public class LibraryController extends FXMLController {public String a() { retur
                     List<Metadata> items = m.getValue();
                     DB.removeItems(items);
                 }),
-                menuItem("Edit the item/s in tag editor", e -> {
-                    List<Metadata> items = m.getValue();
-                    WidgetManager.use(TaggingFeature.class, NO_LAYOUT ,w->w.read(items));
-                }),
+                new Menu("Edit tags in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(TaggingFeature.class),f->f.name()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((TaggingFeature)c.getController()).read(m.getValue())))
+                ),
                 menuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();
                     List<File> files = filterMap(items,Item::isFileBased,Item::getLocation);
                     Environment.browse(files,true);
                 }),
                 new Menu("Explore items's directory in",null,
-                    menuItems(WidgetManager.getFactories().filter(f->f.hasFeature(FileExplorerFeature.class)).map(f->f.name()).collect(toList()),
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(FileExplorerFeature.class),f->f.name()),
                             (String f) -> f,
                             (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((FileExplorerFeature)c.getController()).exploreFile(m.getValue().get(0).getFile())))
                 ),

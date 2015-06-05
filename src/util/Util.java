@@ -39,6 +39,7 @@ import javax.imageio.stream.ImageInputStream;
 import org.jaudiotagger.tag.images.Artwork;
 import util.File.FileUtil;
 import util.dev.Log;
+import static util.functional.Util.list;
 import util.functional.functor.FunctionC;
 import static util.functional.functor.FunctionC.composable;
 
@@ -202,11 +203,11 @@ public class Util {
     
     /** 
      * Converts enum constant to 'human readable' string.
-     * <ls>
+     * <ul>
      * <li> first letter upper case, 
      * <li> other letters lower case, 
      * <li> '_' into ' '
-     * <ls>
+     * </ul>
      */
     public static String enumToHuman(Enum e) {
         return capitalizeStrong(e.name().replace('_', ' '));
@@ -687,8 +688,21 @@ public class Util {
        else throw new NoSuchFieldException();
     }
     
+    /** 
+     * Returns all superclasses and interfaces.
+     * @return list containing all superclasses
+     * @see #getSuperClassesInc(java.lang.Class)
+     */
     public static List<Class> getSuperClasses(Class c) {
         return getSuperClasses(c, new ArrayList());
+    }
+    /** 
+     * Returns all superclasses and interfaces and the class.
+     * @return list containing the class and all its superclasses
+     * @see #getSuperClasses(java.lang.Class) 
+     */
+    public static List<Class> getSuperClassesInc(Class c) {
+        return getSuperClasses(c, list(c));
     }
     
     private static List<Class> getSuperClasses(Class c, List<Class> cs) {

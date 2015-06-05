@@ -5,7 +5,7 @@
  */
 package Layout.WidgetImpl;
 
-import GUI.objects.Tree.TreeItems;
+import gui.objects.tree.TreeItems;
 import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.Features.FileExplorerFeature;
 import Layout.Widgets.IsWidget;

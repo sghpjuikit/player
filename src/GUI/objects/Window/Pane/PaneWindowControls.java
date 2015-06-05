@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.objects.Window.Pane;
+package gui.objects.Window.Pane;
 
-import GUI.LayoutAggregators.SwitchPane;
-import GUI.objects.Window.Resize;
-import static GUI.objects.Window.Resize.*;
-import GUI.virtual.IconBox;
+import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Window.Resize;
+import static gui.objects.Window.Resize.*;
+import gui.virtual.IconBox;
 import Layout.Component;
 import Layout.Layout;
 import static de.jensd.fx.glyphs.GlyphsDude.setIcon;

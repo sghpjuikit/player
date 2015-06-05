@@ -6,6 +6,10 @@
 
 package Layout.Widgets;
 
+import Layout.Widgets.Features.Feature;
+import java.util.List;
+import static util.functional.Util.toS;
+
 /**
  *
  * @author Plutonium_
@@ -76,6 +80,25 @@ public interface WidgetInfo {
     /** @return widget group. Default {@link Widget.Group.UNKNOWN} */
     Widget.Group group();
     
+    /** @return all implemented features */
+    List<Feature> getFeatures();
+    
     /** @return true if widget's contoroller implements given feature */
     boolean hasFeature(Class feature);
+
+    /** Returns widget info as string. */
+    default String toStr() {
+        List<Feature> fs = getFeatures();
+        String info = "";
+        info += "\n\nWidget: " + name();
+        if (!description().isEmpty()) info += "\n\n" + description();
+        if (!notes().isEmpty()) info += "\n\n" + notes();
+        if (!howto().isEmpty()) info += "\n\n" + howto();
+        info += "\n\nFeatures: ";
+        info += fs.isEmpty() ? "none" : "\n" + toS(fs, f -> "    " + f.name() + ": " + f.description() + "\n");
+        
+        return info;
+    }
+
+    
 }

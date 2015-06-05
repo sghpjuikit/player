@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package GUI.InfoNode;
+package gui.InfoNode;
 
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.Features.SongInfo;
-import GUI.objects.Thumbnail.Thumbnail;
+import gui.objects.Thumbnail.Thumbnail;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;

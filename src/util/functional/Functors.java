@@ -23,8 +23,7 @@ import static util.File.AudioFileFormat.Use.PLAYBACK;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.Util;
-import static util.Util.isNonEmptyPalindrome;
-import static util.Util.unPrimitivize;
+import static util.Util.*;
 import util.access.Accessor;
 import util.collections.PrefList;
 import util.collections.PrefListMap;
@@ -85,6 +84,30 @@ public class Functors {
         
         default F1<I,O> nonNull(O or) {
             return andThen(o -> o==null ? or : o);
+        }
+        
+        default F1<I,O> passNull() {
+            return in -> in==null ? null : apply(in);
+        }
+        
+        default F1<I,Object> wrap(NullIn i, NullOut o) {
+            if(i==NullIn.NULL && o==NullOut.NULL) 
+                return in -> in==null ? null : apply(in);
+            if(i==NullIn.APPLY && o==NullOut.NULL) 
+                return (F1) this;
+            if(i==NullIn.APPLY && o==NullOut.INPUT) 
+                return in -> {
+                    O out = apply(in);
+                    return out==null ? (O)in : out;
+                };
+            if(i==NullIn.NULL && o==NullOut.INPUT) 
+                return in -> {
+                    if(in==null) return null;
+                    O out = apply(in);
+                    return out==null ? (O)in : out;
+                };
+            
+            throw new AssertionError("Illegal switch case");
         }
     }
     public static interface F1E<I,O> {
@@ -175,11 +198,34 @@ public class Functors {
         }
     }
     
+    public static enum NullIn {
+        NULL,
+        APPLY;
+    }
+    public static enum NullOut {
+        NULL,
+        INPUT;
+    }
+    
     private static final PrefListMap<PF,Class> fsI = new PrefListMap<>(pf -> pf.in);
     private static final PrefListMap<PF,Class> fsO = new PrefListMap<>(pf -> pf.out);
     private static final PrefListMap<PF,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
     
     static {
+        add("Is null",      Object.class, Boolean.class, Objects::isNull);
+        add("Is not null",  Object.class, Boolean.class, Objects::nonNull);
+        
+        add("As is",        Object.class, Object.class, x->x);
+        add("As String",    Object.class, String.class, Object::toString);
+        add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
+        
+        add("Is true",      Boolean.class, Boolean.class, b -> b==true);
+        add("Is false",     Boolean.class, Boolean.class, b -> b==false);
+        add("Negate",       Boolean.class, Boolean.class, b -> !b);
+        add("And",          Boolean.class, Boolean.class, Boolean::logicalAnd, Boolean.class,true);
+        add("Or",           Boolean.class, Boolean.class, Boolean::logicalOr, Boolean.class,true);
+        add("Xor",          Boolean.class, Boolean.class, Boolean::logicalXor, Boolean.class,true);
+        
         add("'_' -> ' '", String.class,String.class, s -> s.replace("_", " "));
         add("-> file name", String.class,String.class, Util::filenamizeString);
         add("Anime", String.class,String.class, s -> {
@@ -291,29 +337,29 @@ public class Functors {
         add("Is unknown",Bitrate.class,Boolean.class, x -> x.getValue()==-1);
         add("Is known",  Bitrate.class,Boolean.class, x -> x.getValue()>-1);
         
-        add("Less",     FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
-        add("Is",       FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
-        add("More",     FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
-        add("Not less", FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, FormattedDuration.class, new FormattedDuration(0));
-        add("Is not",   FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)!=0, FormattedDuration.class, new FormattedDuration(0));
-        add("Not more", FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)<=0, FormattedDuration.class, new FormattedDuration(0));
+        add("Less",      FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)<0, FormattedDuration.class, new FormattedDuration(0));
+        add("Is",        FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)==0, FormattedDuration.class, new FormattedDuration(0));
+        add("More",      FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)>0, FormattedDuration.class, new FormattedDuration(0),false,false,true);
+        add("Not less",  FormattedDuration.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, FormattedDuration.class, new FormattedDuration(0));
+        add("Is not",    FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)!=0, FormattedDuration.class, new FormattedDuration(0));
+        add("Not more",  FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)<=0, FormattedDuration.class, new FormattedDuration(0));
 
-        add("Less",     NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<0, NofX.class,new NofX(1,1));
-        add("Is",       NofX.class,Boolean.class, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
-        add("More",     NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>0, NofX.class,new NofX(1,1),false,false,true);
-        add("Not less", NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
-        add("Is not",   NofX.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
-        add("Not more", NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
+        add("Less",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<0, NofX.class,new NofX(1,1));
+        add("Is",        NofX.class,Boolean.class, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
+        add("More",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>0, NofX.class,new NofX(1,1),false,false,true);
+        add("Not less",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
+        add("Is not",    NofX.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
+        add("Not more",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
         
-        add("More",     FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>0, FileSize.class,new FileSize(0));
-        add("Is",       FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
-        add("Less",     FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<0, FileSize.class,new FileSize(0),false,false,true);
-        add("Not more", FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, FileSize.class,new FileSize(0));
-        add("Is not",   FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, FileSize.class,new FileSize(0));
-        add("Not less", FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, FileSize.class,new FileSize(0));
-        add("Is unknown",         FileSize.class,Boolean.class, x -> x.inBytes()==-1);
-        add("Is known",           FileSize.class,Boolean.class, x -> x.inBytes()>-1);
-        add("Is from the future", FileSize.class,Boolean.class, x -> x.inGBytes()==1.21);
+        add("More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>0, FileSize.class,new FileSize(0));
+        add("Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
+        add("Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<0, FileSize.class,new FileSize(0),false,false,true);
+        add("Not more",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, FileSize.class,new FileSize(0));
+        add("Is not",    FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, FileSize.class,new FileSize(0));
+        add("Not less",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, FileSize.class,new FileSize(0));
+        add("Is unknown",FileSize.class,Boolean.class, x -> x.inBytes()==-1);
+        add("Is known",  FileSize.class,Boolean.class, x -> x.inBytes()>-1);
+        add("Is 1.21GB", FileSize.class,Boolean.class, x -> x.inGBytes()==1.21);
         
         add("After",     Year.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, Year.class,Year.now());
         add("Is",        Year.class,Boolean.class, (x,y) -> x.compareTo(y)==0, Year.class,Year.now());
@@ -394,8 +440,11 @@ public class Functors {
     
     /** Returns all functions taking input I. */
     public static <I> PrefList<PF<I,?>> getI(Class<I> i) {
-        PrefList l = (PrefList) fsI.get(unPrimitivize(i));
-        return l==null ? new PrefList() : l;
+        PrefList l = (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
+        return l;
+        
+//        PrefList l = (PrefList) fsI.get(unPrimitivize(i));
+//        return l==null ? new PrefList() : l;
     }
     /** Returns all functions producing output O. */
     public static <O> PrefList<PF<?,O>> getO(Class<O> o) {

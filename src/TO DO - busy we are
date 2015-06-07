@@ -22,7 +22,6 @@
 - popover position jumps on app drag start
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
-- minimode implement properly
   minimode popups should prevent from autohiding, but how?
 - tab area - reimplement
 - press C to collapse layout containers easily - implement properly

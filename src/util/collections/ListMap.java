@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import static java.util.stream.Collectors.toList;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -51,7 +51,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
     @return list containing all elements of all cache buckets / accumulation
     containers assigned to keys in the given collection. */
     public List<E> getElementsOf(Collection<K> keys) {
-        List<E> out = new ArrayList();
+        List<E> out = cacheFactory.get();
         for(K k : keys) {
             List<E> c = get(k);
             if(c!=null) out.addAll(c);
@@ -60,7 +60,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
     }
     /** Array version of {@link #getElementsOf(java.util.Collection)}. */
     public List<E> getElementsOf(K... keys) {
-        List<E> out = new ArrayList();
+        List<E> out = cacheFactory.get();
         for(K k : keys) {
             List<E> c = get(k);
             if(c!=null) out.addAll(c);
@@ -72,6 +72,6 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
     Use to avoid creating intermediary collection of keys (parameter) and reduce memory.*/
     public List<E> getElementsOf(Stream<K> keys) {
         return keys.map(this::get).filter(c -> c!=null)
-                   .flatMap(c->c.stream()).collect(toList());
+                   .flatMap(c->c.stream()).collect(Collectors.toCollection(cacheFactory));
     }
 }

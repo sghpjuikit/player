@@ -5,14 +5,15 @@
  */
 package gui.ItemNode;
 
-import gui.ItemNode.ItemNode.ItemNodeBase;
-import gui.objects.CheckIcon;
-import gui.objects.Icon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
+import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.objects.CheckIcon;
+import gui.objects.Icon;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.ListChangeListener.Change;
@@ -34,9 +35,12 @@ import static util.functional.Util.rep;
  */
 public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNodeBase<V> {
 
-    private final VBox root = new VBox();
+    protected final VBox root = new VBox();
     protected final ObservableList<Chainable<IN>> chain = (ObservableList)root.getChildren();
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
+    protected boolean homogeneous = true;
+    
+    ChainConfigField() {}
     
     /** Creates unlimited chain of 1 initial chained element.  */
     public ChainConfigField(Supplier<IN> chainedFactory) {
@@ -90,8 +94,9 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
     
     /** Return individual chained values that are enabled and non null. */
     public Stream<V> getValues() {
-        return chain.stream().filter(g -> g.on.selected.get())
-                                  .map(g -> g.chained.getValue()).filter(isNotNULL);
+        return chain.stream().filter(g -> g.on.get())
+                             .map(g -> g.chained.getValue())
+                             .filter(isNotNULL);
     }
 
     /** 
@@ -118,10 +123,11 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
     private static final Tooltip onTooltip = new Tooltip("Enabled");
     
     public class Chainable<C extends ItemNode<V>> extends HBox {
-        public CheckIcon on = new CheckIcon(true);
-        Icon rem = new Icon(MINUS, 13);
-        Icon add = new Icon(PLUS, 13);
-        public C chained;
+        private final CheckIcon onB = new CheckIcon(true);
+        private final Icon rem = new Icon(MINUS, 13);
+        private final Icon add = new Icon(PLUS, 13);
+        public final BooleanProperty on = onB.selected;
+        public final C chained;
         private boolean rem_alt = false; // alternative icon, never disable
         
         public Chainable(Supplier<C> chainedFactory) {
@@ -130,11 +136,11 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
         public Chainable(int at, Supplier<C> chainedFactory) {
             chained = chainedFactory.get();
             setSpacing(5);
-            getChildren().addAll(rem,add,on,chained.getNode());
+            getChildren().addAll(rem,add,onB,chained.getNode());
             HBox.setHgrow(chained.getNode(), ALWAYS);
             setAlignment(CENTER_LEFT);
             chained.onItemChange = f-> generateValue();
-            on.selected.addListener((o,ov,nv) -> generateValue());
+            on.addListener((o,ov,nv) -> generateValue());
             rem.setOnMouseClicked(this::onRem);
             add.setOnMouseClicked(e -> {
                 if(chain.size()<maxChainLength.get()) {
@@ -145,7 +151,7 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
             rem.setPadding(new Insets(0, 0, 0, 5));
             rem.setTooltip(remTooltip);
             add.setTooltip(addTooltip);
-            on.setTooltip(onTooltip);
+            onB.setTooltip(onTooltip);
             chain.add(at,(Chainable)this);
             updateIcons();
         }
@@ -155,17 +161,27 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
             return chain.indexOf(this);
         }
         
-        private void updateIcons() {
+        void updateIcons() {
             int l = chain.size();
-            rem.setDisable(!rem_alt && l<=1);
-            add.setDisable(l>=maxChainLength.get());
+//            rem.setDisable(homogeneous ? !rem_alt && l<=1 : getIndex()<l-1);
+//            add.setDisable(homogeneous ? l>=maxChainLength.get() : getIndex()<l-1);
+//            onB.setDisable(!isHomogeneous());
+            
+            rem.setDisable(isHomogeneous() && !rem_alt && l<=1);
+            add.setDisable(isHomogeneous() && l>=maxChainLength.get());
+            this.setDisable(!isHomogeneous());
         }
         
-        private void onRem(MouseEvent e) {
+        void onRem(MouseEvent e) {
             if(chain.size()>1) {
                 chain.remove(this);
                 generateValue();
             }
+        }
+        
+        private boolean isHomogeneous() {
+            int i = getIndex();
+            return homogeneous || i>=chain.size()-1 || false;
         }
     }
     

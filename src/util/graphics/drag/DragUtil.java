@@ -96,7 +96,7 @@ public final class DragUtil {
     
     /** Accepts and consumes drag over event if contains at least 1 image file. */
     public static final EventHandler<DragEvent> fileDragAccepthandler = e -> {
-        if (e.getDragboard().hasFiles()) {
+        if (hasFiles(e)) {
             e.acceptTransferModes(ANY);
             e.consume();
         }
@@ -114,6 +114,31 @@ public final class DragUtil {
     /** Returns whether dragboard contains files. */
     public static boolean hasFiles(DragEvent e) {
         return e.getDragboard().hasFiles();
+    }
+    
+/*********************************** TEXT *************************************/
+    
+    /** Accepts and consumes drag over event if contains text. */
+    public static final EventHandler<DragEvent> textDragAccepthandler = e -> {
+        if (hasText(e)) {
+            e.acceptTransferModes(ANY);
+            e.consume();
+        }
+    };
+        
+    /** 
+     * Returns text from dragboard.
+     * @return string in dragboard or "" if none.
+     */
+    public static String getText(DragEvent e) {
+        String o = e.getDragboard().getString();
+        if(o==null) o = e.getDragboard().getRtf();
+        return o==null ? "" : o;
+    }
+    
+    /** Returns whether dragboard contains text. */
+    public static boolean hasText(DragEvent e) {
+        return e.getDragboard().hasString() || e.getDragboard().hasRtf();
     }
     
 /*********************************** SONGS ************************************/

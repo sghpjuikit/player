@@ -20,11 +20,34 @@ public class ClassListMap<E> extends ListMap<E,Class> {
     }
 
     /** 
-     * Returns elements mapped to this class or any of its superclasses (
-     * inclusing interfaces).
+     * Returns elements mapped to one of:
+     * <ul>
+     * <li>specified class
+     * <li>any of specified class' superclasses up to Object.class
+     * <li>any of specified class' interfaces
+     * <li>Void.class
+     * <ul>
+     * <p>
+     * Note: Void.class is useful for mapping objects based on their generic
+     * type.
+     */
+    public List<E> getElementsOfSuperV(Class key) {
+        List<E> o = getElementsOf(getSuperClassesInc(key));
+                o.addAll(getElementsOf(Void.class));
+        return o;
+    }
+    /** 
+     * Returns elements mapped to one of:
+     * <ul>
+     * <li>specified class
+     * <li>any of specified class' superclasses up to Object.class
+     * <li>any of specified class' interfaces
+     * <ul>
      */
     public List<E> getElementsOfSuper(Class key) {
-        return getElementsOf(getSuperClassesInc(key));
+        List<E> o = getElementsOf(getSuperClassesInc(key));
+                o.addAll(getElementsOf(Void.class));
+        return o;
     }
     
 }

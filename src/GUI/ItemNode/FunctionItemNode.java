@@ -75,5 +75,15 @@ public class FunctionItemNode<IN,OUT> extends ItemNodeBase<F1<IN,OUT>> {
         fCB.setValue(f);
         changeValue(in -> f.apply(in,configs.stream().map(ConfigField::getItem).toArray()));
     }
+    
+    public Class getTypeIn() {
+        PF<IN,OUT> f = fCB.getValue();
+        return f==null ? Void.class : f.in;
+    }
+    
+    public Class getTypeOut() {
+        PF<IN,OUT> f = fCB.getValue();
+        return f==null ? Void.class : f.out;
+    }
 
 }

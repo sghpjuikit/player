@@ -5,7 +5,9 @@
  */
 package util.collections;
 
+import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  *
@@ -29,10 +31,28 @@ public class PrefListMap<E,K> extends ListMap<E,K> {
         c.addPreferred(e, pref);
     }
 
+    
+    
 //    @Override
 //    public PrefList<E> get(Object key) {
 //        List<E> l = super.get(key);
 //        return l==null ? new PrefList() : (PrefList) super.get(key);
 //    }
+
+    @Override
+    public PrefList<E> getElementsOf(Collection<K> keys) {
+        return (PrefList) super.getElementsOf(keys);
+    }
+
+    @Override
+    public PrefList<E> getElementsOf(K... keys) {
+        return (PrefList) super.getElementsOf(keys); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public PrefList<E> getElementsOf(Stream<K> keys) {
+        return (PrefList) super.getElementsOf(keys); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     
 }

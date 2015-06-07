@@ -57,7 +57,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	    ((FreeFormArea)this).bestLayout();
 	});
         icons.getChildren().addAll(layB,closeB);
-        icons.setAlignment(CENTER_RIGHT);
+        icons.setAlignment(TOP_RIGHT);
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
         
@@ -78,6 +78,9 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 
     @Override
     public void show() {
+        if(container.getChildren().isEmpty()) {
+            setAltCon(true);
+        }
         isAlt = true;
         showChildren();
     }

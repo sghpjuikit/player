@@ -92,8 +92,11 @@ public class Util {
     /** Runnable that does nothing.  () -> {}; */
     public static final Runnable do_NOTHING = () -> {};
     
-    /** Function transforming object into its string representation by invoking its toString() method*/
-    public static final Function<Object,String> toString = Object::toString;
+    /** 
+     * Function transforming object into its string representation by invoking 
+     * its toString() method or "null" if null.
+     */
+    public static final Function<Object,String> toString = Objects::toString;
     
     /** Simple Collector concatenating Strings to coma separated list (CSList)
      *  by delimiter ", ". */
@@ -671,6 +674,13 @@ public class Util {
         return c.filter(f).map(m).collect(toList());
     }
 
+    
+    public static <K,V,E> Map<K,E> toMap(Function<V,K> key_extractor, Function<V,E> val_extractor, V... c) {
+        return Stream.of(c).collect(Collectors.toMap(key_extractor, val_extractor));
+    }
+    public static <K,V,E> Map<K,E> toMap(Collection<V> c, Function<V,K> key_extractor, Function<V,E> val_extractor) {
+        return c.stream().collect(Collectors.toMap(key_extractor, val_extractor));
+    }
     
     
     public static<T> List<T> split(String txt, String regex, int i, Function<String,T> m) {

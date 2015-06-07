@@ -35,8 +35,11 @@ public abstract class Component {
         if(WidgetManager.standaloneWidgets.contains(this)) return true;
         
         Component c = this;
-        do c = c instanceof Widget ? null : ((Container)c).getParent();
-        while(c!=null);
+        Component p = this;
+        do {
+            p = c instanceof Widget ? null : ((Container)c).getParent();
+            if(p!=null) c = p;
+        } while(p!=null);
         
         // top container is always layout
         return c instanceof Layout;

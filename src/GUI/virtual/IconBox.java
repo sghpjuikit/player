@@ -3,6 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package gui.virtual;
 
 import static java.util.Collections.reverseOrder;
@@ -32,7 +33,7 @@ public final class IconBox {
     }
     
     public IconBox() {
-	this(new HBox(), NodeOrientation.LEFT_TO_RIGHT);
+	this(new HBox(), LEFT_TO_RIGHT);
     }
     
     /** Sets node orientation to layout children to the left or right. */

@@ -18,7 +18,7 @@ public class StringSplitGenerator extends ItemNodeBase<StringSplitParser> {
     public StringSplitGenerator() {
         root.setPromptText("expression");
         root.textProperty().addListener((o,ov,nv) -> generateValue(nv));
-        generateValue("%input%");
+        generateValue("%Out%");
     }
     
     @Override

@@ -12,9 +12,9 @@ import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Layout;
+import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.LayoutAggregators.SimpleWithMenuAgregator;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Icon;
 import java.io.File;
@@ -23,14 +23,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javafx.animation.Animation;
-import javafx.animation.Transition;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
+import static javafx.util.Duration.millis;
 import main.App;
+import util.Animation.Anim;
 import util.File.FileUtil;
 import util.dev.Log;
 import static util.functional.Util.mapB;
@@ -63,7 +68,8 @@ public class WindowManager {
 
     public static void setMini(boolean val) {
         mini = val;
-        if(val) {App.getWindow().hide();
+        if(val) {
+            App.getWindow().hide();
             // avoid pointless operation
             if(miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
@@ -75,72 +81,62 @@ public class WindowManager {
             miniWindow.resizable.set(false);
             miniWindow.setAlwaysOnTop(true);
             
-            // create content
-                // layout
-            Layout l = new Layout();
-                   l.locked.set(true);
-            SimpleWithMenuAgregator la = new SimpleWithMenuAgregator(l);
-            miniWindow.setContent(la.getRoot());
-                // window menu
+            // create
+                // widget
+            Widget w = WidgetManager.getFactory("PlayerControlsTiny").create();
+            BorderPane content = new BorderPane();
+            content.setCenter(w.load());
+            miniWindow.setContent(content);
+                // menu
             Icon closeB = new Icon(CLOSE, 13, "Close window", App::close);
-            Icon ontopB = new Icon(null, 13, "Always on top", miniWindow::toggleAlwaysOnTOp);
-            maintain(miniWindow.alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
             Icon miniB = new Icon(null, 13, "Docked mode", miniWindow::toggleMini);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
-            la.getMenu().getChildren().addAll(miniB,ontopB,closeB);
-                // widget
-            l.setChild(WidgetManager.getFactory("PlayerControlsTiny").create());
+            Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowMainWindow);
+            maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB.icon);
+            
+            HBox controls = new HBox(8,mainB,miniB,closeB);
+                 controls.setAlignment(Pos.CENTER_RIGHT);
+                 controls.setFillHeight(false);
+                 controls.setPadding(new Insets(5,5,5,25));
+            content.setRight(controls);
+            
             // show and apply state
             miniWindow.show();
             miniWindow.setHeaderAllowed(false);
             miniWindow.setBorderless(true);
             miniWindow.update();
-            miniWindow.bgrImgLayer.setStyle("-fx-background-size: cover;");
-            la.getMenu().setPadding(new Insets(5));
-            la.getRoot().setStyle("-fx-background-color: -fx-pane-color;");
-            l.hide();
+            miniWindow.bgrImgLayer.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
+            miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
+            miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> WidgetManager.standaloneWidgets.remove(w));
             
-            // install autohiding
-            t = new Transition() {
-                {
-                    setCycleDuration(Duration.millis(300));
-                }
-                @Override
-                protected void interpolate(double frac) {
-                    double H = miniWindow.getHeight()-2; // leave 2 pixels visible
-                    miniWindow.setY(-H*frac, false);
-                }
-            };
+            // autohiding
+            Anim a = new Anim(millis(300),frac -> {
+                double H = miniWindow.getHeight()-2; // leave 2 pixels visible
+                miniWindow.setY(-H*frac, false);
+            });
             miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
                 Duration delay = Duration.ZERO;//Duration.seconds(0.8);
-                Duration d = t.getCurrentTime();
+                Duration d = a.getCurrentTime();
                 if(d.equals(Duration.ZERO)) {
                     d = Duration.millis(300).subtract(d);
                     delay = Duration.seconds(0.8);
                 }
-                t.stop();
-                t.setDelay(delay);
-                t.setRate(1);
-                t.playFrom(Duration.millis(300).subtract(d));
+                a.stop();
+                a.setDelay(delay);
+                a.setRate(1);
+                a.playFrom(Duration.millis(300).subtract(d));
             });
             
             miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_ENTERED, e -> {
                 if(miniWindow.getY()==0) return;
-                Duration d = t.getCurrentTime();
+                Duration d = a.getCurrentTime();
                 if(d.equals(Duration.ZERO)) 
                     d = Duration.millis(300).subtract(d);
-                t.stop();
-                t.setDelay(ZERO);
-                t.setRate(-1);
-                t.playFrom(d);
-                
-//                miniWindow.getStage().toFront();miniWindow.focus();
-//                miniWindow.getStage().getScene().getRoot().requestFocus();
+                a.stop();
+                a.setDelay(ZERO);
+                a.setRate(-1);
+                a.playFrom(d);
             });
-            
-            
-            
-            
         } else {
             // do nothing if not in minimode (for example during initialization)
             if(miniWindow==null) return;
@@ -310,6 +306,11 @@ public class WindowManager {
         }
     }
     
+    
+    public static void toggleShowMainWindow() {
+        Window w = App.getWindow();
+        if(w.isShowing()) w.hide(); else w.show();
+    }
     
 /******************************** NO TASKBAR MODE *****************************/
     

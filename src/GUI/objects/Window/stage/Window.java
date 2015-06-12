@@ -449,7 +449,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         rtB.setPadding(new Insets(0, 15, 0, 0));
 	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
         
-        Icon miniB = new Icon(null, 13, "Docked mode", this::toggleMini);
+        Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
         Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
         maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
@@ -740,10 +740,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
     public boolean isBorderlessApplied() {
 	return AnchorPane.getBottomAnchor(content) == 0;
-    }
-    
-    @FXML public void toggleMini() {
-	WindowManager.toggleMini();
     }
 
  /*********************************   MOVING   ********************************/

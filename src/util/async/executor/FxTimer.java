@@ -49,7 +49,7 @@ public class FxTimer implements Timer {
 
     @Override
     public void restart() {
-        restart(period);
+        FxTimer.this.restart(period);
     }
     
     /**
@@ -61,16 +61,25 @@ public class FxTimer implements Timer {
         stop();
         long expected = seq;
         this.period = period;
-        timeline.getKeyFrames().setAll(new KeyFrame(period, ae -> {
-            if(seq == expected) {
-                action.run();
-            }
-        }));
-        timeline.play();
+        
+        if(period.toMillis()==0)
+            runNow();
+        else {
+            timeline.getKeyFrames().setAll(new KeyFrame(period, ae -> {
+                if(seq == expected) {
+                    action.run();
+                }
+            }));
+            timeline.play();
+        }
     }
 
     public void restart(double periodInMs) {
-        restart(Duration.millis(periodInMs));
+        FxTimer.this.restart(Duration.millis(periodInMs));
+    }
+    
+    public void runNow() {
+        if(action!=null) action.run();
     }
     
     public void pause() {
@@ -120,12 +129,12 @@ public class FxTimer implements Timer {
      * @param timeout 
      */
     public void setTimeoutAndRestart(Duration timeout) {
-        if (isRunning()) restart(timeout);
+        if (isRunning()) FxTimer.this.restart(timeout);
         else FxTimer.this.setPeriod(timeout);
     }
     
     public void setTimeoutAndRestart(double timeautInMillis) {
-        if (isRunning()) restart(Duration.millis(timeautInMillis));
+        if (isRunning()) FxTimer.this.restart(Duration.millis(timeautInMillis));
         else FxTimer.this.setPeriod(Duration.millis(timeautInMillis));
     }
 }

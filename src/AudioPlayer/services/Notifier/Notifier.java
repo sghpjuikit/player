@@ -9,16 +9,16 @@ import AudioPlayer.services.Service;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetManager;
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import gui.InfoNode.ItemInfo;
-import Layout.Widgets.Features.SongInfo;
 import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Top_Right;
 import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import gui.objects.Text;
-import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import java.util.List;
 import static java.util.stream.Collectors.toList;
 import javafx.beans.value.ChangeListener;
@@ -45,7 +45,7 @@ public final class Notifier implements Service {
     
     private static Notification n;
     private static Node songNotifGui;
-    private static SongInfo songNotifInfo;
+    private static SongReader songNotifInfo;
     
     // dependencies
     private Subscription d1, d2;
@@ -92,12 +92,12 @@ public final class Notifier implements Service {
             } else {
                 Widget wf = WidgetManager.find(w->w.name().equals(v), NEW, true).get();
                 songNotifGui = wf.load();
-                songNotifInfo = (SongInfo)wf.getController();
+                songNotifInfo = (SongReader)wf.getController();
                 ((Pane)songNotifGui).setPrefSize(700, 300);
             }
         },() -> {
             List<String> l = WidgetManager.getFactories()
-                        .filter(f->f.hasFeature(SongInfo.class))
+                        .filter(f->f.hasFeature(SongReader.class))
                         .map(f->f.name()).collect(toList());
             l.add("Normal");
             l.add("Normal - no cover");
@@ -162,7 +162,7 @@ public final class Notifier implements Service {
     private void songChange(Metadata m) {
         if (showSongNotification) {
             String title = "Now playing";
-            songNotifInfo.setValue(m);
+            songNotifInfo.read(m);
             
             showNotification(songNotifGui, title);
         }
@@ -171,8 +171,8 @@ public final class Notifier implements Service {
     private void playbackChange(Status s) {
         if (showSongNotification || s == null) {
             String title = "Playback change : " + s;
-            SongInfo i = new ItemInfo(false);
-                     i.setValue(Player.playingtem.get());
+            SongReader i = new ItemInfo(false);
+                       i.read(Player.playingtem.get());
                      
             showNotification((Node)i, title);
         }

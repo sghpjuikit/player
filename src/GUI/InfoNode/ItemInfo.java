@@ -5,12 +5,14 @@
  */
 package gui.InfoNode;
 
+import AudioPlayer.playlist.Item;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.Features.SongInfo;
+import Layout.Widgets.Features.SongReader;
 import gui.objects.Thumbnail.Thumbnail;
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -19,7 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 
 /** Info about song. */
-public class ItemInfo extends AnchorPane implements SongInfo {
+public class ItemInfo extends AnchorPane implements SongReader {
 
     @FXML private Label typeL;
     @FXML private Label indexL;
@@ -61,10 +63,15 @@ public class ItemInfo extends AnchorPane implements SongInfo {
     public void initialize(URL url, ResourceBundle rb) {
 	// do nothing
     }
+    
+    @Override
+    public void read(List<? extends Item> items) {
+        read(items.isEmpty() ? null : items.get(0));
+    }
 
     @Override
-    public void setValue(Metadata m) {
-        setValue("", m);
+    public void read(Item m) {
+        setValue("", m.toMeta());
     }
     
     /**

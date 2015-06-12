@@ -6,10 +6,10 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import gui.objects.Window.stage.Window;
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
+import gui.objects.Window.stage.Window;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -538,6 +538,11 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
         Action a = actions.get(name.hashCode());
         if(a==null) throw new IllegalArgumentException("No such action: " + name);
         return a;
+    }
+    /** Do not use. Private API. Subject to change. */
+    @Deprecated
+    public static Action getActionOrNull(String name) {
+        return actions.get(name.hashCode());
     }
     
 /************************ action helper methods *******************************/

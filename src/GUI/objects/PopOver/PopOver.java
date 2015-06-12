@@ -870,8 +870,8 @@ public class PopOver<N extends Node> extends PopupControl {
         
         public double calcX(PopOver popup) {
             double W = popup.getSkinn().root.getWidth();
-//            double W = popup.getContentNode().layoutBoundsProperty().get().getWidth() + GAP;
-            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
+            Rectangle2D screen = popup.screen_preference.getScreenArea(App.getWindow().getStage(), this);
+//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
             WindowBase app = App.getWindow();
             switch(this) {
                 case App_Top_Left:
@@ -889,8 +889,8 @@ public class PopOver<N extends Node> extends PopupControl {
         }
         public double calcY(PopOver popup) {
             double H = popup.getSkinn().root.getHeight();
-//            double H = popup.getContentNode().layoutBoundsProperty().get().getHeight() + GAP;
-            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
+            Rectangle2D screen = popup.screen_preference.getScreenArea(App.getWindow().getStage(), this);
+//            Rectangle2D screen = popup.screen_preference.getScreenArea(popup.ownerWindow, this);
             WindowBase app = App.getWindow();
             switch(this) {
                 case App_Bottom_Left:

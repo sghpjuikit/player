@@ -7,11 +7,11 @@ package gui.objects.Thumbnail;
 import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import gui.Traits.ScaleOnHoverTrait;
-import gui.objects.ContextMenu.ImprovedContextMenu;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
+import gui.Traits.ScaleOnHoverTrait;
+import gui.objects.ContextMenu.ImprovedContextMenu;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -201,8 +201,12 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         load(i, img);
     }
     public void loadImage(Cover img) {
-        Point2D size = calculateImageLoadSize(root);
-        load(img.getImage(size.getX(), size.getY()), img.getFile());
+        if(img==null) {
+            loadImage((Image)null);
+        } else {
+            Point2D size = calculateImageLoadSize(root);
+            load(img.getImage(size.getX(), size.getY()), img.getFile());
+        }
     }
     
     private void load(Image i, File f) {        

@@ -11,7 +11,8 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.FileExplorerFeature;
-import Layout.Widgets.Features.TaggingFeature;
+import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.Features.SongWriter;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
@@ -116,7 +117,7 @@ import web.HttpSearchQueryBuilder;
     year = "2015",
     group = LIBRARY
 )
-public class LibraryController extends FXMLController {public String a() { return ""; }
+public class LibraryController extends FXMLController implements SongReader {
     
     private @FXML AnchorPane root;
     private @FXML VBox content;
@@ -384,7 +385,7 @@ public class LibraryController extends FXMLController {public String a() { retur
             .use(items ->{
                 Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
                     if(ok & edit)
-                        WidgetManager.use(TaggingFeature.class, NO_LAYOUT, w -> w.read(added));
+                        WidgetManager.use(SongReader.class, NO_LAYOUT, w -> w.read(added));
 
                     hideInfo.restart();
 //                    taskInfo.hideNunbind();
@@ -403,6 +404,20 @@ public class LibraryController extends FXMLController {public String a() { retur
     }
     @FXML private void removeAll() {
         DB.clearLib();
+    }
+
+    
+/******************************** PUBLIC API **********************************/
+    
+    /**
+     * Converts items to Metadata using {@link Item#toMeta()} (using no I/O)
+     * and displays them in the table.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public void read(List<? extends Item> items) {
+        table.setItemsRaw(map(items,Item::toMeta));
     }
     
 /********************************* CONFIGS ************************************/
@@ -443,10 +458,15 @@ public class LibraryController extends FXMLController {public String a() { retur
                     List<Metadata> items = m.getValue();
                     DB.removeItems(items);
                 }),
-                new Menu("Edit tags in",null,
-                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(TaggingFeature.class),f->f.name()),
+                new Menu("Show in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
                             (String f) -> f,
-                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((TaggingFeature)c.getController()).read(m.getValue())))
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue())))
+                ),
+                new Menu("Edit tags in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.name()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
                 ),
                 menuItem("Explore items's directory", e -> {
                     List<Metadata> items = m.getValue();

@@ -9,14 +9,15 @@ import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
+import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.Features.SongWriter;
+import Layout.Widgets.WidgetManager;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuInstance;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
-import Layout.Widgets.Features.TaggingFeature;
-import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -362,10 +363,15 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 menuItem("Remove items", e -> {
                     PlaylistManager.removeItems(m.getValue());
                 }),
-                new Menu("Edit tags in",null,
-                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(TaggingFeature.class),f->f.name()),
+                new Menu("Show in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
                             (String f) -> f,
-                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((TaggingFeature)c.getController()).read(m.getValue())))
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue())))
+                ),
+                new Menu("Edit tags in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.name()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
                 ),
                 menuItem("Crop items", e -> {
                     PlaylistManager.retainItems(m.getValue());

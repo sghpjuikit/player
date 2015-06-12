@@ -162,9 +162,10 @@ public class Configuration {
      * @param name
      * @return config with given name or null if such config does not exists
      */
+    @SuppressWarnings("deprecation")
     public static Config getField(String name) {
         Config c = configs.get(name);
-        if (c==null) c = Action.getAction(name);
+        if (c==null) c = Action.getActionOrNull(name);
         return c;
     }
     

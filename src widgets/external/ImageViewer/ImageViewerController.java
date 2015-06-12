@@ -6,19 +6,21 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import gui.InfoNode.ItemInfo;
-import gui.objects.Thumbnail.Thumbnail;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_RIGHT;
+import gui.InfoNode.ItemInfo;
+import gui.objects.Icon;
+import gui.objects.Thumbnail.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import javafx.animation.FadeTransition;
@@ -35,22 +37,25 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.Subscription;
-import static util.File.FileUtil.copyFiles;
 import static util.File.FileUtil.getFilesImage;
 import util.Util;
 import util.access.Accessor;
-import static util.async.Async.eFX;
+import static util.async.Async.FX;
 import util.async.executor.FxTimer;
+import util.async.future.Fut;
+import util.async.runnable.Run;
 import static util.functional.Util.forEachIStream;
 import util.graphics.drag.DragUtil;
 
@@ -62,18 +67,29 @@ import util.graphics.drag.DragUtil;
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Image Viewer",
-    description = "Displays images.",
-    howto = "Available actions:\n" +
-            "    Left click middle: Shows/hides thumbnails\n" +
-            "    Left click left side: Previous image\n" +
-            "    Left click right side : Next image\n" +
-            "    Left click bottom : Turns theater mode on/off\n" +
-            "    Info pane right click : Shows/hides bacground for info pane\n" +
-            "    Image right click : Opens image context menu\n" +
-            "    Thumbnail left click : Set as image\n" +
-            "    Thumbnail right click : Opens thumbnail context menu\n" +
-            "    Drag&Drop audio : Displays images for the first dropped item\n" + 
-            "    Drag&Drop image : Copies images into current item's locaton\n",
+    description = "Displays images in directory. Shows main image and thumbnails. "
+        + "Looks for images in subfolders.",
+    howto = ""
+        + "    The widget displays an image and wimage thumbnails for images in "
+        + "specific directory. Main can change automatically (slideshow) or "
+        + "manually by clicking on the thumbnail, or navigating to next/previous "
+        + "image.\n"
+        + "    User can display image or images in a location by setting the "
+        + "file or directory, e.g., by drag & drop. The widget can also follow "
+        + "playing or selected songs, displaying images in their parent "
+        + "directory.\n"
+        + "    The image search is recursive and search depth configurable.\n"
+        + "\n"
+        + "Available actions:\n"
+        + "    Left click: Shows/hides thumbnails\n"
+        + "    Left click bottom : Toggles info pane\n"
+        + "    Nav icon click : Previous/Next image\n"
+        + "    Info pane right click : Shows/hides bacground for info pane\n"
+        + "    Image right click : Opens image context menu\n"
+        + "    Thumbnail left click : Set as image\n"
+        + "    Thumbnail right click : Opens thumbnail context menu\n"
+        + "    Drag&Drop audio : Displays images for the first dropped item\n"
+        + "    Drag&Drop image : Show images\n",
     notes = "",
     version = "1.0",
     year = "2014",
@@ -169,8 +185,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         thumbnail.getPane().prefWidthProperty().bind(entireArea.widthProperty());
         thumbnail.getPane().prefHeightProperty().bind(entireArea.heightProperty());
         
-        fIn = new FadeTransition(Duration.millis(500), thumb_root);
-        fOut = new FadeTransition(Duration.millis(500), thumb_root);
+        fIn = new FadeTransition(millis(500), thumb_root);
+        fOut = new FadeTransition(millis(500), thumb_root);
         fIn.setToValue(1);
         fOut.setToValue(0);
         fOut.setOnFinished(e->thumb_root.setVisible(false));
@@ -180,19 +196,42 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 if(e.getY()>0.8*entireArea.getHeight() && e.getX()>0.7*entireArea.getWidth()) {
                     theater_mode.setCycledNapplyValue();
                 } else {
-                    double width = entireArea.getWidth();
-                    if (e.getX() < 0.15*width) prevImage();
-                    else if(e.getX() > 0.85*width) nextImage();
-                    else showThumbnails.setCycledNapplyValue();
+//                    double width = entireArea.getWidth();
+//                    if (e.getX() < 0.15*width) prevImage();
+//                    else if(e.getX() > 0.85*width) nextImage();
+//                    else 
+                    showThumbnails.setCycledNapplyValue();
                 }
                 e.consume();
             }
         });
         
+        Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image");
+        Pane nextP = new StackPane(nextB);
+             nextP.setOnMouseClicked(Run.of(this::nextImage).toHandlerConsumed());
+             nextP.getStyleClass().add("nav-pane");
+             nextP.prefWidthProperty().bind(entireArea.widthProperty().divide(10));
+             nextP.setMinWidth(20);
+             nextB.visibleProperty().bind(nextP.hoverProperty());
+        Icon prevB = new Icon(ARROW_LEFT, 18, "Previous image");
+        Pane prevP = new StackPane(prevB);
+             prevP.setOnMouseClicked(Run.of(this::prevImage).toHandlerConsumed());
+             prevP.getStyleClass().add("nav-pane");
+             prevP.prefWidthProperty().bind(entireArea.widthProperty().divide(10));
+             prevP.setMinWidth(20);
+             prevB.visibleProperty().bind(prevP.hoverProperty());
+        entireArea.getChildren().addAll(prevP,nextP);
+        AnchorPane.setBottomAnchor(nextP, 0d);
+        AnchorPane.setTopAnchor(nextP, 0d);
+        AnchorPane.setRightAnchor(nextP, 0d);
+        AnchorPane.setBottomAnchor(prevP, 0d);
+        AnchorPane.setTopAnchor(prevP, 0d);
+        AnchorPane.setLeftAnchor(prevP, 0d);
+        
         // position thumbnail scroll pane & make sure it doesnt cover whole area
         Util.setAnchors(thumb_root, 0);
         entireArea.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
-        thumb_root.toFront();
+        thumb_root.toBack();
         // prevent scrollpane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
@@ -217,26 +256,13 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
-            }
-            if(folder.get()!=null && DragUtil.hasImage(e.getDragboard())) {
-                 ProgressIndicator p = App.getWindow().taskAdd();
-                 CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
-                    .thenCompose(nothing -> DragUtil.getImages(e))
-                    .thenAcceptAsync(files -> {
-                        // prevent copying displayed items
-                        // the copyng itself prevents copying the files if source and
-                        // destination is the same, but we obtained files recursively
-                        // which means the location can differ
-                        files.removeIf(images::contains);
-                        // copy files to displayed item's location
-                        copyFiles(files, folder.get())
-                            // create thumbnails for new files (we avoid refreshing all)
-                            .forEach(f->addThumbnail(f));
-
-                        p.setProgress(1);
-                    },eFX)
-                    .thenRun(()->{})
-                    .complete(null);
+            } else 
+            if(DragUtil.hasImage(e.getDragboard())) {
+                 new Fut<>()
+                    .then(DragUtil.getImages(e))
+                    .use(this::showImages,FX)
+                    .showProgress(App.getWindow().taskAdd())
+                    .run();
                 
                 e.setDropCompleted(true);
                 e.consume();
@@ -285,7 +311,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @Override
     public boolean isEmpty() {
         return thumbnails.isEmpty();
-//        return folder.get() == null;
     }
     
     /** {@inheritDoc} */

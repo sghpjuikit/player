@@ -8,19 +8,19 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import gui.InfoNode.InfoTable;
-import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
-import gui.objects.PopOver.PopOver;
-import gui.objects.SimpleConfigurator;
-import gui.objects.Table.PlaylistTable;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.PlaylistFeature;
-import Layout.Widgets.Features.TaggingFeature;
+import Layout.Widgets.Features.SongReader;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.PLAYLIST;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import gui.InfoNode.InfoTable;
+import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import gui.objects.PopOver.PopOver;
+import gui.objects.SimpleConfigurator;
+import gui.objects.Table.PlaylistTable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.function.Predicate;
@@ -240,7 +240,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @FXML
     public void tagEditSelected() {
-        WidgetManager.use(TaggingFeature.class,NO_LAYOUT,w->w.read(table.getSelectedItems()));
+        WidgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()));
     }
     
     @FXML

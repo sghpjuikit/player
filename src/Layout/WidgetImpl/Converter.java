@@ -9,7 +9,7 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.Config;
 import Layout.Widgets.ClassWidgetController;
-import Layout.Widgets.Features.TaggingFeature;
+import Layout.Widgets.Features.SongWriter;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
@@ -64,14 +64,14 @@ import util.graphics.drag.DragUtil;
         + "edit filenames or song names. This is done using an 'applier' that "
         + "uses the 'output' and applies it no an input.\n"
         + "    Input is a list of objects and can be set by drag&drop. It can "
-        + "then be transformed to text (object per by line) using available "
+        + "then be transformed to text (object per line) using available "
         + "object to text functions, e.g., song to artist or file to filename.\n"
         + "    Output is the final contents of the text area exactly as "
         + "visible. Some text  transformations split text into multiple parts "
         + "(again, each line), which produces multiple outputs, each in separate "
         + "text area. Text areas have a name in their header.\n"
         + "    Action is determined by the type of input. User can select which "
-        + "output text areas to use. The action then applies the text to the "
+        + "output he wants to use. The action then applies the text to the "
         + "input, each line to its respective object (determined by order). "
         + "Number of objects and lines must match.\n"
         + "\n"
@@ -89,7 +89,7 @@ import util.graphics.drag.DragUtil;
     year = "2015",
     group = APP
 )
-public class Converter extends ClassWidgetController implements TaggingFeature {
+public class Converter extends ClassWidgetController implements SongWriter {
     
     private final ObservableList source = FXCollections.observableArrayList();
     StringSplitGenerator splitter = new StringSplitGenerator();
@@ -128,17 +128,23 @@ public class Converter extends ClassWidgetController implements TaggingFeature {
         
         // on source change run transformation
         source.addListener((Change change) -> {
-            boolean empty = source.isEmpty();
-            Class c = empty ? Void.class : source.get(0).getClass();
+            Class c = source.isEmpty() ? Void.class : source.get(0).getClass();
             applier.fillActs(c);
             transform();
         });
         splitter.onItemChange = f -> transform();
         
         inTa.onItemChange = lines -> {
+            System.out.println("lines " + toS(lines));
             StringSplitParser p = splitter.getValue();
             List<List<String>> outs = list(p.parse_keys.size(), ArrayList::new);
             lines.forEach(line -> forEachI(p.apply(line), (i,l)->outs.get(i).add(l)));
+            
+//            outTas = new ArrayList();
+//            for(int i=0; i<outs.size(); i++) {
+//                outTas.add(new TA(""));
+//                outTas.get(i).setData(p.parse_keys.get(i), outs.get(i));
+//            }
             outTas = list(p.parse_keys.size(), () -> new TA(""));
             tas.setAll(gatherTas());
             forEachI(outs, (i,lins) -> outTas.get(i).setData(p.parse_keys.get(i), lins));
@@ -171,7 +177,7 @@ public class Converter extends ClassWidgetController implements TaggingFeature {
     
 /******************************* helper classes *******************************/
     
-    private class TA extends ListAreaNode<Object> {
+    private class TA extends ListAreaNode {
         private final Label nameL = new Label("");
         public final StringProperty name = nameL.textProperty();
 
@@ -182,8 +188,8 @@ public class Converter extends ClassWidgetController implements TaggingFeature {
         }
 
         public void setData(String name, List<? extends Object> input) {
-            super.setData(input);
             this.name.set(capitalizeStrong(name));
+            super.setData(input);
         }
     }
     private class Applier {
@@ -204,7 +210,7 @@ public class Converter extends ClassWidgetController implements TaggingFeature {
                 boolean empty = source.isEmpty() || ins.getValues().count()==0;
                 if(empty) return;
 
-                boolean in_out_type_match = action!=null && action.type.isInstance(source.get(0));
+                boolean in_out_type_match = true;//action.type.isInstance(source.get(0));
                 boolean same_size = equalBy(tas, ta->ta.getValue().size());
                 if(!in_out_type_match || !same_size) return;
                 Map<String,List<String>> m = tas.stream().collect(toMap(ta->ta.name.get(),ta ->ta.getValue()));

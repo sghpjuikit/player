@@ -130,8 +130,8 @@ public class MetadataReader{
      * When error occurs during reading {@link Metadata#EMPTY()} will be
      * returned.
      * <p>
-     * Runs on main application thread. Avoid using this method in loops or in
-     * chains.
+     * Incurs costly I/O.
+     * Avoid using this method in loops or in chains on main application thread.
      *
      * @param item
      * @return metadata for specified item or {@link Metadata#EMPTY()} if error.

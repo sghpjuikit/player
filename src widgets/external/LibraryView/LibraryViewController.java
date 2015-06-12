@@ -13,6 +13,14 @@ import AudioPlayer.tagging.MetadataGroup;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.Features.SongWriter;
+import static Layout.Widgets.Widget.Group.LIBRARY;
+import Layout.Widgets.Widget.Info;
+import Layout.Widgets.WidgetManager;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import gui.GUI;
 import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.CheckMenuItem;
@@ -25,13 +33,6 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.TaggingFeature;
-import static Layout.Widgets.Widget.Group.LIBRARY;
-import Layout.Widgets.Widget.Info;
-import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import static java.time.Duration.ofMillis;
 import java.time.Year;
 import java.util.*;
@@ -73,7 +74,6 @@ import static util.async.Async.runNew;
 import util.async.executor.LimitedExecutor;
 import util.async.future.Fut;
 import util.collections.Histogram;
-import util.collections.ListMap;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
@@ -109,14 +109,13 @@ public class LibraryViewController extends FXMLController {
     private @FXML AnchorPane root;
     private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
+    ActionChooser actPane = new ActionChooser();
+    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
     
     // dependencies
     private Subscription d1,d2;
-    
+    private boolean isRefreshing = false;
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
-    ActionChooser actPane = new ActionChooser();
-    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
-    private ListMap<Metadata,Object> cache = null;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -152,11 +151,6 @@ public class LibraryViewController extends FXMLController {
     });
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, v -> {
-            // rebuild cache
-            if(cache!=null) {
-                cache.clear();
-                cache.keyMapper = m -> m.getField(v);
-            }
             // rebuild value column
             find(table.getColumns(), c -> VALUE == c.getUserData()).ifPresent(c -> {
                 TableColumn<MetadataGroup,?> t = table.getColumnFactory().call(VALUE);
@@ -168,7 +162,7 @@ public class LibraryViewController extends FXMLController {
             table.getSearchBox().setPrefTypeSupplier(() -> tuple(VALUE.toString(v), VALUE.getType(v), VALUE));
             table.getSearchBox().setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(v),mgf.getType(v),mgf)));
             // repopulate
-            setItems(DB.views.getValue(lvl.getValue()));
+            if(!isRefreshing) setItems(DB.views.getValue(lvl.getValue()));
         },
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
     );  
@@ -286,6 +280,7 @@ public class LibraryViewController extends FXMLController {
     
     @Override
     public void refresh() {
+        isRefreshing = true;
         runOnce.execute(()->table.setColumnState(columnInfo));
         
         table_orient.applyValue();
@@ -294,8 +289,8 @@ public class LibraryViewController extends FXMLController {
         show_header.applyValue();
         show_menu_button.applyValue();
         fieldFilter.applyValue();
-        // apply last as it loads data
-        lvl.applyValue();
+        lvl.applyValue();   // apply last
+        isRefreshing = false;
     }
 
     @Override
@@ -325,7 +320,7 @@ public class LibraryViewController extends FXMLController {
     private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
     
     /** populates metadata groups to table from metadata list */
-    private void setItems(List<Metadata> list) {
+    private void setItems(List<Metadata> list) {if(lvl.get()==2) System.out.println("SEEEEEEEEEEET");
         // doesnt work ?
         new Fut<>(fieldFilter.getValue())
             .use(f -> {
@@ -384,34 +379,10 @@ public class LibraryViewController extends FXMLController {
     }
     
     private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
-//        // use cache if needed
-//        boolean needed = lvl.getValue()==1 && list.size()>5000;
-//        if(lvl.getValue()==1) System.out.println("need " + needed);
-//        // build cache if not yet
-//        if(needed && cache==null) {System.out.println("building cache");
-//            cache = new ListCacheMap<>(m -> m.getField(fieldFilter.getValue()));
-//        }
-//        // get rid of cache if not needed
-//        if(!needed && cache!= null) {System.out.println("disposing cache");
-//            cache.clear();
-//            cache = null;
-//        }
-//        // accumulate cache if not yet
-//        if(needed && cache.isEmpty()) {System.out.println("accumulating cache");
-//            cache.accumulate(list);
-//        }
-//        
-//        if(needed) {System.out.println("returning cached");
-//            List<MetadataGroup> mgs = table.getSelectedOrAllItemsCopy();
-//            Stream keys = mgs.stream().map(mg->mg.getValue());
-//            return cache.getElementsOf(keys);
-//        }
 
-        // build filter
         List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
-//        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItemsCopy() : table.getSelectedItemsCopy();
         
-        // optimisation : if empty, dont bother filtering
+        // optimization : if empty, dont bother filtering
         if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList(list);
         
         // composed predicate, too much wasteful computation...
@@ -455,31 +426,25 @@ public class LibraryViewController extends FXMLController {
     
     private boolean sel_lock = false;
     private Set sel_old;
-    
+
     private void selectionStore() {
         // remember selected
         sel_old = table.getSelectedItems().stream().map(MetadataGroup::getValue).collect(toSet());
+        
         sel_lock = true;    // prevent selection from propagating change
     }
     private void selectionReStore() {
         // update selected - restore every available old one
         forEachI(table.getItems(), (i,mg) -> {
-            if(sel_old.contains(mg.getValue()))
+            if(sel_old.contains(mg.getValue())) {
                 table.getSelectionModel().select(i);
+            }
         });
+        // performance optimization - prevents refreshed of a lot of items
+        if(table.getSelectionModel().isEmpty() && !table.getItems().isEmpty())
+            table.getSelectionModel().select(0);
+        
         sel_lock = false;   // enable propagation
-    }
-    
-/******************************* SELECTION FREQUENCY **************************/
-    
-    private long sel_last = 0;
-    
-    private void selectionChangeStore() {
-        sel_last = System.currentTimeMillis();
-    }
-    
-    private boolean selectionChangeTooSoon() {
-        return System.currentTimeMillis() - sel_last < 250;
     }
     
 /******************************** CONTEXT MENU ********************************/
@@ -496,10 +461,15 @@ public class LibraryViewController extends FXMLController {
                 menuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
-                new Menu("Edit tags in",null,
-                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(TaggingFeature.class),f->f.name()),
+                new Menu("Show in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
                             (String f) -> f,
-                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((TaggingFeature)c.getController()).read(m.getValue())))
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongReader)c.getController()).read(m.getValue())))
+                ),
+                new Menu("Edit tags in",null,
+                    menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongWriter.class),f->f.name()),
+                            (String f) -> f,
+                            (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
                 ),
                 searchMenu
             );

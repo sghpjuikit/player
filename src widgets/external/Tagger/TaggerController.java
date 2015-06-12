@@ -12,6 +12,15 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.Features.SongWriter;
+import Layout.Widgets.Widget;
+import PseudoObjects.ReadMode;
+import static PseudoObjects.ReadMode.CUSTOM;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import gui.ItemNode.TextFieldItemNode.MoodItemNode;
 import gui.objects.CheckIcon;
 import gui.objects.GraphicalTextField;
@@ -20,14 +29,6 @@ import gui.objects.PopOver.PopOver;
 import gui.objects.PopOver.PopOver.NodeCentricPos;
 import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
 import gui.objects.Thumbnail.ChangeableThumbnail;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.TaggingFeature;
-import Layout.Widgets.Widget;
-import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.CUSTOM;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import java.io.File;
 import java.net.URI;
 import java.time.Year;
@@ -104,7 +105,7 @@ import util.parsing.Parser;
     version = "0.8",
     year = "2015",
     group = Widget.Group.TAGGER)
-public class TaggerController extends FXMLController implements TaggingFeature {
+public class TaggerController extends FXMLController implements SongWriter, SongReader {
     
     @FXML AnchorPane root;
     @FXML AnchorPane content;
@@ -348,11 +349,10 @@ public class TaggerController extends FXMLController implements TaggingFeature {
     BooleanProperty add_not_set = new SimpleBooleanProperty(false);
     
     /**
-     * Reads metadata on provided items and fills the data for tagging. 
-     * @param items list of any type of items to edit. The list can be mixed and
-     * contain any Item types. If list contains Metadata themselves, their data will
-     * be immediately used.
-     * @throws NullPointerException if param null
+     * Reads metadata on provided items and fills the data for tagging.
+     * If list contains Metadata, reading is skipped.
+     * <p>
+     * {@inheritDoc}
      */    
     @Override
     public void read(List<? extends Item> items) {

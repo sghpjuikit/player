@@ -9,28 +9,30 @@ import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
+import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import gui.Panes.ImageFlowPane;
-import gui.objects.ActionChooser;
-import gui.objects.Icon;
-import gui.objects.Rater.Rating;
-import gui.objects.Thumbnail.ChangeableThumbnail;
 import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.SongInfo;
+import Layout.Widgets.Features.SongReader;
 import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.OTHER;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import gui.objects.ActionChooser;
+import gui.objects.Icon;
+import gui.objects.Rater.Rating;
+import gui.objects.Thumbnail.ChangeableThumbnail;
+import gui.pane.ImageFlowPane;
 import java.io.File;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
@@ -49,10 +51,11 @@ import org.reactfx.Subscription;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
 import util.File.ImageFileFormat;
-import util.Util;
+import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.*;
 import util.async.future.Fut;
+import static util.functional.Util.list;
 import util.graphics.drag.DragUtil;
 import static util.graphics.drag.DragUtil.hasImage;
 
@@ -65,24 +68,27 @@ import static util.graphics.drag.DragUtil.hasImage;
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "File Info",
-    description = "Displays information about a song and cover. Supports rating change.",
-    howto = "Available actions:\n" +
-            "    Cover left click : Toggles show fields\n" +
-            "    Cover left click : Opens over context menu\n" +
-            "    Rater left click : Rates displayed song\n" +
-            "    Rater right click : Toggles rater skin\n" +
-            "    Drag&Drop audio : Displays information for the first dropped item\n" +
-            "    Drag&Drop image on cover: Copies images into current item's locaton\n" +
-            "    Drag&Drop image elsewhere: Copies images into current item's locaton as cover\n",
+    description = "Displays song information and cover. Supports rating change.",
+    howto = ""
+        + "    User can set a song to this widget to display its information. "
+        + "This can be done manually, e.g., by drag & drop, or the widget can "
+        + "follow the playing or table selections (playlist, etc.).\n"
+        + "\n"
+        + "Available actions:\n"
+        + "    Cover left click : Opens over context menu\n"
+        + "    Rater left click : Rates displayed song\n"
+        + "    Drag&Drop songs : Displays information for the first song\n"
+        + "    Drag&Drop image on cover: Copies images into current item's locaton\n",
     version = "1.0",
     year = "2014",
-    group = Widget.Group.OTHER
+    group = OTHER
 )
-public class FileInfoController extends FXMLController implements SongInfo {
+public class FileInfoController extends FXMLController implements SongReader {
     
     @FXML AnchorPane entireArea;
-    ImageFlowPane layout;
-    TilePane tiles = new TilePane(VERTICAL,10,0);
+    ChangeableThumbnail cover;
+    private final TilePane tiles = new FieldsPane();
+    private ImageFlowPane layout;
     
     private final Label title = new Label(); 
     private final Label track = new Label(); 
@@ -109,14 +115,19 @@ public class FileInfoController extends FXMLController implements SongInfo {
     private final Label location = new Label(); 
     private final Rating rater = new Rating();
     
-    private List<Label> labels;
-    private final List<Label> visible_labels = new ArrayList();
-    private Subscription dataMonitoring;
     private Metadata data;
+    private final List<Label> visible_labels = new ArrayList();
+    private final List<Label> labels = list(title, track, disc, gap1, artist, 
+        album, album_artist, year, genre, composer, publisher, gap2, rating, 
+        playcount, comment, category, gap3, filesize, filename, format, bitrate,
+        encoding, location);
     
-    // auto applied configurable values    
+    // disposable
+    private Subscription d;
+    
+    // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> resize(tiles.getWidth(), tiles.getHeight()));
+    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> tiles.layout());
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
@@ -124,9 +135,9 @@ public class FileInfoController extends FXMLController implements SongInfo {
     @IsConfig(name = "Show cover", info = "Show cover.")
     public final Accessor<Boolean> showCover = new Accessor<>(true, this::setCoverVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
-    public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setShowContent(v));
+    public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setContentVisible(v));
     @IsConfig(name = "Item source", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring, this::setValue));
+    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> d = Player.subscribe(v,d, this::setValue));
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
@@ -171,15 +182,13 @@ public class FileInfoController extends FXMLController implements SongInfo {
     public final Accessor<Boolean> showencoding = new Accessor<>(true, v -> setVisibility());
     @IsConfig(name = "Show location", info = "Show this field.")
     public final Accessor<Boolean> showlocation = new Accessor<>(true, v -> setVisibility());
-    
-    // non appliable configurable values
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
     
     @Override
     public void init() {
         // initialize gui
-        ChangeableThumbnail cover = new ChangeableThumbnail();
+        cover = new ChangeableThumbnail();
                   cover.setBackgroundVisible(false);
                   cover.setBorderToImage(false);
                   cover.onFileDropped = f -> {
@@ -187,32 +196,20 @@ public class FileInfoController extends FXMLController implements SongInfo {
                       getArea().setActivityVisible(true);
                   };
                   
-        layout = new ImageFlowPane(entireArea, cover);
-        layout.setMinContentWidth(200);
-        layout.setMinContentHeight(120);
-        layout.setGap(5);
+        layout = new ImageFlowPane(cover, tiles);
+        entireArea.getChildren().add(layout);
+        setAnchors(layout,0);
+        layout.setMinCOntentSize(200,120);
+        layout.setGap(8);
         
-        // set autosizing for tiles to always fill the grid entirely
-        tiles.widthProperty().addListener((o,ov,nv) -> resize(nv.doubleValue(), tiles.getHeight()));
-        tiles.heightProperty().addListener((o,ov,nv) -> resize(tiles.getWidth(), nv.doubleValue()));
-        
-        // alight tiles from left top & tile content to center left
+        // alight tiles from left top & tile content to center left + pad
         tiles.setAlignment(TOP_LEFT);
         tiles.setTileAlignment(CENTER_LEFT);
+        tiles.setPadding(new Insets(3));
         
         // add rater stars to rating label as graphics
         rating.setGraphic(rater);
         rating.setContentDisplay(ContentDisplay.RIGHT);
-        
-        // grab fields
-        labels = Arrays.asList( title, track, disc, gap1,
-            artist, album, album_artist, year, genre, composer, publisher, gap2,
-            rating, playcount, comment, category, gap3,
-            filesize, filename, format, bitrate, encoding, location);
-        
-        layout.addChild(tiles);
-        Util.setAnchors(tiles, 3);
-        
         
         // bind rating to app configs
         rater.icons.bind(App.maxRating);
@@ -227,10 +224,9 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // handle audio drag transfers
         entireArea.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
-                // get first item
-                List<Item> items = DragUtil.getAudioItems(e);
-                // getMetadata, refresh
-                if (!items.isEmpty()) setValue(items.get(0).getMetadata());
+                new Fut<>().then(DragUtil.getSongs(e))
+                    .use(items -> items.findFirst().ifPresent(i -> runLater(() -> read(i))))
+                    .run();
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
@@ -331,7 +327,7 @@ public class FileInfoController extends FXMLController implements SongInfo {
     
     @Override
     public void close() {
-        if (dataMonitoring != null) dataMonitoring.unsubscribe();
+        if (d != null) d.unsubscribe();
     }
     
 /********************************* PUBLIC API *********************************/
@@ -351,9 +347,25 @@ public class FileInfoController extends FXMLController implements SongInfo {
     public boolean isEmpty() {
         return data == null;
     }
-
+    
+/********************************** FEATURES **********************************/
+    
+    /** {@inheritDoc} */
     @Override
-    public void setValue(Metadata m) {
+    public void read(Item item) {
+        if(item instanceof Metadata) setValue((Metadata)item);
+        else MetadataReader.create(item, (ok,m) -> {  if(ok) setValue(m); });
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public void read(List<? extends Item> items) {
+        read(items.isEmpty() ? null : items.get(0));
+    }
+    
+/********************************* PRIVATE API ********************************/
+
+    private void setValue(Metadata m) {
         // prevent refreshing location if shouldnt
         if(!allowNoContent && m==EMPTY) return;
         
@@ -489,49 +501,57 @@ public class FileInfoController extends FXMLController implements SongInfo {
         // in the end we must remove the text because we use stars instead
         rating.setText("rating: ");
         
-        // bugfix (work in progress)
-        entireArea.applyCss();
-        entireArea.autosize();
-        entireArea.layout();
-        entireArea.requestLayout();
-        
-        resize(entireArea.getWidth(), entireArea.getHeight());
+        tiles.layout();
     }
     
     private void setCover(CoverSource source) {
         // get image
         if (data == null) {
-            layout.setImage((Image)null); // clear
+            cover.loadImage((Image)null); // clear
         } else {
             Cover c = data.getCover(source);
-            if(c.getFile()!=null) layout.setImage(c.getFile());
-            else layout.setImage(c.getImage());
+            cover.loadImage(c);
         }
     }
     
     private void setCoverVisible(boolean v) {
-        layout.setShowImage(v);        
+        layout.setImageVisible(v);        
     }
     
-    private void resize(double width, double height) {
-        double cellH = 15+tiles.getVgap();
-        int rows = (int)floor(max(height, 5)/cellH);
-        if(rows==0) rows=1;
-        int columns = 1+(int) ceil(visible_labels.size()/rows);
-        double cellW = columns==1 || columns==0 
-            // dont allow 0 columns & set whole width if 1 column
-            // handle 1 column manually - the below caused some problems
-            ? width
-            // for n elements there is n-1 gaps so we need to add 1 gap width
-            // above cell width includes 1 gap width per element so substract it
-            : (width + tiles.getHgap())/columns - tiles.getHgap();
+    
+    private class FieldsPane extends TilePane {
+
+        public FieldsPane() {
+            super(VERTICAL,10,0);
+        }
+
+        @Override
+        protected void layoutChildren() {
+            double width = getWidth();
+            double height = getHeight();
+            
+            double cellH = 15+tiles.getVgap();
+            int rows = (int)floor(max(height, 5)/cellH);
+            if(rows==0) rows=1;
+            int columns = 1+(int) ceil(visible_labels.size()/rows);
+            double cellW = columns==1 || columns==0 
+                // dont allow 0 columns & set whole width if 1 column
+                // handle 1 column manually - the below caused some problems
+                ? width
+                // for n elements there is n-1 gaps so we need to add 1 gap width
+                // above cell width includes 1 gap width per element so substract it
+                : (width + tiles.getHgap())/columns - tiles.getHgap();
+
+            // adhere to requested minimum size
+            cellW = max(cellW, minColumnWidth.getValue());
+
+            double w = cellW;
+            tiles.setPrefTileWidth(w);
+            visible_labels.forEach(l -> l.setMaxWidth(w));
+
+            super.layoutChildren();
+        }
         
-        // adhere to requested minimum size
-        cellW = max(cellW, minColumnWidth.getValue());
-        
-        double w = cellW;
-        tiles.setPrefTileWidth(w);
-        visible_labels.forEach(l -> l.setMaxWidth(w));
     }
     
 }

@@ -25,8 +25,10 @@ import java.util.Map;
 import javafx.animation.Animation;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.input.MouseEvent;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Screen;
@@ -37,6 +39,7 @@ import static javafx.util.Duration.millis;
 import main.App;
 import util.Animation.Anim;
 import util.File.FileUtil;
+import util.async.executor.FxTimer;
 import util.dev.Log;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
@@ -49,27 +52,60 @@ import static util.reactive.Util.maintain;
 @IsActionable
 public class WindowManager {
     
-    @IsConfig(name="Docked mini mode", info="Whether application layout is in mini - docked mode.")
+    @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
+    public static boolean show_windows = true;
+    
+    @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
     public static boolean mini = false;
+    
+    @IsConfig(name="Mini open on click", info="Open mini window on screen top edge click.")
+    public static boolean mini_show_onClick = true;
+    
+    @IsConfig(name="Mini open on hover", info="Open mini window on screen top edge hover.")
+    public static boolean mini_show_onEnter = true;
+    
+    @IsConfig(name="Mini open hover delay", info="Time to hover to open mini window.")
+    public static double mini_hover_delay = 500;
+    
+    @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
+    public static boolean mini_hide_onInactive = true;
+    
+    @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
+    public static double mini_inactive_delay = 500;
     
     @AppliesConfig("mini")
     private static void applyMini() {
         setMini(mini);
     }
+    @AppliesConfig("show_windows")
+    private static void applyShowWindows() {
+        if(show_windows)
+            Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
+        else
+            Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
+    }
     
-    static Window miniWindow;
     
     @IsAction(name = "Toggle mini mode", description = "Toggle minimal layout docked mode", global = true, shortcut = "F9")    
     public static void toggleMini() {
         setMini(!mini);
     }
+    public static void toggleMiniFull() {
+        if(mini) App.getWindow().show();
+        else App.getWindow().hide();
+        setMini(!mini);
+    }
+    public static void toggleShowWindows() {
+        show_windows = !show_windows;
+        applyShowWindows();
+    }
     
+    static Window miniWindow;
     private static Animation t;
 
     public static void setMini(boolean val) {
         mini = val;
         if(val) {
-            App.getWindow().hide();
             // avoid pointless operation
             if(miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
@@ -89,9 +125,9 @@ public class WindowManager {
             miniWindow.setContent(content);
                 // menu
             Icon closeB = new Icon(CLOSE, 13, "Close window", App::close);
-            Icon miniB = new Icon(null, 13, "Docked mode", miniWindow::toggleMini);
+            Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
-            Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowMainWindow);
+            Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
             maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB.icon);
             
             HBox controls = new HBox(8,mainB,miniB,closeB);
@@ -110,32 +146,45 @@ public class WindowManager {
             miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> WidgetManager.standaloneWidgets.remove(w));
             
             // autohiding
+            double H = miniWindow.getHeight()-2; // leave 2 pixels visible
+            Parent mw_root = miniWindow.getStage().getScene().getRoot();
             Anim a = new Anim(millis(300),frac -> {
-                double H = miniWindow.getHeight()-2; // leave 2 pixels visible
                 miniWindow.setY(-H*frac, false);
             });
-            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_EXITED, e -> {
-                Duration delay = Duration.ZERO;//Duration.seconds(0.8);
+            
+            FxTimer hider = new FxTimer(0, 1, () -> {
+                if(miniWindow.getY()!=0) return;    // if not open
+                if(mw_root.isHover()) return;       // if mouse still in
                 Duration d = a.getCurrentTime();
-                if(d.equals(Duration.ZERO)) {
-                    d = Duration.millis(300).subtract(d);
-                    delay = Duration.seconds(0.8);
-                }
+                if(d.equals(ZERO)) d = millis(300).subtract(d);
                 a.stop();
-                a.setDelay(delay);
                 a.setRate(1);
-                a.playFrom(Duration.millis(300).subtract(d));
+                a.playFrom(millis(300).subtract(d));
+            });
+            mw_root.addEventFilter(MouseEvent.ANY, e -> {
+                if(!mini_hide_onInactive) return;   // if disabled
+                hider.restart(mini_inactive_delay);
             });
             
-            miniWindow.getStage().getScene().getRoot().addEventFilter(MOUSE_ENTERED, e -> {
-                if(miniWindow.getY()==0) return;
+            FxTimer shower = new FxTimer(0, 1, () ->{
+                if(miniWindow.getY()==0) return;    // if open
+                if(!mw_root.isHover()) return;      // if mouse left
                 Duration d = a.getCurrentTime();
-                if(d.equals(Duration.ZERO)) 
-                    d = Duration.millis(300).subtract(d);
+                if(d.equals(ZERO)) d = millis(300).subtract(d);
                 a.stop();
-                a.setDelay(ZERO);
                 a.setRate(-1);
                 a.playFrom(d);
+            });
+            mw_root.addEventFilter(MOUSE_ENTERED, e -> {
+                if(!mini_show_onEnter) return;      // if disabled
+                if(!miniWindow.isShowing()) return; // bugfix
+                shower.restart(mini_hover_delay);   // open after delay
+            });
+            mw_root.addEventFilter(MOUSE_CLICKED, e -> {
+                if(!mini_show_onClick) return;      // if disabled
+                if(miniWindow.getY()==0) return;    // if open
+                if(!miniWindow.isShowing()) return; // bugfix
+                shower.runNow();                    // open with delay
             });
         } else {
             // do nothing if not in minimode (for example during initialization)
@@ -143,14 +192,9 @@ public class WindowManager {
             // serialize mini
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
             miniWindow.serializeSupressed(f);
-            // hide mini, show normal
-            App.getWindow().show();
             miniWindow.close();
             miniWindow=null;
-            if(t!=null) {
-                t.stop();
-                t=null;
-            }
+            t=null;
         }
     }
 
@@ -305,12 +349,7 @@ public class WindowManager {
             }));
         }
     }
-    
-    
-    public static void toggleShowMainWindow() {
-        Window w = App.getWindow();
-        if(w.isShowing()) w.hide(); else w.show();
-    }
+
     
 /******************************** NO TASKBAR MODE *****************************/
     

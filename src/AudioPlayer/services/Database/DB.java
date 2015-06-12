@@ -16,7 +16,7 @@ import static javafx.application.Platform.runLater;
 import javax.persistence.*;
 import main.App;
 import util.access.Accessor;
-import static util.async.Async.FXAFTER;
+import static util.async.Async.FX;
 import util.async.future.Fut;
 import util.reactive.CascadingStream;
 
@@ -46,14 +46,8 @@ public class DB {
             .supply(DB::getAllItems)                        
             // populate lib - overloads FX thread, so delay
             // todo: detect when app starts up and run right afterwards
-            // .use(i -> views.push(1, i), FX)
-            .use(i -> views.push(1, i), FXAFTER(7000))
-//            .use(i -> {
-//                
-//                em.getTransaction().begin();
-//                em.merge(ss);
-//                em.getTransaction().commit();
-//            })
+             .use(i -> views.push(1, i), FX)
+//            .use(i -> views.push(1, i), FXAFTER(7000))
             .showProgress(App.getWindow().taskAdd())
             .run();
         

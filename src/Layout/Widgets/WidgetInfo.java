@@ -8,6 +8,7 @@ package Layout.Widgets;
 
 import Layout.Widgets.Features.Feature;
 import java.util.List;
+import static util.functional.Util.stream;
 import static util.functional.Util.toS;
 
 /**
@@ -83,8 +84,13 @@ public interface WidgetInfo {
     /** @return all implemented features */
     List<Feature> getFeatures();
     
-    /** @return true if widget's contoroller implements given feature */
+    /** @return true if widget's controller implements given feature */
     boolean hasFeature(Class feature);
+    
+    /** @return true if widget's controller implements all given features */
+    default boolean hasFeatures(Class... features){
+        return stream(features).allMatch(this::hasFeature);
+    };
 
     /** Returns widget info as string. */
     default String toStr() {

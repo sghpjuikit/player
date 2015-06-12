@@ -17,3 +17,9 @@
 	-fx-background-radius: 5;
 	-fx-text-fill: white;
 }
+
+
+.nav-pane {}
+.nav-pane:hover {
+    -fx-backgroud-color: rgba(0,0,0,0.2);
+}

@@ -3,8 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- improve lib refresh + starting performance
-- Inspector
+- fix FreeFormArea resizing
+- generic container controls
+- Inspector & Converter widgets fix & improve
 - function item nodes dont react on default button click
 - seeker option to show chapters as they are passing
 - config fields unify with item node
@@ -24,8 +25,6 @@
   a good delimiter character - '|' is too common i think
   minimode popups should prevent from autohiding, but how?
 - tab area - reimplement
-- press C to collapse layout containers easily - implement properly
-- clean up Environment + more robust
 - thumbnail image bound to prefSize causes problems, anchorPane doesn work
 
 --------------------------------------------------------------------------------
@@ -128,6 +127,8 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
   a bit here. It is questionable whether it is worth the effort
 - make AppConfigurable and make all managers non static & configurable
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI
+- Accessors and all... maybe make Val/Var class
+- Config and Accessor static constructors
 - turn Playlist into full fledget Feature - get rid of the PlaylistManager
   & add support for tables to vind ObservableLists - decision to make
   but fix playlist table need to override sorting method because of this
@@ -135,4 +136,3 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - window manager
 - window color overlay effect
 - window layout aggregators
-- deserializing and creating windows

@@ -10,6 +10,7 @@ import Layout.Widgets.FXMLController;
 import Layout.Widgets.Features.ImageDisplayFeature;
 import Layout.Widgets.Features.ImagesDisplayFeature;
 import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.OTHER;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
@@ -23,7 +24,6 @@ import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
-import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleObjectProperty;
@@ -49,8 +49,10 @@ import javafx.util.Duration;
 import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.Subscription;
+import util.Animation.Anim;
 import static util.File.FileUtil.getFilesImage;
 import util.Util;
+import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
@@ -70,10 +72,10 @@ import util.graphics.drag.DragUtil;
     description = "Displays images in directory. Shows main image and thumbnails. "
         + "Looks for images in subfolders.",
     howto = ""
-        + "    The widget displays an image and wimage thumbnails for images in "
-        + "specific directory. Main can change automatically (slideshow) or "
-        + "manually by clicking on the thumbnail, or navigating to next/previous "
-        + "image.\n"
+        + "    The widget displays an image and image thumbnails for images in "
+        + "specific directory - data source. Main image can change automatically "
+        + " (slideshow) or manually by clicking on the thumbnail, or navigating "
+        + "to next/previous image.\n"
         + "    User can display image or images in a location by setting the "
         + "file or directory, e.g., by drag & drop. The widget can also follow "
         + "playing or selected songs, displaying images in their parent "
@@ -92,8 +94,8 @@ import util.graphics.drag.DragUtil;
         + "    Drag&Drop image : Show images\n",
     notes = "",
     version = "1.0",
-    year = "2014",
-    group = Widget.Group.OTHER
+    year = "2015",
+    group = OTHER
 )
 public class ImageViewerController extends FXMLController implements ImageDisplayFeature, ImagesDisplayFeature {
     
@@ -101,9 +103,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @FXML private AnchorPane entireArea;
     @FXML private ScrollPane thumb_root;
     @FXML private TilePane thumb_pane;
-    private final Thumbnail thumbnail = new Thumbnail();
-    private FadeTransition fIn;
-    private FadeTransition fOut;
+    private final Thumbnail mainImage = new Thumbnail();
+    private Anim thumbAnim;
     private ItemInfo itemPane;
     
     // state
@@ -120,7 +121,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
     public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring,this::dataChanged));
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
-    public final Accessor<Double> thumbSize = new Accessor<>(Thumbnail.default_Thumbnail_Size,v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
+    public final Accessor<Double> thumbSize = new Accessor<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
     public final Accessor<Double> thumbGap = new Accessor<>(2d, v -> {
         thumb_pane.setHgap(v);
@@ -133,9 +134,9 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         if (v) slideshow.restart(); else slideshow.stop();
     });
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
-    public final Accessor<Boolean> showImage = new Accessor<>(true, thumbnail.getPane()::setVisible);
+    public final Accessor<Boolean> showImage = new Accessor<>(true, mainImage.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::setThumbnailsVisible);
+    public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::thumbAnimPlay);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
     public final Accessor<Boolean> hideThumbEager = new Accessor<>(true, v -> {
         if (v) entireArea.setOnMouseExited(e -> {
@@ -158,20 +159,20 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         t.setBackgroundVisible(v);
     }));
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Accessor<Pos> align = new Accessor<>(CENTER, thumbnail::applyAlignment);
+    public final Accessor<Pos> align = new Accessor<>(CENTER, mainImage::applyAlignment);
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
     public final Accessor<Boolean> theater_mode = new Accessor<>(false, this::applyTheaterMode);
     
     // non applied configurables
     @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly or fast one after another")
     public long thumbnailReloadTime = 200l;
-    @IsConfig(name = "Show previous content when empty", info = "Keep showing previous content when the new content is empty.")
+    @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
-    @IsConfig(name = "File search depth", info = "Depth to search to for files in folders. 1 for current folder only.")
+    @IsConfig(name = "File search depth", info = "Depth to searcho for files in folders. 1 for current folder only.")
     public int folderTreeDepth = 2;
     @IsConfig(name = "Max amount of thubmnails", info = "Important for directories with lots of images.")
     public int thumbsLimit = 50;
-    @IsConfig()
+    @IsConfig(name = "Displayed image", editable = false)
     private int active_image = -1;
     
     /** {@inheritDoc} */
@@ -179,33 +180,18 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public void init() {
         loadSkin("skin.css",entireArea);
         
-        // add thumbnail & span whole area
-        entireArea.getChildren().add(thumbnail.getPane());
-        thumbnail.setBorderToImage(true);
-        thumbnail.getPane().prefWidthProperty().bind(entireArea.widthProperty());
-        thumbnail.getPane().prefHeightProperty().bind(entireArea.heightProperty());
+        // main image
+        mainImage.setBorderVisible(true);
+        mainImage.setBorderToImage(true);
+        entireArea.getChildren().add(mainImage.getPane());
+        setAnchors(mainImage.getPane(),0);
         
-        fIn = new FadeTransition(millis(500), thumb_root);
-        fOut = new FadeTransition(millis(500), thumb_root);
-        fIn.setToValue(1);
-        fOut.setToValue(0);
-        fOut.setOnFinished(e->thumb_root.setVisible(false));
+        // thumb anim
+        thumbAnim = new Anim(millis(500), thumb_root::setOpacity);
+        thumb_root.visibleProperty().bind(thumb_root.opacityProperty().isNotEqualTo(0));
+        thumb_root.toFront();
         
-        entireArea.setOnMouseClicked( e -> {
-            if(e.getButton()==PRIMARY) {
-                if(e.getY()>0.8*entireArea.getHeight() && e.getX()>0.7*entireArea.getWidth()) {
-                    theater_mode.setCycledNapplyValue();
-                } else {
-//                    double width = entireArea.getWidth();
-//                    if (e.getX() < 0.15*width) prevImage();
-//                    else if(e.getX() > 0.85*width) nextImage();
-//                    else 
-                    showThumbnails.setCycledNapplyValue();
-                }
-                e.consume();
-            }
-        });
-        
+        // image navigation
         Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image");
         Pane nextP = new StackPane(nextB);
              nextP.setOnMouseClicked(Run.of(this::nextImage).toHandlerConsumed());
@@ -228,10 +214,20 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         AnchorPane.setTopAnchor(prevP, 0d);
         AnchorPane.setLeftAnchor(prevP, 0d);
         
-        // position thumbnail scroll pane & make sure it doesnt cover whole area
+        // thumbnails & make sure it doesnt cover whole area
         Util.setAnchors(thumb_root, 0);
         entireArea.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
-        thumb_root.toBack();
+        
+        entireArea.setOnMouseClicked( e -> {
+            if(e.getButton()==PRIMARY) {
+                if(e.getY()>0.8*entireArea.getHeight() && e.getX()>0.7*entireArea.getWidth()) {
+                    theater_mode.setCycledNapplyValue();
+                } else {
+                    showThumbnails.setCycledNapplyValue();
+                }
+                e.consume();
+            }
+        });
         // prevent scrollpane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
@@ -248,6 +244,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         // handle drag transfers
         entireArea.setOnDragDropped(e -> {
+            if(e.getGestureSource().equals(mainImage.getPane())) return;
             if(DragUtil.hasAudio(e.getDragboard())) {
                 // get first item
                 List<Item> items = DragUtil.getAudioItems(e);
@@ -323,7 +320,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             // supposed to run, which might not always be the same
             if(slideshow.isRunning()) slideshow.restart();
             active_image = -1;
-            thumbnail.loadImage(img_file);
+            mainImage.loadImage(img_file);
         }
     }
 
@@ -441,7 +438,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         // in folder.get() directory
         // avoids image loading + necessary to display custom image, which fires
         // thumbnail refresh and subsequently would change the displayed image
-        File displLoc = thumbnail.getFile()==null ? null : thumbnail.getFile().getParentFile();
+        File displLoc = mainImage.getFile()==null ? null : mainImage.getFile().getParentFile();
         File currLoc = folder.get();
         if (thumbnails.size()==1 && currLoc!=null && !currLoc.equals(displLoc))
             setImage(0);
@@ -453,12 +450,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         if (index == -1) {
             Image i = null;
-            thumbnail.loadImage(i);
+            mainImage.loadImage(i);
             // this is unnecessary because we check the index for validity
             // also unwanted, sometimes this would erase our deserialized index
             //  active_image = -1;
         } else {
-            thumbnail.loadImage(images.get(index));
+            mainImage.loadImage(images.get(index));
             active_image = index;
         }
     }
@@ -485,11 +482,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         if(slideshow.isRunning()) slideshow.restart();
     }
     
-    private void setThumbnailsVisible(boolean v) {
-        if(v) {
-            thumb_root.setVisible(true);
-            fIn.play();
-        } else fOut.play();
+    private void thumbAnimPlay(boolean v) {
+        thumbAnim.playFromDir(v);
     }
     
     private void applyTheaterMode(boolean v) {
@@ -512,8 +506,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         }
         
         slideshow_on.applyValue(v ? false : slideshow_on.getValue());
-        thumbnail.setBackgroundVisible(v);
-        thumbnail.setBorderVisible(!v);
+        mainImage.setBackgroundVisible(v);
+        mainImage.setBorderVisible(!v);
         if (itemPane!=null) itemPane.setVisible(v);
     }
 }

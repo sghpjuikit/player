@@ -96,6 +96,7 @@ public class FxTimer implements Timer {
         seq++;
     }
     
+    /** Returns true if not stopped or paused. */
     public boolean isRunning() {
         return timeline.getCurrentRate()!=0;
     }

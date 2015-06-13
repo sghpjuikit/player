@@ -5,13 +5,13 @@ import Action.IsAction;
 import Action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+import Layout.Layout;
+import Layout.LayoutManager;
+import com.sun.javafx.css.StyleManager;
 import static gui.GUI.OpenStrategy.INSIDE;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Window.stage.Window;
-import Layout.Layout;
-import Layout.LayoutManager;
-import com.sun.javafx.css.StyleManager;
 import java.io.File;
 import static java.io.File.separator;
 import java.net.MalformedURLException;
@@ -97,8 +97,6 @@ public class GUI {
     public static OpenStrategy open_strategy = INSIDE;
     
 /******************************************************************************/
-    
-    public static void initialize() {}
     
     /**
      * Component might rely on this method to alter its behavior. For example

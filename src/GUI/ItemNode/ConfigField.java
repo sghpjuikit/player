@@ -3,12 +3,12 @@ package gui.ItemNode;
 
 import Action.Action;
 import Configuration.Config;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.ItemNode.TextFieldItemNode.FileItemNode;
 import gui.ItemNode.TextFieldItemNode.FontItemNode;
 import gui.objects.CheckIcon;
 import gui.objects.Icon;
 import gui.objects.combobox.ImprovedComboBox;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;

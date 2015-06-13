@@ -1,9 +1,9 @@
 
 package Layout.Widgets;
 
-import gui.objects.Window.stage.ContextManager;
 import Layout.LayoutManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
+import gui.objects.Window.stage.ContextManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -29,8 +29,7 @@ public final class WidgetManager {
     
     public static <T extends Node & Controller> void initialize() {
         // register internal
-        ClassIndex.getAnnotated(IsWidget.class)
-                  .forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
+        ClassIndex.getAnnotated(IsWidget.class).forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
         new EmptyWidgetFactory().register();
         // register external
         registerExternalWidgetFactories();

@@ -10,15 +10,15 @@ import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.Features.SongReader;
 import gui.objects.Thumbnail.Thumbnail;
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
+import static util.Util.setAnchors;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 /** Info about song. */
 public class ItemInfo extends AnchorPane implements SongReader {
@@ -30,33 +30,29 @@ public class ItemInfo extends AnchorPane implements SongReader {
     @FXML private Label albumL;
     @FXML private AnchorPane infoContainer;
     @FXML private AnchorPane coverContainer;
-    private Thumbnail thumb;
+    private final Thumbnail thumb;
 
     public ItemInfo() {
 	this(true);
     }
 
     public ItemInfo(boolean include_cover) {
-	try {
-	    FXMLLoader fxmlLoader = new FXMLLoader(ItemInfo.class.getResource("ItemInfo.fxml"));
-	    fxmlLoader.setRoot(this);
-	    fxmlLoader.setController(this);
-	    fxmlLoader.load();
+        // load fxml part
+        new ConventionFxmlLoader(ItemInfo.class,this).loadNoEx();
 
-	    if (include_cover) {
-		// create
-		thumb = new Thumbnail(coverContainer.getPrefHeight());
-		coverContainer.getChildren().add(thumb.getPane());
-	    } else {
-		// remove cover
-		getChildren().remove(coverContainer);
-		AnchorPane.setLeftAnchor(infoContainer, AnchorPane.getRightAnchor(infoContainer));
-		coverContainer = null;
-	    }
+        if (include_cover) {
+            // create
+            thumb = new Thumbnail();
+            coverContainer.getChildren().add(thumb.getPane());
+            setAnchors(thumb.getPane(),0);
+        } else {
+            thumb = null;
+            // remove cover
+            getChildren().remove(coverContainer);
+            AnchorPane.setLeftAnchor(infoContainer, AnchorPane.getRightAnchor(infoContainer));
+            coverContainer = null;
+        }
 
-	} catch (IOException e) {
-	    throw new RuntimeException("Could not load ItemInfo.fxml", e);
-	}
     }
 
     // leave the method here as fxml loader might complain

@@ -7,17 +7,17 @@
 package main;
 
 import Action.Action;
-import gui.LayoutAggregators.SwitchPane;
-import gui.objects.Icon;
-import gui.objects.PopOver.PopOver;
-import gui.objects.Text;
-import gui.objects.Window.stage.Window;
 import Layout.BiContainer;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Icon;
+import gui.objects.PopOver.PopOver;
+import gui.objects.Text;
+import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.geometry.Insets;

@@ -37,10 +37,10 @@ public class GlowIcon extends Icon {
         hoverProperty().addListener((ob,ov,nv) -> {
             if(nv) {
                 oa.stop();
-                ia.playFrom((b.getRadius()-6)/15);
+                ia.playOpenFrom((b.getRadius()-6)/15);
             } else {
                 ia.stop();
-                oa.playFrom(1-(b.getRadius()-6)/15);
+                oa.playOpenFrom(1-(b.getRadius()-6)/15);
             }
         });
     }

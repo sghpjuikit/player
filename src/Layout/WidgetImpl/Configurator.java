@@ -3,13 +3,14 @@ package Layout.WidgetImpl;
 import Configuration.Config;
 import Configuration.Configuration;
 import Configuration.IsConfig;
-import gui.ItemNode.ConfigField;
-import gui.objects.Icon;
 import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.APP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import gui.ItemNode.ConfigField;
+import gui.objects.Icon;
 import java.util.*;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -28,7 +29,7 @@ import static util.functional.Util.byNC;
 import static util.functional.Util.list;
 import util.graphics.fxml.ConventionFxmlLoader;
 @IsWidget
-@Layout.Widgets.Widget.Info(
+@Widget.Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Settings",
@@ -41,7 +42,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
     notes = "To do: generate active widget settings, allow subcategories.",
     version = "1",
     year = "2015",
-    group = Widget.Group.APP
+    group = APP
 )
 public final class Configurator extends ClassWidgetController implements ConfiguringFeature {
 

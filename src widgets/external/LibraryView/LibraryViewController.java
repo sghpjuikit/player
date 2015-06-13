@@ -320,7 +320,7 @@ public class LibraryViewController extends FXMLController {
     private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
     
     /** populates metadata groups to table from metadata list */
-    private void setItems(List<Metadata> list) {if(lvl.get()==2) System.out.println("SEEEEEEEEEEET");
+    private void setItems(List<Metadata> list) {
         // doesnt work ?
         new Fut<>(fieldFilter.getValue())
             .use(f -> {

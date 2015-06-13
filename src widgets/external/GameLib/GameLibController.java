@@ -5,16 +5,16 @@
  */
 package GameLib;
 
-import gui.GUI;
-import gui.objects.tree.FileTree;
-import gui.objects.Icon;
-import gui.objects.Thumbnail.Thumbnail;
 import static GameLib.GameLibController.InfoType.EXPLORER;
 import static GameLib.GameLibController.InfoType.PLAY;
 import Layout.Widgets.FXMLController;
 import Layout.Widgets.gamelib.GameItem;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
+import gui.GUI;
+import gui.objects.Icon;
+import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.tree.FileTree;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -151,8 +151,8 @@ public class GameLibController extends FXMLController {
         cover.setBorderVisible(false);
         cover.setContextMenuOn(false);
         cover_root.getChildren().add(cover.getPane());
-        cover.getPane().prefHeightProperty().bind(cover_root.heightProperty());
-        cover.getPane().prefWidthProperty().bind(cover_root.widthProperty());
+//        cover.getPane().prefHeightProperty().bind(cover_root.heightProperty());
+//        cover.getPane().prefWidthProperty().bind(cover_root.widthProperty());
         
         
         inforoot.setVisible(false);

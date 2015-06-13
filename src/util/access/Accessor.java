@@ -23,12 +23,16 @@ public class Accessor<V> extends SimpleObjectProperty<V> implements ApplicableVa
     private Consumer<V> applier;
     
     public Accessor(V val) {
-        this(val, null);
+        setValue(val);
     }
     
     public Accessor(V val, Consumer<V> applier) {
-        setValue(val);
+        this(val);
         setApplier(applier);
+    }
+    
+    public Accessor(V val, Runnable applier) {
+        this(val,v -> applier.run());
     }
     
     /** {@inheritDoc} */

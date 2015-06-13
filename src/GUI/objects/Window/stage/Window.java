@@ -677,7 +677,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             if(nv.doubleValue()==1) {
                 // remove indicator from header
                 a.then(() -> left_icons.box.getChildren().remove(p))
-                 .playBFrom();
+                 .playClose();
             }
         });
         return p;

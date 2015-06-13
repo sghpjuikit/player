@@ -23,8 +23,8 @@ import javafx.scene.layout.Pane;
  * Content can have minimum size set, which forbids expanding the image if it
  * would shrink the content beyond it.
  * <p>
- * Both image and content can be
- * set invisible. Gap between image and pane can be set.
+ * Both image and content can be set invisible. Gap between image and pane can 
+ * be set.
  *
  * @author Plutonium_
  */
@@ -39,45 +39,53 @@ public class ImageFlowPane extends Pane {
     private Thumbnail image;
     private Pane content;
     
+    
     public ImageFlowPane(Thumbnail image, Pane content) {
         setImage(image);
         setContent(content);
     }
+    
     
     public void setImage(Thumbnail i) {
         if(image!=null) getChildren().remove(image.getPane());
         image = i;
         if(image!=null) {
             getChildren().add(image.getPane());
-            image.ratioImgProperty().addListener((o,ov,nv) -> layout());
+            image.ratioImgProperty().addListener((o,ov,nv) -> layoutChildren());
         }
-        layout();
+        layoutChildren();
     }
+    
     public void setContent(Pane i) {
         if(content!=null) getChildren().remove(content);
         content = i;
         if(i!=null) getChildren().add(i);
-        layout();
+        layoutChildren();
     }
     
+    /** Set image visibility. Default true. */
     public void setImageVisible(boolean b) {
        showImage = b;
-       layout();
+       layoutChildren();
     }
+    
+    /** Set content visibility. Default true. */
     public void setContentVisible(boolean val) {
         showContent = val;
-        layout();
+        layoutChildren();
     }
+    
     /** Set gap between image and content. */
     public void setGap(double g) {
         gap = g;
-        layout();
+        layoutChildren();
     }
     
-    public void setMinCOntentSize(double w, double h) {
+    /** Set minimal size of the content. Default 0. */
+    public void setMinContentSize(double w, double h) {
         minContentWidth = w;
         minContentHeight = h;
-        layout();
+        layoutChildren();
     }
     
     
@@ -86,51 +94,49 @@ public class ImageFlowPane extends Pane {
         if(image!=null) image.getPane().setVisible(showImage);
         if(content!=null) content.setVisible(showContent);
         
-        double W = getWidth();
-        double H = getHeight();
-        double Pl = 0;//getPadding().getLeft();
-        double Pr = 0;//getPadding().getRight();
-        double Pt = 0;//getPadding().getTop();
-        double Pb = 0;//getPadding().getBottom();
+        double pl = getPadding().getLeft();
+        double pr = getPadding().getRight();
+        double pt = getPadding().getTop();
+        double pb = getPadding().getBottom();
+        double W = getWidth()-pl-pr;
+        double H = getHeight()-pt-pb;
         
         if(showImage && showContent && image!=null && content!=null) {
             double imgRatio = image.getRatioImg();
             double thisRatio = W/H;
             boolean isHorizontal = thisRatio > imgRatio;
             if(isHorizontal) {
-                double h = H;
-                double imgW = min(imgRatio*h,W-minContentWidth);
+                double imgW = min(imgRatio*H,W-minContentWidth);
                 
-                image.getPane().setLayoutX(0);
-                image.getPane().setLayoutY(0);
-//                image.getPane().setMinSize(imgW, h);
-                image.getPane().setPrefSize(imgW, h);
-//                image.getPane().setMaxSize(imgW, h);
-                content.setLayoutX(imgW+gap);
-                content.setLayoutY(0);
-                content.setMinSize(W-imgW-gap,h);
-                content.setPrefSize(W-imgW-gap,h);
-                content.setMaxSize(W-imgW-gap,h);
+                image.getPane().setLayoutX(pl);
+                image.getPane().setLayoutY(pt);
+                image.getPane().setMinSize(imgW, H);
+                image.getPane().setPrefSize(imgW, H);
+                image.getPane().setMaxSize(imgW, H);
+                content.setLayoutX(imgW+gap+pl);
+                content.setLayoutY(pt);
+                content.setMinSize(W-imgW-gap,H);   // why min & max are needed is not clear 
+                content.setPrefSize(W-imgW-gap,H);
+                content.setMaxSize(W-imgW-gap,H);
             } else {
-                double w = W;
-                double imgH = min(w/imgRatio,H-minContentHeight);
-                image.getPane().setLayoutX(0);
-                image.getPane().setLayoutY(0);
-//                image.getPane().setMinSize(w, imgH);
-                image.getPane().setPrefSize(w, imgH);
-//                image.getPane().setMaxSize(w, imgH);
-                content.setLayoutX(0);
-                content.setLayoutY(imgH+gap);
-                content.setMinSize(w,H-gap-imgH);
-                content.setPrefSize(w,H-gap-imgH);
-                content.setMaxSize(w,H-gap-imgH);
+                double imgH = min(W/imgRatio,H-minContentHeight);
+                image.getPane().setLayoutX(pl);
+                image.getPane().setLayoutY(pt);
+                image.getPane().setMinSize(W, imgH);
+                image.getPane().setPrefSize(W, imgH);
+                image.getPane().setMaxSize(W, imgH);
+                content.setLayoutX(pl);
+                content.setLayoutY(imgH+gap+pt);
+                content.setMinSize(W,H-gap-imgH);
+                content.setPrefSize(W,H-gap-imgH);
+                content.setMaxSize(W,H-gap-imgH);
             }
         }
         if((!showImage || image==null) && showContent && content!=null) {
-            layoutInArea(content, 0+Pl,0+Pt,W-Pl-Pr,H-Pt-Pb, 0, HPos.CENTER, VPos.CENTER);
+            layoutInArea(content, 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
         }
         if(showImage && image!=null && (!showContent || content==null)) {
-            layoutInArea(image.getPane(), 0+Pl,0+Pt,W-Pl-Pr,H-Pt-Pb, 0, HPos.CENTER, VPos.CENTER);
+            layoutInArea(image.getPane(), 0+pl,0+pt,W-pl-pr,H-pt-pb, 0, HPos.CENTER, VPos.CENTER);
         }
         if((!showImage && !showContent) || (image==null && content==null)) {}
         

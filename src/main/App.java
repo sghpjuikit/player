@@ -1,8 +1,6 @@
 
 package main;
 
-import gui.objects.TableCell.RatingCellFactory;
-import gui.objects.TableCell.TextStarRatingCellFactory;
 import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
@@ -15,23 +13,19 @@ import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.MetadataReader;
-import AudioPlayer.tagging.MoodManager;
 import Configuration.*;
-import gui.GUI;
-import gui.LayoutAggregators.SwitchPane;
+import Layout.Widgets.WidgetManager;
+import gui.objects.TableCell.RatingCellFactory;
+import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
-import Layout.Areas.Area;
-import Layout.Widgets.WidgetManager;
 import java.io.File;
-import static java.lang.Math.random;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javafx.animation.Transition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -42,19 +36,10 @@ import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
-import util.Animation.Anim;
-import static util.Animation.Anim.Interpolators.isAroundMin1;
-import static util.Animation.Anim.par;
-import static util.Animation.Anim.seq;
-import util.Animation.Interpolators.CircularInterpolator;
-import util.Animation.Interpolators.ElasticInterpolator;
 import util.File.FileUtil;
-import static util.Util.setScaleXY;
 import util.access.AccessorEnum;
 import static util.async.Async.eFX;
 import static util.async.Async.run;
-import static util.functional.Util.forEachIRStream;
-import static util.functional.Util.forEachIStream;
 import util.plugin.PluginMap;
 
 
@@ -168,74 +153,65 @@ public class App extends Application {
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
             
-            
-            
             // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
-            
             WidgetManager.initialize();     // must initialize before below
             
             Configuration.load();
             
             // initializing, the order is important
             Player.initialize();
-            GUI.initialize();                       // must initialize before below
-            
-            // this might me deprecated
-            // we need to initialize skin before windows do
-            Configuration.getField("skin").applyValue();
-            
             
             // initialize windows from previous session
             WindowManager.deserialize();
             
             DB.start();
             
-            GUI.setLayoutMode(true);
-            Transition t = par(
-                Window.windows.stream().map(w -> 
-                    seq(
-                        new Anim(at -> ((SwitchPane)w.getLayoutAggregator()).zoomProperty().set(1-0.6*at))
-                                .dur(500).intpl(new CircularInterpolator()),
-                        par(
-                            par(
-                                forEachIStream(w.left_icons.box.getChildren(),(i,icon)-> 
-                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
-                            ),
-                            par(
-                                forEachIRStream(w.right_icons.box.getChildren(),(i,icon)-> 
-                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
-                            ),
-                            par(
-                                w.getLayoutAggregator().getLayouts().values().stream()
-                                 .flatMap(l -> l.getAllWidgets())
-                                 .map(wi -> (Area)wi.load().getUserData())
-                                 .map(a -> 
-                                    seq(
-                                        new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
-                                        new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
-                                    )
-                                 )
-                            )
-                        ),
-                        par(
-                            new Anim(at -> ((SwitchPane)w.getLayoutAggregator()).zoomProperty().set(0.4+0.7*at))
-                                    .dur(500).intpl(new CircularInterpolator())
-                        )
-                    )
-                )
-            );
-            t.setOnFinished(e -> {
-                GUI.setLayoutMode(false);
-            });
-            t.play();
+//            GUI.setLayoutMode(true);
+//            Transition t = par(
+//                Window.windows.stream().map(w -> 
+//                    seq(
+//                        new Anim(at -> ((SwitchPane)w.getLayoutAggregator()).zoomProperty().set(1-0.6*at))
+//                                .dur(500).intpl(new CircularInterpolator()),
+//                        par(
+//                            par(
+//                                forEachIStream(w.left_icons.box.getChildren(),(i,icon)-> 
+//                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
+//                            ),
+//                            par(
+//                                forEachIRStream(w.right_icons.box.getChildren(),(i,icon)-> 
+//                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
+//                            ),
+//                            par(
+//                                w.getLayoutAggregator().getLayouts().values().stream()
+//                                 .flatMap(l -> l.getAllWidgets())
+//                                 .map(wi -> (Area)wi.load().getUserData())
+//                                 .map(a -> 
+//                                    seq(
+//                                        new Anim(a.content_root::setOpacity).dur(2000+random()*1000).intpl(0),
+//                                        new Anim(a.content_root::setOpacity).dur(700).intpl(isAroundMin1(0.04, 0.1,0.2,0.3))
+//                                    )
+//                                 )
+//                            )
+//                        ),
+//                        par(
+//                            new Anim(at -> ((SwitchPane)w.getLayoutAggregator()).zoomProperty().set(0.4+0.7*at))
+//                                    .dur(500).intpl(new CircularInterpolator())
+//                        )
+//                    )
+//                )
+//            );
+//            t.setOnFinished(e -> {
+//                GUI.setLayoutMode(false);
+//            });
+//            t.play();
             
             initialized = true;
             
         } catch(Exception e) {
             String ex = Stream.of(e.getStackTrace()).map(s->s.toString()).collect(Collectors.joining("\n"));
-           
+            System.out.println(ex);
             // copy exception trace to clipboard
             final Clipboard clipboard = Clipboard.getSystemClipboard();
             final ClipboardContent content = new ClipboardContent();
@@ -244,16 +220,14 @@ public class App extends Application {
             
             e.printStackTrace();
         }
-        
-        // initialize non critical parts
+         //initialize non critical parts
         Player.loadLast();                      // should load in the end
 
-        MoodManager.initialize();
         Action.getActions().forEach(Action::register);
         
         // apply all (and gui) settings
         Configuration.getFields().forEach(Config::applyValue);
-        
+//        
         services.addService(new TrayService());
         services.addService(new Notifier());
         services.addService(new PlaycountIncrementer());
@@ -267,8 +241,6 @@ public class App extends Application {
             showGuide = false;
             run(2222, () -> guide.start());
         }
-        
-        // playing with parameters/ works, but how do i pass param when executing this from windows?
         
 //        List<String> s = new ArrayList<>();
 //        System.out.println("raw");

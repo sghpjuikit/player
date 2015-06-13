@@ -3,7 +3,6 @@ package FileInfo;
 
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
-import AudioPlayer.tagging.Cover.Cover;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
@@ -32,14 +31,12 @@ import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
-import javafx.scene.image.Image;
 import static javafx.scene.input.DragEvent.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -75,7 +72,8 @@ import static util.graphics.drag.DragUtil.hasImage;
         + "follow the playing or table selections (playlist, etc.).\n"
         + "\n"
         + "Available actions:\n"
-        + "    Cover left click : Opens over context menu\n"
+        + "    Cover left click : Browse file system & set cover\n"
+        + "    Cover right click : Opens context menu\n"
         + "    Rater left click : Rates displayed song\n"
         + "    Drag&Drop songs : Displays information for the first song\n"
         + "    Drag&Drop image on cover: Copies images into current item's locaton\n",
@@ -86,9 +84,9 @@ import static util.graphics.drag.DragUtil.hasImage;
 public class FileInfoController extends FXMLController implements SongReader {
     
     @FXML AnchorPane entireArea;
-    ChangeableThumbnail cover;
+    private final ChangeableThumbnail cover = new ChangeableThumbnail();
     private final TilePane tiles = new FieldsPane();
-    private ImageFlowPane layout;
+    private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
     
     private final Label title = new Label(); 
     private final Label track = new Label(); 
@@ -127,85 +125,82 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, v -> tiles.layout());
+    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, tiles::layout);
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
     public final Accessor<OverrunStyle> overrun_style = new Accessor<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
     @IsConfig(name = "Show cover", info = "Show cover.")
-    public final Accessor<Boolean> showCover = new Accessor<>(true, this::setCoverVisible);
+    public final Accessor<Boolean> showCover = new Accessor<>(true, layout::setImageVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
-    public final Accessor<Boolean> showFields = new Accessor<>(true, v -> layout.setContentVisible(v));
+    public final Accessor<Boolean> showFields = new Accessor<>(true, layout::setContentVisible);
     @IsConfig(name = "Item source", info = "Source of data for the widget.")
     public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> d = Player.subscribe(v,d, this::setValue));
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final Accessor<Boolean> groupFields = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> groupFields = new Accessor<>(true, this::update);
     @IsConfig(name = "Show title", info = "Show this field.")
-    public final Accessor<Boolean> showTitle = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showTitle = new Accessor<>(true, this::update);
     @IsConfig(name = "Show track", info = "Show this field.")
-    public final Accessor<Boolean> showtrack = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showtrack = new Accessor<>(true, this::update);
     @IsConfig(name = "Show disc", info = "Show this field.")
-    public final Accessor<Boolean> showdisc = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showdisc = new Accessor<>(true, this::update);
     @IsConfig(name = "Show artist", info = "Show this field.")
-    public final Accessor<Boolean> showartist = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showartist = new Accessor<>(true, this::update);
     @IsConfig(name = "Show album artist", info = "Show this field.")
-    public final Accessor<Boolean> showalbum_artist = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showalbum_artist = new Accessor<>(true, this::update);
     @IsConfig(name = "Show album", info = "Show this field.")
-    public final Accessor<Boolean> showalbum = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showalbum = new Accessor<>(true, this::update);
     @IsConfig(name = "Show year", info = "Show this field.")
-    public final Accessor<Boolean> showyear = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showyear = new Accessor<>(true, this::update);
     @IsConfig(name = "Show genre", info = "Show this field.")
-    public final Accessor<Boolean> showgenre = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showgenre = new Accessor<>(true, this::update);
     @IsConfig(name = "Show composer", info = "Show this field.")
-    public final Accessor<Boolean> showcomposer = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showcomposer = new Accessor<>(true, this::update);
     @IsConfig(name = "Show publisher", info = "Show this field.")
-    public final Accessor<Boolean> showpublisher = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showpublisher = new Accessor<>(true, this::update);
     @IsConfig(name = "Show rating", info = "Show this field.")
-    public final Accessor<Boolean> showrating = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showrating = new Accessor<>(true, this::update);
     @IsConfig(name = "Show playcount", info = "Show this field.")
-    public final Accessor<Boolean> showplaycount = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showplaycount = new Accessor<>(true, this::update);
     @IsConfig(name = "Show comment", info = "Show this field.")
-    public final Accessor<Boolean> showcomment = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showcomment = new Accessor<>(true, this::update);
     @IsConfig(name = "Show category", info = "Show this field.")
-    public final Accessor<Boolean> showcategory = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showcategory = new Accessor<>(true, this::update);
     @IsConfig(name = "Show filesize", info = "Show this field.")
-    public final Accessor<Boolean> showfilesize = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showfilesize = new Accessor<>(true, this::update);
     @IsConfig(name = "Show filename", info = "Show this field.")
-    public final Accessor<Boolean> showfilename = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showfilename = new Accessor<>(true, this::update);
     @IsConfig(name = "Show format", info = "Show this field.")
-    public final Accessor<Boolean> showformat = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showformat = new Accessor<>(true, this::update);
     @IsConfig(name = "Show bitrate", info = "Show this field.")
-    public final Accessor<Boolean> showbitrate = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showbitrate = new Accessor<>(true, this::update);
     @IsConfig(name = "Show encoding", info = "Show this field.")
-    public final Accessor<Boolean> showencoding = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showencoding = new Accessor<>(true, this::update);
     @IsConfig(name = "Show location", info = "Show this field.")
-    public final Accessor<Boolean> showlocation = new Accessor<>(true, v -> setVisibility());
+    public final Accessor<Boolean> showlocation = new Accessor<>(true, this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
     
     @Override
     public void init() {
-        // initialize gui
-        cover = new ChangeableThumbnail();
-                  cover.setBackgroundVisible(false);
-                  cover.setBorderToImage(false);
-                  cover.onFileDropped = f -> {
-                      actPane.item = f;
-                      getArea().setActivityVisible(true);
-                  };
+        
+        cover.setBackgroundVisible(false);
+        cover.setBorderToImage(false);
+        cover.onFileDropped = f -> {
+            actPane.item = f;
+            getArea().setActivityVisible(true);
+        };
                   
-        layout = new ImageFlowPane(cover, tiles);
         entireArea.getChildren().add(layout);
         setAnchors(layout,0);
-        layout.setMinCOntentSize(200,120);
+        layout.setMinContentSize(200,120);
         layout.setGap(8);
         
         // alight tiles from left top & tile content to center left + pad
         tiles.setAlignment(TOP_LEFT);
         tiles.setTileAlignment(CENTER_LEFT);
-        tiles.setPadding(new Insets(3));
         
         // add rater stars to rating label as graphics
         rating.setGraphic(rater);
@@ -406,9 +401,8 @@ public class FileInfoController extends FXMLController implements SongReader {
             encoding.setText("encoding: "         + m.getFieldS(ENCODING,""));
             location.setText("location: "         + m.getFieldS(PATH,""));
         } 
-        
-        // manually applied c.v.
-        setVisibility();
+
+        update();
     }
     
     private void clear() {
@@ -438,7 +432,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         location.setText("location: ");
     }
     
-    private void setVisibility() {
+    private void update() {
         // initialize
         visible_labels.clear();
         visible_labels.addAll(labels);
@@ -505,17 +499,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     
     private void setCover(CoverSource source) {
-        // get image
-        if (data == null) {
-            cover.loadImage((Image)null); // clear
-        } else {
-            Cover c = data.getCover(source);
-            cover.loadImage(c);
-        }
-    }
-    
-    private void setCoverVisible(boolean v) {
-        layout.setImageVisible(v);        
+        cover.loadImage(data==null ? null : data.getCover(source));
     }
     
     
@@ -553,5 +537,4 @@ public class FileInfoController extends FXMLController implements SongReader {
         }
         
     }
-    
 }

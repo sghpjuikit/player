@@ -134,7 +134,7 @@ public class LibraryController extends FXMLController implements SongReader {
                  .play();
             } else {
 //                Async.run(3000, () -> a.then(() -> super.setVisible(v))
-//                 .playBFrom());
+//                 .playClose());
                 super.setVisible(v);
             }
         }

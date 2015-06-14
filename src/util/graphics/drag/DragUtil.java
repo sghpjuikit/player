@@ -13,9 +13,7 @@ import java.net.URI;
 import java.util.*;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import java.util.concurrent.CompletableFuture;
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.event.EventHandler;
 import javafx.scene.input.DataFormat;
@@ -175,7 +173,7 @@ public final class DragUtil {
     
     /**
      * Obtains all supported audio items from dragboard. Looks for files, url,
-     * list of items, playlist int this exact order.
+     * list of items in this exact order.
      * <p>
      * Use in conjunction with {@link #audioDragAccepthandler}
      * 
@@ -204,9 +202,9 @@ public final class DragUtil {
         return o;
     }
     
-     /**
+    /**
      * @param d
-     * @return true if contains at least 1 audio file, audio url, playlist or items 
+     * @return true if contains at least 1 audio file, audio url or items 
      */
     public static boolean hasAudio(Dragboard d) {
         return (d.hasFiles() && FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
@@ -214,7 +212,7 @@ public final class DragUtil {
                          hasItemList();
     }
     
-     /**
+    /**
      * @param d
      * @return true if contains at least 1 img file, img url
      */
@@ -223,79 +221,105 @@ public final class DragUtil {
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
 
+    
     /**
-     * Returns future that contains supported image files obtained from the
-     * dragboard. Always call {@link #hasImage(javafx.scene.input.Dragboard) }
-     * before this method to check the content.
-     * <p>
-     * <ls>If there was an url, the image will be downlaoded on background thread
-     * and stored as temporary file.
-     * <ls>If there were files, the first image file is returned synchronously (immediately)
-     * <ls>If for some reason no supported image file could be obtained, the
-     * future will return null synchronously (immediately)
+     * Similar to {@link #getImages(javafx.scene.input.DragEvent)}, but
+     * supplies only the first image, if available or null otherwise.
+     * 
+     * @return supplier, never null
      */
-    public static CompletableFuture<File> getImage(DragEvent e) {
+    public static Supplier<File> getImage(DragEvent e) {
         Dragboard d = e.getDragboard();
 
-        // first url - we dont want files to get in the way
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
-            return supplyAsync(() -> {
-                        try {
-                            return FileUtil.saveFileTo(url, App.TMP_FOLDER());
-                        } catch(IOException ex) {
-                            return null;
-                        }
-                    });
-        } else
+            return () -> {
+                try {
+                    return FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                } catch(IOException ex) {
+                    return null;
+                }
+            };
+        }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return supplyAsync(() -> {
-                        List<File> fs = FileUtil.getImageFiles(files);
-                        return fs.isEmpty() ? null : fs.get(0);
-                    });
-        } else
-            return completedFuture(null);
-    }
-    public static CompletableFuture<List<File>> getImages(DragEvent e) {
-        Dragboard d = e.getDragboard();
-
-        // first url - we dont want files to get in the way
-        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
-            String url = d.getUrl();
-            return supplyAsync(() -> {
-                        try {
-                            File f = FileUtil.saveFileTo(url, App.TMP_FOLDER());
-                            return singletonList(f);
-                        } catch(IOException ex) {
-                            return null;
-                        }
-                    });
-        } else
-        if (d.hasFiles()) {
-            List<File> files = d.getFiles();
-            return supplyAsync(() -> FileUtil.getImageFiles(files));
-        } else
-            return completedFuture(null);
+            return () -> {
+                List<File> fs = FileUtil.getImageFiles(files);
+                return fs.isEmpty() ? null : fs.get(0);
+            };
+        }
+        return () -> null;
     }
     
-    public static CompletableFuture<Stream<Item>> getSongs(DragEvent e) {
+    /**
+     * Returns supplier of image files in the dragboard.
+     * Always call {@link #hasImage(javafx.scene.input.Dragboard) } before this 
+     * method to check the content.
+     * <p>
+     * The supplier supplies:
+     * <ul>
+     * <ls>If there was an url, single image will be downloaded on background thread,
+     * stored as temporary file and returned as singleton list. If any error
+     * occurs, empty list is returned.
+     * <ls>If there were files, all image files.
+     * <ls>Empty list otherwise
+     * </ul>
+     * 
+     * @return supplier, never null
+     */
+    public static Supplier<List<File>> getImages(DragEvent e) {
+        Dragboard d = e.getDragboard();
+
+        if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
+            String url = d.getUrl();
+            return () -> {
+                try {
+                    File f = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                    return singletonList(f);
+                } catch(IOException ex) {
+                    return EMPTY_LIST;
+                }
+            };
+        }
+        if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            return () -> FileUtil.getImageFiles(files);
+        }
+        return () -> EMPTY_LIST;
+    }
+    
+    /**
+     * Returns supplier of audio items in the dragboard.
+     * Always call {@link #hasAudio(javafx.scene.input.Dragboard) before this 
+     * method to check the content.
+     * <p>
+     * The supplier supplies:
+     * <ul>
+     * <ls>If there was an url, stream of single http based item.
+     * <ls>If there were files, all audio files.
+     * <ls>If there were {@link Item}s, all items.
+     * <ls>Empty stream otherwise
+     * </ul>
+     * 
+     * @return supplier, never null
+     */
+    public static Supplier<Stream<Item>> getSongs(DragEvent e) {
         Dragboard d = e.getDragboard();
         
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return supplyAsync(() -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
-        } else
+            return () -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new);
+        }
         if (d.hasUrl()) {
             String url = d.getUrl();
-            return completedFuture(AudioFileFormat.isSupported(url,APP)
-                                ? Stream.of(new SimpleItem(URI.create(url)))
-                                : null);
-        } else 
+            return AudioFileFormat.isSupported(url,APP)
+                                ? () -> Stream.of(new SimpleItem(URI.create(url)))
+                                : () -> Stream.empty();
+        } 
         if (hasItemList()) {
-            return completedFuture(getItemsList().stream());
-        } else
-            return completedFuture(Stream.empty());
+            return () -> getItemsList().stream();
+        }
+        return () -> Stream.empty();
     }
     
     

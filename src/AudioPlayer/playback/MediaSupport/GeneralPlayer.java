@@ -117,14 +117,6 @@ public class GeneralPlayer {// implements MediaWrap{
         
         playback = new MediaPlayer(media);
         
-        // debug
-        // these two have no effect, unless something is wrong
-        // if seeking out of sync with current value (WHICH IT IS!!)
-        // setStopTime might stop the song prematurely
-        // player.setStartTime(ZERO);
-        // player.setStopTime(player.getTotalDuration());
-        
-        
         playback.setAudioSpectrumInterval(0.1);
         playback.setAudioSpectrumNumBands(64);
 //        player.setAudioSpectrumThreshold(i) // ? what val is ok?

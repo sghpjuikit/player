@@ -3,7 +3,7 @@ package gui.objects;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import gui.ItemNode.ConfigField;
+import gui.itemnode.ConfigField;
 import com.sun.glass.ui.Screen;
 import java.util.ArrayList;
 import java.util.List;

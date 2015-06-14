@@ -16,7 +16,7 @@ import static util.async.Async.eFX;
  <p>
  @author Plutonium_
  */
-public class Fut<T> {
+public class Fut<T> implements Runnable{
     
     private final CompletableFuture<T> f;
     
@@ -31,6 +31,14 @@ public class Fut<T> {
     public Fut(T input) {
         f = CompletableFuture.completedFuture(input);
     }
+    
+    public static Fut<Void> fut() { 
+        return new Fut<>();
+    }
+    public static <T> Fut<T> fut(T t) { 
+        return new Fut<>(t);
+    }
+    
     
     public final <R> Fut<R> then(Function<T,R> action, Consumer<Runnable> executor) {
         return new Fut(f.thenApplyAsync(action, executor::accept));
@@ -49,9 +57,6 @@ public class Fut<T> {
     }
     public final <R> Fut<R> then(CompletableFuture<R> action) {
         return new Fut(f.thenComposeAsync(res -> action));
-    }
-    public final <R> Fut<R> then(Fut<R> f) {
-        return then(f.f);
     }
     public final Fut<Void> use(Consumer<T> action) {
         return new Fut(f.thenAcceptAsync(action));
@@ -77,6 +82,7 @@ public class Fut<T> {
         );
     }
     
+    @Override
     public void run() {
        f.thenRunAsync(() ->{}).complete(null);
     }

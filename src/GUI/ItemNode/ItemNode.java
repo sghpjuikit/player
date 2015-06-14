@@ -3,35 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
+import Configuration.Config;
 import java.util.function.Consumer;
 import javafx.scene.Node;
 
 /**
- * Graphics with a value. Mostly an ui editor that allows user customize the value.
- * Fires value update events.
- * <p>
- * The value can be wrapped directly or derived from state, such as text of a 
- * text field.
+ * Graphics with a value. Mostly an ui editor that allows user to customize the
+ * value.
  */
 public abstract class ItemNode<T> {
-    /** 
-     * Behavior to execute when item changes. The item change ignores
-     * equality check and will fire even for same object to be set.
-     */
-    public Consumer<T> onItemChange;
-    
+
     /** Returns current value. Should not be null if possible. Document. */
     public abstract T getValue();
     
     /** Returns the root node. Use to attach this to scene graph. */
     public abstract Node getNode();
-    
-    /** Sets value & fires itemChange if available. Internal use only.*/
-    protected void changeValue(T nv) {
-        if(onItemChange!=null) onItemChange.accept(nv);
-    }
     
     /** 
      * Focuses this node's content. Depends on implementation. Usually, the
@@ -40,26 +28,56 @@ public abstract class ItemNode<T> {
      */
     public void focus() {}
     
+/************************ REALIZATIONS based on getValue() impl ***************/
     
     /** Item node which directly holds the value. */
-    public static abstract class ItemNodeBase<T> extends ItemNode<T> {
+    public static abstract class ValueNodeBase<T> extends ItemNode<T> {
         protected T value;
-        
+    
         /** {@inheritDoc} */
         @Override
         public T getValue() {
             return value;
         }
+    }
+    
+    /** Item node which directly holds the value and fires value change events. */
+    public static abstract class ValueNode<T> extends ValueNodeBase<T> {
         
-        /** {@inheritDoc} */
-        @Override
+        /** 
+         * Value change handler. Executes when value changes. Consumes new value.
+         * If null, is ignored. Can be set or changed anytime.
+         */
+        public Consumer<T> onItemChange;
+    
+        /** Sets value & fires itemChange if available. Internal use only.*/
         protected void changeValue(T nv) {
             value = nv;
             if(onItemChange!=null) onItemChange.accept(nv);
         }
     }
     
-//    public static abstract class ConfigNodeBase extends ItemNode<T> {
-//        
-//    }
+    /** Item node which holds the value in a {@link Config}. */
+    public static abstract class ConfigNode<T> extends ItemNode<T> {
+        protected final Config<T> config;
+
+        public ConfigNode(Config<T> config) {
+            this.config = config;
+        }
+        
+        /** {@inheritDoc} */
+        @Override
+        public T getValue() {
+            return config.getValue();
+        }
+        
+    
+        /**
+         * @return the underlying config. Never null. The config never holds null either.
+         */
+        public Config getConfig() {
+            return config;
+        }
+        
+    }
 }

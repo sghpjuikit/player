@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
 
     @Override
     protected void generateValue() {
-        if(inconsistent_state) return;
+        if(inconsistent_state || converter==null) return;
         conjuction = chain.stream().filter(g->g.on.get())
                                     .map(g->g.chained.getValue()).filter(isNotNULL)
                                     .map(g->converter.apply(g._2,g._1))

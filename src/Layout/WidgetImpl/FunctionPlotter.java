@@ -8,7 +8,7 @@
 package Layout.WidgetImpl;
 
 import Configuration.Config;
-import gui.ItemNode.ConfigField;
+import gui.itemnode.ConfigField;
 import Layout.Widgets.ClassWidgetController;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;

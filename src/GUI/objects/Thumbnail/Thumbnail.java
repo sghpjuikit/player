@@ -60,23 +60,49 @@ import util.graphics.fxml.ConventionFxmlLoader;
 /**
  * Thumbnail.
  * <p>
- * Resizable (not necessarily) small image container.
- * <p>
- * Image is always positioned inside the thumbnail and aligned to center both
- * vertically and horizontally.
- * <p>
- * In order to save memory, thumbnail will load the image with load scale
- * factor determining the load size. For details see {@link #LOAD_COEFICIENT}
- * and {@link #calculateImageLoadSize()}.
+ * Resizable image container with additional features.
  * <p>
  * Features:
- * </ul>
- * <li> resizing - use preferred size of the root, see {@link #getPane()}
- * <li> file awareness - if file (representing the image) can be set in addition
- * to the the image
- * <li> image file drag
- * <li> border can be set to frame whole thumbnail or image respectively.
- * <li> image context menu
+ * <ul>
+ * <li> Resizable. The image resizes in layout automatically. For manual resize
+ * set preferred, minimal and maximal size of the root {@link #getPane()}. 
+ * <p>
+ * This size is applied on the root of this thubmnail, which contains the image.
+ * The image will try to use maximum space available, depending on the aspect 
+ * ratios of the image and this thumbnail.
+ * <p>
+ * The image retains aspect ratio and is always fully visible inside this thumbnail.
+ * If the aspect ratio of this thumbnail differs from that of the image, there
+ * will be empty space left on left+right or top+bottom. Image is center - aligned.
+ * <li> File aware. File (representing the image) can be set in addition
+ * to the the image, which is useful for context menu
+ * <li> Aspect ratio aware. See {@link #ratioALL} and {@link #ratioIMG}. Used
+ * for layout.
+ * <li> Resolution aware. The images are loaded only up to required size to 
+ * reduce memory. For details see {@link ImageNode#LOAD_COEFICIENT} and 
+ * {@link ImageNode#calculateImageLoadSize(javafx.scene.layout.Region) }.
+ * <li> Size aware. If this thumbnail is resized then the image will only resize up
+ * to a certain maximum size to prevent blurry result of scaling small image
+ * too much. See {@link #setMaxScaleFactor(double) }
+ * <li> Drag support. Dragging the image will put the the file in the
+ * clipboard (if it is available).
+ * <li> Background can be used. Background is visible on the empty space resulting
+ * from different aspect ratio of this thumbnail and image.
+ * <p>
+ * Define background style in css.
+ * <li> Border. Can be set to frame whole thumbnail or image respectively. Framing
+ * whole thumbnail will frame also the empty areas and background.
+ * Useful for small thumbnails to give them 'rectangular' size by setting both
+ * background and border framing to whole thumbnail. Big image may do the opposite
+ *  - display no background and frame image only.
+ * <p>
+ * Define border style in css.
+ * <li> Context menu. Shown on right click. Has additional menu items if the 
+ * file is set.
+ * <p>
+ * Image can be opened in native application, edited in native editor,
+ * browsed in native file system, exported as file or viewed fullscreen inside
+ * the application, and more.
  * </ul>
  */
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
@@ -357,6 +383,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         };
     }
     
+    
     /**
      * Set whether thumbnail context menu should be used for thumbnail.
      * Default true.
@@ -402,8 +429,10 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
 /******************************************************************************/
     
-    private final DoubleProperty ratioIMG = new SimpleDoubleProperty(1);
-    private final DoubleProperty ratioALL = new SimpleDoubleProperty(1);
+    /** Image aspect ratio. Image width/height. */
+    public final DoubleProperty ratioIMG = new SimpleDoubleProperty(1);
+    /** Thumbnail aspect ratio. Root width/height. */
+    public final DoubleProperty ratioALL = new SimpleDoubleProperty(1);
     private final DoubleProperty maxIMGW = new SimpleDoubleProperty(Double.MAX_VALUE);
     private final DoubleProperty maxIMGH = new SimpleDoubleProperty(Double.MAX_VALUE);
     
@@ -490,16 +519,6 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                 ),
                 menuItem("Fulscreen", e -> {
                     Widget c = WidgetManager.getFactory("Image").create();
-//                   Window w = Window.create();
-//                          w.setSizeAndLocationToInitial();
-//                          w.show();
-//                          w.setFullscreen(true);
-//                          w.setContent(c.load());
-//                          w.getStage().getScene().getRoot().setOnKeyPressed(ke -> {
-//                              if(ke.getCode()==ESCAPE) w.hide();
-//                          });
-//                   
-                   
                     Popup p = new Popup();
                     AnchorPane n = new AnchorPane();
                     n.setBackground(new Background(new BackgroundFill(BLACK, CornerRadii.EMPTY, Insets.EMPTY)));

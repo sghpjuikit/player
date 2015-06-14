@@ -398,8 +398,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             value = property;
 
             // support enumeration by delegation if property supports is
-            if(property instanceof EnumerableValue)
-                valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
+            if(value instanceof EnumerableValue)
+                valueEnumerator = () -> EnumerableValue.class.cast(value).enumerateValues();
         }
         /**
          * @param _name
@@ -433,8 +433,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             value = property;
 
             // support enumeration by delegation if property supports is
-            if(property instanceof EnumerableValue)
-                valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
+            if(value instanceof EnumerableValue)
+                valueEnumerator = () -> EnumerableValue.class.cast(value).enumerateValues();
         }
 
         @Override
@@ -449,16 +449,14 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
         @Override
         public void applyValue() {
-            // apply if value applicable
             if (value instanceof ApplicableValue)
                 ApplicableValue.class.cast(value).applyValue();
         }
 
         @Override
         public void applyValue(T val) {
-            // apply if value applicable
-            if (val instanceof ApplicableValue)
-                ApplicableValue.class.cast(val).applyValue(val);
+            if (value instanceof ApplicableValue)
+                ApplicableValue.class.cast(value).applyValue(val);
         }
 
         @Override
@@ -504,8 +502,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             value = property;
 
             // support enumeration by delegation if property supports is
-            if(property instanceof EnumerableValue)
-                valueEnumerator = () -> EnumerableValue.class.cast(property).enumerateValues();
+            if(value instanceof EnumerableValue)
+                valueEnumerator = () -> EnumerableValue.class.cast(value).enumerateValues();
         }
         /**
          * @param _name
@@ -549,18 +547,10 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         }
 
         @Override
-        public void applyValue() {
-            // apply if value applicable
-            if (value instanceof ApplicableValue)
-                ApplicableValue.class.cast(value).applyValue();
-        }
+        public void applyValue() {}
 
         @Override
-        public void applyValue(T val) {
-            // apply if value applicable
-            if (val instanceof ApplicableValue)
-                ApplicableValue.class.cast(val).applyValue(val);
-        }
+        public void applyValue(T val) {}
 
         @Override
         public Class getType() {

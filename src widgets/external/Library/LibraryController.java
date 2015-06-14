@@ -38,7 +38,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
@@ -66,6 +66,8 @@ import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import main.App;
 import static org.reactfx.EventStreams.changesOf;
@@ -84,7 +86,7 @@ import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
 import util.async.executor.LimitedExecutor;
-import util.async.future.Fut;
+import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
 import util.graphics.Icons;
@@ -352,53 +354,52 @@ public class LibraryController extends FXMLController implements SongReader {
     }
     
     private void addNedit(boolean edit, boolean dir) {
-        // get files        
+        Window w = root.getScene().getWindow();
+        ExtensionFilter ef = AudioFileFormat.filter(Use.APP);
         if(dir) {
-            File f = Environment.chooseFile("Add folder to library", true, last_file,
-                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            addNeditDo(CompletableFuture.supplyAsync(() -> {
-                Stream<File> files = f==null ? Stream.empty() : getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
-                if (f!=null) last_file = f.getParentFile()==null ? f : f.getParentFile();
-                return files.map(SimpleItem::new);
-            }), edit);
+            File f = Environment.chooseFile("Add folder to library", true, last_file, w, ef);
+            if(f!=null) {
+                addNeditDo(() -> {
+                    last_file = f.getParentFile()==null ? f : f.getParentFile();
+                    Stream<File> files = getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
+                    return files.map(SimpleItem::new);
+                }, edit);
+            }
         } else {
-            List<File> fs = Environment.chooseFiles("Add files to library", last_file,
-                    root.getScene().getWindow(), AudioFileFormat.filter(Use.APP));
-            addNeditDo(CompletableFuture.supplyAsync(() -> {
-                Stream<File> files = fs.stream();
-                File f = files==null ? null : getCommonRoot(fs);
-                if(f!=null) last_file=f;
-                return files.map(SimpleItem::new);
-            }), edit);
+            List<File> fs = Environment.chooseFiles("Add files to library", last_file, w, ef);
+            if(fs!=null) {
+                addNeditDo(() -> {
+                    File fr = getCommonRoot(fs);
+                    if(fr!=null) last_file=fr;
+                    Stream<File> files = fs.stream();
+                    return files.map(SimpleItem::new);
+                }, edit);
+            }
         }
     }
     
-    private void addNeditDo(CompletableFuture<Stream<Item>> files, boolean edit) {
-        new Fut<>()
-            .thenR(()->{
-                taskInfo.setVisible(true);
-                taskInfo.message.setText("Discovering files...");
-                taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
-            }, FX)
-            .then(files)
-            .then(items -> items.collect(toList()))
-            .use(items ->{
-                Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
-                    if(ok & edit)
-                        WidgetManager.use(SongReader.class, NO_LAYOUT, w -> w.read(added));
-
-                    hideInfo.restart();
-//                    taskInfo.hideNunbind();
-                },false);
-                taskInfo.bind(t);
-            }, FX)
-            .run();
+    private void addNeditDo(Supplier<Stream<Item>> files, boolean edit) {
+        fut().thenR(() -> {
+                 taskInfo.setVisible(true);
+                 taskInfo.message.setText("Discovering files...");
+                 taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
+             }, FX)
+             .supply(() -> files.get().collect(toList()))
+             .use(items -> {
+                 Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
+                     if(ok && edit && !added.isEmpty())
+                         WidgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
+                     hideInfo.restart();
+                 },false);
+                 taskInfo.bind(t);
+             },FX)
+             .showProgress(App.getWindow().taskAdd())
+             .run();
     }
     
     @FXML private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
             hideInfo.restart();
-//            taskInfo.hideNunbind();
         });
        taskInfo.showNbind(t);
     }

@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
-import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.itemnode.ItemNode.ValueNode;
 import java.util.List;
 import javafx.scene.control.TextArea;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -47,7 +47,7 @@ import static util.functional.Util.*;
  * 
  * @author Plutonium_
  */
-public class ListAreaNode extends ItemNodeBase<List<String>> {
+public class ListAreaNode extends ValueNode<List<String>> {
     
     private final VBox root = new VBox();
     private final TextArea area = new TextArea();

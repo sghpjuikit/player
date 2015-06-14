@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
-import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.CheckIcon;
 import gui.objects.Icon;
 import java.util.function.Supplier;
@@ -33,7 +33,7 @@ import static util.functional.Util.rep;
  *
  * @author Plutonium_
  */
-public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNodeBase<V> {
+public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends ValueNode<V> {
 
     protected final VBox root = new VBox();
     protected final ObservableList<Chainable<IN>> chain = (ObservableList)root.getChildren();
@@ -122,7 +122,7 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
     private static final Tooltip remTooltip = new Tooltip("Remove");
     private static final Tooltip onTooltip = new Tooltip("Enabled");
     
-    public class Chainable<C extends ItemNode<V>> extends HBox {
+    public class Chainable<C extends ValueNode<V>> extends HBox {
         private final CheckIcon onB = new CheckIcon(true);
         private final Icon rem = new Icon(MINUS, 13);
         private final Icon add = new Icon(PLUS, 13);
@@ -185,7 +185,7 @@ public abstract class ChainConfigField<V, IN extends ItemNode<V>> extends ItemNo
         }
     }
     
-    public static class ListConfigField<V, IN extends ItemNode<V>> extends ChainConfigField<V,IN> {
+    public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainConfigField<V,IN> {
 
         public ListConfigField(Supplier<IN> chainedFactory) {
             super(chainedFactory);

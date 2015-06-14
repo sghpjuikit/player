@@ -9,7 +9,7 @@ import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.ItemNode.ConfigField;
+import gui.itemnode.ConfigField;
 import gui.objects.Icon;
 import java.util.*;
 import javafx.beans.property.ObjectProperty;

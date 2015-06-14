@@ -10,12 +10,11 @@ import java.io.File;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.AnchorPane;
 import main.App;
 import util.access.Accessor;
 import static util.async.Async.FX;
-import util.async.future.Fut;
+import static util.async.future.Fut.fut;
 import util.graphics.drag.DragUtil;
 
 /**
@@ -63,15 +62,12 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
-                 ProgressIndicator p = App.getWindow().taskAdd();
-                 new Fut<>()
-                     .thenR(()->p.setProgress(-1),FX)
-                     .then(DragUtil.getImages(e))
+                fut().supply(DragUtil.getImages(e))
                      .use(imgs -> {
                         if(!imgs.isEmpty()) showImage(imgs.get(0));
-                        p.setProgress(1);
-                    },FX)
-                    .run();
+                     },FX)
+                     .showProgress(App.getWindow().taskAdd())
+                     .run();
                 e.setDropCompleted(true);
                 e.consume();
             }

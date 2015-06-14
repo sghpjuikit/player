@@ -3,11 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-package gui.ItemNode.TextFieldItemNode;
+package gui.itemnode.TextFieldItemNode;
 
 import javafx.scene.text.Font;
-import org.controlsfx.dialog.Dialogs;
 import util.parsing.Parser;
 
 /**
@@ -22,7 +20,8 @@ public class FontItemNode extends TextFieldItemNode<Font> {
     
     @Override
     void onDialogAction() {
-        Font tmp = Dialogs.create().owner(getScene().getWindow()).showFontSelector(v).orElse(null);
+//        Font tmp = Dialogs.create().owner(getScene().getWindow()).showFontSelector(v).orElse(null);
+        Font tmp = new org.controlsfx.dialog.FontSelectorDialog(gui.GUI.font.get()).showAndWait().get();
         setValue(tmp);
     }
 }

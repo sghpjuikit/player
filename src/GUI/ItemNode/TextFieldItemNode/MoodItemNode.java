@@ -1,5 +1,5 @@
 
-package gui.ItemNode.TextFieldItemNode;
+package gui.itemnode.TextFieldItemNode;
 
 import AudioPlayer.tagging.MoodManager;
 import gui.objects.Pickers.MoodPicker;

@@ -52,6 +52,7 @@ import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.*;
 import util.async.future.Fut;
+import static util.async.future.Fut.fut;
 import static util.functional.Util.list;
 import util.graphics.drag.DragUtil;
 import static util.graphics.drag.DragUtil.hasImage;
@@ -219,9 +220,10 @@ public class FileInfoController extends FXMLController implements SongReader {
         // handle audio drag transfers
         entireArea.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
-                new Fut<>().then(DragUtil.getSongs(e))
-                    .use(items -> items.findFirst().ifPresent(i -> runLater(() -> read(i))))
-                    .run();
+                fut().supply(DragUtil.getSongs(e))
+                     .then(items -> items.findFirst())
+                     .use(i -> i.ifPresent(this::read),FX)
+                     .run();
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
@@ -248,8 +250,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         coverB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {  //&& DragUtil.hasImage(e.getDragboard())
-                 new Fut<>()
-                    .then(DragUtil.getImage(e))
+                fut().supply(DragUtil.getImage(e))
                     .use(f -> copyFileSafe(f, data.getLocation(), "cover"))
                     .thenR(() -> {
                         cover_source.applyValue();              // refresh cover
@@ -280,18 +281,17 @@ public class FileInfoController extends FXMLController implements SongReader {
         copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         copyB.setOnDragDropped( e -> {
             if(data!=null && data.isFileBased()) {
-                 new Fut<>()
-                    .then(DragUtil.getImages(e))
-                    .then(imgs -> copyFiles(imgs, data.getLocation()))
-                    .thenR(() -> {
-                        cover_source.applyValue();              // refresh cover
-                        getArea().setActivityVisible(false);    // hide activity
-                    },FX)
-                    .showProgress(App.getWindow().taskAdd())
-                    .run();
-                
-                e.setDropCompleted(true);
-                e.consume();
+                fut().supply(DragUtil.getImages(e))
+                     .then(imgs -> copyFiles(imgs, data.getLocation()))
+                     .thenR(() -> {
+                         cover_source.applyValue();              // refresh cover
+                         getArea().setActivityVisible(false);    // hide activity
+                     },FX)
+                     .showProgress(App.getWindow().taskAdd())
+                     .run();
+
+                    e.setDropCompleted(true);
+                    e.consume();
             }
         });
         srcB = actPane.addIcon(SQUARE_ALT, "Source");

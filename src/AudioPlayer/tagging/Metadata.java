@@ -61,6 +61,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import static util.functional.Util.isIn;
 import static util.functional.Util.stream;
 import util.parsing.Parser;
 import util.units.Bitrate;
@@ -1146,6 +1147,13 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         public boolean isCommon() {
             return this==TITLE || this==ALBUM || this==ARTIST || this==RATING || this==PLAYCOUNT ||
                    this==LENGTH || this==BITRATE || this==TRACK_INFO || this==DISCS_INFO;
+        }
+        
+        public boolean isAutoCompleteable() {
+            return isTypeStringRepresentable() && !isIn(this, TITLE,RATING_RAW,
+                COMMENT,LYRICS,COLOR,PLAYCOUNT,PATH,FILENAME,FILESIZE,ENCODING,
+                LENGTH,TRACK,TRACKS_TOTAL,TRACK_INFO,DISC,DISCS_TOTAL,DISCS_INFO,
+                COVER,COVER_INFO,RATING,CHAPTERS);
         }
         
         @Override

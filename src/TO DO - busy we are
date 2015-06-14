@@ -3,12 +3,11 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- autocompletion pool
 - fix FreeFormArea resizing
 - generic container controls
 - Inspector & Converter widgets fix & improve
-- function item nodes dont react on default button click
 - seeker option to show chapters as they are passing
-- config fields unify with item node
 - split&join add fixed length and % support
 - make generic rater control, use in fileinfo
 - unify icons + fluent api
@@ -63,8 +62,6 @@ GENERAL
   (dev note: SmilePrecure OST, also a sole bug case)
 - when app starts with paused song, playing some other songs starts from that
   point rather than the beginning
-- shortut: holding the key fires event every 33ms, however, there is            (not a bug, standard windows behavior)
-  500ms pause first
 - some images with very long names 'can not be found' - it is probably windows
   thing as have experienced problems with long image names before when copying
   the files in windows 

@@ -56,7 +56,7 @@ import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
-import util.async.future.Fut;
+import static util.async.future.Fut.fut;
 import util.async.runnable.Run;
 import static util.functional.Util.forEachIStream;
 import util.graphics.drag.DragUtil;
@@ -255,11 +255,10 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 e.consume();
             } else 
             if(DragUtil.hasImage(e.getDragboard())) {
-                 new Fut<>()
-                    .then(DragUtil.getImages(e))
-                    .use(this::showImages,FX)
-                    .showProgress(App.getWindow().taskAdd())
-                    .run();
+                fut().supply(DragUtil.getImages(e))
+                     .use(this::showImages,FX)
+                     .showProgress(App.getWindow().taskAdd())
+                     .run();
                 
                 e.setDropCompleted(true);
                 e.consume();

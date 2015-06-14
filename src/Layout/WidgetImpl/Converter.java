@@ -5,6 +5,10 @@
  */
 package Layout.WidgetImpl;
 
+import gui.itemnode.StringSplitGenerator;
+import gui.itemnode.ConfigField;
+import gui.itemnode.StringSplitParser;
+import gui.itemnode.ListAreaNode;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.Config;
@@ -14,8 +18,8 @@ import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLAY_CIRCLE;
-import gui.ItemNode.*;
-import gui.ItemNode.ChainConfigField.ListConfigField;
+import gui.itemnode.ChainConfigField.ListConfigField;
+import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.Icon;
 import gui.objects.combobox.ImprovedComboBox;
 import java.io.File;
@@ -135,7 +139,6 @@ public class Converter extends ClassWidgetController implements SongWriter {
         splitter.onItemChange = f -> transform();
         
         inTa.onItemChange = lines -> {
-            System.out.println("lines " + toS(lines));
             StringSplitParser p = splitter.getValue();
             List<List<String>> outs = list(p.parse_keys.size(), ArrayList::new);
             lines.forEach(line -> forEachI(p.apply(line), (i,l)->outs.get(i).add(l)));
@@ -145,7 +148,7 @@ public class Converter extends ClassWidgetController implements SongWriter {
 //                outTas.add(new TA(""));
 //                outTas.get(i).setData(p.parse_keys.get(i), outs.get(i));
 //            }
-            outTas = list(p.parse_keys.size(), () -> new TA(""));
+            outTas = list(outs.size(), () -> new TA(""));
             tas.setAll(gatherTas());
             forEachI(outs, (i,lins) -> outTas.get(i).setData(p.parse_keys.get(i), lins));
             outTFBox.getChildren().setAll(map(outTas,TA::getNode));    
@@ -287,7 +290,7 @@ public class Converter extends ClassWidgetController implements SongWriter {
             writeFile(filepath, contents);
         }
     }
-    private static class In extends ItemNode<Tuple2<String,String>> {
+    private static class In extends ValueNode<Tuple2<String,String>> {
         Accessor<String> name;
         Accessor<String> input;
         ConfigField<String> configfieldA;
@@ -303,7 +306,7 @@ public class Converter extends ClassWidgetController implements SongWriter {
         }
         @Override
         public Tuple2<String,String> getValue() {
-            return util.collections.Tuples.tuple(configfieldA.getItem(), configfieldB.getItem());
+            return util.collections.Tuples.tuple(configfieldA.getValue(), configfieldB.getValue());
         }
 
         @Override

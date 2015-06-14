@@ -7,7 +7,7 @@ package gui.objects.Table;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import gui.ItemNode.TableFilterGenerator;
+import gui.itemnode.TableFilterGenerator;
 import gui.objects.ContextMenu.CheckMenuItem;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;

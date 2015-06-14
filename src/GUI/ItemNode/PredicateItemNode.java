@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
-import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.CheckIcon;
 import gui.objects.combobox.ImprovedComboBox;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ import static util.functional.Util.isTRUE;
  *
  * @author Plutonium_
  */
-public class PredicateItemNode<T> extends ItemNodeBase<Tuple2<Predicate<Object>,T>> {
+public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>> {
     
     private static final Tooltip negTooltip = new Tooltip("Negate");
         
@@ -120,7 +120,7 @@ public class PredicateItemNode<T> extends ItemNodeBase<Tuple2<Predicate<Object>,
         if(p!=null) {
             Predicate<Object> pr = p::apply;
             if(negB.selected.get()) pr = pr.negate();
-            if(p!=null) changeValue(tuple(pr,o));
+            changeValue(tuple(pr,o));
         }
     }
 

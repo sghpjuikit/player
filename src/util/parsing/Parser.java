@@ -1,6 +1,6 @@
 package util.parsing;
 
-import gui.ItemNode.StringSplitParser;
+import gui.itemnode.StringSplitParser;
 import java.io.File;
 import static java.lang.Double.parseDouble;
 import java.lang.reflect.Constructor;

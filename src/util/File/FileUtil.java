@@ -269,8 +269,8 @@ public final class FileUtil {
      * Returns first common parent directory for specified files.
      * 
      * @param files
-     * @return common parent directory or null if list empty or in different
-     * partitions
+     * @return common parent directory or null if list empty or its elements in 
+     * multiple partitions
      */
     public static File getCommonRoot(Collection<File> files) {
         int size = files.size();

@@ -307,9 +307,9 @@ public class MetadataReader{
             
             @Override 
             protected Void call() throws Exception {                    //long timeStart = System.currentTimeMillis();
-                DB.em.getTransaction().begin();
                 List<Metadata> library_items = DB.getAllItems();
                 all = library_items.size();
+                DB.em.getTransaction().begin();
 
                 for (Metadata m : library_items){
                     completed++;

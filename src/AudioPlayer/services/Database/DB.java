@@ -18,6 +18,7 @@ import main.App;
 import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.future.Fut;
+import static util.functional.Util.stream;
 import util.reactive.CascadingStream;
 
 /**
@@ -33,24 +34,37 @@ public class DB {
         emf = Persistence.createEntityManagerFactory(App.LIBRARY_FOLDER().getPath() + File.separator + "library_database.odb");
         em = emf.createEntityManager();
         
-        List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
-        ss = sss.isEmpty() ? new StringStore() : sss.get(0);
-        
-        addString("calm","mood");
-        addString("cheerful","mood");
-        addString("chill","mood");
-        addString("cold","mood");
-        
         new Fut<>()
-            // read db on bgr thread
-            .supply(DB::getAllItems)                        
-            // populate lib - overloads FX thread, so delay
-            // todo: detect when app starts up and run right afterwards
-             .use(i -> views.push(1, i), FX)
-//            .use(i -> views.push(1, i), FXAFTER(7000))
+            // load database
+            .supply(DB::getAllItems)
+            // update gui
+            .use(all_items -> views.push(1, all_items), FX)
+            .thenR(() -> {
+             // load string store
+                List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
+                string_pool = sss.isEmpty() ? new StringStore() : sss.get(0);
+             
+             // populate metadata fields strings if empty
+                if(string_pool.getStrings("album").isEmpty() && !views.getValue(1).isEmpty()) {
+                    stream(Metadata.Field.values())
+                        .filter(f -> f.isAutoCompleteable())
+                        .forEach(f -> {
+                            Set<String> pool = string_pool.getStrings(f.name());
+                            views.getValue(1).stream()
+                                 .map(m -> m.getFieldS(f,""))
+                                 .filter(t -> !t.isEmpty())
+                                 .distinct()
+                                 // .peek(System.out::println) // debug
+                                 .forEach(t -> pool.add(t));
+                        });
+                    // persist
+                    em.getTransaction().begin();
+                    em.merge(string_pool);
+                    em.getTransaction().commit();
+                }
+            })
             .showProgress(App.getWindow().taskAdd())
             .run();
-        
     }
     
     public static void stop() {
@@ -181,37 +195,61 @@ public class DB {
     
     /** 
      * Comparator defining the sorting for items in operations that wish to
-     * provide consistent sorting. For example playing an album might presort the
-     * songs before putting them to playlist.
+     * provide consistent sorting across the application.
      * <p>
      * The comparator should reflect library table sort order.
      */
     public static Comparator<Metadata> library_sorter = Metadata::compareTo;
+
+    /**
+     * In memory storage for strings that persists in database.
+     * Map that maps sets of strings to string keys. The keys are case-insensitive.
+     * <p>
+     * The store is loaded when DB starts. Changes persist immediately.
+     */
+    public static StringStore string_pool;
     
-    
-    
-    
+
 /******************************************************************************/
     
-    private static StringStore ss;
-    
-    public static Set<String> getStrings(String name) {
-        String n = name.toLowerCase();
-        if (!ss.containsKey(n)) ss.put(n, new HashSet());
-        return ss.get(n);
-    }
-    
-    public static void addString(String s,String name) {
-        boolean b = getStrings(name.toLowerCase()).add(s);
-        if(b) {
-            em.getTransaction().begin();
-            em.merge(ss);
-            em.getTransaction().commit();
-        }
-    }
-    
     @Entity(name = "StringStore")
-    public static class StringStore extends HashMap<String,HashSet<String>> {
+    public static class StringStore {
+        private HashMap<String,HashSet<String>> pool = new HashMap();
+
+        private StringStore() {}
         
+        public Set<String> getStrings(String name) {
+            String n = name.toLowerCase();
+            if (!string_pool.pool.containsKey(n)) string_pool.pool.put(n, new HashSet());
+            return string_pool.pool.get(n);
+        }
+
+        public void addString(String name, String s) {
+            boolean b = getStrings(name.toLowerCase()).add(s);
+            if(b) {
+                em.getTransaction().begin();
+                em.merge(string_pool);
+                em.getTransaction().commit();
+            }
+        }
+
+        public void addStrings(String name, List<String> s) {
+            boolean b = getStrings(name.toLowerCase()).addAll(s);
+            if(b) {
+                em.getTransaction().begin();
+                em.merge(string_pool);
+                em.getTransaction().commit();
+            }
+        }
+        
+        @Override
+        public int hashCode() {
+            return 143635;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof StringStore;
+        }
     }
 }

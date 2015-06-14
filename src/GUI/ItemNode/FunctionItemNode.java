@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
 import Configuration.AccessorConfig;
 import Configuration.Config;
-import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,13 +19,17 @@ import util.access.Accessor;
 import util.collections.PrefList;
 import util.functional.Functors.F1;
 import util.functional.Functors.PF;
-import static util.functional.Util.byNC;
+import static util.functional.Util.*;
 
 /**
- *
+ * Value node containing function of one parameter {@link F1}.
+ * 
+ * @param <IN> type of function input
+ * @param <OUT> type of function output
+ * 
  * @author Plutonium_
  */
-public class FunctionItemNode<IN,OUT> extends ItemNodeBase<F1<IN,OUT>> {
+public class FunctionItemNode<IN,OUT> extends ValueNode<F1<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList();
@@ -33,24 +37,22 @@ public class FunctionItemNode<IN,OUT> extends ItemNodeBase<F1<IN,OUT>> {
     
     public FunctionItemNode(Supplier<PrefList<PF<IN,OUT>>> functionPool) {
         fCB = new ImprovedComboBox<>(f->f.name);
+        fCB.getItems().setAll(functionPool.get());
+        fCB.getItems().sort(byNC(f->f.name));
         fCB.valueProperty().addListener((o,ov,nv) -> {
             configs.clear();
             paramB.getChildren().clear();
             nv.getParameters().forEach(p -> {
-                Accessor a = new Accessor(p.defaultValue, v -> generateValue(nv));
+                Accessor a = new Accessor(p.defaultValue, v -> generateValue());
                 Config cg = new AccessorConfig("",a::setNapplyValue,a::getValue);
                 ConfigField cf = ConfigField.create(cg);
                 configs.add(cf);
                 paramB.getChildren().add(cf.getNode());
             });
             if(!configs.isEmpty()) HBox.setHgrow(configs.get(configs.size()-1).getNode(), ALWAYS);
-            generateValue(nv);
+            generateValue();
         });
-        
-        fCB.getItems().setAll(functionPool.get());
-        fCB.getItems().sort(byNC(f->f.name));
-        generateValue(functionPool.get().getPrefered());
-        changeValue(null);   // initializes value, dont fire update yet
+        fCB.setValue(functionPool.get().getPrefered()); // generate
         
         root.getChildren().addAll(fCB,paramB);
     }
@@ -71,9 +73,9 @@ public class FunctionItemNode<IN,OUT> extends ItemNodeBase<F1<IN,OUT>> {
             configs.get(0).focus();
     }
     
-    private void generateValue(PF<IN,OUT> f) {
-        fCB.setValue(f);
-        changeValue(in -> f.apply(in,configs.stream().map(ConfigField::getItem).toArray()));
+    private void generateValue() {
+        PF<IN,OUT> f = fCB.getValue();
+        changeValue(in -> f.apply(in,configs.stream().map(ConfigField::getValue).toArray()));
     }
     
     public Class getTypeIn() {

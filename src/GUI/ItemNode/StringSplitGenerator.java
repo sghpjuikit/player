@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.ItemNode;
+package gui.itemnode;
 
-import gui.ItemNode.ItemNode.ItemNodeBase;
+import gui.itemnode.ItemNode.ValueNode;
 import javafx.scene.control.TextField;
 
 /**
  *
  * @author Plutonium_
  */
-public class StringSplitGenerator extends ItemNodeBase<StringSplitParser> {
+public class StringSplitGenerator extends ValueNode<StringSplitParser> {
     private final TextField root = new TextField();
 
     public StringSplitGenerator() {

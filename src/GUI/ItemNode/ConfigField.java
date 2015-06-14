@@ -1,11 +1,12 @@
 
-package gui.ItemNode;
+package gui.itemnode;
 
 import Action.Action;
 import Configuration.Config;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.ItemNode.TextFieldItemNode.FileItemNode;
-import gui.ItemNode.TextFieldItemNode.FontItemNode;
+import gui.itemnode.ItemNode.ConfigNode;
+import gui.itemnode.TextFieldItemNode.FileItemNode;
+import gui.itemnode.TextFieldItemNode.FontItemNode;
 import gui.objects.CheckIcon;
 import gui.objects.Icon;
 import gui.objects.combobox.ImprovedComboBox;
@@ -47,7 +48,7 @@ import static util.functional.Util.*;
  *
  * @author uranium
  */
-abstract public class ConfigField<T> {
+abstract public class ConfigField<T> extends ConfigNode<T> {
     
     private static final PseudoClass editedPC = getPseudoClass("edited");
     private static final Tooltip okTooltip = new Tooltip("Apply value");
@@ -57,14 +58,13 @@ abstract public class ConfigField<T> {
     
     private final Label label = new Label();
     protected final HBox root = new HBox();
-    protected final Config<T> config;
     public boolean applyOnChange = true;
     protected boolean insonsistent_state = false;
     private Icon defB;
     
     private ConfigField(Config<T> c) {
-        config = c;
-        label.setText(c.getGuiName());
+        super(c);
+        label.setText(config.getGuiName());
         
         root.setMinSize(0,0);
         root.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
@@ -112,11 +112,11 @@ abstract public class ConfigField<T> {
     
     /**
      * Simply compares the current value with the one obtained from Config.
-     * Equivalent to: !config.getValue().equals(getItem());
+     * Equivalent to: !config.getValue().equals(get());
      * @return true if has value that has not been applied
      */
     public boolean hasUnappliedValue() {
-        return !config.getValue().equals(getItem());
+        return !config.getValue().equals(get());
     }
     
     /**
@@ -140,6 +140,7 @@ abstract public class ConfigField<T> {
      * attach it to a scene graph.
      * @return setter control for this field
      */
+    @Override
     public Node getNode() {
         if(!root.getChildren().contains(getControl()))
             root.getChildren().add(0, getControl());
@@ -154,25 +155,12 @@ abstract public class ConfigField<T> {
      */
     abstract Node getControl();
     
+    @Override
     public void focus() {
         getControl().requestFocus();
     }
 
-    /**
-     * {@inheritDoc}
-     * Returns the currently displayed value. Use to get for custom implementations
-     * of setting and applying the value. Usually it is compared to the value obtain
-     * from the Config from the {@link #getConfig()} method and then decided whether
-     * it should be set or applied or ignored.
-     * <p>
-     * Current value is value displayed. Because it can be edited in real time
-     * by the user and it can be represented visually by a String or differently
-     * it doesnt have to be valid at all times - therefore, if the value is not
-     * valid (can not be obtained) the method returns currently set value.
-     * 
-     * @return 
-     */
-    public abstract T getItem();
+    protected abstract T get();
     
     /**
      * Refreshes the content of this config field. The content is read from the
@@ -182,22 +170,13 @@ abstract public class ConfigField<T> {
     public abstract void refreshItem();
     
     /**
-     * Returns the {@link Config}. Use for custom implementations of setting and
-     * applying new values.
-     * @return name of the field
-     */
-    public Config getConfig() {
-        return config;
-    }
-    
-    /**
      * Sets and applies default value of the config if it has different value
      * set.
      */
     public final void setNapplyDefault() {
-        T defVal = config.getDefaultValue();
-        if(!config.getValue().equals(defVal)) {
-            config.setNapplyValue(defVal);
+        T t = config.getDefaultValue();
+        if(!config.getValue().equals(t)) {
+            config.setNapplyValue(t);
             refreshItem();
         }
     }
@@ -206,7 +185,7 @@ abstract public class ConfigField<T> {
     }
     protected void apply(boolean user) {
         if(insonsistent_state) return;
-        T t = getItem();
+        T t = get();
         
         boolean erroneous = t==null;
         if(erroneous) return;
@@ -277,7 +256,7 @@ abstract public class ConfigField<T> {
         }
 
         @Override
-        public Password getItem() {
+        public Password get() {
             return new Password(passF.getText());
         }
 
@@ -328,7 +307,7 @@ abstract public class ConfigField<T> {
             n.selectAll();
         }
         
-        @Override public String getItem() {
+        @Override public String get() {
             return n.getText();
         }
         
@@ -388,7 +367,7 @@ abstract public class ConfigField<T> {
             });
             // applying value
             n.textProperty().addListener((o,ov,nv)-> {
-                Object i = getItem();
+                Object i = get();
                 boolean erroneous = i==null;
                 boolean applicable = !config.getValue().equals(i);
                 showOkButton(!applyOnChange && applicable && !erroneous);
@@ -410,7 +389,7 @@ abstract public class ConfigField<T> {
             n.selectAll();
         }
         
-        @Override public Object getItem() {
+        @Override public Object get() {
             return config.fromS(n.getText());
         }
         @Override public void refreshItem() {
@@ -421,7 +400,7 @@ abstract public class ConfigField<T> {
         @Override
         protected void apply(boolean user) {
             if(insonsistent_state) return;
-            Object t = getItem();
+            Object t = get();
 
             boolean erroneous = t==null;
             if(erroneous) return;
@@ -458,7 +437,7 @@ abstract public class ConfigField<T> {
         @Override public Node getControl() {
             return cBox;
         }
-        @Override public Boolean getItem() {
+        @Override public Boolean get() {
             return cBox.selected.get();
         }
         @Override public void refreshItem() {
@@ -477,7 +456,7 @@ abstract public class ConfigField<T> {
             max = new Label(String.valueOf(c.getMax()));
             
             slider = new Slider(c.getMin(),c.getMax(),v);
-            cur = new Label(getItem().toString());
+            cur = new Label(get().toString());
             cur.setPadding(new Insets(0, 5, 0, 0)); // add gap
             // there is a slight bug where isValueChanging is false even if it
             // shouldnt. It appears when mouse clicks NOT on the thumb but on
@@ -485,8 +464,8 @@ abstract public class ConfigField<T> {
             // activate
             slider.valueProperty().addListener((o,ov,nv) -> {
                 // also bug with snap to tick, which doesnt work on mouse drag
-                // so we use getItem() which returns correct value
-                cur.setText(getItem().toString());
+                // so we use get() which returns correct value
+                cur.setText(get().toString());
                 if(!slider.isValueChanging())
                     apply(false);
             });
@@ -514,7 +493,7 @@ abstract public class ConfigField<T> {
         @Override public Node getControl() {
             return box;
         }
-        @Override public Number getItem() {
+        @Override public Number get() {
             Double d = slider.getValue();
             Class type = unPrimitivize(config.getType());
             if(Integer.class.equals(type)) return d.intValue();
@@ -543,7 +522,7 @@ abstract public class ConfigField<T> {
         }
         
         @Override 
-        public Object getItem() {
+        public Object get() {
             return n.getValue();
         }
 
@@ -627,7 +606,7 @@ abstract public class ConfigField<T> {
         }
         @Override protected void apply(boolean b) {
             // its pointless to make new Action just for this
-            // config.applyValue(getItem()); 
+            // config.applyValue(get()); 
             // rather operate on the Action manually
 
             Action a = config.getValue();
@@ -646,7 +625,7 @@ abstract public class ConfigField<T> {
             }
             refreshItem();
         }
-        @Override public Action getItem() {
+        @Override public Action get() {
             return a;
         }
         @Override public void refreshItem() {
@@ -668,7 +647,7 @@ abstract public class ConfigField<T> {
         @Override public Control getControl() {
             return picker;
         }
-        @Override public Color getItem() {
+        @Override public Color get() {
             return picker.getValue();
         }
         @Override public void refreshItem() {
@@ -687,7 +666,7 @@ abstract public class ConfigField<T> {
         @Override public Control getControl() {
             return txtF;
         }
-        @Override public Font getItem() {
+        @Override public Font get() {
             return txtF.getValue();
         }
         @Override public void refreshItem() {
@@ -706,7 +685,7 @@ abstract public class ConfigField<T> {
         @Override public Control getControl() {
             return txtF;
         }
-        @Override public File getItem() {
+        @Override public File get() {
             return txtF.getValue();
         }
         @Override public void refreshItem() {

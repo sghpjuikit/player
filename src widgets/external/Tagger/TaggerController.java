@@ -21,7 +21,7 @@ import static PseudoObjects.ReadMode.CUSTOM;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
-import gui.ItemNode.TextFieldItemNode.MoodItemNode;
+import gui.itemnode.TextFieldItemNode.MoodItemNode;
 import gui.objects.CheckIcon;
 import gui.objects.GraphicalTextField;
 import gui.objects.Icon;
@@ -656,10 +656,11 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                     OnBackspacePressed();
             });
             
-             if(c instanceof TextField) {
-//                TextFields.bindAutoCompletion((TextField)c, p -> filter(list("abcd","holo"),t -> t.startsWith(p.getUserText())));
-                TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.getStrings("mood"),t -> t.startsWith(p.getUserText())));
-             }
+            //autocompletion
+            if(c instanceof TextField && !isIn(f, TITLE,RATING_RAW,COMMENT,LYRICS,COLOR)) {
+               String fn = f.name();
+               TextFields.bindAutoCompletion((TextField)c, p -> filter(DB.string_pool.getStrings(fn),t -> t.startsWith(p.getUserText())));
+            }
         }
         void enable() { 
             c.setDisable(false);

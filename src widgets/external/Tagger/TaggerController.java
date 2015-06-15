@@ -71,7 +71,9 @@ import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Accessor;
+import static util.async.Async.FX;
 import static util.async.Async.runNew;
+import static util.async.future.Fut.fut;
 import util.collections.MapSet;
 import util.dev.Log;
 import static util.functional.Util.*;
@@ -186,7 +188,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         
         CoverV = new ChangeableThumbnail();
         CoverV.getPane().setPrefSize(200, 200);
-        CoverV.onFileDropped = this::addImg;
+        CoverV.onFileDropped = f -> fut().supply(f).use(this::addImg,FX);
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
         

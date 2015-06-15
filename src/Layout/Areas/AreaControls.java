@@ -5,7 +5,11 @@
  */
 package Layout.Areas;
 
-import util.graphics.drag.DragUtil;
+import static Layout.Areas.Area.draggedPSEUDOCLASS;
+import Layout.BiContainer;
+import Layout.Container;
+import Layout.Widgets.Widget;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
 import static gui.GUI.OpenStrategy.INSIDE;
 import static gui.GUI.OpenStrategy.POPUP;
@@ -16,11 +20,6 @@ import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.SimpleConfigurator;
 import gui.objects.Text;
-import static Layout.Areas.Area.draggedPSEUDOCLASS;
-import Layout.BiContainer;
-import Layout.Container;
-import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
@@ -49,6 +48,7 @@ import util.Animation.Anim;
 import util.SingleInstance;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
+import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
 

@@ -30,6 +30,7 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -47,15 +48,12 @@ import main.App;
 import org.reactfx.Subscription;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
-import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.*;
-import util.async.future.Fut;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.list;
 import util.graphics.drag.DragUtil;
-import static util.graphics.drag.DragUtil.hasImage;
 
 /**
  * File info widget controller.
@@ -230,70 +228,16 @@ public class FileInfoController extends FXMLController implements SongReader {
             }
         });
         
-        // if image drag detected open activity pane
-        entireArea.addEventFilter(DRAG_ENTERED,e->{
-            if (hasImage(e.getDragboard()) && e.getGestureSource()!=cover.getPane())
-                getArea().setActivityVisible(true);
-        });
-        entireArea.addEventFilter(DRAG_OVER,e->{
-            if (hasImage(e.getDragboard()) && e.getGestureSource()!=cover.getPane())
-                getArea().setActivityVisible(true);
-        });
-        
         
         actPane = new ActionChooser();
         actPane.addEventHandler(DRAG_EXITED, e-> getArea().setActivityVisible(false));
         actPane.addEventHandler(MOUSE_EXITED, e-> getArea().setActivityVisible(false));
         
-        
-        Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover", true,true);
-        coverB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
-        coverB.setOnDragDropped( e -> {
-            if(data!=null && data.isFileBased()) {  //&& DragUtil.hasImage(e.getDragboard())
-                fut().supply(DragUtil.getImage(e))
-                    .use(f -> copyFileSafe(f, data.getLocation(), "cover"))
-                    .thenR(() -> {
-                        cover_source.applyValue();              // refresh cover
-                        getArea().setActivityVisible(false);    // hide activity
-                    },FX)
-                    .showProgress(App.getWindow().taskAdd())
-                    .run();
-                 
-                e.setDropCompleted(true);
-                e.consume();
-            }
-        });
-        
-        coverB.setOnMouseClicked(e -> {
-            File f = actPane.item;
-            if(f !=null && ImageFileFormat.isSupported(f)) {
-                new Fut<>()
-                    .thenR(() -> copyFileSafe(f, data.getLocation(), "cover"))
-                    .thenR(() -> {
-                        cover_source.applyValue();              // refresh cover
-                        getArea().setActivityVisible(false);    // hide activity
-                    },FX)
-                    .showProgress(App.getWindow().taskAdd())
-                    .run();
-            }
-        });
-        Icon copyB = actPane.addIcon(PLUS, "Copy to the location", true,true);
-        copyB.setOnDragOver(DragUtil.imageFileDragAccepthandler);
-        copyB.setOnDragDropped( e -> {
-            if(data!=null && data.isFileBased()) {
-                fut().supply(DragUtil.getImages(e))
-                     .then(imgs -> copyFiles(imgs, data.getLocation()))
-                     .thenR(() -> {
-                         cover_source.applyValue();              // refresh cover
-                         getArea().setActivityVisible(false);    // hide activity
-                     },FX)
-                     .showProgress(App.getWindow().taskAdd())
-                     .run();
-
-                    e.setDropCompleted(true);
-                    e.consume();
-            }
-        });
+        Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
+             coverB.setOnMouseClicked(e -> acceptFileAsCover(actPane.getItem()));
+        Icon copyB = actPane.addIcon(PLUS, "Copy to the location");
+             copyB.setOnMouseClicked(e -> acceptFileAsImage(actPane.getItem()));
+             
         srcB = actPane.addIcon(SQUARE_ALT, "Source");
         srcB.setOnMouseClicked(e -> {
             if(e.getButton()==PRIMARY) readMode.setNextNapplyValue();
@@ -312,7 +256,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         });
     }
     
-    ActionChooser<File> actPane;
+    ActionChooser<Supplier<File>> actPane;
     Icon srcB;
     
     @Override
@@ -500,6 +444,32 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     private void setCover(CoverSource source) {
         cover.loadImage(data==null ? null : data.getCover(source));
+    }
+    
+    private void acceptFileAsCover(Supplier<File> f) {
+        if(f==null) return;
+        fut().supply(f)
+            .use(file -> copyFileSafe(file, data.getLocation(), "cover"))
+            .thenR(() -> {
+                cover_source.applyValue();              // refresh cover
+                getArea().setActivityVisible(false);
+                actPane.item = null;
+            },FX)
+            .showProgress(App.getWindow().taskAdd())
+            .run();
+    }
+    private void acceptFileAsImage(Supplier<File> f) {
+        if(f==null) return;
+        
+        fut().supply(f)
+            .then(file -> copyFiles(list(file), data.getLocation()))
+            .thenR(() -> {
+                cover_source.applyValue();              // refresh cover
+                getArea().setActivityVisible(false);
+                actPane.item = null;
+            },FX)
+            .showProgress(App.getWindow().taskAdd())
+            .run();
     }
     
     

@@ -7,10 +7,14 @@ package util.dev;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
- *
+ * Contains set of utility methods for development. For example leading to
+ * easier bug discovery or stronger runtime checking.
  * @author Plutonium_
  */
 public class Util {
@@ -51,5 +55,29 @@ public class Util {
     public static <T> void require(T t, Predicate<T> cond) {
         if(!cond.test(t))
             throw new IllegalStateException("Requirement condition not met.");
+    }
+    
+    
+    public static void measureTime(Runnable r) {
+        long t = System.currentTimeMillis();
+        r.run();
+        System.out.println((System.currentTimeMillis()-t));
+    }
+    public static <T> T measureTime(Supplier<T> r) {
+        long t = System.currentTimeMillis();
+        T o = r.get();
+        System.out.println((System.currentTimeMillis()-t));
+        return o;
+    }
+    public static <T> void measureTime(T val, Consumer<T> r) {
+        long t = System.currentTimeMillis();
+        r.accept(val);
+        System.out.println((System.currentTimeMillis()-t));
+    }
+    public static <I,O> O measureTime(I in, Function<I,O> r) {
+        long t = System.currentTimeMillis();
+        O o = r.apply(in);
+        System.out.println((System.currentTimeMillis()-t));
+        return o;
     }
 }

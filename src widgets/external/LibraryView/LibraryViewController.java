@@ -70,9 +70,8 @@ import util.File.Environment;
 import static util.Util.*;
 import util.access.Accessor;
 import util.access.AccessorEnum;
-import static util.async.Async.runNew;
 import util.async.executor.LimitedExecutor;
-import util.async.future.Fut;
+import static util.async.future.Fut.fut;
 import util.collections.Histogram;
 import util.collections.TupleM6;
 import static util.collections.Tuples.tuple;
@@ -110,7 +109,7 @@ public class LibraryViewController extends FXMLController {
     private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
     ActionChooser actPane = new ActionChooser();
-    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
+    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
     
     // dependencies
     private Subscription d1,d2;
@@ -134,20 +133,10 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, v -> {
         // maintain info text
         lvlB.setText(v.toString());
-        if(d1!=null) d1.unsubscribe();
         // listen for database changes to refresh library
-        d1 = DB.views.subscribe(v, (lvl,list) -> {
-            selectionStore();
-            // update list
-            setItems(list);
-            selectionReStore();
-            // propagate in 1 event
-            forwardItems(filerList(list,true,false));
-        });
-        // initialize
+        if(d1!=null) d1.unsubscribe();
+        d1 = DB.views.subscribe(v, (lvl,list) -> setItems(list));
         setItems(DB.views.getValue(v));
-        // store
-        table.setUserData(v);
     });
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, v -> {
@@ -269,7 +258,7 @@ public class LibraryViewController extends FXMLController {
         });
         
         // forward on selection
-        EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b,ofMillis(100)).subscribe(c -> {
+        EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b,ofMillis(60)).subscribe(c -> {
             if(!sel_lock)
                 forwardItems(DB.views.getValue(lvl.getValue()));
         });
@@ -318,11 +307,11 @@ public class LibraryViewController extends FXMLController {
 /******************************** PRIVATE API **********************************/
     
     private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
+//    private static UUID active = null;
     
     /** populates metadata groups to table from metadata list */
     private void setItems(List<Metadata> list) {
-        // doesnt work ?
-        new Fut<>(fieldFilter.getValue())
+        fut(fieldFilter.getValue())
             .use(f -> {
                 // make histogram
                 h.keyMapper = metadata -> metadata.getField(f);
@@ -340,37 +329,15 @@ public class LibraryViewController extends FXMLController {
                 h.accumulate(list);
                 // read histogram
                 List<MetadataGroup> l = h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f));
+                List<Metadata> fl = filerList(list,true,false);
                 runLater(() -> {
                     selectionStore();
                     table.setItemsRaw(l);
                     selectionReStore();
-                    runNew(() -> {
-                        List<Metadata> ml = filerList(list,true,false);
-                        runLater(() -> DB.views.push(lvl.getValue()+1, ml));
-                    });
+                    DB.views.push(lvl.getValue()+1, fl);
                 });
             })
             .run();
-        
-//        Field f = fieldFilter.getValue();
-//        // make histogram
-//        h.keyMapper = metadata -> metadata.getField(f);
-//        h.histogramFactory = () -> new TupleM6(0l,new HashSet(),0d,0l,0d,null);
-//        h.elementAccumulator = (hist,metadata) -> {
-//            hist.a++;
-//            hist.b.add(metadata.getAlbum());
-//            hist.c += metadata.getLengthInMs();
-//            hist.d += metadata.getFilesizeInB();
-//            hist.e += metadata.getRatingPercent();
-//            if(!Metadata.EMPTY.getYear().equals(hist.f) && !metadata.getYear().equals(hist.f))
-//                hist.f = hist.f==null ? metadata.getYear() : Metadata.EMPTY.getYear();
-//        };
-//        h.clear();
-//        h.accumulate(list);
-//        // read histogram
-//        table.setItemsRaw(h.toList((value,s)->new MetadataGroup(f, value, s.a, s.b.size(), s.c, s.d, s.e/s.a, s.f)));
-//        // pass down the chain
-//        forwardItems(list);
     }
     
     // Sends event to next level
@@ -385,30 +352,27 @@ public class LibraryViewController extends FXMLController {
         // optimization : if empty, dont bother filtering
         if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList(list);
         
-        // composed predicate, too much wasteful computation...
+        // composed predicate, perform suboptimally
         // Predicate<Metadata> p = mgs.parallelStream()
         //        .map(MetadataGroup::toMetadataPredicate)
         //        .reduce(Predicate::or)
         //        .orElse(isFALSE);
         
-        // optimisation : compute values ONCE if doable
         Field f = fieldFilter.getValue();
-        List l = map(mgs,mg->mg.getValue());
         Predicate<Metadata> p;
-        // optimisation : if only 1, dont use list
-        if(l.size()==1) {
-            // optimisation : dont use equals for primitive types
-            boolean primitive = f.getType().isPrimitive();
-            Object v = l.get(0);
-            p = primitive ? m -> m.getField(f)==v : m -> v.equals(m.getField(f));
+        // optimization : if only 1, dont use list
+        // optimization : dont use equals for primitive types
+        if(mgs.size()==1) {
+            boolean prim = f.getType().isPrimitive();
+            Object v = mgs.get(0).getValue();
+            p = prim ? m -> m.getField(f)==v : m -> v.equals(m.getField(f));
         } else {
-            // optimisation : dont use equals for primitive types
-            boolean primitive = f.getType().isPrimitive();
-            p = primitive ? m -> isInR(m.getField(f), l) : m -> isIn(m.getField(f), l);
+            Set<Object> l = mgs.stream().map(mg->mg.getValue()).collect(toSet());
+            boolean prim = f.getType().isPrimitive();
+            p = prim ? m -> isInR(m.getField(f), l) : m -> l.contains(m.getField(f));
         }
         
-        // filter
-        // optimisation : use parallel stream
+        // optimization : use parallel stream
         return list.parallelStream().filter(p).collect(toList());
     }
     

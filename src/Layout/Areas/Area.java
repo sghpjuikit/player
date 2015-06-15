@@ -1,12 +1,12 @@
 
 package Layout.Areas;
 
-import gui.objects.Window.stage.ContextManager;
-import gui.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.Widget;
+import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -179,6 +179,8 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
 /**************************** activity node ***********************************/
     
     public final void setActivityVisible(boolean v) {
+        Node an = getActiveWidget().getController().getActivityNode();
+        setActivityContent(an);
         activityPane.setVisible(v);
 //        activityPane.getStyleClass().setAll(bgr_STYLECLASS);
 //        activityPane.pseudoClassStateChanged(draggedPSEUDOCLASS, v);
@@ -193,6 +195,7 @@ public abstract class Area<T extends Container> implements ContainerNode, Closab
     public final void setActivityContent(Node n) {
 //        if(!activityPane.getChildren().contains(n)) {
             activityPane.getChildren().setAll(n);
+            activityPane.toFront();
             StackPane.setAlignment(n, Pos.CENTER);
 //        }
     }

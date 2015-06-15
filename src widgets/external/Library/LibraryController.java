@@ -150,7 +150,7 @@ public class LibraryController extends FXMLController implements SongReader {
 //    private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
     ActionChooser actPane = new ActionChooser();
-    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level", true, false);
+    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;

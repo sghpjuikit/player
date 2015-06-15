@@ -60,15 +60,14 @@ public class ActionChooser<T> extends StackPane {
     }
 
     public Icon addIcon(FontAwesomeIconName icon, String descriptn) {
-        return addIcon(icon, descriptn, true, false);
+        return addIcon(icon, null, descriptn);
     }
-    public Icon addIcon(FontAwesomeIconName icon, String descriptn, boolean hover_activated, boolean drag_activated) {
-        return addIcon(icon, null, descriptn, hover_activated, drag_activated);
-    }
-    public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn, boolean hover_activated, boolean drag_activated) {
+    public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn) {
         Icon l = new Icon(icon, icon_size);
         l.setFont(new Font(l.getFont().getName(), 13));
 //        l.setText(text);
+        boolean drag_activated = false;
+        boolean hover_activated = true;
         
         l.scaleYProperty().bind(l.scaleXProperty());
         if(drag_activated) {
@@ -85,5 +84,9 @@ public class ActionChooser<T> extends StackPane {
         }
         actionBox.getChildren().add(l);
         return l;
+    }
+    
+    public T getItem() {
+        return item;
     }
 }

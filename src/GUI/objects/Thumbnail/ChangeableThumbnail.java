@@ -5,10 +5,10 @@
  */
 package gui.objects.Thumbnail;
 
-import util.graphics.drag.DragUtil;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.io.File;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javafx.css.PseudoClass;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.DragEvent.DRAG_EXITED;
@@ -21,9 +21,9 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import util.File.Environment;
-import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
 import util.graphics.Icons;
+import util.graphics.drag.DragUtil;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be 
@@ -37,10 +37,19 @@ import util.graphics.Icons;
 public class ChangeableThumbnail extends Thumbnail {
     private final StackPane rt = new StackPane();
     private final Text icon;
-    
-    /** Action for when image file is dropped or received from file chooser.
-        Default does nothing. Must not be null. */
-    public Consumer<File> onFileDropped = f -> {};
+    /** 
+     * Action for when image file is dropped or received from file chooser.
+     * Default does nothing. Null indicates no action. 
+     * <p>
+     * Obtaining the image file may be blocking operation. Therefore, the file 
+     * is obtained by executing the provided supplier. That must be done 
+     * manually and should be done on bgr thread.
+     */
+    public Consumer<Supplier<File>> onFileDropped = null;
+    /** 
+     * Action for when image is highlighted. 
+     * Default does nothing. Must not be null.
+     */
     public Consumer<Boolean> onHighlight = v -> {};
     
     public ChangeableThumbnail() {
@@ -66,31 +75,26 @@ public class ChangeableThumbnail extends Thumbnail {
         rt.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
                 File f = Environment.chooseFile("Select image to add to tag",false, new File(""), root.getScene().getWindow());
-                if (f!= null) onFileDropped.accept(f);
+                if (f!= null && onFileDropped!=null) onFileDropped.accept(() -> f);
             }
         });
         
         // add image on drag & drop image file
-        getPane().setOnDragOver( t -> {
-            Dragboard d = t.getDragboard();
-            // accept if as at least one image file, note: we dont want url
+        getPane().setOnDragOver( e  -> {
+            Dragboard d = e.getDragboard();
+            // accept if has at least one image file, note: we dont want url
             // ignore self -> self drag
-            if (t.getGestureSource()!=getPane() && d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported))
-                t.acceptTransferModes(TransferMode.ANY);
+            if (e.getGestureSource()!=getPane() && DragUtil.hasImage(d))
+                e.acceptTransferModes(TransferMode.ANY);
         });
-        getPane().setOnDragDropped( t -> {
-            Dragboard d = t.getDragboard();
-            // check again if the image file is in the dragboard. If it isnt
-            // do not consume and let the event propagate bellow. In case there
-            // are playable items/files they will be captured by root's drag
-            // handler
-            // removing the condition would consume the event and stop propagation
-            if (d.hasFiles() && d.getFiles().stream().anyMatch(ImageFileFormat::isSupported)) {
-                d.getFiles().stream().filter(ImageFileFormat::isSupported)
-                            .findAny().ifPresent(onFileDropped::accept);
-                //end drag transfer
-                t.setDropCompleted(true);
-                t.consume();
+        getPane().setOnDragDropped( e -> {
+            Dragboard d = e.getDragboard();
+            // consume only if has image to let othe types propagate
+            if (onFileDropped!=null && DragUtil.hasImage(d)) {
+                onFileDropped.accept(DragUtil.getImage(e));
+
+                e.setDropCompleted(true);
+                e.consume();
             }
         });
     }

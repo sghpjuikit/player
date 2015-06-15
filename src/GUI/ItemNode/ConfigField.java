@@ -28,7 +28,6 @@ import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
-import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
@@ -319,9 +318,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField n = new CustomTextField();
-        Icon okBL= new Icon();
-        Icon warnB = new Icon();
-        AnchorPane okB = new AnchorPane(okBL);
+        Icon okI= new Icon();
+        Icon warnI = new Icon();
+        AnchorPane okB = new AnchorPane(okI);
+        AnchorPane warnB = new AnchorPane(warnI);
         
         private GeneralField(Config c) {
             super(c);
@@ -331,13 +331,19 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 //            if(c.isTypeNumber())
 //                InputConstraints.numbersOnly(txtF, !c.isTypeNumberNonegative(), c.isTypeFloatingNumber());
             
-            okBL.getStyleClass().setAll("congfig-field-ok-button");
-            okBL.icon_size.set(11);
-            okBL.setTooltip(okTooltip);
-            setAnchors(okBL,0,0,0,8);       // fix alignment
-            warnB.icon_size.set(11);
-            warnB.getStyleClass().setAll("congfig-field-warn-button");
-            warnB.setTooltip(warnTooltip);
+            okB.setPrefSize(11, 11);
+            okB.setMinSize(11, 11);
+            okB.setMaxSize(11, 11);
+            warnB.setPrefSize(11, 11);
+            warnB.setMinSize(11, 11);
+            warnB.setMaxSize(11, 11);
+            okI.getStyleClass().setAll("congfig-field-ok-button");
+            okI.icon_size.set(11);
+            okI.setTooltip(okTooltip);
+            setAnchors(okI,0,0,0,8);       // fix alignment
+            warnI.icon_size.set(11);
+            warnI.getStyleClass().setAll("congfig-field-warn-button");
+            warnI.setTooltip(warnTooltip);
             
             n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add("text-field-config");
@@ -375,7 +381,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 if(nv.isEmpty()) return;
                 if(applyOnChange) apply(false);
             });
-            okBL.setOnMouseClicked( e -> apply(true));
+            okI.setOnMouseClicked( e -> apply(true));
             n.setOnKeyPressed( e -> { if(e.getCode()==ENTER) apply(true); });
         }
         
@@ -414,12 +420,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         private void showOkButton(boolean val) {
             if (val) n.setLeft(okB);
-            else n.setLeft(new Region());
+            else n.setLeft(null);
             okB.setVisible(val);
         }
         private void showWarnButton(boolean val) {
             if (val) n.setRight(warnB);
-            else n.setRight(new Region());
+            else n.setRight(null);
             warnB.setVisible(val);
         }
         

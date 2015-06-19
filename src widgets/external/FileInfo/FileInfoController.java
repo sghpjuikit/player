@@ -30,6 +30,7 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
@@ -234,11 +235,11 @@ public class FileInfoController extends FXMLController implements SongReader {
         actPane.addEventHandler(MOUSE_EXITED, e-> getArea().setActivityVisible(false));
         
         Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
-             coverB.setOnMouseClicked(e -> acceptFileAsCover(actPane.getItem()));
+             coverB.setOnMouseClicked(e -> setCover(actPane.getItem(),true));
         Icon copyB = actPane.addIcon(PLUS, "Copy to the location");
-             copyB.setOnMouseClicked(e -> acceptFileAsImage(actPane.getItem()));
+             copyB.setOnMouseClicked(e -> setCover(actPane.getItem(),false));
              
-        srcB = actPane.addIcon(SQUARE_ALT, "Source");
+        Icon srcB = actPane.addIcon(SQUARE_ALT, "Source");
         srcB.setOnMouseClicked(e -> {
             if(e.getButton()==PRIMARY) readMode.setNextNapplyValue();
             if(e.getButton()==SECONDARY) readMode.setPreviousNapplyValue();
@@ -257,7 +258,6 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     
     ActionChooser<Supplier<File>> actPane;
-    Icon srcB;
     
     @Override
     public Node getActivityNode() {
@@ -446,23 +446,15 @@ public class FileInfoController extends FXMLController implements SongReader {
         cover.loadImage(data==null ? null : data.getCover(source));
     }
     
-    private void acceptFileAsCover(Supplier<File> f) {
-        if(f==null) return;
-        fut().supply(f)
-            .use(file -> copyFileSafe(file, data.getLocation(), "cover"))
-            .thenR(() -> {
-                cover_source.applyValue();              // refresh cover
-                getArea().setActivityVisible(false);
-                actPane.item = null;
-            },FX)
-            .showProgress(App.getWindow().taskAdd())
-            .run();
-    }
-    private void acceptFileAsImage(Supplier<File> f) {
+    private void setCover(Supplier<File> f, boolean setAsCover) {
         if(f==null) return;
         
+        Consumer<File> action = setAsCover
+            ? file -> copyFileSafe(file, data.getLocation(), "cover")
+            : file -> copyFiles(list(file), data.getLocation());
+        
         fut().supply(f)
-            .then(file -> copyFiles(list(file), data.getLocation()))
+            .use(action)
             .thenR(() -> {
                 cover_source.applyValue();              // refresh cover
                 getArea().setActivityVisible(false);

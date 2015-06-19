@@ -9,6 +9,7 @@ import static java.util.Arrays.asList;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import javafx.collections.ObservableList;
 import util.access.FieldValue.EnumerableValue;
 
 /**
@@ -30,6 +31,10 @@ public class AccessorEnum<T> extends Accessor<T> implements EnumerableValue<T> {
     public AccessorEnum(T val, Consumer<T> applier, Supplier<Collection<T>> enumerator) {
         super(val, applier);
         valueEnumerator = enumerator;
+    }
+    public AccessorEnum(T val, ObservableList<T> enumerated) {
+        super(val);
+        valueEnumerator = () -> enumerated;
     }
     public AccessorEnum(Supplier<T[]> enumerator, T val) {
         super(val);

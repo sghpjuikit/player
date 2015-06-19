@@ -5,7 +5,7 @@
 
 - fix FreeFormArea resizing
 - generic container controls
-- Inspector & Converter widgets fix & improve
+- Inspector widgets fix & improve
 - seeker option to show chapters as they are passing
 - split&join add fixed length and % support
 - make generic rater control, use in fileinfo
@@ -17,7 +17,6 @@
 - app icon
 - tagger cover loading optimize
 - plugin discovery/load
-- library view save selection
 - popover position jumps on app drag start
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think

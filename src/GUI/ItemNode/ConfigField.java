@@ -11,9 +11,11 @@ import gui.objects.CheckIcon;
 import gui.objects.Icon;
 import gui.objects.combobox.ImprovedComboBox;
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.animation.FadeTransition;
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.geometry.Insets;
@@ -518,8 +520,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         
         private EnumertionField(Config<Object> c) {
             super(c);
-            n = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));            
-            n.getItems().addAll(c.enumerateValues());
+            Collection e = c.enumerateValues();
+            n = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));
+            if(e instanceof ObservableList) n.setItems((ObservableList)e);
+            else n.getItems().setAll(e);
             n.getItems().sort(by(v->c.toS(v)));
             n.setValue(c.getValue());
             n.valueProperty().addListener((o,ov,nv) -> apply(false));

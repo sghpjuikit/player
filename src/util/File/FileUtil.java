@@ -544,16 +544,19 @@ public final class FileUtil {
     
     /**
      * Copies file from given url, for example accessed over http protocol, into
-     * new file on a local file system specified by the parameter.
+     * new file on a local file system specified by the parameter. Previously
+     * existing file is removed. 
      * 
      * @param url
-     * @param destinationFile
+     * @param file
      * @throws IOException when bad url or input or output file inaccessible
      */
-    public static void saveFileAs(String url, File destinationFile) throws IOException {
+    public static void saveFileAs(String url, File file) throws IOException {
+        if(file.exists()) file.delete();
+        
         URL u = new URL(url);
         InputStream is = u.openStream();
-        OutputStream os = new FileOutputStream(destinationFile);
+        OutputStream os = new FileOutputStream(file);
 
         byte[] b = new byte[2048];
         int length;
@@ -571,18 +574,18 @@ public final class FileUtil {
      * destination directory is provided and the destination file will be put
      * there and named according to the input url file name.
      * @param url
-     * @param destination
+     * @param dirdirectory
      * 
      * @return the file denoting the new file.
      * 
      * @throws IOException 
      */
-    public static File saveFileTo(String url, File destination) throws IOException {
+    public static File saveFileTo(String url, File dir) throws IOException {
         int i = url.lastIndexOf('/');
         if(i==-1) throw new IOException("url does not contain name. No '/' character found.");
         String name = url.substring(1+i); 
         
-        File df = new File(destination, name);
+        File df = new File(dir, name);
         saveFileAs(url, df);
         return df;
     }
@@ -631,8 +634,6 @@ public final class FileUtil {
         int p = path.lastIndexOf('.');
         return (p == - 1) ? "" : path.substring(p + 1);
     }
-    
-    
     
     /**
      * Recursively deletes sub files and sub directories. along with the 

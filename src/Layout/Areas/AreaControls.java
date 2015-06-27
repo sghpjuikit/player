@@ -27,7 +27,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
+import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -61,9 +61,33 @@ public final class AreaControls {
 
     private static final double activatorW = 20;
     private static final double activatorH = 20;
-
-    // we only need one instance for all areas
-    private static final SingleInstance<PopOver<Text>, AreaControls> helpP = new SingleInstance<>(
+    private static final String infobTEXT = "Help\n\n"
+        + "Displays information about the widget, e.g., name, purpose or "
+        + "how to use it.";
+    private static final String dragbTEXT = "Drag widget\n\n"
+        + "Drag the button with mouse to move and drop on different widget "
+        + "to change their position in the layout.";
+    private static final String absbTEXT = "Absolute size\n\n"
+        + "Prevents widget from resizing proportionally to parent container's "
+        + "size. Instead, the widget will keep the same size, if possible.";
+    private static final String lockbTEXT = "Lock widget\n\n"
+        + "Disallows layout mode when mouse enters top corner of the widget.\n\n"
+        + "This can be applie separately on widgets, but also containers or "
+        + "whole layout.";
+    private static final String refbTEXT = "Refresh widget\n\n"
+        + "Applies widget properties, layout or reloads widget content. Depends "
+        + "on widget.";
+    private static final String propbTEXT = "Settings\n\n"
+        + "Displays widget properties.";
+    private static final String detachbTEXT = "Detach widget\n\n"
+        + "Moves widget out of the container and puts it to new layout in a new "
+        + "window";
+    private static final String changebTEXT = "Change widget\n\n"
+        + "Choose new widget or container. If any is selected, old widget is "
+        + "closed.";
+    private static final String closebTEXT = "Close widget\n\n"
+        + "Closes widget and creates empty place in the container.";
+    private static SingleInstance<PopOver<Text>, AreaControls> helpP = new SingleInstance<>(
 	() -> PopOver.createHelpPopOver(""),
 	(p, ac) -> {
             // set text
@@ -78,6 +102,7 @@ public final class AreaControls {
 	    });
 	});
 
+    
     @FXML public AnchorPane root = new AnchorPane();
     @FXML public Region deactivator;
     @FXML public Region deactivator2;
@@ -97,7 +122,7 @@ public final class AreaControls {
     public AreaControls(Area area) {
 	this.area = area;
         
-        // load fxml part
+        // load fxml
         new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
 	// avoid clashing of title and control buttons for small root size
@@ -109,26 +134,24 @@ public final class AreaControls {
 	header_buttons.setVgap(8);
 
 	// build header buttons
-	infoB = new Icon(INFO, 12, "Help", this::showInfo);
-	Icon closeB = new Icon(TIMES, 12, "Close widget", e -> {
+	Icon closeB = new Icon(TIMES, 12, closebTEXT, e -> {
 	    close();
 	    App.actionStream.push("Close widget");
 	});
-	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", this::detach);
-	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", this::changeWidget);
-	propB = new Icon(COGS, 12, "Settings", this::settings);
-	Icon lockB = new Icon(null, 12, "Lock widget layout");
-        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB.icon);
-	lockB.setOnMouseClicked(e -> {
-	    toggleLocked();
+	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
+	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, detachbTEXT, this::detach);
+	propB = new Icon(COGS, 12, propbTEXT, this::settings);
+	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
+	Icon lockB = new Icon(null, 12, lockbTEXT, () -> {
+            toggleLocked();
 	    App.actionStream.push("Widget layout lock");
-	});
-	Icon refreshB = new Icon(REFRESH, 12, "Refresh widget", this::refreshWidget);
-	absB = new Icon(LINK, 12, "Resize widget proportionally", e -> {
+        });
+        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB.icon);
+	absB = new Icon(LINK, 12, absbTEXT, e -> {
 	    toggleAbsSize();
 	    updateAbsB();
 	});
-        Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
+        Icon dragB = new Icon(MAIL_REPLY, 12, dragbTEXT);
         dragB.setOnDragDetected( e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
@@ -147,11 +170,12 @@ public final class AreaControls {
                 e.consume();
             }
         });
+	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo);
         
 	// build header
-	header_buttons.setNodeOrientation(RIGHT_TO_LEFT);
-	header_buttons.setAlignment(Pos.CENTER_LEFT);
-	header_buttons.getChildren().addAll(closeB, detachB, changeB, propB, refreshB, lockB, absB, dragB, infoB);
+	header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
+	header_buttons.setAlignment(Pos.CENTER_RIGHT);
+	header_buttons.getChildren().addAll(infoB, dragB, absB, lockB, refreshB, propB, detachB, changeB, closeB);
 
 	// build animations
 	contrAnim = new FadeTransition(millis(GUI.duration_LM), root);
@@ -366,7 +390,7 @@ public final class AreaControls {
 
     void updateAbsB() {
 	Container c = area.container.getParent();
-	if (c != null && c instanceof BiContainer) {
+	if (c instanceof BiContainer) {
 	    boolean l = c.properties.getI("abs_size") == area.container.indexInParent();
             absB.icon.setValue(l ? UNLINK : LINK);
 	    if (!header_buttons.getChildren().contains(absB))
@@ -449,21 +473,26 @@ public final class AreaControls {
 
     public String getInfo() {
         Widget w = area.getActiveWidget();
-        return "Available actions:\n"
-             + "    Close : Closes the widget\n"
-             + "    Detach : Opens the widget in new window\n"
-             + "    Change : Opens widget chooser to pick new widget\n"
-             + "    Settings : Opens settings for the widget if available\n"
-             + "    Refresh : Refreshes the widget\n"
-             + "    Lock : Forbids entering layout mode on mouse hover\n"
-             + "    Press ALT : Toggles layout mode\n"
-             + "    Drag & Drop header : Drags widget to other area\n"
-             + "\n"
-             + "Available actions in layout mode:\n"
-             + "    Drag & Drop : Drags widget to other area\n"
-             + "    Sroll : Changes widget area size\n"
-             + "    Middle click : Set widget area size to max\n"
-             + w==null ? "" : w.getInfo().toStr();
+        return ""
+            + "Controls for managing user interface (ui). UI is comprised of "
+            + "widgets, containers and layouts. Widgets provide the functionality "
+            + "and behavior and can be configured. Containers are invisible "
+            + "boxes to lay out widgets. Containers contain widgets, but also "
+            + "other containers - creating a nested hierarchy. Layouts are "
+            + "containers at the top of the hierarchy.\n"
+            + "\n"
+            + "Available actions:\n"
+            + "    Right click : Go to parent container\n"
+            + "    Left click : Go to child containers/widgets\n"
+            + "    Close : Closes the widget\n"
+            + "    Detach : Opens the widget in new window\n"
+            + "    Change : Opens widget chooser to pick new widget\n"
+            + "    Settings : Opens settings for the widget if available\n"
+            + "    Refresh : Refreshes the widget\n"
+            + "    Lock : Forbids entering layout mode on mouse hover\n"
+            + "    Press ALT : Toggles layout mode\n"
+            + "    Drag & Drop header : Drags widget to other area\n"
+            + (w==null ? "" : w.getInfo().toStr());
     }
     
 }

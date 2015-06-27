@@ -33,7 +33,7 @@ public class ClassListMap<E> extends ListMap<E,Class> {
      */
     public List<E> getElementsOfSuperV(Class key) {
         List<E> o = getElementsOf(getSuperClassesInc(key));
-                o.addAll(getElementsOf(Void.class));
+        if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
         return o;
     }
     /** 
@@ -46,7 +46,7 @@ public class ClassListMap<E> extends ListMap<E,Class> {
      */
     public List<E> getElementsOfSuper(Class key) {
         List<E> o = getElementsOf(getSuperClassesInc(key));
-                o.addAll(getElementsOf(Void.class));
+        if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
         return o;
     }
     

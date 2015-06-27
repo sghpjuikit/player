@@ -2,7 +2,6 @@
 package gui.objects.Pickers;
 
 import static java.lang.Math.*;
-import java.util.ArrayList;
 import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -24,9 +23,7 @@ import util.Animation.Anim;
 import static util.Animation.Anim.Interpolators.isAroundMin1;
 import static util.Animation.Anim.par;
 import static util.Animation.Anim.seq;
-import util.functional.Util;
-import static util.functional.Util.forEachI;
-import static util.functional.Util.forEachIStream;
+import static util.functional.Util.*;
 import util.functional.functor.FunctionC;
 import util.parsing.ToStringConverter;
 
@@ -57,7 +54,7 @@ public class Picker<E> {
     /** Default Item supplier. Returns empty stream. */
     public static final Supplier<Stream> DEF_itemSupply = Stream::empty;
     
-    private final AnchorPane tiles = new AnchorPane();
+    private final CellPane tiles = new CellPane();
     public final ScrollPane root = new ScrollPane(tiles);
     
     /**
@@ -102,10 +99,6 @@ public class Picker<E> {
     };
     
     public Picker() {
-        // auto-layout
-        root.widthProperty().addListener((o,ov,nv) -> layout(nv.doubleValue(), root.getHeight()));
-        root.heightProperty().addListener((o,ov,nv) -> layout(root.getWidth(), nv.doubleValue()));
-        
         root.setPannable(false);  // forbid mouse panning
         root.setHbarPolicy(NEVER);
         root.setPrefSize(-1,-1);  // leave resizable
@@ -128,7 +121,7 @@ public class Picker<E> {
         // get items
         itemSupply.get()
             // & sort
-            .sorted(Util.byNC(textCoverter::toS))
+            .sorted(byNC(textCoverter::toS))
             // & create cells
             .forEach( item -> {
                 Node cell = cellFactory.apply(item);
@@ -179,36 +172,43 @@ public class Picker<E> {
     }
     
     public List<Region> getCells() {
-        return new ArrayList(tiles.getChildren());
+        return (List) list(tiles.getChildren());
     }
     
-    private void layout(double width, double height) {
-        int gap = 5;
-        int elements = tiles.getChildren().size();
-        double min_cell_w = max(1,getCells().get(0).getMinWidth());
-        double min_cell_h = max(1,getCells().get(0).getMinHeight());
-//        if(elements==0) return;
-        
-        int c = width>height ? (int) ceil(sqrt(elements)) : (int) floor(sqrt(elements));
-            c = width<c*min_cell_w ? (int)floor(width/min_cell_w) : c;
-        final int columns = max(1,c);
-        
-        int rows = (int) ceil(elements/(double)columns);
-        
-        double sumgapy = (rows-1) * gap;
-        final double cell_height = height<rows*min_cell_h ? min_cell_h : (height-sumgapy)/rows-1/(double)rows;
-        
-        double W = rows*(cell_height+gap)-gap>height ? width-15 : width; // take care of scrollbar
-        double sumgapx = (columns-1) * gap;  // n elements have n-1 gaps
-        final double cell_width = (W-sumgapx)/columns;
+    private class CellPane extends Pane {
 
-        forEachI(getCells(), (i,n) -> {
-            double x = i%columns * (cell_width+gap);
-            double y = i/columns * (cell_height+gap);
-            n.setLayoutX(x);
-            n.setLayoutY(y);
-            n.setPrefWidth(cell_width);
-            n.setPrefHeight(cell_height);
-        });
+        @Override
+        protected void layoutChildren() {
+            double width = root.getWidth();
+            double height = root.getHeight();
+            
+            
+            int gap = 5;
+            int elements = tiles.getChildren().size();
+            double min_cell_w = max(1,getCells().get(0).getMinWidth());
+            double min_cell_h = max(1,getCells().get(0).getMinHeight());
+            // if(elements==0) return;
+
+            int c = width>height ? (int) ceil(sqrt(elements)) : (int) floor(sqrt(elements));
+                c = width<c*min_cell_w ? (int)floor(width/min_cell_w) : c;
+            final int columns = max(1,c);
+
+            int rows = (int) ceil(elements/(double)columns);
+
+            double sumgapy = (rows-1) * gap;
+            final double cell_height = height<rows*min_cell_h ? min_cell_h : (height-sumgapy)/rows-1/(double)rows;
+
+            double W = rows*(cell_height+gap)-gap>height ? width-15 : width; // take care of scrollbar
+            double sumgapx = (columns-1) * gap;  // n elements have n-1 gaps
+            final double cell_width = (W-sumgapx)/columns;
+
+            forEachI(getCells(), (i,n) -> {
+                double x = i%columns * (cell_width+gap);
+                double y = i/columns * (cell_height+gap);
+                n.relocate(x,y);
+                n.resize(cell_width, cell_height);
+            });
+        }
+        
     }
 }

@@ -26,8 +26,7 @@ import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import util.async.runnable.Run;
-import static util.functional.Util.isNotNULL;
-import static util.functional.Util.rep;
+import static util.functional.Util.*;
 
 /**
  *
@@ -39,6 +38,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
     protected final ObservableList<Chainable<IN>> chain = (ObservableList)root.getChildren();
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
     protected boolean homogeneous = true;
+    protected boolean editable_chain = true;
     
     ChainConfigField() {}
     
@@ -136,7 +136,8 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         public Chainable(int at, Supplier<C> chainedFactory) {
             chained = chainedFactory.get();
             setSpacing(5);
-            getChildren().addAll(rem,add,onB,chained.getNode());
+            if(editable_chain) getChildren().addAll(rem,add,onB,chained.getNode());
+            else getChildren().addAll(chained.getNode());
             HBox.setHgrow(chained.getNode(), ALWAYS);
             setAlignment(CENTER_LEFT);
             chained.onItemChange = f-> generateValue();
@@ -163,13 +164,13 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         
         void updateIcons() {
             int l = chain.size();
-//            rem.setDisable(homogeneous ? !rem_alt && l<=1 : getIndex()<l-1);
-//            add.setDisable(homogeneous ? l>=maxChainLength.get() : getIndex()<l-1);
-//            onB.setDisable(!isHomogeneous());
+            boolean h = isHomogeneous();
             
-            rem.setDisable(isHomogeneous() && !rem_alt && l<=1);
-            add.setDisable(isHomogeneous() && l>=maxChainLength.get());
-            this.setDisable(!isHomogeneous());
+            rem.setDisable(h && !rem_alt && l<=1);
+            add.setDisable(h && l>=maxChainLength.get());
+            this.setDisable(!h);
+            
+            if(!editable_chain) getChildren().removeAll(rem,add,onB);
         }
         
         void onRem(MouseEvent e) {
@@ -181,12 +182,16 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         
         private boolean isHomogeneous() {
             int i = getIndex();
-            return homogeneous || i>=chain.size()-1 || false;
+            return homogeneous || i>=chain.size()-1;
         }
     }
     
     public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainConfigField<V,IN> {
-
+        
+        {
+            editable_chain = false;
+        }
+        
         public ListConfigField(Supplier<IN> chainedFactory) {
             super(chainedFactory);
         }

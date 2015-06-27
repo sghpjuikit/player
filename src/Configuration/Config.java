@@ -399,7 +399,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
-                valueEnumerator = () -> EnumerableValue.class.cast(value).enumerateValues();
+                valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
         /**
          * @param _name
@@ -434,7 +434,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
-                valueEnumerator = () -> EnumerableValue.class.cast(value).enumerateValues();
+                valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
 
         @Override
@@ -503,7 +503,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
-                valueEnumerator = () -> EnumerableValue.class.cast(value).enumerateValues();
+                valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
         /**
          * @param _name
@@ -535,6 +535,9 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public ReadOnlyPropertyConfig(String name, String gui_name, ReadOnlyProperty<T> property, String category, String info, double min, double max) {
             super(name, gui_name, property.getValue(), category, info, false, min, max);
             value = property;
+            
+            if(value instanceof EnumerableValue)
+                valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
         }
 
         @Override

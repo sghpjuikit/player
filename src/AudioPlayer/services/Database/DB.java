@@ -15,9 +15,11 @@ import static java.util.Collections.EMPTY_LIST;
 import static javafx.application.Platform.runLater;
 import javax.persistence.*;
 import main.App;
+import static util.File.FileUtil.readFileLines;
 import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.future.Fut;
+import util.functional.Functors.F2;
 import static util.functional.Util.stream;
 import util.reactive.CascadingStream;
 
@@ -26,6 +28,8 @@ import util.reactive.CascadingStream;
  * @author Plutonium_
  */
 public class DB {
+    
+    private static final File MOODS_FILE = new File(App.DATA_FOLDER(), "MoodList.cfg");
     
     public static EntityManagerFactory emf;
     public static EntityManager em;
@@ -55,13 +59,28 @@ public class DB {
                                  .filter(t -> !t.isEmpty())
                                  .distinct()
                                  // .peek(System.out::println) // debug
-                                 .forEach(t -> pool.add(t));
+                                 .forEach(pool::add);
                         });
+                    
+                    // add default moods (stored in file)
+                    Set<String> pool = string_pool.getStrings(Metadata.Field.MOOD.name());
+                    readFileLines(MOODS_FILE).forEach(pool::add);
+                    
                     // persist
                     em.getTransaction().begin();
                     em.merge(string_pool);
                     em.getTransaction().commit();
                 }
+                
+                    // add default moods (stored in file)
+                    Set<String> pool = string_pool.getStrings(Metadata.Field.MOOD.name());
+                    readFileLines(MOODS_FILE).forEach(pool::add);
+                    
+                    // persist
+                    em.getTransaction().begin();
+                    em.merge(string_pool);
+                    em.getTransaction().commit();
+                
             })
             .showProgress(App.getWindow().taskAdd())
             .run();
@@ -209,6 +228,9 @@ public class DB {
      */
     public static StringStore string_pool;
     
+    public static boolean autocompltn_contains = true;
+    public static final F2<String,String,Boolean> autocmplt_filter = (text,phrase) -> autocompltn_contains
+                                        ? text.contains(phrase) : text.startsWith(phrase);
 
 /******************************************************************************/
     

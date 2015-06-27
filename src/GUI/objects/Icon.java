@@ -16,8 +16,11 @@ import javafx.event.EventHandler;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
+import static javafx.scene.text.TextAlignment.JUSTIFY;
 import javafx.scene.text.TextBoundsType;
+
 
 public class Icon extends Label {
     
@@ -96,7 +99,13 @@ public class Icon extends Label {
 
     
     public Icon(FontAwesomeIconName ico, int size, String tooltip, Runnable onClick) {
-        this(ico, size, tooltip, onClick==null ? null : e -> { onClick.run(); e.consume(); });
+        this(ico, size, tooltip, onClick==null ? null : e -> { 
+                if(e.getButton()==PRIMARY) {
+                    onClick.run();
+                    e.consume(); 
+                } 
+            }
+        );
     }
     
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
@@ -119,8 +128,13 @@ public class Icon extends Label {
 //    }
     
     public final void setTooltip(String text) {
-        if(text!=null && !text.isEmpty())
-            Tooltip.install(this, new Tooltip(text));
+        if(text!=null && !text.isEmpty()) {
+            Tooltip t = new Tooltip(text);
+                    t.setWrapText(true);
+                    t.setMaxWidth(300);
+                    t.setTextAlignment(JUSTIFY);
+            Tooltip.install(this, t);
+        }
     }
 }
 //public class Icon extends Text {

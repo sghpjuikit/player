@@ -3645,9 +3645,8 @@
     -fx-font-size: 0.9em;
     -fx-background-color: transparent;
     -fx-graphic-text-gap: 0px;
-    -icons-color: -fx-def-font-color;
     -fx-text-fill: -fx-def-font-color;
-    -fx-padding: 1 0 0 0;       // fix vertical alignment
+    -fx-padding: 2 0 0 0;       // fix vertical alignment
 }
 .congfig-field-default-button:pressed:hover {
     -fx-effect: innershadow( three-pass-box , rgba(255,255,255,0.7) , 6, 0.0 , 0 , 2 );

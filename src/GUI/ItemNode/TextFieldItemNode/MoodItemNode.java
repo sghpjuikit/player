@@ -1,13 +1,14 @@
 
 package gui.itemnode.TextFieldItemNode;
 
-import AudioPlayer.tagging.MoodManager;
+import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.Metadata;
 import gui.objects.Pickers.MoodPicker;
 import gui.objects.PopOver.PopOver;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javafx.scene.layout.Region;
-import org.controlsfx.control.textfield.TextFields;
+import static org.controlsfx.control.textfield.TextFields.bindAutoCompletion;
+import static util.functional.Util.filter;
 import util.parsing.Parser;
 
 /**
@@ -25,22 +26,9 @@ public class MoodItemNode extends TextFieldItemNode<String> {
 
     public MoodItemNode() {
         super(Parser.toConverter(String.class));
-        
-        // set autocompletion
-        TextFields.bindAutoCompletion(this, p -> MoodManager.moods.stream()
-                    .filter( t -> t.startsWith(p.getUserText()) )
-                    .collect(Collectors.toList()));
-        
         setEditable(true);
-    }
-    
-    /** 
-     * Adds word to moods. New moods are registered by application automatically
-     * during tagging, so this method doesn't need to be invoked, it is possible
-     * though to extend this field's functionality by it.
-     */
-    private void autoCompletionLearnWord(String newWord){
-        MoodManager.moods.add(newWord);
+        // set autocompletion
+        bindAutoCompletion(this, p -> filter(DB.string_pool.getStrings(Metadata.Field.MOOD.name()), t -> DB.autocmplt_filter.apply(t,p.getUserText())));
     }
     
     /** @return the position for the picker to show on */
@@ -55,20 +43,20 @@ public class MoodItemNode extends TextFieldItemNode<String> {
 
     @Override
     void onDialogAction() {
-        MoodPicker mood_picker = getCM();
-        PopOver p = new PopOver(mood_picker.getNode());
+        MoodPicker picker = getCM();
+        PopOver p = new PopOver(picker.getNode());
         p.detachable.set(false);
         p.setArrowSize(0);
         p.setArrowIndent(0);
         p.setCornerRadius(0);
         p.setAutoHide(true);
         p.setAutoFix(true);
-        mood_picker.onCancel = p::hide;
-        mood_picker.onSelect = mood -> {
+        picker.onCancel = p::hide;
+        picker.onSelect = mood -> {
             setValue(mood);
             p.hide();
         };
-        ((Region)mood_picker.getNode()).setPrefSize(800,600);
+        ((Region)picker.getNode()).setPrefSize(800,600);
         p.show(this, pos);
     }    
     

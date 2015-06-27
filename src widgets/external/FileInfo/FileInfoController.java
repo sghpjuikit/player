@@ -17,7 +17,6 @@ import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
-import de.jensd.fx.glyphs.GlyphIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.objects.ActionChooser;
 import gui.objects.Icon;
@@ -40,8 +39,6 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import static javafx.scene.input.DragEvent.*;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
@@ -238,23 +235,6 @@ public class FileInfoController extends FXMLController implements SongReader {
              coverB.setOnMouseClicked(e -> setCover(actPane.getItem(),true));
         Icon copyB = actPane.addIcon(PLUS, "Copy to the location");
              copyB.setOnMouseClicked(e -> setCover(actPane.getItem(),false));
-             
-        Icon srcB = actPane.addIcon(SQUARE_ALT, "Source");
-        srcB.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY) readMode.setNextNapplyValue();
-            if(e.getButton()==SECONDARY) readMode.setPreviousNapplyValue();
-            ReadMode r = readMode.getValue();
-            GlyphIconName i = r==PLAYING ? PLAY : ANDROID;
-            srcB.setText(i.characterToString());
-            srcB.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",i.getFontFamily(), 15));
-            srcB.getStyleClass().add("glyph");
-            actPane.description.setText("left click: " + readMode.next().toString() + "\n" +
-                                        "right click: " + readMode.previous().toString());
-        });
-        srcB.setOnMouseEntered(e->{
-            actPane.description.setText("left click: " + readMode.next().toString() + "\n" +
-                                        "right click: " + readMode.previous().toString());
-        });
     }
     
     ActionChooser<Supplier<File>> actPane;

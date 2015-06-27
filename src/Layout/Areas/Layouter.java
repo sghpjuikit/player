@@ -1,17 +1,15 @@
 
 package Layout.Areas;
 
-import gui.objects.Pickers.Picker;
-import gui.objects.Pickers.WidgetPicker;
-import util.graphics.drag.DragUtil;
-import gui.GUI;
-import static gui.GUI.*;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.FreeFormContainer;
 import Layout.PolyContainer;
+import gui.GUI;
+import static gui.GUI.*;
+import gui.objects.Pickers.Picker;
+import gui.objects.Pickers.WidgetPicker;
 import java.util.Objects;
-import java.util.stream.Stream;
 import javafx.animation.*;
 import static javafx.animation.Interpolator.LINEAR;
 import javafx.event.EventHandler;
@@ -27,6 +25,8 @@ import main.App;
 import util.Animation.Interpolators.CircularInterpolator;
 import static util.Animation.Interpolators.EasingMode.EASE_OUT;
 import static util.Util.setAnchors;
+import static util.functional.Util.stream;
+import util.graphics.drag.DragUtil;
 
 /**
  * @author uranium
@@ -56,9 +56,9 @@ public final class Layouter implements ContainerNode {
         
         cp.onSelect = layout -> {
             switch(layout) {
-                case "Split Vertical" : closeAndDo(cp.root, this::showSplitV);
+                case "Split Vertically" : closeAndDo(cp.root, this::showSplitV);
                                         break;
-                case "Split Horizontal" : closeAndDo(cp.root, this::showSplitH);
+                case "Split Horizontally" : closeAndDo(cp.root, this::showSplitH);
                                         break;
                 case "Widget" : closeAndDo(cp.root, this::showWidgetArea);
                                 break;
@@ -70,8 +70,8 @@ public final class Layouter implements ContainerNode {
         };
         cp.onCancel = this::hide;
         cp.textCoverter = text -> text;
-        cp.itemSupply = () -> Stream.of("Split Vertical", "Split Horizontal",
-                                        "Widget", "Tabs", "FreeForm");
+        cp.itemSupply = () -> stream("Split Vertically", "Split Horizontally",
+                                        "Widget", "FreeForm"); // , "Tabs"
         cp.buildContent();
         
         setAnchors(cp.root, 0);

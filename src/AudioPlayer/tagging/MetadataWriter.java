@@ -486,7 +486,6 @@ public class MetadataWriter extends MetaItem {
     /** @param val the mood to set */
     public void setMood(String val) {
         setField(FieldKey.MOOD, val);
-        MoodManager.moods.add(val);
     }
     
     /** @param c the color to set */

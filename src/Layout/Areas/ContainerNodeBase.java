@@ -16,7 +16,7 @@ import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
+import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.Dragboard;
@@ -98,14 +98,14 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
             }
         });
         
-        icons.getChildren().addAll(closeB, detachB, changeB, propB, lockB, absB, dragB, layB, infoB);
-	icons.setNodeOrientation(RIGHT_TO_LEFT);
-	icons.setAlignment(Pos.CENTER_LEFT);
+	icons.setNodeOrientation(LEFT_TO_RIGHT);
+	icons.setAlignment(Pos.CENTER_RIGHT);
         icons.setPrefColumns(10);
         icons.setPrefHeight(25);
         AnchorPane.setTopAnchor(icons,0d);
         AnchorPane.setRightAnchor(icons,0d);
         AnchorPane.setLeftAnchor(icons,0d);
+        icons.getChildren().addAll(infoB, layB, dragB, absB, lockB, propB, changeB, detachB, closeB);
         
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));

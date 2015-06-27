@@ -96,12 +96,15 @@ public interface WidgetInfo {
     default String toStr() {
         List<Feature> fs = getFeatures();
         String info = "";
-        info += "\n\nWidget: " + name();
-        if (!description().isEmpty()) info += "\n\n" + description();
-        if (!notes().isEmpty()) info += "\n\n" + notes();
-        if (!howto().isEmpty()) info += "\n\n" + howto();
-        info += "\n\nFeatures: ";
-        info += fs.isEmpty() ? "none" : "\n" + toS(fs, f -> "    " + f.name() + ": " + f.description() + "\n");
+        info += "\n\n"
+             + "Widget\n\n"
+             + "Name: " + name() + "\n"
+             + (description().isEmpty() ? "" : "Info: " + description() + "\n")
+             + (notes().isEmpty() ? "" : notes() + "\n")
+             + (howto().isEmpty() ? "" : howto()  + "\n")
+             + "Features: "
+             + (fs.isEmpty() ? "\n    none" 
+                             : toS(fs, f -> "\n    " + f.name() + " - " + f.description()));
         
         return info;
     }

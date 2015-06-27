@@ -37,6 +37,12 @@ import static util.reactive.Util.maintain;
  */
 public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
     
+    private static final String laybTEXT = "Maximize & align\n\n"
+        + "Sets best size and position for the widget. Maximizes widget size "
+        + "and tries to align it with other widgets so it does not cover other "
+        + "widgets.";
+    
+    
     private final AnchorPane rt = new AnchorPane();
     private final Map<Integer,PaneWindowControls> windows = new HashMap();
     public final Map<Integer,WidgetArea> widgets = new HashMap();
@@ -131,7 +137,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         if(cm instanceof Widget) {
             WidgetArea wa = new WidgetArea(container, i);
                        // add maximize button
-                       wa.controls.header_buttons.getChildren().add(1, new Icon(PLUS_SQUARE_ALT, 12, "Maximize & align", () -> {
+                       wa.controls.header_buttons.getChildren().add(1, new Icon(PLUS_SQUARE_ALT, 12, laybTEXT, () -> {
                            TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
                            w.x.set(p.a*rt.getWidth());
                            w.y.set(p.b*rt.getHeight());

@@ -223,7 +223,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public static ConfigField create(Config f) {
         
         ConfigField cf = null;
-        if (f.isTypeEnumerable()) cf = new EnumertionField(f);
+        if (f.isTypeEnumerable()) cf = new EnumerableField(f);
         else if(f.isMinMax()) cf = new SliderField(f);
         else cf = m.getOrDefault(f.getType(), GeneralField::new).call(f);
         
@@ -515,10 +515,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             slider.setValue(config.getValue().doubleValue());
         }
     }
-    private static final class EnumertionField extends ConfigField<Object> {
+    private static final class EnumerableField extends ConfigField<Object> {
         ComboBox<Object> n;
         
-        private EnumertionField(Config<Object> c) {
+        private EnumerableField(Config<Object> c) {
             super(c);
             Collection e = c.enumerateValues();
             n = new ImprovedComboBox(item -> enumToHuman(c.toS(item)));

@@ -13,16 +13,13 @@ import java.util.function.Supplier;
 /**
  * Mutable lazy singleton object implementation.
  * <p>
- * Provides access to single (same) instance of an object. Additionally,
- * the object is mutated before it is returned, in a process where the 
- * instance is changed based on another object.
- * <p>
- * This provides additional flexibility. The object instance can play the role
- * of many objects (if at most one is needed simultaneously) each depending on
- * different object.
+ * Provides access to single object instance, which can be created lazily - 
+ * when requested for the first time. Additionally, the the object can be 
+ * mutated (its state changed) before it is accessed. This allows a reuse of
+ * the object across different objects that use it.  
  * 
  * @param <T> type of instance
- * @param <R> type of object the instance relies on. use Void if none.
+ * @param <R> type of object the instance relies on
  *
  * @author Plutonium_
  */
@@ -67,17 +64,17 @@ public class SingleInstance<T,R> implements Closable {
     }
     
     /**
-     * @param mutationSource, use null when type Void
+     * @param mutation_source, use null when type Void
      * @return the instance after applying mutation, ever null
      */
-    public T get( R mutationSource) {
+    public T get(R mutation_source) {
         // initialize instance
         if (instance == null) instance = builder.get();
         
         assert instance!=null;
         
         // prepare instance
-        if (mutator != null) mutator.accept(instance, mutationSource);
+        if (mutator != null) mutator.accept(instance, mutation_source);
         
         return instance;
     }
@@ -91,4 +88,5 @@ public class SingleInstance<T,R> implements Closable {
     public void close() {
         instance = null;
     }
+    
 }

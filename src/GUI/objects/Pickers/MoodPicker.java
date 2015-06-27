@@ -6,14 +6,15 @@
 
 package gui.objects.Pickers;
 
-import AudioPlayer.tagging.MoodManager;
+import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.Metadata;
 
 /** Mood picker. */
 public class MoodPicker extends Picker<String> {
 
     public MoodPicker() {
         super();
-        itemSupply = MoodManager.moods::stream;
+        itemSupply = () -> DB.string_pool.getStrings(Metadata.Field.MOOD.name()).stream();
     }
     
 }

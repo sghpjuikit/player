@@ -31,5 +31,5 @@ public @interface Feature {
     String description() default "";
     /** Identifies the feature exactly. Must be unique and must match the class
         of the annotated interface. */
-    Class type() default Object.class;
+    Class type() default Void.class;
 }

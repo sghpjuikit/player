@@ -263,7 +263,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     private static long scrolFTimeMax = 500;
     @IsConfig(name = "Search auto-cancel", info = "Deactivates search after period of inactivity.")
     private static boolean scrolFautocancel = true;
-    @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity to end search after.")
+    @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity after which search is automatically deactivated.")
     private static long scrolFautocancelTime = 3000;
     @IsConfig(name = "Search use contains", info = "Use 'contains' instead of 'starts with' for string matching.")
     private static boolean scrolFTimeMatchContain = true;

@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import main.App;
 import util.File.AudioFileFormat.Use;
 import util.Util;
+import static util.Util.filenamizeString;
 import util.dev.Log;
 import static util.functional.Util.isNotNULL;
 
@@ -669,4 +670,15 @@ public final class FileUtil {
             }
         }
     }
+    
+    /**
+     * Renames file. Extension remains the same.
+     */
+    public static void renameFile(File f, String name) {
+        File rf = f.getParentFile().getAbsoluteFile();
+        int dot = f.getPath().lastIndexOf('.');
+        String p = f.getPath();
+        String ext = p.substring(dot,p.length());
+        f.renameTo(new File(rf, filenamizeString(name)+ext));
+    };
 }

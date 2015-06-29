@@ -5,6 +5,8 @@ import Configuration.AccessorConfig;
 import Configuration.Config;
 import Configuration.Configurable;
 import gui.itemnode.StringSplitParser;
+import gui.itemnode.StringSplitParser.Split;
+import gui.itemnode.StringSplitParser.SplitData;
 import java.io.File;
 import static java.lang.Integer.min;
 import static java.lang.Math.max;
@@ -16,6 +18,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import static org.atteo.evo.inflector.English.plural;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.Use.APP;
@@ -267,6 +270,9 @@ public class Functors {
         add("Remove chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(min(i,t.length()-1)) : t.substring(0, max(t.length()-i,0)), Integer.class, StringDirection.class,0,FROM_START);
         add("Retain chars", String.class,String.class, (t,i,d) -> d==FROM_START ? t.substring(0,min(i,t.length()-1)) : t.substring(min(i,t.length()-1)), Integer.class, StringDirection.class,0,FROM_START);
         add("Trim",         String.class,String.class, (t) -> t.trim());
+        add("Split",        String.class,SplitData.class, (t,splitter) -> 
+                splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(Collectors.toCollection(SplitData::new))
+            , StringSplitParser.class,new StringSplitParser("%all%"));
         add("Split-join",   String.class,String.class, (t,spliter,joiner) -> {
             try {
                 Map<String,String> splits = spliter.applyM(t);

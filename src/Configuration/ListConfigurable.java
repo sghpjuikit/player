@@ -60,7 +60,7 @@ public class ListConfigurable<T> implements Configurable<T> {
      * @param at
      * @param config 
      */
-    public void addField(int at, Config config) {
+    public void addField(int at, Config<T> config) {
         configs.add(at, config);
     }
 

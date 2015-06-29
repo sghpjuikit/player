@@ -6,6 +6,8 @@
 package gui.itemnode;
 
 import gui.itemnode.ItemNode.ValueNode;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javafx.scene.control.TextArea;
 import static javafx.scene.layout.Priority.ALWAYS;
@@ -52,10 +54,17 @@ public class ListAreaNode extends ValueNode<List<String>> {
     private final VBox root = new VBox();
     private final TextArea area = new TextArea();
     private final FunctionChainItemNode transforms = new FunctionChainItemNode(Functors::getI);
-    private List<Object> input;
+    private List input;
+    public final List output = new ArrayList();
     
     public ListAreaNode() {
-        transforms.onItemChange = f -> area.setText(toS(input,f.andThen(toString),"\n"));
+//        transforms.onItemChange = f -> area.setText(toS(input,f.andThen(toString),"\n"));
+        transforms.onItemChange = f -> {
+            output.clear();
+            output.addAll(map(input,f));
+//            area.setText(toS(input,f.andThen(toString),"\n"));
+            area.setText(toS(output,toString,"\n"));
+        };
         area.textProperty().addListener((o,ov,nv) -> changeValue(split(nv,"\n",x->x)));
         // layout
         root.getChildren().addAll(area,transforms.getNode());
@@ -71,9 +80,9 @@ public class ListAreaNode extends ValueNode<List<String>> {
      * Updates text of the text area.
      */
     public void setData(List<? extends Object> input) {
-        this.input = (List) input;
-        Class c = input.isEmpty() ? Void.class : input.get(0).getClass();
-        transforms.setTypeIn(c);    // fires update
+        this.input = input;
+        Class ec = getElementClass(input);
+        transforms.setTypeIn(ec);    // fires update
     }
     
     /**
@@ -102,6 +111,11 @@ public class ListAreaNode extends ValueNode<List<String>> {
     @Override
     public VBox getNode() {
         return root;
+    }
+    
+    private static <E> Class getElementClass(Collection<E> c) {
+        for(E e : c) if(e!=null) return e.getClass();
+        return Void.class;
     }
     
 }

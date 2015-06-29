@@ -45,6 +45,7 @@ import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import util.parsing.Parser;
+import util.units.NofX;
 
 /**
  * 
@@ -592,6 +593,60 @@ public class MetadataWriter extends MetaItem {
         }
     }
     
+    public void setFieldS(Metadata.Field fieldType, String data) {
+        switch(fieldType) {
+            case PATH :
+            case FILENAME :
+            case FORMAT :
+            case FILESIZE :
+            case ENCODING :
+            case BITRATE :
+            case CHANNELS :
+            case SAMPLE_RATE :
+            case LENGTH : return;
+            case ENCODER : setEncoder(data); break;
+            case TITLE : setTitle(data); break;
+            case ALBUM : setAlbum(data); break;
+            case ARTIST : setArtist(data); break;
+            case ALBUM_ARTIST : setAlbum_artist(data); break;
+            case COMPOSER : setComposer(data); break;
+            case PUBLISHER : setPublisher(data); break;
+            case TRACK : setTrack(data); break;
+            case TRACKS_TOTAL : setTracks_total(data); break;
+            case TRACK_INFO :
+                NofX a = NofX.fromString(data);
+                setTrack(String.valueOf(a.n));
+                setTracks_total(String.valueOf(a.of));
+                break;
+            case DISC : setDisc(data); break;
+            case DISCS_TOTAL : setDiscs_total(data); break;
+            case DISCS_INFO :
+                NofX b = NofX.fromString(data);
+                setTrack(String.valueOf(b.n));
+                setTracks_total(String.valueOf(b.of));
+                break;
+            case GENRE : setGenre(data); break;
+            case YEAR : setYear(data); break;
+            case COVER :
+            case COVER_INFO : return;
+            case RATING : setRatingPercent(data); break;
+            case RATING_RAW : setRating(data); break;
+            case PLAYCOUNT : setPlaycount(data); break;
+            case CATEGORY : setCategory(data); break;
+            case COMMENT : setComment(data); break;
+            case LYRICS : setLyrics(data); break;
+            case MOOD : setMood(data); break;
+            case COLOR : setColor(Parser.fromS(Color.class, data)); break;
+            case CHAPTERS : return;
+            case CUSTOM1 : setCustom1(data); break;
+            case CUSTOM2 : setCustom2(data); break;
+            case CUSTOM3 : setCustom3(data); break;
+            case CUSTOM4 : setCustom4(data); break;
+            case CUSTOM5 : setCustom5(data); break;
+            default : throw new AssertionError("Default case should never execute");
+        }
+    }
+    
 /*******************************************************************************/
     
     /** 
@@ -707,6 +762,15 @@ public class MetadataWriter extends MetaItem {
             MetadataReader.readMetadata(singletonList(item), (ok,metas) -> {
                 if (ok) runNew(() -> Player.refreshItemsWithUpdatedBgr(metas));
             });
+        });
+    }
+    public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
+        runNew(()-> {
+            MetadataWriter w = new MetadataWriter();
+            w.reset(item);
+            setter.accept(w);
+            boolean b = w.write();
+            runLater(() -> action.accept(b));
         });
     }
     

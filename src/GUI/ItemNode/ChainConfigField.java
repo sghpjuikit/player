@@ -5,12 +5,18 @@
  */
 package gui.itemnode;
 
+import Configuration.Config;
+import Configuration.Configurable;
+import Layout.Widgets.Features.ConfiguringFeature;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.CheckIcon;
 import gui.objects.Icon;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
@@ -20,11 +26,14 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import util.async.runnable.Run;
 import static util.functional.Util.*;
 
@@ -38,7 +47,6 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
     protected final ObservableList<Chainable<IN>> chain = (ObservableList)root.getChildren();
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
     protected boolean homogeneous = true;
-    protected boolean editable_chain = true;
     
     ChainConfigField() {}
     
@@ -136,8 +144,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         public Chainable(int at, Supplier<C> chainedFactory) {
             chained = chainedFactory.get();
             setSpacing(5);
-            if(editable_chain) getChildren().addAll(rem,add,onB,chained.getNode());
-            else getChildren().addAll(chained.getNode());
+            getChildren().addAll(rem,add,onB,chained.getNode());
             HBox.setHgrow(chained.getNode(), ALWAYS);
             setAlignment(CENTER_LEFT);
             chained.onItemChange = f-> generateValue();
@@ -169,8 +176,6 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
             rem.setDisable(h && !rem_alt && l<=1);
             add.setDisable(h && l>=maxChainLength.get());
             this.setDisable(!h);
-            
-            if(!editable_chain) getChildren().removeAll(rem,add,onB);
         }
         
         void onRem(MouseEvent e) {
@@ -187,11 +192,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
     }
     
     public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainConfigField<V,IN> {
-        
-        {
-            editable_chain = false;
-        }
-        
+
         public ListConfigField(Supplier<IN> chainedFactory) {
             super(chainedFactory);
         }
@@ -207,6 +208,47 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         @Override
         protected V reduce(Stream<V> values) {
             throw new UnsupportedOperationException("Not supported yet.");
+        }
+        
+    }
+    
+    
+    public static class ConfigPane<T> implements ConfiguringFeature {
+        private final VBox root = new VBox(5);
+        private final List<ConfigField<T>> configs = new ArrayList();
+        
+        public ConfigPane(Collection<Config<T>> configs) {
+            this.configs.clear();
+            configure((Collection)configs);
+        }
+        public ConfigPane(Configurable<T> configs) {
+            this(configs.getFields());
+        }
+
+        @Override
+        public final void configure(Collection<Config> configs) {
+            root.getChildren().setAll(map(configs,c -> {
+                ConfigField cf = ConfigField.create(c);
+                this.configs.add(cf);
+                Label l = cf.getLabel();
+                      l.setPrefWidth(100);
+                      l.setTextAlignment(TextAlignment.RIGHT);
+                      l.setPadding(new Insets(0, 0, 0, 5));
+                HBox h = new HBox(5,l,cf.getNode());
+                     h.setAlignment(CENTER_LEFT);
+                return h;
+            }));
+        }
+        
+        public Node getNode() {
+            return root;
+        }
+        
+        public Stream<T> getValues() {
+            return configs.stream().map(ConfigField::getValue);
+        }
+        public List<ConfigField<T>> getValuesC() {
+            return configs;
         }
         
     }

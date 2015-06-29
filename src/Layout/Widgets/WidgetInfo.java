@@ -98,13 +98,13 @@ public interface WidgetInfo {
         String info = "";
         info += "\n\n"
              + "Widget\n\n"
-             + "Name: " + name() + "\n"
-             + (description().isEmpty() ? "" : "Info: " + description() + "\n")
+             + "Name:\n\t" + name() + "\n"
+             + (description().isEmpty() ? "" : "Info:\n\t" + description() + "\n")
              + (notes().isEmpty() ? "" : notes() + "\n")
              + (howto().isEmpty() ? "" : howto()  + "\n")
-             + "Features: "
-             + (fs.isEmpty() ? "\n    none" 
-                             : toS(fs, f -> "\n    " + f.name() + " - " + f.description()));
+             + "Features:"
+             + (fs.isEmpty() ? "\n\tnone" 
+                             : toS(fs, f -> "\n\t" + f.name() + " - " + f.description()));
         
         return info;
     }

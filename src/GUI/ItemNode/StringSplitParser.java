@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import static util.functional.Util.forEach;
+import static util.functional.Util.rep;
 
 /**
  *
@@ -24,7 +25,9 @@ public class StringSplitParser implements Function<String, List<String>> {
     public final List<String> key_separators = new ArrayList();
 
     /**
-     * @param expression parsing expression, e.g. "%first% - %second%"
+     * @param expression parsing expression, e.g. "%first% - %second%". The 'first'
+     * and 'second' are parse keys and the ' - ' is delimiter. There can be any
+     * number of parse keys (and delimiters).
      * @throws IllegalArgumentException if expression parameter can not be parsed
      */
     public StringSplitParser(String expression) {
@@ -68,7 +71,11 @@ public class StringSplitParser implements Function<String, List<String>> {
         for(int i=0; i<key_separators.size(); i++) {
             String sep = key_separators.get(i);
             at = text.indexOf(sep);
-            if(at==-1) throw new IllegalArgumentException("Cant parse string. No occurence of '" + sep + "' in: '" + text + "'");
+//            if(at==-1) throw new IllegalArgumentException("Cant parse string. No occurence of '" + sep + "' in: '" + text + "'");
+            if(at==-1) {
+                rep(parse_keys.size()-out.size(),() -> out.add(null));
+                return out;
+            }
             String val = text.substring(0,at);
             out.add(val);   // add ith value
             text = text.substring(at+sep.length());
@@ -94,4 +101,19 @@ public class StringSplitParser implements Function<String, List<String>> {
         return pex;
     }
     
+    public static class Split {
+        public String parse_key;
+        public String split;
+
+        public Split(String parse_key, String split) {
+            this.parse_key = parse_key;
+            this.split = split;
+        }
+
+        @Override
+        public String toString() {
+            return parse_key + ":" + split;
+        }
+    }
+    public static class SplitData extends ArrayList<Split> {}
 }

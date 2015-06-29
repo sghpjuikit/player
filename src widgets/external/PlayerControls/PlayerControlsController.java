@@ -7,16 +7,17 @@ import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
+import static AudioPlayer.tagging.Metadata.Field.BITRATE;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLController;
+import Layout.Widgets.Features.PlaybackFeature;
+import Layout.Widgets.Widget;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
 import gui.objects.Balancer.Balancer;
 import gui.objects.GlowIcon;
 import gui.objects.Icon;
 import gui.objects.Seeker;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.PlaybackFeature;
-import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.io.File;
 import java.util.List;
 import javafx.beans.InvalidationListener;
@@ -292,13 +293,11 @@ public class PlayerControlsController extends FXMLController implements Playback
     private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       
     
     private void playingItemChanged(Metadata nv) {
-        if(nv!=null){
-            titleL.setText(nv.getTitle());
-            artistL.setText(nv.getArtist());
-            bitrateL.setText(nv.getBitrate().toString());
-            sampleRateL.setText(nv.getSampleRate());
-            channelsL.setText(nv.getChannels());
-        }
+        titleL.setText(nv.getTitle());
+        artistL.setText(nv.getArtist());
+        bitrateL.setText(nv.getFieldS(BITRATE, ""));
+        sampleRateL.setText(nv.getSampleRate());
+        channelsL.setText(nv.getChannels());
         seeker.reloadChapters(nv);
     }
     private void statusChanged(Status newStatus) {

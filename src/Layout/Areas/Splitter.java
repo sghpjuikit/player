@@ -4,7 +4,7 @@ package Layout.Areas;
 import util.graphics.drag.DragUtil;
 import gui.GUI;
 import static gui.GUI.closeAndDo;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Component;

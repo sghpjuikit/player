@@ -22,9 +22,9 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import gui.itemnode.TextFieldItemNode.MoodItemNode;
-import gui.objects.CheckIcon;
+import gui.objects.icon.CheckIcon;
 import gui.objects.GraphicalTextField;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import gui.objects.PopOver.PopOver.NodeCentricPos;
 import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
@@ -72,7 +72,7 @@ import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Accessor;
 import static util.async.Async.FX;
-import static util.async.Async.runNew;
+import util.async.future.Fut;
 import static util.async.future.Fut.fut;
 import util.collections.MapSet;
 import util.dev.Log;
@@ -192,7 +192,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         CoverV.onHighlight = v -> noCoverL.setVisible(!v);
         coverContainer.setCenter(CoverV.getPane());
         
-        progressI = new gui.objects.Spinner.Spinner();
+        progressI = new gui.objects.spinner.Spinner();
         progressI.setVisible(false);
         header.setRight(progressI);
         
@@ -466,10 +466,12 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
         }, items -> {
-            // post writing
-            writing = false;
-            populate(items);
-            App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
+            // post (make sure its on FX)
+            runLater(() -> {
+                writing = false;
+                populate(items);
+                App.use(Notifier.class, s->s.showTextNotification("Tagging complete", "Tagger"));
+            });
         });
         
     }
@@ -514,53 +516,53 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             fields.forEach(TagField::enable);
             coverSuperContainer.setDisable(false);
 
-            runNew(() -> {
-
-                // histogram init
-                fields.forEach(TagField::histogramInit);
-                    // handle cover separately
-                int coverI = 0;
-                String covDesS = "";
-                Cover CovS = null;
-                Set<AudioFileFormat> formats = new HashSet();
-                
-                // histogram do
-                for(Metadata m: items) {
-                    int i = items.indexOf(m);
-                    fields.forEach(f -> f.histogramDo(m, i));
-                    formats.add(m.getFormat());
-                    // handle cover separately
-                    Cover c = m.getCover(TAG);
-                    if (i==0 && !c.isEmpty())                                           
-                        { coverI = 1; CovS = c; covDesS = c.getDestription(); }
-                    if (coverI == 0 && i != 0 && !c.isEmpty())                          
-                        { coverI = 2; CovS = c; covDesS = c.getDestription(); }
-                    if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
-                        coverI = 2;
-                }
-                    
-                // histogram end - set fields prompt text
-                final int c = coverI;
-                String s = covDesS;
-                Cover co = CovS;
-                runLater(() -> {
-                    fields.forEach(f -> f.histogramEnd(formats));
+            Fut.fut()
+               .thenR(() -> {
+                    // histogram init
+                    fields.forEach(TagField::histogramInit);
                         // handle cover separately
-                        // set image info
-                         if (c == 0)    CoverL.setText(TAG_NO_VALUE);
-                    else if (c == 1)    CoverL.setText(s);
-                    else if (c == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
-                        // set image
-                    if (c == 1)         CoverV.loadImage(co.getImage());
-                    else                CoverV.loadImage((Image)null);
+                    int coverI = 0;
+                    String covDesS = "";
+                    Cover CovS = null;
+                    Set<AudioFileFormat> formats = new HashSet();
 
-                    // enable/disable playcount field
-                    if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
+                    // histogram do
+                    for(Metadata m: items) {
+                        int i = items.indexOf(m);
+                        fields.forEach(f -> f.histogramDo(m, i));
+                        formats.add(m.getFormat());
+                        // handle cover separately
+                        Cover c = m.getCover(TAG);
+                        if (i==0 && !c.isEmpty())                                           
+                            { coverI = 1; CovS = c; covDesS = c.getDestription(); }
+                        if (coverI == 0 && i != 0 && !c.isEmpty())                          
+                            { coverI = 2; CovS = c; covDesS = c.getDestription(); }
+                        if (coverI == 1 && !(!(c.isEmpty()&&CovS.isEmpty())||c.equals(CovS)))
+                            coverI = 2;
+                    }
 
-                    hideProgress();
-                });
-            });
-        
+                    // histogram end - set fields prompt text
+                    final int c = coverI;
+                    String s = covDesS;
+                    Cover co = CovS;
+                    runLater(() -> {
+                        fields.forEach(f -> f.histogramEnd(formats));
+                            // handle cover separately
+                            // set image info
+                             if (c == 0)    CoverL.setText(TAG_NO_VALUE);
+                        else if (c == 1)    CoverL.setText(s);
+                        else if (c == 2)    CoverL.setText(TAG_MULTIPLE_VALUE);
+                            // set image
+                        if (c == 1)         CoverV.loadImage(co.getImage());
+                        else                CoverV.loadImage((Image)null);
+
+                        // enable/disable playcount field
+                        if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
+
+                        hideProgress();
+                    });
+                })
+            .run();
         }
     }
     

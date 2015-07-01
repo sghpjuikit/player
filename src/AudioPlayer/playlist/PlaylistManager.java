@@ -10,7 +10,7 @@ import Configuration.Configurable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Configuration.ValueConfig;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import gui.objects.SimpleConfigurator;
 import gui.objects.Text;

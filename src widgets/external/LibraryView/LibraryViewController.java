@@ -26,7 +26,7 @@ import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.CheckMenuItem;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuRInstance;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;

@@ -11,7 +11,7 @@ import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS_SQUARE_ALT;
 import gui.GUI;
 import static gui.GUI.closeAndDo;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Window.Pane.PaneWindowControls;
 import java.util.Collection;
 import java.util.HashMap;

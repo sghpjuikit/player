@@ -14,7 +14,7 @@ import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Seeker;
 import static java.util.Arrays.asList;
 import java.util.List;

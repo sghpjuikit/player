@@ -22,14 +22,13 @@ import gui.objects.Window.stage.WindowManager;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.*;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.ImageCursor;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -38,8 +37,8 @@ import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import util.File.FileUtil;
 import util.access.AccessorEnum;
-import static util.async.Async.eFX;
 import static util.async.Async.run;
+import util.async.future.Fut;
 import util.plugin.PluginMap;
 
 
@@ -241,6 +240,10 @@ public class App extends Application {
             showGuide = false;
             run(2222, () -> guide.start());
         }
+        System.out.println(new File("cursor.png").getAbsoluteFile().toURI().toString());
+        Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  //pass in the image path
+        ImageCursor c = new ImageCursor(image,3,3);
+        window.getStage().getScene().setCursor(c);
         
 //        List<String> s = new ArrayList<>();
 //        System.out.println("raw");
@@ -262,7 +265,6 @@ public class App extends Application {
      */
     @Override
     public void stop() {
-        
         if(initialized) {
             services.getAllServices()
                     .filter(Service::isRunning)
@@ -384,13 +386,10 @@ public class App extends Application {
     // jobs
     
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
-        ProgressIndicator p = App.getWindow().taskAdd();
-        CompletableFuture.runAsync(()->p.setProgress(-1),eFX)
-           .thenApplyAsync(nothing -> MetadataReader.readMetadata(items))
-           .thenAcceptAsync(Player::refreshItemsWithUpdated,eFX)
-           .thenRunAsync(() -> p.setProgress(1),eFX)
-           .thenRun(()->{})
-           .complete(null);
+        Fut.fut()
+           .thenR(() -> Player.refreshItemsWithUpdatedBgr(MetadataReader.readMetadata(items)))
+           .showProgress(App.getWindow().taskAdd())
+           .run(); 
     }
     
 }

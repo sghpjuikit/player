@@ -15,7 +15,7 @@ import static gui.GUI.OpenStrategy.INSIDE;
 import static gui.GUI.OpenStrategy.POPUP;
 import static gui.GUI.closeAndDo;
 import static gui.GUI.openAndDo;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
 import gui.objects.SimpleConfigurator;

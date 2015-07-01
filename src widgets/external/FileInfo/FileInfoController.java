@@ -19,7 +19,7 @@ import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.objects.ActionChooser;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Rater.Rating;
 import gui.objects.Thumbnail.ChangeableThumbnail;
 import gui.pane.ImageFlowPane;

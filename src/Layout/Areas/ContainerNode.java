@@ -7,14 +7,12 @@
 package Layout.Areas;
 
 import Layout.AltState;
-import util.Closable;
 
 /**
  *
  * @author Plutonium_
  */
-public interface ContainerNode extends SceneGraphNode, AltState, Closable {
+public interface ContainerNode extends SceneGraphNode, AltState {
     
-    @Override 
     public default void close() {}
 }

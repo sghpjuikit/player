@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.hierarchy;
+package unused.hierarchy;
 
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FILE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
 import java.io.File;

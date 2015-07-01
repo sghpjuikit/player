@@ -1,11 +1,11 @@
 
 package Layout.WidgetImpl;
 
-import gui.objects.Text;
-import gui.objects.Thumbnail.Thumbnail;
 import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.UniContainer;
+import gui.objects.Text;
+import gui.objects.Thumbnail.Thumbnail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public final class LayoutManagerComponent {
     @FXML TextField nameF;
     @FXML StackPane imgContainer;
     @FXML VBox box;
-    private Thumbnail thumb = new Thumbnail(250);
+    private Thumbnail thumb = new Thumbnail(250,250);
     
     public LayoutManagerComponent() {
         

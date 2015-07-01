@@ -6,8 +6,8 @@
 package gui.itemnode;
 
 import gui.itemnode.ItemNode.ValueNode;
-import gui.objects.CheckIcon;
 import gui.objects.combobox.ImprovedComboBox;
+import gui.objects.icon.CheckIcon;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -37,7 +37,7 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
         
     private final ComboBox<Tuple3<String,Class,T>> typeCB = new ImprovedComboBox<>(t->t._1);
     private FunctionItemNode<Object,Boolean> config;
-    private final CheckIcon negB = new CheckIcon(false, "filter-negate-icon");
+    private final CheckIcon negB = new CheckIcon(false).styleclass("filter-negate-icon");
     private final HBox root = new HBox(5,negB,typeCB);
     
     private final Callback<Class,PF<?,Boolean>> ppPool;

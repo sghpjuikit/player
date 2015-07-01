@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects;
+package gui.objects.icon;
 
 import de.jensd.fx.glyphs.GlyphIconName;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import gui.objects.Text;
 import java.util.List;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -22,7 +23,7 @@ import static javafx.scene.text.TextAlignment.JUSTIFY;
 import javafx.scene.text.TextBoundsType;
 
 
-public class Icon extends Label {
+public class Icon<I extends Icon> extends Label {
     
     private static final StyleablePropertyFactory<Icon> FACTORY = new StyleablePropertyFactory(Label.getClassCssMetaData());
     private static final CssMetaData<Icon, FontAwesomeIconName> ICON_CMD = FACTORY.createEnumCssMetaData(FontAwesomeIconName.class, "icon", i -> i.icon);
@@ -43,10 +44,9 @@ public class Icon extends Label {
 //        }
     };
     
-     public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
-     public final GlyphIconName getIcon() { return icon.getValue(); }
-     public final void setIcon(FontAwesomeIconName i) { icon.setValue(i); }
-    
+    public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
+    public final GlyphIconName getIcon() { return icon.getValue(); }
+    public final void setIcon(FontAwesomeIconName i) { icon.setValue(i); }
     
     public final IntegerProperty icon_size = new SimpleIntegerProperty() {
         public void set(int nv) {
@@ -87,8 +87,8 @@ public class Icon extends Label {
         icon_size.set(size);
 //        if(ico!=null) icon.applyStyle(null, ico);
         if(ico!=null) icon.setValue(ico);
-        setTooltip(tooltip);
-        if(onClick!=null) setOnMouseClicked(onClick);
+        tooltip(tooltip);
+        onClick(onClick);
         getStyleClass().add("icon");
         
         setContentDisplay(CENTER);
@@ -122,12 +122,17 @@ public class Icon extends Label {
 //        return FACTORY.getCssMetaData();
 //    }
     
-//    public final void setTooltip(Tooltip tooltip) {
-//        if(tooltip!=null)
-//            Tooltip.install(this, tooltip);
-//    }
+    public I icon(FontAwesomeIconName i) {
+        icon.setValue(i);
+        return (I)this;
+    }
     
-    public final void setTooltip(String text) {
+    public I size(int s) {
+        icon_size.setValue(s);
+        return (I)this;
+    }
+    
+    public final I tooltip(String text) {
         if(text!=null && !text.isEmpty()) {
             Tooltip t = new Tooltip(text);
                     t.setWrapText(true);
@@ -135,7 +140,29 @@ public class Icon extends Label {
                     t.setTextAlignment(JUSTIFY);
             Tooltip.install(this, t);
         }
+        return (I)this;
     }
+    
+    /** Sets styleclass. Returns this icon (fluent API). */
+    public final I styleclass(String s) {
+        getStyleClass().add(s);
+        return (I)this;
+    }
+    
+    public final I onClick(EventHandler<MouseEvent> action) {
+        if(action!=null) setOnMouseClicked(action);
+        return (I)this;
+    }
+    public final I onClick(Runnable action) {
+        setOnMouseClicked(action==null ? null : e -> { 
+            if(e.getButton()==PRIMARY) {
+                action.run();
+                e.consume(); 
+            } 
+        });
+        return (I)this;
+    }
+    
 }
 //public class Icon extends Text {
 //    
@@ -188,7 +215,7 @@ public class Icon extends Label {
 //        icon_size.set(size);
 ////        if(ico!=null) icon.applyStyle(null, ico);
 //        if(ico!=null) icon.setValue(ico);
-//        setTooltip(tooltip);
+//        tooltip(tooltip);
 //        if(onClick!=null) setOnMouseClicked(onClick);
 //        getStyleClass().add("icon");
 //    }
@@ -207,12 +234,12 @@ public class Icon extends Label {
 //        return FACTORY.getCssMetaData();
 //    }
 //    
-//    public final void setTooltip(Tooltip tooltip) {
+//    public final void tooltip(Tooltip tooltip) {
 //        if(tooltip!=null)
 //            Tooltip.install(this, tooltip);
 //    }
 //    
-//    public final void setTooltip(String text) {
+//    public final void tooltip(String text) {
 //        if(text!=null && !text.isEmpty())
 //            Tooltip.install(this, new Tooltip(text));
 //    }
@@ -308,7 +335,7 @@ public class Icon extends Label {
 //        icon_size.set(size);
 ////        if(ico!=null) icon.applyStyle(null, ico);
 //        if(ico!=null) icon.setValue(ico);
-//        if(tooltip!=null && !tooltip.isEmpty()) setTooltip(new Tooltip(tooltip));
+//        if(tooltip!=null && !tooltip.isEmpty()) tooltip(new Tooltip(tooltip));
 //        if(onClick!=null) setOnMouseClicked(onClick);
 //        getStyleClass().add("icon");
 //    }

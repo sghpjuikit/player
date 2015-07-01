@@ -676,12 +676,10 @@ public class MetadataWriter extends MetaItem {
                 }
             }            
             
-            Log.deb("Saving tag for " + getURI() + " finished successfuly.");
             return true;
             
-        // } catch (CannotWriteException | UnableToRenameFileException e) {
         } catch (Throwable e) {
-            Log.err("Can not write to tag for file: " + audioFile.getFile().getPath() + e);
+            Log.warn("Can not write to tag for file: " + audioFile.getFile().getPath() + e);
             return false;
         }
     }
@@ -764,14 +762,11 @@ public class MetadataWriter extends MetaItem {
             });
         });
     }
-    public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
-        runNew(()-> {
-            MetadataWriter w = new MetadataWriter();
-            w.reset(item);
-            setter.accept(w);
-            boolean b = w.write();
-            runLater(() -> action.accept(b));
-        });
+    public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
+        MetadataWriter w = new MetadataWriter();
+        w.reset(item);
+        setter.accept(w);
+        w.write();
     }
     
     /**

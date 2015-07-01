@@ -26,7 +26,7 @@
  */
 package gui.objects.PopOver;
 
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver.ArrowLocation;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import java.util.ArrayList;

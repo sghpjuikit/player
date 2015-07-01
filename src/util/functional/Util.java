@@ -79,12 +79,12 @@ public class Util {
     }
     
     /** Repeat action n times. */
-    public static void rep(int n, Runnable action) {
+    public static void repeat(int n, Runnable action) {
         for(int x=0; x<n; x++) action.run();
     }
     
-    /** Repeat action n times. Action takes the n as parameter - in [0,n-1] */
-    public static void rep(int n, IntConsumer action) {
+    /** Repeat action n times. Action takes the index of execution as parameter starting from 0. */
+    public static void repeat(int n, IntConsumer action) {
         for(int x=0; x<n; x++) action.accept(x);
     }
    
@@ -318,6 +318,17 @@ public class Util {
      */
     public static<T> String toS(Collection<T> c, Function<T,String> m, String s) {
         return c.stream().map(m).collect(joining(s));
+    }
+    
+    /**
+     * Joins collection of strings to string using delimiter
+     * 
+     * @param c collection
+     * @param s delimiter/separator
+     * @return s separated representation of the collection
+     */
+    public static String toS(Collection<String> c, String s) {
+        return c.stream().collect(joining(s));
     }
     
     /**

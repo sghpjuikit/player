@@ -10,7 +10,7 @@ import static Layout.Areas.Area.bgr_STYLECLASS;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Window.stage.ContextManager;
 import gui.objects.Window.stage.Window;
 import java.util.ArrayList;

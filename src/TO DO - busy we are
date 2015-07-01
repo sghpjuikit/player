@@ -7,9 +7,7 @@
 - generic container controls
 - Inspector widgets fix & improve
 - seeker option to show chapters as they are passing
-- split&join add fixed length and % support
 - make generic rater control, use in fileinfo
-- unify icons + fluent api
 - app animated loading
 - tagger add icons to reset and defaults
 - cover download subsequently !work - temp file?
@@ -47,7 +45,6 @@ GENERAL
   solution: solved for some characters by manually rewriting them upon
   shortcut registering, but thats only partial and incomplete workaround
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
-- tagger verifier causes layout graphics to break when mouse over window border (controlsFX bug)
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug ?)
   this happens when something has null skin, investigate & fix
 - Configurator group title alignment doesnt get applied sometimes               (javaFX bug)

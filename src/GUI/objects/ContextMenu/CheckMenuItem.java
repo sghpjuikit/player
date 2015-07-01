@@ -5,7 +5,7 @@
  */
 package gui.objects.ContextMenu;
 
-import gui.objects.CheckIcon;
+import gui.objects.icon.CheckIcon;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import javafx.beans.property.BooleanProperty;

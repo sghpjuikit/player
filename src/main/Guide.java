@@ -14,7 +14,7 @@ import Layout.Layout;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.LayoutAggregators.SwitchPane;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;

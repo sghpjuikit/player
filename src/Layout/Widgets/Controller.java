@@ -7,7 +7,6 @@ import Layout.Layout;
 import Layout.Widgets.Features.Feature;
 import java.util.List;
 import javafx.scene.Node;
-import util.Closable;
 
 /**
  * Controller is an object defining behavior of some graphical object and acts
@@ -52,7 +51,7 @@ import util.Closable;
  * 
  * @author uranium
  */
-public interface Controller<W extends Widget> extends Configurable<Object>, AbstractController<W>, Closable {
+public interface Controller<W extends Widget> extends Configurable<Object>, AbstractController<W> {
     
     /**
      * 
@@ -105,15 +104,12 @@ public interface Controller<W extends Widget> extends Configurable<Object>, Abst
     public W getWidget();
     
     /**
-     * {@inheritDoc}
-     * <p>
      * Executes immediately before widget is closed. Widget is not
      * expected to be used after this method is invoked. Use to free resources.
      * Note that incorrect or no releasing of the resources (such as listeners) 
      * might prevent this controller from being garbage collected.
      * Default implementation does nothing.
      */
-    @Override
     default void close(){}
     
     /**

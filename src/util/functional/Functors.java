@@ -31,8 +31,7 @@ import util.access.Accessor;
 import util.collections.PrefList;
 import util.collections.PrefListMap;
 import static util.functional.Functors.StringDirection.FROM_START;
-import static util.functional.Util.list;
-import static util.functional.Util.map;
+import static util.functional.Util.*;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
@@ -218,8 +217,8 @@ public class Functors {
         add("Is null",      Object.class, Boolean.class, Objects::isNull);
         add("Is not null",  Object.class, Boolean.class, Objects::nonNull);
         
-        add("As is",        Object.class, Object.class, x->x);
-        add("As String",    Object.class, String.class, Object::toString);
+        add("As is",        Object.class, Object.class, x->x, true, false, true);
+        add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
         
         add("Is true",      Boolean.class, Boolean.class, b -> b==true);
@@ -274,7 +273,6 @@ public class Functors {
                 splitter.applyM(t).entrySet().stream().map(e -> new Split(e.getKey(),e.getValue())).collect(Collectors.toCollection(SplitData::new))
             , StringSplitParser.class,new StringSplitParser("%all%"));
         add("Split-join",   String.class,String.class, (t,spliter,joiner) -> {
-            try {
                 Map<String,String> splits = spliter.applyM(t);
                 List<String> keys = joiner.parse_keys;
                 List<String> seps = joiner.key_separators;
@@ -287,9 +285,6 @@ public class Functors {
                     if(!splits.containsKey(keys.get(keys.size()-1))) return null;
                     o.append(splits.get(keys.get(keys.size()-1)));
                 return o.toString();
-            } catch(IllegalArgumentException e) {
-                return null;
-            }
         }, StringSplitParser.class, StringSplitParser.class,new StringSplitParser("%all%"),new StringSplitParser("%all%"));
         
         add("Name",       File.class,String.class, FileUtil::getName);

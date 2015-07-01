@@ -1,6 +1,7 @@
 
 package gui.objects;
 
+import gui.objects.icon.Icon;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.tagging.Chapters.Chapter;

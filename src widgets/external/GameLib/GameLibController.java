@@ -12,7 +12,7 @@ import Layout.Widgets.gamelib.GameItem;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
 import gui.GUI;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Thumbnail.Thumbnail;
 import gui.objects.tree.FileTree;
 import java.io.File;
@@ -43,7 +43,7 @@ import util.File.Environment;
 import util.File.FileUtil;
 import static util.File.FileUtil.readFileLines;
 import util.async.executor.FxTimer;
-import util.hierarchy.FileHierarchy;
+import unused.hierarchy.FileHierarchy;
 
 /**
 import static javafx.scene.control.SelectionMode.SINGLE;

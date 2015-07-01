@@ -7,13 +7,13 @@ import static gui.objects.Window.stage.WindowBase.Maximized.ALL;
 import static gui.objects.Window.stage.WindowBase.Maximized.NONE;
 import static java.lang.Math.abs;
 import javafx.beans.property.*;
+import javafx.geometry.Point2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import main.App;
 import static util.async.Async.run;
 import util.dev.Dependency;
-import util.dev.TODO;
 
 /**
  * Customized Stage, window of the application.
@@ -74,7 +74,6 @@ public class WindowBase {
      * Needed during window initialization.
      * Doesnt affect content of the window.
      */
-    @Dependency("SCREEN needs to be set correctly")
     public void update() {        
         s.setOpacity(Window.windowOpacity.getValue());
         
@@ -115,8 +114,9 @@ public class WindowBase {
         return s.getY();
     }
     
-/******************************************************************************/
+/********************************** SCREEN ************************************/
     
+    // cached, needs to be updated when size or position changes
     private Screen screen = Screen.getPrimary();
     
     /** Sets screen to this window. It influences screen dependent features. */
@@ -127,6 +127,24 @@ public class WindowBase {
     /** Gets screen of this window. It influences screen dependent features. */
     public Screen getScreen() {
         return screen;
+    }
+    
+    /** Returns screen containing the given coordinates. Never null. */
+    public static Screen getScreen(Point2D p) {
+        return getScreen(p.getX(), p.getY());
+    }
+    /** Returns screen containing the given coordinates. Never null. */
+    public static Screen getScreen(double x, double y) {
+        // rely on official util (someone hid it..., good work genius)
+        return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
+//        for (Screen scr : Screen.getScreens())
+//            if (scr.getBounds().intersects(x,y,1,1)) {
+//                return scr;
+//                // unknown whether this affects functionality
+////                break;
+//            }
+//        // avoid null
+//        return Screen.getPrimary();
     }
     
 /******************************************************************************/
@@ -195,7 +213,6 @@ public class WindowBase {
      * in full screen mode this method is a no-op.
      * @param val 
      */
-    @Dependency("SCREEN")
     public void setMaximized(Maximized val) {
         // no-op if fullscreen
         if(isFullscreen()) return;
@@ -228,49 +245,42 @@ public class WindowBase {
             case NONE:          demaximize();           break;
         }
     }
-    @Dependency("SCREEN")
     private void maximizeAll() {
         s.setX(screen.getBounds().getMinX());
         s.setY(screen.getBounds().getMinY());
         s.setWidth(screen.getBounds().getWidth());
         s.setHeight(screen.getBounds().getHeight());
     }
-    @Dependency("SCREEN")
     private void maximizeRight() {
         s.setX(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2);
         s.setY(screen.getBounds().getMinY());
         s.setWidth(screen.getBounds().getWidth()/2);
         s.setHeight(screen.getBounds().getHeight());
     }
-    @Dependency("SCREEN")
     private void maximizeLeft() {
         s.setX(screen.getBounds().getMinX());
         s.setY(screen.getBounds().getMinY());
         s.setWidth(screen.getBounds().getWidth()/2);
         s.setHeight(screen.getBounds().getHeight());
     }
-    @Dependency("SCREEN")
     private void maximizeLeftTop() {
         s.setX(screen.getBounds().getMinX());
         s.setY(screen.getBounds().getMinY());
         s.setWidth(screen.getBounds().getWidth()/2);
         s.setHeight(screen.getBounds().getHeight()/2);
     }
-    @Dependency("SCREEN")
     private void maximizeRightTop() {
         s.setX(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2);
         s.setY(screen.getBounds().getMinY());
         s.setWidth(screen.getBounds().getWidth()/2);
         s.setHeight(screen.getBounds().getHeight()/2);
     }
-    @Dependency("SCREEN")
     private void maximizeLeftBottom() {
         s.setX(screen.getBounds().getMinX());
         s.setY(screen.getBounds().getMinY() + screen.getBounds().getHeight()/2);
         s.setWidth(screen.getBounds().getWidth()/2);
         s.setHeight(screen.getBounds().getHeight()/2);
     }
-    @Dependency("SCREEN")
     private void maximizeRightBottom() {
         s.setX(screen.getBounds().getMinX() + screen.getBounds().getWidth()/2);
         s.setY(screen.getBounds().getMinY() + screen.getBounds().getHeight()/2);
@@ -320,22 +330,18 @@ public class WindowBase {
     }
     
     /** Snaps this window to the top edge of this window's screen. */
-    @Dependency("SCREEN needs to be set correctly")
     public void snapUp() {
         s.setY(screen.getBounds().getMinY());
     }
     /** Snaps this window to the bottom edge of this window's screen. */
-    @Dependency("SCREEN needs to be set correctly")
     private void snapDown() {
         s.setY(screen.getBounds().getMaxY() - s.getHeight());
     }
     /** Snaps this window to the left edge of this window's screen. */
-    @Dependency("SCREEN needs to be set correctly")
     private void snapLeft() {
         s.setX(screen.getBounds().getMinX());
     }    
     /** Snaps this window to the right edge of this window's screen. */
-    @Dependency("SCREEN needs to be set correctly")
     private void snapRight() {
         s.setX(screen.getBounds().getMaxX() - s.getWidth());
     }
@@ -378,6 +384,7 @@ public class WindowBase {
      * @param snap flag for snapping to screen edge and other windows. Snapping
      * will be executed only if the window id not being resized.
      */
+    @Dependency("must update screen")
     public void setXY(double x,double y, boolean snap) {
         if (isFullscreen()) return;
         
@@ -387,31 +394,21 @@ public class WindowBase {
         s.setX(x);
         s.setY(y);
         
-        if(snap) {
-            screen = getScreen(x, y);
-            snap();
-        }
+        screen = getScreen(getCenter()); // update screen
+        
+        if(snap) snap();
     }
     
     /** Centers this window on ita screen. */
-    @Dependency("SCREEN needs to be set correctly")
     public void setXyCenter() {
         double x = screen.getBounds().getWidth()/2 - getWidth()/2;
         double y = screen.getBounds().getHeight()/2 - getHeight()/2;
         setXY(x, y);
     }
     
-    public Screen getScreen(double x, double y) {
-        // rely on official util (someone hid it..., good work genius)
-        return com.sun.javafx.util.Utils.getScreenForPoint(x, y);
-//        for (Screen scr : Screen.getScreens())
-//            if (scr.getBounds().intersects(x,y,1,1)) {
-//                return scr;
-//                // unknown whether this affects functionality
-////                break;
-//            }
-//        // avoid null
-//        return Screen.getPrimary();
+    /** Returns screen x,y of the center of this window. */
+    public Point2D getCenter() {
+        return new Point2D(getX()+getWidth()/2, getY()+getHeight()/2);
     }
     
     /**
@@ -423,8 +420,6 @@ public class WindowBase {
      * Because convenience methods are provided that auto-snap on position
      * change, there is little use for calling this method externally.
      */
-    @TODO(purpose = TODO.Purpose.ILL_DEPENDENCY, note = "make auto screen detection")
-    @Dependency("SCREEN")
     public void snap() {
         // avoid snapping while isResizing. It leads to unwanted behavior
         // avoid when not desired
@@ -472,26 +467,28 @@ public class WindowBase {
     /**
      * Sets size of the window.
      * Always use this over setWidth(), setHeight(). Not using this method will
- result in improper behavior during isResizing - more specifically - the new
- size will not be remembered and the window will revert back to previous
- size during certain graphical operations like reposition.
- 
- Its not recommended to use this method for maximizing. Use maximize(),
- maximizeLeft(), maximizeRight() instead.
- 
- This method is weak solution to inability to override setWidth(),
- setHeight() methods of Stage.
- 
- If the window is in full screen mode or !isResizable(), this method is no-op.
+     * result in improper behavior during isResizing - more specifically - the new
+     * size will not be remembered and the window will revert back to previous
+     * size during certain graphical operations like reposition.
+     * 
+     * Its not recommended to use this method for maximizing. Use maximize(),
+     * maximizeLeft(), maximizeRight() instead.
+     * 
+     * This method is weak solution to inability to override setWidth(),
+     * setHeight() methods of Stage.
+     * 
+     * If the window is in full screen mode or !isResizable(), this method is no-op.
      * @param width
      * @param height
      */
+    @Dependency("must update screen")
     public void setSize( double width, double height) {
         if (isFullscreen()) return;
         s.setWidth(width);
         s.setHeight(height);
         WProp.set(s.getWidth());
         HProp.set(s.getHeight());
+        screen = getScreen(getCenter()); // update screen
     }
     
     /**
@@ -500,7 +497,6 @@ public class WindowBase {
      * size divided by half and the location will be set so the window is
      * center aligned on the primary screen.
      */
-    @Dependency("SCREEN")
     public void setXyNsizeToInitial() {
         double w = screen.getBounds().getWidth()/2;
         double h = screen.getBounds().getHeight()/2;

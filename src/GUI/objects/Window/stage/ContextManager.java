@@ -2,7 +2,7 @@
 package gui.objects.Window.stage;
 
 import Configuration.IsConfigurable;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import gui.objects.SimpleConfigurator;
 import Layout.Widgets.Widget;

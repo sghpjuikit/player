@@ -11,10 +11,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import static util.functional.Util.forEach;
-import static util.functional.Util.rep;
+import static util.functional.Util.repeat;
 
 /**
- *
+ * Function that transforms strings into list of strings by splitting the original
+ * string by delimiters.
+ * <p>
+ * Defined by parsing expression, e.g. "%first% - %second%". The 'first'
+ * and 'second' are parse keys and the ' - ' is delimiter. There can be any
+ * number of parse keys (and delimiters). 
+ * <p>
+ * The parsing expression must:
+ * <ul>
+ * <li> start and end with a parse key - must not start or end with delimiter
+ * <li> have every two adjacent parse keys separated by delimiter
+ * <li> no parse key can contain the {@link #PARRSE_KEY_LIMITER} character
+ * <li> parse keys dont have to have unique names
+ * </ul>
+ * <p>
+ * Te output list is always of the
+ * same size as number of parsing keys (e.g. "%one% - %two%" will produce 
+ * list of size 2). If the text parsing failed at any point, the remaining
+ * strings will be null. Parsing fails when the delimiter can not be found in
+ * the parsed text.
+ * <p>
+ * For example parsing expression '%one%:%two%,%three%' will split string 
+ * 'abc:def,ghi' into list containing elements 'abc','def','ghi' and string 
+ * 'abc:def' into list containing: 'abc',null,null because the 3nd delimiter is 
+ * not present.
+ * 
  * @author Plutonium_
  */
 public class StringSplitParser implements Function<String, List<String>> {
@@ -25,10 +50,8 @@ public class StringSplitParser implements Function<String, List<String>> {
     public final List<String> key_separators = new ArrayList();
 
     /**
-     * @param expression parsing expression, e.g. "%first% - %second%". The 'first'
-     * and 'second' are parse keys and the ' - ' is delimiter. There can be any
-     * number of parse keys (and delimiters).
-     * @throws IllegalArgumentException if expression parameter can not be parsed
+     * @param expression parsing expression
+     * @throws IllegalArgumentException if expression parameter is not valid
      */
     public StringSplitParser(String expression) {
         this.pex = expression;
@@ -62,7 +85,7 @@ public class StringSplitParser implements Function<String, List<String>> {
     /**
      * Parses text into parts.
      * @param text text to parse
-     * @throws IllegalArgumentException if text parsing fails
+     * @return list of strings representing the splits
      */
     @Override
     public List<String> apply(String text) {
@@ -71,9 +94,8 @@ public class StringSplitParser implements Function<String, List<String>> {
         for(int i=0; i<key_separators.size(); i++) {
             String sep = key_separators.get(i);
             at = text.indexOf(sep);
-//            if(at==-1) throw new IllegalArgumentException("Cant parse string. No occurence of '" + sep + "' in: '" + text + "'");
             if(at==-1) {
-                rep(parse_keys.size()-out.size(),() -> out.add(null));
+                repeat(parse_keys.size()-out.size(),() -> out.add(null));
                 return out;
             }
             String val = text.substring(0,at);

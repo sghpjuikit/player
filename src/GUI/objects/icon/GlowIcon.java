@@ -4,7 +4,7 @@
  * and open the template in the editor.
 // */
 
-package gui.objects;
+package gui.objects.icon;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.scene.effect.BoxBlur;

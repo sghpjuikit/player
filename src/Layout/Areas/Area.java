@@ -18,7 +18,6 @@ import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import util.Closable;
 import static util.Util.setAnchors;
 import static util.functional.Util.list;
 
@@ -33,7 +32,7 @@ import static util.functional.Util.list;
  * <p>
  * @author uranium
  */
-public abstract class Area<T extends Container> implements ContainerNode, Closable {
+public abstract class Area<T extends Container> implements ContainerNode {
     
     public static final PseudoClass draggedPSEUDOCLASS = getPseudoClass("dragged");
     public static final List<String> bgr_STYLECLASS = list("block", "area");

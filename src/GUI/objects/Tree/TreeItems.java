@@ -8,9 +8,6 @@ package gui.objects.tree;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.ListConfigurable;
-import gui.objects.ContextMenu.ImprovedContextMenu;
-import static gui.objects.tree.FileTree.createTreeItem;
-import gui.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Container;
 import Layout.LayoutManager;
@@ -20,6 +17,9 @@ import Layout.Widgets.WidgetFactory;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.Window.stage.Window;
+import static gui.objects.tree.FileTree.createTreeItem;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -246,30 +246,21 @@ public class TreeItems {
     }
     public static class FileTreeItem extends TreeItem<File> {
         
+        private boolean isLeaf;
+        private boolean isFirstTimeChildren = true;
+        private boolean isFirstTimeLeaf = true;
+        
         public FileTreeItem(File value) {
             super(value);
         }
-        
-        // We cache whether the File is a leaf or not. A File is a leaf if
-        // it is not a directory and does not have any files contained within
-        // it. We cache this as isLeaf() is called often, and doing the 
-        // actual check on File is expensive.
-        private boolean isLeaf;
-        // We do the children and leaf testing only once, and then set these
-        // booleans to false so that we do not check again during this
-        // run. A more complete implementation may need to handle more 
-        // dynamic file system situations (such as where a folder has files
-        // added after the TreeView is shown). Again, this is left as an
-        // exercise for the reader.
-        private boolean isFirstTimeChildren = true;
-        private boolean isFirstTimeLeaf = true;
 
         @Override public ObservableList<TreeItem<File>> getChildren() {
+            ObservableList<TreeItem<File>> c = super.getChildren();
             if (isFirstTimeChildren) {
+                c.setAll(buildChildren(this));
                 isFirstTimeChildren = false;
-                super.getChildren().setAll(buildChildren(this));
             }
-            return super.getChildren();
+            return c;
         }
 
         @Override public boolean isLeaf() {
@@ -281,24 +272,24 @@ public class TreeItems {
             return isLeaf;
         }
 
-        private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> i) {
+        private List<TreeItem<File>> buildChildren(TreeItem<File> i) {
             File value = i.getValue();
             if (value != null && value.isDirectory()) {
                 File[] all = value.listFiles();
                 if (all != null) {
                     // we want to sort the items : directories first
-                    ObservableList<TreeItem<File>> directories = FXCollections.observableArrayList();
-                    List<TreeItem<File>> files = new ArrayList();
+                    List<TreeItem<File>> fils = new ArrayList();
+                    List<TreeItem<File>> dirs = new ArrayList();
                     for (File f : all) {
-                        if(!f.isDirectory()) files.add(createTreeItem(f));
-                        else directories.add(createTreeItem(f));
+                        if(!f.isDirectory()) dirs.add(createTreeItem(f));
+                        else                 fils.add(createTreeItem(f));
                     }
-                    directories.addAll(files);
-                    return directories;
+                           fils.addAll(dirs);
+                    return fils;
                 }
             }
 
-            return FXCollections.emptyObservableList();
+            return listRO();
         }
     }
     public static class NodeTreeItem extends TreeItem<Node> {

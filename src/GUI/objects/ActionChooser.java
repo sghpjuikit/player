@@ -5,6 +5,7 @@
  */
 package gui.objects;
 
+import gui.objects.icon.Icon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

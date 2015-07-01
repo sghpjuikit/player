@@ -6,9 +6,10 @@
 package gui.itemnode;
 
 import gui.itemnode.ItemNode.ValueNode;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.TextArea;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
@@ -55,15 +56,25 @@ public class ListAreaNode extends ValueNode<List<String>> {
     private final TextArea area = new TextArea();
     private final FunctionChainItemNode transforms = new FunctionChainItemNode(Functors::getI);
     private List input;
-    public final List output = new ArrayList();
+    /** 
+     * Output list. List of objects after applying the transformation on input
+     * list elements. The text of this area shows string representation of the
+     * elements of this list. 
+     * <p>
+     * Note that although the area is editable, the changes
+     * will not be reflected in the items of this list.
+     * <p>
+     * When observing this list, you must not use the text of the area, because
+     * at the time this list fires change the text is not yet updated! Observe
+     * this list only when you are not interested in the text data.
+     */
+    public final ObservableList output = FXCollections.observableArrayList();
     
     public ListAreaNode() {
-//        transforms.onItemChange = f -> area.setText(toS(input,f.andThen(toString),"\n"));
         transforms.onItemChange = f -> {
-            output.clear();
-            output.addAll(map(input,f));
-//            area.setText(toS(input,f.andThen(toString),"\n"));
-            area.setText(toS(output,toString,"\n"));
+            List l = map(input,f);
+            output.setAll(l);
+            area.setText(toS(l,toString,"\n"));
         };
         area.textProperty().addListener((o,ov,nv) -> changeValue(split(nv,"\n",x->x)));
         // layout

@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  *
  * @author Plutonium_
  */
-public class SingleInstance<T,R> implements Closable {
+public class SingleInstance<T,R> {
     
     private T instance;
     private final Supplier<T> builder;
@@ -83,8 +83,7 @@ public class SingleInstance<T,R> implements Closable {
         return instance == null;
     }
     
-    /** {@inheritDoc} */
-    @Override
+    /** Sets instance to null*/
     public void close() {
         instance = null;
     }

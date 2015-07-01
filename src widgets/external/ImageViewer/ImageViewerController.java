@@ -16,7 +16,7 @@ import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_RIGHT;
 import gui.InfoNode.ItemInfo;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import gui.objects.Thumbnail.Thumbnail;
 import java.io.File;
 import java.util.ArrayList;
@@ -413,7 +413,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     private Thumbnail createThumbnail(final File f) {
         // create thumbnail
-        Thumbnail t = new Thumbnail(thumbSize.getValue());
+        Thumbnail t = new Thumbnail(thumbSize.getValue(),thumbSize.getValue());
                   t.setBorderToImage(!thums_rect.getValue());
                   t.setBackgroundVisible(thums_rect.getValue());
                   t.setHoverable(true);

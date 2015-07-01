@@ -13,6 +13,7 @@ import Layout.Widgets.Features.ConfiguringFeature;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Serialization.SelfSerializator;
+import com.sun.glass.ui.Robot;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
@@ -27,12 +28,12 @@ import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
-import gui.objects.Icon;
 import gui.objects.PopOver.PopOver;
-import gui.objects.Spinner.Spinner;
 import gui.objects.Text;
 import gui.objects.Window.Resize;
 import static gui.objects.Window.Resize.*;
+import gui.objects.icon.Icon;
+import gui.objects.spinner.Spinner;
 import gui.virtual.IconBox;
 import java.io.*;
 import static java.lang.Math.*;
@@ -73,6 +74,7 @@ import util.Util;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
 import util.access.Accessor;
+import util.async.executor.FxTimer;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
@@ -111,6 +113,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
     
+    
+    
     public static final ArrayList<Window> windows = new ArrayList();
 
     /**
@@ -140,6 +144,21 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static Window getActive() {
 	return find(windows, w->w.focused.get()).orElse(App.getWindow());
     }
+    
+    private static double mouse_speed = 0;
+    private static double mouse_x = 0;
+    private static double mouse_y = 0;
+    private static final Robot robot = com.sun.glass.ui.Application.GetApplication().createRobot();
+    private static FxTimer mouse_pulse = new FxTimer(100, -1, () -> {
+        double x = robot.getMouseX();
+        double y = robot.getMouseY();
+        mouse_speed = sqrt(pow(mouse_x-x,2)+pow(mouse_y-y,2));
+        // System.out.println(mouse_speed);
+        mouse_x = x;
+        mouse_y = y;
+    });
+    
+    static { mouse_pulse.restart();}
 
 /******************************** Configs *************************************/
 
@@ -804,7 +823,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    else to = Maximized.RIGHT_BOTTOM;
 
 	setScreen(screen);
-	setMaximized(to);
+	setMaximized(mouse_speed<10 ? to : isMaximized());
     }
 
     private void moveEnd(MouseEvent e) {

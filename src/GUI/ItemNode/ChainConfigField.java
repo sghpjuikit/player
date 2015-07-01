@@ -12,8 +12,8 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
 import gui.itemnode.ItemNode.ValueNode;
-import gui.objects.CheckIcon;
-import gui.objects.Icon;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,7 +63,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
     /** Creates limited chain of i initial chained elements.  */
     public ChainConfigField(int len, int max_len, Supplier<IN> chainedFactory) {
         if(len<1) throw new IllegalArgumentException("Chain length must be positive");
-        rep(len,() -> new Chainable<>(chainedFactory));
+        repeat(len,() -> new Chainable<>(chainedFactory));
         generateValue(); // initializes value, dont fire update yet
         
         maxChainLength.addListener((o,ov,nv) -> {
@@ -121,8 +121,8 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
              i.icon.setValue(icon==null ? MINUS : icon);
              i.setOnMouseClicked(icon==null ? c::onRem : action.toHandlerConsumed());
              i.setTooltip(icon==null ? addTooltip : t);
-       c.rem_alt = true;
-       c.updateIcons();
+        c.rem_alt = true;
+        c.updateIcons();
     }
     
     

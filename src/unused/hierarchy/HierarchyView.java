@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.hierarchy;
+package unused.hierarchy;
 
 import java.util.function.Function;
 import java.util.function.Predicate;

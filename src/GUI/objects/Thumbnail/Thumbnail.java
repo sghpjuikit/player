@@ -138,7 +138,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * change during life cycle.
      */
     public Thumbnail() {
-        this(USE_COMPUTED_SIZE);
+        this(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
     }
     
     /**
@@ -148,13 +148,13 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * @param img 
      */
     public Thumbnail(Image img) {
-        this(USE_COMPUTED_SIZE);
+        this(USE_COMPUTED_SIZE,USE_COMPUTED_SIZE);
         loadImage(img);
     }
     
     /** Use to create more specific thumbnail object from the get go. */
     public Thumbnail (Image img, double size) {
-        this(size);
+        this(size,size);
         loadImage(img);
     }
     
@@ -163,7 +163,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * is expected to change during life cycle.
      * @param size 
      */
-    public Thumbnail (double size) {
+    public Thumbnail (double width, double height) {
         
         // load fxml part
         new ConventionFxmlLoader(Thumbnail.class, root, this).loadNoEx();
@@ -174,12 +174,12 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         installScaleOnHover();
         
         // set size
-        root.setMinSize(size,size);
-        root.setPrefSize(size,size);
-        root.setMaxSize(size,size);
+        root.setMinSize(width,height);
+        root.setPrefSize(width,height);
+        root.setMaxSize(width,height);
         // bind image sizes to size
-        image.setFitHeight(size);
-        image.setFitWidth(size);
+        image.setFitHeight(height);
+        image.setFitWidth(width);
         image.fitHeightProperty().bind(Bindings.min(root.heightProperty(), maxIMGH));
         image.fitWidthProperty().bind(Bindings.min(root.widthProperty(), maxIMGW));
 

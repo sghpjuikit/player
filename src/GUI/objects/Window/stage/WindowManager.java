@@ -16,7 +16,7 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.LayoutAggregators.SwitchPane;
-import gui.objects.Icon;
+import gui.objects.icon.Icon;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;

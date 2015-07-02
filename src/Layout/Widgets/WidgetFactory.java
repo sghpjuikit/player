@@ -5,7 +5,7 @@
  */
 package Layout.Widgets;
 
-import Layout.Widgets.Features.Feature;
+import Layout.Widgets.feature.Feature;
 import java.util.ArrayList;
 import java.util.List;
 

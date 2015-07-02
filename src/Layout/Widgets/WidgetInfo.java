@@ -6,7 +6,7 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.Features.Feature;
+import Layout.Widgets.feature.Feature;
 import java.util.List;
 import static util.functional.Util.stream;
 import static util.functional.Util.toS;

@@ -7,8 +7,8 @@ package util.File;
 
 import AudioPlayer.playlist.PlaylistManager;
 import gui.GUI;
-import Layout.Widgets.Features.ImageDisplayFeature;
-import Layout.Widgets.Features.ImagesDisplayFeature;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.Widgets.feature.ImagesDisplayFeature;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import java.awt.Desktop;

@@ -2,8 +2,8 @@ package Image;
 
 import Configuration.IsConfig;
 import gui.objects.Thumbnail.Thumbnail;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.ImageDisplayFeature;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.feature.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import java.io.File;

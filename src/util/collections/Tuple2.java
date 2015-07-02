@@ -2,9 +2,9 @@ package util.collections;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import static util.collections.Tuples.tuple;
+import util.functional.Functors.F2;
 
 public class Tuple2<A, B> {
     public final A _1;
@@ -23,7 +23,7 @@ public class Tuple2<A, B> {
         return tuple(_1, b);
     }
 
-    public <T> T map(BiFunction<? super A, ? super B, ? extends T> f) {
+    public <T> T map(F2<? super A, ? super B, ? extends T> f) {
         return f.apply(_1, _2);
     }
 

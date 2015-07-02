@@ -8,7 +8,7 @@ package ColorGraph;
 
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.FXMLController;
+import Layout.Widgets.controller.FXMLController;
 import static java.time.Duration.ofMillis;
 import java.util.HashMap;
 import java.util.List;

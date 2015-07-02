@@ -11,8 +11,8 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Config;
-import Layout.Widgets.ClassWidgetController;
-import Layout.Widgets.Features.SongWriter;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.SongWriter;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
@@ -98,7 +98,7 @@ import util.graphics.drag.DragUtil;
     year = "2015",
     group = APP
 )
-public class Converter extends ClassWidgetController implements SongWriter {
+public class Converter extends ClassController implements SongWriter {
     
     private final ObservableList source = FXCollections.observableArrayList();
     private final Ta ta_in = new Ta("In");

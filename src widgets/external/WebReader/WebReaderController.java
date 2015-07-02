@@ -7,7 +7,7 @@ package WebReader;
 
 
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLController;
+import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.Widget;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;

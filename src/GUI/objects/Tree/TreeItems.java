@@ -11,7 +11,7 @@ import Configuration.ListConfigurable;
 import Layout.Component;
 import Layout.Container;
 import Layout.LayoutManager;
-import Layout.Widgets.Features.ConfiguringFeature;
+import Layout.Widgets.feature.ConfiguringFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetFactory;
 import Layout.Widgets.WidgetManager;
@@ -46,6 +46,7 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import main.App;
+import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
 import static util.Util.*;
@@ -340,8 +341,7 @@ public class TreeItems {
         return Stream.concat(Stream.of(o), t);
     }
     private static String toS(Node n) {
-        String s = n.getClass().getSimpleName().isEmpty() ? n.getClass().toString() : n.getClass().getSimpleName();
-        return emptifyString(n.getId())+":"+s;
+        return emptifyString(n.getId())+":"+ClassName.get(n.getClass());
     }
     
     private static Map<ObservableValue,String> propertes(Object target) {

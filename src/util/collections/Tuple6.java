@@ -3,8 +3,8 @@ package util.collections;
 import java.util.Objects;
 import static util.collections.Tuples.tuple;
 import unused.HexaConsumer;
-import unused.HexaFunction;
 import unused.HexaPredicate;
+import util.functional.Functors.F6;
 
 public class Tuple6<A, B, C, D, E, F> {
     public final A _1;
@@ -47,7 +47,7 @@ public class Tuple6<A, B, C, D, E, F> {
         return tuple(_1, _2, _3, _4, _5, f);
     }
 
-    public <T> T map(HexaFunction<? super A, ? super B, ? super C, ? super D, ? super E, ? super F, ? extends T> f) {
+    public <T> T map(F6<? super A, ? super B, ? super C, ? super D, ? super E, ? super F, ? extends T> f) {
         return f.apply(_1, _2, _3, _4, _5, _6);
     }
 

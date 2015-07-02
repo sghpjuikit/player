@@ -9,7 +9,7 @@ import AudioPlayer.services.Service;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NEW;

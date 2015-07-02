@@ -5,6 +5,9 @@
 package Layout.Widgets;
 
 import Configuration.Config;
+import Layout.Widgets.controller.Controller;
+import Layout.Widgets.controller.io.Inputs;
+import Layout.Widgets.controller.io.Outputs;
 import java.util.Collection;
 import java.util.Collections;
 import javafx.scene.Node;
@@ -57,4 +60,18 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     public EmptyWidget getWidget() {
         return this;
     }
+
+    
+    private final Outputs o = new Outputs();
+    private final Inputs i = new Inputs();
+    @Override
+    public Outputs getOutputs() {
+        return o;
+    }
+    @Override
+    public Inputs getInputs() {
+        return i;
+    }
+    
+    
 }

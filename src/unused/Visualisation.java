@@ -3,9 +3,8 @@
 package unused;
 
 import Configuration.IsConfig;
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.Controller;
 import Layout.Widgets.Widget;
+import Layout.Widgets.controller.ClassController;
 import static java.lang.Math.random;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +17,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.effect.BoxBlur;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
@@ -45,7 +43,7 @@ import util.access.Accessor;
     year = "2014",
     group = Widget.Group.VISUALISATION
 )
-public class Visualisation extends AnchorPane implements Controller<ClassWidget> {
+public class Visualisation extends ClassController {
 
     private final Rectangle all = new Rectangle(100, 100);
     private final Timeline animation = new Timeline();
@@ -162,24 +160,11 @@ public class Visualisation extends AnchorPane implements Controller<ClassWidget>
     public void play() {
         animation.play();
     }
-    
-/******************************************************************************/
-    
-    private ClassWidget widget;
-    
+
     @Override public void refresh() {
         rate.applyValue();
         bgr_color.applyValue();
         blending_mode.applyValue();
     }
 
-    @Override public void setWidget(ClassWidget w) {
-        this.widget = w;
-    }
-
-    @Override public ClassWidget getWidget() {
-        return widget;
-    }
-    
-    
 }

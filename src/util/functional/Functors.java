@@ -199,6 +199,24 @@ public class Functors {
             };
         }
     }
+    public static interface F6<I,I2,I3,I4,I5,I6,O> {
+        O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
+        
+        default F5<I,I2,I3,I4,I5,O> toF5(I6 i6) {
+            return (i,i2,i3,i4,i5) -> apply(i, i2, i3, i4, i5, i6);
+        }
+        
+        default F6<I,I2,I3,I4,I5,I6,O> onEx(O or, Class<?>... ecs) {
+            return (i1,i2,i3,i4,i5,i6) -> {
+                try {
+                    return apply(i1,i2,i3,i4,i5,i6);
+                } catch(Exception e) {
+                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                    throw e;
+                }
+            };
+        }
+    }
     
     public static enum NullIn {
         NULL,

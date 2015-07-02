@@ -5,6 +5,7 @@
  */
 package Layout.Widgets;
 
+import Layout.Widgets.controller.FXMLController;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;

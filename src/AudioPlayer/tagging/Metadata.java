@@ -49,6 +49,7 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
+import util.ClassName.Name;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import static util.File.FileUtil.EMPTY_COLOR;
@@ -96,6 +97,7 @@ import util.units.NofX;
  * 
  * @author uranium
  */
+@Name("Song")
 @Entity(name = "MetadataItem")
 public final class Metadata extends MetaItem<Metadata> implements FieldedValue<Metadata,Metadata.Field> {
     // note: for some fields the initialized values below are not their

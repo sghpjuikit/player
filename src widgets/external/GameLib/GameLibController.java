@@ -7,13 +7,13 @@ package GameLib;
 
 import static GameLib.GameLibController.InfoType.EXPLORER;
 import static GameLib.GameLibController.InfoType.PLAY;
-import Layout.Widgets.FXMLController;
+import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.gamelib.GameItem;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
 import gui.GUI;
-import gui.objects.icon.Icon;
 import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.icon.Icon;
 import gui.objects.tree.FileTree;
 import java.io.File;
 import java.io.IOException;
@@ -37,13 +37,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
-import util.Animation.Anim;
-import util.Animation.Interpolators.ElasticInterpolator;
+import unused.hierarchy.FileHierarchy;
 import util.File.Environment;
 import util.File.FileUtil;
 import static util.File.FileUtil.readFileLines;
+import util.animation.Anim;
+import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
-import unused.hierarchy.FileHierarchy;
 
 /**
 import static javafx.scene.control.SelectionMode.SINGLE;

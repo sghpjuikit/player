@@ -37,7 +37,7 @@ import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import main.App;
-import util.Animation.Anim;
+import util.animation.Anim;
 import util.File.FileUtil;
 import util.async.executor.FxTimer;
 import util.dev.Log;

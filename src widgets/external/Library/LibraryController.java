@@ -9,14 +9,14 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.FileExplorerFeature;
-import Layout.Widgets.Features.SongReader;
-import Layout.Widgets.Features.SongWriter;
+import Layout.Widgets.feature.FileExplorerFeature;
+import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.feature.SongWriter;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import Layout.Widgets.controller.FXMLController;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import gui.GUI;
@@ -26,14 +26,14 @@ import gui.InfoNode.InfoTask;
 import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuInstance;
-import gui.objects.icon.Icon;
-import gui.objects.spinner.Spinner;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
+import gui.objects.icon.Icon;
+import gui.objects.spinner.Spinner;
 import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
@@ -73,9 +73,9 @@ import main.App;
 import static org.reactfx.EventStreams.changesOf;
 import static org.reactfx.EventStreams.nonNullValuesOf;
 import org.reactfx.Subscription;
-import util.Animation.Anim;
-import static util.Animation.Anim.Interpolators.reverse;
-import util.Animation.Interpolators.ElasticInterpolator;
+import util.animation.Anim;
+import static util.animation.Anim.Interpolators.reverse;
+import util.animation.interpolator.ElasticInterpolator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
@@ -149,8 +149,8 @@ public class LibraryController extends FXMLController implements SongReader {
     });
 //    private final FxTimer hideInfo = new FxTimer(5000, 1, taskInfo::hideNunbind);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
-    ActionChooser actPane = new ActionChooser();
-    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
+    ActionChooser actPane;
+    Icon lvlB;
     
     @FXML Menu addMenu;
     @FXML Menu remMenu;
@@ -491,6 +491,8 @@ public class LibraryController extends FXMLController implements SongReader {
     );
     
     {
+        actPane = new ActionChooser(this);
+        lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
         lvlB.setOnMouseClicked(e -> {
             if(e.getButton()==PRIMARY)
                 lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));

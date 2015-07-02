@@ -6,13 +6,13 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.SimpleItem;
 import Layout.Component;
 import Layout.Container;
+import Layout.Widgets.controller.io.Output;
 import java.io.File;
 import java.io.IOException;
 import static java.lang.Integer.MAX_VALUE;
 import java.net.URI;
 import java.util.*;
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import javafx.event.EventHandler;
@@ -42,6 +42,8 @@ public final class DragUtil {
     public static final DataFormat widgetDF = new DataFormat("widget");
     /** Data Format for Component. */
     public static final DataFormat componentDF = new DataFormat("component");
+    /** Data Format for widget output linking. */
+    public static final DataFormat widget_outputDF = new DataFormat("widget-output");
     
 /********************************* dragboard **********************************/
     
@@ -138,12 +140,39 @@ public final class DragUtil {
     public static boolean hasText(DragEvent e) {
         return e.getDragboard().hasString() || e.getDragboard().hasRtf();
     }
+/******************************* WIDGET OUTPUT ********************************/
+    
+    /** Accepts and consumes drag over event if contains text. */
+    public static final EventHandler<DragEvent> widgetOutputDragAccepthandler = e -> {
+        if (hasWidgetOutput()) {
+            e.acceptTransferModes(ANY);
+            e.consume();
+        }
+    };
+    
+    public static void setWidgetOutput(Output o, Dragboard db) {
+        // put fake data into dragboard
+        db.setContent(singletonMap(widget_outputDF, ""));
+        data = o;
+        dataFormat = widget_outputDF;
+    }
+        
+    /** Returns widget output from dragboard or runtime exceptin if none. */
+    public static Output getWidgetOutput(DragEvent e) {
+        if(dataFormat != widget_outputDF) throw new RuntimeException("No widget output in data available.");
+        return (Output) data;
+    }
+    
+    /** Returns whether dragboard contains text. */
+    public static boolean hasWidgetOutput() {
+        return dataFormat == widget_outputDF;
+    }
     
 /*********************************** SONGS ************************************/
     
     public static void setItemList(List<? extends Item> itemList, Dragboard db) {
         // put fake data into dragboard
-        db.setContent(Collections.singletonMap(itemsDF, ""));
+        db.setContent(singletonMap(itemsDF, ""));
         data = itemList;
         dataFormat = itemsDF;
     }
@@ -159,7 +188,7 @@ public final class DragUtil {
     
     public static void setComponent(Container parent, Component child, Dragboard db) {
         // put fake data into dragboard
-        db.setContent(Collections.singletonMap(componentDF, ""));
+        db.setContent(singletonMap(componentDF, ""));
         data = new WidgetTransfer(parent, child);
         dataFormat = componentDF;
     }

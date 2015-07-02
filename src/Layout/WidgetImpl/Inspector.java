@@ -6,8 +6,8 @@
 package Layout.WidgetImpl;
 
 import gui.objects.tree.TreeItems;
-import Layout.Widgets.ClassWidgetController;
-import Layout.Widgets.Features.FileExplorerFeature;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.FileExplorerFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
@@ -45,7 +45,7 @@ import util.graphics.drag.DragUtil;
     year = "2015",
     group = APP
 )
-public class Inspector extends ClassWidgetController implements FileExplorerFeature {
+public class Inspector extends ClassController implements FileExplorerFeature {
     
     private static final PseudoClass csPC = getPseudoClass("configselected");
     private Node sel_node = null;

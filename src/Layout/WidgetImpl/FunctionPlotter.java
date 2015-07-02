@@ -9,7 +9,7 @@ package Layout.WidgetImpl;
 
 import Configuration.Config;
 import gui.itemnode.ConfigField;
-import Layout.Widgets.ClassWidgetController;
+import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.DEVELOPMENT;
@@ -39,7 +39,7 @@ import util.functional.SDF;
     year = "2015",
     group = DEVELOPMENT
 )
-public class FunctionPlotter extends ClassWidgetController  {
+public class FunctionPlotter extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
     

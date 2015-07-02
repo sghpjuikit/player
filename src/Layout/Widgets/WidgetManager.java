@@ -1,6 +1,7 @@
 
 package Layout.Widgets;
 
+import Layout.Widgets.controller.Controller;
 import Layout.LayoutManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
 import gui.objects.Window.stage.ContextManager;

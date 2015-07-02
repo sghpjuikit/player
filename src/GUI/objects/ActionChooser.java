@@ -5,20 +5,27 @@
  */
 package gui.objects;
 
-import gui.objects.icon.Icon;
+import Layout.Widgets.controller.Controller;
+import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.Output;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import gui.objects.icon.Icon;
+import java.util.List;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import static javafx.scene.input.DragEvent.DRAG_ENTERED;
-import static javafx.scene.input.DragEvent.DRAG_EXITED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import static javafx.scene.input.DragEvent.*;
+import static javafx.scene.input.MouseEvent.*;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
+import static javafx.util.Duration.millis;
+import util.animation.Anim;
+import util.ClassName;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.functional.Util.*;
+import util.graphics.drag.DragUtil;
 
 /**
  <p>
@@ -33,7 +40,8 @@ public class ActionChooser<T> extends StackPane {
     private int icon_size = 40;
     public T item;
 
-    public ActionChooser() {
+    public ActionChooser(Controller controller) {
+        
         setAlignment(Pos.CENTER);
 
         actionBox = new HBox(15);
@@ -51,13 +59,13 @@ public class ActionChooser<T> extends StackPane {
         StackPane.setMargin(description, new Insets(20));
         StackPane.setAlignment(description, Pos.BOTTOM_CENTER);
         StackPane.setAlignment(actionBox, Pos.CENTER);
-    }
-
-    public void setIconSize(int v) {
-        icon_size = v;
-        actionBox.getChildren().forEach(icon -> {
-//            AwesomeDude.setIcon((Labeled)icon, AwesomeIcon.STAR, ContentDisplay.TOP);
-        });
+        
+        
+        c = controller;
+        out_nodes = map(c.getOutputs().getOutputs(), OutputNode::new);
+        in_nodes = map(c.getInputs().getOutputs(), InputNode::new);
+        getChildren().addAll(out_nodes);
+        getChildren().addAll(in_nodes);
     }
 
     public Icon addIcon(FontAwesomeIconName icon, String descriptn) {
@@ -89,5 +97,72 @@ public class ActionChooser<T> extends StackPane {
     
     public T getItem() {
         return item;
+    }
+    
+    private final Controller c;
+    private final List<OutputNode> out_nodes;
+    private final List<InputNode> in_nodes;
+    
+    @Override
+    protected void layoutChildren() {
+        super.layoutChildren();
+        
+        double os = out_nodes.size()+1;
+        double h = getHeight();
+        double hx = h/os;
+        double w = getWidth();
+        
+        forEachI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, hx*(i+1)-o.getHeight()/2));
+        forEachI(in_nodes, (i,o) -> o.relocate(5, hx*(i+1)-o.getHeight()/2));
+    }
+    
+    
+    class OutputNode<T> extends HBox {
+        Text t = new Text();
+        Icon i = new Icon(FontAwesomeIconName.TOGGLE_RIGHT, 10);
+        OutputNode(Output<T> o) {
+            super(8);
+            
+            setMaxSize(80,120);
+            getChildren().addAll(t,i);
+            setAlignment(Pos.CENTER_RIGHT);
+            
+            Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
+            i.setOnMouseEntered(e -> a.playOpen());
+            t.setOnMouseExited(e -> a.playClose());
+            
+            i.addEventFilter(DRAG_DETECTED,e -> {
+                DragUtil.setWidgetOutput(o,i.startDragAndDrop(TransferMode.LINK));
+                e.consume();
+            });
+            
+            o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
+        }
+    }
+    class InputNode<T> extends HBox {
+        Text t = new Text();
+        Icon i = new Icon(FontAwesomeIconName.TOGGLE_LEFT, 10);
+        InputNode(Input<T> in) {
+            super(8);
+            
+            setMaxSize(80,120);
+            getChildren().addAll(i,t);
+            setAlignment(Pos.CENTER_LEFT);
+            
+            Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
+            i.setOnMouseEntered(e -> a.playOpen());
+            t.setOnMouseExited(e -> a.playClose());
+            
+            i.addEventFilter(DRAG_OVER,DragUtil.widgetOutputDragAccepthandler);
+            i.addEventFilter(DRAG_DROPPED,e -> {
+                if(DragUtil.hasWidgetOutput()) {
+                    in.bind(DragUtil.getWidgetOutput(e));
+                    e.setDropCompleted(true);
+                    e.consume();
+                }
+            });
+            
+            t.setText(ClassName.get(in.getType()) + " : " + in.getName());
+        }
     }
 }

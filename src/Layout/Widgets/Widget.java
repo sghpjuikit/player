@@ -1,6 +1,7 @@
 
 package Layout.Widgets;
 
+import Layout.Widgets.controller.Controller;
 import Configuration.CompositeConfigurable;
 import Configuration.Configurable;
 import Configuration.IsConfig;

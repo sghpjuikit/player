@@ -3,8 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- fix FreeFormArea resizing
-- generic container controls
 - Inspector widgets fix & improve
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo
@@ -110,6 +108,7 @@ SOLVED (but the underlying cause still deserves attention)
 --------------------------------------------------------------------------------
 
 UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
+- container graphics
 - Playback/Player/Playlist state and suspending/restoring them
 - traits
 - popover investigate default NodeOwner and windowOwner and default move with   

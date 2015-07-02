@@ -8,28 +8,33 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.PlaylistFeature;
-import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.feature.PlaylistFeature;
+import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.PLAYLIST;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.Output;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.InfoNode.InfoTable;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
 import gui.objects.SimpleConfigurator;
 import gui.objects.Table.PlaylistTable;
+import java.io.File;
 import java.util.Collection;
 import java.util.Date;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import static javafx.geometry.NodeOrientation.INHERIT;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
@@ -89,6 +94,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML Menu selMenu;
     @FXML Menu orderMenu;
     
+    private final Output<PlaylistItem> out_sel = outputs.create("Selected", PlaylistItem.class, null).setStringConverter(PlaylistItem::getTitle);
+    
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
@@ -120,7 +127,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     });
     
     private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
-            table.setItemsRaw((Collection<PlaylistItem>) c.getList());
+            table.setItemsRaw((Collection) c.getList());
     private final InvalidationListener predicateL = o -> 
             PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
     
@@ -163,8 +170,13 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         for(Field f : Field.values()) 
             sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
         orderMenu.getItems().add(0, sortM);
+        
+        // maintain outputs
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> System.out.println(getWidget().getID()));
+        
     }
-
+    
     @Override
     public void close() {
         setUseFilterForPlayback(false);
@@ -185,6 +197,14 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         filter_for_playback.applyValue();
         table.setItemsRaw(PlaylistManager.getItems());
     }
+    
+    ActionChooser<Supplier<File>> actPane = new ActionChooser(this);
+    
+    @Override
+    public Node getActivityNode() {
+        return actPane;
+    }
+    
     
     @FXML public void chooseFiles() {
         PlaylistManager.chooseFilestoAdd();

@@ -1,10 +1,10 @@
 package util.collections;
 
 import java.util.Objects;
-import static util.collections.Tuples.tuple;
 import unused.TetraConsumer;
-import unused.TetraFunction;
 import unused.TetraPredicate;
+import static util.collections.Tuples.tuple;
+import util.functional.Functors.F4;
 
 public class Tuple4<A, B, C, D> {
     public final A _1;
@@ -35,7 +35,7 @@ public class Tuple4<A, B, C, D> {
         return tuple(_1, _2, _3, d);
     }
 
-    public <T> T map(TetraFunction<? super A, ? super B, ? super C, ? super D, ? extends T> f) {
+    public <T> T map(F4<? super A, ? super B, ? super C, ? super D, ? extends T> f) {
         return f.apply(_1, _2, _3, _4);
     }
 

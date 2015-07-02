@@ -12,6 +12,7 @@ import AudioPlayer.services.Notifier.Notifier;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.Tray.TrayService;
+import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Widgets.WidgetManager;
@@ -37,6 +38,7 @@ import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
 import util.File.FileUtil;
 import util.access.AccessorEnum;
+import static util.async.Async.FX;
 import static util.async.Async.run;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
@@ -392,4 +394,16 @@ public class App extends Application {
            .run(); 
     }
     
+    public static void itemToMeta(Item i, Consumer<Metadata> action) {
+        
+        Fut.fut(i)
+           .then(item -> {
+                for(Metadata m : DB.views.getValue(1))
+                    if(m.same(i))
+                        return m;
+                return MetadataReader.create(item);
+           })
+           .use(action, FX)
+           .run();
+    }
 }

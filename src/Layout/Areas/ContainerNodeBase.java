@@ -26,7 +26,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import main.App;
-import util.Animation.Anim;
+import util.animation.Anim;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
 import util.graphics.drag.DragUtil;

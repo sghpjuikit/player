@@ -7,7 +7,7 @@ package gui.objects.Thumbnail;
 import AudioPlayer.tagging.Cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Layout.Widgets.Features.ImageDisplayFeature;
+import Layout.Widgets.feature.ImageDisplayFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import gui.Traits.ScaleOnHoverTrait;

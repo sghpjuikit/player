@@ -13,26 +13,26 @@ import AudioPlayer.tagging.MetadataGroup;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.SongReader;
-import Layout.Widgets.Features.SongWriter;
+import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.feature.SongWriter;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import Layout.Widgets.controller.FXMLController;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import gui.GUI;
 import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.CheckMenuItem;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuRInstance;
-import gui.objects.icon.Icon;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
+import gui.objects.icon.Icon;
 import static java.time.Duration.ofMillis;
 import java.time.Year;
 import java.util.*;
@@ -108,8 +108,8 @@ public class LibraryViewController extends FXMLController {
     private @FXML AnchorPane root;
     private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
-    ActionChooser actPane = new ActionChooser();
-    Icon lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
+    ActionChooser actPane;
+    Icon lvlB;
     
     // dependencies
     private Subscription d1,d2;
@@ -486,6 +486,8 @@ public class LibraryViewController extends FXMLController {
     
 
     {
+        actPane = new ActionChooser(this);
+        lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
         lvlB.setOnMouseClicked(e -> {
             if(e.getButton()==PRIMARY)
                 lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));

@@ -4,6 +4,7 @@
  */
 package Layout.Widgets;
 
+import Layout.Widgets.controller.Controller;
 import javafx.scene.Node;
 import util.dev.Log;
 

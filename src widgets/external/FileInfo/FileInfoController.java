@@ -8,20 +8,21 @@ import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
-import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLController;
-import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.Output;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.objects.ActionChooser;
-import gui.objects.icon.Icon;
 import gui.objects.Rater.Rating;
 import gui.objects.Thumbnail.ChangeableThumbnail;
+import gui.objects.icon.Icon;
 import gui.pane.ImageFlowPane;
 import java.io.File;
 import static java.lang.Double.max;
@@ -38,8 +39,6 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
-import static javafx.scene.input.DragEvent.*;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 import main.App;
@@ -49,6 +48,7 @@ import static util.File.FileUtil.copyFiles;
 import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.*;
+import util.async.executor.EventThrottler;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.list;
 import util.graphics.drag.DragUtil;
@@ -110,16 +110,17 @@ public class FileInfoController extends FXMLController implements SongReader {
     private final Label location = new Label(); 
     private final Rating rater = new Rating();
     
-    private Metadata data;
     private final List<Label> visible_labels = new ArrayList();
     private final List<Label> labels = list(title, track, disc, gap1, artist, 
         album, album_artist, year, genre, composer, publisher, gap2, rating, 
         playcount, comment, category, gap3, filesize, filename, format, bitrate,
         encoding, location);
     
-    // disposable
+    private final Input<Item> data_in = inputs.create("Data", Item.class, this::read);
+    private final Output<Metadata> data_out = outputs.create("Data", Metadata.class, Metadata.EMPTY).setStringConverter(Metadata::getTitle);
+    private Metadata data;
     private Subscription d;
-    
+
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, tiles::layout);
@@ -182,7 +183,6 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     @Override
     public void init() {
-        
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = f -> {
@@ -227,9 +227,9 @@ public class FileInfoController extends FXMLController implements SongReader {
         });
         
         
-        actPane = new ActionChooser();
-        actPane.addEventHandler(DRAG_EXITED, e-> getArea().setActivityVisible(false));
-        actPane.addEventHandler(MOUSE_EXITED, e-> getArea().setActivityVisible(false));
+        actPane = new ActionChooser(this);
+//        actPane.addEventHandler(DRAG_EXITED, e-> getArea().setActivityVisible(false));
+//        actPane.addEventHandler(MOUSE_EXITED, e-> getArea().setActivityVisible(false));
         
         Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
              coverB.setOnMouseClicked(e -> setCover(actPane.getItem(),true));
@@ -272,8 +272,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     /** {@inheritDoc} */
     @Override
     public void read(Item item) {
-        if(item instanceof Metadata) setValue((Metadata)item);
-        else MetadataReader.create(item, (ok,m) -> {  if(ok) setValue(m); });
+        reading.push(item);
     }
     
     /** {@inheritDoc} */
@@ -283,13 +282,24 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     
 /********************************* PRIVATE API ********************************/
-
+    
+    private final EventThrottler<Item> reading = new EventThrottler<>(200,this::setValue);
+    
+    // item -> metadata
+    private void setValue(Item i) {
+        if(data.same(i)) return;
+        if(i==null) setValue(EMPTY);
+        else if(i instanceof Metadata) setValue((Metadata)i);
+        else App.itemToMeta(i, this::setValue);
+    }
+    
     private void setValue(Metadata m) {
         // prevent refreshing location if shouldnt
         if(!allowNoContent && m==EMPTY) return;
         
         // remember data
         data = m;
+        data_out.setValue(m);
         // gui (fill out data)
         if (m == null) {
             clear();

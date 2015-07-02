@@ -867,5 +867,4 @@ public class Util {
                 throw new IllegalArgumentException("Class " + c + " is not an Enum.");
         }
     }
-
 }

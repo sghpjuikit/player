@@ -3,8 +3,8 @@ package Layout.WidgetImpl;
 import Configuration.Config;
 import Configuration.Configuration;
 import Configuration.IsConfig;
-import Layout.Widgets.ClassWidgetController;
-import Layout.Widgets.Features.ConfiguringFeature;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.ConfiguringFeature;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
@@ -44,7 +44,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
     year = "2015",
     group = APP
 )
-public final class Configurator extends ClassWidgetController implements ConfiguringFeature {
+public final class Configurator extends ClassController implements ConfiguringFeature {
 
     // gui & state
     @FXML Pane controls;

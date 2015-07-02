@@ -18,7 +18,7 @@
     -fx-prompt-font-color: rgb(165, 165, 165);
     
     //-fx-pane-color: rgba(75,75,120,0.3);
-    -fx-pane-color: rgba(30,30,50,0.5);
+    -fx-pane-color: rgba(10,30,50,1);
 }
 
 .block {

@@ -10,7 +10,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
-import util.Animation.Anim;
+import util.animation.Anim;
 
 /**
  *

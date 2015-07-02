@@ -5,7 +5,7 @@
  */
 package Layout.WidgetImpl;
 
-import Layout.Widgets.ClassWidgetController;
+import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
@@ -47,7 +47,7 @@ import static util.functional.Util.map;
     year = "2015",
     group = OTHER
 )
-public class DirViewer extends ClassWidgetController {
+public class DirViewer extends ClassController {
     
     TreeItem<File> item = null;
     CellPane cells = new CellPane(160,220,5);
@@ -117,7 +117,7 @@ public class DirViewer extends ClassWidgetController {
             });
             
             int rows = (int) ceil(elements/columns);
-//            setHeight(rows*(cellh+gapy));
+
             runLater(()->setPrefHeight(rows*(cellh+gapy)));
         }
         

@@ -7,7 +7,7 @@ package gui.itemnode;
 
 import Configuration.Config;
 import Configuration.Configurable;
-import Layout.Widgets.Features.ConfiguringFeature;
+import Layout.Widgets.feature.ConfiguringFeature;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;

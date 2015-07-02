@@ -6,12 +6,12 @@
 
 package Layout.WidgetImpl;
 
-import gui.objects.Spectrum;
-import Layout.Widgets.Controller;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
-import javafx.scene.layout.AnchorPane;
-import util.Util;
+import Layout.Widgets.controller.ClassController;
+import gui.objects.Spectrum;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static util.Util.setAnchors;
 
 /**
  *
@@ -29,14 +29,10 @@ import util.Util;
     year = "2014",
     group = Widget.Group.VISUALISATION
 )
-public class Spectrumator extends AnchorPane implements Controller<Widget>  {
+public class Spectrumator extends ClassController  {
     private Spectrum spectr = new Spectrum();
     
     public Spectrumator() {
-        initialize();
-    }
-    
-    private void initialize() {
         spectr.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         spectr.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         spectr.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
@@ -46,7 +42,7 @@ public class Spectrumator extends AnchorPane implements Controller<Widget>  {
         
         
         this.getChildren().add(spectr);
-        Util.setAnchors(spectr, 0);
+        setAnchors(spectr, 0);
         
         // we only need to start listening once, so do it here rather than in
         // refresh(). In fact that would have an effect of multiplying the
@@ -54,24 +50,9 @@ public class Spectrumator extends AnchorPane implements Controller<Widget>  {
         spectr.startListening();
     }
     
-    
-    
-    private Widget widget;
-    
-    @Override public void refresh() {        
-    }
-
     @Override
     public void close() {
         spectr.stopListening();
-    }
-
-    @Override public void setWidget(Widget w) {
-        widget = w;
-    }
-
-    @Override public Widget getWidget() {
-        return widget;
     }
     
 }

@@ -4,6 +4,7 @@
  */
 package Layout.Widgets;
 
+import Layout.Widgets.controller.FXMLController;
 import java.io.File;
 import java.io.IOException;
 import javafx.fxml.FXMLLoader;

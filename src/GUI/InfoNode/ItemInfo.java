@@ -8,7 +8,7 @@ package gui.InfoNode;
 import AudioPlayer.playlist.Item;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.Features.SongReader;
+import Layout.Widgets.feature.SongReader;
 import gui.objects.Thumbnail.Thumbnail;
 import java.net.URL;
 import java.util.List;

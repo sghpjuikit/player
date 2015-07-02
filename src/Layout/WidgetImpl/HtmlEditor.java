@@ -6,19 +6,17 @@
 
 package Layout.WidgetImpl;
 
-import Layout.Widgets.Controller;
 import Layout.Widgets.IsWidget;
-import Layout.Widgets.Widget;
-import javafx.scene.layout.AnchorPane;
+import Layout.Widgets.controller.ClassController;
 import javafx.scene.web.HTMLEditor;
-import util.Util;
+import static util.Util.setAnchors;
 
 /**
  *
  * @author Plutonium_
  */
 @IsWidget
-public class HtmlEditor extends AnchorPane implements Controller<Widget>  {
+public class HtmlEditor extends ClassController  {
     private HTMLEditor editor = new HTMLEditor();
     
     public HtmlEditor() {
@@ -35,22 +33,7 @@ public class HtmlEditor extends AnchorPane implements Controller<Widget>  {
         
         
         this.getChildren().add(editor);
-        Util.setAnchors(editor, 0);
-    }
-    
-    
-    
-    private Widget widget;
-    
-    @Override public void refresh() {
-    }
-
-    @Override public void setWidget(Widget w) {
-        widget = w;
-    }
-
-    @Override public Widget getWidget() {
-        return widget;
+        setAnchors(editor, 0);
     }
     
 }

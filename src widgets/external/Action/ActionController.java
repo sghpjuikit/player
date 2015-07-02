@@ -3,7 +3,7 @@ package Action;
 
 import static Action.Action.EMPTY;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLController;
+import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;

@@ -6,6 +6,7 @@
 
 package Layout.WidgetImpl;
 
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.controller.ClassController;
 import javafx.scene.web.HTMLEditor;
@@ -19,18 +20,15 @@ import static util.Util.setAnchors;
 public class HtmlEditor extends ClassController  {
     private HTMLEditor editor = new HTMLEditor();
     
-    public HtmlEditor() {
-        initialize();
-    }
-    
-    private void initialize() {
+    public HtmlEditor(ClassWidget widget) {
+        super(widget);
+        
         editor.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         editor.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         editor.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
-        
         
         this.getChildren().add(editor);
         setAnchors(editor, 0);

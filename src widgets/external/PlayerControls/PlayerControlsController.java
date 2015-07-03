@@ -9,15 +9,16 @@ import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.Field.BITRATE;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.PlaybackFeature;
-import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
 import gui.objects.Balancer.Balancer;
+import gui.objects.Seeker;
 import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
-import gui.objects.Seeker;
 import java.io.File;
 import java.util.List;
 import javafx.beans.InvalidationListener;
@@ -112,6 +113,11 @@ public class PlayerControlsController extends FXMLController implements Playback
     
     // dependencies
     Subscription d1;
+    
+
+    public PlayerControlsController(FXMLWidget widget) {
+        super(widget);
+    }
     
     @Override
     public void init() {
@@ -216,7 +222,7 @@ public class PlayerControlsController extends FXMLController implements Playback
     public void refresh() { }
 
     @Override
-    public void close() {
+    public void onClose() {
         // remove listeners
         playingItemMonitoring.unsubscribe();
         PLAYBACK.statusProperty().removeListener(statusListener);       

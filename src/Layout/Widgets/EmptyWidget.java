@@ -54,9 +54,6 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     @Override public void refresh() { }
 
     @Override
-    public void setWidget(EmptyWidget w) { }
-
-    @Override
     public EmptyWidget getWidget() {
         return this;
     }

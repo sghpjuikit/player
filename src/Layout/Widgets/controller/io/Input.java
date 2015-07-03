@@ -5,6 +5,9 @@
  */
 package Layout.Widgets.controller.io;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.reactfx.Subscription;
 
@@ -16,7 +19,7 @@ public class Input<T> {
     final String name;
     final Class<T> type;
     final Consumer<T> applier;
-    Subscription s = null;
+    final Map<Output.Id,Subscription> sources = new HashMap<>();
     
     public Input(String name, Class<T> c, Consumer<T> action) {
         this.name = name;
@@ -37,9 +40,26 @@ public class Input<T> {
         applier.accept(v);
     }
     
+    
     public void bind(Output<T> o) {
-        if(s!=null) s.unsubscribe();
-        s = o.monitor(applier);
+        Subscription s = sources.get(o.id);
+        if(s==null) {
+            s = o.monitor(applier);
+            sources.put(o.id, s);
+        }
     }
-
+    
+    public void unbind(Output<T> o) {
+        Subscription s = sources.get(o.id);
+        if(s!=null) s.unsubscribe();
+    }
+    
+    public void unbindAll() {
+        sources.values().forEach(Subscription::unsubscribe);
+        sources.clear();
+    }
+    
+    public Set<Output.Id> getSources() {
+        return sources.keySet();
+    } 
 }

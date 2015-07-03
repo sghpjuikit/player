@@ -63,7 +63,7 @@ public class ActionChooser<T> extends StackPane {
         
         c = controller;
         out_nodes = map(c.getOutputs().getOutputs(), OutputNode::new);
-        in_nodes = map(c.getInputs().getOutputs(), InputNode::new);
+        in_nodes = map(c.getInputs().getInputs(), InputNode::new);
         getChildren().addAll(out_nodes);
         getChildren().addAll(in_nodes);
     }

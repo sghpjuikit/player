@@ -9,14 +9,16 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import Layout.Widgets.feature.FileExplorerFeature;
-import Layout.Widgets.feature.SongReader;
-import Layout.Widgets.feature.SongWriter;
+import Layout.Widgets.FXMLWidget;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.Output;
+import Layout.Widgets.feature.FileExplorerFeature;
+import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.feature.SongWriter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import gui.GUI;
@@ -73,9 +75,6 @@ import main.App;
 import static org.reactfx.EventStreams.changesOf;
 import static org.reactfx.EventStreams.nonNullValuesOf;
 import org.reactfx.Subscription;
-import util.animation.Anim;
-import static util.animation.Anim.Interpolators.reverse;
-import util.animation.interpolator.ElasticInterpolator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
@@ -83,6 +82,9 @@ import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesAudio;
 import static util.Util.*;
 import util.access.Accessor;
+import util.animation.Anim;
+import static util.animation.Anim.Interpolators.reverse;
+import util.animation.interpolator.ElasticInterpolator;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
 import util.async.executor.LimitedExecutor;
@@ -156,6 +158,10 @@ public class LibraryController extends FXMLController implements SongReader {
     @FXML Menu remMenu;
     @FXML MenuBar controlsBar;
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
+    
+    // input/output
+    private final Output<Metadata> out_sel;
+    
     // dependencies to disopose of
     private Subscription d1, d2, d3, d4;
     
@@ -188,6 +194,22 @@ public class LibraryController extends FXMLController implements SongReader {
     @IsConfig(name = "Auto-edit added items")
     private final BooleanProperty editOnAdd = new SimpleBooleanProperty(false);
     
+        
+    public LibraryController(FXMLWidget widget) {
+        super(widget);
+        
+        out_sel = outputs.create(widget.id,"Selected", Metadata.class, null).setStringConverter(Metadata::getTitle);
+        
+        actPane = new ActionChooser(this);
+        lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
+        lvlB.setOnMouseClicked(e -> {
+            if(e.getButton()==PRIMARY)
+                lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));
+            if(e.getButton()==SECONDARY)
+                lvl.setNapplyValue(clip(1,lvl.getValue()-1,8));
+            e.consume();
+        });
+    }
     
     @Override
     public void init() {
@@ -240,6 +262,9 @@ public class LibraryController extends FXMLController implements SongReader {
         );
         // maintain playing item css by refreshing column
         d4 = Player.playingtem.subscribeToChanges(o -> table.updateStyleRules());
+        
+        // maintain outputs
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         
         // key actions
         table.setOnKeyReleased(e -> {
@@ -334,16 +359,20 @@ public class LibraryController extends FXMLController implements SongReader {
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
         lvl.applyValue();
-        
     }
 
     @Override
-    public void close() {
+    public void onClose() {
         // stop listening
         d1.unsubscribe();
         d2.unsubscribe();
         d3.unsubscribe();
         d4.unsubscribe();
+    }
+    
+    @Override
+    public Node getActivityNode() {
+        return actPane;
     }
     
     @FXML private void addDirectory() {
@@ -490,20 +519,4 @@ public class LibraryController extends FXMLController implements SongReader {
         (menu,table) -> menu.setValue(ImprovedTable.class.cast(table).getSelectedItemsCopy())
     );
     
-    {
-        actPane = new ActionChooser(this);
-        lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
-        lvlB.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY)
-                lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));
-            if(e.getButton()==SECONDARY)
-                lvl.setNapplyValue(clip(1,lvl.getValue()-1,8));
-            e.consume();
-        });
-    }
-    
-    @Override
-    public Node getActivityNode() {
-        return actPane;
-    }
 }

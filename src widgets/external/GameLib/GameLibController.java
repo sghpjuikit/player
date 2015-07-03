@@ -7,6 +7,7 @@ package GameLib;
 
 import static GameLib.GameLibController.InfoType.EXPLORER;
 import static GameLib.GameLibController.InfoType.PLAY;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.gamelib.GameItem;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
@@ -73,6 +74,11 @@ public class GameLibController extends FXMLController {
     @FXML Label titleL;
     @FXML Label infoL;
     FxTimer infoLHider = new FxTimer(7000, 1, ()->infoL.setText(null));
+    
+        
+    public GameLibController(FXMLWidget widget) {
+        super(widget);
+    }
     
     public void loadGames(File dir) {
         try {
@@ -209,7 +215,7 @@ public class GameLibController extends FXMLController {
     }
 
     @Override
-    public void close() {
+    public void onClose() {
     }
     
     public void goTo(InfoType to) {

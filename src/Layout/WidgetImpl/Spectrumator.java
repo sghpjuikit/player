@@ -6,6 +6,7 @@
 
 package Layout.WidgetImpl;
 
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.ClassController;
@@ -32,7 +33,8 @@ import static util.Util.setAnchors;
 public class Spectrumator extends ClassController  {
     private Spectrum spectr = new Spectrum();
     
-    public Spectrumator() {
+    public Spectrumator(ClassWidget widget) {
+        super(widget);
         spectr.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         spectr.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         spectr.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
@@ -51,7 +53,7 @@ public class Spectrumator extends ClassController  {
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         spectr.stopListening();
     }
     

@@ -5,12 +5,13 @@
  */
 package Layout.WidgetImpl;
 
-import gui.objects.tree.TreeItems;
-import Layout.Widgets.controller.ClassController;
-import Layout.Widgets.feature.FileExplorerFeature;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.FileExplorerFeature;
+import gui.objects.tree.TreeItems;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -51,7 +52,9 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     private Node sel_node = null;
     private TreeView<Object> tree = new TreeView<>();
     
-    public Inspector() {
+    public Inspector(ClassWidget widget) {
+        super(widget);
+        
         getChildren().add(tree);
         setAnchors(tree,0);
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -110,7 +113,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         if(sel_node!=null) unhighlightNode(sel_node);
     }
     

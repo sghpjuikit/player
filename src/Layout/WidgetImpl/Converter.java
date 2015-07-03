@@ -11,19 +11,20 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Config;
-import Layout.Widgets.controller.ClassController;
-import Layout.Widgets.feature.SongWriter;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.SongWriter;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLAY_CIRCLE;
 import gui.itemnode.*;
 import gui.itemnode.ChainConfigField.ConfigPane;
 import gui.itemnode.ChainConfigField.ListConfigField;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.itemnode.StringSplitParser.SplitData;
-import gui.objects.icon.Icon;
 import gui.objects.combobox.ImprovedComboBox;
+import gui.objects.icon.Icon;
 import java.io.File;
 import static java.lang.Integer.MAX_VALUE;
 import java.util.*;
@@ -108,7 +109,9 @@ public class Converter extends ClassController implements SongWriter {
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
     
-    public Converter() {
+    public Converter(ClassWidget widget) {
+        super(widget);
+        
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);

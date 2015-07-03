@@ -3,11 +3,12 @@ package Layout.WidgetImpl;
 import Configuration.Config;
 import Configuration.Configuration;
 import Configuration.IsConfig;
-import Layout.Widgets.controller.ClassController;
-import Layout.Widgets.feature.ConfiguringFeature;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.ConfiguringFeature;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
@@ -66,7 +67,9 @@ public final class Configurator extends ClassController implements ConfiguringFe
     private final Icon reI = new Icon(REFRESH,13,"Refresh all",this::refresh);
     private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
-    public Configurator() {
+    public Configurator(ClassWidget widget) {
+        super(widget);
+        
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
         controls.getChildren().addAll(appI,new Region(),reI,defI);

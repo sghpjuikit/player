@@ -12,23 +12,24 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
-import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.CUSTOM;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
 import gui.itemnode.TextFieldItemNode.MoodItemNode;
-import gui.objects.icon.CheckIcon;
 import gui.objects.GraphicalTextField;
-import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import gui.objects.PopOver.PopOver.NodeCentricPos;
 import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
 import gui.objects.Thumbnail.ChangeableThumbnail;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
 import java.io.File;
 import java.net.URI;
 import java.time.Year;
@@ -180,6 +181,9 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     public Boolean changeReadModeOnTransfer = false;
 
     
+    public TaggerController(FXMLWidget widget) {
+        super(widget);
+    }
     
     @Override
     public void init() {
@@ -341,7 +345,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         if (d1!=null) d1.unsubscribe();
     }
     

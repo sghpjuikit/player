@@ -1,50 +1,43 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.controller.Controller;
 import Configuration.CompositeConfigurable;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
+import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
+import Layout.Widgets.controller.Controller;
+import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.Output;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.io.ObjectStreamException;
 import static java.lang.annotation.ElementType.TYPE;
 import java.lang.annotation.Retention;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Target;
-import java.util.Collection;
+import java.util.*;
 import static java.util.Collections.singletonList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.stream.Collectors;
 import javafx.scene.Node;
 import util.dev.Log;
+import static util.functional.Util.*;
 
 /**
- * Widget is an abstract representation of graphical component that works like
- * an individual self sufficient modul.
+ * Widget graphical component with a functionality.
  * <p>
- * Widgets allows a way to handle variety of different components in defined
- * way. It provides necessary logic to wrap the component, which includes such
- * things as id, name, controller or properties
+ * The functionality is handled by widget's {@link Controller}. The controller 
+ * is instantiated when widget loads. The widget-controller relationship is 1:1
+ * and permanent.
  * <p>
- * Widget is a wrapper of underlying component exhibiting standalone
- * functionality. Its not its role to handle behavior of the component, but it
- * does provide a way to access it by forwarding its controller. Controller is the
- * object responsible for the component's behavior.
- * The controller is instantiated when widget loads. The controller should
- * not be called before that happens.
- * <p>
- * The Concrete implementation of Widget should make sure it guarantees the
- * existence of Controller after the widget has been loaded. This should be
- * done inside load() method.
- * <p>
- * Always use EMPTY widget instead null
+ * Widget can be thought of as a wrapper for controller (which may be used as
+ * standalone object if implementation allows). The type of widget influences
+ * the lifecycle. See {@link FXMLWidget} and {@link ClassWidget}.
  * 
  * @author uranium
  */
 public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable<Object> {
     
-    // Name of the widget. Permanent. same as factory name
+    // Name of the widget. Permanent. same as factory input_name
     // it needs to be declared to support deserialization
     final String name;
     
@@ -187,21 +180,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return singletonList(controller);
     }    
     
-    // the following two methods help with serialising the widget settings
-    public void rememberConfigs() {
-        if(controller != null) {
-            configs = new HashMap();
-            getFields().forEach(c -> configs.put(c.getName(), c.getValueS()));
-        }
-    }
-    public void restoreConfigs() {
-        if(configs != null) {
-            configs.forEach(this::setField);
-            configs = null;
-        }
-    }
-
-    /** @return name of the widget */
+    /** @return input_name of the widget */
     @Override
     public String toString() {
         return name;
@@ -213,6 +192,34 @@ public abstract class Widget<C extends Controller> extends Component implements 
      */
     public static Widget EMPTY() {
         return new EmptyWidget();
+    }
+    
+/****************************** SERIALIZATION *********************************/
+    
+    public void rememberConfigs() {
+        if(controller != null) {
+            configs = new HashMap();
+            getFields().forEach(c -> configs.put(c.getName(), c.getValueS()));
+        }
+    }
+    
+    // ran just before serialization, assures everything is serialized
+    public void prepareForSerialization() {
+        // serialize input-output bindings
+        getController().getInputs().getInputs().forEach(i -> 
+            properties.put("io"+i.getName(), util.functional.Util.toS(i.getSources(), Object::toString, ":"))
+        );
+        // serialize configs
+        rememberConfigs();
+    }
+
+/***************************** DESERIALIZATION ********************************/
+    
+    public void restoreConfigs() {
+        if(configs != null) {
+            configs.forEach(this::setField);
+            configs = null;
+        }
     }
     
     /**
@@ -231,23 +238,48 @@ public abstract class Widget<C extends Controller> extends Component implements 
     * @return this
     * @throws ObjectStreamException
     */
-    // must not be private or it wont get inherited and is called on sublass
-    // apparently this isnt inherited or something...
+    // must not be private or it wont get inherited
     protected Object readResolve() throws ObjectStreamException {
         // assign factory
         if (factory==null) factory = WidgetManager.getFactory(name);
-        // if none exists (maybe the widget was serialized in different application)
-        // return null - widget can not exist without its factory
-        // the null does not cause exception, it is treated by container as no 
-        // component - basically we ignore this widget
-        // return factory==null ? null : this;
         
-        // using empty widget might be better idea?
-        // maybe creating an 'error' widget would be a good idea
+        // accumulate serialized inputs for later deserialiation when all widgets are ready
+        properties.entrySet().stream()
+                  .filter(e->e.getKey().startsWith("io"))
+                  .map(e -> new IO(this,e.getKey().substring(2), (String)e.getValue()))
+                  .forEach(ios::add);
+        
+        // use empty widget when no factory available
         return factory==null ? Widget.EMPTY().load() : this;
     }
     
+    
 /******************************************************************************/
+    
+    
+    static class IO {
+        public final Widget widget;
+        public final String input_name;
+        public final List<Output.Id> outputs_ids = new ArrayList();
+
+        IO(Widget widget, String name, String outputs) {
+            this.widget = widget;
+            this.input_name = name;
+            this.outputs_ids.addAll(map(split(outputs,":",x->x),Output.Id::fromString));
+        }
+    }
+    static final ArrayList<IO> ios = new ArrayList();
+    public static void deserializeWidgetIO() {
+        Map<Output.Id,Output> os = WidgetManager.findAll(ANY)
+                     .flatMap(w->w.getController().getOutputs().getOutputs().stream())
+                     .collect(Collectors.toMap(i->i.id, i->i));
+                            
+        ios.forEach(io -> {
+            Input i = io.widget.getController().getInputs().getInput(io.input_name);
+            io.outputs_ids.stream().map(os::get).forEach(i::bind);
+        });
+    }
+    
 
     /** Widget metadata. Passed from code to program. Use on controller class. */
     @Retention(value = RUNTIME)

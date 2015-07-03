@@ -5,6 +5,7 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import java.util.UUID;
 import javafx.scene.Node;
+import util.collections.PropertyMap;
 
 /**
  * @author uranium
@@ -13,12 +14,12 @@ import javafx.scene.Node;
  * Basis for wrappers - containers or wrapped widgets.
  */
 public abstract class Component {
-    final private UUID id = UUID.randomUUID();
     
-    /** @return  unique ID. */
-    public UUID getID() {
-        return id;
-    }
+    /** Unique ID. Permanent. Persists application life cycle. */
+    public final UUID id = UUID.randomUUID();
+    /** Simple storage. Persists application life cycle. */
+    public final PropertyMap properties = new PropertyMap();
+
     
     /** @return name */
     abstract public String getName();

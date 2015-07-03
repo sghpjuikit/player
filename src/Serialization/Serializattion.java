@@ -71,7 +71,7 @@ public final class Serializattion {
             x.autodetectAnnotations(true);
             
             // dont forget to serialize widget properties as well
-            l.getAllWidgets().filter(isNotNULL).forEach(Widget::rememberConfigs);
+            l.getAllWidgets().filter(isNotNULL).forEach(Widget::prepareForSerialization);
             x.toXML(l, new BufferedWriter(new FileWriter(f)));
         } catch (IOException ex) {
             Log.err("Unable to save gui layout '" + l.getName() + "' into the file: " + f.toPath());

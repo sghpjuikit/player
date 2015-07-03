@@ -32,7 +32,11 @@ public class Inputs {
         return m.size();
     }
     
-    public Collection<Input> getOutputs() {
+    public Input getInput(String name) {
+        return m.get(name);
+    }
+    
+    public Collection<Input> getInputs() {
         return m.values();
     }
 }

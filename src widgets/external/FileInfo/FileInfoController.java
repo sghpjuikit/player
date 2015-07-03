@@ -10,12 +10,13 @@ import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
+import Layout.Widgets.feature.SongReader;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
@@ -116,8 +117,8 @@ public class FileInfoController extends FXMLController implements SongReader {
         playcount, comment, category, gap3, filesize, filename, format, bitrate,
         encoding, location);
     
-    private final Input<Item> data_in = inputs.create("Data", Item.class, this::read);
-    private final Output<Metadata> data_out = outputs.create("Data", Metadata.class, Metadata.EMPTY).setStringConverter(Metadata::getTitle);
+    private final Input<Item> data_in;
+    private final Output<Metadata> data_out;
     private Metadata data;
     private Subscription d;
 
@@ -180,6 +181,14 @@ public class FileInfoController extends FXMLController implements SongReader {
     public final Accessor<Boolean> showlocation = new Accessor<>(true, this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
+
+    
+    public FileInfoController(FXMLWidget widget) {
+        super(widget);
+        
+        data_in = inputs.create("Data", Item.class, this::read);
+        data_out = outputs.create(widget.id, "Data", Metadata.class, Metadata.EMPTY).setStringConverter(Metadata::getTitle);
+    }
     
     @Override
     public void init() {
@@ -228,8 +237,6 @@ public class FileInfoController extends FXMLController implements SongReader {
         
         
         actPane = new ActionChooser(this);
-//        actPane.addEventHandler(DRAG_EXITED, e-> getArea().setActivityVisible(false));
-//        actPane.addEventHandler(MOUSE_EXITED, e-> getArea().setActivityVisible(false));
         
         Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
              coverB.setOnMouseClicked(e -> setCover(actPane.getItem(),true));
@@ -245,7 +252,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         if (d != null) d.unsubscribe();
     }
     
@@ -287,7 +294,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     // item -> metadata
     private void setValue(Item i) {
-        if(data.same(i)) return;
+        if(data!=null && data.same(i)) return;
         if(i==null) setValue(EMPTY);
         else if(i instanceof Metadata) setValue((Metadata)i);
         else App.itemToMeta(i, this::setValue);

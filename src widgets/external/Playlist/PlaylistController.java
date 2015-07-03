@@ -8,14 +8,15 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import Layout.Widgets.feature.PlaylistFeature;
-import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.PLAYLIST;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Output;
+import Layout.Widgets.feature.PlaylistFeature;
+import Layout.Widgets.feature.SongReader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.InfoNode.InfoTable;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
@@ -94,7 +95,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML Menu selMenu;
     @FXML Menu orderMenu;
     
-    private final Output<PlaylistItem> out_sel = outputs.create("Selected", PlaylistItem.class, null).setStringConverter(PlaylistItem::getTitle);
+    private final Output<PlaylistItem> out_sel;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -131,6 +132,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private final InvalidationListener predicateL = o -> 
             PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
     
+    public PlaylistController(FXMLWidget widget) {
+        super(widget);
+        out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null).setStringConverter(PlaylistItem::getTitle);
+        actPane = new ActionChooser(this);
+    }
     
     @Override
     public void init() {        
@@ -173,12 +179,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
-        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> System.out.println(getWidget().getID()));
-        
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         setUseFilterForPlayback(false);
         PlaylistManager.getItems().removeListener(playlistitemsL);
         table.dispose();
@@ -198,7 +202,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         table.setItemsRaw(PlaylistManager.getItems());
     }
     
-    ActionChooser<Supplier<File>> actPane = new ActionChooser(this);
+    final ActionChooser<Supplier<File>> actPane;
     
     @Override
     public Node getActivityNode() {

@@ -27,20 +27,21 @@ public class ClassWidget extends Widget<Controller> {
     @Override
     public Node loadInitial() {                    
         try {
-            Node node = (Node) getFactory().getControllerClass().newInstance();
+            Node node = (Node) getFactory().getControllerClass()
+                        .getDeclaredConstructor(ClassWidget.class)
+                        .newInstance(this);
                 
             rememberConfigs();
             controller = Controller.class.cast(node);
-            controller.setWidget(this);
             
             restoreConfigs();
             controller.refresh();
             
             return node;
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (Exception e) {
             Log.err("Widget " + name + " failed to load. " + e.getMessage());
             return Widget.EMPTY().load();
-        }
+        } 
     }
     
 }

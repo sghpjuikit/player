@@ -6,7 +6,6 @@ package Layout.Widgets;
 
 import Layout.Widgets.controller.FXMLController;
 import java.io.File;
-import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import util.dev.Log;
@@ -32,8 +31,9 @@ public final class FXMLWidget extends Widget<FXMLController> {
     @Override
     public Node loadInitial() {
         try {
-            controller = getFactory().instantiateController();
-            controller.setWidget(this);
+            controller = (FXMLController) getFactory().getControllerClass()
+                        .getDeclaredConstructor(FXMLWidget.class)
+                        .newInstance(this);
             
             FXMLLoader loader = new FXMLLoader();
                        loader.setLocation(getFactory().url);
@@ -45,7 +45,7 @@ public final class FXMLWidget extends Widget<FXMLController> {
             controller.refresh();
             
             return n;
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             Log.err("Widget " + name + " failed to load. " + ex.getMessage() );
             // inject empty content

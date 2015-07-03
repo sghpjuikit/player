@@ -8,11 +8,12 @@
 package Layout.WidgetImpl;
 
 import Configuration.Config;
-import gui.itemnode.ConfigField;
-import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.DEVELOPMENT;
+import Layout.Widgets.controller.ClassController;
+import gui.itemnode.ConfigField;
 import static java.lang.Math.max;
 import java.util.function.Function;
 import javafx.beans.binding.Bindings;
@@ -43,7 +44,9 @@ public class FunctionPlotter extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
     
-    public FunctionPlotter() {
+    public FunctionPlotter(ClassWidget widget) {
+        super(widget);
+        
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

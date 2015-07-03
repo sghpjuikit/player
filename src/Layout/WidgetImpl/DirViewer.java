@@ -5,10 +5,11 @@
  */
 package Layout.WidgetImpl;
 
-import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
+import Layout.Widgets.controller.ClassController;
 import gui.objects.Thumbnail.Thumbnail;
 import gui.objects.tree.TreeItems.FileTreeItem;
 import java.io.File;
@@ -26,10 +27,12 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.*;
 import util.File.Environment;
+import util.File.FileUtil;
+import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
 import static util.async.Async.runLater;
+import static util.functional.Util.filterMap;
 import static util.functional.Util.forEachI;
-import static util.functional.Util.map;
 
 /**
  *
@@ -52,7 +55,9 @@ public class DirViewer extends ClassController {
     TreeItem<File> item = null;
     CellPane cells = new CellPane(160,220,5);
     
-    public DirViewer() {
+    public DirViewer(ClassWidget widget) {
+        super(widget);
+        
         addEventFilter(MOUSE_CLICKED, e -> {
             if(e.getButton()==SECONDARY && item!=null) {
                 if(item.getParent()!=null) viewDir(item.getParent());
@@ -65,7 +70,6 @@ public class DirViewer extends ClassController {
         layout.setFitToHeight(false);
         layout.setHbarPolicy(NEVER);
         layout.setVbarPolicy(AS_NEEDED);
-        layout.setVbarPolicy(ALWAYS);
         getChildren().add(layout);
         setAnchors(layout,0);
                     
@@ -80,7 +84,7 @@ public class DirViewer extends ClassController {
     public void viewDir(TreeItem<File> dir) {
         item = dir;
         if(item==null) cells.getChildren().clear();
-        else cells.getChildren().setAll(map(item.getChildren(),Cell::new));
+        else cells.getChildren().setAll(filterMap(item.getChildren(),i->!ImageFileFormat.isSupported(i.getValue()),Cell::new));
     }
     
     
@@ -127,7 +131,8 @@ public class DirViewer extends ClassController {
             File dir = dir_item.getValue();
             setPrefSize(160,220);
             
-            File i = new File(dir,"cover.jpg");
+            File i = dir.isDirectory() ? new File(dir,"cover.jpg")
+                                       : new File(dir.getParent(),FileUtil.getName(dir)+".jpg");
             Thumbnail t = new Thumbnail(160,200);
             t.loadImage(i.exists() ? i : null);
             t.getPane().setOnMouseClicked(e -> {

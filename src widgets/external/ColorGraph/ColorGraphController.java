@@ -8,6 +8,7 @@ package ColorGraph;
 
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.controller.FXMLController;
 import static java.time.Duration.ofMillis;
 import java.util.HashMap;
@@ -41,8 +42,17 @@ public class ColorGraphController extends FXMLController {
 //            EventStreams.valuesOf(root.widthProperty()),
 //            EventStreams.valuesOf(root.heightProperty())
 //    ).reduceSuccessions((a,b)->a, Duration.ofMillis(20)).subscribe(n->data.forEach(this::place));
+//    public final Accessor<ReadMode>//    EventStream<Number> s = EventStreams.merge(
+//            EventStreams.valuesOf(root.widthProperty()),
+//            EventStreams.valuesOf(root.heightProperty())
+//    ).reduceSuccessions((a,b)->a, Duration.ofMillis(20)).subscribe(n->data.forEach(this::place));
 //    public final Accessor<ReadMode>
 
+    
+    public ColorGraphController(FXMLWidget widget) {
+        super(widget);
+    }
+    
     @Override
     public void init() {
 //        dataMonitor = Player.librarySelectedItemsES.subscribe(this::dataChanged);
@@ -72,7 +82,7 @@ public class ColorGraphController extends FXMLController {
     }
 
     @Override
-    public void close() {
+    public void onClose() {
 //        dataMonitor.unsubscribe();
     }
     
@@ -206,7 +216,7 @@ public class ColorGraphController extends FXMLController {
 //    }
 //
 //    @Override
-//    public void close() {
+//    public void onClose() {
 ////        dataMonitor.unsubscribe();
 //    }
 //    

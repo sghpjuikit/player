@@ -16,7 +16,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
-import util.collections.PropertyMap;
 import util.dev.Log;
 import static util.functional.Util.isNotNULL;
 
@@ -59,14 +58,6 @@ import static util.functional.Util.isNotNULL;
  */
 public abstract class Container extends Component implements AltState {
     
-    /*
-     * Property mapB - mapB of properties. The mapB serves as unified property
-     * storage mechanism to allow easy manipulation (serialization, etc) of
-     * properties.
-     * Its responsibility of the wrapped component to maintain updated state
-     * reflecting the properties in the mapB.
-     */
-    public final PropertyMap properties = new PropertyMap();
     @XStreamOmitField
     AnchorPane root;
     @XStreamOmitField

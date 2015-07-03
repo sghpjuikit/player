@@ -8,14 +8,15 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.PlaybackFeature;
-import Layout.Widgets.Widget;
 import PseudoObjects.ReadMode;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
-import gui.objects.icon.Icon;
 import gui.objects.Seeker;
+import gui.objects.icon.Icon;
 import static java.util.Arrays.asList;
 import java.util.List;
 import javafx.fxml.FXML;
@@ -80,6 +81,11 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
     
+        
+    public PlayerControlsTinyController(FXMLWidget widget) {
+        super(widget);
+    }
+    
     @Override
     public void init() {
         // make volume
@@ -132,7 +138,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     public void refresh() { }
 
     @Override
-    public void close() {
+    public void onClose() {
         // remove listeners
         ds.forEach(Subscription::unsubscribe);
         seeker.unbindTime();

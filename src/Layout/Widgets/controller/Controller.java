@@ -4,10 +4,10 @@ package Layout.Widgets.controller;
 import Configuration.Configurable;
 import Layout.Areas.Area;
 import Layout.Layout;
-import Layout.Widgets.feature.Feature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
+import Layout.Widgets.feature.Feature;
 import java.util.List;
 import javafx.scene.Node;
 
@@ -89,14 +89,6 @@ public interface Controller<W extends Widget> extends Configurable<Object> {
      * request.
      */
     public void refresh();
-    
-    /**
-     * Create relationship between this controller and specified widget. Usually
-     * the relationship is permanent.
-     * This method must be called before the widget loads.
-     * @param w 
-     */
-    public void setWidget(W w);
     
     /**
      * Returns widget in relationship with this Controller object.

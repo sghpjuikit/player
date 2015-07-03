@@ -7,8 +7,9 @@ package WebReader;
 
 
 import Configuration.IsConfig;
-import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
@@ -31,6 +32,11 @@ public final class WebReaderController extends FXMLController {
     
     @IsConfig(name = "Last visited address", info = "Last visited address")
     public String url = "http://duckduckgo.com/";
+    
+
+    public WebReaderController(FXMLWidget widget) {
+        super(widget);
+    }
     
     @Override
     public void init() {

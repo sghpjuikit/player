@@ -3,9 +3,10 @@ package Action;
 
 import static Action.Action.EMPTY;
 import Configuration.IsConfig;
-import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
+import Layout.Widgets.controller.FXMLController;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
 import javafx.event.Event;
@@ -49,6 +50,10 @@ public class ActionController extends FXMLController {
     public final Accessor<Pos> align = new Accessor<>(CENTER, v -> StackPane.setAlignment(button, v));
 
     
+    public ActionController(FXMLWidget widget) {
+        super(widget);
+    }
+    
     @Override
     public void init() {
         root.getChildren().add(button);
@@ -67,6 +72,6 @@ public class ActionController extends FXMLController {
     }
 
     @Override
-    public void close() { }
+    public void onClose() { }
     
 }

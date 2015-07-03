@@ -3,6 +3,11 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- cache covers so they arent loaded repeatedly for items on same album
+- make containers & widgets extremely lightweight
+- decouple playlists
+- decouple library views of the same lvl
+- FreeForm widget moving by drag + layout mode widget swap collision fix
 - Inspector widgets fix & improve
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo
@@ -26,6 +31,10 @@ PROTIP:
 - util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
 
 GENERAL
+- periodic gui freeze + slowdown                                                (major)
+  Appeared after using Tagger to edit songs sometimes. That was thought to be
+  fixed, now it appeared after just opening Library+2xLibraryView
+  problem: probably Fut (or something else?) blocking FX thread
 - transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
   problem: transparent skins, mouse effects unsupported, windows as node
            implementation impossible
@@ -118,9 +127,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI
 - Accessors and all... maybe make Val/Var class
 - Config and Accessor static constructors
-- turn Playlist into full fledget Feature - get rid of the PlaylistManager
-  & add support for tables to vind ObservableLists - decision to make
-  but fix playlist table need to override sorting method because of this
 - Serializator and serialization
 - window manager
 - window color overlay effect

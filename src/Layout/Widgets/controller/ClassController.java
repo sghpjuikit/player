@@ -6,10 +6,10 @@
 package Layout.Widgets.controller;
 
 import Layout.Widgets.ClassWidget;
+import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
 import javafx.scene.layout.AnchorPane;
-import static util.dev.Util.require;
 
 /**
  * Controller for {@link ClassWidget}
@@ -18,14 +18,12 @@ import static util.dev.Util.require;
  */
 abstract public class ClassController extends AnchorPane implements Controller<ClassWidget> {
     
-    private ClassWidget widget;
+    public final ClassWidget widget;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
     
-    @Override
-    public void setWidget(ClassWidget w) {
-        require(widget==null);
-        widget = w;
+    public ClassController(ClassWidget widget) {
+        this.widget = widget;
     }
 
     @Override
@@ -37,7 +35,12 @@ abstract public class ClassController extends AnchorPane implements Controller<C
     public void refresh() {}
 
     @Override
-    public void close() {}
+    public final void close() {
+        onClose();
+        inputs.getInputs().forEach(Input::unbindAll);
+    }
+    
+    public void onClose() {}
     
     /** {@inheritDoc} */
     @Override

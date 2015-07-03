@@ -37,8 +37,8 @@ import javafx.util.Duration;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import main.App;
-import util.animation.Anim;
 import util.File.FileUtil;
+import util.animation.Anim;
 import util.async.executor.FxTimer;
 import util.dev.Log;
 import static util.functional.Util.mapB;
@@ -348,6 +348,10 @@ public class WindowManager {
                 w.getStage().setOnShown(null);
             }));
         }
+        
+        
+        
+        Widget.deserializeWidgetIO();
     }
 
     

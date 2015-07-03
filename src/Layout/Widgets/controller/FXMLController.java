@@ -6,12 +6,12 @@
 package Layout.Widgets.controller;
 
 import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
 import java.io.File;
 import java.net.MalformedURLException;
 import javafx.scene.layout.Pane;
-import static util.dev.Util.require;
 
 /**
  * Controller for {@link FXMLWidget}
@@ -20,15 +20,12 @@ import static util.dev.Util.require;
  */
 abstract public class FXMLController implements Controller<FXMLWidget> {
     
-    private FXMLWidget widget;
+    private final FXMLWidget widget;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
     
-    /** {@inheritDoc} */
-    @Override
-    public void setWidget(FXMLWidget w) {
-        require(widget==null);
-        widget = w;
+    public FXMLController(FXMLWidget widget) {
+        this.widget = widget;
     }
     
     /** {@inheritDoc} */
@@ -80,5 +77,13 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     public Inputs getInputs() {
         return inputs;
     }
+    
+    @Override
+    public final void close() {
+        onClose();
+        inputs.getInputs().forEach(Input::unbindAll);
+    }
+    
+    public void onClose() {}
     
 }

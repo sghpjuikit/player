@@ -5,7 +5,6 @@
  */
 package Layout.Widgets;
 
-import Layout.Widgets.controller.FXMLController;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -53,20 +52,6 @@ public final class FXMLWidgetFactory extends WidgetFactory<FXMLWidget> {
     public FXMLWidget create() {
         FXMLWidget w = new FXMLWidget(name,this);
         return w;
-    }
-    
-    /** 
-     * Instantiates the controller object for the widget this factory produces. 
-     * The instantiation involves a lookup of the correct class file. For this
-     * reason the Controller class name and the .fxml file must adhere to proper
-     * standard.
-     */
-    FXMLController instantiateController() {
-        try {
-            return (FXMLController) getControllerClass().newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new RuntimeException("Controller instantiation failed. ", e);
-        }
     }
     
     private static Class obtainControllerClass(URL url) {

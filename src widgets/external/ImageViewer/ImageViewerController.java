@@ -6,18 +6,19 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
+import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.Widget;
+import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.ImageDisplayFeature;
 import Layout.Widgets.feature.ImagesDisplayFeature;
-import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.OTHER;
 import PseudoObjects.ReadMode;
 import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_RIGHT;
 import gui.InfoNode.ItemInfo;
-import gui.objects.icon.Icon;
 import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.icon.Icon;
 import java.io.File;
 import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
@@ -49,11 +50,11 @@ import javafx.util.Duration;
 import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.Subscription;
-import util.animation.Anim;
 import static util.File.FileUtil.getFilesImage;
 import util.Util;
 import static util.Util.setAnchors;
 import util.access.Accessor;
+import util.animation.Anim;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
 import static util.async.future.Fut.fut;
@@ -175,6 +176,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Displayed image", editable = false)
     private int active_image = -1;
     
+        
+    public ImageViewerController(FXMLWidget widget) {
+        super(widget);
+    }
+    
     /** {@inheritDoc} */
     @Override
     public void init() {
@@ -271,7 +277,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     /** {@inheritDoc} */
     @Override
-    public void close() {
+    public void onClose() {
         // unbind
         if (dataMonitoring!=null) dataMonitoring.unsubscribe();
         folder.removeListener(locationChange);

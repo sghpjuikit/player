@@ -8,6 +8,7 @@ package Layout.Widgets.controller.io;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import org.reactfx.Subscription;
 import static util.reactive.Util.maintain;
@@ -24,8 +25,8 @@ public class Outputs {
         m = new HashMap();
     }
     
-    public <T> Output<T> create(String name, Class<T> type, T val) {
-        Output<T> o = new Output(name,type);
+    public <T> Output<T> create(UUID id, String name, Class<T> type, T val) {
+        Output<T> o = new Output(id,name,type);
                   o.setValue(val);
         m.put(name, o);
         return o;
@@ -33,6 +34,10 @@ public class Outputs {
     
     public int getSize() {
         return m.size();
+    }
+    
+    public Output getOutput(String name) {
+        return m.get(name);
     }
     
     public Collection<Output> getOutputs() {

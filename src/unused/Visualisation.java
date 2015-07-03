@@ -3,6 +3,7 @@
 package unused;
 
 import Configuration.IsConfig;
+import Layout.Widgets.ClassWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.ClassController;
 import static java.lang.Math.random;
@@ -56,7 +57,9 @@ public class Visualisation extends ClassController {
     @IsConfig(name="Blending mode", info="The blending mode influences how the content is displayed on the screen in ocntext with the background.")
     public final Accessor<BlendMode> blending_mode = new Accessor<>(BlendMode.SRC_OVER, this::setBlendMode);
     
-    public Visualisation() {
+    public Visualisation(ClassWidget widget) {
+        super(widget);
+        
         initialize();
         play();
     }

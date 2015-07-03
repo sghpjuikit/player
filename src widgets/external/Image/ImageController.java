@@ -1,11 +1,12 @@
 package Image;
 
 import Configuration.IsConfig;
-import gui.objects.Thumbnail.Thumbnail;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import gui.objects.Thumbnail.Thumbnail;
 import java.io.File;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -44,6 +45,10 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     @IsConfig(name = "Custom image", info = "Custom static image file.", editable = true)
     private File img = new File("");
 
+    
+    public ImageController(FXMLWidget widget) {
+        super(widget);
+    }
     
     @Override
     public void init() {

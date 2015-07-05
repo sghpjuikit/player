@@ -19,10 +19,10 @@ import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.SQUARE_ALT;
 import gui.GUI;
 import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.CheckMenuItem;
@@ -34,7 +34,6 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
-import gui.objects.icon.Icon;
 import static java.time.Duration.ofMillis;
 import java.time.Year;
 import java.util.*;
@@ -58,7 +57,6 @@ import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Priority;
@@ -111,13 +109,14 @@ public class LibraryViewController extends FXMLController {
     private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
     ActionChooser actPane;
-    Icon lvlB;
     
     // input/output
     private final Output<MetadataGroup> out_sel;
+    private final Output<List<Metadata>> out_sel_met;
+    private final Input<List<Metadata>> in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
     
     // dependencies
-    private Subscription d1,d2;
+    private Subscription d2;
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
     
     // configurables
@@ -133,31 +132,22 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
     @IsConfig(editable = false)
     private TableColumnInfo columnInfo;
-    @IsConfig(name = "Library level", info = "", min=1, max = 8)
-    public final Accessor<Integer> lvl = new Accessor<>(DB.views.getLastLvl()+1, this::applyData);
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
     );  
     
-        
     
     public LibraryViewController(FXMLWidget widget) {
         super(widget);
         
         out_sel = outputs.create(widget.id,"Selected", MetadataGroup.class, null).setStringConverter(mg -> Objects.toString(mg.getValue()));
+        out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST).setStringConverter(mg -> String.valueOf(((List)mg).size()));
+        in_items.bindTransient(DB.items.o);
         
         actPane = new ActionChooser(this);
-        lvlB = actPane.addIcon(SQUARE_ALT, "1", "Level");
-        lvlB.setOnMouseClicked(e -> {
-            if(e.getButton()==PRIMARY)
-                lvl.setNapplyValue(clip(1,lvl.getValue()+1,8));
-            if(e.getButton()==SECONDARY)
-                lvl.setNapplyValue(clip(1,lvl.getValue()-1,8));
-            e.consume();
-        });
     }
-
+    
     @Override
     public void init() {
         content.getChildren().addAll(table.getRoot());
@@ -262,9 +252,9 @@ public class LibraryViewController extends FXMLController {
         });
         
         // forward on selection
-        EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b,ofMillis(60)).subscribe(c -> {
+        EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b, ofMillis(60)).subscribe(c -> {
             if(!sel_lock)
-                forwardItems(DB.views.getValue(lvl.getValue()));
+                out_sel_met.setValue(filerList(in_items.getValue(),true,false));
         });
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             if(!sel_lock)
@@ -294,7 +284,6 @@ public class LibraryViewController extends FXMLController {
     @Override
     public void onClose() {
         // stop listening for db changes
-        d1.unsubscribe();
         d2.unsubscribe();
     }
 
@@ -317,14 +306,7 @@ public class LibraryViewController extends FXMLController {
     
     //applies lvl & fieldFilter
     private void applyData(Object o) {
-        int l = lvl.getValue();
         Metadata.Field f = fieldFilter.getValue();
-        
-        // maintain info text
-        lvlB.setText(Integer.toString(l));
-        // listen for database changes to refresh library
-        if(d1!=null) d1.unsubscribe();
-        d1 = DB.views.subscribe(l, (lvl,list) -> setItems(list));
         
         // rebuild value column
         find(table.getColumns(), c -> VALUE == c.getUserData()).ifPresent(c -> {
@@ -337,7 +319,7 @@ public class LibraryViewController extends FXMLController {
         table.getSearchBox().setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
         table.getSearchBox().setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(f),mgf.getType(f),mgf)));
         
-        setItems(DB.views.getValue(l));
+        setItems(in_items.getValue());
     }
     
     private final Histogram<Object, Metadata, TupleM6<Long,Set<String>,Double,Long,Double,Year>> h = new Histogram();
@@ -369,15 +351,10 @@ public class LibraryViewController extends FXMLController {
                         table.setItemsRaw(l);
                         selectionReStore();
                     }
-                    DB.views.push(lvl.getValue()+1, fl);
+                    out_sel_met.setValue(fl);
                 });
             })
             .run();
-    }
-    
-    // Sends event to next level
-    private void forwardItems(List<Metadata> list) {
-        DB.views.push(lvl.getValue()+1, filerList(list,true,false));
     }
     
     private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
@@ -413,12 +390,12 @@ public class LibraryViewController extends FXMLController {
     
     // get all items in grouped in the selected groups, sorts using library sort order \
     private List<Metadata> filerListToSelectedNsort() {
-        List<Metadata> l = filerList(DB.views.getValue(lvl.getValue()),false,true);
+        List<Metadata> l = filerList(in_items.getValue(),false,true);
                        l.sort(DB.library_sorter);
         return l;
     }
     private void playSelected() {
-        play(filerList(DB.views.getValue(lvl.getValue()),false,true));
+        play(filerList(in_items.getValue(),false,true));
     }
     
 /******************************* SELECTION RESTORE ****************************/

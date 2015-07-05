@@ -97,7 +97,7 @@ import util.units.NofX;
  * 
  * @author uranium
  */
-@Name("Song")
+@Name("Library Song")
 @Entity(name = "MetadataItem")
 public final class Metadata extends MetaItem<Metadata> implements FieldedValue<Metadata,Metadata.Field> {
     // note: for some fields the initialized values below are not their
@@ -432,6 +432,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
 
 /******************************************************************************/  
 
+    @Override
     public String getId() {
        return uri;
     }

@@ -5,23 +5,37 @@
  */
 package gui.objects;
 
+import Layout.Widgets.WidgetManager;
+import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.controller.Controller;
+import Layout.Widgets.controller.io.InOutput;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
-import java.util.List;
+import static java.lang.Math.abs;
+import static java.lang.Math.signum;
+import java.util.*;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import static javafx.scene.input.DragEvent.*;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import static javafx.util.Duration.millis;
-import util.animation.Anim;
+import main.App;
 import util.ClassName;
+import util.animation.Anim;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
@@ -117,11 +131,16 @@ public class ActionChooser<T> extends StackPane {
     }
     
     
-    class OutputNode<T> extends HBox {
+    static interface XNode {
+        Icon getIcon();
+    }
+    static class OutputNode<T> extends HBox implements XNode {
         Text t = new Text();
         Icon i = new Icon(FontAwesomeIconName.TOGGLE_RIGHT, 10);
+        Output output;
         OutputNode(Output<T> o) {
             super(8);
+            output = o;
             
             setMaxSize(80,120);
             getChildren().addAll(t,i);
@@ -138,12 +157,19 @@ public class ActionChooser<T> extends StackPane {
             
             o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
         }
+
+        @Override
+        public Icon getIcon() {
+            return i;
+        }
     }
-    class InputNode<T> extends HBox {
+    static class InputNode<T> extends HBox implements XNode {
         Text t = new Text();
         Icon i = new Icon(FontAwesomeIconName.TOGGLE_LEFT, 10);
+        Input input;
         InputNode(Input<T> in) {
             super(8);
+            input = in;
             
             setMaxSize(80,120);
             getChildren().addAll(i,t);
@@ -157,6 +183,7 @@ public class ActionChooser<T> extends StackPane {
             i.addEventFilter(DRAG_DROPPED,e -> {
                 if(DragUtil.hasWidgetOutput()) {
                     in.bind(DragUtil.getWidgetOutput(e));
+                    drawWidgetIO();
                     e.setDropCompleted(true);
                     e.consume();
                 }
@@ -164,5 +191,195 @@ public class ActionChooser<T> extends StackPane {
             
             t.setText(ClassName.get(in.getType()) + " : " + in.getName());
         }
+
+        @Override
+        public Icon getIcon() {
+            return i;
+        }
     }
+    static class InOutputNode<T> extends VBox implements XNode {
+        Text t = new Text();
+        Icon i = new Icon(FontAwesomeIconName.TOGGLE_LEFT, 10);
+        InOutput inoutput;
+        InOutputNode(InOutput<T> inout) {
+            super(8);
+            inoutput = inout;
+            
+            setMaxSize(80,120);
+            getChildren().addAll(i,t);
+            setAlignment(Pos.CENTER_LEFT);
+            
+            Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
+            i.setOnMouseEntered(e -> a.playOpen());
+            t.setOnMouseExited(e -> a.playClose());
+            
+            i.addEventFilter(DRAG_DETECTED,e -> {
+                DragUtil.setWidgetOutput(inout.o,i.startDragAndDrop(TransferMode.LINK));
+                e.consume();
+            });
+            i.addEventFilter(DRAG_OVER,DragUtil.widgetOutputDragAccepthandler);
+            i.addEventFilter(DRAG_DROPPED,e -> {
+                if(DragUtil.hasWidgetOutput()) {
+                    Output o = DragUtil.getWidgetOutput(e);
+                    if(o!=inout.o) {
+                        inout.i.bind(o);
+                        drawWidgetIO();
+                    }
+                    e.setDropCompleted(true);
+                    e.consume();
+                }
+            });
+            
+            t.setText(ClassName.get(inout.i.getType()) + " : " + inout.i.getName());
+        }
+
+        @Override
+        public Icon getIcon() {
+            return i;
+        }
+    }
+    static class IOLine extends Path {
+        static final double GAP = 20;
+        
+        Output output;
+        Input input;
+        
+        public IOLine(Input i, Output o) {
+            input = i;
+            output = o;
+            
+            getStyleClass().add("input-output-line");
+            ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io.getChildren().add(this);
+            
+            setOnMouseClicked(e -> {
+                if(e.getButton()==SECONDARY) {
+                    i.unbind(o);
+                    drawWidgetIO();
+                }
+                e.consume();
+            });
+        }
+        
+        public void lay(double startx, double starty, double tox, double toy) { // System.out.println(startx + " " + starty + " " + tox + " " + toy);
+            setLayoutX(0);
+            double h = ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io.getHeight();
+            minHeight(h);
+            prefHeight(h);
+            maxHeight(h);
+        
+            getElements().clear();
+            getElements().add(new MoveTo(startx, starty));
+            
+            double dx = tox-startx;
+            double dy = toy-starty;
+            if(dx>0) {
+                double d = 20;
+                // enhance start
+                starty += d*signum(dy);
+                getElements().add(new LineTo(startx,starty));
+                // enhance end
+                not_finished = true;
+                not_finished_x = tox;
+                not_finished_y = toy;
+                tox -= d*signum(dx);
+                toy -= 2*d*signum(dy);
+            }
+            layTo(startx, starty, tox, toy, h);
+        }
+        
+        private boolean not_finished = false;
+        private double not_finished_x;
+        private double not_finished_y;
+        void layTo(double startx, double starty, double tox, double toy, double h) {
+            double dx = tox-startx;
+            double dy = toy-starty;
+            if(dx==0 || dy==0) {
+                getElements().add(new LineTo(tox,toy));
+                if(not_finished) {
+                    not_finished = false;
+                    layTo(tox, toy, not_finished_x, not_finished_y, h);
+                }
+            } else {
+                double d_xy = min(abs(dx),abs(dy));
+                double d = d_xy;
+                double x = startx+signum(dx)*d;
+                double y = starty+signum(dy)*d;
+                getElements().add(new LineTo(x, y));
+                layTo(x,y, tox, toy, h);
+            }
+        }
+    }
+    
+    
+    public static void drawWidgetIO() {
+        Map<Input,XNode> is = new HashMap();
+        Map<Output,XNode> os = new HashMap();
+        
+        WidgetManager.findAll(WidgetSource.ANY).map(w->w.getController().getActivityNode())
+            .filter(isNotNULL)
+            .map(ActionChooser.class::cast)
+            .forEach(c -> {
+                c.in_nodes.forEach(i -> is.put(((InputNode)i).input, ((XNode)i)));
+                c.out_nodes.forEach(o -> os.put(((OutputNode)o).output, ((XNode)o)));
+            });
+        ionodes.getChildren().forEach(n -> {
+            is.put(((InOutputNode)n).inoutput.i, (XNode)n);
+            os.put(((InOutputNode)n).inoutput.o, (XNode)n);
+        });
+        
+        AnchorPane widget_io = ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io;
+        widget_io.getChildren().retainAll(ionodes);
+        if(!widget_io.getChildren().contains(ionodes)) {
+            widget_io.getChildren().add(ionodes);
+            AnchorPane.setBottomAnchor(ionodes, 20.0);
+        }
+        
+        is.forEach((input,inputnode) -> {
+            Set<Output> outs = input.getSources();
+            outs.forEach(output -> {
+                double trans = widget_io.getTranslateX();
+                Node ni = inputnode.getIcon().getGraphic();
+                Point2D start = ni.localToScene(ni.getBoundsInParent().getMinX()+10,ni.getBoundsInParent().getMinY());
+                        start = start.subtract(trans,0);
+                XNode outputnode = os.get(output);
+                if(outputnode!=null) {
+                    Node no = outputnode.getIcon().getGraphic();
+                    Point2D end = no.localToScene(no.getBoundsInParent().getMinX()+20,no.getBoundsInParent().getMinY());
+                            end = end.subtract(trans,0);
+                    new IOLine(input,output).lay(start.getX(),start.getY(),end.getX(),end.getY());
+                }
+            });
+        });
+    }
+    
+    static final HBox ionodes;
+    static {
+        ionodes = new HBox(15);
+        ionodes.setPickOnBounds(false);
+        ionodes.setAlignment(Pos.CENTER);
+        ionodes.getChildren().addAll(map(InOutput.inoutputs,InOutputNode::new));
+        
+        InOutput.inoutputs.addListener(new ListChangeListener<InOutput>() {
+            @Override
+            public void onChanged(ListChangeListener.Change<? extends InOutput> c) {
+                while(c.next()) {
+                    if (c.wasPermutated()) {
+                        for (int i = c.getFrom(); i < c.getTo(); ++i) {
+                             //permutate
+                        }
+                    } else if (c.wasUpdated()) {
+                             //update item
+                    } else {
+                        for (InOutput io : c.getRemoved()) {
+                            ionodes.getChildren().removeIf(n -> ((InOutputNode)n).inoutput==io);
+                        }
+                        for (InOutput io : c.getAddedSubList()) {
+                            ionodes.getChildren().add(new InOutputNode(io));
+                        }
+                    }
+                }
+            }
+        });
+    }
+
 }

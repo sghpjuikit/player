@@ -10,10 +10,9 @@ import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.feature.ImageDisplayFeature;
 import Layout.Widgets.feature.ImagesDisplayFeature;
-import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_RIGHT;
 import gui.InfoNode.ItemInfo;
@@ -112,15 +111,13 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty(null); // current location source (derived from metadata source)
     private final ObservableList<File> images = FXCollections.observableArrayList();
     private final List<Thumbnail> thumbnails = new ArrayList();
-    private boolean image_reading_lock = false;
     // eager initialized state
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Subscription dataMonitoring;
     private Metadata data;
+    private Input<Item> in_meta = inputs.create("Location of", Item.class, this::dataChanged);
     
-    // auto applied cnfigurables
-    @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> dataMonitoring = Player.subscribe(v,dataMonitoring,this::dataChanged));
+    // cnfigurable
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final Accessor<Double> thumbSize = new Accessor<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
@@ -164,7 +161,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
     public final Accessor<Boolean> theater_mode = new Accessor<>(false, this::applyTheaterMode);
     
-    // non applied configurables
     @IsConfig(name = "Thumbnail load time", info = "Delay between thumbnail loading. It is not recommended to load all thumbnails immediatelly or fast one after another")
     public long thumbnailReloadTime = 200l;
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
@@ -179,6 +175,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
     public ImageViewerController(FXMLWidget widget) {
         super(widget);
+        in_meta.bind(Player.playing.o);
     }
     
     /** {@inheritDoc} */
@@ -254,8 +251,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             if(DragUtil.hasAudio(e.getDragboard())) {
                 // get first item
                 List<Item> items = DragUtil.getAudioItems(e);
-                // getMetadata, refresh
-                if (!items.isEmpty()) dataChanged(items.get(0).getMetadata());
+                if (!items.isEmpty()) dataChanged(items.get(0));
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
@@ -292,11 +288,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     /** {@inheritDoc} */
     @Override
     public void refresh() {
-        image_reading_lock = true; // prevent reading thumbnails twice (see below)
-        // this might change the location, but since we always want to fire
-        // location change, we prevent it here and fire it manually below
-        readMode.applyValue();
-        image_reading_lock = false; // unlock
         thumbSize.applyValue();
         thumbGap.applyValue();
         slideshow_dur.applyValue();
@@ -341,7 +332,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
 /****************************** HELPER METHODS ********************************/
     
-    private void dataChanged(Metadata m) {
+    private void dataChanged(Item i) {
+        Metadata m = i==null ? Metadata.EMPTY : i.getMetadata();
         // remember data
         data = m;
         // calculate new location
@@ -396,7 +388,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     };
     
     private void readThumbnails() {
-        if (image_reading_lock) return; 
         // clear old content before adding new
         // setImage(-1) // it is set during thumbnail reading, no need to clear it
         images.clear();

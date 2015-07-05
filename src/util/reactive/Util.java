@@ -27,10 +27,8 @@ public class Util {
         u.accept(o.getValue());
         o.addListener(l);
         return () -> o.removeListener(l);
-        
-//        u.accept(o.getValue());
-//        return valuesOf(o).subscribe(u);
     }
+    
     public static<O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, WritableValue<V> w) {
         w.setValue(m.apply(o.getValue()));
         return valuesOf(o).map(m).subscribe(w::setValue);
@@ -45,7 +43,6 @@ public class Util {
         w.bind(o);
         return w::unbind;
     }
-    
     
     
     public static<O> Subscription maintain(ValueStream<O> o, Consumer<? super O> u) {

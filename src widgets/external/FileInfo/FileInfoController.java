@@ -1,7 +1,6 @@
 package FileInfo;
 
 
-import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Cover.Cover.CoverSource;
 import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
@@ -17,8 +16,6 @@ import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.SongReader;
-import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.PLAYING;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.objects.ActionChooser;
 import gui.objects.Rater.Rating;
@@ -87,7 +84,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
     
     private final Label title = new Label(); 
-    private final Label track = new Label(); 
+    private final Label track = new Label();
     private final Label disc = new Label(); 
     private final Label gap1 = new Label(); 
     private final Label artist = new Label(); 
@@ -133,8 +130,6 @@ public class FileInfoController extends FXMLController implements SongReader {
     public final Accessor<Boolean> showCover = new Accessor<>(true, layout::setImageVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
     public final Accessor<Boolean> showFields = new Accessor<>(true, layout::setContentVisible);
-    @IsConfig(name = "Item source", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(PLAYING, v -> d = Player.subscribe(v,d, this::setValue));
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
     public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
@@ -261,7 +256,6 @@ public class FileInfoController extends FXMLController implements SongReader {
     @Override
     public void refresh() {
         // apply configurables
-        readMode.applyValue();
         minColumnWidth.applyValue();
         cover_source.applyValue();
         overrun_style.applyValue();
@@ -294,7 +288,6 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     // item -> metadata
     private void setValue(Item i) {
-        if(data!=null && data.same(i)) return;
         if(i==null) setValue(EMPTY);
         else if(i instanceof Metadata) setValue((Metadata)i);
         else App.itemToMeta(i, this::setValue);

@@ -9,9 +9,9 @@ import Configuration.*;
 import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
-import Layout.Widgets.feature.ConfiguringFeature;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
+import Layout.Widgets.feature.ConfiguringFeature;
 import Serialization.SelfSerializator;
 import com.sun.glass.ui.Robot;
 import com.thoughtworks.xstream.XStream;
@@ -28,6 +28,7 @@ import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
+import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.Resize;
@@ -66,14 +67,14 @@ import javafx.stage.Screen;
 import static javafx.stage.StageStyle.*;
 import main.App;
 import org.reactfx.Subscription;
-import util.animation.Anim;
-import static util.animation.Anim.par;
-import util.animation.interpolator.ElasticInterpolator;
 import static util.File.Environment.browse;
 import util.Util;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
 import util.access.Accessor;
+import util.animation.Anim;
+import static util.animation.Anim.par;
+import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
 import util.dev.Log;
 import util.dev.TODO;
@@ -385,6 +386,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	root.addEventFilter(KeyEvent.ANY, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
 		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
+                if(e.getEventType().equals(KEY_PRESSED)) ActionChooser.drawWidgetIO();
 	    }
 	});        
         

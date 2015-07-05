@@ -8,6 +8,7 @@ import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
+import util.ClassName.Name;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
@@ -34,6 +35,7 @@ import util.units.FileSize;
  * 
  * @author uranium
  */
+@Name(" Song")
 public abstract class Item<CT extends Item> implements Comparable<CT> {
     
 
@@ -44,6 +46,10 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * Returns the resource identifier denoting the audui resorce of this item.
      * @return URI as a resource of this item.*/
     abstract public URI getURI();
+    
+    public String getId() {
+        return getURI().toString();
+    }
     
     /**
      * Item based on file is represented by a file in a file system on a local
@@ -324,7 +330,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
         // try playing item
         if (same(Player.playingtem.get())) return Player.playingtem.get();
         // try library
-        Metadata m = DB.getItem(this);
+        Metadata m = DB.items_byId.get(getId());
         if (m!=null) return m;
         // read
         return MetadataReader.create(this);

@@ -12,12 +12,10 @@ import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.PlaybackFeature;
-import PseudoObjects.ReadMode;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
 import gui.objects.Seeker;
 import gui.objects.icon.Icon;
-import static java.util.Arrays.asList;
 import java.util.List;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -32,6 +30,7 @@ import javafx.util.Duration;
 import org.reactfx.Subscription;
 import util.Util;
 import util.access.Accessor;
+import static util.functional.Util.list;
 import static util.functional.Util.map;
 import util.graphics.drag.DragUtil;
 import static util.reactive.Util.maintain;
@@ -110,7 +109,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         d1 = maintain(PLAYBACK.volumeProperty(), v->muteChanged(PLAYBACK.isMute(), v.doubleValue()));
         d2 = maintain(PLAYBACK.muteProperty(), m->muteChanged(m, PLAYBACK.getVolume()));
         d3 = maintain(PLAYBACK.statusProperty(), this::statusChanged);
-        d4 = Player.subscribe(ReadMode.PLAYING, d4, this::playbackItemChanged);   
+        d4 = Player.playingtem.subscribeToUpdates(this::playbackItemChanged);   
         d5 = maintain(PLAYBACK.currentTimeProperty(),t->currentTimeChanged());
         
         // audio drag
@@ -131,7 +130,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
             }
         });
         
-        ds = asList(d1,d2,d3,d4,d5,d6);
+        ds = list(d1,d2,d3,d4,d5,d6);
     }
     
     @Override

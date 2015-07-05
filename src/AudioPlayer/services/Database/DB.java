@@ -8,20 +8,20 @@ package AudioPlayer.services.Database;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
+import Layout.Widgets.controller.io.InOutput;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
-import static java.util.Collections.EMPTY_LIST;
+import static java.util.UUID.fromString;
 import static javafx.application.Platform.runLater;
 import javax.persistence.*;
 import main.App;
 import static util.File.FileUtil.readFileLines;
-import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.future.Fut;
+import util.collections.MapSet;
 import util.functional.Functors.F2;
 import static util.functional.Util.stream;
-import util.reactive.CascadingStream;
 
 /**
  *
@@ -41,20 +41,19 @@ public class DB {
         new Fut<>()
             // load database
             .supply(DB::getAllItems)
-            // update gui
-            .use(all_items -> views.push(1, all_items), FX)
+            .use(DB::updateLib, FX)
             .thenR(() -> {
              // load string store
                 List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
                 string_pool = sss.isEmpty() ? new StringStore() : sss.get(0);
              
              // populate metadata fields strings if empty
-                if(string_pool.getStrings("album").isEmpty() && !views.getValue(1).isEmpty()) {
+                if(string_pool.getStrings("album").isEmpty() && !items_byId.isEmpty()) {
                     stream(Metadata.Field.values())
                         .filter(f -> f.isAutoCompleteable())
                         .forEach(f -> {
                             Set<String> pool = string_pool.getStrings(f.name());
-                            views.getValue(1).stream()
+                            items_byId.stream()
                                  .map(m -> m.getFieldS(f,""))
                                  .filter(t -> !t.isEmpty())
                                  .distinct()
@@ -127,36 +126,36 @@ public class DB {
         return em.createQuery("SELECT p FROM MetadataItem p", Metadata.class)
                  .getResultList();
     }
-    
-    public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
-        return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
-    }
-    
-    public static List<String> getAllArtists() {
-        return em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class)
-                 .getResultList();
-    }
-    
-    public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
-        List result;
-        
-            Accessor<String> filter = new Accessor("");
-            
-            filters.forEach((field,values) -> {
-
-                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
-
-                String f = field.isTypeNumber()
-                    ? " WHERE p."+field.name().toLowerCase() + " = " + values.get(0).toString().replaceAll("'", "''")
-                    : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'";
-                filter.setValue(filter.getValue() + f);
-            });
-            
-        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p" + filter.getValue(), Metadata.class);
-        result = query.getResultList();
-
-        return result;
-    }
+//    
+//    public static List<Metadata> getAllItemsWhere(Metadata.Field field, Object value) {
+//        return getAllItemsWhere(Collections.singletonMap(field, Collections.singletonList(value)));
+//    }
+//    
+//    public static List<String> getAllArtists() {
+//        return em.createQuery("SELECT p.artist, count(p) FROM MetadataItem p GROUP BY p.artist", String.class)
+//                 .getResultList();
+//    }
+//    
+//    public static List<Metadata> getAllItemsWhere(Map<Metadata.Field,List<Object>> filters) {
+//        List result;
+//        
+//            Accessor<String> filter = new Accessor("");
+//            
+//            filters.forEach((field,values) -> {
+//
+//                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
+//
+//                String f = field.isTypeNumber()
+//                    ? " WHERE p."+field.name().toLowerCase() + " = " + values.get(0).toString().replaceAll("'", "''")
+//                    : " WHERE p."+field.name().toLowerCase()+ " LIKE '" + values.get(0).toString().replaceAll("'", "''") + "'";
+//                filter.setValue(filter.getValue() + f);
+//            });
+//            
+//        TypedQuery<Metadata> query = em.createQuery("SELECT p FROM MetadataItem p" + filter.getValue(), Metadata.class);
+//        result = query.getResultList();
+//
+//        return result;
+//    }
     
     public static void addItems(List<Metadata> items) {
         if (items.isEmpty()) return;
@@ -182,6 +181,10 @@ public class DB {
         updateLib();
     }
     
+    public static void removeAllItems() {
+        removeItems(items.i.getValue());
+    }
+    
     public static void updateItems(List<Metadata> items) {
         // update db
         em.getTransaction().begin();
@@ -196,21 +199,23 @@ public class DB {
         items.forEach(em::merge);
         em.getTransaction().commit();
         // update model
-        runLater(() -> views.push(1, getAllItems()));
+        runLater(DB::updateLib);
     }
 
     public static void updateLib() {
-        views.push(1, getAllItems());
+        updateLib(getAllItems());
     }
-    
-    public static void clearLib() {
-        views.push(1, EMPTY_LIST);
-        em.clear();
-        em.flush();
+    private static void updateLib(List<Metadata> l) {
+        items_byId.clear();
+        items_byId.addAll(l);
+        items.i.setValue(l);
     }
+
     
     /** In memory item database. Use for library.*/
-    public static CascadingStream<List<Metadata>> views = new CascadingStream<>();
+    public static MapSet<String,Metadata> items_byId = new MapSet<>(Metadata::getId);
+    public static InOutput<List<Metadata>> items = new InOutput<>(fromString("396d2407-7040-401e-8f85-56bc71288818"),"All library songs", (Class)List.class);
+    
     
     /** 
      * Comparator defining the sorting for items in operations that wish to

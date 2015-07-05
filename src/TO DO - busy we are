@@ -3,10 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- remove ReadMode
+- library table not refreshing on rate...
+- use preferences to serialize configs & columns
 - cache covers so they arent loaded repeatedly for items on same album
-- make containers & widgets extremely lightweight
+- make containers & widgets extremely lightweight - all their graphics unite
+  into Pane each container overriding the layoutChildren...
 - decouple playlists
-- decouple library views of the same lvl
 - FreeForm widget moving by drag + layout mode widget swap collision fix
 - Inspector widgets fix & improve
 - seeker option to show chapters as they are passing
@@ -35,6 +38,7 @@ GENERAL
   Appeared after using Tagger to edit songs sometimes. That was thought to be
   fixed, now it appeared after just opening Library+2xLibraryView
   problem: probably Fut (or something else?) blocking FX thread
+- cant hide index column, shows artefacts                                       (medium)
 - transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
   problem: transparent skins, mouse effects unsupported, windows as node
            implementation impossible

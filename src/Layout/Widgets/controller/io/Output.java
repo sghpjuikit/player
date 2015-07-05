@@ -24,7 +24,7 @@ public class Output<T> {
     final ObjectProperty<T> val = new SimpleObjectProperty();
     
         
-    public Output(UUID id, String name, Class c) {
+    public Output(UUID id, String name, Class c) {// System.out.println(id);
         this.id = new Id(id, name);
         this.type = c;
     }
@@ -45,17 +45,29 @@ public class Output<T> {
         val.setValue(v);
     }
     
-    public Subscription monitor(Consumer<T> action) {
+    public Subscription monitor(Consumer<? super T> action) {
         return maintain(val, action);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(this==o) return true;
+        return o instanceof Output ? id.equals(((Output)o).id) : false;
+    }
+
+    @Override
+    public int hashCode() {
+        return 5 * 89 + Objects.hashCode(this.id);
     }
     
     
     
     
     
-    private Function<T,String> toS = null;
+    
+    private Function<? super T,String> toS = null;
 
-    public Output<T> setStringConverter(Function<T,String> c) {
+    public Output<T> setStringConverter(Function<? super T,String> c) {
         toS = c;
         return this;
     }

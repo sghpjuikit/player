@@ -395,15 +395,11 @@ public class App extends Application {
     }
     
     public static void itemToMeta(Item i, Consumer<Metadata> action) {
-        
-        Fut.fut(i)
-           .then(item -> {
-                for(Metadata m : DB.views.getValue(1))
-                    if(m.same(i))
-                        return m;
-                return MetadataReader.create(item);
-           })
-           .use(action, FX)
-           .run();
+       Metadata m = DB.items_byId.get(i.getId());
+       if(m!=null) {
+           action.accept(m);
+       } else {
+            Fut.fut(i).then(MetadataReader::create).use(action, FX).run();
+       }
     }
 }

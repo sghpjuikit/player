@@ -179,6 +179,10 @@
     //-fx-background-insets:  0 -5 -5 -5; //expands menu bgr left,bottom,right
     -fx-background-radius: 0;
     -fx-border-width: 1;
+    -fx-stroke: -fx-def-font-color; 
+    -fx-stroke-width: 2;
+    -fx-fill: null; // bgr of the shape the path makes - we dont want any 
+}
     -fx-border-color: black;
     //-fx-border-insets:  0 -5 -5 -5;
     -fx-effect: null;

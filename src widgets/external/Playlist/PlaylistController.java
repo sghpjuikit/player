@@ -1,6 +1,7 @@
 package Playlist;
 
 
+import AudioPlayer.Player;
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistItem.Field;
@@ -135,6 +136,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public PlaylistController(FXMLWidget widget) {
         super(widget);
         out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null).setStringConverter(PlaylistItem::getTitle);
+        Player.playlistSelected.i.bind(out_sel);
         actPane = new ActionChooser(this);
     }
     
@@ -185,6 +187,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public void onClose() {
         setUseFilterForPlayback(false);
         PlaylistManager.getItems().removeListener(playlistitemsL);
+        Player.playlistSelected.i.unbind(out_sel);
         table.dispose();
     }
     

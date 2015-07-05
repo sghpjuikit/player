@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.reactive;
+package unused;
 
 import static java.util.Collections.EMPTY_LIST;
 import java.util.HashMap;
@@ -14,6 +14,7 @@ import java.util.function.Supplier;
 import org.reactfx.EventStream;
 import org.reactfx.Subscription;
 import util.dev.TODO;
+import util.reactive.ValueEventSource;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.CRITICAL;
 

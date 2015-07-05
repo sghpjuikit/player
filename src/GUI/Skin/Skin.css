@@ -3741,8 +3741,19 @@
 }
 
 
+/***************** LAYOUT MODE WIDGET INPUT OUTPUT *****************************
+ *
+ */
 
-
+.input-output-line {
+    -fx-stroke: -fx-def-font-color; 
+    -fx-stroke-width: 2;
+    -fx-fill: null; // bgr of the shape the path makes - we dont want any 
+}
+.input-output-line:hover {
+    -fx-stroke: -fx-focus-color;
+    -fx-stroke-width: 3;
+}
 
 
 

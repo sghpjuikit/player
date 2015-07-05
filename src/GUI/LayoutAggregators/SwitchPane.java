@@ -4,9 +4,9 @@ package gui.LayoutAggregators;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import gui.objects.Window.stage.Window;
 import Layout.Component;
 import Layout.Layout;
+import gui.objects.Window.stage.Window;
 import static java.lang.Double.*;
 import static java.lang.Math.signum;
 import java.util.HashMap;
@@ -24,11 +24,11 @@ import static javafx.scene.input.ScrollEvent.SCROLL;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
 import main.App;
+import static util.Util.clip;
+import static util.Util.setAnchors;
 import util.animation.interpolator.CircularInterpolator;
 import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
-import static util.Util.clip;
-import static util.Util.setAnchors;
 import util.async.Async;
 import util.async.executor.FxTimer;
 
@@ -97,6 +97,7 @@ public class SwitchPane implements LayoutAggregator {
     private final AnchorPane root = new AnchorPane();
     private final AnchorPane zoom = new AnchorPane();
     private final AnchorPane ui = new AnchorPane();
+    public final AnchorPane widget_io = new AnchorPane();
     
     public SwitchPane() {
         // set ui
@@ -104,6 +105,12 @@ public class SwitchPane implements LayoutAggregator {
         setAnchors(zoom, 0);
         zoom.getChildren().add(ui);
         setAnchors(ui, 0);
+        zoom.getChildren().add(widget_io);
+        setAnchors(widget_io, 0);
+//        widget_io.setMouseTransparent(true);
+        widget_io.setPickOnBounds(false);
+        widget_io.translateXProperty().bind(ui.translateXProperty());
+        widget_io.visibleProperty().bind(gui.GUI.layout_mode);
         
         // always zoom x:y == 1:1, to zoom change x, y will simply follow
         zoom.scaleYProperty().bind(zoom.scaleXProperty());

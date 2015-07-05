@@ -1,7 +1,6 @@
 
 package Tagger;
 
-import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Notifier.Notifier;
@@ -17,8 +16,6 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
-import PseudoObjects.ReadMode;
-import static PseudoObjects.ReadMode.CUSTOM;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
@@ -65,7 +62,6 @@ import static main.App.TAG_NO_VALUE;
 import static org.atteo.evo.inflector.English.plural;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.controlsfx.control.textfield.TextFields;
-import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import static util.File.FileUtil.EMPTY_COLOR;
@@ -156,29 +152,16 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     final List<TagField> fields = new ArrayList<>();
     boolean writing = false;    // prevents external data chagnge during writing
     private final List<Validation> validators = new ArrayList();
-        
-    // dependencies
-    private Subscription d1;
     
     // properties
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
     public final Accessor<Pos> field_text_alignment = new Accessor<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
     public final Accessor<NodeCentricPos> popupPos = new Accessor<>(DownCenter, MoodF::setPos);
-    @IsConfig(name = "Read Mode", info = "Source of data for the widget.")
-    public final Accessor<ReadMode> readMode = new Accessor<>(CUSTOM, r -> {
-        d1 = Player.subscribe(r, d1, m -> {
-            allitems.setAll(m);
-            populate(singletonList(m));
-        });
-    });
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
     public final Accessor<Boolean> allow_playcount_change = new Accessor<>(false, v -> {
         if(!isEmpty()) PlaycountF.setDisable(!v);
     });
-
-    @IsConfig(name = "Read mode change on drag", info = "Change read mode to CUSTOM when data are arbitrary added to widget.")
-    public Boolean changeReadModeOnTransfer = false;
 
     
     public TaggerController(FXMLWidget widget) {
@@ -332,7 +315,6 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         field_text_alignment.applyValue();
         popupPos.applyValue();
         allow_playcount_change.applyValue();
-        readMode.applyValue();
     }
     
     /**
@@ -343,12 +325,6 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     public boolean isEmpty() {
         return allitems.isEmpty();
     }
-    
-    @Override
-    public void onClose() {
-        if (d1!=null) d1.unsubscribe();
-    }
-    
     
     
 /******************************************************************************/
@@ -876,10 +852,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             e.setDropCompleted(true);
             e.consume();
             // handle result - read data
-            if (!dropped.isEmpty()) {
-                if (changeReadModeOnTransfer) readMode.setNapplyValue(CUSTOM);
-                read(dropped);
-            }
+            if (!dropped.isEmpty()) read(dropped);
         }
     };
 }

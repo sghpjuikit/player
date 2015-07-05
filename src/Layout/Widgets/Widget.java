@@ -7,6 +7,7 @@ import Configuration.IsConfig;
 import Layout.Component;
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import Layout.Widgets.controller.Controller;
+import Layout.Widgets.controller.io.InOutput;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
@@ -43,7 +44,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     @XStreamOmitField private WidgetFactory factory;
     @XStreamOmitField protected C controller;
-    @XStreamOmitField private Node root;  // loaded only once
+    @XStreamOmitField private Node root;
     
     // configuration
     @XStreamOmitField
@@ -73,16 +74,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public String getName() { return name; }
     
     /**
-     * Loads this widget's content.
-     * The content is cached and will only be loaded once.
-     * Any subsequent call of this method will simply reattach the content to
-     * new location in the sceneGraph.
+     * Returns this widget's content.
      * <p>
-     * Only if the load is initial, the controller will be refreshed.
+     * If called the 1st time, loads this widget's content and instantiates its
+     * controller. The controller will be null until the first time this method
+     * is called.
+     * Any subsequent call of this method will simply return the content.
      * <p>
-     * Widget's controller will be null until the first time the widget loads.
      * {@inheritDoc}
-     * @return 
+     * @return graphical content of this widget
      */
     @Override
     public final Node load() {
@@ -107,7 +107,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * Loads the widget. Solely used for {@link #load()} method called initially,
      * before the loaded content is cached. Should be called only once per life
      * cycle of the widget and internally.
-     * @return 
      */
     protected abstract Node loadInitial();
     
@@ -207,7 +206,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     public void prepareForSerialization() {
         // serialize input-output bindings
         getController().getInputs().getInputs().forEach(i -> 
-            properties.put("io"+i.getName(), util.functional.Util.toS(i.getSources(), Object::toString, ":"))
+            properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
         );
         // serialize configs
         rememberConfigs();
@@ -268,15 +267,19 @@ public abstract class Widget<C extends Controller> extends Component implements 
             this.outputs_ids.addAll(map(split(outputs,":",x->x),Output.Id::fromString));
         }
     }
+    
     static final ArrayList<IO> ios = new ArrayList();
     public static void deserializeWidgetIO() {
+        Set<Input> is = new HashSet();
         Map<Output.Id,Output> os = WidgetManager.findAll(ANY)
-                     .flatMap(w->w.getController().getOutputs().getOutputs().stream())
+                     .peek((Widget w) -> w.getController().getInputs().getInputs().forEach(is::add))
+                     .flatMap(w -> w.getController().getOutputs().getOutputs().stream())
                      .collect(Collectors.toMap(i->i.id, i->i));
-                            
+        InOutput.inoutputs.forEach(io -> os.put(io.o.id, io.o));
+        
         ios.forEach(io -> {
             Input i = io.widget.getController().getInputs().getInput(io.input_name);
-            io.outputs_ids.stream().map(os::get).forEach(i::bind);
+            io.outputs_ids.stream().map(os::get).filter(isNotNULL).forEach(i::bind);
         });
     }
     

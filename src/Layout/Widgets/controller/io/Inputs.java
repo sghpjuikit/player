@@ -22,8 +22,13 @@ public class Inputs {
         m = new HashMap();
     }
     
-    public <T> Input<T> create(String name, Class<T> type, Consumer<T> action) {
+    public <T> Input<T> create(String name, Class<? extends T> type, Consumer<? super T> action) {
         Input<T> o = new Input(name,type,action);
+        m.put(name, o);
+        return o;
+    }
+    public <T> Input<T> create(String name, Class<? extends T> type, T init_val, Consumer<? super T> action) {
+        Input<T> o = new Input(name,type,init_val,action);
         m.put(name, o);
         return o;
     }

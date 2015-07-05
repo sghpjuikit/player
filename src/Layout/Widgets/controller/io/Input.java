@@ -18,13 +18,19 @@ import org.reactfx.Subscription;
 public class Input<T> {
     final String name;
     final Class<T> type;
-    final Consumer<T> applier;
-    final Map<Output.Id,Subscription> sources = new HashMap<>();
+    final Consumer<? super T> applier;
+    final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
+    private T val;
     
-    public Input(String name, Class<T> c, Consumer<T> action) {
+    public Input(String name, Class<T> c, Consumer<? super T> action) {
+        this(name, c, null, action);
+    }
+    
+    public Input(String name, Class<T> c, T init_val, Consumer<? super T> action) {
         this.name = name;
         this.type = c;
         this.applier = action;
+        this.val = init_val;
     }
     
     
@@ -37,21 +43,38 @@ public class Input<T> {
     }
     
     public void setValue(T v) {
+        val = v;
         applier.accept(v);
     }
     
+    public T getValue() {
+        return val;
+    }
     
-    public void bind(Output<T> o) {
-        Subscription s = sources.get(o.id);
+    private Output<? extends T> transient_o;
+    private Subscription transient_s;
+    
+    public void bindTransient(Output<? extends T> o) {
+//        transient_o = o;
+//        transient_s = o.monitor(this::setValue);
+    }
+    public void bind(Output<? extends T> o) {
+        if(transient_s!=null) {
+            transient_o = null;
+            transient_s.unsubscribe();
+        }
+        
+        Subscription s = sources.get(o);
         if(s==null) {
-            s = o.monitor(applier);
-            sources.put(o.id, s);
+            s = o.monitor(this::setValue);
+            sources.put(o, s);
         }
     }
     
     public void unbind(Output<T> o) {
-        Subscription s = sources.get(o.id);
+        Subscription s = sources.get(o);
         if(s!=null) s.unsubscribe();
+        sources.remove(o);
     }
     
     public void unbindAll() {
@@ -59,7 +82,12 @@ public class Input<T> {
         sources.clear();
     }
     
-    public Set<Output.Id> getSources() {
+    public Set<Output<? extends T>> getSources() {
         return sources.keySet();
-    } 
+    }
+
+    @Override
+    public String toString() {
+        return name + ", " + type;
+    }
 }

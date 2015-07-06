@@ -32,7 +32,7 @@ import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
 import static util.async.Async.runLater;
 import static util.functional.Util.filterMap;
-import static util.functional.Util.forEachI;
+import static util.functional.Util.forEachWithI;
 
 /**
  *
@@ -113,7 +113,7 @@ public class DirViewer extends ClassController {
             double gapx = cellg+(width+cellg-columns*(cellw+cellg))/columns;
             double gapy = cellg;
 
-            forEachI(cells, (i,n) -> {
+            forEachWithI(cells, (i,n) -> {
                 double x = i%columns * (cellw+gapx);
                 double y = i/columns * (cellh+gapy);
                 n.relocate(x,y);

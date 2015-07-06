@@ -666,20 +666,23 @@ public class MetadataWriter extends MetaItem {
             // save tag
             try {
                 audioFile.commit();
-            } catch (Throwable ex) {
-                if (PlaylistManager.isSameItemPlaying(this)) {
+            } catch (Exception ex) {
+                System.out.println("TAGING FAILED");
+                if (PlaylistManager.isSameItemPlaying(this)) {System.out.println("TRYING AGAIN");
                     PLAYBACK.suspend();
                     audioFile.commit();
                     PLAYBACK.activate();
                 } else {
-                    throw ex;
+//                    throw ex;
+                    Log.info("Can not write to tag for file: " + audioFile.getFile().getPath() + ex);
+                    return false;
                 }
             }            
             
             return true;
             
-        } catch (Throwable e) {
-            Log.warn("Can not write to tag for file: " + audioFile.getFile().getPath() + e);
+        } catch (Exception e) {
+            Log.info("Can not write to tag for file: " + audioFile.getFile().getPath() + e);
             return false;
         }
     }

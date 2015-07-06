@@ -38,7 +38,7 @@ import static util.Util.setAnchors;
 import static util.access.SequentialValue.next;
 import static util.async.Async.run;
 import static util.async.Async.runFX;
-import util.collections.PropertyMap;
+import util.collections.map.PropertyMap;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Severity.MEDIUM;

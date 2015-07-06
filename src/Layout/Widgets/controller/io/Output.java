@@ -5,49 +5,35 @@
  */
 package Layout.Widgets.controller.io;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import org.reactfx.Subscription;
-import static util.reactive.Util.maintain;
+import util.collections.map.ClassMap;
 
 /**
  *
  * @author Plutonium_
  */
-public class Output<T> {
+public class Output<T> extends Put<T> {
     public final Id id;
-    final Class<T> type;
-    final ObjectProperty<T> val = new SimpleObjectProperty();
     
         
-    public Output(UUID id, String name, Class c) {// System.out.println(id);
+    public Output(UUID id, String name, Class<T> c) {// System.out.println(id);
+        super(c, null);
         this.id = new Id(id, name);
-        this.type = c;
     }
     
     
     public String getName() {
         return id.name;
     }
-    public Class<T> getType() {
-        return type;
-    }
-    
-    public T getValue() {
-        return val.getValue();
-    }
     
     public void setValue(T v) {
         val.setValue(v);
     }
     
-    public Subscription monitor(Consumer<? super T> action) {
-        return maintain(val, action);
-    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -61,21 +47,16 @@ public class Output<T> {
     }
     
     
+    private static final ClassMap<Function<Object,String>> string_coverters = new ClassMap<>();
     
-    
-    
-    
-    private Function<? super T,String> toS = null;
+    public static <T> void addStringConverter(Class<T> c, Function<T,String> f) {
+        string_coverters.put(c, (Function) f);
+    }
+    public static <T> Function<Object,String> getStringConverter(Class<T> c) {
+        List<Function<Object,String>> f = string_coverters.getElementsOfSuper(c);
+        return f.isEmpty() ? Object::toString : f.get(0);
+    }
 
-    public Output<T> setStringConverter(Function<? super T,String> c) {
-        toS = c;
-        return this;
-    }
-    
-    public String getValueAsS() {
-        T v = val.getValue();
-        return v==null ? "null" : toS==null ? v.toString() : toS.apply(v);
-    }
     
     
     public static class Id {

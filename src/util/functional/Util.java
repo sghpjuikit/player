@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import javafx.util.Callback;
 import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
+import static util.dev.Util.require;
 import util.functional.Functors.F1E;
 
 /**
@@ -483,34 +484,26 @@ public class Util {
     
 /************************************ for *************************************/
     
-    /** 
-     * Zip for loop. Loops over both lists simultaneously.
-     * @throws IllegalArgumentException if lists do not have the same size
-     */
-    public static<A,B> void forEach(List<A> a, List<B> b, BiConsumer<A,B> action) {
-        if(a.size()!=b.size()) throw new IllegalArgumentException("Collection sizes must match");
-        for(int i=0; i<a.size(); i++) action.accept(a.get(i), b.get(i));
+    /** Loops over both lists simultaneously. Must be of the same size. */
+    public static<A,B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {
+        require(a.size()==b.size());
+        for(int i=0; i<a.size(); i++)
+            action.accept(a.get(i), b.get(i));
     }
     
-    /**
-     * Functional alternative to for loop.
-     * <p>
-     * Equivalent to Collection.forEach(), with additional parameter - index of
-     * the element in the collection.
-     * <p>
-     * Maps all elements of the collection into index-element pairs and executes
-     * the action for each. Indexes start at 0.
-     * 
-     * @param <T> element type
-     * @param c
-     * @param action 
-     */
-    public static<T> void forEachI(Collection<T> c, BiConsumer<Integer,T> action) {
+    /** Loops over list zipping index with each item. Index starts at 0. */
+    public static<T> void forEachWithI(Collection<T> c, BiConsumer<Integer,T> action) {
         int i=0;
         for(T item : c) {
             action.accept(i, item);
             i++;
         }
+    }
+    
+    /** Loops over list zipping each item with a companion derived from it. */
+    public static<T,W> void forEachWith(Collection<T> c, Function<T,W> toCompanion, BiConsumer<? super T, ? super W> action) {
+        for(T t : c)
+            action.accept(t, toCompanion.apply(t));
     }
     
     /**

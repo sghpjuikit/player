@@ -16,6 +16,7 @@ import Layout.Widgets.feature.ImagesDisplayFeature;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_RIGHT;
 import gui.InfoNode.ItemInfo;
+import gui.objects.ActionChooser;
 import gui.objects.Thumbnail.Thumbnail;
 import gui.objects.icon.Icon;
 import java.io.File;
@@ -37,6 +38,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -178,6 +180,13 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         in_meta.bind(Player.playing.o);
     }
     
+    ActionChooser act_pane;
+    @Override
+    public Node getActivityNode() {
+        return act_pane;
+    }
+    
+    
     /** {@inheritDoc} */
     @Override
     public void init() {
@@ -269,6 +278,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         // consume scroll event to prevent app scroll behavior // optional
         entireArea.setOnScroll(Event::consume);
+        
+        act_pane = new ActionChooser(this);
     }
     
     /** {@inheritDoc} */

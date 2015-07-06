@@ -56,10 +56,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
     @IsConfig(name = "Is ignored", info = "Ignore this widget if there is a request.")
     private boolean forbid_use = false;
     
-    // list of properties of the widget to provide serialisation support since
-    // controller doesnt serialise - this is unwanted and should be handled better
-    public Map<String,String> configs;
-    
     
     /**
      * @param {@link Widget#name}
@@ -197,8 +193,9 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
     public void rememberConfigs() {
         if(controller != null) {
-            configs = new HashMap();
-            getFields().forEach(c -> configs.put(c.getName(), c.getValueS()));
+            Map<String,String> m = new HashMap();
+            getFields().forEach(c -> m.put(c.getName(), c.getValueS()));
+            properties.put("configs", m);
         }
     }
     
@@ -215,9 +212,10 @@ public abstract class Widget<C extends Controller> extends Component implements 
 /***************************** DESERIALIZATION ********************************/
     
     public void restoreConfigs() {
-        if(configs != null) {
-            configs.forEach(this::setField);
-            configs = null;
+        if(properties.containsKey("configs")) {
+            Map<String,String> m = (Map) properties.get("configs");
+            m.forEach(this::setField);
+            properties.remove("configs");
         }
     }
     
@@ -279,7 +277,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
         
         ios.forEach(io -> {
             Input i = io.widget.getController().getInputs().getInput(io.input_name);
-            io.outputs_ids.stream().map(os::get).filter(isNotNULL).forEach(i::bind);
+            if(i!=null)
+                io.outputs_ids.stream().map(os::get).filter(isNotNULL).forEach(i::bind);
         });
     }
     

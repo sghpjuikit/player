@@ -94,7 +94,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         Configuration.toDefault();
         refresh();
         // bug with empty default shortcut?
-//        configFields.forEach(ConfigField::setNapplyDefault);
+//        configFields.forEachBoth(ConfigField::setNapplyDefault);
     }
 
     @Override

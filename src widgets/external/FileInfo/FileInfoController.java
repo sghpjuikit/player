@@ -181,8 +181,8 @@ public class FileInfoController extends FXMLController implements SongReader {
     public FileInfoController(FXMLWidget widget) {
         super(widget);
         
-        data_in = inputs.create("Data", Item.class, this::read);
-        data_out = outputs.create(widget.id, "Data", Metadata.class, Metadata.EMPTY).setStringConverter(Metadata::getTitle);
+        data_in = inputs.create("To display", Item.class, this::read);
+        data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
     }
     
     @Override

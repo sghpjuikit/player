@@ -3,22 +3,29 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.collections;
+package util.collections.map.abstr;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 import static util.Util.getSuperClassesInc;
 
 /**
  *
  * @author Plutonium_
  */
-public class ClassListMap<E> extends ListMap<E,Class> {
+public interface MapByClass<E> {
 
-    public ClassListMap(Function<E, Class> keyMapper) {
-        super(keyMapper);
-    }
-
+    
+    /** 
+     * Multi key get returning the aggregation of results for each key.
+     * @return list of all values mapped to any of the keys.
+     */
+    public List<E> getElementsOf(Collection<Class> keys);
+    
+    /** @see #getElementsOf(java.util.Collection) */
+    public List<E> getElementsOf(Class... keys);
+    
+    
     /** 
      * Returns elements mapped to one of:
      * <ul>
@@ -31,11 +38,12 @@ public class ClassListMap<E> extends ListMap<E,Class> {
      * Note: Void.class is useful for mapping objects based on their generic
      * type.
      */
-    public List<E> getElementsOfSuperV(Class key) {
+    public default List<E> getElementsOfSuperV(Class key) {
         List<E> o = getElementsOf(getSuperClassesInc(key));
         if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
         return o;
     }
+    
     /** 
      * Returns elements mapped to one of:
      * <ul>
@@ -44,10 +52,9 @@ public class ClassListMap<E> extends ListMap<E,Class> {
      * <li>any of specified class' interfaces
      * <ul>
      */
-    public List<E> getElementsOfSuper(Class key) {
+    public default List<E> getElementsOfSuper(Class key) {
         List<E> o = getElementsOf(getSuperClassesInc(key));
         if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
         return o;
     }
-    
 }

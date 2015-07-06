@@ -181,7 +181,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 
     @Override
     public void hideChildren() {
-//        windows.forEach((i,w) -> {
+//        windows.forEachBoth((i,w) -> {
 //            if(container.getChildren().get(i)==null) closeAndDo(w.root, () -> container.removeChild(i));
 //        });
     }
@@ -369,7 +369,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 //            }
 //        });
 //        rt.widthProperty().addListener((o,ov,nv) -> {
-//            windows.forEach((i,w) -> {
+//            windows.forEachBoth((i,w) -> {
 //                boolean s = w.snappable.get();
 //                w.snappable.unbind();
 //                w.snappable.set(false);
@@ -379,7 +379,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 //            });
 //        });
 //        rt.heightProperty().addListener((o,ov,nv) -> {
-//            windows.forEach((i,w) -> {
+//            windows.forEachBoth((i,w) -> {
 //                boolean s = w.snappable.get();
 //                w.snappable.unbind();
 //                w.snappable.set(false);
@@ -398,7 +398,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 //    
 //    public void load() {
 //        widgets.clear();
-//        container.getChildren().forEach(this::loadWindow);
+//        container.getChildren().forEachBoth(this::loadWindow);
 //    }
 //    
 //    public void loadWindow(int i, Component cm) {
@@ -457,7 +457,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 //
 //    @Override
 //    public void hideChildren() {
-////        windows.forEach((i,w) -> {
+////        windows.forEachBoth((i,w) -> {
 ////            if(container.getChildren().get(i)==null) closeAndDo(w.root, () -> container.removeChild(i));
 ////        });
 //    }
@@ -560,7 +560,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
 //        return widgets.values();
 //    }
 //    public void bestLayout() {
-//        windows.forEach((i,w) -> {
+//        windows.forEachBoth((i,w) -> {
 //            TupleM4<Double,Double,Double,Double> p = bestRec(w.x.get()+w.w.get()/2, w.y.get()+w.h.get()/2, w);
 //            w.x.set(p.a*rt.getWidth());
 //            w.y.set(p.b*rt.getHeight());

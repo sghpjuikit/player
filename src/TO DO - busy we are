@@ -3,9 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- remove ReadMode
-- library table not refreshing on rate...
-- use preferences to serialize configs & columns
+- fileinfo & library table not refreshing on rate...
+- use preferences for columns + support playlist table
 - cache covers so they arent loaded repeatedly for items on same album
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
@@ -17,8 +16,6 @@
 - app animated loading
 - tagger add icons to reset and defaults
 - cover download subsequently !work - temp file?
-- playlist table column resizing and serializing
-- app icon
 - tagger cover loading optimize
 - plugin discovery/load
 - popover position jumps on app drag start
@@ -35,8 +32,8 @@ PROTIP:
 
 GENERAL
 - periodic gui freeze + slowdown                                                (major)
-  Appeared after using Tagger to edit songs sometimes. That was thought to be
-  fixed, now it appeared after just opening Library+2xLibraryView
+  Appear after using Tagger to edit songs sometimes. Once after just 
+  opening Library + 2x LibraryView
   problem: probably Fut (or something else?) blocking FX thread
 - cant hide index column, shows artefacts                                       (medium)
 - transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
@@ -58,10 +55,8 @@ GENERAL
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug ?)
   this happens when something has null skin, investigate & fix
-- Configurator group title alignment doesnt get applied sometimes               (javaFX bug)
-- context menu position sometimes off (even default ones). The cause must be    (still an issue?)
-  its parent Node not initializing size correctly
-- some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug)
+- Configurator group title alignment doesnt get applied sometimes               (javaFX bug, maybe caused by the css bug)
+- some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug?)
   length as half of the real one (very irritating bug)
   (dev note: SmilePrecure OST, also a sole bug case)
 - when app starts with paused song, playing some other songs starts from that
@@ -121,13 +116,12 @@ SOLVED (but the underlying cause still deserves attention)
 --------------------------------------------------------------------------------
 
 UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
-- container graphics
+- item->metadata
 - Playback/Player/Playlist state and suspending/restoring them
 - traits
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
-- make AppConfigurable and make all managers non static & configurable
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI
 - Accessors and all... maybe make Val/Var class
 - Config and Accessor static constructors

@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import static util.functional.Util.forEach;
+import static util.functional.Util.forEachBoth;
 import static util.functional.Util.repeat;
 
 /**
@@ -114,7 +114,7 @@ public class StringSplitParser implements Function<String, List<String>> {
     public Map<String,String> applyM(String text) {
         List<String> splits = apply(text);
         Map<String,String> m = new HashMap();
-        forEach(parse_keys, splits, m::put);
+        forEachBoth(parse_keys, splits, m::put);
         return m;
     }
 

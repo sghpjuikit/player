@@ -5,11 +5,10 @@
  */
 package AudioPlayer.services;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import util.collections.map.ClassMap;
 
 /**
  *
@@ -17,7 +16,7 @@ import java.util.stream.Stream;
  */
 public class ServiceManager {
     
-    private final Map<Class<? extends Service>,Service> services = new HashMap();
+    private final ClassMap<Service> services = new ClassMap();
     
     public void addService(Service s) {
         Class c = s.getClass();

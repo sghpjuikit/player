@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.collections;
+package util.collections.map;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,6 +58,7 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
         }
         return out;
     }
+    
     /** Array version of {@link #getElementsOf(java.util.Collection)}. */
     public List<E> getElementsOf(K... keys) {
         List<E> out = cacheFactory.get();
@@ -68,8 +69,11 @@ public class ListMap<E,K> extends CollectionMap<E,K,List<E>> {
         return out;
     }
     
-    /** Stream version of {@link #getElementsOf(java.util.Collection)}. 
-    Use to avoid creating intermediary collection of keys (parameter) and reduce memory.*/
+    /**
+     * Same as {@link #getElementsOf(java.util.Collection)}.
+     * Avoids creating intermediary collection of keys (parameter) and reduce 
+     * memory.
+     */
     public List<E> getElementsOf(Stream<K> keys) {
         return keys.map(this::get).filter(c -> c!=null)
                    .flatMap(c->c.stream()).collect(Collectors.toCollection(cacheFactory));

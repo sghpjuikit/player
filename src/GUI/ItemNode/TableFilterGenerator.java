@@ -50,4 +50,5 @@ public class TableFilterGenerator<T extends FieldedValue,F extends FieldEnum<T>>
                 .sorted(by(e->e._1))
                 .collect(toList());
     }
+    
 }

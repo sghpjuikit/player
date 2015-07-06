@@ -135,7 +135,7 @@ public class Picker<E> {
             });
         
         getCells().forEach( c -> c.setBorder(new Border(new BorderStroke(new Color(0,0,0,0.2), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2)))));
-//        getCells().forEach( c -> c.setBorder(new Border(new BorderStroke(c.getBackground().getFills().get(0).getFill(), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, null))));
+//        getCells().forEachBoth( c -> c.setBorder(new Border(new BorderStroke(c.getBackground().getFills().get(0).getFill(), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, null))));
         Transition t = par(
           forEachIStream(getCells(), (i,n) ->
               seq(
@@ -148,8 +148,8 @@ public class Picker<E> {
         t.play();
         
 //        Interpolator in = new BounceInterpolator();
-////        getCells().forEach(n -> setScaleXY(n,0));
-//        getCells().forEach(n -> n.setOpacity(0));
+////        getCells().forEachBoth(n -> setScaleXY(n,0));
+//        getCells().forEachBoth(n -> n.setOpacity(0));
 //        Interpolator in = new BounceInterpolator();
 //        par(millis(500),
 //            forEachIndexedStream(getCells(), (i,n) -> 
@@ -202,7 +202,7 @@ public class Picker<E> {
             double sumgapx = (columns-1) * gap;  // n elements have n-1 gaps
             final double cell_width = (W-sumgapx)/columns;
 
-            forEachI(getCells(), (i,n) -> {
+            forEachWithI(getCells(), (i,n) -> {
                 double x = i%columns * (cell_width+gap);
                 double y = i/columns * (cell_height+gap);
                 n.relocate(x,y);

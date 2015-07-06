@@ -5,18 +5,18 @@ import Action.IsAction;
 import Action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.services.Service;
+import AudioPlayer.services.Service.ServiceBase;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
+import Layout.Widgets.feature.SongReader;
 import gui.InfoNode.ItemInfo;
 import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
-import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Top_Right;
+import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Bottom_Right;
 import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import gui.objects.Text;
 import java.util.List;
@@ -33,14 +33,19 @@ import org.reactfx.Subscription;
 import util.access.AccessorAction;
 import util.access.AccessorEnum;
 
-/**
- * Provides notification functionality.
- *
- * @author uranium
- */
-@IsConfigurable("Notification")
+/** Provides notification functionality. */
 @IsActionable
-public final class Notifier implements Service {
+@IsConfigurable("Notifications")
+public final class Notifier extends ServiceBase {
+    
+    @IsAction(name = "Notification hide")
+    public static void notifHide() {
+        App.use(Notifier.class, Notifier::hideNotification);
+    }
+    @IsAction(name = "Notify now playing", description = "Shows notification about currently playing song.", global = true, shortcut = "ALT + N")
+    public static void notifNowPlaying() {
+        App.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
+    }
     
     
     private static Notification n;
@@ -52,31 +57,29 @@ public final class Notifier implements Service {
     
 /*****************************   CONFIGURATION   ******************************/
     
-    @IsConfig(name = "Show notifications.", info = "Turn notification on and off completely")
-    public static boolean showNotification = true;
-    @IsConfig(name = "Show playback status notifications")
-    public static boolean showStatusNotification = true;
-    @IsConfig(name = "Show no playing notifications")
-    public static boolean showSongNotification = true;
-    @IsConfig(name = "Notification autohide delay", info = "Time it takes for the notification to hide on its own")
-    public static double notificationDuration = 2500;
-    @IsConfig(name = "Animate notifications", info = "Use animations on the notification")
-    public static boolean notifAnimated = true;
-    @IsConfig(name = "Fade in/out animation duration for notification")
-    public static double notifFadeTime = 500;
-    @IsConfig(name = "Close notification on click anywhere")
-    public static boolean notifAutohide = true;
+    @IsConfig(name = "On playback status change")
+    public boolean showStatusNotification = true;
+    @IsConfig(name = "On playing song change")
+    public boolean showSongNotification = true;
+    @IsConfig(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
+    public double notificationDuration = 2500;
+    @IsConfig(name = "Animate", info = "Use animations on the notification")
+    public boolean notifAnimated = true;
+    @IsConfig(name = "Animation duration")
+    public double notifFadeTime = 500;
+    @IsConfig(name = "Hide on click anywhere", editable = false)
+    public boolean notifAutohide = false;
     @IsConfig(name = "Position")
-    public static PopOver.ScreenCentricPos notifPos = Screen_Top_Right;
+    public PopOver.ScreenCentricPos notifPos = Screen_Bottom_Right;
     @IsConfig(name = "Screen", info = "Decides which screen to use for positioning. Main screen, application window screen or all screens as one")
-    public static PopOver.ScreenUse notifScr = APP_WINDOW;
+    public PopOver.ScreenUse notifScr = APP_WINDOW;
     @IsConfig(name = "On left click")
-    public static final AccessorAction onClickL = new AccessorAction("Show application", null);
+    public final AccessorAction onClickL = new AccessorAction("Show application", null);
     @IsConfig(name = "On right click")
-    public static final AccessorAction onClickR = new AccessorAction("Notification hide", null);
+    public final AccessorAction onClickR = new AccessorAction("Notification hide", null);
     
     @IsConfig(name = "Playback change graphics")
-    public static final AccessorEnum<String> graphics = new AccessorEnum<String>("Normal", 
+    public final AccessorEnum<String> graphics = new AccessorEnum<>("Normal", 
         v -> {
             if("Normal".equals(v)) {
                 ItemInfo ii = new ItemInfo(true);
@@ -104,17 +107,11 @@ public final class Notifier implements Service {
             return l;
         });
     
-    @IsAction(name = "Notification hide")
-    public static void notifHide() {
-        App.use(Notifier.class, Notifier::hideNotification);
-    }
-    @IsAction(name = "Notify now playing", description = "Shows notification about currently playing song.", global = true, shortcut = "ALT + N")
-    public static void notifNowPlaying() {
-        App.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
-    }
+
     
-    
-/*******************************   SERVICE   **********************************/
+    public Notifier() {
+        super(true);
+    }
     
     /** {@inheritDoc} */
     @Override
@@ -157,7 +154,44 @@ public final class Notifier implements Service {
     @Override
     public boolean isDependency() { return false; }
     
-/******************************** PRIVATE *************************************/
+    /** Show notification for custom content. */
+    public void showNotification(Node content, String title) {
+        if (isRunning()) {
+            // build content
+            n.setContent(content, title);
+            // set properties (that could have changed from last time)
+            n.setAutoHide(notifAutohide);
+            n.setAnimated(notifAnimated);
+            n.setAnimDuration(Duration.millis(notifFadeTime));
+            n.setDuration(Duration.millis(notificationDuration));
+            n.lClickAction = onClickL.getValueAction();
+            n.rClickAction = onClickR.getValueAction();
+            // show
+            n.screen_preference = notifScr;
+            n.show(notifPos);
+        }
+    }
+    
+    /** Show notification displaying given text. */
+    public void showTextNotification(String text, String title) {
+        if (isRunning()) {
+            Text message = new Text(text);
+                 message.setWrappingWidthNatural(true);
+            StackPane root = new StackPane(message);
+                      root.setMinSize(150, 70);
+            // textContainer.setPadding(Insets.EMPTY);
+
+            showNotification(root, title);
+        }
+    }
+
+    /** Hide notification if showing, otherwise does nothing. */
+    public void hideNotification() {
+        if (isRunning()) {
+            n.hide();
+        }
+    }
+    
     
     private void songChange(Metadata m) {
         if (showSongNotification) {
@@ -176,39 +210,6 @@ public final class Notifier implements Service {
                      
             showNotification((Node)i, title);
         }
-    }
-    
-    /** Show notification for custom content. */
-    public void showNotification(Node content, String title) {
-        if (showNotification) {
-            // build content
-            n.setContent(content, title);
-            // set properties (that could have changed from last time)
-            n.setAutoHide(notifAutohide);
-            n.setAnimated(notifAnimated);
-            n.setAnimDuration(Duration.millis(notifFadeTime));
-            n.setDuration(Duration.millis(notificationDuration));
-            n.lClickAction = onClickL.getValueAction();
-            n.rClickAction = onClickR.getValueAction();
-            // show
-            n.screen_preference = notifScr;
-            n.show(notifPos);
-        }
-    }
-    
-    /** Show notification for text. */
-    public void showTextNotification(String text, String title) {
-        Text message = new Text(text);
-             message.setWrappingWidthNatural(true);
-        StackPane root = new StackPane(message);
-                  root.setMinSize(150, 70);
-        // textContainer.setPadding(Insets.EMPTY);
-
-        showNotification(root, title);
-    }
-    
-    private void hideNotification() {
-        n.hide();
     }
     
 }

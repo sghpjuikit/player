@@ -71,7 +71,7 @@ import util.access.Accessor;
 import static util.async.Async.FX;
 import util.async.future.Fut;
 import static util.async.future.Fut.fut;
-import util.collections.MapSet;
+import util.collections.map.MapSet;
 import util.dev.Log;
 import static util.functional.Util.*;
 import util.graphics.Icons;

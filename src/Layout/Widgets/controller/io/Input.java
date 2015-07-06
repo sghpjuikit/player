@@ -15,41 +15,32 @@ import org.reactfx.Subscription;
  *
  * @author Plutonium_
  */
-public class Input<T> {
+public class Input<T> extends Put<T>{
     final String name;
-    final Class<T> type;
     final Consumer<? super T> applier;
     final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
-    private T val;
     
     public Input(String name, Class<T> c, Consumer<? super T> action) {
         this(name, c, null, action);
     }
     
     public Input(String name, Class<T> c, T init_val, Consumer<? super T> action) {
+        super(c, init_val);
         this.name = name;
-        this.type = c;
         this.applier = action;
-        this.val = init_val;
     }
     
     
     public String getName() {
         return name;
     }
-
-    public Class<T> getType() {
-        return type;
-    }
     
     public void setValue(T v) {
-        val = v;
+        val.setValue(v);
         applier.accept(v);
     }
+
     
-    public T getValue() {
-        return val;
-    }
     
     private Output<? extends T> transient_o;
     private Subscription transient_s;

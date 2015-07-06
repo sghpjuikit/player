@@ -18,7 +18,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.UUID;
 import static org.reactfx.EventStreams.merge;
 import static util.async.Async.runLater;
-import util.collections.MapSet;
+import util.collections.map.MapSet;
 import util.reactive.ValueEventSource;
 import util.reactive.ValueEventSourceN;
 import util.reactive.ValueStream;
@@ -56,10 +56,10 @@ public class Player {
     /** Stream for selected item in playlist that remembers value. Value is 
     Metadata.EMPTY if null is pushed into the stream, never null. */
     public static final ValueEventSource<Metadata> playlistSelectedItemES = new ValueEventSourceN(Metadata.EMPTY);
-    /** Merge of playlist and library selected item streams. */
-    public static final ValueStream<Metadata> selectedItemES = new ValueStream(Metadata.EMPTY, merge(librarySelectedItemES,playlistSelectedItemES));
-    /** Merge of playing item and playlist and library selected item streams. */
-    public static final ValueStream<Metadata> anyItemES = new ValueStream(Metadata.EMPTY, librarySelectedItemES,playlistSelectedItemES,playingtem.itemUpdatedES);
+//    /** Merge of playlist and library selected item streams. */
+//    public static final ValueStream<Metadata> selectedItemES = new ValueStream(Metadata.EMPTY, merge(librarySelectedItemES,playlistSelectedItemES));
+//    /** Merge of playing item and playlist and library selected item streams. */
+//    public static final ValueStream<Metadata> anyItemES = new ValueStream(Metadata.EMPTY, librarySelectedItemES,playlistSelectedItemES,playingtem.itemUpdatedES);
     
     /** Stream for selected items in library that remembers value. The list can
     be empty, but never null. */
@@ -74,8 +74,8 @@ public class Player {
     
     
     public static final InOutput<Metadata> playing = new InOutput<>(UUID.fromString("876dcdc9-48de-47cd-ab1d-811eb5e95158"),"Playing", Metadata.class);
-    public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"),"Selected in any playlist", PlaylistItem.class);
-    public static final InOutput<Metadata> librarySelected = new InOutput<>(UUID.fromString("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"),"Selected in any Library", Metadata.class);
+    public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"),"Selected in playlist", PlaylistItem.class);
+    public static final InOutput<Metadata> librarySelected = new InOutput<>(UUID.fromString("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"),"Selected in Library", Metadata.class);
     public static final InOutput<Item> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"),"Selected anywhere", Item.class);
     
     static {
@@ -154,6 +154,7 @@ public class Player {
         if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
         if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
     }
+    
     public static void refreshItemsWithUpdatedBgr(List<Metadata> metas) {
         requireNonNull(metas);
         if(metas.isEmpty()) return;

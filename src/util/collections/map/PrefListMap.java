@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.collections;
+package util.collections.map;
 
 import java.util.Collection;
 import java.util.function.Function;
 import java.util.stream.Stream;
+import util.collections.PrefList;
 
 /**
  *

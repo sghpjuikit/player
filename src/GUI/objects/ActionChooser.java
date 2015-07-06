@@ -126,8 +126,8 @@ public class ActionChooser<T> extends StackPane {
         double hx = h/os;
         double w = getWidth();
         
-        forEachI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, hx*(i+1)-o.getHeight()/2));
-        forEachI(in_nodes, (i,o) -> o.relocate(5, hx*(i+1)-o.getHeight()/2));
+        forEachWithI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, hx*(i+1)-o.getHeight()/2));
+        forEachWithI(in_nodes, (i,o) -> o.relocate(5, hx*(i+1)-o.getHeight()/2));
     }
     
     
@@ -189,7 +189,7 @@ public class ActionChooser<T> extends StackPane {
                 }
             });
             
-            t.setText(ClassName.get(in.getType()) + " : " + in.getName());
+            t.setText(ClassName.get(in.getType()) + " : " + in.getName() + "\n");
         }
 
         @Override
@@ -230,7 +230,8 @@ public class ActionChooser<T> extends StackPane {
                 }
             });
             
-            t.setText(ClassName.get(inout.i.getType()) + " : " + inout.i.getName());
+            Output<T> o = inout.o;
+            o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
         }
 
         @Override
@@ -256,6 +257,10 @@ public class ActionChooser<T> extends StackPane {
                     i.unbind(o);
                     drawWidgetIO();
                 }
+                e.consume();
+            });
+            setOnDragDetected(e -> {
+                DragUtil.setWidgetOutput(output, startDragAndDrop(TransferMode.LINK));
                 e.consume();
             });
         }
@@ -337,15 +342,19 @@ public class ActionChooser<T> extends StackPane {
         is.forEach((input,inputnode) -> {
             Set<Output> outs = input.getSources();
             outs.forEach(output -> {
-                double trans = widget_io.getTranslateX();
-                Node ni = inputnode.getIcon().getGraphic();
-                Point2D start = ni.localToScene(ni.getBoundsInParent().getMinX()+10,ni.getBoundsInParent().getMinY());
-                        start = start.subtract(trans,0);
                 XNode outputnode = os.get(output);
                 if(outputnode!=null) {
+                    Node ni = inputnode.getIcon().getGraphic();
                     Node no = outputnode.getIcon().getGraphic();
+                    Point2D scale = new Point2D(widget_io.getParent().getScaleX(),widget_io.getParent().getScaleY());
+                    double translation_x = widget_io.getTranslateX();
+                    double header = widget_io.localToScene(0,0).getY() - 5;
+                    Point2D start = ni.localToScene(ni.getBoundsInParent().getMinX()+10,ni.getBoundsInParent().getMinY());
+                            start = start.subtract(translation_x,header);
+//                            start = new Point2D(start.getX()/scale.getX(), start.getY()/scale.getY());
                     Point2D end = no.localToScene(no.getBoundsInParent().getMinX()+20,no.getBoundsInParent().getMinY());
-                            end = end.subtract(trans,0);
+                            end = end.subtract(translation_x,header);
+//                            end = new Point2D(end.getX()-translation_x*scale.getX(), end.getY()/scale.getY());
                     new IOLine(input,output).lay(start.getX(),start.getY(),end.getX(),end.getY());
                 }
             });

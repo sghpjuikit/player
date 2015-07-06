@@ -30,7 +30,7 @@ import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.access.Accessor;
 import util.async.executor.FxTimer;
-import util.collections.MapSet;
+import util.collections.map.MapSet;
 import util.dev.Dependency;
 import util.dev.Log;
 import static util.functional.Util.do_NOTHING;

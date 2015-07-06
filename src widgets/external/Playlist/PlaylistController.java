@@ -135,7 +135,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     public PlaylistController(FXMLWidget widget) {
         super(widget);
-        out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null).setStringConverter(PlaylistItem::getTitle);
+        out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
         Player.playlistSelected.i.bind(out_sel);
         actPane = new ActionChooser(this);
     }

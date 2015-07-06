@@ -9,17 +9,19 @@ import java.util.function.Function;
 import javafx.util.Duration;
 import util.async.executor.FxTimer;
 
-/**
- *
- * @author Plutonium_
- */
+/** Handler for handling events at specific point of song playback. */
 public class PlayTimeHandler {
     private final FxTimer timer;
-    private final Function<Duration,Duration> dcal;
+    private final Function<Duration,Duration> cal;
 
-    public PlayTimeHandler(Function<Duration,Duration> dur_cal, Runnable action) {
+    /***
+     * @param when_calculator calculates when the even should fire. The function
+     * receives total song length and returns time at which the action executes
+     * @param action action to execute
+     */
+    public PlayTimeHandler(Function<Duration,Duration> when_calculator, Runnable action) {
         timer = new FxTimer(Duration.INDEFINITE, 1, action);
-        dcal = dur_cal;
+        cal = when_calculator;
     }
     
     public void pause() {
@@ -35,8 +37,9 @@ public class PlayTimeHandler {
     }
     
     public void restart(Duration total_time) {
-        timer.restart(dcal.apply(total_time));
+        timer.restart(cal.apply(total_time));
     }
+    
     
     public static PlayTimeHandler at(Duration at, Runnable action) {
         return new PlayTimeHandler(total -> at, action);

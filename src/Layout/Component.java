@@ -5,7 +5,7 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import java.util.UUID;
 import javafx.scene.Node;
-import util.collections.PropertyMap;
+import util.collections.map.PropertyMap;
 
 /**
  * @author uranium

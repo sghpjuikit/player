@@ -38,6 +38,7 @@ import main.App;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
+import org.jaudiotagger.audio.wav.WavTag;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagField;
@@ -215,7 +216,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);  break;
             case flac:  loadFieldsFLAC((FlacTag)tag);       break;
             case ogg:   loadFieldsOGG(tag);                 break;
-            case wav:   loadFieldsWAV();                    break;
+            case wav:   loadFieldsWAV((WavTag)tag);         break;
             case mp4:
             case m4a:   loadFieldsMP4((Mp4Tag)tag);         break;
             default: throw new AssertionError("Illegal case in switch");
@@ -385,7 +386,8 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         // we obtain publisher
         publisher = emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
-    private void loadFieldsWAV() {
+    private void loadFieldsWAV(WavTag tag) {
+        // unfortunately WAV is completely unsupported, as far as i know it doesnt have tag
         rating = -1;
         publisher = "";
     }

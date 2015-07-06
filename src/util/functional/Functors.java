@@ -29,7 +29,7 @@ import util.Util;
 import static util.Util.*;
 import util.access.Accessor;
 import util.collections.PrefList;
-import util.collections.PrefListMap;
+import util.collections.map.PrefListMap;
 import static util.functional.Functors.StringDirection.FROM_START;
 import static util.functional.Util.*;
 import util.units.Bitrate;

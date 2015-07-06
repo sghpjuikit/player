@@ -90,7 +90,7 @@ public interface Configurable<T> {
      * @return Configs of this configurable
      */
     default public Collection<Config<T>> getFields() {
-        return (Collection) configsOf(getClass(), this, false, true).values();
+        return (Collection) configsOf(getClass(), this, false, true);
     }
     
     /**
@@ -191,6 +191,6 @@ public interface Configurable<T> {
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromFieldsOf(Object o) {
-        return configsOf(o.getClass(), o, false, true).values();
+        return configsOf(o.getClass(), o, false, true);
     }
 }

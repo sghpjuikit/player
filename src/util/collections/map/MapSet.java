@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.collections;
+package util.collections.map;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -65,6 +65,10 @@ public class MapSet<K,E> implements Set<E> {
     @Override
     public boolean contains(Object o) {
         return m.containsKey(keyMapper.apply((E)o));
+    }
+
+    public boolean containsKey(K k) {
+        return m.containsKey(k);
     }
 
     @Override

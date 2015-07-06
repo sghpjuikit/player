@@ -141,8 +141,8 @@ public class LibraryViewController extends FXMLController {
     public LibraryViewController(FXMLWidget widget) {
         super(widget);
         
-        out_sel = outputs.create(widget.id,"Selected", MetadataGroup.class, null).setStringConverter(mg -> Objects.toString(mg.getValue()));
-        out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST).setStringConverter(mg -> String.valueOf(((List)mg).size()));
+        out_sel = outputs.create(widget.id,"Selected", MetadataGroup.class, null);
+        out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST);
         in_items.bindTransient(DB.items.o);
         
         actPane = new ActionChooser(this);
@@ -423,7 +423,7 @@ public class LibraryViewController extends FXMLController {
         
         // restore last selected from previous session
         if(!sel_last_restored && !"null".equals(sel_last)) {
-            forEachI(table.getItems(), (i,mg) -> {
+            forEachWithI(table.getItems(), (i,mg) -> {
                 if(mg.getField().toS(mg.getValue(), "").equals(sel_last)) {
                     table.getSelectionModel().select(i);
                     sel_last_restored = true; // restore only once
@@ -433,7 +433,7 @@ public class LibraryViewController extends FXMLController {
             
         // update selected - restore every available old one
         } else {
-            forEachI(table.getItems(), (i,mg) -> {
+            forEachWithI(table.getItems(), (i,mg) -> {
                 if(sel_old.contains(mg.getValue())) {
                     table.getSelectionModel().select(i);
                 }

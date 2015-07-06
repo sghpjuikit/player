@@ -268,7 +268,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue");
     }
     public static Collection<Config> configs(Object o) {
-        return configsOf(o.getClass(), o, false, true).values();
+        return configsOf(o.getClass(), o, false, true);
     }
     
 /******************************* IMPLEMENTATIONS ******************************/

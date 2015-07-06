@@ -7,7 +7,9 @@ package AudioPlayer.services.Tray;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.services.Service;
+import AudioPlayer.services.Service.ServiceBase;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import gui.GUI;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -29,6 +31,7 @@ import javax.imageio.ImageIO;
 import main.App;
 import org.reactfx.Subscription;
 import static util.Util.menuItem;
+import util.access.Accessor;
 import util.dev.Log;
 
 /**
@@ -37,17 +40,29 @@ import util.dev.Log;
  *
  * @author thedoctor
  */
-public class TrayService implements Service{
+@IsConfigurable("Tray")
+public class TrayService extends ServiceBase {
+    
+    
+    private String tooltip_text = null;
+    @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
+    public final Accessor<Boolean> showTooltip = new Accessor<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
+    @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
+    public final Accessor<Boolean> showplaying_inTooltip = new Accessor<>(true);
 
     private boolean running = false;
     private ObservableList<javafx.scene.control.MenuItem> menuItems;
     private EventHandler<javafx.scene.input.MouseEvent> onClick;
     private static SystemTray tray;
-    private File imgUrl = new File(App.getLocation(), "icon.jpg");
+    private File image = new File(App.getLocation(), "icon16.png");
     private static TrayIcon trayIcon;
     
     // disposable
     Subscription d1;
+    
+    public TrayService() {
+        super(true);
+    }
 
     @Override
     public void start(){
@@ -56,7 +71,6 @@ public class TrayService implements Service{
               s.initStyle(UTILITY);
               s.setOpacity(0);
               s.setScene(new Scene(new Region()));
-//              s.show();
         ContextMenu cm = new ContextMenu();
                     cm.getItems().addAll(menuItem("Play/pause", PLAYBACK::pause_resume),
                         menuItem("Exit", App::close)
@@ -68,14 +82,14 @@ public class TrayService implements Service{
                         }
                     });
                     cm.setAutoFix(true);
-                     cm.setConsumeAutoHidingEvents(false);
-//                    cm.setOnShown(e -> run(3000, cm::hide));
+                    cm.setConsumeAutoHidingEvents(false);
+                    // cm.setOnShown(e -> run(3000, cm::hide));
         menuItems = cm.getItems();
         // build tray
         EventQueue.invokeLater(() -> {
             try {
                 tray = SystemTray.getSystemTray();
-                trayIcon = new TrayIcon(ImageIO.read(imgUrl));
+                trayIcon = new TrayIcon(ImageIO.read(image));
                 trayIcon.setToolTip("PlayerFX");
                 trayIcon.addMouseListener(new MouseAdapter() {
                     @Override public void mouseClicked(MouseEvent e) {
@@ -104,6 +118,7 @@ public class TrayService implements Service{
                             runLater(()->onClick.handle(me));
                     }
                 });
+                trayIcon.setImageAutoSize(true);    // icon may not show without this
                 tray.add(trayIcon);
             } 
             catch (AWTException | IOException e){
@@ -111,7 +126,8 @@ public class TrayService implements Service{
             }
         });
         
-        d1 = Player.playingtem.subscribeToUpdates(m -> setTooltipText(m.getTitle().isEmpty() ? "PlayerFX" : "PlayerFX -  " + m.getTitle()));
+        d1 = Player.playingtem.subscribeToUpdates(m ->
+           setTooltipText(!showplaying_inTooltip.get() || m.getTitle().isEmpty() ? "PlayerFX" : "PlayerFX - " + m.getTitle()));
         
         running = true;
     }
@@ -124,6 +140,7 @@ public class TrayService implements Service{
     @Override
     public void stop(){
         running = false;
+        
         d1.unsubscribe();
         EventQueue.invokeLater(() -> {
             if (tray != null) tray.remove(trayIcon);
@@ -142,20 +159,31 @@ public class TrayService implements Service{
     }
     
     /**
-    Sets the tooltip string for this TrayIcon. The tooltip is displayed 
-    automatically when the mouse hovers over the icon. Setting the tooltip to
-    null removes any tooltip text. When displayed, the tooltip string may be 
-    truncated on some platforms; the number of characters that may be displayed 
-    is platform-dependent.
-    
-    @param text - the string for the tooltip; if the value is null no tooltip is shown
-    */
+     * Sets the tooltip string for this tray icon. The tooltip is displayed 
+     * automatically when the mouse hovers over the icon.
+     * <p>
+     * If {@link #showTooltip} is set to false no tooltip will be displayed
+     * regardless of the value. Otherwise:
+     * <ul>
+     * <li> null removes tooltip
+     * <li> empty text will display application name
+     * <li> normal text will cause it to be displayed
+     * </ul>
+     * 
+     * @param text - the string for the tooltip; if the value is null no tooltip is shown
+     */
     public void setTooltipText(String text){
-        EventQueue.invokeLater(() -> trayIcon.setToolTip(text.isEmpty() ? "PlayerFX" : text));
+        if(!isRunning()) return;
+        
+        tooltip_text = text==null ? null : text.isEmpty() ? App.getAppName() : text;
+        String s = showTooltip.getValue() ? text : null;
+        EventQueue.invokeLater(() -> trayIcon.setToolTip(s));
     }
 
     /**  Equivalent to: {@code showNotification(caption,text,NONE)} */
     public void showNotification(String caption, String text){
+        if(!isRunning()) return;
+        
         EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, TrayIcon.MessageType.NONE));
     }
     
@@ -170,11 +198,15 @@ public class TrayService implements Service{
     @throws NullPointerException - if both caption and text are null
     */
     public void showNotification(String caption, String text, TrayIcon.MessageType type){
+        if(!isRunning()) return;
+        
         EventQueue.invokeLater(() -> trayIcon.displayMessage(caption, text, type));
     }
 
     public void setIcon(File img){
-        imgUrl = img;
+        if(!isRunning()) return;
+        
+        image = img;
         if (trayIcon != null){
             Image oldImage = trayIcon.getImage();
             if (oldImage != null){
@@ -183,8 +215,7 @@ public class TrayService implements Service{
 
             try {
                 trayIcon.setImage(ImageIO.read(img));
-            }
-            catch (IOException ex){
+            } catch (IOException ex){
                 Log.err("Couldnt read the image for tray icon.");
             }
         }

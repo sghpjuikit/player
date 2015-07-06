@@ -53,7 +53,7 @@ import util.access.Accessor;
 import util.access.AccessorEnum;
 import static util.async.Async.runNew;
 import util.async.future.Fut;
-import util.collections.ClassListMap;
+import util.collections.map.ClassListMap;
 import static util.functional.Util.*;
 import util.graphics.drag.DragUtil;
 
@@ -148,10 +148,10 @@ public class Converter extends ClassController implements SongWriter {
                 List<String> names = s.get(0).stream().map(split->split.parse_key).collect(toList());
                 
                 List<List<String>> outs = list(names.size(), ArrayList::new);
-                s.forEach(splitdata -> forEachI(map(splitdata,split->split.split), (i,line)->outs.get(i).add(line)));
+                s.forEach(splitdata -> forEachWithI(map(splitdata,split->split.split), (i,line)->outs.get(i).add(line)));
 
                 List<Ta> li = list(outs.size(), () -> new Ta(""));
-                forEachI(outs, (i,lins) -> li.get(i).setData(names.get(i), lins));
+                forEachWithI(outs, (i,lins) -> li.get(i).setData(names.get(i), lins));
                 
                 l = li;
                 l.add(0, ta_in);

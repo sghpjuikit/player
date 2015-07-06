@@ -18,7 +18,7 @@ import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuples;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.DOCUMENTATION;
-import util.collections.MapSet;
+import util.collections.map.MapSet;
 import static util.functional.Util.find;
 import static util.functional.Util.map;
 import static util.functional.Util.split;

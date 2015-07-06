@@ -5,6 +5,7 @@ import Action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PlaycountIncrementer;
 import AudioPlayer.playlist.Item;
+import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
 import AudioPlayer.services.Database.DB;
@@ -13,9 +14,11 @@ import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.Tray.TrayService;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Widgets.WidgetManager;
+import Layout.Widgets.controller.io.Output;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.Window;
@@ -23,6 +26,7 @@ import gui.objects.Window.stage.WindowManager;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,7 +88,7 @@ public class App extends Application {
     public static Guide guide;
     private boolean initialized = false;
     
-    private static final ServiceManager services = new ServiceManager();
+    public static final ServiceManager services = new ServiceManager();
     public static PluginMap plugins = new PluginMap();
     
     private static App instance;
@@ -131,7 +135,15 @@ public class App extends Application {
      * application may construct other JavaFX objects in this method.
      */
     @Override
-    public void init() {}
+    public void init() {
+        
+        // add widget input output text converters
+        // not required, only makes ui more human readable
+        Output.addStringConverter(List.class, o -> String.valueOf(o.size()));
+        Output.addStringConverter(MetadataGroup.class, o -> Objects.toString(o.getValue()));
+        Output.addStringConverter(Metadata.class, o -> o.getTitle());
+        Output.addStringConverter(PlaylistItem.class, o -> o.getTitle());
+    }
     
     /**
      * The main entry point for applications. The start method is
@@ -157,14 +169,22 @@ public class App extends Application {
             // discover plugins
             ClassIndex.getAnnotated(IsPluginType.class).forEach(plugins::registerPluginType);
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
-            WidgetManager.initialize();     // must initialize before below
+            WidgetManager.initialize();
             
+            // services must be loaded before Configuration
+            services.addService(new TrayService());
+            services.addService(new Notifier());
+            services.addService(new PlaycountIncrementer());
+            
+            // gather configs
+            Configuration.collectAppConfigs();
+            // deserialize values (some configs need to apply it, will do when ready)
             Configuration.load();
             
             // initializing, the order is important
             Player.initialize();
             
-            // initialize windows from previous session
+            // collectAppConfigs windows from previous session
             WindowManager.deserialize();
             
             DB.start();
@@ -223,18 +243,11 @@ public class App extends Application {
         }
          //initialize non critical parts
         Player.loadLast();                      // should load in the end
-
+        
         Action.getActions().forEach(Action::register);
         
-        // apply all (and gui) settings
+        // eall ready -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
-//        
-        services.addService(new TrayService());
-        services.addService(new Notifier());
-        services.addService(new PlaycountIncrementer());
-        services.getAllServices()
-                .filter(s->!s.isDependency() && s.isSupported())
-                .forEach(Service::start);
         
         // handle guide
         guide = new Guide();
@@ -242,6 +255,7 @@ public class App extends Application {
             showGuide = false;
             run(2222, () -> guide.start());
         }
+        
         System.out.println(new File("cursor.png").getAbsoluteFile().toURI().toString());
         Image image = new Image(new File("cursor.png").getAbsoluteFile().toURI().toString());  //pass in the image path
         ImageCursor c = new ImageCursor(image,3,3);
@@ -330,7 +344,7 @@ public class App extends Application {
     
     /** @return image of the icon of the application. */
     public static Image getIcon() {
-        return new Image(new File("icon.jpg").toURI().toString());
+        return new Image(new File("icon512.png").toURI().toString());
     }
     
     /** @return github link for project of this application. */

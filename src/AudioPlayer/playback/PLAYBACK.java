@@ -28,6 +28,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import javafx.util.Duration;
+import main.App;
 import util.File.Environment;
 
 /**
@@ -209,6 +210,12 @@ public final class PLAYBACK implements Configurable {
     public static void decVolume() {
         setVolume(getVolume()-0.05);
     }
+    
+    /** Rises the number of times the song has been played by one and updates tag. */
+    @IsAction(name = "Increment playcount", description = "Rises the number of times the song has been played by one and updates tag.")
+    private static void incrementPlayback() {
+        App.use(PlaycountIncrementer.class, PlaycountIncrementer::increment);
+    };
    
     public static DoubleProperty volumeProperty() {
         return state.volume.volumeProperty();

@@ -19,7 +19,7 @@ import main.App;
 import static util.File.FileUtil.readFileLines;
 import static util.async.Async.FX;
 import util.async.future.Fut;
-import util.collections.MapSet;
+import util.collections.map.MapSet;
 import util.functional.Functors.F2;
 import static util.functional.Util.stream;
 
@@ -141,7 +141,7 @@ public class DB {
 //        
 //            Accessor<String> filter = new Accessor("");
 //            
-//            filters.forEach((field,values) -> {
+//            filters.forEachBoth((field,values) -> {
 //
 //                if (values.isEmpty()) throw new IllegalArgumentException("value list for query must not be empty");
 //

@@ -35,7 +35,7 @@ import util.units.FileSize;
  * 
  * @author uranium
  */
-@Name(" Song")
+@Name("Song")
 public abstract class Item<CT extends Item> implements Comparable<CT> {
     
 

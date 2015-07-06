@@ -304,7 +304,7 @@ public abstract class Container extends Component implements AltState {
         // free resources of all guis, we need to do this because we do not
         // close the sub containers, they cant even override this method to
         // implement their own implementation because it will not be invoked
-//        getAllContainers().forEach(Container::closeGraphics);
+//        getAllContainers().forEachBoth(Container::closeGraphics);
         // BUG throws stackoverflow of some kind
     }
     

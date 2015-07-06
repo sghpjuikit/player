@@ -42,9 +42,11 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
     } 
 
     public void setData(List<Tuple3<String,Class,F>> classes) {
-//        data.clear(); // causes serious problems, unknown
+        inconsistent_state = true;
+        data.clear(); // causes serious problems, unknown
         data.addAll(classes);
         chain.forEach(g->g.chained.setData(classes));
+        clear(); // bug fix, not sure if it doesnt cause problems
     }
 
     public void setMapper(BiFunction<F,Predicate<Object>,Predicate<T>> mapper) {

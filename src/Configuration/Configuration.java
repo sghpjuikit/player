@@ -12,9 +12,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
@@ -22,6 +21,7 @@ import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.File.FileUtil;
 import static util.Util.getAllFields;
+import util.collections.map.MapSet;
 import util.dev.Log;
 import static util.dev.Util.forbidFinal;
 import static util.dev.Util.requireFinal;
@@ -33,10 +33,12 @@ import static util.dev.Util.requireFinal;
  */
 public class Configuration {
     
-    private static final Map<String,Config> configs = new HashMap();
+    private static final MapSet<String,Config> configs = new MapSet<>(c -> c.getGroup()+"."+c.getName());
     private static final Lookup methodLookup = MethodHandles.lookup();
     
-    static {
+    
+    
+    public static void collectAppConfigs() {
         // for all discovered classes
         ClassIndex.getAnnotated(IsConfigurable.class).forEach( c -> {
             // add class fields
@@ -44,24 +46,96 @@ public class Configuration {
             // add methods in the end to avoid incorrect initialization
             discoverMethodsOf(c);        
         });
+        // add actions
+        configs.addAll(Action.getActions());
+        // add services
+        App.services.forEach(s -> configs.addAll(s.getFields()));
     }
     
-    private static void discoverConfigFieldsOf(Class clazz) {
-        configs.putAll(configsOf(clazz, null, true, false));
+    public static List<Config> getFields() {
+        List<Config> cs = new ArrayList(configs);
+                     cs.addAll(Action.getActions());
+                                          
+        return cs;
     }
-    private static void discoverMethodsOf(Class cls) {
-        for (Method m : cls.getDeclaredMethods()) {
+    
+    public static List<Config> getFields(Predicate<Config> condition) {
+        List<Config> cs = new ArrayList(getFields());
+                     cs.removeIf(condition.negate());
+        return cs;
+    }
+    
+    /** Changes all config fields to their default value and applies them */
+    public static void toDefault() {
+        getFields().forEach(Config::setNapplyDefaultValue);
+    }
+    
+    /**
+     * Saves configuration to the file. The file is created if it does not exist,
+     * otherwise it is completely overwritten.
+     * Loops through Configuration fields and stores them all into file.
+     */
+    public static void save() {     
+        String header = ""
+            + "# " + App.getAppName() + " configuration file.\n"
+            + "# " + java.time.LocalTime.now() + "\n";
+        StringBuilder content = new StringBuilder(header);
+        
+        Function<Config,String> f = configs.keyMapper;
+        getFields().stream()
+                   .sorted(util.functional.Util.byNC(f::apply))
+                   .forEach(c -> content.append(f.apply(c) + " : " + c.getValueS() + "\n"));
+        
+        FileUtil.writeFile("Settings.cfg", content.toString());
+    }
+    
+    /**
+     * Loads previously saved configuration file and set its values for this.
+     * <p>
+     * Attempts to load all configuration fields from file. Fields might not be 
+     * read either through I/O error or parsing errors. Parsing errors are
+     * recoverable, meaning corrupted fields will be ignored.
+     * Default values will be used for all unread fields.
+     * <p>
+     * If field of given name does not exist it will be ignored as well.
+     */
+    public static void load() {
+        File file = new File("Settings.cfg").getAbsoluteFile();
+        FileUtil.readFileKeyValues(file).forEach((id,value) -> {
+            Config c = configs.get(id);
+            if (c!=null) c.setValueS(value);
+        });
+    }
+    
+    
+    
+/******************************************************************************/
+    
+    private static String getGroup(Class<?> c) {
+        IsConfigurable a = c.getAnnotation(IsConfigurable.class);
+        return a==null || a.value().isEmpty() ? c.getSimpleName() : a.value();
+    }
+    
+    
+    private static void discoverConfigFieldsOf(Class c) {
+        configs.addAll(configsOf(c, null, true, false));
+    }
+    
+    private static void discoverMethodsOf(Class c) {
+        for (Method m : c.getDeclaredMethods()) {
             if (Modifier.isStatic(m.getModifiers())) {
                 for(AppliesConfig a : m.getAnnotationsByType(AppliesConfig.class)) {
                     if (a != null) {
                         String name = a.value();
-                        if(!name.isEmpty() && configs.containsKey(name)) {
-                            Config c = configs.get(name);
-                            if(c instanceof FieldConfig) {
+                        String group = getGroup(c);
+                        String config_id = group+"."+name;
+                        if(configs.containsKey(config_id) && !name.isEmpty()) {
+                            Config config = configs.get(config_id);
+                            if(config instanceof FieldConfig) {
                                 try {
                                     m.setAccessible(true);
-                                    ((FieldConfig)c).applier = methodLookup.unreflect(m);
-                                    Log.deb("Adding method as applier method: " + m.getName() + " for " + name + ".");
+                                    ((FieldConfig)config).applier = methodLookup.unreflect(m);
+                                    Log.deb("Adding method as applier method: " + m.getName() + " for " + config_id + ".");
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
                                 }
@@ -72,22 +146,18 @@ public class Configuration {
             }
         }
     }
+
     
-    private static String getGroup(Class<?> c) {
-        IsConfigurable a = c.getAnnotation(IsConfigurable.class);
-        return a==null || a.value().isEmpty() ? c.getSimpleName() : a.value();
-    }
-    
-    static Map<String,Config> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
+    static List<Config> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
         // check arguments
         if(include_instance && instnc==null)
             throw new IllegalArgumentException("Instance must not be null if instance fields flag is true");
         
-        Map<String,Config> out = new HashMap();
+        List<Config> out = new ArrayList();
         
         for (Field f : getAllFields(clazz)) {
             Config c = createConfig(clazz, f, instnc, include_static, include_instance);
-            if(c!=null) out.put(c.getName(), c);
+            if(c!=null) out.add(c);
         }
         return out;
     }
@@ -154,86 +224,6 @@ public class Configuration {
         } catch (IllegalAccessException | SecurityException ex) {
             throw new RuntimeException("Can not access field: " + f.getName() + " for class: " + f.getDeclaringClass());
         }
-    }
-    
-/******************************* public api ***********************************/
-    
-    /**
-     * @param name
-     * @return config with given name or null if such config does not exists
-     */
-    @SuppressWarnings("deprecation")
-    public static Config getField(String name) {
-        Config c = configs.get(name);
-        if (c==null) c = Action.getActionOrNull(name);
-        return c;
-    }
-    
-    public static List<Config> getFields() {
-        List<Config> cs = new ArrayList(configs.values());
-                     cs.addAll(Action.getActions());
-        return cs;
-    }
-    
-    public static List<Config> getFields(Predicate<Config> condition) {
-        List<Config> cs = new ArrayList(getFields());
-                     cs.removeIf(condition.negate());
-        return cs;
-    }
-    
-    /**
-     * Changes all config fields to their default value and applies them
-     */
-    public static void toDefault() {
-        getFields().forEach(Config::setNapplyDefaultValue);
-    }
-    
-    /**
-     * Saves configuration to the file. The file is created if it does not exist,
-     * otherwise it is completely overwritten.
-     * Loops through Configuration fields and stores them all into file.
-     */
-    public static void save() {     
-        Log.info("Saving configuration");
-        
-        String content="";
-               content += "# " + App.getAppName() + " configuration file.\n";
-               content += "# " + java.time.LocalTime.now() + "\n";
-        
-        for (Config f: getFields())
-            content += f.getName() + " : " + f.getValueS() + "\n";
-        
-        FileUtil.writeFile("Settings.cfg", content);
-    }
-    
-    /**
-     * Loads previously saved configuration file and set its values for this.
-     * <p>
-     * Attempts to load all configuration fields from file. Fields might not be 
-     * read either through I/O error or parsing errors. Parsing errors are
-     * recoverable, meaning corrupted fields will be ignored.
-     * Default values will be used for all unread fields.
-     * <p>
-     * If field of given name does not exist it will be ignored as well.
-     */
-    public static void load() {
-        Log.info("Loading configuration");
-        
-        File file= new File("Settings.cfg").getAbsoluteFile();
-        Map<String,String> lines = FileUtil.readFileKeyValues(file);
-        if(lines.isEmpty())
-            Log.info("Configuration couldnt be loaded. No content found. Using "
-                    + "default settings.");
-        
-        
-        lines.forEach((name,value) -> {
-            Config c = getField(name);
-            if (c!=null)
-                c.setValueS(value);
-            else
-                Log.info("Config field " + name + " not available. Possible"
-                    + " error in the configuration file.");
-        });
     }
     
 }

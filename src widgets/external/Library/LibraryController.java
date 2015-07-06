@@ -185,7 +185,7 @@ public class LibraryController extends FXMLController implements SongReader {
     public LibraryController(FXMLWidget widget) {
         super(widget);
         
-        out_sel = outputs.create(widget.id,"Selected", Metadata.class, null).setStringConverter(Metadata::getTitle);
+        out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
         Player.librarySelected.i.bind(out_sel);
         
         actPane = new ActionChooser(this);
@@ -861,7 +861,7 @@ public class LibraryController extends FXMLController implements SongReader {
 //    public void refresh() {
 //        runOnce.execute(()->table.setColumnState(columnInfo));
 //        
-//        getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
+//        getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEachBoth(Config::applyValue);
 //        table.getSelectionModel().clearSelection();
 //        lvl.applyValue();
 //    }

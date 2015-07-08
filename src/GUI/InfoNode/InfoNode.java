@@ -12,10 +12,12 @@ package gui.InfoNode;
  */
 public interface InfoNode<B> {
     
-    /** Starts monitoring the bindable element.
-      <p>
-      Developers should not forget to stop previous monitoring.
-      */
+    /** 
+     * Starts monitoring the bindable element.
+     * 
+     * @implSpec this method should first call {@link #unbind()} to remove any
+     * previous monitoring.
+     */
     public void bind(B bindable);
     
     /** Stops monitoring the bindable element. */

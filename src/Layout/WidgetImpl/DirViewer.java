@@ -10,7 +10,7 @@ import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.ClassController;
-import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.image.Thumbnail;
 import gui.objects.tree.TreeItems.FileTreeItem;
 import java.io.File;
 import static java.lang.Math.*;

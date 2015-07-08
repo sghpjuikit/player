@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects.Thumbnail;
+package gui.objects.image;
 
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
 import java.io.File;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
@@ -16,16 +18,41 @@ import javafx.scene.layout.Region;
  *
  * @author uranium
  */
+@IsConfigurable("Images")
 public abstract class ImageNode {
+
+    @IsConfig(name="Image caching", info = "Will keep every loaded image in "
+       + "memory. Reduces image loading (except for the first time) but "
+       + "increases memory. For large images (around 5000px) the effect "
+       + "is very noticable. Not worth it if you dont browse large images "
+       + "or want to minimize RAM usage.")
+    static boolean cache_images = false;
     
     /**
-     * In case an image is not loaded with full resolution it should be loaded
-     * slightly bigger than its intended size, in case it will be scaled up.
+     * To spare memory, images are only loaded up to requested size.
+     * This defines how many times should images load bigger than requested.
+     * Serves 3 purposes:
+     * <ul>
+     * <li> Loading images in full size would produce artifacts when they would
+     * need to be down-scaled to small sizes. So dont use large value.
+     * <li> Using value 1 would cause image deformations caused by slight size
+     * scaling. Avoid values close to 1.
+     * <li> In some cases, user expects the image to be scalable. This removes
+     * any potential blur or artifacts from over-scaling low-resolution version.
+     * </ul>
      * <p>
-     * This constant defines how much larger that size should be.
      */
-    public final static double LOAD_COEFICIENT = 1.3;
-    
+    @IsConfig(name="Image load multiplier", min = 1, max = 2, info="To spare "
+       + "memory, images are only loaded up to requested size. "
+       + "This defines how many times bigger should the image load compared to "
+       + "requested size. This serves 3 purposes:\n"
+       + "\n\tLoading images in full size would produce artifacts when they would "
+       + "need to be down-scaled to small sizes. So dont use large value. "
+       + "\n\tUsing value 1 would cause image deformations caused by slight size "
+       + "scaling. Avoid values close to 1. "
+       + "\n\tYou may expect the image to be scalable. This removes potential "
+       + "blur or artifacts from over-scaling low-resolution version. ")
+    public static double LOAD_COEFICIENT = 1.2;
     
     
     /**
@@ -44,13 +71,6 @@ public abstract class ImageNode {
      * @param img null to set no image;
      */
     public abstract void loadImage(File img);
-    
-    /**
-     * Set file only, dont change the loaded image. Use to add/update file so
-     * this object can support file - related activities.
-     * @param img null to set no image;
-     */
-    public abstract void setFile(File img);
     
     public abstract File getFile();
     

@@ -14,6 +14,7 @@ import Layout.Widgets.controller.io.Output;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
+import java.io.File;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 import java.util.*;
@@ -127,7 +128,7 @@ public class ActionChooser<T> extends StackPane {
         double w = getWidth();
         
         forEachWithI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, hx*(i+1)-o.getHeight()/2));
-        forEachWithI(in_nodes, (i,o) -> o.relocate(5, hx*(i+1)-o.getHeight()/2));
+        forEachWithI(in_nodes, (i,o) -> o.relocate(5, 80*(i+1)));
     }
     
     
@@ -184,6 +185,10 @@ public class ActionChooser<T> extends StackPane {
                 if(DragUtil.hasWidgetOutput()) {
                     in.bind(DragUtil.getWidgetOutput(e));
                     drawWidgetIO();
+                    e.setDropCompleted(true);
+                    e.consume();
+                } else if (in.getType().equals(File.class) && DragUtil.hasFiles(e)) {
+                    in.setValue((T)DragUtil.getFiles(e).get(0));
                     e.setDropCompleted(true);
                     e.consume();
                 }

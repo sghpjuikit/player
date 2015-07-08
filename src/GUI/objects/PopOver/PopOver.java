@@ -341,8 +341,9 @@ public class PopOver<N extends Node> extends PopupControl {
      * Hides this popup immediatelly.
      * Use when the hiding animation is not desired (regardless the set value)
      * or could cause problems such as delaying application exit.
-     * <p>
-     * Developer note: this is the default hide implementation overriding the
+     * 
+     * @implSpec
+     * This is the default hide implementation overriding the
      * one in the super class. It should not cause any delays and keep changes
      * to hiding mechanism to minimum as otherwise it could cause problems. For 
      * example casting javafx.stage.Window to PopOver (when it in fact is an

@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package AudioPlayer.tagging.Cover;
+package gui.objects.image.cover;
 
+import gui.objects.image.Thumbnail;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Objects;

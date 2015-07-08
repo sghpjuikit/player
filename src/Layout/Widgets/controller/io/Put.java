@@ -6,6 +6,8 @@
 package Layout.Widgets.controller.io;
 
 import static Layout.Widgets.controller.io.Output.getStringConverter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -20,7 +22,8 @@ public class Put<T> {
     
     final Class<T> type;
     final ObjectProperty<T> val = new SimpleObjectProperty();
-
+    protected List<Consumer<? super T>> monitors = new ArrayList();
+    
     public Put(Class<T> type, T init_val) {
         this.type = type;
         this.val.setValue(init_val);
@@ -34,6 +37,11 @@ public class Put<T> {
         return val.get();
     }
     
+    public void setValue(T v) {
+        val.setValue(v);
+        monitors.forEach(m -> m.accept(v));
+    }
+    
     public String getValueAsS() {
         T v = val.getValue();
         return v==null ? "null" : getStringConverter(v.getClass()).apply(v);
@@ -41,7 +49,8 @@ public class Put<T> {
     }
     
     public Subscription monitor(Consumer<? super T> action) {
-        return maintain(val, action);
+        monitors.add(action);
+        return () -> monitors.remove(action);
     }
     
     

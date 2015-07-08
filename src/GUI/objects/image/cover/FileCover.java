@@ -4,8 +4,9 @@
  * and open the template in the editor.
  */
 
-package AudioPlayer.tagging.Cover;
+package gui.objects.image.cover;
 
+import gui.objects.image.Thumbnail;
 import java.io.File;
 import java.util.Objects;
 import javafx.scene.image.Image;
@@ -23,37 +24,39 @@ import util.Util;
  */
 @Immutable
 public class FileCover implements Cover {
-    private final File image;
+    private final File file;
     private final String info;
     
     public FileCover(File image, String description) {
         Objects.requireNonNull(description);
         
-        this.image = image;
+        this.file = image;
         this.info = description;
     }
 
     /** {@inheritDoc} */
     @Override
     public Image getImage() {
-        return image==null ? null : new Image(image.toURI().toString());
+        return file==null ? null : new Image(file.toURI().toString());
     }
     
     /** {@inheritDoc} */
     @Override
     public Image getImage(double width, double height) {
-        return image==null ? null : Util.loadImage(image, width, height);
+        Image cached = Thumbnail.getCached(file, width, width);
+        if(cached!=null) return cached;
+        return file==null ? null : Util.loadImage(file, width, height);
     }
 
     /** {@inheritDoc} */
     @Override
     public File getFile() {
-        return image;
+        return file;
     }
 
     @Override
     public boolean isEmpty() {
-        return image != null;
+        return file != null;
     }
 
     /** {@inheritDoc} */
@@ -68,7 +71,7 @@ public class FileCover implements Cover {
         
         if(o != null && o instanceof FileCover) {
             FileCover other = (FileCover)o;
-            return image.equals(other.image);
+            return file.equals(other.file);
         }
         return false;
     }
@@ -76,7 +79,7 @@ public class FileCover implements Cover {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 43 * hash + Objects.hashCode(this.image);
+        hash = 43 * hash + Objects.hashCode(this.file);
         return hash;
     }
     

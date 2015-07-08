@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects.Thumbnail;
+package gui.objects.image;
 
-import AudioPlayer.tagging.Cover.Cover;
+import gui.objects.image.cover.Cover;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Widgets.Widget;
@@ -105,7 +105,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
  * </ul>
  */
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
-@IsConfigurable
+@IsConfigurable("Images")
 public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     // styleclasses
@@ -207,43 +207,78 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         return root.getStyleClass();
     }
     
- /******************************************************************************/
+/******************************************************************************/
+    
     
     @Override
     public void loadImage(Image img) {
-        load(img, null);
+        setImgA(img, null);
     }
     @Override
     public void loadImage(File img) {
-        img_file = img;
         Point2D size = calculateImageLoadSize(root);
-        Image i = Util.loadImage(img_file, size.getX(), size.getY());
-        load(i, img);
+        img_file = img;
+        
+        Image c = getCached(img, size.getX(), size.getY());
+        Image i = c!=null ? c : Util.loadImage(img_file, size.getX(), size.getY());
+        setImgA(i, img);
     }
     public void loadImage(Cover img) {
         if(img==null) {
-            loadImage((Image)null);
+            setImgA(null, null);
         } else {
             Point2D size = calculateImageLoadSize(root);
-            load(img.getImage(size.getX(), size.getY()), img.getFile());
+            Image i = img.getImage(size.getX(), size.getY());
+            setImgA(i, img.getFile());
         }
     }
     
-    private void load(Image i, File f) {        
+    private long loadId = 0;    // prevents wastful set image operatins
+    static HashMap<File,Image> IMG_CACHE = new HashMap();   // caches images
+    public static Image getCached(File f, double w, double h) {
+        if(cache_images || f==null) return null;
+        Image ci = IMG_CACHE.get(f);
+        return ci!=null && (ci.getWidth()>=w || ci.getHeight()>=h) ? ci : null;
+    }
+    
+    // set asynchronously
+    private void setImgA(Image i, File f) {
+        loadId++;   // load next image
+        final long id = loadId; // expected id (must match when load finishes)
+        if(i==null) {
+            setImg(null, null, id);
+        } else {
+            if(i.getProgress()==1) {
+                setImg(i, f, id);
+            } else {
+                i.progressProperty().addListener((o,ov,nv) -> {
+                    if(nv.doubleValue()==1) 
+                        setImg(i, f, id);
+                });
+            } 
+        }
+    }
+    // set synchronously
+    private void setImg(Image i, File f, long id) {
+        // cache
+        if(i!=null && f!=null) {
+            Image ci = IMG_CACHE.get(f);
+            if(ci==null || ci.getHeight()*ci.getWidth()<i.getHeight()*i.getWidth())
+                IMG_CACHE.put(f, i);
+        }
+
+        // ignore outdated loadings 
+        if(id!=loadId) return;
+        
         img_file = f;
         image.setImage(i);
         border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
         if(i!=null) {
-            maxIMGH.set(i.getHeight()*maxScaleFactor);
             maxIMGW.set(i.getWidth()*maxScaleFactor);
+            maxIMGH.set(i.getHeight()*maxScaleFactor);
         }
-    }
+    }   
     
-    @Override
-    public void setFile(File img) {
-        img_file = img;
-    }
-
     @Override
     public File getFile() {
         return img_file;
@@ -578,5 +613,10 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
             e.consume();
         }
     };
+    
+    
+    
+    
+//    static Map<File,>
     
 }

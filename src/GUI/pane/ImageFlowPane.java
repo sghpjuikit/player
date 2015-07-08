@@ -5,7 +5,7 @@
  */
 package gui.pane;
 
-import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.image.Thumbnail;
 import static java.lang.Double.min;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;

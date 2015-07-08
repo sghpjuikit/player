@@ -6,7 +6,7 @@ import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.ImageDisplayFeature;
-import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.image.Thumbnail;
 import java.io.File;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;

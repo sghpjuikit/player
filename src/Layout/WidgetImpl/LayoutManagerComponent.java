@@ -5,7 +5,7 @@ import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.UniContainer;
 import gui.objects.Text;
-import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.image.Thumbnail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

@@ -22,7 +22,7 @@ public interface SkinTrait {
     IntegerProperty skinIndexProperty();
     
     
-    default File getSkinDirectory() {
+    private File getSkinDirectory() {
         return new File("controls"+File.separator+getClass().getSimpleName());
     }
     

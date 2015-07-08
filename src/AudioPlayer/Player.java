@@ -19,6 +19,8 @@ import java.util.UUID;
 import static org.reactfx.EventStreams.merge;
 import static util.async.Async.runLater;
 import util.collections.map.MapSet;
+import util.dev.Util;
+import static util.dev.Util.forbidNull;
 import util.reactive.ValueEventSource;
 import util.reactive.ValueEventSourceN;
 import util.reactive.ValueStream;
@@ -90,7 +92,7 @@ public class Player {
      * the item changed.
      */
     public static void refreshItem(Item item) {
-        requireNonNull(item);
+        forbidNull(item);
         
         MetadataReader.create(item, (ok,m) -> {
             if (ok) refreshItemWithUpdated(m);
@@ -98,7 +100,7 @@ public class Player {
     }
     
     public static void refreshItems(List<? extends Item> items) {
-        requireNonNull(items);
+        forbidNull(items);
         if(items.isEmpty()) return;
         
         MetadataReader.readMetadata(items, (ok,m) -> {
@@ -108,7 +110,7 @@ public class Player {
 
     
     public static void refreshItemWithUpdated(Metadata m) {
-        requireNonNull(m);
+        forbidNull(m);
         
         // update all playlist items referring to this updated metadata
         PlaylistManager.getItems().stream().filter(p->p.same(m)).forEach(p -> p.update(m));
@@ -130,7 +132,7 @@ public class Player {
     }
     
     public static void refreshItemsWithUpdated(List<Metadata> metas) {
-        requireNonNull(metas);
+        forbidNull(metas);
         if(metas.isEmpty()) return;
         
         // metadata map hashed with resource identity : O(n^2) -> O(n)
@@ -156,7 +158,7 @@ public class Player {
     }
     
     public static void refreshItemsWithUpdatedBgr(List<Metadata> metas) {
-        requireNonNull(metas);
+        forbidNull(metas);
         if(metas.isEmpty()) return;
         
         // metadata map hashed with resource identity : O(n^2) -> O(n)

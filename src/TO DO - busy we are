@@ -3,9 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- fileinfo & library table not refreshing on rate...
 - use preferences for columns + support playlist table
-- cache covers so they arent loaded repeatedly for items on same album
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
 - decouple playlists
@@ -130,3 +128,9 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - window color overlay effect
 - window layout aggregators
 - tab area
+
+
+
+- heap: Use -Xmx1g, possibly more
+  Large images need more memory. Default heap size WILL cause out of memory
+  exceptions for images like 6k x 6k px & closing in on 10MB...

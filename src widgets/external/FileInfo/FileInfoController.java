@@ -2,8 +2,8 @@ package FileInfo;
 
 
 import AudioPlayer.playlist.Item;
-import AudioPlayer.tagging.Cover.Cover.CoverSource;
-import static AudioPlayer.tagging.Cover.Cover.CoverSource.ANY;
+import gui.objects.image.cover.Cover.CoverSource;
+import static gui.objects.image.cover.Cover.CoverSource.ANY;
 import AudioPlayer.tagging.Metadata;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
@@ -19,7 +19,7 @@ import Layout.Widgets.feature.SongReader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.objects.ActionChooser;
 import gui.objects.Rater.Rating;
-import gui.objects.Thumbnail.ChangeableThumbnail;
+import gui.objects.image.ChangeableThumbnail;
 import gui.objects.icon.Icon;
 import gui.pane.ImageFlowPane;
 import java.io.File;

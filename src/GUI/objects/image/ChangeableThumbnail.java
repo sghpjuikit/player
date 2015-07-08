@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects.Thumbnail;
+package gui.objects.image;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import java.io.File;

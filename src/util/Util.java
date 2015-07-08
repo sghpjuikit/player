@@ -18,6 +18,7 @@ import java.util.function.Function;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -229,12 +230,7 @@ public class Util {
         return s.isEmpty() ? false : isPalindrome(s);
     }
     
-    /**
-     * Convenience method. Equivalent to: loadImage(file, size, size);
-     * @param file
-     * @param size
-     * @return 
-     */
+    /** Convenience method. Equivalent to: loadImage(file, size, size); */
     public static Image loadImage(File file, double size) {
         return loadImage(file, size, size);
     }
@@ -249,12 +245,15 @@ public class Util {
      * further for small thumbnails, where intended size is known.
      * 
      * @param file file to load.
-     * @param size to resize image's width to. Use 0 to use original image size.
+     * @param width 
+     * @param height to resize image's width to. Use 0 or negative to use original image size.
      * The size will be clipped to original if it is greater.
      * @return loaded image or null if file null or not a valid image source.
      */
     public static Image loadImage(File file, double width, double height) {
         if (file == null) return null;
+        width = max(0,width);
+        height = max(0,height);
         if (width == 0 && height == 0)
             return new Image(file.toURI().toString());
         else {
@@ -262,11 +261,11 @@ public class Util {
             Dimension d = getImageDim(file);
             int w = d==null ? Integer.MAX_VALUE : d.width;
             int h = d==null ? Integer.MAX_VALUE : d.height;
-            
-            // lets not get over real size (Image unfortunately does that if we dont stop it)
-            int fin_width = Math.min((int)width,w);
-            int fin_height = Math.min((int)height,h);
-            return new Image(file.toURI().toString(), fin_width, fin_height, true, true);
+
+            // lets not surpass real size (Image unfortunately does that if we dont stop it)
+            int fin_width = min((int)width,w);
+            int fin_height = min((int)height,h);
+            return new Image(file.toURI().toString(), fin_width, fin_height, true, true, true);
         }
     }
     

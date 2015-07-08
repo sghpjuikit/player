@@ -28,12 +28,6 @@ public class Output<T> extends Put<T> {
     public String getName() {
         return id.name;
     }
-    
-    public void setValue(T v) {
-        val.setValue(v);
-    }
-    
-
 
     @Override
     public boolean equals(Object o) {

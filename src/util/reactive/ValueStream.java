@@ -12,34 +12,36 @@ import org.reactfx.Subscription;
 import util.access.AccessibleValue;
 
 /**
+ * @param <T>
  */
-    public class ValueStream<T> extends EventStreamBase<T> implements AccessibleValue<T>{
-        private T v;
-        private final EventStream<T> source;
-        
-        public ValueStream(T initialValue, EventStream<? extends T>... sources) {
-            v = initialValue;
-            this.source = merge(sources);
-        }
-        
-        @Override
-        public T getValue() {
-            return v;
-        }
+public class ValueStream<T> extends EventStreamBase<T> implements AccessibleValue<T>{
+    private T v;
+    private final EventStream<T> source;
 
-        @Override
-        public void setValue(T event) {
-            emit(event);
-        }
-
-        @Override
-        public void emit(T value) {
-            v = value;
-            super.emit(value);
-        }
-
-        @Override
-        protected Subscription observeInputs() {
-            return source.subscribe(this::emit);
-        }
+    public ValueStream(T initialValue, EventStream<? extends T>... sources) {
+        v = initialValue;
+        this.source = merge((EventStream[])sources);
     }
+
+    @Override
+    public T getValue() {
+        return v;
+    }
+
+    @Override
+    public void setValue(T event) {
+        emit(event);
+    }
+
+    @Override
+    public void emit(T value) {
+        v = value;
+        super.emit(value);
+    }
+    
+
+    @Override
+    protected Subscription observeInputs() {
+        return source.subscribe(this::emit);
+    }
+}

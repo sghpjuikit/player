@@ -5,8 +5,8 @@
  */
 package Layout.Widgets.gamelib;
 
-import AudioPlayer.tagging.Cover.Cover;
-import AudioPlayer.tagging.Cover.FileCover;
+import gui.objects.image.cover.Cover;
+import gui.objects.image.cover.FileCover;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;

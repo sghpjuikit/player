@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package AudioPlayer.tagging.Cover;
+package gui.objects.image.cover;
 
 import java.io.File;
 import javafx.scene.image.Image;

@@ -13,7 +13,7 @@ import Layout.Widgets.gamelib.GameItem;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
 import gui.GUI;
-import gui.objects.Thumbnail.Thumbnail;
+import gui.objects.image.Thumbnail;
 import gui.objects.icon.Icon;
 import gui.objects.tree.FileTree;
 import java.io.File;

@@ -258,14 +258,12 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * fields that are derivable from this item. Use when
      * Metadata is expected instead of Item and additional information is not
      * required or can not be obtained.
-     * <p>
-     * Developer note: Always include proper javadoc for subclasses to inform 
-     * which fields will be initialized.
-     * <p>
-     * Developer note: the responsibility for creating correctly filled
-     * Metadata object lies within Metadata's constructor which uses reflection to
-     * inspect the Item type. Subclassing this class should include
-     * adding the class' support in that constructor.
+     * 
+     * @implSpec
+     * Metadata has private consturctors. The responsibility for creating 
+     * Metadata from any Item object lies within Metadata's constructor which 
+     * uses reflection to inspect the Item type. Subclassing this class should include
+     * modifying that constructor to take the subclass into consideration.
      * 
      * @return metadata that tests true for {@link #same()} with this item.
      */

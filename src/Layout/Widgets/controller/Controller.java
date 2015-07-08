@@ -61,32 +61,17 @@ public interface Controller<W extends Widget> extends Configurable<Object> {
      * Refreshes the controller state.
      * <p>
      * Brings GUI up to date ensuring all potential changes are accounted for.
+     * Invoked after widget loads for the 1st time or manually by the user from
+     * user interface.
      * <p>
-     * Designer should strive to make the controller capable of handling any 
-     * state changes individually, when they happen, but sometimes
-     * it isnt possible. For example an external source (I/O) change can happen.
-     * <p>
-     * This method is called automatically when widget is loaded, after it has been
-     * initialized to restore its state.
-     * At this point all {@link Configuration.IsConfig configs} of 
+     * Is invoked on user request (to bring the widget state up to date) or when
+     * widget is loaded 1st time.
+     * At this point all {@link Configuration.IsConfig configs} 
      * are available and have their values set, but not applied - that should be
      * executed in this method.
      * <p>
-     * Because configs are a state of this controller, this method should 
-     * always apply all configs.
-     * It is guaranteed that all configs have their values initialized (set) when
-     * this method is ran for the first time after loading the widget.
-     * <p>
      * In case that widget has nothing to refresh, such implementations
      * could do nothing.
-     * <p>
-     * Default implementation of this method does nothing.
-     * <p>
-     * dev note: This method should always apply all of the applicable state to
-     * ensure consistency. It should not be invoked unless needed - it is advised
-     * to be able to apply every aspect of the state individually and only invoke
-     * this method to load initial state during deserialization or on direct user
-     * request.
      */
     public void refresh();
     

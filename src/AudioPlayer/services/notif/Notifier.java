@@ -1,8 +1,8 @@
 
-package AudioPlayer.services.Notifier;
+package AudioPlayer.services.notif;
 
-import Action.IsAction;
-import Action.IsActionable;
+import action.IsAction;
+import action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service.ServiceBase;
@@ -28,6 +28,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.*;
 import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.Subscription;
 import util.access.AccessorAction;
@@ -62,20 +63,20 @@ public final class Notifier extends ServiceBase {
     @IsConfig(name = "On playing song change")
     public boolean showSongNotification = true;
     @IsConfig(name = "Autohide delay", info = "Time it takes for the notification to hide on its own")
-    public double notificationDuration = 2500;
+    public Duration notificationDuration = millis(2500);
     @IsConfig(name = "Animate", info = "Use animations on the notification")
     public boolean notifAnimated = true;
     @IsConfig(name = "Animation duration")
-    public double notifFadeTime = 500;
+    public Duration notifFadeTime = millis(500);
     @IsConfig(name = "Hide on click anywhere", editable = false)
     public boolean notifAutohide = false;
-    @IsConfig(name = "Position")
+    @IsConfig(name = "Screen Position")
     public PopOver.ScreenCentricPos notifPos = Screen_Bottom_Right;
     @IsConfig(name = "Screen", info = "Decides which screen to use for positioning. Main screen, application window screen or all screens as one")
     public PopOver.ScreenUse notifScr = APP_WINDOW;
-    @IsConfig(name = "On left click")
+    @IsConfig(name = "On click left")
     public final AccessorAction onClickL = new AccessorAction("Show application", null);
-    @IsConfig(name = "On right click")
+    @IsConfig(name = "On click right")
     public final AccessorAction onClickR = new AccessorAction("Notification hide", null);
     
     @IsConfig(name = "Playback change graphics")
@@ -162,8 +163,8 @@ public final class Notifier extends ServiceBase {
             // set properties (that could have changed from last time)
             n.setAutoHide(notifAutohide);
             n.setAnimated(notifAnimated);
-            n.setAnimDuration(Duration.millis(notifFadeTime));
-            n.setDuration(Duration.millis(notificationDuration));
+            n.setAnimDuration(notifFadeTime);
+            n.setDuration(notificationDuration);
             n.lClickAction = onClickL.getValueAction();
             n.rClickAction = onClickR.getValueAction();
             // show

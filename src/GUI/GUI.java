@@ -1,8 +1,8 @@
 
 package gui;
 
-import Action.IsAction;
-import Action.IsActionable;
+import action.IsAction;
+import action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Layout;
@@ -35,6 +35,7 @@ import javafx.scene.text.FontWeight;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import main.App;
 import util.animation.interpolator.CircularInterpolator;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
@@ -81,7 +82,7 @@ public class GUI {
     @IsConfig(name = "Layout mode blur intensity", info = "Layout mode blur efect intensity.", min=0.0, max=20.0)
     public static double blur_LM = 4;
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
-    public static double duration_LM = 250;
+    public static Duration duration_LM = millis(250);
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
     public static final Accessor<Boolean> snapping = new Accessor(true);
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")

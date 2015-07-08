@@ -6,8 +6,8 @@
 
 package gui.objects.Window.stage;
 
-import Action.IsAction;
-import Action.IsActionable;
+import action.IsAction;
+import action.IsActionable;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -65,13 +65,13 @@ public class WindowManager {
     public static boolean mini_show_onEnter = true;
     
     @IsConfig(name="Mini open hover delay", info="Time to hover to open mini window.")
-    public static double mini_hover_delay = 500;
+    public static Duration mini_hover_delay = millis(500);
     
     @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
     public static boolean mini_hide_onInactive = true;
     
     @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
-    public static double mini_inactive_delay = 500;
+    public static Duration mini_inactive_delay = millis(500);
     
     @AppliesConfig("mini")
     private static void applyMini() {

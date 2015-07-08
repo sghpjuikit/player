@@ -1,18 +1,18 @@
 
 package main;
 
-import Action.Action;
+import action.Action;
 import AudioPlayer.Player;
-import AudioPlayer.playback.PlaycountIncrementer;
+import AudioPlayer.services.playcountincr.PlaycountIncrementer;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.Notifier.Notifier;
+import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
-import AudioPlayer.services.Tray.TrayService;
+import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
@@ -98,8 +98,9 @@ public class App extends Application {
     
 /*********************************** CONFIGS **********************************/
     
-    @IsConfig(name = "Show guide on app start", info = "Automatically show "
-     + "guide hints next time application starts up. Automatically set to false afterwards.")
+    @IsConfig(name = "Show guide on app start", info = "Show guide when application "
+            + "starts. Default true, but when guide is shown, it is set to false "
+            + "so the guide will never appear again on its own.")
     public static boolean showGuide = true;
     
     @IsConfig(name = "Rating control.", info = "The style of the graphics of the rating control.")
@@ -112,7 +113,8 @@ public class App extends Application {
     public static final BooleanProperty allowRatingChange = new SimpleBooleanProperty(true);
     @IsConfig(name = "Rating react on hover", info = "Move rating according to mouse when hovering.")
     public static final BooleanProperty hoverRating = new SimpleBooleanProperty(true);
-    @IsConfig(name = "Debug", info = "For debug purposes.")
+    @IsConfig(name = "Debug value", info = "For application testing. Generic number value"
+            + "to control some application value manually.")
     public static final DoubleProperty debug = new SimpleDoubleProperty(0);
     
     @IsConfig(info = "Preffered text when no tag value for field. This value is overridable.")

@@ -50,6 +50,9 @@ public class Put<T> {
     
     public Subscription monitor(Consumer<? super T> action) {
         monitors.add(action);
+        // i think this is dangerous because we dont know what the action does...
+        // it should run only after this method completes, so.. wrap it up in runLater ?
+//        if(getValue()!=null) action.accept(getValue());
         return () -> monitors.remove(action);
     }
     

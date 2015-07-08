@@ -59,13 +59,15 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             if(!isAltCon && (GUI.isLayoutMode() || !container.isUnderLock())) {
                 isHere.set(isHere.get() && isHere(e));
                 // add new widget on left click
-                if(e.getButton()==PRIMARY && isHere.get())
+                if(e.getButton()==PRIMARY && isHere.get()) {
                     addEmptyWindowAt(e.getX(), e.getY());
+                    e.consume();
+                }
                 // close on right click
-                if(e.getButton()==SECONDARY && container.getChildren().isEmpty())
+                if(e.getButton()==SECONDARY && container.getChildren().isEmpty()){
                     container.close();
-                    
-                e.consume();
+                    e.consume();
+                }
             }
         });
         
@@ -146,7 +148,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
                        }));
                        wa.loadWidget((Widget)cm);
                        widgets.put(i,wa);
-                       w.moveOnDragOf(w.content);
+                       w.moveOnDragOf(wa.content_root);
             n = wa.root;
         } else {
             BooleanProperty tmp = new SimpleBooleanProperty(true);

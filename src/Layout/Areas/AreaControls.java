@@ -178,8 +178,8 @@ public final class AreaControls {
 	header_buttons.getChildren().addAll(infoB, dragB, absB, lockB, refreshB, propB, detachB, changeB, closeB);
 
 	// build animations
-	contrAnim = new FadeTransition(millis(GUI.duration_LM), root);
-	contAnim = new FadeTransition(millis(GUI.duration_LM), area.getContent());
+	contrAnim = new FadeTransition(GUI.duration_LM, root);
+	contAnim = new FadeTransition(GUI.duration_LM, area.getContent());
 	BoxBlur blur = new BoxBlur(0, 0, 1);
 	area.getContent().setEffect(blur);
 	blurAnim = new Anim(at -> {

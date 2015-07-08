@@ -1,7 +1,7 @@
 
 package gui.itemnode;
 
-import Action.Action;
+import action.Action;
 import Configuration.Config;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.itemnode.ItemNode.ConfigNode;

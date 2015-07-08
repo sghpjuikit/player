@@ -5,7 +5,7 @@ import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.Notifier.Notifier;
+import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;

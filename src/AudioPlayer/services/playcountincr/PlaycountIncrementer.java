@@ -1,11 +1,13 @@
 
-package AudioPlayer.playback;
+package AudioPlayer.services.playcountincr;
 
 import AudioPlayer.Player;
-import static AudioPlayer.playback.PlaycountIncrementer.PlaycountIncrStrategy.*;
-import AudioPlayer.services.Notifier.Notifier;
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlayTimeHandler;
+import static AudioPlayer.services.playcountincr.PlaycountIncrementer.PlaycountIncrStrategy.*;
+import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.Service.ServiceBase;
-import AudioPlayer.services.Tray.TrayService;
+import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
@@ -13,6 +15,7 @@ import Configuration.IsConfigurable;
 import static java.awt.TrayIcon.MessageType.INFO;
 import javafx.util.Duration;
 import static javafx.util.Duration.millis;
+import static javafx.util.Duration.seconds;
 import main.App;
 import util.access.Accessor;
 import static util.functional.Util.max;
@@ -27,7 +30,7 @@ public class PlaycountIncrementer extends ServiceBase {
     @IsConfig(name="Increment at percent", info = "Percent at which playcount is incremented.")
     public final Accessor<Double> when_percent = new Accessor<>(0.4,this::apply);
     @IsConfig(name="Increment at time", info = "Time at which playcount is incremented.")
-    public final Accessor<Double> when_time = new Accessor<>(Duration.seconds(5).toMillis(),this::apply);
+    public final Accessor<Duration> when_time = new Accessor<>(seconds(5),this::apply);
     @IsConfig(name="Show notification", info = "Shows notification when playcount is incremented.")
     public final Accessor<Boolean> show_notif = new Accessor<>(false);
     @IsConfig(name="Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
@@ -91,13 +94,13 @@ public class PlaycountIncrementer extends ServiceBase {
             incrHand = new PlayTimeHandler(total -> total.multiply(when_percent.get()),incr);
             PLAYBACK.addOnPlaybackAt(incrHand);
         } else if (when.get() == ON_TIME) {
-            incrHand = new PlayTimeHandler(total -> millis(when_time.get()), incr);
+            incrHand = new PlayTimeHandler(total -> when_time.get(), incr);
             PLAYBACK.addOnPlaybackAt(incrHand);
         } else if (when.get() == ON_TIME_AND_PERCENT) {
-            incrHand = new PlayTimeHandler(total -> min(millis(when_time.get()),total.multiply(when_percent.get())),incr);
+            incrHand = new PlayTimeHandler(total -> min(when_time.get(),total.multiply(when_percent.get())),incr);
             PLAYBACK.addOnPlaybackAt(incrHand);
         } else if (when.get() == ON_TIME_OR_PERCENT) {
-            incrHand = new PlayTimeHandler(total -> max(millis(when_time.get()),total.multiply(when_percent.get())),incr);
+            incrHand = new PlayTimeHandler(total -> max(when_time.get(),total.multiply(when_percent.get())),incr);
             PLAYBACK.addOnPlaybackAt(incrHand);
         } else if (when.get() == ON_START) {
             PLAYBACK.addOnPlaybackStart(incr);

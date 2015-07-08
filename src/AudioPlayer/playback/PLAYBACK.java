@@ -1,8 +1,9 @@
 
 package AudioPlayer.playback;
 
-import Action.IsAction;
-import Action.IsActionable;
+import AudioPlayer.services.playcountincr.PlaycountIncrementer;
+import action.IsAction;
+import action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.MediaSupport.GeneralPlayer;
 import static AudioPlayer.playback.PlayTimeHandler.at;
@@ -28,6 +29,7 @@ import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import main.App;
 import util.File.Environment;
 
@@ -43,8 +45,8 @@ public final class PLAYBACK implements Configurable {
     public static boolean continuePlaybackPaused = false;
     @IsConfig(name="Seek relative to length", info = "Seeks forward.backward by fraction of song's length instead of fixed time unit.")
     public static boolean seekPercent = true;    
-    @IsConfig(name="Seek time unit", info = "Fixed time unit in milliseconds to jump, when seeking forward/backward.")
-    public static long seekUnitT = 4000;
+    @IsConfig(name="Seek time unit", info = "Fixed time unit to jump, when seeking forward/backward.")
+    public static Duration seekUnitT = millis(4000);
     @IsConfig(name="Seek fraction", info = "Relative time in fraction of song's length to seek forward/backward by.", min=0, max=1)
     public static double seekUnitP = 0.05;
     
@@ -162,7 +164,7 @@ public final class PLAYBACK implements Configurable {
             double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()+seekUnitP;
             seek(min(d, 1));
         } else
-            seek(getCurrentTime().add(Duration.millis(seekUnitT)));
+            seek(getCurrentTime().add(seekUnitT));
     }
     
     /** Seek backward by specified duration */
@@ -172,7 +174,7 @@ public final class PLAYBACK implements Configurable {
             double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()-seekUnitP;
             seek(max(d, 0));
         } else
-            seek(getCurrentTime().subtract(Duration.millis(seekUnitT)));
+            seek(getCurrentTime().subtract(seekUnitT));
     }
     
     /** Seek forward by specified duration */

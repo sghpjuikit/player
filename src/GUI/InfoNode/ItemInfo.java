@@ -54,11 +54,6 @@ public class ItemInfo extends AnchorPane implements SongReader {
         }
 
     }
-
-    // leave the method here as fxml loader might complain
-    public void initialize(URL url, ResourceBundle rb) {
-	// do nothing
-    }
     
     @Override
     public void read(List<? extends Item> items) {

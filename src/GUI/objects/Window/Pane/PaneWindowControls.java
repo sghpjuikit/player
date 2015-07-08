@@ -79,13 +79,6 @@ public class PaneWindowControls extends WindowPane {
 
 //        moveOnDragOf(header);
         
-        header.setOnMousePressed(Event::consume);
-        header.setOnMouseClicked(Event::consume);
-        header.setOnMouseReleased(Event::consume);
-        content.setOnMousePressed(Event::consume);
-        content.setOnMouseClicked(Event::consume);
-        content.setOnMouseReleased(Event::consume);
-        
 	// header double click maximize, show header on/off
 //	root.setOnMouseClicked(e -> {
 //	    if (e.getButton() == MouseButton.PRIMARY)

@@ -475,10 +475,15 @@ public final class Seeker extends AnchorPane {
             ta.setWrapText(true);
             ta.setText(message.getText());
             ta.setOnKeyPressed(e->{
-                if (e.getCode()==ENTER) commitEdit();
-                else if (e.getCode()==ESCAPE) cancelEdit();
-                else return;    // dont consume if nothing happens
-                e.consume();
+                if (e.getCode()==ENTER) {
+                    if(e.isShiftDown()) ta.appendText("\n");
+                    else commitEdit();
+                    e.consume();
+                }
+                else if (e.getCode()==ESCAPE) {
+                    cancelEdit();
+                    e.consume();
+                }
             });
             // maintain proper content
             content.getChildren().add(ta);
@@ -510,8 +515,8 @@ public final class Seeker extends AnchorPane {
             // maintain proper content
             p.getHeaderIcons().set(0, editB);
             p.getHeaderIcons().remove(cancelB);
-                // add remove button back if it wasnt added yet
-            p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);
+            p.getHeaderIcons().remove(delB);    // make sure remB was removed
+            p.getHeaderIcons().add(p.getHeaderIcons().size()-2,delB);   // add remove button back
             // stop edit
             editOn = false;
             if(just_created) Seeker.this.getChildren().remove(this);

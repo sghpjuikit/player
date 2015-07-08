@@ -33,6 +33,8 @@ import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
+import javafx.util.Duration;
+import static javafx.util.Duration.millis;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
@@ -122,7 +124,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 String st = e.getText().toLowerCase();
                 // update scroll text
                 long now = System.currentTimeMillis();
-                boolean append = scrolFTime==-1 || now-scrolFTime<scrolFTimeMax;
+                boolean append = scrolFTime==-1 || now-scrolFTime<scrolFTimeMax.toMillis();
                 scrolFtext = append ? scrolFtext+st : st;
                 scrolFTime = now;
                 search(scrolFtext);
@@ -259,12 +261,12 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     private static final PseudoClass searchmatchnotPC = getPseudoClass("searchmatchnot");
     private final FxTimer scrolFautocancelTimer = new FxTimer(3000,-1,this::searchEnd);
     
-    @IsConfig(name = "Search delay", info = "Maximal time delay (ms) between key strokes. Search text is reset after the delay runs out.")
-    private static long scrolFTimeMax = 500;
+    @IsConfig(name = "Search delay", info = "Maximal time delay between key strokes. Search text is reset after the delay runs out.")
+    private static Duration scrolFTimeMax = millis(500);
     @IsConfig(name = "Search auto-cancel", info = "Deactivates search after period of inactivity.")
     private static boolean scrolFautocancel = true;
     @IsConfig(name = "Search auto-cancel delay", info = "Period of inactivity after which search is automatically deactivated.")
-    private static long scrolFautocancelTime = 3000;
+    private static Duration scrolFautocancelTime = millis(3000);
     @IsConfig(name = "Search use contains", info = "Use 'contains' instead of 'starts with' for string matching.")
     private static boolean scrolFTimeMatchContain = true;
 

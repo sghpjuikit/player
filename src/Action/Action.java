@@ -1,5 +1,5 @@
 
-package Action;
+package action;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.PlaylistManager;

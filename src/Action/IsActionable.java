@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package Action;
+package action;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

@@ -549,7 +549,7 @@ public class SwitchPane implements LayoutAggregator {
         if (d!=1) zoomScaleFactor = d;
         // play
         z.stop();
-        z.setDuration(Duration.millis(gui.GUI.duration_LM));
+        z.setDuration(gui.GUI.duration_LM);
         z.setToX(d);
         z.play();
         zt.stop();

@@ -162,7 +162,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * @param str
      */
     public final void setValueS(String str) {
-        setValue(fromS(str));
+        V v = fromS(str);
+        if(v!=null) setValue(v);
     }
     
     /**

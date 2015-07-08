@@ -42,7 +42,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
     public final Accessor<Pos> align = new Accessor<>(CENTER, thumb::applyAlignment);   
-    @IsConfig(name = "Custom image", info = "Custom static image file.", editable = true)
+    @IsConfig(name = "Custom image", info = "Image file to display.")
     private File img = new File("");
 
     

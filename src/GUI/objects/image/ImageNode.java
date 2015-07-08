@@ -52,7 +52,7 @@ public abstract class ImageNode {
        + "scaling. Avoid values close to 1. "
        + "\n\tYou may expect the image to be scalable. This removes potential "
        + "blur or artifacts from over-scaling low-resolution version. ")
-    public static double LOAD_COEFICIENT = 1.2;
+    public static double LOAD_COEFICIENT = 1.3;
     
     
     /**

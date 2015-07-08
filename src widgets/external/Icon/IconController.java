@@ -1,7 +1,7 @@
 
-package Action;
+package Icon;
 
-import static Action.Action.EMPTY;
+import static action.Action.EMPTY;
 import Configuration.IsConfig;
 import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
@@ -19,14 +19,10 @@ import util.access.Accessor;
 import util.access.AccessorAction;
 import util.graphics.Icons;
 
-/**
- *
- * @author Plutonium_
- */
 @Info(
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
-    name = "Action",
+    name = "Icon",
     description = "Provides button with customizable action.",
     howto = "Available actions:\n" +
             "    Button click : execute action",
@@ -35,7 +31,7 @@ import util.graphics.Icons;
     year = "2014",
     group = Widget.Group.OTHER
 )
-public class ActionController extends FXMLController {
+public class IconController extends FXMLController {
     
     @FXML private StackPane root;
     private final Label button = new Label("");
@@ -50,7 +46,7 @@ public class ActionController extends FXMLController {
     public final Accessor<Pos> align = new Accessor<>(CENTER, v -> StackPane.setAlignment(button, v));
 
     
-    public ActionController(FXMLWidget widget) {
+    public IconController(FXMLWidget widget) {
         super(widget);
     }
     
@@ -71,7 +67,4 @@ public class ActionController extends FXMLController {
        align.applyValue();
     }
 
-    @Override
-    public void onClose() { }
-    
 }

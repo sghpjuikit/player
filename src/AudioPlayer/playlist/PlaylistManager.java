@@ -1,8 +1,8 @@
 
 package AudioPlayer.playlist;
 
-import Action.IsAction;
-import Action.IsActionable;
+import action.IsAction;
+import action.IsActionable;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;

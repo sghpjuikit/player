@@ -3,12 +3,14 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- update LastFM and DB, turn into proper service modules
+- popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
 - use preferences for columns + support playlist table
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
 - decouple playlists
 - FreeForm widget moving by drag + layout mode widget swap collision fix
-- Inspector widgets fix & improve
+- Inspector fix & improve
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo
 - app animated loading
@@ -20,6 +22,7 @@
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
   minimode popups should prevent from autohiding, but how?
+- investigate how to properly remove image scaling artifacts
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dont want to hear about ------------------
@@ -53,7 +56,8 @@ GENERAL
 - popup window fullcreen or maximizing(any) breaks popup position               (minor, but should be fixed if possible)
 - blurry Configurator graphics in custom3 skin - 99% result of the css warnings (javaFX bug ?)
   this happens when something has null skin, investigate & fix
-- Configurator group title alignment doesnt get applied sometimes               (javaFX bug, maybe caused by the css bug)
+- Configurator group title alignment doesnt get applied immediately             (minor)
+  its partially fixed now
 - some songs (happens to be album specific, but specific cause unknown) read    (jaudiotagger bug?)
   length as half of the real one (very irritating bug)
   (dev note: SmilePrecure OST, also a sole bug case)
@@ -128,7 +132,8 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - window color overlay effect
 - window layout aggregators
 - tab area
-
+- generic FileType class, particularly need separation on 'groups' like
+  audio, video, image, etc...
 
 
 - heap: Use -Xmx1g, possibly more

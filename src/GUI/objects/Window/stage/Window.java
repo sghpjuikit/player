@@ -1,9 +1,9 @@
 package gui.objects.Window.stage;
 
-import Action.Action;
+import action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.services.LastFM.LastFMManager;
+import AudioPlayer.services.lasfm.LastFM;
 import AudioPlayer.tagging.Metadata;
 import Configuration.*;
 import Layout.Component;
@@ -414,18 +414,18 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
         // lasFm button - show basic lastFm settings and toggle scrobbling
 	Icon lastFMB = new Icon(null, 13, "LastFM");
-        maintain(LastFMManager.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB.icon);
+        maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB.icon);
 	lastFMB.setOnMouseClicked(e -> {
 	    if (e.getButton() == MouseButton.PRIMARY)
-		if (LastFMManager.getScrobblingEnabled())
-		    LastFMManager.toggleScrobbling();
+		if (LastFM.getScrobblingEnabled())
+		    LastFM.toggleScrobbling();
 		else
-		    if (LastFMManager.isLoginSuccess())
-			LastFMManager.toggleScrobbling();
+		    if (LastFM.isLoginSuccess())
+			LastFM.toggleScrobbling();
 		    else
-			new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
+			new PopOver("LastFM login", LastFM.getLastFMconfig()).show(lastFMB);
 	    else if (e.getButton() == MouseButton.SECONDARY)
-		new PopOver("LastFM login", LastFMManager.getLastFMconfig()).show(lastFMB);
+		new PopOver("LastFM login", LastFM.getLastFMconfig()).show(lastFMB);
 	});
 	// lock layout button
 	Icon lockB = new Icon(null, 13, "Lock layout", GUI::toggleLayoutLocked);

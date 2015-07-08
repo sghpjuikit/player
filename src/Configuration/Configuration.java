@@ -1,7 +1,7 @@
 
 package Configuration;
 
-import Action.Action;
+import action.Action;
 import Configuration.Config.PropertyConfig;
 import Configuration.Config.ReadOnlyPropertyConfig;
 import java.io.File;
@@ -37,7 +37,6 @@ public class Configuration {
     private static final Lookup methodLookup = MethodHandles.lookup();
     
     
-    
     public static void collectAppConfigs() {
         // for all discovered classes
         ClassIndex.getAnnotated(IsConfigurable.class).forEach( c -> {
@@ -53,10 +52,7 @@ public class Configuration {
     }
     
     public static List<Config> getFields() {
-        List<Config> cs = new ArrayList(configs);
-                     cs.addAll(Action.getActions());
-                                          
-        return cs;
+        return new ArrayList(configs);
     }
     
     public static List<Config> getFields(Predicate<Config> condition) {
@@ -108,7 +104,6 @@ public class Configuration {
     }
     
     
-    
 /******************************************************************************/
     
     private static String getGroup(Class<?> c) {
@@ -146,7 +141,6 @@ public class Configuration {
             }
         }
     }
-
     
     static List<Config> configsOf(Class clazz, Object instnc, boolean include_static, boolean include_instance) {
         // check arguments

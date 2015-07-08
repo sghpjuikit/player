@@ -104,7 +104,7 @@ public class ChangeableThumbnail extends Thumbnail {
         PseudoClass highlightedPC = getPseudoClass("highlighted");
         root.pseudoClassStateChanged(highlightedPC, v);
         img_border.pseudoClassStateChanged(highlightedPC, v);
-        image.pseudoClassStateChanged(highlightedPC, v);
+        imageView.pseudoClassStateChanged(highlightedPC, v);
         onHighlight.accept(v);
     }
 }

@@ -1,4 +1,4 @@
-package AudioPlayer.services.LastFM;
+package AudioPlayer.services.lasfm;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -31,14 +31,14 @@ import static util.dev.TODO.Purpose.UNIMPLEMENTED;
  * @author Michal
  */
 @IsConfigurable("LastFM")
-public class LastFMManager {
+public class LastFM {
 
     private static String username;
     private static final String apiKey = "f429ccceafc6b81a6ffad442cec758c3";
     private static final String secret = "8097fcb4a54a9805599060e47ab69561";
 
     private static Session session;
-    private static final Preferences preferences = Preferences.userNodeForPackage(LastFMManager.class);
+    private static final Preferences preferences = Preferences.userNodeForPackage(LastFM.class);
 
     private static boolean percentSatisfied;
     private static boolean timeSatisfied;
@@ -58,17 +58,17 @@ public class LastFMManager {
                             apiKey, secret);
                     Result lastResult = Caller.getInstance().getLastResult();                    
                     if(lastResult.getStatus() != Result.Status.FAILED){
-                        LastFMManager.setLoginSuccess(true);
-                        LastFMManager.start();
+                        LastFM.setLoginSuccess(true);
+                        LastFM.start();
                         super.set(true);
                     }else{
-                        LastFMManager.setLoginSuccess(false);
-                        LastFMManager.stop();
+                        LastFM.setLoginSuccess(false);
+                        LastFM.stop();
                         super.set(false);
                     }
                 }
             } else {
-                LastFMManager.stop();
+                LastFM.stop();
                 super.set(false);
             }
         }
@@ -93,7 +93,7 @@ public class LastFMManager {
     }
 
 
-    public LastFMManager() { }
+    public LastFM() { }
 
     public static void start() {
         playingItemMonitoring = Player.playingtem.subscribeToChanges(itemChangeHandler);
@@ -204,7 +204,7 @@ public class LastFMManager {
 
  
     public void setScrobblingEnabled(boolean value) {
-        LastFMManager.scrobblingEnabled.set(value);
+        LastFM.scrobblingEnabled.set(value);
     }   
     
     

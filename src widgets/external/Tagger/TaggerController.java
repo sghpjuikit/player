@@ -3,7 +3,7 @@ package Tagger;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.Notifier.Notifier;
+import AudioPlayer.services.notif.Notifier;
 import gui.objects.image.cover.Cover;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
 import AudioPlayer.tagging.Metadata;

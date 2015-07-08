@@ -110,13 +110,18 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));
         
-        root.addEventFilter(MOUSE_CLICKED, e -> {
-            if(isAlt && !isAltCon && e.getButton()==SECONDARY)
+        // switch container/normal layout mode using right/left click
+        root.setOnMouseClicked(e -> {
+            if(isAlt && !isAltCon && e.getButton()==SECONDARY) {
                 setAltCon(true);
+                e.consume();
+            }
         });
-        ctrls.addEventHandler(MOUSE_CLICKED, e -> {
-            if(isAltCon && e.getButton()==PRIMARY)
+        ctrls.setOnMouseClicked(e -> {
+            if(isAltCon && e.getButton()==PRIMARY) {
                 setAltCon(false);
+                e.consume();
+            }
         });
     }
     

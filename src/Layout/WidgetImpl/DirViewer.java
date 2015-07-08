@@ -5,34 +5,40 @@
  */
 package Layout.WidgetImpl;
 
+import Configuration.IsConfig;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.ClassController;
 import gui.objects.image.Thumbnail;
-import gui.objects.tree.TreeItems.FileTreeItem;
 import java.io.File;
 import static java.lang.Math.*;
+import java.util.ArrayList;
 import java.util.List;
+import static javafx.collections.FXCollections.observableArrayList;
+import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.*;
-import javafx.scene.control.TreeItem;
+import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.*;
+import main.App;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
+import util.access.Accessor;
 import static util.async.Async.runLater;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.forEachWithI;
+import static util.functional.Util.listRO;
 
 /**
  *
@@ -43,16 +49,22 @@ import static util.functional.Util.forEachWithI;
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "Dir Viewer",
-    description = "",
+    description = "Displays directory hierarchy and files as thumbnails in a "
+            + "vertically scrollable grid. Intended as simle library",
     howto = "",
     notes = "",
-    version = "0.1",
+    version = "0.3",
     year = "2015",
     group = OTHER
 )
 public class DirViewer extends ClassController {
     
-    TreeItem<File> item = null;
+    @IsConfig(name = "Location", info = "Root directory the contents of to display "
+            + "This is not a file system browser, and it is not possible to "
+            + "visit parent of this directory.")
+    final Accessor<File> file = new Accessor<>(App.getLocation(),this::viewDir);
+    
+    Cell item = null;
     CellPane cells = new CellPane(160,220,5);
     
     public DirViewer(ClassWidget widget) {
@@ -60,7 +72,7 @@ public class DirViewer extends ClassController {
         
         addEventFilter(MOUSE_CLICKED, e -> {
             if(e.getButton()==SECONDARY && item!=null) {
-                if(item.getParent()!=null) viewDir(item.getParent());
+                if(item.parent!=null) viewDir(item.parent);
             }
         });
         
@@ -74,20 +86,124 @@ public class DirViewer extends ClassController {
         setAnchors(layout,0);
                     
         setOnScroll(Event::consume);
-        
-        viewDir(new FileTreeItem(new File("P:\\")));
+    }
+
+    @Override
+    public void refresh() {
+        file.applyValue();
     }
     
     public void viewDir(File dir) {
-        viewDir(new FileTreeItem(dir));
+        viewDir(new Cell(null,dir));
     }
-    public void viewDir(TreeItem<File> dir) {
+    
+    public void viewDir(Cell dir) {
         item = dir;
         if(item==null) cells.getChildren().clear();
-        else cells.getChildren().setAll(filterMap(item.getChildren(),i->!ImageFileFormat.isSupported(i.getValue()),Cell::new));
+        else cells.getChildren().setAll(filterMap(item.children(),i->!ImageFileFormat.isSupported(i.val),Cell::load));
     }
     
     
+    public class Cell {
+        
+        public final File val;
+        public final Cell parent;
+        
+        private boolean isLeaf;
+        private boolean isFirstTimeLeaf = true;
+        private boolean isFirstTimeChildren = true;
+        private final ObservableList<Cell> childr = observableArrayList();
+        
+        public Cell(Cell parent, File value) {
+            this.val = value;
+            this.parent = parent;
+        }
+        
+        public ObservableList<Cell> children() {
+            if (isFirstTimeChildren) {
+                childr.setAll(buildChildren(this));
+                isFirstTimeChildren = false;
+            }
+            return childr;
+        }
+        
+        boolean isFirstTimeCover = true;
+        Image cover = null;
+        public File getCoverFile() {
+            File f = val;
+            File i = f.isDirectory() ? new File(f,"cover.jpg")
+                                       : new File(f.getParent(),FileUtil.getName(f)+".jpg");
+            return i;
+        }
+        public Image getCover() {
+            return cover;
+        }
+        public void setCover(Image i) {
+            cover = i;
+            isFirstTimeCover=false;
+        }
+
+//        @Override public boolean isLeaf() {
+//            if (isFirstTimeLeaf) {
+//                isFirstTimeLeaf = false;
+//                isLeaf = getValue().isFile();
+//            }
+//
+//            return isLeaf;
+//        }
+
+        private List<Cell> buildChildren(Cell i) {
+            File value = i.val;
+            if (value != null && value.isDirectory()) {
+                File[] all = value.listFiles();
+                if (all != null) {
+                    // we want to sort the items : directories first
+                    List<Cell> fils = new ArrayList();
+                    List<Cell> dirs = new ArrayList();
+                    for (File f : all) {
+                        if(!f.isDirectory()) dirs.add(new Cell(i,f));
+                        else                 fils.add(new Cell(i,f));
+                    }
+                           fils.addAll(dirs);
+                    return fils;
+                }
+            }
+
+            return listRO();
+        }
+        
+        
+        private VBox n;
+        public Node load() {
+            if(n==null) {
+                File dir = val;
+                n = new VBox();
+                n.setPrefSize(160,220);
+
+                Thumbnail t = new Thumbnail(160,200);
+                if(isFirstTimeCover) {
+                    File cf = getCoverFile();
+                    t.image.addListener((o,ov,nv) -> setCover(nv));
+                    t.loadImage(cf);
+                } else {
+                    t.loadImage(getCover());
+                }
+                t.getPane().setOnMouseClicked(e -> {
+                    if(e.getButton()==PRIMARY && e.getClickCount()==2) {
+                        if(dir.isDirectory()) viewDir(this);
+                        else Environment.open(dir);
+                        e.consume();
+                    }
+                });
+
+                Label l = new Label(dir.getName());
+                n.getChildren().addAll(t.getPane(),l);
+
+                n.setAlignment(Pos.CENTER);
+            }
+            return n;
+        }
+    }
     public class CellPane extends Pane {
         double cellw = 100;
         double cellh = 100;
@@ -125,28 +241,5 @@ public class DirViewer extends ClassController {
             runLater(()->setPrefHeight(rows*(cellh+gapy)));
         }
         
-    }
-    public class Cell extends VBox {
-        Cell(TreeItem<File> dir_item) {
-            File dir = dir_item.getValue();
-            setPrefSize(160,220);
-            
-            File i = dir.isDirectory() ? new File(dir,"cover.jpg")
-                                       : new File(dir.getParent(),FileUtil.getName(dir)+".jpg");
-            Thumbnail t = new Thumbnail(160,200);
-            t.loadImage(i.exists() ? i : null);
-            t.getPane().setOnMouseClicked(e -> {
-                if(e.getButton()==PRIMARY && e.getClickCount()==2) {
-                    if(dir.isDirectory()) viewDir(dir_item);
-                    else Environment.open(dir);
-                    e.consume();
-                }
-            });
-            
-            Label l = new Label(dir.getName());
-            getChildren().addAll(t.getPane(),l);
-            
-            setAlignment(Pos.CENTER);
-        }
     }
 }

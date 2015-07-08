@@ -119,7 +119,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     public static boolean animated = false;
     
     AnchorPane root = new AnchorPane();
-    @FXML ImageView image;
+    @FXML ImageView imageView;
     @FXML StackPane img_container;
     @FXML BorderPane content_container;
     @FXML Pane img_border;
@@ -131,6 +131,15 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
      * More/other file-related functionalities could be supported in the future.
      */
     File img_file;
+    /** 
+     * Displayed image. Editable, but it is recommended to use one of the load 
+     * methods instead. Note, that those load the image on bgr thread and setting
+     * this property is delayed until the image fully loads. Until then this
+     * thumbnail will keep showing the previous image and this property will
+     * reflect that. Thus calling get() on this property may not provide the
+     * expected result.
+     */
+    public final ObjectProperty<Image> image;
     
     /** Constructor. 
      * Use if you need  default thumbnail size and the image is expected to
@@ -166,8 +175,9 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         
         // load fxml part
         new ConventionFxmlLoader(Thumbnail.class, root, this).loadNoEx();
-        
-        image.getStyleClass().add(image_styleclass);
+
+        image = imageView.imageProperty();
+        imageView.getStyleClass().add(image_styleclass);
         
         // animations
         installScaleOnHover();
@@ -177,22 +187,22 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         root.setPrefSize(width,height);
         root.setMaxSize(width,height);
         // bind image sizes to size
-        image.setFitHeight(height);
-        image.setFitWidth(width);
-        image.fitHeightProperty().bind(Bindings.min(root.heightProperty(), maxIMGH));
-        image.fitWidthProperty().bind(Bindings.min(root.widthProperty(), maxIMGW));
+        imageView.setFitHeight(height);
+        imageView.setFitWidth(width);
+        imageView.fitHeightProperty().bind(Bindings.min(root.heightProperty(), maxIMGH));
+        imageView.fitWidthProperty().bind(Bindings.min(root.widthProperty(), maxIMGW));
 
         
         // update ratios
         ratioALL.bind(root.widthProperty().divide(root.heightProperty()));
-        image.imageProperty().addListener((o,ov,nv) ->
+        imageView.imageProperty().addListener((o,ov,nv) ->
             ratioIMG.set(nv==null ? 1 : nv.getWidth()/nv.getHeight())
         );
         // keep image border size in line with image size bind pref,max size
         ratioIMG.greaterThan(ratioALL).addListener(border_sizer);
 
         // initialize values
-        image.setCache(false);
+        imageView.setCache(false);
         setSmooth(true);
         setPreserveRatio(true);
         setBorderToImage(false);
@@ -271,7 +281,7 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         if(id!=loadId) return;
         
         img_file = f;
-        image.setImage(i);
+        imageView.setImage(i);
         border_sizer.changed(null, false, ratioIMG.get()>ratioALL.get());
         if(i!=null) {
             maxIMGW.set(i.getWidth()*maxScaleFactor);
@@ -286,14 +296,14 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
     
     @Override
     public Image getImage() {
-        return image.getImage();
+        return imageView.getImage();
     }
     public boolean isEmpty() {
         return getImage() == null;
     }
     @Override
     protected ImageView getView() {
-        return image;
+        return imageView;
     }
     
     /**
@@ -493,15 +503,15 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
 //            DoubleProperty i = nv ? image.fitWidthProperty() : image.fitHeightProperty();
 //            DoubleBinding ii = nv ? i.divide(ratioIMG) : i.multiply(ratioIMG);
             if(nv) {
-                img_border.prefWidthProperty().bind(image.fitWidthProperty());
-                img_border.maxWidthProperty().bind(image.fitWidthProperty());
-                img_border.prefHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));
-                img_border.maxHeightProperty().bind(image.fitWidthProperty().divide(ratioIMG));
+                img_border.prefWidthProperty().bind(imageView.fitWidthProperty());
+                img_border.maxWidthProperty().bind(imageView.fitWidthProperty());
+                img_border.prefHeightProperty().bind(imageView.fitWidthProperty().divide(ratioIMG));
+                img_border.maxHeightProperty().bind(imageView.fitWidthProperty().divide(ratioIMG));
             } else {
-                img_border.prefWidthProperty().bind(image.fitHeightProperty().multiply(ratioIMG));
-                img_border.maxWidthProperty().bind(image.fitHeightProperty().multiply(ratioIMG));
-                img_border.prefHeightProperty().bind(image.fitHeightProperty());
-                img_border.maxHeightProperty().bind(image.fitHeightProperty());
+                img_border.prefWidthProperty().bind(imageView.fitHeightProperty().multiply(ratioIMG));
+                img_border.maxWidthProperty().bind(imageView.fitHeightProperty().multiply(ratioIMG));
+                img_border.prefHeightProperty().bind(imageView.fitHeightProperty());
+                img_border.maxHeightProperty().bind(imageView.fitHeightProperty());
             }
         } else {
             if(!root.getChildren().contains(img_border)) root.getChildren().add(img_border);

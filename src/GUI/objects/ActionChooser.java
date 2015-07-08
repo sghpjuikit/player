@@ -128,7 +128,7 @@ public class ActionChooser<T> extends StackPane {
         double w = getWidth();
         
         forEachWithI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, hx*(i+1)-o.getHeight()/2));
-        forEachWithI(in_nodes, (i,o) -> o.relocate(5, 80*(i+1)));
+        forEachWithI(in_nodes, (i,o) -> o.relocate(5, hx*(i+1)-o.getHeight()/2));
     }
     
     
@@ -357,7 +357,7 @@ public class ActionChooser<T> extends StackPane {
                     Point2D start = ni.localToScene(ni.getBoundsInParent().getMinX()+10,ni.getBoundsInParent().getMinY());
                             start = start.subtract(translation_x,header);
 //                            start = new Point2D(start.getX()/scale.getX(), start.getY()/scale.getY());
-                    Point2D end = no.localToScene(no.getBoundsInParent().getMinX()+20,no.getBoundsInParent().getMinY());
+                    Point2D end = no.localToScene(no.getBoundsInParent().getMinX()+10,no.getBoundsInParent().getMinY());
                             end = end.subtract(translation_x,header);
 //                            end = new Point2D(end.getX()-translation_x*scale.getX(), end.getY()/scale.getY());
                     new IOLine(input,output).lay(start.getX(),start.getY(),end.getX(),end.getY());

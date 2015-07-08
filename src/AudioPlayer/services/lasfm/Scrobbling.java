@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioPlayer.services.LastFM;
+package AudioPlayer.services.lasfm;
 
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
@@ -30,7 +30,7 @@ public class Scrobbling {
         apiKey = acquireApiKey();
         secret = acquireSecret();
 
-        preferences = Preferences.userNodeForPackage(LastFMManager.class);
+        preferences = Preferences.userNodeForPackage(LastFM.class);
     }
 
     protected void updateNowPlaying() {

@@ -173,8 +173,6 @@ public class LibraryController extends FXMLController implements SongReader {
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
     @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
-    @IsConfig(editable = false)
-    private TableColumnInfo columnInfo;
     
     @IsConfig(editable = false)
     private File last_file = new File("");
@@ -222,8 +220,9 @@ public class LibraryController extends FXMLController implements SongReader {
         
         // maintain rating column cell style
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
-        columnInfo = table.getDefaultColumnInfo();
         
+        table.getDefaultColumnInfo();
+                
         // row behavior
         table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
                 .onLeftDoubleClick((r,e) -> {
@@ -334,7 +333,10 @@ public class LibraryController extends FXMLController implements SongReader {
 
     @Override
     public void refresh() {
-        runOnce.execute(()->table.setColumnState(columnInfo));
+        runOnce.execute(() -> {
+            String c = getWidget().properties.getS("columns");
+            table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
+        });
         
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
@@ -434,22 +436,14 @@ public class LibraryController extends FXMLController implements SongReader {
     @Override
     public Collection<Config<Object>> getFields() {
         // serialize column state when requested
-        columnInfo = table.getColumnState();
+        getWidget().properties.put("columns", table.getColumnState().toString());
         return super.getFields();
-    }
-
-    @Override
-    public Config getField(String name) {
-        // serialize column state when requested
-        if("columnInfo".equals(name)) columnInfo = table.getColumnState();
-        return super.getField(name);
     }
     
 /****************************** CONTEXT MENU **********************************/
     
     private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
         () -> {
-            
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {                     
                     List<PlaylistItem> to_play = map(m.getValue(), Metadata::toPlaylist);

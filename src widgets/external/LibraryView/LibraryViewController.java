@@ -130,8 +130,6 @@ public class LibraryViewController extends FXMLController {
     public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
     @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
     public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
-    @IsConfig(editable = false)
-    private TableColumnInfo columnInfo;
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
@@ -178,7 +176,7 @@ public class LibraryViewController extends FXMLController {
         });
         // maintain rating column cell style
         App.ratingCell.addListener((o,ov,nv) -> table.getColumn(AVG_RATING).ifPresent(c->c.setCellFactory((Callback)nv)));
-        columnInfo = table.getDefaultColumnInfo();
+        table.getDefaultColumnInfo();
         
         // rows
         table.setRowFactory(tbl -> new ImprovedTableRow<MetadataGroup>()
@@ -272,7 +270,10 @@ public class LibraryViewController extends FXMLController {
     
     @Override
     public void refresh() {
-        runOnce.execute(()->table.setColumnState(columnInfo));
+        runOnce.execute(() -> {
+            String c = getWidget().properties.getS("columns");
+            table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
+        });
         table_orient.applyValue();
         zeropad.applyValue();
         orig_index.applyValue();
@@ -290,15 +291,8 @@ public class LibraryViewController extends FXMLController {
     @Override
     public Collection<Config<Object>> getFields() {
         // serialize column state when requested
-        columnInfo = table.getColumnState();
+        getWidget().properties.put("columns", table.getColumnState().toString());
         return super.getFields();
-    }
-
-    @Override
-    public Config getField(String name) {
-        // serialize column state when requested
-        if("columnInfo".equals(name)) columnInfo = table.getColumnState();
-        return super.getField(name);
     }
     
     

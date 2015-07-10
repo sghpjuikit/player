@@ -722,10 +722,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// remove from window list as life time of this ends
 	windows.remove(this);
 	if (main) {
-            // close all pop overs first (or we risk an exception and not closing app
-	    // properly - PopOver bug
-	    // also have to create new list or we risk ConcurrentModificationError
-	    new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly);
+            // javaFX bug fix - close all pop overs first
+	    // new list avoids ConcurrentModificationError
+	    new ArrayList<>(PopOver.active_popups).forEach(PopOver::hideImmediatelly); 
 	    // act as main window and close whole app
 	    App.getWindowOwner().close();
 	}

@@ -3,9 +3,10 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- now that playlist table colums serialize, the playlist table column resizing
+  being busted is real buzzkill, we need more buzz
 - update LastFM and DB, turn into proper service modules
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
-- use preferences for columns + support playlist table
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
 - decouple playlists
@@ -32,7 +33,6 @@ PROTIP:
 - util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
 
 GENERAL
-- periodic gui freeze + slowdown                                                (major)
   Appear after using Tagger to edit songs sometimes. Once after just 
   opening Library + 2x LibraryView
   problem: probably Fut (or something else?) blocking FX thread

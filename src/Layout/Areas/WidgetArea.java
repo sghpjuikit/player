@@ -53,8 +53,7 @@ public final class WidgetArea extends Area<Container> {
 //        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
         
         // support drag from - done in controls: AreaControls.class
-        // return graphics to normal
-        root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+
         // accept drag onto
         root.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto

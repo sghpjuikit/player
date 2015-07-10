@@ -11,6 +11,7 @@ import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.ClassController;
+import com.sun.javafx.scene.control.skin.VirtualFlow;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import static java.lang.Math.*;
@@ -71,8 +72,8 @@ public class DirViewer extends ClassController {
         super(widget);
         
         addEventFilter(MOUSE_CLICKED, e -> {
-            if(e.getButton()==SECONDARY && item!=null) {
-                if(item.parent!=null) viewDir(item.parent);
+            if(e.getButton()==SECONDARY && item!=null && item.parent!=null) {
+                viewDir(item.parent);
             }
         });
         

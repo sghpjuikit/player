@@ -6,7 +6,7 @@
 package Layout.Areas;
 
 import Layout.*;
-import static Layout.Areas.Area.bgr_STYLECLASS;
+import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
@@ -16,13 +16,14 @@ import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javafx.event.EventHandler;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import main.App;
@@ -37,8 +38,6 @@ import static util.reactive.Util.maintain;
  * @author Plutonium_
  */
 public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
-
-    private static final String S = "area-control";
     
     protected final C container;
     protected final AnchorPane root = new AnchorPane();
@@ -54,8 +53,8 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         this.container = container;
 
         root.getChildren().add(ctrls);
-        ctrls.getStyleClass().addAll(bgr_STYLECLASS);
         setAnchors(ctrls, 0);
+        ctrls.getStyleClass().addAll(CONTAINER_AREA_CONTROLS_STYLECLASS);
 
 	// build header buttons
 	Icon infoB = new Icon(INFO, 12, "Help", ()->{});
@@ -79,24 +78,33 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	    App.actionStream.push("Close widget");
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
-        dragB.setOnDragDetected( e -> {
+        
+        // accept drag onto
+        root.setOnDragOver(DragUtil.componentDragAcceptHandler);
+        // handle drag onto
+        ctrls.setOnDragDropped( e -> {
+            if (DragUtil.hasComponent()) {
+                Container c = container.getParent();
+                c.swapChildren(c.indexOf(container),DragUtil.getComponent());
+                e.setDropCompleted(true);
+                e.consume();
+            }
+        });
+        // not that dragging children will drag those, dragging container
+        // will drag whole container with all its children
+        EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(container.getParent(),container,db);
                 // signal dragging graphically with css
-                root.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                ctrls.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
                 e.consume();
             }
-        });
-        root.setOnDragDetected( e -> {
-            if (GUI.isLayoutMode() && e.getButton()==PRIMARY) {   // primary button drag only
-                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(container.getParent(),container,db);
-                // signal dragging graphically with css
-                root.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
-                e.consume();
-            }
-        });
+        };
+        dragB.setOnDragDetected(dh);
+        ctrls.setOnDragDetected(dh);
+        // return graphics to normal
+        root.setOnDragDone( e -> ctrls.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
         
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);
@@ -145,7 +153,6 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         isAlt = false;
         hideChildren();
         getAreas().forEach(AltState::hide);
-        
     }
 
     abstract public void showChildren();

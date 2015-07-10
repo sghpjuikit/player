@@ -354,7 +354,7 @@ public final class Seeker extends AnchorPane {
                 content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 content.autosize();
                 // buttons
-                editB = new Icon(PENCIL, 11, "Edit chapter", this::startEdit);
+                editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);
                 commitB = new Icon(CHECK, 11, "Confirm changes", this::commitEdit);
                 delB = new Icon(TRASH_ALT, 11, "Remove chapter", () -> {
                      Metadata m = Player.playingtem.get();
@@ -476,7 +476,7 @@ public final class Seeker extends AnchorPane {
             ta.setText(message.getText());
             ta.setOnKeyPressed(e->{
                 if (e.getCode()==ENTER) {
-                    if(e.isShiftDown()) ta.appendText("\n");
+                    if(e.isShiftDown()) appendToCaret(ta, "\n");//ta.appendText("\n");
                     else commitEdit();
                     e.consume();
                 }
@@ -494,6 +494,19 @@ public final class Seeker extends AnchorPane {
                 // do not add remove buton if the chapter is being created
             if (!Player.playingtem.get().containsChapterAt(c.getTime()))
                 p.getHeaderIcons().remove(delB);
+        }
+        
+        private void appendToCaret(TextArea a, String s) {
+            String t = a.getText();
+            int i = a.getCaretPosition();
+            if(i>=t.length()) 
+                a.appendText(s);
+            else {
+                String s1 = t.substring(0, i);
+                String s2 = t.substring(i, t.length());
+                a.setText(s1+s+s2);
+                // actually we should somehow move caret to i+s/length but HOW?
+            }
         }
         
         /** Ends editable mode and applies changes. */

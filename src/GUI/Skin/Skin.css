@@ -3258,27 +3258,37 @@
     -fx-stroke-line-cap: butt;
 }
 
-/* 
+/**
  * Widget area
- * inherits: .block
  * pseudoclasses: dragged
  */
 .area {
+    -fx-background-color: -fx-pane-color;
     // default padding for all widgets
     // note: widgets shouldnt have their own padding to remain consistent
-    -fx-padding: 4;
+    -fx-padding: 4 ;
     -fx-background-insets: 2;   // margin, by default set to area-path-border width
 }
 
-.area:dragged {
+/**
+ * Widget area controls. Shown in layout mode. 
+ */
+.widget-control {
+    -fx-background-color: null;
+}
+/**
+ * Container area in layout mode. Inherits .block styleclas.
+ */
+.container-control {
+    -fx-background-color: -fx-pane-color;
+}
+
+.area:dragged,
+.widget-control:dragged,
+.container-control:dragged {
     -fx-background-color: -fx-pane-color-dragged;
 }
 
-/* Widget area in layout mode. Inherits .block styleclas.
-   Does not inherit .area. So even the same attributes must be repeated.*/
-.area-control {
-    
-}
 
 .freeflowcontainer-window {
     

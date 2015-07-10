@@ -6,6 +6,7 @@ import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistItem.Field;
 import AudioPlayer.playlist.PlaylistManager;
+import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
@@ -25,6 +26,7 @@ import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
 import gui.objects.SimpleConfigurator;
 import gui.objects.Table.PlaylistTable;
+import gui.objects.Table.TableColumnInfo;
 import java.io.File;
 import java.util.Collection;
 import java.util.Date;
@@ -48,6 +50,7 @@ import javafx.scene.layout.VBox;
 import static util.Util.consumeOnSecondaryButton;
 import static util.Util.menuItem;
 import util.access.Accessor;
+import util.async.executor.LimitedExecutor;
 import util.async.runnable.Run;
 import static util.functional.Util.isNotNULL;
 import util.graphics.Icons;
@@ -128,6 +131,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         setUseFilterForPlayback(v);
     });
     
+    private final LimitedExecutor runOnce = new LimitedExecutor(1);
     private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
             table.setItemsRaw((Collection) c.getList());
     private final InvalidationListener predicateL = o -> 
@@ -191,10 +195,21 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         table.dispose();
     }
     
+    @Override
+    public Collection<Config<Object>> getFields() {
+        // serialize column state when requested
+        getWidget().properties.put("columns", table.getColumnState().toString());
+        return super.getFields();
+    }
+    
 /******************************** PUBLIC API **********************************/
     
     @Override
     public void refresh() {
+        runOnce.execute(() -> {
+            String c = getWidget().properties.getS("columns");
+            table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
+        });
         table_orient.applyValue();
         zeropad.applyValue();
         show_menu_button.applyValue();

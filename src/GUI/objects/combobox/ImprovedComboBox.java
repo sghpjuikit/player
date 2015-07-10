@@ -5,6 +5,7 @@
  */
 package gui.objects.combobox;
 
+import de.jensd.fx.glyphs.GlyphIconName;
 import static java.util.Objects.requireNonNull;
 import java.util.function.Function;
 import javafx.scene.control.ComboBox;

@@ -14,6 +14,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.css.*;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.control.ContentDisplay;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -61,10 +63,9 @@ public class Icon<I extends Icon> extends Label {
 //            ((Text)getGraphic()).minWidth(nv);
 //            ((Text)getGraphic()).prefWidth(nv);
 //            ((Text)getGraphic()).prefHeight(nv);
-//            ((Text)getGraphic()).maxHeight(nv);
+//            ((Text)getGraphic()).maxWidth(nv);
 //            ((Text)getGraphic()).maxHeight(nv);
 //            ((Text)getGraphic()).getTransforms().clear();
-//            setPadding(Insets.EMPTY);
         }
     };
 

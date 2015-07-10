@@ -6,6 +6,7 @@
 package Layout.Areas;
 
 import static Layout.Areas.Area.draggedPSEUDOCLASS;
+import javafx.event.EventHandler;
 import Layout.BiContainer;
 import Layout.Container;
 import Layout.Widgets.Widget;
@@ -125,6 +126,8 @@ public final class AreaControls {
         // load fxml
         new ConventionFxmlLoader(AreaControls.class, root, this).loadNoEx();
 
+        root.getStyleClass().add(Area.WIDGET_AREA_CONTROLS_STYLECLASS);
+        
 	// avoid clashing of title and control buttons for small root size
 	header_buttons.maxWidthProperty()
 	    .bind(root.widthProperty().subtract(title.widthProperty())
@@ -152,24 +155,23 @@ public final class AreaControls {
 	    updateAbsB();
 	});
         Icon dragB = new Icon(MAIL_REPLY, 12, dragbTEXT);
-        dragB.setOnDragDetected( e -> {
+        
+        // dragging
+        EventHandler<MouseEvent> dh = e -> {
             if (e.getButton()==PRIMARY) {   // primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(area.container,area.getActiveWidget(),db);
                 // signal dragging graphically with css
-                area.getContent().pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                root.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
                 e.consume();
             }
-        });
-        root.setOnDragDetected( e -> {
-            if (GUI.isLayoutMode() && e.getButton()==PRIMARY) {   // primary button drag only
-                Dragboard db = root.startDragAndDrop(TransferMode.ANY);
-                DragUtil.setComponent(area.container,area.getActiveWidget(),db);
-                // signal dragging graphically with css
-                area.getContent().pseudoClassStateChanged(draggedPSEUDOCLASS, true);
-                e.consume();
-            }
-        });
+        };
+        dragB.setOnDragDetected(dh);
+        root.setOnDragDetected(dh);
+        // return graphics to normal
+        root.setOnDragDone( e -> root.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        
+        
 	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo);
         
 	// build header

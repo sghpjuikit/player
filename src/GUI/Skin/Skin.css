@@ -3580,7 +3580,8 @@
  * properties: icon - String of the glyph
  */
 .icon {
-    //icon: "CLOSE";
+    // default icon shown when none is specified by code
+    icon: "CLOSE";
 }
 
 .icon:hover {

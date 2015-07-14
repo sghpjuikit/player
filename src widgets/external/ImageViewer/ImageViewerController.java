@@ -176,11 +176,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Displayed image", editable = false)
     private int active_image = -1;
     
-        
-    public ImageViewerController(FXMLWidget widget) {
-        super(widget);
-        in_meta.bind(Player.playing.o);
-    }
     
     ActionChooser act_pane;
     @Override
@@ -192,6 +187,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     /** {@inheritDoc} */
     @Override
     public void init() {
+        in_meta.bind(Player.playing.o);
+        
         loadSkin("skin.css",entireArea);
         
         // main image

@@ -5,7 +5,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" snapToPixel="true" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root id="AnchorPane" maxHeight="-1.0" maxWidth="-1.0" minHeight="-1.0" minWidth="-1.0" snapToPixel="true" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
   <children>
     <ScrollPane fx:id="fieldsPane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="-1.0" maxWidth="-1.0" prefHeight="-1.0" prefViewportHeight="0.0" prefWidth="-1.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <content>
@@ -20,7 +20,7 @@
                 <Insets />
               </padding>
               <rowConstraints>
-                <RowConstraints fillHeight="false" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="20.0" valignment="CENTER" vgrow="ALWAYS" />
+                <RowConstraints fillHeight="false" maxHeight="-Infinity" minHeight="20.0" prefHeight="20.0" valignment="CENTER" vgrow="ALWAYS" />
               </rowConstraints>
             </GridPane>
           </children>

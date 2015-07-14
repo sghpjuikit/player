@@ -1,6 +1,5 @@
 package gui.objects.Window.stage;
 
-import action.Action;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.lasfm.LastFM;
@@ -9,10 +8,8 @@ import Configuration.*;
 import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
-import Layout.Widgets.WidgetManager;
-import Layout.Widgets.WidgetManager.WidgetSource;
-import Layout.Widgets.feature.ConfiguringFeature;
 import Serialization.SelfSerializator;
+import action.Action;
 import com.sun.glass.ui.Robot;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
@@ -24,7 +21,6 @@ import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
@@ -67,7 +63,6 @@ import javafx.stage.Screen;
 import static javafx.stage.StageStyle.*;
 import main.App;
 import org.reactfx.Subscription;
-import static util.File.Environment.browse;
 import util.Util;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
@@ -390,25 +385,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    }
 	});        
         
-	// github button - show all available FontAwesome icons in a popup
-	Icon gitB = new Icon(GITHUB, 13, "Open github project page for this application",
-	    e -> browse(App.getGithubLink()));
-	// github button - show all available FontAwesome icons in a popup
-	Icon dirB = new Icon(CSS3, 13, "Open css guide",
-	    e -> browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html"));
-	// css button - show all available FontAwesome icons in a popup
-	Icon cssB = new Icon(FOLDER, 13, "Open application location (development tool)",
-	    e -> browse(App.getLocation()));
-	// icon button - show all available FontAwesome icons in a popup
-	Icon iconsB = new Icon(IMAGE, 13, "Icon browser (development tool)", 
-            e -> {
-                Pane g = new GlyphsBrowser(); g.setPrefHeight(700);
-                new PopOver(g).show((Node)e.getSource());
-            });
-//            e -> new PopOver(new GlyphsBrowser()).show((Node)e.getSource()));
-	// settings button - show application settings in a popup
-	Icon propB = new Icon(GEARS, 13, "Application settings",
-	    e -> WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT));
+	Icon gitB = new Icon(GITHUB, 13, Action.getAction("Open github page"));
+	Icon dirB = new Icon(CSS3, 13, Action.getAction("Open app dir"));
+	Icon cssB = new Icon(FOLDER, 13, Action.getAction("Open css guide"));
+	Icon iconsB = new Icon(IMAGE, 13, Action.getAction("Open icon viewer"));
+	Icon propB = new Icon(GEARS, 13, Action.getAction("Open settings"));
 	// manage layout button - sho layout manager in a popp
 	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));

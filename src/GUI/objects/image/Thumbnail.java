@@ -574,10 +574,9 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
                     Node cn = c.load();
                     n.getChildren().add(cn);
                     Util.setAnchors(cn, 0);
-                    ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
                     p.getContent().setAll(n);
                     p.show(m.getValue().getPane().getScene().getWindow(), s.getBounds().getMinX(), s.getBounds().getMinY());
-                          
+                    ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());
                           
                 }),
                 menuItem("Open image", e ->

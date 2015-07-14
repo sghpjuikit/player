@@ -198,7 +198,9 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         }
 
         @Override
-        protected void generateValue() {}
+        protected void generateValue() {
+            changeValue(null);
+        }
 
         @Override
         public V getValue() {
@@ -213,10 +215,11 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
     }
     
     
-    public static class ConfigPane<T> implements ConfiguringFeature {
+    public static class ConfigPane<T> implements ConfiguringFeature{
         private final VBox root = new VBox(5);
         private final List<ConfigField<T>> configs = new ArrayList();
         
+        public ConfigPane() {}
         public ConfigPane(Collection<Config<T>> configs) {
             this.configs.clear();
             configure((Collection)configs);
@@ -231,6 +234,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
                 ConfigField cf = ConfigField.create(c);
                 this.configs.add(cf);
                 Label l = cf.getLabel();
+                      l.setMinWidth(100);
                       l.setPrefWidth(100);
                       l.setTextAlignment(TextAlignment.RIGHT);
                       l.setPadding(new Insets(0, 0, 0, 5));

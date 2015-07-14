@@ -46,10 +46,6 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     private File img = new File("");
 
     
-    public ImageController(FXMLWidget widget) {
-        super(widget);
-    }
-    
     @Override
     public void init() {
         thumb.setBackgroundVisible(false);

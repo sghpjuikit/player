@@ -6,7 +6,7 @@
 package Layout.Areas;
 
 import Layout.*;
-import static Layout.Areas.Area.draggedPSEUDOCLASS;
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS_SQUARE_ALT;
 import gui.GUI;
@@ -74,7 +74,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         // do not support drag from (widget areas already do that for us)
         rt.setOnDragDetected(null);
         // return graphics to normal
-        rt.setOnDragDone( e -> rt.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        rt.setOnDragDone(e -> rt.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
         // accept drag onto
         rt.setOnDragOver(DragUtil.componentDragAcceptHandler);
         // handle drag onto

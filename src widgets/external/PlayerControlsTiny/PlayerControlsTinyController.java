@@ -81,10 +81,6 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     public boolean playDropped = false;
     
         
-    public PlayerControlsTinyController(FXMLWidget widget) {
-        super(widget);
-    }
-    
     @Override
     public void init() {
         // make volume

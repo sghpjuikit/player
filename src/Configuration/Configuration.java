@@ -1,9 +1,11 @@
 
 package Configuration;
 
-import action.Action;
+import Configuration.Config.ListAccessor;
+import Configuration.Config.ListConfig;
 import Configuration.Config.PropertyConfig;
 import Configuration.Config.ReadOnlyPropertyConfig;
+import action.Action;
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -45,10 +47,21 @@ public class Configuration {
             // add methods in the end to avoid incorrect initialization
             discoverMethodsOf(c);        
         });
+        // add service configs
+        App.services.forEach(s -> configs.addAll(s.getFields()));
+        
+        
+        configs.stream().filter(Config::isEditable)
+                        .filter(c -> c.getType().equals(Boolean.class))
+                        .map(c -> (Config<Boolean>) c)
+                        .forEach(c -> {
+                            String name = c.getGroup()+" "+c.getName() + " - toggle";
+                            Runnable r = ()->c.setNextNapplyValue();
+                            Action.getActions().add(new Action(name, r, "Toggles value between yes and no", "", false, false));
+                        });
+        
         // add actions
         configs.addAll(Action.getActions());
-        // add services
-        App.services.forEach(s -> configs.addAll(s.getFields()));
     }
     
     public static List<Config> getFields() {
@@ -200,6 +213,8 @@ public class Configuration {
         try {
             requireFinal(f);            // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
+            if(ListAccessor.class.isAssignableFrom(f.getType()))
+                return new ListConfig(name, anotation, (ListAccessor)f.get(instance), group);
             if(WritableValue.class.isAssignableFrom(f.getType()))
                 return new PropertyConfig(name, anotation, (WritableValue)f.get(instance), group);
             if(ReadOnlyProperty.class.isAssignableFrom(f.getType()))

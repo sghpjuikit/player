@@ -670,23 +670,6 @@ public class Util {
         return null;
     }
     
-    public static Field getField(Class clazz, String name) throws NoSuchFieldException {
-       // get all fields of the class (but not inherited fields)
-       Field f = null;
-        try {
-            f = clazz.getDeclaredField(name);
-        } catch (NoSuchFieldException | SecurityException ex) {
-            // ignore
-        }
-       
-       if (f!=null) return f;
-       
-       Class superClazz = clazz.getSuperclass();
-       // get super class' fields recursively
-       if (superClazz != null) return getField(superClazz, name);
-       else throw new NoSuchFieldException();
-    }
-    
     /** 
      * Returns all superclasses and interfaces.
      * @return list containing all superclasses
@@ -776,8 +759,34 @@ public class Util {
         return (Class) ((ParameterizedType) c.getGenericInterfaces()[i]).getActualTypeArguments()[p];
     }
     
+    /** 
+     * Returns field named n declared in class c.
+     * 
+     * @implSpec the field can be declared in the class or any of its supoerclasses
+     * as opposed to standard reflection behavior which checks only the specified class 
+     */
+    public static Field getField(Class c, String n) throws NoSuchFieldException {
+       // get all fields of the class (but not inherited fields)
+       Field f = null;
+        try {
+            f = c.getDeclaredField(n);
+        } catch (NoSuchFieldException | SecurityException ex) {
+            // ignore
+        }
+       
+       if (f!=null) return f;
+       
+       Class superClazz = c.getSuperclass();
+       // get super class' fields recursively
+       if (superClazz != null) return getField(superClazz, n);
+       else throw new NoSuchFieldException();
+    }
+    
     /**
      * Set field named f of the object o to value v.
+     * 
+     * @implSpec the field can be declared in the class or any of its supoerclasses
+     * as opposed to standard reflection behavior which checks only the specified class 
      * @throws RuntimeException if reflection error occurs
      */
     public static void setField(Object o, String f, Object v) {
@@ -786,11 +795,15 @@ public class Util {
     
     /**
      * Set field named f of the object o declared in class c to value v.
+
+     * 
+     * @implSpec the field can be declared in the class or any of its supoerclasses
+     * as opposed to standard reflection behavior which checks only the specified class 
      * @throws RuntimeException if reflection error occurs
      */
     public static void setField(Class c, Object o, String f, Object v) {
         try {
-            Field fl = c.getDeclaredField(f);
+            Field fl = getField(c,f);
             fl.setAccessible(true);
             fl.set(o,v);
             fl.setAccessible(false);

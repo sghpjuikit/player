@@ -13,7 +13,6 @@ import AudioPlayer.tagging.MetadataGroup;
 import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLWidget;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
@@ -111,9 +110,9 @@ public class LibraryViewController extends FXMLController {
     ActionChooser actPane;
     
     // input/output
-    private final Output<MetadataGroup> out_sel;
-    private final Output<List<Metadata>> out_sel_met;
-    private final Input<List<Metadata>> in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
+    private Output<MetadataGroup> out_sel;
+    private Output<List<Metadata>> out_sel_met;
+    private Input<List<Metadata>> in_items;
     
     // dependencies
     private Subscription d2;
@@ -136,18 +135,15 @@ public class LibraryViewController extends FXMLController {
     );  
     
     
-    public LibraryViewController(FXMLWidget widget) {
-        super(widget);
-        
+    @Override
+    public void init() {
         out_sel = outputs.create(widget.id,"Selected", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST);
+        in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
         in_items.bindTransient(DB.items.o);
         
         actPane = new ActionChooser(this);
-    }
-    
-    @Override
-    public void init() {
+        
         content.getChildren().addAll(table.getRoot());
         VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
         
@@ -352,9 +348,12 @@ public class LibraryViewController extends FXMLController {
     }
     
     private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
-
-        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
+        if(list==null || list.isEmpty()) return EMPTY_LIST;
         
+//        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
+        List<MetadataGroup> mgs = new ArrayList(orAll ? table.getSelectedOrAllItems() : table.getSelectedItems());
+                            mgs.removeIf(isNULL);
+        System.out.println(mgs + " 1");
         // optimization : if empty, dont bother filtering
         if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList(list);
         
@@ -364,7 +363,7 @@ public class LibraryViewController extends FXMLController {
         //        .reduce(Predicate::or)
         //        .orElse(isFALSE);
         
-        Field f = fieldFilter.getValue();
+        Field f = fieldFilter.getValue();        System.out.println(f + " 2");
         Predicate<Metadata> p;
         // optimization : if only 1, dont use list
         // optimization : dont use equals for primitive types
@@ -385,7 +384,7 @@ public class LibraryViewController extends FXMLController {
     // get all items in grouped in the selected groups, sorts using library sort order \
     private List<Metadata> filerListToSelectedNsort() {
         List<Metadata> l = filerList(in_items.getValue(),false,true);
-                       l.sort(DB.library_sorter);
+                       l.sort(DB.library_sorter.get());
         return l;
     }
     private void playSelected() {
@@ -478,7 +477,9 @@ public class LibraryViewController extends FXMLController {
     private static void play(List<Metadata> items) {
         if(items.isEmpty()) return;
         Playlist p = new Playlist();
-        items.stream().sorted(DB.library_sorter).map(Metadata::toPlaylist).forEach(p::addItem);
+        items.stream()
+             .sorted(DB.library_sorter.get())
+             .map(Metadata::toPlaylist).forEach(p::addItem);
         PlaylistManager.playPlaylist(p);
     }
     

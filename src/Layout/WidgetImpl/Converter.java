@@ -109,15 +109,13 @@ public class Converter extends ClassController implements SongWriter {
     private final Applier applier = new Applier();
     private final HBox layout = new HBox(5,outTFBox, applier.root);
     
-    public Converter(ClassWidget widget) {
-        super(widget);
-        
+    
+    public Converter() {
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
         getChildren().add(ll);
         setAnchors(ll,0);
-        
         
         // behavior
         addEventHandler(DRAG_OVER,DragUtil.audioDragAccepthandler);
@@ -132,7 +130,6 @@ public class Converter extends ClassController implements SongWriter {
             else if(DragUtil.hasText(e))
                 source.setAll(split(DragUtil.getText(e), "\n", x->x));
         });
-        
         
         // on source change run transformation
         source.addListener((Change change) -> {

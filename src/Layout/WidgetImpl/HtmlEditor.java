@@ -20,9 +20,7 @@ import static util.Util.setAnchors;
 public class HtmlEditor extends ClassController  {
     private HTMLEditor editor = new HTMLEditor();
     
-    public HtmlEditor(ClassWidget widget) {
-        super(widget);
-        
+    public HtmlEditor() {
         editor.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         editor.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         editor.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

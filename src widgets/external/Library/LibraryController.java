@@ -156,7 +156,7 @@ public class LibraryController extends FXMLController implements SongReader {
     private final LimitedExecutor runOnce = new LimitedExecutor(1);
     
     // input/output
-    private final Output<Metadata> out_sel;
+    private Output<Metadata> out_sel;
     private final Input<List<Metadata>> in_items = inputs.create("To display", (Class)List.class, table::setItemsRaw);
     
     // dependencies to disopose of
@@ -180,17 +180,13 @@ public class LibraryController extends FXMLController implements SongReader {
     private final BooleanProperty editOnAdd = new SimpleBooleanProperty(false);
     
         
-    public LibraryController(FXMLWidget widget) {
-        super(widget);
-        
+    @Override
+    public void init() {
         out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
         Player.librarySelected.i.bind(out_sel);
         
         actPane = new ActionChooser(this);
-    }
-    
-    @Override
-    public void init() {
+        
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(TITLE);
@@ -290,13 +286,16 @@ public class LibraryController extends FXMLController implements SongReader {
         d3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
         
         // update library comparator
-        changesOf(table.getSortOrder()).subscribe( c -> 
-            DB.library_sorter = c.getList().stream().map(column -> {
+        changesOf(table.getSortOrder()).subscribe( c -> {
+            DB.library_sorter.set(
+                    c.getList().stream().map(column -> {
                     Metadata.Field f = (Metadata.Field) column.getUserData();
                     int type = column.getSortType()==ASCENDING ? 1 : -1;
                     return (Comparator<Metadata>)(m1,m2) -> type*((Comparable)m1.getField(f)).compareTo((m2.getField(f)));
                 })
                 .reduce((m1,m2) -> 0, Comparator::thenComparing)
+            );
+        System.out.println("ddd");}
         );
         
         // task info init

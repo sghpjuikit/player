@@ -519,11 +519,11 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
     
     /** 
      * Returns modifiable collection of all actions mapped by their name. Actions
-     * can be added and removed without modification of the underlying collection.     * 
+     * can be added and removed, which modifiea the underlying collection.
      * @return all actions.
      */
     public static Collection<Action> getActions() {
-        return new ArrayList(actions);
+        return actions;
     }
     
     /**

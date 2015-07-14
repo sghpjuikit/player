@@ -1,5 +1,5 @@
 
-package gui.objects;
+package unused;
 
 import Configuration.Config;
 import Configuration.Configurable;

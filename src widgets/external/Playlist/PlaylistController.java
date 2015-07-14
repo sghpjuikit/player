@@ -24,7 +24,7 @@ import gui.InfoNode.InfoTable;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
-import gui.objects.SimpleConfigurator;
+import unused.SimpleConfigurator;
 import gui.objects.Table.PlaylistTable;
 import gui.objects.Table.TableColumnInfo;
 import java.io.File;
@@ -99,7 +99,9 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @FXML Menu selMenu;
     @FXML Menu orderMenu;
     
-    private final Output<PlaylistItem> out_sel;
+    private Output<PlaylistItem> out_sel;
+    
+    ActionChooser<Supplier<File>> actPane;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -137,15 +139,12 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private final InvalidationListener predicateL = o -> 
             PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
     
-    public PlaylistController(FXMLWidget widget) {
-        super(widget);
+    @Override
+    public void init() {        
         out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
         Player.playlistSelected.i.bind(out_sel);
         actPane = new ActionChooser(this);
-    }
-    
-    @Override
-    public void init() {        
+        
         root.getChildren().setAll(table.getRoot(),optionPane);
         VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
         
@@ -219,8 +218,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         filter_for_playback.applyValue();
         table.setItemsRaw(PlaylistManager.getItems());
     }
-    
-    final ActionChooser<Supplier<File>> actPane;
     
     @Override
     public Node getActivityNode() {

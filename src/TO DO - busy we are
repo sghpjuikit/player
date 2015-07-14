@@ -10,7 +10,6 @@
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
 - decouple playlists
-- FreeForm widget moving by drag + layout mode widget swap collision fix
 - Inspector fix & improve
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo

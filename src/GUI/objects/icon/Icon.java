@@ -5,8 +5,11 @@
  */
 package gui.objects.icon;
 
+import Configuration.Configurable;
+import action.Action;
 import de.jensd.fx.glyphs.GlyphIconName;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ADJUST;
 import gui.objects.Text;
 import java.util.List;
 import javafx.beans.property.IntegerProperty;
@@ -14,8 +17,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.css.*;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.scene.control.ContentDisplay;
 import static javafx.scene.control.ContentDisplay.CENTER;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -25,7 +26,7 @@ import static javafx.scene.text.TextAlignment.JUSTIFY;
 import javafx.scene.text.TextBoundsType;
 
 
-public class Icon<I extends Icon> extends Label {
+public class Icon<I extends Icon> extends Label implements Configurable {
     
     private static final StyleablePropertyFactory<Icon> FACTORY = new StyleablePropertyFactory(Label.getClassCssMetaData());
     private static final CssMetaData<Icon, FontAwesomeIconName> ICON_CMD = FACTORY.createEnumCssMetaData(FontAwesomeIconName.class, "icon", i -> i.icon);
@@ -44,9 +45,15 @@ public class Icon<I extends Icon> extends Label {
 //        public void set(FontAwesomeIconName v) {
 //            super.set(v);
 //        }
+
+        @Override
+        public FontAwesomeIconName getValue() {
+            FontAwesomeIconName i = super.getValue(); //To change body of generated methods, choose Tools | Templates.
+            return i==null ? ADJUST : i;
+        }
     };
     
-    public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
+    public final ObservableValue<GlyphIconName> iconProperty() { return (ObservableValue<GlyphIconName>)icon; }
     public final GlyphIconName getIcon() { return icon.getValue(); }
     public final void setIcon(FontAwesomeIconName i) { icon.setValue(i); }
     
@@ -56,9 +63,11 @@ public class Icon<I extends Icon> extends Label {
 //            t.setText(icon.getValue().characterToString());
 //            t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getValue().getFontFamily(), get()));
 //            t.getStyleClass().add("glyph");
+
 //            setMinSize(nv, nv);
-//            setPrefSize(nv, nv);
+            setPrefSize(nv, nv); // makes sure the 'no icon' icon will keep consistent size
 //            setMaxSize(nv, nv);
+
 //            ((Text)getGraphic()).minHeight(nv);
 //            ((Text)getGraphic()).minWidth(nv);
 //            ((Text)getGraphic()).prefWidth(nv);
@@ -100,13 +109,11 @@ public class Icon<I extends Icon> extends Label {
 
     
     public Icon(FontAwesomeIconName ico, int size, String tooltip, Runnable onClick) {
-        this(ico, size, tooltip, onClick==null ? null : e -> { 
-                if(e.getButton()==PRIMARY) {
-                    onClick.run();
-                    e.consume(); 
-                } 
-            }
-        );
+        this(ico, size, tooltip);
+        onClick(onClick);
+    }
+    public Icon(FontAwesomeIconName ico, int size, Action action) {
+        this(ico, size, action.getInfo(), (Runnable)action);
     }
     
     public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
@@ -155,6 +162,7 @@ public class Icon<I extends Icon> extends Label {
         return (I)this;
     }
     public final I onClick(Runnable action) {
+        click_runnable = action;
         setOnMouseClicked(action==null ? null : e -> { 
             if(e.getButton()==PRIMARY) {
                 action.run();
@@ -164,6 +172,13 @@ public class Icon<I extends Icon> extends Label {
         return (I)this;
     }
     
+    private Runnable click_runnable;
+    public Runnable getOnClickRunnable() {
+        return click_runnable;
+    }
+    public Action getOnClickAction() {
+        return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
+    }
 }
 //public class Icon extends Text {
 //    

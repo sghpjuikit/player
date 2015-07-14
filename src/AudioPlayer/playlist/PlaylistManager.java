@@ -12,7 +12,7 @@ import Configuration.IsConfigurable;
 import Configuration.ValueConfig;
 import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
-import gui.objects.SimpleConfigurator;
+import unused.SimpleConfigurator;
 import gui.objects.Text;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.INFO;
 import java.io.File;

@@ -164,10 +164,6 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     });
 
     
-    public TaggerController(FXMLWidget widget) {
-        super(widget);
-    }
-    
     @Override
     public void init() {
         

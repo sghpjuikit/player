@@ -7,17 +7,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import static java.util.stream.Collectors.joining;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
+import static javafx.collections.FXCollections.observableArrayList;
+import javafx.collections.ObservableList;
 import util.Util;
 import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
+import util.access.Accessor;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import util.functional.Functors.F1;
+import static util.functional.Util.forEachBoth;
 import static util.functional.Util.list;
+import static util.functional.Util.split;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 
@@ -69,12 +76,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     /**
      * {@inheritDoc}
      * <p>
-     * The value and default value can only
-     * be safely cast into the this class.
-     * <p>
-     * Semantically equivalent to getValue().getClass() but will never fail to
-     * return proper class even if the value is null and possibly performing
-     * much better.
+     * Semantically equivalent to getValue().getClass(), but null-safe and 
+     * potentially better performing.
      */
     @Override
     abstract public Class<V> getType();
@@ -152,7 +155,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * Converts the value to String utilizing generic {@link Parser}.
      * Use for serialization or filling out guis.
      */
-    public final String getValueS() {
+    public String getValueS() {
         return toS(getValue());
     }
     
@@ -161,7 +164,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * Equivalent to: return setValue(fromS(str));
      * @param str
      */
-    public final void setValueS(String str) {
+    public void setValueS(String str) {
         V v = fromS(str);
         if(v!=null) setValue(v);
     }
@@ -169,11 +172,11 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     /**
      * Inherited method from {@link StringConverter}
      * Note: this config remains intact.
-     * <p>
+     * <p>66 139 221
      * {@inheritDoc}
      */
     @Override
-    public final String toS(V v) {
+    public String toS(V v) {
         return Parser.toS(v);
     }
     
@@ -184,7 +187,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * {@inheritDoc}
      */
     @Override
-    public final V fromS(String str) {
+    public V fromS(String str) {
         if(isTypeEnumerable()) {
             for(V v : enumerateValues()) 
                 if(toS(v).equals(str)) return v;
@@ -262,6 +265,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 /********************************* CREATING ***********************************/
     
     public static <T> Config<T> fromProperty(String name, Object property) {
+        if(property instanceof ListAccessor)
+            return new ListConfig(name,(ListAccessor)property);
         if(property instanceof WritableValue)
             return new PropertyConfig<>(name,(WritableValue<T>)property);
         if(property instanceof ReadOnlyProperty)
@@ -557,8 +562,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public void applyValue(T val) {}
 
         @Override
-        public Class getType() {
-            return getValue().getClass();
+        public Class<T> getType() {
+            return (Class) getValue().getClass();
         }
 
         public ReadOnlyProperty<T> getProperty() {
@@ -583,5 +588,119 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         }
         
     }
+    public static final class ListConfig<T> extends ConfigBase<ObservableList<T>> {
+        
+        public final ListAccessor<T> a;
+        
+        public ListConfig(String name, IsConfig c, ListAccessor<T> val, String category) {
+            super(name, c, val.getValue(), category);
+            a = val;
+        }
+        public ListConfig(String name, String gui_name, ListAccessor<T> val, String category, String info, boolean editable, double min, double max) {
+            super(name, gui_name, val.getValue(), category, info, editable, min, max);
+            a = val;
+        }
+        public ListConfig(String name, ListAccessor<T> val) {
+            this(name, name, val, "", "", true, Double.NaN, Double.NaN);
+        }
+
+        @Override
+        public ObservableList<T> getValue() {
+            return a.getValue();
+        }
+
+        @Override
+        public void setValue(ObservableList<T> val) {}
+
+        @Override
+        public Class<ObservableList<T>> getType() {
+            return (Class) ObservableList.class;
+        }
+
+        @Override
+        public void applyValue(ObservableList<T> val) {}
+
+        @Override
+        public ObservableList<T> next() {
+            return getValue();
+        }
+
+        @Override
+        public ObservableList<T> previous() {
+            return getValue();
+        }
+
+        @Override
+        public ObservableList<T> cycle() {
+            return getValue();
+        }
+        
+        //************************* string converting
+        
+        @Override
+        public String getValueS() {System.out.println("geting val " + toS(getValue()));
+            return toS(getValue());
+        }
+
+        @Override
+        public void setValueS(String str) {
+            List<T> v = fromS(str);
+            a.list.setAll(v);
+        }
+
+        @Override
+        public String toS(ObservableList<T> v) {
+            // we convert every item of the list to string joining with ';;' delimiter
+            // we convert items by converting all their fields, joining with ';' delimiter
+            return v.stream().map(t ->
+                a.toConfigurable.apply(t).getFields().stream().map(Config::getValueS).collect(joining(";"))
+            ).collect(joining(";;"));
+        }
+
+        @Override
+        public ObservableList<T> fromS(String str) {
+            ObservableList<T> l = observableArrayList();
+            split(str, ";;", x->x).stream()
+                .map(s -> {
+                    T t = a.factory.get();
+                    List<Config<Object>> configs = (List)list(a.toConfigurable.apply(t).getFields());
+                    List<String> vals = split(s, ";", x->x);
+                    //configs.forEach(c -> System.out.println("c-"+c)); DEBUG
+                    //vals.forEach(v -> System.out.println("v-"+v));
+                    if(configs.size()==vals.size())
+                         // its important to apply the values too
+                        forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.fromS(v)));
+                    return t;
+                })
+                .forEach(l::add);
+                    
+            return l;
+        }
+        
+        
+    }
     
+    public static class ListAccessor<T> extends Accessor<ObservableList<T>> {
+        public final ObservableList<T> list;
+        public final Supplier<T> factory;
+        public final F1<T,Configurable<?>> toConfigurable;
+        
+        public ListAccessor(Supplier<T> factory, F1<T,Configurable<?>> toConfigurable) {
+            // construct the list and inject it as value (by calling setValue)
+            super(observableArrayList());
+            // remember the reference
+            list = getValue();
+            
+            this.factory = factory;
+            this.toConfigurable = toConfigurable;
+        }
+        
+
+        @Override
+        public void setValue(ObservableList<T> v) {
+             // guarantees that the list will be permanent value since it is
+             // only null before initialization. thus we forbid overwriting it
+            if(list==null) super.setValue(v);
+        }
+    }
 }

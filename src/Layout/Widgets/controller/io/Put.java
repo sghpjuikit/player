@@ -12,7 +12,6 @@ import java.util.function.Consumer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import org.reactfx.Subscription;
-import static util.reactive.Util.maintain;
 
 /**
  *
@@ -52,7 +51,7 @@ public class Put<T> {
         monitors.add(action);
         // i think this is dangerous because we dont know what the action does...
         // it should run only after this method completes, so.. wrap it up in runLater ?
-//        if(getValue()!=null) action.accept(getValue());
+        if(getValue()!=null) action.accept(getValue());
         return () -> monitors.remove(action);
     }
     

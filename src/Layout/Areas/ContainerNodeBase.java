@@ -7,7 +7,7 @@ package Layout.Areas;
 
 import Layout.*;
 import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
-import static Layout.Areas.Area.draggedPSEUDOCLASS;
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
 import gui.objects.icon.Icon;
@@ -97,14 +97,14 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(container.getParent(),container,db);
                 // signal dragging graphically with css
-                ctrls.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();
             }
         };
         dragB.setOnDragDetected(dh);
         ctrls.setOnDragDetected(dh);
         // return graphics to normal
-        root.setOnDragDone( e -> ctrls.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        root.setOnDragDone(e -> ctrls.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
         
 	icons.setNodeOrientation(LEFT_TO_RIGHT);
 	icons.setAlignment(Pos.CENTER_RIGHT);

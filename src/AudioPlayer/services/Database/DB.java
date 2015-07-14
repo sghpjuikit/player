@@ -14,6 +14,8 @@ import java.net.URI;
 import java.util.*;
 import static java.util.UUID.fromString;
 import static javafx.application.Platform.runLater;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javax.persistence.*;
 import main.App;
 import static util.File.FileUtil.readFileLines;
@@ -223,7 +225,7 @@ public class DB {
      * <p>
      * The comparator should reflect library table sort order.
      */
-    public static Comparator<Metadata> library_sorter = Metadata::compareTo;
+    public static ObjectProperty<Comparator<Metadata>> library_sorter = new SimpleObjectProperty<>(Metadata::compareTo);
 
     /**
      * In memory storage for strings that persists in database.

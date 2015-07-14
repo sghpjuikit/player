@@ -51,7 +51,7 @@ import static util.functional.Util.listRO;
     programmer = "Martin Polakovic",
     name = "Dir Viewer",
     description = "Displays directory hierarchy and files as thumbnails in a "
-            + "vertically scrollable grid. Intended as simle library",
+            + "vertically scrollable grid. Intended as simple library",
     howto = "",
     notes = "",
     version = "0.3",
@@ -68,10 +68,8 @@ public class DirViewer extends ClassController {
     Cell item = null;
     CellPane cells = new CellPane(160,220,5);
     
-    public DirViewer(ClassWidget widget) {
-        super(widget);
-        
-        addEventFilter(MOUSE_CLICKED, e -> {
+    public DirViewer() {
+        addEventHandler(MOUSE_CLICKED, e -> {
             if(e.getButton()==SECONDARY && item!=null && item.parent!=null) {
                 viewDir(item.parent);
             }
@@ -132,8 +130,7 @@ public class DirViewer extends ClassController {
         Image cover = null;
         public File getCoverFile() {
             File f = val;
-            File i = f.isDirectory() ? new File(f,"cover.jpg")
-                                       : new File(f.getParent(),FileUtil.getName(f)+".jpg");
+            File i = f.isDirectory() ? new File(f,"cover.jpg") : filImage(f);
             return i;
         }
         public Image getCover() {
@@ -142,6 +139,12 @@ public class DirViewer extends ClassController {
         public void setCover(Image i) {
             cover = i;
             isFirstTimeCover=false;
+        }
+        
+        private File filImage(File f) {
+            File i = new File(f.getParent(),FileUtil.getName(f)+".jpg");
+            if(!i.exists()) return parent.getCoverFile();
+            else return i;
         }
 
 //        @Override public boolean isLeaf() {
@@ -237,7 +240,7 @@ public class DirViewer extends ClassController {
                 n.resize(cellw, cellh);
             });
             
-            int rows = (int) ceil(elements/columns);
+            int rows = (int) ceil(elements/(double)columns);
 
             runLater(()->setPrefHeight(rows*(cellh+gapy)));
         }

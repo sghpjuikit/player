@@ -57,9 +57,7 @@ public class Visualisation extends ClassController {
     @IsConfig(name="Blending mode", info="The blending mode influences how the content is displayed on the screen in ocntext with the background.")
     public final Accessor<BlendMode> blending_mode = new Accessor<>(BlendMode.SRC_OVER, this::setBlendMode);
     
-    public Visualisation(ClassWidget widget) {
-        super(widget);
-        
+    public Visualisation() {
         initialize();
         play();
     }

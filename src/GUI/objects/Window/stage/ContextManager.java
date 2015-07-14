@@ -1,18 +1,19 @@
 
 package gui.objects.Window.stage;
 
+import Configuration.Configurable;
 import Configuration.IsConfigurable;
+import Layout.WidgetImpl.Configurator;
 import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
-import gui.objects.SimpleConfigurator;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.COGS;
-import java.util.Objects;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
+import static util.dev.Util.forbidNull;
 
 /**
  *
@@ -52,16 +53,11 @@ public final class ContextManager {
     }
     
     public static PopOver showFloating(Widget w) {
-        Objects.requireNonNull(w);
+        forbidNull(w);
         
         // build popup content
         Icon propB = new Icon(COGS,12,"Settings", e -> {
-                  SimpleConfigurator c = new SimpleConfigurator(w);
-                  PopOver ph = new PopOver(c);
-                          ph.title.set(w.getName() + " Settings");
-                          ph.setAutoFix(false);
-                          ph.setAutoHide(true);
-                          ph.show((Node)e.getSource());
+                  showSettings(w.getName(), w, (Node)e.getSource());
                   e.consume();
               });
         // build popup
@@ -75,9 +71,26 @@ public final class ContextManager {
         return p;
     }
     
+    public static void showSettings(Widget w, Node n) {
+        showSettings(w.getName(), w, n);
+    }
+    public static void showSettings(Configurable c, Node n) {
+        showSettings(null, c, n);
+    }
+    public static void showSettings(String name, Configurable c, Node n) {
+            Configurator sc = new Configurator(true);
+                         sc.configure(c);
+            PopOver p = new PopOver(sc);
+                    p.title.set((name==null ? "" : name+" ") + " Settings");
+                    p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
+                    p.setAutoFix(true); // we need autofix here, because the popup can get rather big
+                    p.setAutoHide(true);
+                    p.show(n);
+    }
+    
     public static PopOver showFloating(Node content, String title) {
-        Objects.requireNonNull(content);
-        Objects.requireNonNull(title);  // we could use null, but disallow
+        forbidNull(content);
+        forbidNull(title);  // we could use null, but disallow
         
         PopOver p = new PopOver(content);
                 p.title.set(title);

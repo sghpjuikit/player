@@ -1,24 +1,31 @@
 
 package main;
 
-import action.Action;
 import AudioPlayer.Player;
-import AudioPlayer.services.playcountincr.PlaycountIncrementer;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
 import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
+import AudioPlayer.services.notif.Notifier;
+import AudioPlayer.services.playcountincr.PlaycountIncrementer;
 import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Widgets.WidgetManager;
+import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.controller.io.Output;
+import Layout.Widgets.feature.ConfiguringFeature;
+import action.Action;
+import action.IsAction;
+import action.IsActionable;
+import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
+import gui.objects.PopOver.PopOver;
+import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.Window;
@@ -37,9 +44,11 @@ import javafx.scene.ImageCursor;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
+import static util.File.Environment.browse;
 import util.File.FileUtil;
 import util.access.AccessorEnum;
 import static util.async.Async.FX;
@@ -51,6 +60,7 @@ import util.plugin.PluginMap;
 /**
  * Application. Launches and terminates program.
  */
+@IsActionable
 @IsConfigurable("General")
 public class App extends Application {
 
@@ -349,10 +359,8 @@ public class App extends Application {
         return new Image(new File("icon512.png").toURI().toString());
     }
     
-    /** @return github link for project of this application. */
-    public static URI getGithubLink() {
-        return URI.create("https://www.github.com/sghpjuikit/player/");
-    }
+    /** Github url for project of this application. */
+    public static URI GITHUB_URI = URI.create("https://www.github.com/sghpjuikit/player/");
 
     /** @return Player state file. */
     public static String PLAYER_STATE_FILE() {
@@ -417,5 +425,42 @@ public class App extends Application {
        } else {
             Fut.fut(i).then(MetadataReader::create).use(action, FX).run();
        }
+    }
+    
+    
+    
+/************************************ actions *********************************/
+    
+    @IsAction(name = "Open github page", description = "Open github project "
+            + "website of this application in default browser. For developers.")
+    public static void openAppGithubPage() {
+        browse(GITHUB_URI);
+    }
+    
+    @IsAction(name = "Open app dir", description = "Open application location.")
+    public static void openAppLocation() {
+        browse(getLocation());
+    }
+    
+    @IsAction(name = "Open css guide", description = "Open offocial oracle css "
+            + "reference guide. Helps with skinning. For developers.")
+    public static void openCssGuide() {
+        browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html");
+    }
+    
+    @IsAction(name = "Open icon viewer", description = "Open viewer to browse "
+            + "application supported icons. For developers")
+    public static void openIconViewer() {
+        Pane g = new GlyphsBrowser();
+             g.setPrefHeight(700);
+        new PopOver(g).show(App_Center);
+    }
+    
+    @IsAction(name = "Open settings", description = "Open preferred "
+            + "settings widget to show applciation settings. Widget is open in "
+            + "a popup or layout, or already open widget is reused, depending "
+            + "on the settings")
+    public static void openSettings() {
+        WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
     }
 }

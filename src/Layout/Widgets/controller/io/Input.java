@@ -43,20 +43,7 @@ public class Input<T> extends Put<T>{
 //    }
 
     
-    
-    private Output<? extends T> transient_o;
-    private Subscription transient_s;
-    
-    public void bindTransient(Output<? extends T> o) {
-//        transient_o = o;
-//        transient_s = o.monitor(this::setValue);
-    }
     public void bind(Output<? extends T> o) {
-        if(transient_s!=null) {
-            transient_o = null;
-            transient_s.unsubscribe();
-        }
-        
         Subscription s = sources.get(o);
         if(s==null) {
             s = o.monitor(this::setValue);

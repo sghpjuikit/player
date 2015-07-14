@@ -114,8 +114,8 @@ public class FileInfoController extends FXMLController implements SongReader {
         playcount, comment, category, gap3, filesize, filename, format, bitrate,
         encoding, location);
     
-    private final Input<Item> data_in;
-    private final Output<Metadata> data_out;
+    private Input<Item> data_in;
+    private Output<Metadata> data_out;
     private Metadata data;
     private Subscription d;
 
@@ -178,15 +178,11 @@ public class FileInfoController extends FXMLController implements SongReader {
     public boolean allowNoContent = false;
 
     
-    public FileInfoController(FXMLWidget widget) {
-        super(widget);
-        
-        data_in = inputs.create("To display", Item.class, this::read);
-        data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
-    }
-    
     @Override
     public void init() {
+        data_in = inputs.create("To display", Item.class, this::read);
+        data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
+        
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
         cover.onFileDropped = f -> {

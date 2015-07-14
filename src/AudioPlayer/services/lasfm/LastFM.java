@@ -12,7 +12,7 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import gui.objects.SimpleConfigurator;
+import unused.SimpleConfigurator;
 import de.umass.lastfm.*;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.function.Consumer;

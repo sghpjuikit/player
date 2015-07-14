@@ -44,9 +44,7 @@ public class FunctionPlotter extends ClassController  {
     private final Axes axes = new Axes(400,300,  -1,1,0.2, -1,1,0.2);
     private final Plot plot = new Plot(-1,1, axes);
     
-    public FunctionPlotter(ClassWidget widget) {
-        super(widget);
-        
+    public FunctionPlotter() {
         this.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

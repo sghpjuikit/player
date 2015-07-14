@@ -1,19 +1,23 @@
 
 package gui.itemnode;
 
-import action.Action;
 import Configuration.Config;
+import Configuration.Config.ListConfig;
+import action.Action;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import gui.itemnode.ChainConfigField.ConfigPane;
+import gui.itemnode.ChainConfigField.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
 import gui.itemnode.TextFieldItemNode.FileItemNode;
 import gui.itemnode.TextFieldItemNode.FontItemNode;
+import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import gui.objects.combobox.ImprovedComboBox;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import static java.util.stream.Collectors.toList;
 import javafx.animation.FadeTransition;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -67,8 +71,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         super(c);
         label.setText(config.getGuiName());
         
-        root.setMinSize(0,0);
-        root.setPrefSize(HBox.USE_COMPUTED_SIZE,20); // not sure why this needs manual resizing
+        root.setMinSize(0,20);   // miheight actually required to get consistent look
+        root.setPrefSize(-1,-1); // support variable content height 
+        root.setMaxSize(-1,-1);  // support variable content height
         root.setSpacing(5);
         root.setAlignment(CENTER_LEFT);
         root.setPadding(new Insets(0, 15, 0, 0)); // space for defB (11+5)(defB.width+box.spacing)
@@ -214,6 +219,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         m.put(Font.class, f -> new FontField(f));
         m.put(Password.class, f -> new PasswordField(f));
         m.put(String.class, f -> new StringField(f));
+        m.put(ObservableList.class, f -> new ListField(f));
     }
     
     /**
@@ -702,4 +708,48 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             txtF.setValue(config.getValue());
         }
     }
+    private static final class ListField<T> extends ConfigField<ObservableList<T>> {
+        
+        ListConfigField<T, ConfigurableField> chain;
+            ListConfig<T> lc;
+        
+        public ListField(Config<ObservableList<T>> c) {
+            super(c);
+            
+            lc = (ListConfig)c;
+            
+            chain = new ListConfigField<>(() -> new ConfigurableField(lc.a.factory.get()));
+            chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().collect(toList()));
+        }
+        
+        @Override
+        Node getControl() {
+            return chain.getNode();
+        }
+
+        @Override
+        protected ObservableList<T> get() {
+            return config.getValue(); // return the ever-same observable list
+        }
+
+        @Override
+        public void refreshItem() {}
+        
+        
+        class ConfigurableField extends ValueNode<T> {
+            ConfigPane<Object> p = new ConfigPane<>();
+            
+            public ConfigurableField(T t) {
+                value = t;
+                p.configure(lc.a.toConfigurable.apply(value));
+            }
+
+            @Override
+            public Node getNode() {
+                return p.getNode();
+            }
+            
+        }
+    }
+
 }

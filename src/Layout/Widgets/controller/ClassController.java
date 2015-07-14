@@ -18,13 +18,9 @@ import javafx.scene.layout.AnchorPane;
  */
 abstract public class ClassController extends AnchorPane implements Controller<ClassWidget> {
     
-    public final ClassWidget widget;
+    public final ClassWidget widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
-    
-    public ClassController(ClassWidget widget) {
-        this.widget = widget;
-    }
 
     @Override
     public ClassWidget getWidget() {

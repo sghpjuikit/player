@@ -5,10 +5,11 @@
  */
 package Layout.Areas;
 
-import static Layout.Areas.Area.draggedPSEUDOCLASS;
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import javafx.event.EventHandler;
 import Layout.BiContainer;
 import Layout.Container;
+import Layout.WidgetImpl.Configurator;
 import Layout.Widgets.Widget;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.GUI;
@@ -18,8 +19,8 @@ import static gui.GUI.closeAndDo;
 import static gui.GUI.openAndDo;
 import gui.objects.Pickers.WidgetPicker;
 import gui.objects.PopOver.PopOver;
-import gui.objects.SimpleConfigurator;
 import gui.objects.Text;
+import static gui.objects.Window.stage.ContextManager.showSettings;
 import gui.objects.icon.Icon;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
@@ -42,7 +43,6 @@ import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static javafx.util.Duration.millis;
 import main.App;
 import org.reactfx.EventSource;
 import util.animation.Anim;
@@ -118,7 +118,7 @@ public final class AreaControls {
     private final FadeTransition contAnim;
     private final Transition blurAnim;
 
-    Area area;
+    Area<?> area;
 
     public AreaControls(Area area) {
 	this.area = area;
@@ -162,14 +162,14 @@ public final class AreaControls {
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(area.container,area.getActiveWidget(),db);
                 // signal dragging graphically with css
-                root.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();
             }
         };
         dragB.setOnDragDetected(dh);
         root.setOnDragDetected(dh);
         // return graphics to normal
-        root.setOnDragDone( e -> root.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
         
         
 	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo);
@@ -260,26 +260,17 @@ public final class AreaControls {
     
     void settings() {
 	if (area.getActiveWidgets().isEmpty()) return;
-        
+        Widget w = area.getActiveWidgets().get(0);
+         
         if(GUI.open_strategy==POPUP) {
-            Widget w = (Widget) area.getActiveWidgets().get(0);
-            SimpleConfigurator sc = new SimpleConfigurator(w);
-            PopOver p = new PopOver(sc);
-                    p.title.set(w.getName() + " Settings");
-                    p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
-                    p.setAutoFix(true); // we need autofix here, because the popup can get rather big
-                    p.setAutoHide(true);
-                    p.show(propB);
-            sc.onOK = c -> p.hide();
+            showSettings(w,propB);
         } else 
         if (GUI.open_strategy==INSIDE) {
             closeAndDo(area.content_root, () -> {
-                Widget w = (Widget) area.getActiveWidgets().get(0);
-                SimpleConfigurator sc = new SimpleConfigurator(w);
+                Configurator sc = new Configurator(true);
+                             sc.configure(w);
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
-                sc.setOnMouseClicked(me->{ if(me.getButton()==SECONDARY) sc.ok(); });
-                sc.setOkButtonVisible(false);
-                sc.onOK = c -> closeAndDo(sc, () -> openAndDo(area.content_root, null));
+                sc.setOnMouseClicked(me->{ if(me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
                 area.root.getChildren().add(sc);
                 setAnchors(sc, 0);
                 openAndDo(sc, null);

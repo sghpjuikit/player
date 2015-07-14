@@ -5,7 +5,7 @@ import util.graphics.drag.DragUtil;
 import gui.GUI;
 import static gui.GUI.closeAndDo;
 import gui.objects.icon.Icon;
-import static Layout.Areas.Area.draggedPSEUDOCLASS;
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
@@ -221,12 +221,12 @@ public final class Splitter implements ContainerNode {
         // controls
         Icon infoB = new Icon(INFO, 12, "Help");
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
-        dragB.setOnDragDetected( e -> {
+        dragB.setOnDragDetected(e -> {
             if (e.getButton()==PRIMARY) { //// primary button drag only
                 Dragboard db = root.startDragAndDrop(TransferMode.ANY);
                 DragUtil.setComponent(container.getParent(),container,db);
                 // signal dragging graphically with css
-                root.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();
             }
         });

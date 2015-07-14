@@ -29,12 +29,14 @@ public final class FXMLWidget extends Widget<FXMLController> {
     }
 
     @Override
-    public Node loadInitial() {
+    public Node loadInitial() {System.out.println("name " + name);      
         try {
-            controller = (FXMLController) getFactory().getControllerClass()
-                        .getDeclaredConstructor(FXMLWidget.class)
-                        .newInstance(this);
+            // instantiate controller
+            controller = (FXMLController) getFactory().getControllerClass().newInstance();
+            // inject this widget into the controller
+            util.Util.setField(controller, "widget", this);
             
+            // load controller graphics
             FXMLLoader loader = new FXMLLoader();
                        loader.setLocation(getFactory().url);
                        loader.setController(controller);

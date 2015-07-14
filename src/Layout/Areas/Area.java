@@ -34,7 +34,7 @@ import static util.functional.Util.list;
  */
 public abstract class Area<T extends Container> implements ContainerNode {
     
-    public static final PseudoClass draggedPSEUDOCLASS = getPseudoClass("dragged");
+    public static final PseudoClass DRAGGED_PSEUDOCLASS = getPseudoClass("dragged");
     public static final List<String> bgr_STYLECLASS = list("block", "area");
     public static final String WIDGET_AREA_CONTROLS_STYLECLASS = "widget-control";
     public static final String CONTAINER_AREA_CONTROLS_STYLECLASS = "container-control";

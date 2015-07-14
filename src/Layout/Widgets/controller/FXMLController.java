@@ -20,13 +20,9 @@ import javafx.scene.layout.Pane;
  */
 abstract public class FXMLController implements Controller<FXMLWidget> {
     
-    private final FXMLWidget widget;
+    public final FXMLWidget widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
-    
-    public FXMLController(FXMLWidget widget) {
-        this.widget = widget;
-    }
     
     /** {@inheritDoc} */
     @Override

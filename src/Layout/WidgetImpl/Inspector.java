@@ -52,9 +52,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     private Node sel_node = null;
     private TreeView<Object> tree = new TreeView<>();
     
-    public Inspector(ClassWidget widget) {
-        super(widget);
-        
+    public Inspector() {        
         getChildren().add(tree);
         setAnchors(tree,0);
         tree.getSelectionModel().setSelectionMode(MULTIPLE);

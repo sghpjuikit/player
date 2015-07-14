@@ -33,10 +33,6 @@ public final class WebReaderController extends FXMLController {
     @IsConfig(name = "Last visited address", info = "Last visited address")
     public String url = "http://duckduckgo.com/";
     
-
-    public WebReaderController(FXMLWidget widget) {
-        super(widget);
-    }
     
     @Override
     public void init() {

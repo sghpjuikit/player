@@ -70,7 +70,7 @@ public final class TabArea extends PolyArea {
                 Dragboard db = root.startDragAndDrop(TransferMode.MOVE);
                 DragUtil.setComponent(container.getParent(),container,db);
                 // signal dragging graphically with css
-                content.pseudoClassStateChanged(draggedPSEUDOCLASS, true);
+                content.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, true);
                 e.consume();
             }
         });
@@ -86,7 +86,7 @@ public final class TabArea extends PolyArea {
             }
         });
         // return graphics to normal
-        root.setOnDragDone( e -> content.pseudoClassStateChanged(draggedPSEUDOCLASS, false));
+        root.setOnDragDone( e -> content.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
         
         setShow(GUI.isLayoutMode());
     }

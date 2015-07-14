@@ -76,10 +76,6 @@ public class GameLibController extends FXMLController {
     FxTimer infoLHider = new FxTimer(7000, 1, ()->infoL.setText(null));
     
         
-    public GameLibController(FXMLWidget widget) {
-        super(widget);
-    }
-    
     public void loadGames(File dir) {
         try {
             Files.list(dir.getAbsoluteFile().toPath())

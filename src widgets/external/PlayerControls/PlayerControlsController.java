@@ -115,10 +115,6 @@ public class PlayerControlsController extends FXMLController implements Playback
     Subscription d1;
     
 
-    public PlayerControlsController(FXMLWidget widget) {
-        super(widget);
-    }
-    
     @Override
     public void init() {
         // create balancer

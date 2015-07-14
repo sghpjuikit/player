@@ -49,10 +49,6 @@ public class ColorGraphController extends FXMLController {
 //    public final Accessor<ReadMode>
 
     
-    public ColorGraphController(FXMLWidget widget) {
-        super(widget);
-    }
-    
     @Override
     public void init() {
 //        dataMonitor = Player.librarySelectedItemsES.subscribe(this::dataChanged);

@@ -25,15 +25,14 @@ public class ClassWidget extends Widget<Controller> {
     }
 
     @Override
-    public Node loadInitial() {                    
+    public Node loadInitial() {              System.out.println("name " + name);      
         try {
-            Node node = (Node) getFactory().getControllerClass()
-                        .getDeclaredConstructor(ClassWidget.class)
-                        .newInstance(this);
-                
-            rememberConfigs();
+            // instantiate controller
+            Node node = (Node) getFactory().getControllerClass().newInstance();
             controller = Controller.class.cast(node);
-            
+            // inject this widget into the controller
+            util.Util.setField(controller, "widget", this);
+                
             restoreConfigs();
             controller.refresh();
             

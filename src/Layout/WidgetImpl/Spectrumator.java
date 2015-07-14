@@ -33,8 +33,7 @@ import static util.Util.setAnchors;
 public class Spectrumator extends ClassController  {
     private Spectrum spectr = new Spectrum();
     
-    public Spectrumator(ClassWidget widget) {
-        super(widget);
+    public Spectrumator() {
         spectr.setMinSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         spectr.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         spectr.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);

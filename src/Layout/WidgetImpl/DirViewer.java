@@ -5,18 +5,19 @@
  */
 package Layout.WidgetImpl;
 
+import Configuration.Config;
+import Configuration.Config.ListAccessor;
 import Configuration.IsConfig;
-import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.ClassController;
-import com.sun.javafx.scene.control.skin.VirtualFlow;
 import gui.objects.image.Thumbnail;
 import java.io.File;
 import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.List;
+import static java.util.stream.Collectors.toList;
 import static javafx.collections.FXCollections.observableArrayList;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -30,16 +31,17 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.*;
-import main.App;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
 import util.access.Accessor;
 import static util.async.Async.runLater;
+import static util.functional.Util.by;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.forEachWithI;
 import static util.functional.Util.listRO;
+import static util.functional.Util.stream;
 
 /**
  *
@@ -63,7 +65,8 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final Accessor<File> file = new Accessor<>(App.getLocation(),this::viewDir);
+    final ListAccessor<File> files = new ListAccessor<>(() -> new File("C:\\"),f -> Config.fromProperty("File", new Accessor<File>(f)));
+//            .setItems(App.getLocation());
     
     Cell item = null;
     CellPane cells = new CellPane(160,220,5);
@@ -74,6 +77,8 @@ public class DirViewer extends ClassController {
                 viewDir(item.parent);
             }
         });
+        
+        files.onInvalid(list -> viewDir(new TopCell()));
         
         ScrollPane layout = new ScrollPane();
         layout.setContent(cells);
@@ -89,17 +94,16 @@ public class DirViewer extends ClassController {
 
     @Override
     public void refresh() {
-        file.applyValue();
-    }
-    
-    public void viewDir(File dir) {
-        viewDir(new Cell(null,dir));
+        viewDir(new TopCell());
     }
     
     public void viewDir(Cell dir) {
         item = dir;
-        if(item==null) cells.getChildren().clear();
-        else cells.getChildren().setAll(filterMap(item.children(),i->!ImageFileFormat.isSupported(i.val),Cell::load));
+        cells.getChildren().clear();
+        if(item!=null) 
+            cells.getChildren().addAll(filterMap(item.children(),i->
+                !ImageFileFormat.isSupported(i.val) && !i.val.isHidden() && i.val.canRead()
+            ,Cell::load));
     }
     
     
@@ -120,7 +124,7 @@ public class DirViewer extends ClassController {
         
         public ObservableList<Cell> children() {
             if (isFirstTimeChildren) {
-                childr.setAll(buildChildren(this));
+                childr.setAll(buildChildren());
                 isFirstTimeChildren = false;
             }
             return childr;
@@ -147,26 +151,19 @@ public class DirViewer extends ClassController {
             else return i;
         }
 
-//        @Override public boolean isLeaf() {
-//            if (isFirstTimeLeaf) {
-//                isFirstTimeLeaf = false;
-//                isLeaf = getValue().isFile();
-//            }
-//
-//            return isLeaf;
-//        }
-
-        private List<Cell> buildChildren(Cell i) {
-            File value = i.val;
+        protected List<Cell> buildChildren() {
+            File value = val;
             if (value != null && value.isDirectory()) {
                 File[] all = value.listFiles();
                 if (all != null) {
                     // we want to sort the items : directories first
+                    // we make use of the fact that listFiles() gives us already
+                    // sorted list
                     List<Cell> fils = new ArrayList();
                     List<Cell> dirs = new ArrayList();
                     for (File f : all) {
-                        if(!f.isDirectory()) dirs.add(new Cell(i,f));
-                        else                 fils.add(new Cell(i,f));
+                        if(!f.isDirectory()) dirs.add(new Cell(this,f));
+                        else                 fils.add(new Cell(this,f));
                     }
                            fils.addAll(dirs);
                     return fils;
@@ -207,6 +204,27 @@ public class DirViewer extends ClassController {
             }
             return n;
         }
+    }
+    public class TopCell extends Cell {
+
+        public TopCell() {
+            super(null,null);System.out.println("new");
+        }
+
+        @Override
+        protected List<Cell> buildChildren() {
+            return files.list.stream()
+                      .flatMap(f->stream(f.listFiles()))
+                      .sorted(by(File::getName))
+                      .map(f -> new Cell(this,f))
+                      .collect(toList());
+        }
+
+        @Override
+        public File getCoverFile() {
+            return null;
+        }
+        
     }
     public class CellPane extends Pane {
         double cellw = 100;

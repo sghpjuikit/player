@@ -45,7 +45,7 @@ import util.functional.Functors.NullOut;
  *
  * @author Plutonium_
  */
-public class FunctionChainItemNode extends ChainConfigField<F1<Object,Object>,FunctionItemNode<Object,Object>> {
+public class FunctionChainItemNode extends ChainValueNode<F1<Object,Object>,FunctionItemNode<Object,Object>> {
     
     private final Function<Class,PrefList<Functors.PF<Object,Object>>> fp;
     private Class type_in = Void.class;
@@ -66,6 +66,7 @@ public class FunctionChainItemNode extends ChainConfigField<F1<Object,Object>,Fu
 //        super(len, max_len, () -> new FunctionItemNode(functionPool));
 //        homogeneous = false;
         fp = functionPool;
+        chainedFactory = () -> new FunctionItemNode<>(() -> fp.apply(getTypeOut()));
         homogeneous = false;
         setTypeIn(in);  // initializes value, dont fire update yet
         
@@ -77,7 +78,7 @@ public class FunctionChainItemNode extends ChainConfigField<F1<Object,Object>,Fu
             }
             chain.forEach(Chainable::updateIcons);
         });
-        chain.addListener((ListChangeListener.Change<? extends Chainable<FunctionItemNode<Object, Object>>> c) -> chain.forEach(Chainable::updateIcons));
+        chain.addListener((ListChangeListener.Change<? extends Chainable> c) -> chain.forEach(Chainable::updateIcons));
         maxChainLength.set(max_len);
     }
     
@@ -105,8 +106,7 @@ public class FunctionChainItemNode extends ChainConfigField<F1<Object,Object>,Fu
         else {
             type_in = c;
             chain.clear();
-            new Chainable(() -> new FunctionItemNode<>(() -> fp.apply(getTypeOut())));
-            generateValue();
+            addChained();
         }
     }
     

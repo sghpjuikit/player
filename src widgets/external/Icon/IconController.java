@@ -9,11 +9,13 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.controller.FXMLController;
 import gui.objects.icon.Icon;
-import javafx.collections.ListChangeListener;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import util.access.AccessorAction;
 
 @Info(
@@ -30,8 +32,16 @@ import util.access.AccessorAction;
 )
 public class IconController extends FXMLController {
     
-    @IsConfig(name = "Icons", info="List of icons to show")
-    private final ListAccessor<Icon> icons = new ListAccessor<>(Icon::new, i ->
+    
+    @IsConfig(name = "Icon size", info = "Size of each icon")
+    private final IntegerProperty icon_size = new SimpleIntegerProperty(13);
+    @IsConfig(name = "Icons", info = "List of icons to show")
+    private final ListAccessor<Icon> icons = new ListAccessor<>(() -> {
+            Icon i = new Icon();
+            i.icon_size.set(icon_size.get());
+            i.icon_size.bind(icon_size);
+            return i;
+        }, i ->
         new ListConfigurable(
             Config.fromProperty("Icon", i.icon),
             Config.fromProperty("Action",new AccessorAction(i.getOnClickAction(),a->i.onClick((Runnable)a)))
@@ -46,8 +56,10 @@ public class IconController extends FXMLController {
     
     @Override
     public void init() {
-        root.getChildren().add(new javafx.scene.layout.VBox(30,box));
-        icons.list.addListener((ListChangeListener.Change<? extends Icon> c) -> box.getChildren().setAll(icons.list));
+        root.getChildren().add(new VBox(30,box));
+        icons.onInvalid(box.getChildren()::setAll);
+        icon_size.addListener((o,ov,nv) -> System.out.println("1 " + nv));
+        icon_size.addListener((o) -> System.out.println("2 " + icon_size.getValue()));
     }
 
     @Override

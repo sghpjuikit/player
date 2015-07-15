@@ -35,35 +35,47 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 import util.async.runnable.Run;
+import static util.dev.Util.require;
 import static util.functional.Util.*;
 
 /**
+ * 
+ * @param <C> chain type. Type of chained - chain element. Chained are gui
+ * wrappers of values V
+ * @param <V> type of value that is chained, for example String for chain of Strings or
+ * Function for chain of Functions.
  *
  * @author Plutonium_
  */
-public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends ValueNode<V> {
+public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
 
     protected final VBox root = new VBox();
-    protected final ObservableList<Chainable<IN>> chain = (ObservableList)root.getChildren();
+    protected final ObservableList<Chainable> chain = (ObservableList)root.getChildren();
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
+    protected Supplier<C> chainedFactory; // final
     protected boolean homogeneous = true;
     
-    ChainConfigField() {}
+
+    /** Creates unlimited chain of 1 initial chained element.  */
+    public ChainValueNode() {}
     
     /** Creates unlimited chain of 1 initial chained element.  */
-    public ChainConfigField(Supplier<IN> chainedFactory) {
+    public ChainValueNode(Supplier<C> chainedFactory) {
         this(1, chainedFactory);
     }
     
     /** Creates unlimited chain of i initial chained elements.  */
-    public ChainConfigField(int i, Supplier<IN> chainedFactory) {
+    public ChainValueNode(int i, Supplier<C> chainedFactory) {
         this(i, Integer.MAX_VALUE, chainedFactory);
     }
     
     /** Creates limited chain of i initial chained elements.  */
-    public ChainConfigField(int len, int max_len, Supplier<IN> chainedFactory) {
-        if(len<1) throw new IllegalArgumentException("Chain length must be positive");
-        repeat(len,() -> new Chainable<>(chainedFactory));
+    public ChainValueNode(int len, int max_len, Supplier<C> chainedFactory) {
+        require(len>=0,"Chain length must not be negative");
+        require(len<=max_len,"Chain length must not be larger than max length");
+        
+        this.chainedFactory = chainedFactory;
+        repeat(len,() -> chain.add(new Chainable(chainedFactory.get())));
         generateValue(); // initializes value, dont fire update yet
         
         maxChainLength.addListener((o,ov,nv) -> {
@@ -74,8 +86,25 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
             }
             chain.forEach(Chainable::updateIcons);
         });
-        chain.addListener((Change<? extends Chainable<IN>> c) -> chain.forEach(Chainable::updateIcons));
+        chain.addListener((Change<? extends Chainable> c) -> chain.forEach(Chainable::updateIcons));
         maxChainLength.set(max_len);
+    }
+    
+    public void addChained() {
+        addChained(chain.size(), chainedFactory.get());
+    }
+    public void addChained(int i) {
+        addChained(i, chainedFactory.get());
+    }
+    public void addChained(C chained) {
+        addChained(chain.size(), chained);
+    }
+    public void addChained(int i, C chained) {
+        if(chain.size()<maxChainLength.get()) {
+            Chainable c = new Chainable(chained);
+            chain.add(i,c);
+            generateValue();
+        }
     }
     
     /** {@inheritDoc} */
@@ -116,7 +145,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
      * @param action on click action
      */
     public void setButton(FontAwesomeIconName icon, Tooltip t, Run action) {
-        Chainable<IN> c = chain.get(0);
+        Chainable c = chain.get(0);
         Icon i = c.rem;
              i.icon.setValue(icon==null ? MINUS : icon);
              i.setOnMouseClicked(icon==null ? c::onRem : action.toHandlerConsumed());
@@ -130,7 +159,7 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
     private static final Tooltip remTooltip = new Tooltip("Remove");
     private static final Tooltip onTooltip = new Tooltip("Enabled");
     
-    public class Chainable<C extends ValueNode<V>> extends HBox {
+    public class Chainable extends HBox {
         private final CheckIcon onB = new CheckIcon(true);
         private final Icon rem = new Icon(MINUS, 13);
         private final Icon add = new Icon(PLUS, 13);
@@ -138,34 +167,25 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         public final C chained;
         private boolean rem_alt = false; // alternative icon, never disable
         
-        public Chainable(Supplier<C> chainedFactory) {
-            this(chain.size(), chainedFactory);
-        }
-        public Chainable(int at, Supplier<C> chainedFactory) {
-            chained = chainedFactory.get();
+        Chainable(C c) {
+            chained = c;
+            chained.onItemChange = f-> generateValue();
             setSpacing(5);
             getChildren().addAll(rem,add,onB,chained.getNode());
             HBox.setHgrow(chained.getNode(), ALWAYS);
             setAlignment(CENTER_LEFT);
-            chained.onItemChange = f-> generateValue();
             on.addListener((o,ov,nv) -> generateValue());
             rem.setOnMouseClicked(this::onRem);
-            add.setOnMouseClicked(e -> {
-                if(chain.size()<maxChainLength.get()) {
-                    new Chainable(getIndex()+1,chainedFactory);
-                    generateValue();
-                }
-            });
+            add.setOnMouseClicked(e -> addChained(getIndex()+1));
             rem.setPadding(new Insets(0, 0, 0, 5));
             rem.setTooltip(remTooltip);
             add.setTooltip(addTooltip);
             onB.setTooltip(onTooltip);
-            chain.add(at,(Chainable)this);
             updateIcons();
         }
         
         /** @return position index within the chain from 0 to chain.size() */
-        public int getIndex() {
+        public final int getIndex() {
             return chain.indexOf(this);
         }
         
@@ -191,10 +211,13 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         }
     }
     
-    public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainConfigField<V,IN> {
+    public static class ListConfigField<V, IN extends ValueNode<V>> extends ChainValueNode<V,IN> {
 
         public ListConfigField(Supplier<IN> chainedFactory) {
             super(chainedFactory);
+        }
+        public ListConfigField(int length, Supplier<IN> chainedFactory) {
+            super(length, chainedFactory);
         }
 
         @Override
@@ -213,8 +236,6 @@ public abstract class ChainConfigField<V, IN extends ValueNode<V>> extends Value
         }
         
     }
-    
-    
     public static class ConfigPane<T> implements ConfiguringFeature{
         private final VBox root = new VBox(5);
         private final List<ConfigField<T>> configs = new ArrayList();

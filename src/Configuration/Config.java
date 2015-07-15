@@ -6,12 +6,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import static java.util.stream.Collectors.joining;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 import static javafx.collections.FXCollections.observableArrayList;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import org.reactfx.Subscription;
 import util.Util;
 import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
@@ -670,6 +674,10 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
                     if(configs.size()==vals.size())
                          // its important to apply the values too
                         forEachBoth(configs, vals, (c,v)-> c.setNapplyValue(c.fromS(v)));
+                    
+                    if(t.getClass().equals(configs.get(0).getType()))
+                        return (T)configs.get(0).getValue();
+                    else 
                     return t;
                 })
                 .forEach(l::add);
@@ -695,12 +703,57 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             this.toConfigurable = toConfigurable;
         }
         
-
+        /** This method does nothing.*/
+        @Deprecated
         @Override
         public void setValue(ObservableList<T> v) {
              // guarantees that the list will be permanent value since it is
              // only null before initialization. thus we forbid overwriting it
             if(list==null) super.setValue(v);
+        }
+        
+        /**
+         * Clears list and adds items to it. Fires 1 event.
+         * Fluent API - returns this object. This is to avoid multiple constructors.
+         */
+        public ListAccessor<T> setItems(Collection<? extends T> items) {
+            list.setAll(items);
+            return this;
+        }
+        /** Array version of {@link #setItems(java.util.Collection)}*/
+        public ListAccessor<T> setItems(T... items) {
+            list.setAll(items);
+            return this;
+        }
+        
+        
+        /** 
+         * Adds invalidation listener to the list.
+         * Returns subscription to dispose of the listening.
+         */
+        public Subscription onInvalid(Consumer<ObservableList<T>> listener) {
+            InvalidationListener l = o -> listener.accept((ObservableList<T>)o);
+            list.addListener(l);
+            return () -> list.removeListener(l);
+        }
+        
+        /** 
+         * Adds invalidation listener to the list.
+         * Returns subscription to dispose of the listening.
+         */
+        public Subscription onInvalidRun(Runnable listener) {
+            InvalidationListener l = o -> listener.run();
+            list.addListener(l);
+            return () -> list.removeListener(l);
+        }
+        
+        /** 
+         * Adds list change listener to the list.
+         * Returns subscription to dispose of the listening.
+         */
+        public Subscription onChange(ListChangeListener<? super T> listener) {
+            list.addListener(listener);
+            return () -> list.removeListener(listener);
         }
     }
 }

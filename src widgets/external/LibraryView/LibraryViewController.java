@@ -140,7 +140,7 @@ public class LibraryViewController extends FXMLController {
         out_sel = outputs.create(widget.id,"Selected", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST);
         in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
-        in_items.bindTransient(DB.items.o);
+        in_items.bind(DB.items.o);
         
         actPane = new ActionChooser(this);
         

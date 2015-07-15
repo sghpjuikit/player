@@ -62,6 +62,7 @@ public class Icon<I extends Icon> extends Label implements Configurable {
             super.set(nv);
 //            t.setText(icon.getValue().characterToString());
 //            t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getValue().getFontFamily(), get()));
+            ((Text)getGraphic()).setStyle(String.format("-fx-font-size: %s;",nv));
 //            t.getStyleClass().add("glyph");
 
 //            setMinSize(nv, nv);

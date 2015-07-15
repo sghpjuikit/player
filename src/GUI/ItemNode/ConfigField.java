@@ -5,8 +5,8 @@ import Configuration.Config;
 import Configuration.Config.ListConfig;
 import action.Action;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.itemnode.ChainConfigField.ConfigPane;
-import gui.itemnode.ChainConfigField.ListConfigField;
+import gui.itemnode.ChainValueNode.ConfigPane;
+import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
 import gui.itemnode.TextFieldItemNode.FileItemNode;
 import gui.itemnode.TextFieldItemNode.FontItemNode;
@@ -711,14 +711,17 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final class ListField<T> extends ConfigField<ObservableList<T>> {
         
         ListConfigField<T, ConfigurableField> chain;
-            ListConfig<T> lc;
+        ListConfig<T> lc;
         
         public ListField(Config<ObservableList<T>> c) {
             super(c);
-            
             lc = (ListConfig)c;
             
-            chain = new ListConfigField<>(() -> new ConfigurableField(lc.a.factory.get()));
+            // create chain
+            chain = new ListConfigField<>(0,() -> new ConfigurableField(lc.a.factory.get()));
+            // initialize chain - add existing list values to chain
+            lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(v)));
+            // bind list to the chain values (after it was initialized above)
             chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().collect(toList()));
         }
         
@@ -748,6 +751,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             public Node getNode() {
                 return p.getNode();
             }
+
+            @Override
+            public T getValue() {
+                Object o = p.getValuesC().get(0).getValue();
+                if(value.getClass().equals(o.getClass())) return (T)o;
+                else return super.getValue();
+            }
+            
+            
             
         }
     }

@@ -19,7 +19,7 @@ import static util.functional.Util.*;
  *
  * @author Plutonium_
  */
-public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T>> extends ChainConfigField<Tuple2<Predicate<Object>,F>,PredicateItemNode<F>> {
+public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T>> extends ChainValueNode<Tuple2<Predicate<Object>,F>,PredicateItemNode<F>> {
 
     private final List<Tuple3<String,Class,F>> data = new ArrayList();
     private BiFunction<F,Predicate<Object>,Predicate<T>> converter;

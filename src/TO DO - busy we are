@@ -32,9 +32,6 @@ PROTIP:
 - util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
 
 GENERAL
-  Appear after using Tagger to edit songs sometimes. Once after just 
-  opening Library + 2x LibraryView
-  problem: probably Fut (or something else?) blocking FX thread
 - cant hide index column, shows artefacts                                       (medium)
 - transparent stage causing massive perfomance degradation for larger stages    (major, javaFX bug)
   problem: transparent skins, mouse effects unsupported, windows as node
@@ -69,11 +66,10 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- playlist selection quickly changing -> bug in InfoTable text generation       (medium, javaFX bug)
-  during summing total duration
 - seeker has totaltime null when changing songs very quickly. the root cause    (medium, state inconsistency)
   probably goes to PLAYER.playback. Fixing seeker causes playback incrementer
   failure. So... 
+  this may be the same bug as table selection bug in solved bugs
 
 
 SOLVED (but the underlying cause still deserves attention)
@@ -111,6 +107,17 @@ SOLVED (but the underlying cause still deserves attention)
   main window this way doesnt execute the necessary actions. Also, with the
   hidden owner window app wont close as one window remains open
   solution: have onCloseRequest event execute close()
+- some local shortucts (F3,F4,F5,...) not registering as app shortcuts          (major)
+  cause: unknown, so far affects only some F keys (some F keys are fine)
+  solution: delay registering in runLater()                                     (great)
+  details: see Action.class register()
+- when table selection changes from 2 selected items, the selectedItems()       (major, javaFX bug?)
+  list will contain null instead of the newly selected element (the one added, 
+  or the one remaining)
+  cause: unknown
+  solution: iterate over the list with toS() method, this makes no sense, but 
+  thats all i know works right now, this is dangerous
+  affected: LibraryView filterList(), InfoTable
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------

@@ -184,8 +184,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if(!config.getValue().equals(t)) {
             config.setNapplyValue(t);
             refreshItem();
+            if(onChange!=null) onChange.run();System.out.println("changed config");
         }
-    }
+    }Runnable onChange;
     public void apply() {
         apply(true);
     }
@@ -202,6 +203,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         if(applyOnChange || user) config.setNapplyValue(t);
         else config.setValue(t);
         refreshItem();
+        if(onChange!=null) onChange.run();System.out.println("changed config");
         insonsistent_state = false;
     }
     
@@ -721,8 +723,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             chain = new ListConfigField<>(0,() -> new ConfigurableField(lc.a.factory.get()));
             // initialize chain - add existing list values to chain
             lc.a.list.forEach(v -> chain.addChained(new ConfigurableField(v)));
+            chain.growTo1();
             // bind list to the chain values (after it was initialized above)
-            chain.onItemChange = ignored -> lc.a.list.setAll(chain.getValues().collect(toList()));
+            chain.onItemChange = ignored -> {lc.a.list.setAll(chain.getValues().collect(toList()));System.out.println("changed large");};
         }
         
         @Override
@@ -745,6 +748,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             public ConfigurableField(T t) {
                 value = t;
                 p.configure(lc.a.toConfigurable.apply(value));
+                p.onChange = () -> {chain.onItemChange.accept(null);System.out.println("changed medium");};
             }
 
             @Override

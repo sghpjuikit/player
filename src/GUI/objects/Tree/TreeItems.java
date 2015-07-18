@@ -11,12 +11,12 @@ import Configuration.ListConfigurable;
 import Layout.Component;
 import Layout.Container;
 import Layout.LayoutManager;
-import Layout.Widgets.feature.ConfiguringFeature;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetFactory;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
+import Layout.Widgets.feature.ConfiguringFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
 import static gui.objects.tree.FileTree.createTreeItem;
@@ -49,6 +49,7 @@ import main.App;
 import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
+import static util.File.FileUtil.listFiles;
 import static util.Util.*;
 import static util.functional.Util.*;
 
@@ -83,7 +84,7 @@ public class TreeItems {
                    tree("Windows", () -> Window.windows.stream()),
                    tree("Layouts", () -> LayoutManager.getLayouts())
                  ),
-                 tree("Location", () -> stream(App.getLocation().listFiles()).sorted((a,b) -> a.isFile() && b.isDirectory() ? 1 : a.isDirectory() && b.isFile() ? -1 : a.compareTo(b))),
+                 tree("Location", () -> stream(listFiles(App.getLocation())).sorted((a,b) -> a.isFile() && b.isDirectory() ? 1 : a.isDirectory() && b.isFile() ? -1 : a.compareTo(b))),
                  tree("File system", () -> stream(File.listRoots()))
                );
     }
@@ -274,23 +275,17 @@ public class TreeItems {
         }
 
         private List<TreeItem<File>> buildChildren(TreeItem<File> i) {
-            File value = i.getValue();
-            if (value != null && value.isDirectory()) {
-                File[] all = value.listFiles();
-                if (all != null) {
-                    // we want to sort the items : directories first
-                    List<TreeItem<File>> fils = new ArrayList();
-                    List<TreeItem<File>> dirs = new ArrayList();
-                    for (File f : all) {
-                        if(!f.isDirectory()) dirs.add(createTreeItem(f));
-                        else                 fils.add(createTreeItem(f));
-                    }
-                           fils.addAll(dirs);
-                    return fils;
-                }
-            }
-
-            return listRO();
+            // we want to sort the items : directories first
+            // we make use of the fact that listFiles() gives us already
+            // sorted list
+            List<TreeItem<File>> dirs = new ArrayList<>();
+            List<TreeItem<File>> fils = new ArrayList<>();
+            listFiles(i.getValue()).forEach(f -> {
+                if(!f.isDirectory()) dirs.add(createTreeItem(f));
+                else                 fils.add(createTreeItem(f));
+            });
+                   dirs.addAll(fils);
+            return dirs;
         }
     }
     public static class NodeTreeItem extends TreeItem<Node> {
@@ -366,7 +361,7 @@ public class TreeItems {
         propertes(o).forEach((p,name) -> {
             if(!(p instanceof WritableValue || p instanceof ReadOnlyProperty)) System.out.println(p.getClass());
             if((p instanceof WritableValue || p instanceof ReadOnlyProperty) && p.getValue()!=null)
-                cs.add(Config.fromProperty(name,p));
+                cs.add(Config.forProperty(name,p));
         });
         ListConfigurable c = new ListConfigurable(cs);
         return c;

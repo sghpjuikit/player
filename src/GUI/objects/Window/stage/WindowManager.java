@@ -6,14 +6,14 @@
 
 package gui.objects.Window.stage;
 
-import action.IsAction;
-import action.IsActionable;
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Layout;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
+import action.IsAction;
+import action.IsActionable;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
@@ -38,6 +38,7 @@ import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import main.App;
 import util.File.FileUtil;
+import static util.File.FileUtil.listFiles;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
 import util.dev.Log;
@@ -214,7 +215,7 @@ public class WindowManager {
         Log.deb("Serializing " + src.size() + " application windows for next session.");
         
         // remove serialized files from previous session
-        for(File f: dir.listFiles()) f.delete();
+        for(File f: listFiles(dir)) f.delete();
         Log.deb("Removing all files from previous session.");
         
         // serialize - for now each window to its own file with .ws extension

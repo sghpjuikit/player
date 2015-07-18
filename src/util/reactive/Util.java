@@ -16,11 +16,13 @@ import org.reactfx.Subscription;
 
 /***/
 public class Util {
+    
     /**  */
     public static<O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, Consumer<? super V> u) {
         u.accept(m.apply(o.getValue()));
         return valuesOf(o).map(m).subscribe(u);
     }
+    
     /***/
     public static<O> Subscription maintain(ObservableValue<O> o, Consumer<? super O> u) {
         ChangeListener<O> l = (b,ov,nv) -> u.accept(nv);
@@ -33,16 +35,14 @@ public class Util {
         w.setValue(m.apply(o.getValue()));
         return valuesOf(o).map(m).subscribe(w::setValue);
     }
+    
     public static<O> Subscription maintain(ObservableValue<O> o, WritableValue<O> w) {
         w.setValue(o.getValue());
-        return valuesOf(o).subscribe(w::setValue);
+        ChangeListener<O> l = (x,ov,nv) -> w.setValue(nv);
+        o.addListener(l);
+        return () -> o.removeListener(l);
     }
-    public static<O> Subscription maintain(Property<O> o, Property<O> w) {
-        if(w.isBound())w.unbind();
-        w.setValue(o.getValue());
-        w.bind(o);
-        return w::unbind;
-    }
+    
     
     
     public static<O> Subscription maintain(ValueStream<O> o, Consumer<? super O> u) {

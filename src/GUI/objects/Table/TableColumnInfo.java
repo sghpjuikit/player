@@ -146,13 +146,15 @@ public final class TableColumnInfo {
         }
         
         public void toTable(TableView<?> table) {
+            List<TableColumn> so = new ArrayList();
             table.getSortOrder().clear();
             sorts.forEach(t -> {
                 find(table.getColumns(), c -> t._1.equals(c.getText())).ifPresent(c->{
                     c.setSortType(t._2);
-                    table.getSortOrder().add((TableColumn)c);
+                    so.add(c);
                 });
             });
+            table.getSortOrder().setAll((List)so);
         }
 
         @Override

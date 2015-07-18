@@ -25,6 +25,7 @@ import util.access.FieldValue.EnumerableValue;
 import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
+import static util.dev.Util.forbidNull;
 import util.functional.Functors.F1;
 import static util.functional.Util.forEachBoth;
 import static util.functional.Util.list;
@@ -268,7 +269,50 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     
 /********************************* CREATING ***********************************/
     
-    public static <T> Config<T> fromProperty(String name, Object property) {
+    /**
+     * Creates config for plain object - value. The difference from 
+     * {@link #forProperty(java.lang.String, java.lang.Object) } is that 
+     * property is a value wrapper while value is considered immutable, thus
+     * new wrapper needs to be created (and will be automatically).
+     * <p>
+     * If the value is not a value (its class is supported by 
+     * ({@link #forProperty(java.lang.String, java.lang.Object)}) 
+     * Equivalent of: {@code return forProperty(name, new Accessor(property));}
+     * or is null, runtime exception is thrown.
+     */
+    public static <T> Config<T> forValue(String name, Object value) {
+        forbidNull(value, "Config can not be created for null");
+        if(value instanceof Config ||
+           value instanceof ListAccessor ||
+           value instanceof WritableValue ||
+           value instanceof ReadOnlyProperty)
+            throw new RuntimeException("Value " + value + "is a property and can"
+                    + "not be turned into Config as value.");
+        return forProperty(name, new Accessor<>(value));
+    }
+    
+    /**
+     * Creates config for property. Te property will become the underlying data
+     * of the config and thus reflect any value changes and vice versa. If
+     * the property is read only, config will also be read only (its set()
+     * methods will not do anything). If the property already is config, it is 
+     * returned.
+     * 
+     * @param name of of the config, will be used as gui name
+     * @param property underlying property for the config.
+     * The property must be instance of any of:
+     * <ul>
+     * <li> {@link Config}
+     * <li> {@link ListAccessor}
+     * <li> {@link WritableValue}
+     * <li> {@link ReadOnlyProperty}
+     * </ul>
+     * so standard javafx properties will all work. If not instance of any of
+     * the above, runtime exception will be thrown.
+     */
+    public static <T> Config<T> forProperty(String name, Object property) {
+        if(property instanceof Config)
+            return (Config<T>)property;
         if(property instanceof ListAccessor)
             return new ListConfig(name,(ListAccessor)property);
         if(property instanceof WritableValue)
@@ -277,6 +321,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             return new ReadOnlyPropertyConfig<>(name,(ReadOnlyProperty<T>)property);
         throw new RuntimeException("Must be WritableValue or ReadOnlyValue");
     }
+    
+    
     public static Collection<Config> configs(Object o) {
         return configsOf(o.getClass(), o, false, true);
     }
@@ -642,7 +688,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         //************************* string converting
         
         @Override
-        public String getValueS() {System.out.println("geting val " + toS(getValue()));
+        public String getValueS() {
             return toS(getValue());
         }
 

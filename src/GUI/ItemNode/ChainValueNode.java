@@ -39,18 +39,20 @@ import static util.dev.Util.require;
 import static util.functional.Util.*;
 
 /**
+ * {@link ValueNode} containing editable list of {@link ValueNode}.
  * 
- * @param <C> chain type. Type of chained - chain element. Chained are gui
- * wrappers of values V
- * @param <V> type of value that is chained, for example String for chain of Strings or
- * Function for chain of Functions.
+ * @param <V> type of value that is chained. Each value is contained in a 
+ * chained C - a {@link ValueNode} of the same type. The exact type is specified
+ * as generic parameter.
+ * @param <C> type of chained. This chain will be made of links of chained of
+ * exactly this type, either provided manually or constructed using factory.
  *
  * @author Plutonium_
  */
 public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNode<V> {
 
     protected final VBox root = new VBox();
-    protected final ObservableList<Chainable> chain = (ObservableList)root.getChildren();
+    protected final ObservableList<Link> chain = (ObservableList)root.getChildren();
     public final IntegerProperty maxChainLength = new SimpleIntegerProperty(Integer.MAX_VALUE);
     protected Supplier<C> chainedFactory; // final
     protected boolean homogeneous = true;
@@ -71,12 +73,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     
     /** Creates limited chain of i initial chained elements.  */
     public ChainValueNode(int len, int max_len, Supplier<C> chainedFactory) {
-        require(len>=0,"Chain length must not be negative");
-        require(len<=max_len,"Chain length must not be larger than max length");
-        
+        maxChainLength.set(max_len);
         this.chainedFactory = chainedFactory;
-        repeat(len,() -> chain.add(new Chainable(chainedFactory.get())));
-        generateValue(); // initializes value, dont fire update yet
+        growTo(len);
         
         maxChainLength.addListener((o,ov,nv) -> {
             int m = nv.intValue();
@@ -84,10 +83,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                 chain.setAll(chain.subList(0, m));
                 generateValue();
             }
-            chain.forEach(Chainable::updateIcons);
+            chain.forEach(Link::updateIcons);
         });
-        chain.addListener((Change<? extends Chainable> c) -> chain.forEach(Chainable::updateIcons));
-        maxChainLength.set(max_len);
+        chain.addListener((Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
     }
     
     public void addChained() {
@@ -101,10 +99,35 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     }
     public void addChained(int i, C chained) {
         if(chain.size()<maxChainLength.get()) {
-            Chainable c = new Chainable(chained);
+            Link c = new Link(chained);
             chain.add(i,c);
             generateValue();
         }
+    }
+    
+    /** 
+     * Grows the chain to 1.
+     * It is important for the chain length to be at least 1, otherwise it will
+     * become non-editable and always empty!
+     * <p>
+     * Equivalent to {@code growTo(1); }
+     * 
+     * @see #growTo(int) 
+     */
+    public void growTo1() {
+        growTo(1);
+    }
+    
+    /**
+     * Grows the chain (adds chained to it using the chained factory) so there is
+     * at least n chained elements.
+     * If the chain is already at least as long as n, no elements are added.
+     */
+    public void growTo(int n) {
+        require(n>=0,"Chain length must not be negative");
+        require(n<=maxChainLength.get(),"Chain length must not be larger than max length");
+        repeat(n-chain.size(),(Runnable)this::addChained);
+        generateValue();
     }
     
     /** {@inheritDoc} */
@@ -145,7 +168,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      * @param action on click action
      */
     public void setButton(FontAwesomeIconName icon, Tooltip t, Run action) {
-        Chainable c = chain.get(0);
+        Link c = chain.get(0);
         Icon i = c.rem;
              i.icon.setValue(icon==null ? MINUS : icon);
              i.setOnMouseClicked(icon==null ? c::onRem : action.toHandlerConsumed());
@@ -157,9 +180,10 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     
     private static final Tooltip addTooltip = new Tooltip("Add");
     private static final Tooltip remTooltip = new Tooltip("Remove");
-    private static final Tooltip onTooltip = new Tooltip("Enabled");
+    private static final Tooltip onTooltip = new Tooltip("Enable. Disabled "
+            + "elements will not be in the list.");
     
-    public class Chainable extends HBox {
+    public class Link extends HBox {
         private final CheckIcon onB = new CheckIcon(true);
         private final Icon rem = new Icon(MINUS, 13);
         private final Icon add = new Icon(PLUS, 13);
@@ -167,9 +191,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         public final C chained;
         private boolean rem_alt = false; // alternative icon, never disable
         
-        Chainable(C c) {
+        Link(C c) {
             chained = c;
-            chained.onItemChange = f-> generateValue();
+            chained.onItemChange = f -> generateValue();
             setSpacing(5);
             getChildren().addAll(rem,add,onB,chained.getNode());
             HBox.setHgrow(chained.getNode(), ALWAYS);
@@ -239,6 +263,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public static class ConfigPane<T> implements ConfiguringFeature{
         private final VBox root = new VBox(5);
         private final List<ConfigField<T>> configs = new ArrayList();
+        Runnable onChange;
         
         public ConfigPane() {}
         public ConfigPane(Collection<Config<T>> configs) {
@@ -253,6 +278,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         public final void configure(Collection<Config> configs) {
             root.getChildren().setAll(map(configs,c -> {
                 ConfigField cf = ConfigField.create(c);
+                            cf.onChange = () -> { if(onChange!=null) onChange.run(); };
                 this.configs.add(cf);
                 Label l = cf.getLabel();
                       l.setMinWidth(100);

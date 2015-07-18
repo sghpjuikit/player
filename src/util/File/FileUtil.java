@@ -25,6 +25,7 @@ import util.Util;
 import static util.Util.filenamizeString;
 import util.dev.Log;
 import static util.functional.Util.isNotNULL;
+import static util.functional.Util.listRO;
 
 /**
  * Provides file operations.
@@ -175,6 +176,28 @@ public final class FileUtil {
         return (f != null && FileUtil.isValidFile(f) &&   // is valid file
                     f.getPath().endsWith(".fxml") &&      // is .css file
                         App.WIDGET_FOLDER().equals(p2));  // is located in skins folder in its rightful folder
+    }
+    
+    
+    /**
+     * Same as {@link File#listFiles() }, but never returns null (instead, empty
+     * list). 
+     * Normally, the method in File returns null if parameter is not a directory,
+     * but also when error occurs. For example when directory refers to a 
+     * directory on a partition residing on hdd that has been disconnected.
+     * <p>
+     * Returning null instead of collection is never a good idea anyway!
+     * 
+     * @throws SecurityException - If a security manager exists and its 
+     * SecurityManager.checkRead(String) method denies read access to the 
+     * directory
+     * 
+     * @return unmodifiable list of files in the directory, it is empty if 
+     * parameter is not a directory or is inaccessible or null
+     */
+    public static List<File> listFiles(File dir) {
+        File[] l = dir==null ? null : dir.listFiles();
+        return l==null ? listRO() : listRO(l); 
     }
     
     /**
@@ -636,11 +659,7 @@ public final class FileUtil {
         return (p == - 1) ? "" : path.substring(p + 1);
     }
     
-    /**
-     * Recursively deletes sub files and sub directories. along with the 
-     * specified directory
-     * @param dir 
-     */
+    /** Deletes the file and if it denotes a directory, all its content too. */
     public static void removeDir(File dir) {
         if (dir.isDirectory()) {
             File[] files = dir.listFiles();
@@ -655,20 +674,12 @@ public final class FileUtil {
         }
     }
     
-    /**
-     * does not delete the main directory but all sub files and directories, 
-     * results in the main directory being empty
-     * @param dir 
+    /** 
+     * Deletes content of the directory, but not directory itself. Does nothing
+     * when not a directory.
      */
     public static void removeDirContent(File dir) {
-        if (dir.isDirectory()) {
-            File[] files = dir.listFiles();
-            if (files != null && files.length > 0) {
-                for (File aFile : files) {
-                    removeDir(aFile);
-                }
-            }
-        }
+        listFiles(dir).forEach(FileUtil::removeDir);
     }
     
     /**

@@ -256,9 +256,7 @@ public class App extends Application {
          //initialize non critical parts
         Player.loadLast();                      // should load in the end
         
-        Action.getActions().forEach(Action::register);
-        
-        // eall ready -> apply all settings
+        // all ready -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
         
         // handle guide

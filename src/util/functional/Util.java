@@ -353,7 +353,7 @@ public class Util {
      * collection
      */
     public static<T> String toS(Collection<T> c) {
-        return c.stream().map(Object::toString).collect(toCSList);
+        return c.stream().map(toString).collect(toCSList);
     }
     
     public static<E> E findOrDie(Collection<E> c, Predicate<E> filter) {
@@ -664,7 +664,7 @@ public class Util {
     }
     
     /** Filters and then maps array. Returns list. Source remains unchanged. */
-    public static<T,R> List<R> filterMap(T[] a, Predicate<T> f, Function<T,R> m) {
+    public static<T,R> List<R> filterMap(Predicate<T> f, Function<T,R> m, T... a ) {
         return Stream.of(a).filter(f).map(m).collect(toList());
     }
     

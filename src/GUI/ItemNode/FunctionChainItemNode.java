@@ -76,9 +76,9 @@ public class FunctionChainItemNode extends ChainValueNode<F1<Object,Object>,Func
                 chain.setAll(chain.subList(0, m));
                 generateValue();
             }
-            chain.forEach(Chainable::updateIcons);
+            chain.forEach(Link::updateIcons);
         });
-        chain.addListener((ListChangeListener.Change<? extends Chainable> c) -> chain.forEach(Chainable::updateIcons));
+        chain.addListener((ListChangeListener.Change<? extends Link> c) -> chain.forEach(Link::updateIcons));
         maxChainLength.set(max_len);
     }
     

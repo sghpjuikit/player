@@ -179,15 +179,15 @@ public interface Configurable<T> {
     
     
     public static Collection<Config> configsFromValues(Collection<WritableValue> vals) {
-        return forEachIStream(vals, (i,v) -> Config.fromProperty(String.valueOf(i),v)).collect(toList());
+        return forEachIStream(vals, (i,v) -> Config.forProperty(String.valueOf(i),v)).collect(toList());
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(Collection<E> vals) {
-        return map(vals,v -> Config.fromProperty(v.getName(),v));
+        return map(vals,v -> Config.forProperty(v.getName(),v));
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromProperties(E... vals) {
-        return map(vals,v -> Config.fromProperty(v.getName(),v));
+        return map(vals,v -> Config.forProperty(v.getName(),v));
     }
     
     public static <E extends ReadOnlyProperty & WritableValue> Collection<Config> configsFromFieldsOf(Object o) {

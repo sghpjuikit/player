@@ -14,10 +14,12 @@ import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.ClassController;
 import gui.objects.image.Thumbnail;
 import java.io.File;
+import static java.lang.Character.isAlphabetic;
 import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.List;
 import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
 import static javafx.collections.FXCollections.observableArrayList;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -33,15 +35,17 @@ import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.*;
 import util.File.Environment;
 import util.File.FileUtil;
+import static util.File.FileUtil.getName;
+import static util.File.FileUtil.listFiles;
 import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
-import util.access.Accessor;
 import static util.async.Async.runLater;
 import static util.functional.Util.by;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.forEachWithI;
-import static util.functional.Util.listRO;
+import static util.functional.Util.split;
 import static util.functional.Util.stream;
+import static util.functional.Util.toS;
 
 /**
  *
@@ -65,8 +69,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final ListAccessor<File> files = new ListAccessor<>(() -> new File("C:\\"),f -> Config.fromProperty("File", new Accessor<File>(f)));
-//            .setItems(App.getLocation());
+    final ListAccessor<File> files = new ListAccessor<>(() -> new File("C:\\"),f -> Config.forValue("File",f));
     
     Cell item = null;
     CellPane cells = new CellPane(160,220,5);
@@ -152,34 +155,26 @@ public class DirViewer extends ClassController {
         }
 
         protected List<Cell> buildChildren() {
-            File value = val;
-            if (value != null && value.isDirectory()) {
-                File[] all = value.listFiles();
-                if (all != null) {
-                    // we want to sort the items : directories first
-                    // we make use of the fact that listFiles() gives us already
-                    // sorted list
-                    List<Cell> fils = new ArrayList();
-                    List<Cell> dirs = new ArrayList();
-                    for (File f : all) {
-                        if(!f.isDirectory()) dirs.add(new Cell(this,f));
-                        else                 fils.add(new Cell(this,f));
-                    }
-                           fils.addAll(dirs);
-                    return fils;
-                }
-            }
-
-            return listRO();
+            // we want to sort the items : directories first
+            // we make use of the fact that listFiles() gives us already
+            // sorted list
+            List<Cell> dirs = new ArrayList<>();
+            List<Cell> fils = new ArrayList<>();
+            listFiles(val).forEach(f -> {
+                if(!f.isDirectory()) dirs.add(new Cell(this,f));
+                else                 fils.add(new Cell(this,f));
+            });
+                   dirs.addAll(fils);
+            return dirs;
         }
         
         
-        private VBox n;
+        private VBox root;
         public Node load() {
-            if(n==null) {
-                File dir = val;
-                n = new VBox();
-                n.setPrefSize(160,220);
+            if(root==null) {
+                File f = val;
+                root = new VBox();
+                root.setPrefSize(160,220);
 
                 Thumbnail t = new Thumbnail(160,200);
                 if(isFirstTimeCover) {
@@ -191,18 +186,25 @@ public class DirViewer extends ClassController {
                 }
                 t.getPane().setOnMouseClicked(e -> {
                     if(e.getButton()==PRIMARY && e.getClickCount()==2) {
-                        if(dir.isDirectory()) viewDir(this);
-                        else Environment.open(dir);
+                        if(f.isDirectory()) viewDir(this);
+                        else Environment.open(f);
                         e.consume();
                     }
                 });
 
-                Label l = new Label(dir.getName());
-                n.getChildren().addAll(t.getPane(),l);
+                String m = getName(f);
+                       m = m.replaceAll("\\[.*\\]", "");
+                       m = m.replaceAll("\\(.*\\)", "");
+                       m = m.trim();
+                String n = f.isDirectory() ? m : toS(split(m," ",x->x),
+                    s -> s.length()<=1 || !isAlphabetic(s.charAt(0)) ? s : s.substring(0,1),""
+                );
+                Label l = new Label(n);
+                root.getChildren().addAll(t.getPane(),l);
 
-                n.setAlignment(Pos.CENTER);
+                root.setAlignment(Pos.CENTER);
             }
-            return n;
+            return root;
         }
     }
     public class TopCell extends Cell {
@@ -214,7 +216,7 @@ public class DirViewer extends ClassController {
         @Override
         protected List<Cell> buildChildren() {
             return files.list.stream()
-                      .flatMap(f->stream(f.listFiles()))
+                      .flatMap(f->f.isDirectory() ? stream(listFiles(f)) : Stream.empty())
                       .sorted(by(File::getName))
                       .map(f -> new Cell(this,f))
                       .collect(toList());

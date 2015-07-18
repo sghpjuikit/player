@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import static java.util.stream.Collectors.joining;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -1116,7 +1115,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         CUSTOM5("Custom field 5");
         
         private final String desc;
-        private final Function<Object,String> toS = Objects::toString;
         
         private Field(String desc) {
             mapEnumConstant(this, Util::enumToHuman);

@@ -164,13 +164,12 @@ public class Icon<I extends Icon> extends Label implements Configurable {
     }
     public final I onClick(Runnable action) {
         click_runnable = action;
-        setOnMouseClicked(action==null ? null : e -> { 
+        return onClick(action==null ? null : e -> { 
             if(e.getButton()==PRIMARY) {
                 action.run();
                 e.consume(); 
             } 
         });
-        return (I)this;
     }
     
     private Runnable click_runnable;

@@ -18,7 +18,6 @@ import java.util.function.Function;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -468,19 +467,6 @@ public class Util {
     public static void setScaleXY(Node n, double x, double y) {
         n.setScaleX(x);
         n.setScaleY(y);
-    }
-    
-    /**
-     * Returns copy of the selected items of the table. Because the original list
-     * is observable, changes would show up if it was used as a parameter. Often,
-     * we need a 'snapshot' of the selected items list at the moment and we dont
-     * want that snapshot to mutate.
-     * @param <T> type of element in the list
-     * @param t
-     * @return 
-     */
-    public static<T> List<T> copySelectedItems(TableView<T> t) {
-        return new ArrayList(t.getSelectionModel().getSelectedItems());
     }
     
     /**

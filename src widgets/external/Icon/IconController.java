@@ -43,8 +43,8 @@ public class IconController extends FXMLController {
             return i;
         }, i ->
         new ListConfigurable(
-            Config.fromProperty("Icon", i.icon),
-            Config.fromProperty("Action",new AccessorAction(i.getOnClickAction(),a->i.onClick((Runnable)a)))
+            Config.forProperty("Icon", i.icon),
+            Config.forProperty("Action",new AccessorAction(i.getOnClickAction(),i::onClick))
         )
     );
     @FXML private StackPane root;

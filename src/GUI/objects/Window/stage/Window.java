@@ -335,7 +335,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	windows.add(this);
 
 	// set local shortcuts
-	Action.getActions().stream().filter(a -> !a.isGlobal()).forEach(a -> a.registerInScene(s.getScene()));
+        Action.getActions().stream().filter(a -> !a.isGlobal() && a.hasKeysAssigned())
+              .forEach(a -> a.registerInScene(s.getScene()));
 
 	// update coordinates for context manager
 	root.addEventFilter(MOUSE_PRESSED, e -> {

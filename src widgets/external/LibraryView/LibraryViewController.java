@@ -137,10 +137,9 @@ public class LibraryViewController extends FXMLController {
     
     @Override
     public void init() {
-        out_sel = outputs.create(widget.id,"Selected", MetadataGroup.class, null);
+        out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST);
         in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
-        in_items.bind(DB.items.o);
         
         actPane = new ActionChooser(this);
         
@@ -191,8 +190,6 @@ public class LibraryViewController extends FXMLController {
         // maintain playing item css by refreshing column
         d2 = Player.playingtem.subscribeToChanges(o -> table.updateStyleRules());
        
-        // maintain outputs
-        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
@@ -232,19 +229,22 @@ public class LibraryViewController extends FXMLController {
         
         // resizing
         table.setColumnResizePolicy(resize -> {
+            FilteredTable<MetadataGroup,MetadataGroup.Field> t = (FilteredTable) resize.getTable();
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
-            table.getColumn("#").ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
+            t.getColumn(ColumnField.INDEX).ifPresent(i->i.setPrefWidth(t.calculateIndexColumnWidth()));
             // resize main column to span remaining space
-            find(table.getColumns(),c -> VALUE == c.getUserData()).ifPresent(c->{
-                double w = table.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
-                double itemsHeight = (table.getItems().size()+1)*table.getFixedCellSize();
-                double scrollbar = itemsHeight < table.getHeight() ? 0 : 15;
-                c.setPrefWidth(table.getWidth()-(scrollbar+w-c.getWidth()));
+            t.getColumn(VALUE).ifPresent(c->{
+                double w = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
+                double itemsHeight = (t.getItems().size()+1)*t.getFixedCellSize();
+                double scrollbar = itemsHeight < t.getHeight() ? 0 : 15;
+                c.setPrefWidth(t.getWidth()-(scrollbar+w-c.getWidth()));
             });
             return b;
         });
         
+        // maintain outputs
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         // forward on selection
         EventStreams.changesOf(table.getSelectedItems()).reduceSuccessions((a,b)->b, ofMillis(60)).subscribe(c -> {
             if(!sel_lock)
@@ -350,20 +350,22 @@ public class LibraryViewController extends FXMLController {
     private List<Metadata> filerList(List<Metadata> list, boolean orAll, boolean orEmpty) {
         if(list==null || list.isEmpty()) return EMPTY_LIST;
         
-//        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
-        List<MetadataGroup> mgs = new ArrayList(orAll ? table.getSelectedOrAllItems() : table.getSelectedItems());
-                            mgs.removeIf(isNULL);
-        System.out.println(mgs + " 1");
+        // bug fix, without this line, which does exactly nothing,
+        // mgs list contains nulls sometimes (no idea why)
+        util.functional.Util.toS(table.getSelectedItems(),Objects::toString);
+            
+        List<MetadataGroup> mgs = orAll ? table.getSelectedOrAllItems() : table.getSelectedItems();
+
         // optimization : if empty, dont bother filtering
-        if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList(list);
+        if(mgs.isEmpty()) return orEmpty ? EMPTY_LIST : new ArrayList<>(list);
         
-        // composed predicate, perform suboptimally
+        // composed predicate, performs badly
         // Predicate<Metadata> p = mgs.parallelStream()
         //        .map(MetadataGroup::toMetadataPredicate)
         //        .reduce(Predicate::or)
         //        .orElse(isFALSE);
         
-        Field f = fieldFilter.getValue();        System.out.println(f + " 2");
+        Field f = fieldFilter.getValue();
         Predicate<Metadata> p;
         // optimization : if only 1, dont use list
         // optimization : dont use equals for primitive types

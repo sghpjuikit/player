@@ -18,17 +18,17 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.regex.Matcher;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
-import javafx.scene.input.MouseEvent;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.access.Accessor;
+import util.async.Async;
+import static util.async.Async.runLater;
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
 import util.dev.Dependency;
@@ -41,17 +41,13 @@ import static util.functional.Util.do_NOTHING;
  * An action can wrap any {@link Runnable}. The aim however is to allow a
  * framework make convenient externalization of application behavior possible.
  * With the help of {@link IsAction} annotation methods can be annotated and
- * invoked directly as actions anytime.
- * Custom actions can also be constructed and used.
+ * invoked directly as actions anytime. Example of use for action is generating
+ * shortcuts for the application.
  * <p>
- * One example of use case for action is generating shortcut for the
- * application. When the application starts up, all annotated methods are turned
- * into actions and provide shortcuts for execution of the underlying behavior.
- * <p>
- * Additionally, actions can be configured and their state serialized.
+ * Action is also {@link Config} so it can be configured and serialized.
  */
 @IsConfigurable
-public final class Action extends Config<Action> implements Runnable, EventHandler<MouseEvent> {
+public final class Action extends Config<Action> implements Runnable {
     
     /** Action that does nothing. Use where null inappropriate. */
     public static final Action EMPTY = new Action("None", do_NOTHING, "Does nothing", "", false, false);
@@ -142,7 +138,7 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
      * value and can be registered.
      */
     public boolean hasKeysAssigned() {
-        return !keys.equals(NO_MATCH);
+        return keys!=NO_MATCH;
     }
     
     
@@ -199,13 +195,8 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
             locker.restart();
         }
         
-        if(canRun) {
-            // run on appFX thread
-            if (Platform.isFxApplicationThread()) runUnsafe();
-            else Platform.runLater(this::runUnsafe);
-        }
-        
-
+        // run on appFX thread
+        if(canRun) Async.runFX(this::runUnsafe);
     }
     
     private void runUnsafe() {
@@ -226,13 +217,6 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
             App.actionStream.push(name);
 //        }
     }
-
-    /** Invokes {@link #run()} and consumes event. */
-    @Override
-    public void handle(MouseEvent e) {
-        run();
-        e.consume();
-    }
     
     /**
      * Activates shortcut. Only registered shortcuts can be invoked.
@@ -249,15 +233,30 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
      * the same keys and locally with different keys. Make sure the action is
      * unregistered before registering it.
      */
-    public void register() {                                                    // Log.deb("Attempting to register shortcut " + name);
+    public void register() {
         if(!hasKeysAssigned()) return;
         
+        // notice the else and how even global shortcuts can register locally
+        // this is so if global registration is not possible, we fall back to
+        // local, not leaving user confused about why the shortcut doesnt work
         if (global && global_shortcuts.getValue() && isGlobalShortcutsSupported())
             registerGlobal();
-        else
-            registerInApp();
+        else 
+            // runlater is bugfix, we delay local shortcut registering 
+            // probably a javafx bug, as this was not always a problem
+            //
+            // for some unknown reason some shortcuts (F3,F4,
+            // F5,F6,F8,F12 confirmed) not getting registered when app starts, but 
+            // other shortcuts register fine, even F9, F10 or F11...
+            //
+            // (1) The order in which shortcuts register doesnt seem to play a 
+            // role. (2) The problem is certainly not shortcuts being consumed
+            // by gui. (3) This method always executes on fx thread, threading 
+            // is not the problem, you can make sure by uncommenting:
+            // System.out.println("Registering shortcut: " + keys.getDisplayText() + ", is FX thread: " + Platform.isFxApplicationThread());
+            runLater(this::registerInApp);
     }
-    public void unregister() {                                                  // Log.deb("Attempting to unregister shortcut " + name);
+    public void unregister() {
         // unregister both local and global to prevent illegal states
         if (isGlobalShortcutsSupported()) unregisterGlobal();
         unregisterInApp();
@@ -279,61 +278,53 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
         }
     }   
     
-    private void registerInApp() {                                              // Log.deb("Registering in-app shortcut "+name);
-        // fix local shortcut problem - keyCodes not registering, needs raw characters instead
-        // TODO resolve or include all characters' conversions
-        final KeyCombination k;
-        String s = getKeys();
-        if(s.contains("Back_Slash")) k = KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
-        else if(s.contains("Back_Quote"))k = KeyCombination.keyCombination(s.replace("Back_Quote","`"));
-        else k = keys;
-        
-        if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
-        // register for each window separately
-        Window.windows.forEach( w -> 
-            w.getStage().getScene().getAccelerators().put(k,this));
-    }
+    private void registerInApp() {
+        if (!App.isInitialized()) return;
 
-    private void unregisterInApp() {                                            // Log.deb("Unregistering in-app shortcut "+name);
-        // fix local shortcut problem - keyCodes not registering, needs raw characters instead
-        // TODO resolve or include all characters' conversions
-        final KeyCombination k = getKeysForLocalRegistering(this);
-        
-        if (App.getWindow()==null || !App.getWindow().isInitialized()) return;
-        // unregister for each window separately
-        Window.windows.forEach( w -> 
-            w.getStage().getScene().getAccelerators().remove(k));
+        KeyCombination k = getKeysForLocalRegistering();
+        // register for each window separately
+        Window.windows.forEach(w -> w.getStage().getScene().getAccelerators().put(k,this));
     }
+    private void unregisterInApp() {
+        if (!App.isInitialized()) return;
+
+        KeyCombination k = getKeysForLocalRegistering();
+        // unregister for each window separately
+        Window.windows.forEach(w -> w.getStage().getScene().getAccelerators().remove(k));
+    }
+    
     
     public void unregisterInScene(Scene s) {
-        s.getAccelerators().remove(getKeysForLocalRegistering(this));
+        s.getAccelerators().remove(getKeysForLocalRegistering());
+    }
+    public void registerInScene(Scene s) {
+        if (!App.isInitialized()) return;
+        s.getAccelerators().put(getKeysForLocalRegistering(),this);
     }
     
-    private void registerGlobal() {                                             //  Log.deb("Registering global shortcut "+name);
+    
+    private void registerGlobal() {
         JIntellitype.getInstance().registerHotKey(getID(), getKeys());
     }
-    
-    public void registerInScene(Scene s) {
-        s.getAccelerators().put(getKeysForLocalRegistering(this),this);
-    }
-    private void unregisterGlobal() {                                           //  Log.deb("Unregistering global shortcut "+name);
+    private void unregisterGlobal() {
         JIntellitype.getInstance().unregisterHotKey(getID());
     }
+    
     
     private int getID() {
         return name.hashCode();
     }
     
-    private static KeyCombination getKeysForLocalRegistering(Action a) {
+    private KeyCombination getKeysForLocalRegistering() {
         // fix local shortcut problem - keyCodes not registering, needs raw characters instead
         // TODO resolve or include all characters' conversions
-        String s = a.getKeys();
+        String s = getKeys();
         if(s.contains("Back_Slash")) 
             return KeyCombination.keyCombination(s.replace("Back_Slash","\\"));
         else if(s.contains("Back_Quote"))
             return KeyCombination.keyCombination(s.replace("Back_Quote","`"));
         else 
-            return a.keys;
+            return keys;
     }
     
 /********************************** AS CONFIG *********************************/
@@ -552,7 +543,7 @@ public final class Action extends Config<Action> implements Runnable, EventHandl
     
     /** @return all actions of this application */
     private static MapSet<Integer,Action> gatherActions() {
-        List<Class<?>> cs = new ArrayList();
+        List<Class<?>> cs = new ArrayList<>();
         
         // autodiscover all classes that can contain actions
         ClassIndex.getAnnotated(IsActionable.class).forEach(cs::add);

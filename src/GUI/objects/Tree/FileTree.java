@@ -29,6 +29,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import main.App;
 import util.File.FileUtil;
+import static util.File.FileUtil.listFiles;
 
 /**
  <p>
@@ -131,23 +132,17 @@ public class FileTree extends TreeView<File>{
             }
 
             private ObservableList<TreeItem<File>> buildChildren(TreeItem<File> i) {
-                File value = i.getValue();
-                if (value != null && value.isDirectory()) {
-                    File[] all = value.listFiles();
-                    if (all != null) {
-                        // we want to sort the items : directories first
-                        ObservableList<TreeItem<File>> directories = FXCollections.observableArrayList();
-                        List<TreeItem<File>> files = new ArrayList();
-                        for (File f : all) {
-                            if(!f.isDirectory()) files.add(createTreeItem(f));
-                            else directories.add(createTreeItem(f));
-                        }
-                        directories.addAll(files);
-                        return directories;
-                    }
-                }
-
-                return FXCollections.emptyObservableList();
+                // we want to sort the items : directories first
+                // we make use of the fact that listFiles() gives us already
+                // sorted list
+                ObservableList<TreeItem<File>> dirs = FXCollections.observableArrayList();
+                List<TreeItem<File>> fils = new ArrayList();
+                listFiles(i.getValue()).forEach(f -> {
+                    if(!f.isDirectory()) dirs.add(createTreeItem(f));
+                    else                 fils.add(createTreeItem(f));
+                });
+                       dirs.addAll(fils);
+                return dirs;
             }
         };
     }

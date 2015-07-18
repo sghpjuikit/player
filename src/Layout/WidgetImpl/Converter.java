@@ -334,10 +334,10 @@ public class Converter extends ClassController implements SongWriter {
             };
         }
         @Override public Node getNode() {
-            HBox hb = new HBox(5,ConfigField.create(Config.fromProperty("File name", nam)).getNode(),
+            HBox hb = new HBox(5,ConfigField.create(Config.forProperty("File name", nam)).getNode(),
                                  new Label("."),
-                                 ConfigField.create(Config.fromProperty("Extension", ext)).getNode());
-            VBox vb = new VBox(5,hb,ConfigField.create(Config.fromProperty("Location", loc)).getNode());
+                                 ConfigField.create(Config.forProperty("Extension", ext)).getNode());
+            VBox vb = new VBox(5,hb,ConfigField.create(Config.forProperty("Location", loc)).getNode());
             return vb;
         }
     }
@@ -360,8 +360,8 @@ public class Converter extends ClassController implements SongWriter {
         public InPane(Supplier<Collection<String>> actions) {
             name = new AccessorEnum<>(actions.get().stream().findFirst().get(),actions);
             input = new AccessorEnum<>(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
-            configfieldA = ConfigField.create(Config.fromProperty("", name));
-            configfieldB = ConfigField.create(Config.fromProperty("", input));
+            configfieldA = ConfigField.create(Config.forProperty("", name));
+            configfieldB = ConfigField.create(Config.forProperty("", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
         }
         
@@ -384,7 +384,7 @@ public class Converter extends ClassController implements SongWriter {
         public InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
                 Accessor<Ta> input = new AccessorEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
-                return Config.fromProperty(name, input);
+                return Config.forProperty(name, input);
             }));
         }
 

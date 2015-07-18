@@ -123,12 +123,14 @@ public class ActionChooser<T> extends StackPane {
         super.layoutChildren();
         
         double os = out_nodes.size()+1;
+        double is = in_nodes.size()+1;
         double h = getHeight();
-        double hx = h/os;
         double w = getWidth();
+        double ohx = h/os;
+        double ihx = h/is;
         
-        forEachWithI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, hx*(i+1)-o.getHeight()/2));
-        forEachWithI(in_nodes, (i,o) -> o.relocate(5, hx*(i+1)-o.getHeight()/2));
+        forEachWithI(out_nodes, (i,o) -> o.relocate(w-o.getWidth()-5, ohx*(i+1)-o.getHeight()/2));
+        forEachWithI(in_nodes, (i,o) -> o.relocate(5, ihx*(i+1)-o.getHeight()/2));
     }
     
     

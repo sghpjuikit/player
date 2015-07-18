@@ -50,7 +50,7 @@ public class FunctionPlotter extends ClassController  {
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         
         Accessor<SDF> sdf = new Accessor<>(new SDF("x"),this::plot);
-        ConfigField c = ConfigField.create(Config.fromProperty("Function", sdf));
+        ConfigField c = ConfigField.create(Config.forProperty("Function", sdf));
 
         
         StackPane la = new StackPane(new HBox(5,c.getLabel(),c.getNode()));

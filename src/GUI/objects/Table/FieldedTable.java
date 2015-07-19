@@ -7,7 +7,7 @@ package gui.objects.Table;
 
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
 import com.sun.javafx.scene.control.skin.TableViewSkinBase;
-import gui.objects.ContextMenu.CheckMenuItem;
+import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import static javafx.application.Platform.runLater;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
@@ -148,8 +147,8 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         keyNameColMapper = columnNametoKeyMapper;
     }
     
-    public boolean isColumnVisible(String name) {
-        return getColumn(nameToCF(name)).isPresent();
+    public boolean isColumnVisible(FieldEnum<? super T> f) {
+        return getColumn(f).isPresent();
     }
     
     public void setColumnVisible(FieldEnum<? super T> f, boolean v) {
@@ -218,7 +217,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                     .sorted(by(c->c.name))
                     .map(c-> {
                         FieldEnum<? super T> f =  nameToCF(c.name);
-                        CheckMenuItem m = new CheckMenuItem(c.name,c.visible,v -> setColumnVisible(f, v));
+                        SelectionMenuItem m = new SelectionMenuItem(c.name,c.visible,v -> setColumnVisible(f, v));
                         String d = f.description();
                         if(!d.isEmpty()) Tooltip.install(m.getGraphic(), new Tooltip(d));
                         return m;
@@ -227,8 +226,8 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             // update column menu check icons every time we show it
             // the menu is rarely shown + no need to update it any other time
             columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
-                            .filtered(i -> i instanceof CheckMenuItem)
-                            .forEach(i -> ((CheckMenuItem)i).selected.set(isColumnVisible(i.getText()))));
+                            .filtered(i -> i instanceof SelectionMenuItem)
+                            .forEach(i -> ((SelectionMenuItem)i).selected.set(isColumnVisible(nameToCF(i.getText())))));
             
             // link table column button to our menu instead of an old one
             // we need to delay this because the graphics is not yet ready
@@ -281,7 +280,11 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
 /************************************* SORT ***********************************/
     
-    public final ObjectProperty<Comparator<T>> comparator = new SimpleObjectProperty<>(null);
+    /**
+     * Comparator for ordering items reflecting this table's sort order.
+     * Read only, changing value will have no effect.
+     */
+    public final ObjectProperty<Comparator<T>> itemsComparator = new SimpleObjectProperty<>((a,b)->0);
     
     /**
      * Sorts the items by the field. Sorting does not operate on table's sort
@@ -347,7 +350,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 return (Comparator<T>)(m1,m2) -> type*((Comparable)m1.getField(f)).compareTo((m2.getField(f)));
             })
             .reduce(Comparator::thenComparing).orElse((a,b)->0);
-        comparator.setValue(c);
+        itemsComparator.setValue(c);
     }
     
     private F nameToF(String name) {

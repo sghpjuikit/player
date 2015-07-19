@@ -51,8 +51,11 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
     /** Sets the node and listeners to update the text automatically by monitoring
       * the table items and selection. */
     public InfoTable(Labeled node, TableView<E> t) {
-        this.node = node;
+        this(node);
         bind(t);
+    }
+    public InfoTable(Labeled node) {
+        this.node = node;
     }
     
     /** {@inheritDoc} */

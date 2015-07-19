@@ -11,6 +11,8 @@ import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -28,7 +30,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 import jdk.nashorn.internal.ir.annotations.Immutable;
-import org.reactfx.Subscription;
 import util.Util;
 
 /**
@@ -37,10 +38,31 @@ import util.Util;
  */
 public class ImprovedTable<T> extends TableView<T> {
     
+    
+    /** Will add zeros to index numbers to maintain length consistency. Default true. */
+    public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true){
+        @Override public void set(boolean v) {
+            super.set(v);
+            refreshColumn(columnIndex);
+        }
+    };
+    /** Visibility of columns header. Default true. */
+    public final BooleanProperty headerVisible = new SimpleBooleanProperty(true){
+        @Override public boolean get() {
+            // return super.get();
+            Pane header = (Pane)lookup("TableHeaderRow");
+            return header==null ? true : header.isVisible();
+        }
+        @Override public void set(boolean v) {
+            super.set(v);
+            if(v) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
+            else  getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
+        }
+    };
+    
     final TableColumn<T,Void> columnIndex = new TableColumn("#");
     private final Callback<TableColumn<T,Void>, TableCell<T,Void>> indexCellFactory;
-    boolean zero_pad = true;
-    Subscription s;
+    
     
     public ImprovedTable() {
         indexCellFactory = buildIndexColumnCellFactory();
@@ -50,28 +72,16 @@ public class ImprovedTable<T> extends TableView<T> {
         getColumns().add(columnIndex);
     }
     
-    /** Set visibility of columns header. Default true. */
-    public void setHeaderVisible(boolean val) {
-        if(val) getStylesheets().remove(PlaylistTable.class.getResource("Table.css").toExternalForm());
-        else    getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
-    }
-    
-    /** @return visibility of columns header. Default true. */
-    public boolean isTableHeaderVisible() {
-        Pane header = (Pane)lookup("TableHeaderRow");
-        return header==null ? true : header.isVisible();
-    }
-    
     /** @return height of columns header or 0 if invisible. */
     public double getTableHeaderHeight() {
         Pane header = (Pane)lookup("TableHeaderRow");
-        return header==null ? getFixedCellSize() : header.getHeight();
+        return header==null || !header.isVisible() ? 0 : header.getHeight();
     }
     
     /** Return index of a row containing the given y coordinate.
     Note: works only if table uses fixedCellHeight. */
     public int getRow(double y) {
-        double h = isTableHeaderVisible() ? y - getTableHeaderHeight() : y;
+        double h = headerVisible.get() ? y - getTableHeaderHeight() : y;
         return (int)floor(h/getFixedCellSize());
     }
     
@@ -133,17 +143,6 @@ public class ImprovedTable<T> extends TableView<T> {
         return new ArrayList(getSelectedOrAllItems());
     }
     
-    /** Will add zeros to index numbers to maintain length consistency. */
-    public void setZeropadIndex(boolean val) {
-        zero_pad = val;
-        refreshColumn(columnIndex);
-    }
-    
-    /** @see #setZeropadIndex(boolean) */
-    public boolean isZeropadIndex() {
-        return zero_pad;
-    }
-    
     /** Max index. Normally equal to number of items. */
     public int getMaxIndex() {
         return getItems().size();
@@ -178,7 +177,7 @@ public class ImprovedTable<T> extends TableView<T> {
                     setText(null);
                 } else {
                     int i = 1+getIndex();
-                    setText((zero_pad ? Util.zeroPad(i, getItems().size(),'0') : i) + ".");
+                    setText((zeropadIndex.get() ? Util.zeroPad(i, getItems().size(),'0') : i) + ".");
                 }
             }
         });
@@ -223,19 +222,17 @@ public class ImprovedTable<T> extends TableView<T> {
 /************************************ SORT ************************************/
     
     /**
-     * Sorts the items by the column. Sorting operates on table's sort
-     * order and items backing the table remain unchanged. Sort order of 
+     * Sorts items by changing the sort order.
+     * Order of underlying items backing the table remain unchanged. Sort order of 
      * the table is changed so specified column is primary sorting column and
      * other columns remain unaffected.
      * <p>
      * This is a programmatic equivalent of sorting the table manually by
      * clicking on columns' header (which operates through sort order).
      * <p>
-     * Does not work when field's respective column is invisible - does nothing.
+     * When column is invisible - does nothing.
      * <p>
      * Note, that if the field must support sorting - return Comparable type.
-     * 
-     * @param field 
      */
     public void sortBy(TableColumn c, TableColumn.SortType type) {
         getSortOrder().remove(c);

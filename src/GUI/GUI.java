@@ -1,12 +1,12 @@
 
 package gui;
 
-import action.IsAction;
-import action.IsActionable;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Layout;
 import Layout.LayoutManager;
+import action.IsAction;
+import action.IsActionable;
 import com.sun.javafx.css.StyleManager;
 import static gui.GUI.OpenStrategy.INSIDE;
 import gui.LayoutAggregators.LayoutAggregator;
@@ -37,12 +37,12 @@ import static javafx.scene.text.FontWeight.NORMAL;
 import javafx.util.Duration;
 import static javafx.util.Duration.millis;
 import main.App;
-import util.animation.interpolator.CircularInterpolator;
-import static util.animation.interpolator.EasingMode.EASE_OUT;
 import util.File.FileUtil;
 import static util.Util.capitalizeStrong;
 import util.access.Accessor;
 import util.access.AccessorEnum;
+import util.animation.interpolator.CircularInterpolator;
+import static util.animation.interpolator.EasingMode.EASE_OUT;
 import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
@@ -96,6 +96,10 @@ public class GUI {
     };
     @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
     public static OpenStrategy open_strategy = INSIDE;
+    
+    @IsConfig(name = "Show table controls", group = "Table", info = "Show table "
+        + "controls at the bottom of the table. Displays menubar and table items information")
+    public static final BooleanProperty show_table_controls = new SimpleBooleanProperty(true);
     
 /******************************************************************************/
     

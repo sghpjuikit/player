@@ -6,13 +6,14 @@ import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
 import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
+import static AudioPlayer.playlist.PlaylistItem.Field.TITLE;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.feature.SongReader;
-import Layout.Widgets.feature.SongWriter;
 import Layout.Widgets.WidgetManager;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuInstance;
@@ -42,6 +43,7 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.by;
 import static util.functional.Util.filterMap;
+import static util.functional.Util.forEachWithI;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -131,23 +133,27 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         d1 = Player.playingtem.subscribeToChanges(o->refreshColumn(columnIndex));
         
         // resizing
-        setColumnResizePolicy( rf -> {
+        setColumnResizePolicy(resize -> {
             // handle column resize (except index)
-            if(rf!=null && rf.getColumn()!=null && rf.getColumn()!=columnIndex) {
+            if(resize!=null && resize.getColumn()!=null && resize.getColumn()!=columnIndex) {System.out.println("ddddddddd");
                 if(getColumns().contains(columnName))
-                    columnName.setPrefWidth(columnName.getWidth()-rf.getDelta());
-                rf.getColumn().setPrefWidth(rf.getColumn().getWidth()+rf.getDelta());
-                return false;
+                    columnName.setPrefWidth(columnName.getWidth()-resize.getDelta());
+                resize.getColumn().setPrefWidth(resize.getColumn().getWidth()+resize.getDelta());
+                
+                // dont return - after resizing the resized column, we go resize
+                // the rest to always fill the table width
+                // true means the delta is reset and wont accumulate
+                // return true; // muut be true
             }
             // handle table resize or index column
             
             // table
-            double W = getWidth();
+            double W = resize.getTable().getWidth();
 
-            // column 1
+            // column index
             double W1 = calculateIndexColumnWidth();
             
-            // column 3
+            // column time
             double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
             Text t2 = new Text(new FormattedDuration(mt).toString());
                  t2.setFont(GUI.font.getValue());
@@ -160,16 +166,18 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             // gap to prevent horizontal slider to appear
             double G = 3;
             
-            List<TableColumn> other = new ArrayList(getColumns());
-                              other.remove(columnIndex);
-                              other.remove(columnTime);
-                              other.remove(columnName);
-            double W4 = other.stream().mapToDouble(c->c.getWidth()).sum();
-            
             columnIndex.setPrefWidth(W1);
-            columnName.setPrefWidth(W-W1-W3-W4-S-G);
             columnTime.setPrefWidth(W3);
-            return false;
+            
+            List<TableColumn> cs = new ArrayList(resize.getTable().getColumns());
+            TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
+            if(mc!=null) {
+                cs.remove(mc);
+                forEachWithI(cs, (a,b) -> System.out.println(a + " " + b.getText() + " " + b.getWidth()));
+                double W4 = cs.stream().mapToDouble(c->c.getWidth()).sum();
+                mc.setPrefWidth(W-W4-S-G);System.out.println(W + " " + W4 + " " + (W-W4-S-G) + " ff" + S + " " + G);
+            }
+            return true; // false/true, doesnt matter
         });
         
         // prevent selection change on right click
@@ -180,7 +188,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         
         // empty table left click -> add items
         addEventHandler(MOUSE_CLICKED, e -> {
-            if (isTableHeaderVisible() && e.getY()<getTableHeaderHeight()) return;
+            if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
             if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItems().isEmpty())
                         PlaylistManager.addOrEnqueueFiles(true);
         });

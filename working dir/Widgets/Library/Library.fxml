@@ -4,20 +4,4 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" fx:id="root" prefHeight="150.0" prefWidth="150.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
-<children><VBox fx:id="content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" /><MenuBar fx:id="controlsBar" layoutX="28.0" layoutY="75.0">
-  <menus>
-    <Menu fx:id="addMenu" mnemonicParsing="false" text="+">
-      <items><MenuItem mnemonicParsing="false" onAction="#addDirectory" text="Add directory" />
-        <MenuItem mnemonicParsing="false" onAction="#addFiles" text="Add files" />
-      </items>
-    </Menu>
-    <Menu fx:id="remMenu" mnemonicParsing="false" text="-">
-      <items>
-        <MenuItem mnemonicParsing="false" onAction="#removeInvalid" text="Remove invalid items" />
-                  <MenuItem mnemonicParsing="false" onAction="#removeAll" text="Remove all items" />
-      </items>
-    </Menu>
-  </menus>
-</MenuBar>
-</children></AnchorPane>
+<AnchorPane id="AnchorPane" fx:id="root" prefHeight="150.0" prefWidth="150.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" />

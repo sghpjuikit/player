@@ -29,7 +29,7 @@ import javafx.scene.control.MenuItem;
  * 
  * @author Plutonium_
  */
-public class CheckMenuItem extends Menu {
+public class SelectionMenuItem extends Menu {
     
     private static final String STYLECLASS = "checkicon-menu-item";
     private static final String STYLECLASS_ICON = "checkicon-menu-item-icon";
@@ -48,7 +48,7 @@ public class CheckMenuItem extends Menu {
      * @param sh selection listener to add. Equivalent to:
      * {@code selected.addListener((o,oldv,newv) -> sel_han.accept(newv)); }
      */
-    public CheckMenuItem(String text, boolean s, Consumer<Boolean> sh) {
+    public SelectionMenuItem(String text, boolean s, Consumer<Boolean> sh) {
         this(text, s);
         
         requireNonNull(sh);
@@ -62,7 +62,7 @@ public class CheckMenuItem extends Menu {
      * @param text text of this menu item
      * @param s initial selection state
      */
-    public CheckMenuItem(String text, boolean s) {
+    public SelectionMenuItem(String text, boolean s) {
         super(text);
         setGraphic(icon);
         getStyleClass().add(STYLECLASS);
@@ -88,14 +88,14 @@ public class CheckMenuItem extends Menu {
      * 
      * @param text text of this menu item
      */
-    public CheckMenuItem(String text) {
+    public SelectionMenuItem(String text) {
         this(text, false);
     }
     
     /**
      * Creates menu item with empty text and false selection.
      */
-    public CheckMenuItem() {
+    public SelectionMenuItem() {
         this("");
     }
     

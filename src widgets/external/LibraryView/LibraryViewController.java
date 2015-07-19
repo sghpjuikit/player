@@ -24,8 +24,8 @@ import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ActionChooser;
-import gui.objects.ContextMenu.CheckMenuItem;
 import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuRInstance;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
@@ -42,10 +42,11 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
 import static javafx.application.Platform.runLater;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
-import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
@@ -58,8 +59,6 @@ import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import javafx.util.Callback;
 import main.App;
@@ -67,8 +66,8 @@ import org.reactfx.EventStreams;
 import org.reactfx.Subscription;
 import util.File.Environment;
 import static util.Util.*;
-import util.access.Accessor;
 import util.access.AccessorEnum;
+import util.access.FieldValue.FieldEnum.ColumnField;
 import util.async.executor.LimitedExecutor;
 import static util.async.future.Fut.fut;
 import util.collections.Histogram;
@@ -77,6 +76,7 @@ import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
+import static util.reactive.Util.maintain;
 import web.HttpSearchQueryBuilder;
 
 @Info(
@@ -105,7 +105,6 @@ import web.HttpSearchQueryBuilder;
 public class LibraryViewController extends FXMLController {
     
     private @FXML AnchorPane root;
-    private @FXML VBox content;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
     ActionChooser actPane;
     
@@ -114,26 +113,23 @@ public class LibraryViewController extends FXMLController {
     private Output<List<Metadata>> out_sel_met;
     private Input<List<Metadata>> in_items;
     
-    // dependencies
-    private Subscription d2;
-    private final LimitedExecutor runOnce = new LimitedExecutor(1);
-    
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
-    @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
-    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
-    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
-    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    public final ObjectProperty<NodeOrientation> table_orient = table.nodeOrientationProperty();
+    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+    public final BooleanProperty zeropad = table.zeropadIndex;
+    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+    public final BooleanProperty orig_index = table.showOriginalIndex;
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
+    public final BooleanProperty show_header = table.headerVisible;
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
-    );  
+    );
     
+    // disposables
+    private Subscription d1, d2;
+    private final LimitedExecutor runOnce = new LimitedExecutor(1);
     
     @Override
     public void init() {
@@ -143,12 +139,16 @@ public class LibraryViewController extends FXMLController {
         
         actPane = new ActionChooser(this);
         
-        content.getChildren().addAll(table.getRoot());
-        VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
+        // add table to scene graph
+        root.getChildren().add(table.getRoot());
+        setAnchors(table.getRoot(),0);
         
+        // table properties
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(VALUE);
+        d1 = maintain(GUI.show_table_controls,table.bottomControlsVisible);
+        
         
         // set up table columns
         table.setkeyNameColMapper(name-> "#".equals(name) ? name : MetadataGroup.Field.valueOfEnumString(name).toString());
@@ -194,11 +194,11 @@ public class LibraryViewController extends FXMLController {
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
         Stream.of(Field.values())
-              .map(f -> new CheckMenuItem(f.toStringEnum(), false){{
+              .map(f -> new SelectionMenuItem(f.toStringEnum(), false){{
                   this.setOnMouseClicked(() -> {
                         if(!selected.get()) {
                             // refresh menu
-                            m.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(false));
+                            m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.set(false));
                             selected.set(true);
                             // apply
                             fieldFilter.setNapplyValue(f);
@@ -207,7 +207,7 @@ public class LibraryViewController extends FXMLController {
               }})
               .forEach(m.getItems()::add);
             // refresh when menu opens
-        table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((CheckMenuItem)mi).selected.set(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
+        table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.set(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         
         // key actions
         table.setOnKeyPressed( e -> {
@@ -270,17 +270,12 @@ public class LibraryViewController extends FXMLController {
             String c = getWidget().properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
-        table_orient.applyValue();
-        zeropad.applyValue();
-        orig_index.applyValue();
-        show_header.applyValue();
-        show_menu_button.applyValue();
         applyData(null);
     }
 
     @Override
     public void onClose() {
-        // stop listening for db changes
+        d1.unsubscribe();
         d2.unsubscribe();
     }
 
@@ -306,8 +301,8 @@ public class LibraryViewController extends FXMLController {
             c.setCellValueFactory((Callback)t.getCellValueFactory());
         });
         // update filters
-        table.getSearchBox().setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
-        table.getSearchBox().setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(f),mgf.getType(f),mgf)));
+        table.filterPane.setPrefTypeSupplier(() -> tuple(VALUE.toString(f), VALUE.getType(f), VALUE));
+        table.filterPane.setData(map(MetadataGroup.Field.values(), mgf->tuple(mgf.toString(f),mgf.getType(f),mgf)));
         
         setItems(in_items.getValue());
     }

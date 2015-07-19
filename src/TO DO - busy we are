@@ -3,8 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- now that playlist table colums serialize, the playlist table column resizing
-  being busted is real buzzkill, we need more buzz
+- make property with 'use other property value' boolean and use in widgets
+  with tables to provide global settings and per-widget settings
+  this needs new config field
 - update LastFM and DB, turn into proper service modules
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
 - make containers & widgets extremely lightweight - all their graphics unite
@@ -140,6 +141,9 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - tab area
 - generic FileType class, particularly need separation on 'groups' like
   audio, video, image, etc...
+- unify table column resizing, namely getMain column and autoresize with 
+  main column taking all space, maybe signal locked columns with icon and add
+  menu item for on/off autoresize columns option
 
 
 - heap: Use -Xmx1g, possibly more

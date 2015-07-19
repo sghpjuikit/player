@@ -7,10 +7,11 @@ package util.reactive;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import static org.reactfx.EventStreams.valuesOf;
 import org.reactfx.Subscription;
 
@@ -43,6 +44,13 @@ public class Util {
         return () -> o.removeListener(l);
     }
     
+    
+    public static<T> Subscription sizeOf(ObservableList<T> list, Consumer<? super Integer> action) {
+        ListChangeListener<T> l = change -> action.accept(list.size());
+        l.onChanged(null);
+        list.addListener(l);
+        return () -> list.removeListener(l);
+    }
     
     
     public static<O> Subscription maintain(ValueStream<O> o, Consumer<? super O> u) {

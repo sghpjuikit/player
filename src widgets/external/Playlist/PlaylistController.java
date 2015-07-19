@@ -10,7 +10,6 @@ import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.PLAYLIST;
 import Layout.Widgets.WidgetManager;
@@ -20,11 +19,9 @@ import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.PlaylistFeature;
 import Layout.Widgets.feature.SongReader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.InfoNode.InfoTable;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
-import unused.SimpleConfigurator;
 import gui.objects.Table.PlaylistTable;
 import gui.objects.Table.TableColumnInfo;
 import java.io.File;
@@ -33,27 +30,26 @@ import java.util.Date;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
-import static javafx.geometry.NodeOrientation.INHERIT;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
+import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.Tooltip;
-import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import static util.Util.consumeOnSecondaryButton;
+import javafx.scene.layout.AnchorPane;
+import org.reactfx.Subscription;
+import unused.SimpleConfigurator;
 import static util.Util.menuItem;
+import static util.Util.setAnchors;
 import util.access.Accessor;
 import util.async.executor.LimitedExecutor;
 import util.async.runnable.Run;
 import static util.functional.Util.isNotNULL;
-import util.graphics.Icons;
+import static util.reactive.Util.maintain;
 import util.units.FormattedDuration;
 
 /**
@@ -89,15 +85,8 @@ import util.units.FormattedDuration;
 )
 public class PlaylistController extends FXMLController implements PlaylistFeature {
 
-    @FXML VBox root;
-    private @FXML Label duration;
-    private @FXML StackPane optionPane;
+    private @FXML AnchorPane root;
     private final PlaylistTable table = new PlaylistTable();
-    
-    @FXML Menu addMenu;
-    @FXML Menu remMenu;
-    @FXML Menu selMenu;
-    @FXML Menu orderMenu;
     
     private Output<PlaylistItem> out_sel;
     
@@ -105,21 +94,13 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
-    @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
-    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
-    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
-    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    public final ObjectProperty<NodeOrientation> table_orient = table.nodeOrientationProperty();
+    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+    public final BooleanProperty zeropad = table.zeropadIndex;
+    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+    public final BooleanProperty orig_index = table.showOriginalIndex;
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
-    @IsConfig(name = "Show bottom header", info = "Show contorls pane at the bottom.")
-    public final Accessor<Boolean> show_bottom_header = new Accessor<>(true, v -> {
-        if(v) root.getChildren().setAll(table.getRoot(),optionPane);
-        else root.getChildren().setAll(table.getRoot());
-        optionPane.setVisible(v);
-    });
+    public final BooleanProperty show_header = table.headerVisible;
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
@@ -129,7 +110,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         Tooltip t = new Tooltip(v ? on : of);
                 t.setWrapText(true);
                 t.setMaxWidth(200);
-        table.getSearchBox().setButton(v ? ERASER : FILTER, t, filterToggler());
+        table.filterPane.setButton(v ? ERASER : FILTER, t, filterToggler());
         setUseFilterForPlayback(v);
     });
     
@@ -137,7 +118,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
             table.setItemsRaw((Collection) c.getList());
     private final InvalidationListener predicateL = o -> 
-            PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
+            PlaylistManager.playingItemSelector.setFilter((Predicate)table.itemsPredicate.get());
+    
+    // disposables
+    Subscription d;
     
     @Override
     public void init() {        
@@ -145,42 +129,62 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         Player.playlistSelected.i.bind(out_sel);
         actPane = new ActionChooser(this);
         
-        root.getChildren().setAll(table.getRoot(),optionPane);
-        VBox.setVgrow(table.getRoot(), Priority.ALWAYS);
+        // add table to scene graph
+        root.getChildren().add(table.getRoot());
+        setAnchors(table.getRoot(),0);
         
-        // information label
-        InfoTable<PlaylistItem> infoL = new InfoTable(duration, table);
-        infoL.textFactory = (all, list) -> {
-            if(list==null)return "";
+        // table properties
+        table.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
+        table.getSelectionModel().setSelectionMode(MULTIPLE);
+        d = maintain(gui.GUI.show_table_controls,table.bottomControlsVisible);
+        
+        // extend table items information
+        table.items_info.textFactory = (all, list) -> {
             double d = list.stream().filter(isNotNULL).mapToDouble(PlaylistItem::getTimeMs).sum();
             return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
         };
+        // add more menu items
+        table.menuAdd.getItems().addAll(
+            menuItem("Add files",PlaylistManager::chooseFilestoAdd),
+            menuItem("Add directory",PlaylistManager::chooseFoldertoAdd),
+            menuItem("Add URL",PlaylistManager::chooseUrltoAdd),
+            menuItem("Play files",PlaylistManager::chooseFilesToPlay),
+            menuItem("Play directory",PlaylistManager::chooseFolderToPlay),
+            menuItem("Play URL",PlaylistManager::chooseUrlToPlay),
+            menuItem("Duplicate selected (+)",() -> PlaylistManager.duplicateItemsByOne(table.getSelectedItems())),
+            menuItem("Duplicate selected (*)",() -> PlaylistManager.duplicateItemsAsGroup(table.getSelectedItems()))
+//            editOnAdd_menuItem    // add to lib option
+//            editOnAdd_menuItem    // add to lib + edit option
+        );
+        table.menuRemove.getItems().addAll(
+            menuItem("Remove selected", () -> PlaylistManager.removeItems(table.getSelectedItems())),
+            menuItem("Remove not selected", () -> PlaylistManager.retainItems(table.getSelectedItems())),
+            menuItem("Remove unsupported", PlaylistManager::removeCorrupt),
+            menuItem("Remove duplicates", PlaylistManager::removeDuplicates),
+            menuItem("Remove all", PlaylistManager::removeAllItems)
+        );
+        table.menuSelected.getItems().addAll(
+            menuItem("Select inverse", table::selectInverse),
+            menuItem("Select all", table::selectAll),
+            menuItem("Select none", table::selectNone)
+        );
+        table.menuOrder.getItems().addAll(
+            menuItem("Order reverse", PlaylistManager::reversePlaylist),
+            menuItem("Order randomly", PlaylistManager::randomizePlaylist),
+            menuItem("Edit selected", () -> WidgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()))),
+            menuItem("Save selected as...", this::saveSelectedAsPlaylist),
+            menuItem("Save playlist as...", this::savePlaylist)
+        );
+        Menu sortM = new Menu("Order by");
+        for(Field f : Field.values()) 
+            sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
+        table.menuOrder.getItems().add(0, sortM);
         
         // for now...  either get rid of PM and allow multiple playlists OR allow binding
         PlaylistManager.getItems().addListener(playlistitemsL);
         
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
-        
-        // prevent overly eager selection change
-        table.addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        table.addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        
-        // menubar - change text to icons
-        addMenu.setText("");
-        remMenu.setText("");
-        selMenu.setText("");
-        orderMenu.setText("");
-        Icons.setIcon(addMenu, PLUS, "11", "11");
-        Icons.setIcon(remMenu, MINUS, "11", "11");
-        Icons.setIcon(selMenu, CROP, "11", "11");
-        Icons.setIcon(orderMenu, NAVICON, "11", "11");
-        
-        // add sort submenu
-        Menu sortM = new Menu("Sort by");
-        for(Field f : Field.values()) 
-            sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
-        orderMenu.getItems().add(0, sortM);
         
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
@@ -192,6 +196,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         PlaylistManager.getItems().removeListener(playlistitemsL);
         Player.playlistSelected.i.unbind(out_sel);
         table.dispose();
+        d.unsubscribe();
     }
     
     @Override
@@ -209,12 +214,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             String c = getWidget().properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
-        table_orient.applyValue();
-        zeropad.applyValue();
-        show_menu_button.applyValue();
-        show_header.applyValue();
-        show_bottom_header.applyValue();
-        orig_index.applyValue();
         filter_for_playback.applyValue();
         table.setItemsRaw(PlaylistManager.getItems());
     }
@@ -224,66 +223,9 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         return actPane;
     }
     
+/***************************** HELPER METHODS *********************************/
     
-    @FXML public void chooseFiles() {
-        PlaylistManager.chooseFilestoAdd();
-    }
-    
-    @FXML public void chooseFolder() {
-        PlaylistManager.chooseFoldertoAdd();
-    }
-    
-    @FXML public void chooseUrl() {
-        PlaylistManager.chooseUrltoAdd();
-    }
-    
-    @FXML public void removeSelectedItems() {
-        PlaylistManager.removeItems(table.getSelectedItems());
-    }
-    @FXML public void removeUnselectedItems() {
-        PlaylistManager.retainItems(table.getSelectedItems());
-    }
-    @FXML public void removeUnplayableItems() {
-        PlaylistManager.removeCorrupt();
-    }
-    @FXML public void removeDuplicateItems() {
-        PlaylistManager.removeDuplicates();
-    }
-    @FXML public void removeAllItems() {
-        PlaylistManager.removeAllItems();
-    }
-    @FXML public void duplicateSelectedItemsAsGroup() {
-        PlaylistManager.duplicateItemsAsGroup(table.getSelectedItems());
-    }
-    @FXML public void duplicateSelectedItemsByOne() {
-        PlaylistManager.duplicateItemsByOne(table.getSelectedItems());
-    }
-    
-    @FXML public void selectAll() {
-        table.selectAll();
-    }
-    @FXML public void selectInverse() {
-        table.selectInverse();
-    }
-    @FXML public void selectNone() {
-        table.selectNone();
-    }
-    
-    
-    @FXML public void reverseOrder() {
-        PlaylistManager.reversePlaylist();
-    }
-    @FXML public void randomOrder() {
-        PlaylistManager.randomizePlaylist();
-    }
-    
-    @FXML
-    public void tagEditSelected() {
-        WidgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()));
-    }
-    
-    @FXML
-    public void savePlaylist() {
+    void savePlaylist() {
         if(table.getItems().isEmpty()) return;
         
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
@@ -301,8 +243,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 p.show(PopOver.ScreenCentricPos.App_Center);
     }
     
-    @FXML
-    public void saveSelectedAsPlaylist() {
+    void saveSelectedAsPlaylist() {
         if(table.getSelectedItems().isEmpty()) return;
         
         MapConfigurable mc = new MapConfigurable(
@@ -320,16 +261,14 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 p.show(PopOver.ScreenCentricPos.App_Center);
     }
     
-/***************************** HELPER METHODS *********************************/
-    
     private void setUseFilterForPlayback(boolean v) {
         if(v) {
             filter_for_playback.setValue(true);
-            table.predicate.addListener(predicateL);
-            PlaylistManager.playingItemSelector.setFilter((Predicate)table.predicate.get());
+            table.itemsPredicate.addListener(predicateL);
+            PlaylistManager.playingItemSelector.setFilter((Predicate)table.itemsPredicate.get());
         } else {
             filter_for_playback.setValue(false);
-            table.predicate.removeListener(predicateL);
+            table.itemsPredicate.removeListener(predicateL);
             PlaylistManager.playingItemSelector.setFilter(null);
         }
     }

@@ -14,7 +14,6 @@ import static AudioPlayer.tagging.Metadata.Field.RATING;
 import static AudioPlayer.tagging.Metadata.Field.TITLE;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
-import gui.GUI;
 import Configuration.IsConfig;
 import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
@@ -26,12 +25,12 @@ import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.FileExplorerFeature;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import gui.InfoNode.InfoTable;
+import gui.GUI;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.InfoNode.InfoTask;
 import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuInstance;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable;
@@ -42,28 +41,22 @@ import gui.objects.TableRow.ImprovedTableRow;
 import gui.objects.spinner.Spinner;
 import java.io.File;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
-import static javafx.geometry.NodeOrientation.INHERIT;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TableColumn;
-import static javafx.scene.control.TableColumn.SortType.ASCENDING;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
 import javafx.scene.input.Dragboard;
 import static javafx.scene.input.KeyCode.DELETE;
@@ -73,39 +66,32 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import static javafx.scene.layout.Priority.ALWAYS;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import javafx.util.Callback;
 import main.App;
-import org.reactfx.EventStreams;
 import static org.reactfx.EventStreams.changesOf;
 import static org.reactfx.EventStreams.nonNullValuesOf;
 import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
-import static util.File.Environment.edit;
 import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesAudio;
 import static util.Util.menuItem;
 import static util.Util.menuItems;
+import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
-import util.access.Accessor;
 import util.access.FieldValue.FieldEnum.ColumnField;
 import util.animation.Anim;
 import static util.animation.Anim.Interpolators.reverse;
 import util.animation.interpolator.ElasticInterpolator;
-import util.async.Async;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
 import util.async.executor.LimitedExecutor;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
-import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import static util.reactive.Util.maintain;
@@ -140,7 +126,6 @@ import web.HttpSearchQueryBuilder;
 public class LibraryController extends FXMLController implements SongReader {
     
     private @FXML AnchorPane root;
-    private @FXML VBox content;
     private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner()){
         Anim a;
         {
@@ -162,39 +147,34 @@ public class LibraryController extends FXMLController implements SongReader {
     private final FxTimer hideInfo = new FxTimer(5000, 1, 
         new Anim(at->setScaleXY(taskInfo.progressIndicator,at*at)).dur(500)
                 .intpl(reverse(new ElasticInterpolator())).then(taskInfo::hideNunbind)::play);
-    private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable(Metadata.EMPTY.getMainField());
+    private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
+    private final SelectionMenuItem editOnAdd_menuItem = new SelectionMenuItem("Edit added items",false);
     ActionChooser actPane;
-    
-    @FXML Menu addMenu;
-    @FXML Menu remMenu;
-    @FXML MenuBar controlsBar;
-    private final LimitedExecutor runOnce = new LimitedExecutor(1);
     
     // input/output
     private Output<Metadata> out_sel;
     private final Input<List<Metadata>> in_items = inputs.create("To display", (Class)List.class, table::setItemsRaw);
-    
-    // dependencies to disopose of
-    private Subscription d2, d3, d4;
+
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final Accessor<NodeOrientation> table_orient = new Accessor<>(INHERIT, table::setNodeOrientation);
-    @IsConfig(name = "Zeropad numbers", info = "Adds 0 to uphold number length consistency.")
-    public final Accessor<Boolean> zeropad = new Accessor<>(true, table::setZeropadIndex);
-    @IsConfig(name = "Search show original index", info = "Show index of the table items as in unfiltered state when filter applied.")
-    public final Accessor<Boolean> orig_index = new Accessor<>(true, table::setShowOriginalIndex);
+    public final ObjectProperty<NodeOrientation> table_orient = table.nodeOrientationProperty();
+    @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
+    public final BooleanProperty zeropad = table.zeropadIndex;
+    @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
+    public final BooleanProperty orig_index = table.showOriginalIndex;
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final Accessor<Boolean> show_header = new Accessor<>(true, table::setHeaderVisible);
-    @IsConfig(name = "Show table menu button", info = "Show table menu button for setting up columns.")
-    public final Accessor<Boolean> show_menu_button = new Accessor<>(false, table::setTableMenuButtonVisible);
-    
+    public final BooleanProperty show_header = table.headerVisible;
     @IsConfig(editable = false)
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
-    private final BooleanProperty editOnAdd = new SimpleBooleanProperty(false);
+    private final BooleanProperty editOnAdd = editOnAdd_menuItem.selected;
     
-        
+    // disposables
+    private Subscription d1, d2, d3, d4;
+    private final LimitedExecutor runOnce = new LimitedExecutor(1);
+    
+
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
@@ -202,18 +182,44 @@ public class LibraryController extends FXMLController implements SongReader {
         
         actPane = new ActionChooser(this);
         
+        // add table to scene graph
+        root.getChildren().add(table.getRoot());
+        setAnchors(table.getRoot(),0);
+        
+        // table properties
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(TITLE);
+        d1 = maintain(GUI.show_table_controls,table.bottomControlsVisible);
+        
+        // add progress indicator to bottom controls
+        table.bottomControlsPane.setRight(new HBox(7,taskInfo.message, taskInfo.progressIndicator));
+        taskInfo.setVisible(false);
+        // extend table items information
+        table.items_info.textFactory = (all, list) -> {
+            double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
+        };
+        // add more menu items
+        table.menuAdd.getItems().addAll(
+            menuItem("Add files",this::addFiles),
+            menuItem("Add directory",this::addDirectory),
+            editOnAdd_menuItem
+        );
+        table.menuRemove.getItems().addAll(
+            menuItem("Remove invalid items",this::removeInvalid),
+            menuItem("Remove all items",DB::removeAllItems)
+        );
+        
         
         // set up table columns
         table.setColumnStateFacory( f -> {
             double w = f==PATH || f==TITLE ? 150 : 50;
             return new ColumnInfo(f.toString(), f.ordinal(), f.isCommon(), w);
         });
-        table.setColumnFactory( f -> {
+        table.setColumnFactory(f -> {
             TableColumn<Metadata,?> c = new TableColumn(f.toString());
-            c.setCellValueFactory( cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
+            c.setCellValueFactory(cf -> cf.getValue()==null ? null : new PojoV(cf.getValue().getField(f)));
             c.setCellFactory(f==RATING
                 ? (Callback)App.ratingCell.getValue()
                 : (Callback) col -> table.buildDefaultCell(f)
@@ -301,38 +307,7 @@ public class LibraryController extends FXMLController implements SongReader {
         d3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
         
         // update library comparator
-        maintain(table.comparator,DB.library_sorter);
-        
-        // task info init
-        taskInfo.setVisible(false);
-        
-        // table information label
-        InfoTable<Metadata> infoL = new InfoTable<>(new Label(), table);
-        infoL.textFactory = (all, list) -> {
-            double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
-        };
-        
-        // controls bottom header
-        Region padding = new Region();
-        HBox controls = new HBox(controlsBar,infoL.node,padding,taskInfo.message, taskInfo.progressIndicator);
-             controls.setSpacing(7);
-             controls.setAlignment(Pos.CENTER_LEFT);
-             controls.setPadding(new Insets(0,5,0,0));
-        HBox.setHgrow(padding, ALWAYS);
-        
-        addMenu.setText("");
-        remMenu.setText("");
-        Icons.setIcon(addMenu, FontAwesomeIconName.PLUS, "11", "11");
-        Icons.setIcon(remMenu, FontAwesomeIconName.MINUS, "11", "11");
-        
-        // add 'edit on add to library' option menu
-        gui.objects.ContextMenu.CheckMenuItem editOnAddmi = new gui.objects.ContextMenu.CheckMenuItem("Edit added items");
-        editOnAddmi.selected.bindBidirectional(editOnAdd);
-        controlsBar.getMenus().get(0).getItems().add(editOnAddmi);
-        
-        content.getChildren().addAll(table.getRoot(), controls);
-        VBox.setVgrow(table.getRoot(),ALWAYS);
+        maintain(table.itemsComparator,DB.library_sorter);
     }
 
     @Override
@@ -349,7 +324,7 @@ public class LibraryController extends FXMLController implements SongReader {
     @Override
     public void onClose() {
         Player.librarySelected.i.unbind(out_sel);
-        // stop listening
+        d1.unsubscribe();
         d2.unsubscribe();
         d3.unsubscribe();
         d4.unsubscribe();
@@ -411,14 +386,11 @@ public class LibraryController extends FXMLController implements SongReader {
              .run();
     }
     
-    @FXML private void removeInvalid() {
+    private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
             hideInfo.restart();
         });
-       taskInfo.showNbind(t);
-    }
-    @FXML private void removeAll() {
-        DB.removeAllItems();
+        taskInfo.showNbind(t);
     }
 
     

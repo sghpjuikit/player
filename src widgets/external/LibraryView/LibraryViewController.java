@@ -68,7 +68,8 @@ import util.File.Environment;
 import static util.Util.*;
 import util.access.AccessorEnum;
 import util.access.FieldValue.FieldEnum.ColumnField;
-import util.async.executor.LimitedExecutor;
+import util.access.OVal;
+import util.async.executor.ExecuteN;
 import static util.async.future.Fut.fut;
 import util.collections.Histogram;
 import util.collections.TupleM6;
@@ -115,21 +116,21 @@ public class LibraryViewController extends FXMLController {
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final ObjectProperty<NodeOrientation> table_orient = table.nodeOrientationProperty();
+    public final OVal<NodeOrientation> orient = new OVal<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final BooleanProperty zeropad = table.zeropadIndex;
+    public final OVal<Boolean> zeropad = new OVal<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final BooleanProperty orig_index = table.showOriginalIndex;
+    public final OVal<Boolean> orig_index = new OVal<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final BooleanProperty show_header = table.headerVisible;
+    public final OVal<Boolean> show_header = new OVal<>(GUI.table_show_header);
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
+    public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
     @IsConfig(name = "Field")
     public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
     );
     
-    // disposables
-    private Subscription d1, d2;
-    private final LimitedExecutor runOnce = new LimitedExecutor(1);
+    private final ExecuteN runOnce = new ExecuteN(1);
     
     @Override
     public void init() {
@@ -147,7 +148,11 @@ public class LibraryViewController extends FXMLController {
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(VALUE);
-        d1 = maintain(GUI.show_table_controls,table.bottomControlsVisible);
+        d(maintain(orient,table.nodeOrientationProperty()));
+        d(maintain(zeropad,table.zeropadIndex));
+        d(maintain(orig_index,table.showOriginalIndex));
+        d(maintain(show_header,table.headerVisible));
+        d(maintain(show_footer,table.footerVisible));
         
         
         // set up table columns
@@ -188,7 +193,7 @@ public class LibraryViewController extends FXMLController {
                 })
         );
         // maintain playing item css by refreshing column
-        d2 = Player.playingtem.subscribeToChanges(o -> table.updateStyleRules());
+        d(Player.playingtem.subscribeToChanges(o -> table.updateStyleRules()));
        
         
         // column context menu - add change field submenus
@@ -271,12 +276,6 @@ public class LibraryViewController extends FXMLController {
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
         applyData(null);
-    }
-
-    @Override
-    public void onClose() {
-        d1.unsubscribe();
-        d2.unsubscribe();
     }
 
     @Override

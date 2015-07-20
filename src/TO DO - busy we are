@@ -3,9 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- make property with 'use other property value' boolean and use in widgets
-  with tables to provide global settings and per-widget settings
-  this needs new config field
 - update LastFM and DB, turn into proper service modules
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
 - make containers & widgets extremely lightweight - all their graphics unite

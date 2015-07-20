@@ -43,15 +43,16 @@ public class Input<T> extends Put<T>{
 //    }
 
     
-    public void bind(Output<? extends T> o) {
+    public Subscription bind(Output<? extends T> o) {
         Subscription s = sources.get(o);
         if(s==null) {
             s = o.monitor(this::setValue);
             sources.put(o, s);
         }
+        return () -> unbind(o);
     }
     
-    public void unbind(Output<T> o) {
+    public void unbind(Output<? extends T> o) {
         Subscription s = sources.get(o);
         if(s!=null) s.unsubscribe();
         sources.remove(o);

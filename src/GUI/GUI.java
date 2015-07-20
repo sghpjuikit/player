@@ -25,7 +25,10 @@ import javafx.application.Application;
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -97,10 +100,21 @@ public class GUI {
     @IsConfig(name = "Layout open strategy", info = "How will certain layout element open and close.")
     public static OpenStrategy open_strategy = INSIDE;
     
-    @IsConfig(name = "Show table controls", group = "Table", info = "Show table "
-        + "controls at the bottom of the table. Displays menubar and table items information")
-    public static final BooleanProperty show_table_controls = new SimpleBooleanProperty(true);
-    
+    @IsConfig(name = "Table orientation", group = "Table", 
+            info = "Orientation of the table.")
+    public static final ObjectProperty<NodeOrientation> table_orient = new SimpleObjectProperty<>(NodeOrientation.INHERIT);
+    @IsConfig(name = "Zeropad numbers", group = "Table", 
+            info = "Adds 0s for number length consistency.")
+    public static final BooleanProperty table_zeropad = new SimpleBooleanProperty(false);
+    @IsConfig(name = "Search show original index", group = "Table", 
+            info = "Show unfiltered table item index when filter applied.")
+    public static final BooleanProperty table_orig_index = new SimpleBooleanProperty(false);
+    @IsConfig(name = "Show table header", group = "Table", 
+            info = "Show table header with columns.")
+    public static final BooleanProperty table_show_header = new SimpleBooleanProperty(true);
+    @IsConfig(name = "Show table controls", group = "Table", 
+            info = "Show table controls at the bottom of the table. Displays menubar and table items information")
+    public static final BooleanProperty table_show_footer = new SimpleBooleanProperty(true);
 /******************************************************************************/
     
     /**

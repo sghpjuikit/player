@@ -198,6 +198,30 @@ public class ImprovedTable<T> extends TableView<T> {
         double w = text.getLayoutBounds().getWidth() + 5;
         return w;
     }
+/********************************** SELECTION *********************************/
+    
+    
+    /** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); }*/
+    public void selectAll() {
+        getSelectionModel().selectAll();
+    }
+    
+    /** Inverts the selection. Selected items will be not selected and vice versa. */
+    public void selectInverse() {
+        List<Integer> selected = getSelectionModel().getSelectedIndices();
+        int size = getItems().size();
+        List<Integer> inverse = new ArrayList<>();
+        for(int i=0; i<size; i++)
+            if(!selected.contains(i))
+                inverse.add(i);
+        
+        Util.selectRows(inverse, getSelectionModel());
+    }
+
+    /** Selects no items. Equivalent to {@code getSelectionModel().clearSelection(); }*/
+    public void selectNone() {
+        getSelectionModel().clearSelection();
+    }
     
 /************************************ DRAG ************************************/
     

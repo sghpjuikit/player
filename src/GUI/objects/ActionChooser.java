@@ -37,8 +37,6 @@ import static javafx.util.Duration.millis;
 import main.App;
 import util.ClassName;
 import util.animation.Anim;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.functional.Util.*;
 import util.graphics.drag.DragUtil;
 
@@ -46,7 +44,6 @@ import util.graphics.drag.DragUtil;
  <p>
  @author Plutonium_
  */
-@TODO(purpose = FUNCTIONALITY, note = "decide best functionality, complete + clean up")
 public class ActionChooser<T> extends StackPane {
 
     public final Text description = new Text();

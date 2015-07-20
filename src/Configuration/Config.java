@@ -22,6 +22,7 @@ import static util.Util.unPrimitivize;
 import util.access.Accessor;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
+import util.access.OVal;
 import util.access.TypedValue;
 import util.dev.Log;
 import util.dev.TODO;
@@ -136,6 +137,10 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * are specified. 
      */
     abstract public boolean isMinMax();
+    
+    public boolean isOverridable() {
+        return false;
+    }
     
 /******************************* default value ********************************/
 
@@ -440,6 +445,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     public static class PropertyConfig<T> extends ConfigBase<T> {
 
         private final WritableValue<T> value;
+        private final boolean isOverridable;
 
         /**
          * Constructor to be used with framework
@@ -452,7 +458,9 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
             super(_name, c, property.getValue(), category);
             value = property;
-
+            
+            // support overridable values
+            isOverridable = property instanceof OVal;
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
@@ -487,7 +495,9 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public PropertyConfig(String name, String gui_name, WritableValue<T> property, String category, String info, boolean editable, double min, double max) {
             super(name, gui_name, property.getValue(), category, info, editable, min, max);
             value = property;
-
+            
+            // support overridable values
+            isOverridable = property instanceof OVal;
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
@@ -522,6 +532,11 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
 
         public WritableValue<T> getProperty() {
             return value;
+        }
+
+        @Override
+        public boolean isOverridable() {
+            return isOverridable;
         }
 
         /**

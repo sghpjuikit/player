@@ -30,6 +30,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
@@ -261,7 +262,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         
     }
     public static class ConfigPane<T> implements ConfiguringFeature{
-        private final VBox root = new VBox(5);
+        private final FlowPane root = new FlowPane(5,5);
         private final List<ConfigField<T>> configs = new ArrayList();
         Runnable onChange;
         
@@ -286,6 +287,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
                       l.setTextAlignment(TextAlignment.RIGHT);
                       l.setPadding(new Insets(0, 0, 0, 5));
                 HBox h = new HBox(5,l,cf.getNode());
+                     if(l.getText().isEmpty()) h.getChildren().remove(l);
                      h.setAlignment(CENTER_LEFT);
                 return h;
             }));

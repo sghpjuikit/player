@@ -322,32 +322,6 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         movingitems = false;    // release lock
     }
     
-    /**
-     * Selects all playlist items.
-     */
-    public void selectAll() {
-        getSelectionModel().selectAll();
-    }
-    /**
-     * Inverses the selection of the playlist table. 
-     */
-    public void selectInverse() {
-        List<Integer> selected = getSelectionModel().getSelectedIndices();
-        int size = getItems().size();
-        List<Integer> inverse = new ArrayList<>();
-        for(int i=0; i<size; i++)
-            if(!selected.contains(i))
-                inverse.add(i);
-        
-        Util.selectRows(inverse, getSelectionModel());
-    }
-    /**
-     * Deselects all selected items in the playlist table.
-     */
-    public void selectNone() {
-        getSelectionModel().clearSelection();
-    }
-    
 /****************************** DRAG AND DROP *********************************/
     
     private void dropDrag(DragEvent e, int index) {

@@ -17,6 +17,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.HPos;
+import static javafx.geometry.HPos.LEFT;
 import static javafx.geometry.HPos.RIGHT;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
@@ -101,11 +102,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     /** Set default app settings. */
     @FXML
     public void defaults() {
-        // use this for now
-        Configuration.toDefault();
-        refresh();
-        // bug with empty default shortcut?
-//        configFields.forEachBoth(ConfigField::setNapplyDefault);
+        configFields.forEach(ConfigField::setNapplyDefault);
     }
 
     @Override
@@ -180,9 +177,9 @@ public final class Configurator extends ClassController implements ConfiguringFe
             grid.setVgap(3);
             grid.setHgap(5);
 
-            ColumnConstraints c1 = new ColumnConstraints(80,-1,-1,ALWAYS,alignemnt.get(),true);
+            ColumnConstraints c1 = new ColumnConstraints(120,-1,-1,ALWAYS,alignemnt.get(),true);
             ColumnConstraints gap = new ColumnConstraints(0);
-            ColumnConstraints c2 = new ColumnConstraints(50,-1,-1,ALWAYS,alignemnt.get(),true);
+            ColumnConstraints c2 = new ColumnConstraints(50,-1,-1,ALWAYS,LEFT,true);
             grid.getColumnConstraints().addAll(c1, gap, c2);
 
             groups.put(name, this);
@@ -196,9 +193,9 @@ public final class Configurator extends ClassController implements ConfiguringFe
             pane.alignmentProperty().unbind();
         }
         
-        void autosize() {
+//        void autosize() {
 //            grid.getColumnConstraints().stream().mapToDouble(c->c.g)
-        }
+//        }
     }
 
 }

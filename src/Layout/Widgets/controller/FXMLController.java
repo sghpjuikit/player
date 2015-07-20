@@ -11,7 +11,10 @@ import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.scene.layout.Pane;
+import org.reactfx.Subscription;
 
 /**
  * Controller for {@link FXMLWidget}
@@ -23,6 +26,7 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     public final FXMLWidget widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
+    private final List<Subscription> disposables = new ArrayList<>();
     
     /** {@inheritDoc} */
     @Override
@@ -76,10 +80,22 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     
     @Override
     public final void close() {
+        disposables.forEach(Subscription::unsubscribe);
         onClose();
         inputs.getInputs().forEach(Input::unbindAll);
     }
     
     public void onClose() {}
+    
+    /**
+     * Adds the subscription to the list of subscriptions that unsubscribe when
+     * this controller's widget is closed.
+     * <p>
+     * Anything that needs to be disposed can be passed here as runnable at any
+     * time.
+     */
+    public void d(Subscription d) {
+        disposables.add(d);
+    }
     
 }

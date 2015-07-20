@@ -83,12 +83,13 @@ import static util.Util.menuItems;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
 import util.access.FieldValue.FieldEnum.ColumnField;
+import util.access.OVal;
 import util.animation.Anim;
 import static util.animation.Anim.Interpolators.reverse;
 import util.animation.interpolator.ElasticInterpolator;
 import static util.async.Async.FX;
 import util.async.executor.FxTimer;
-import util.async.executor.LimitedExecutor;
+import util.async.executor.ExecuteN;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
@@ -158,27 +159,27 @@ public class LibraryController extends FXMLController implements SongReader {
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final ObjectProperty<NodeOrientation> table_orient = table.nodeOrientationProperty();
+    public final OVal<NodeOrientation> orient = new OVal<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final BooleanProperty zeropad = table.zeropadIndex;
+    public final OVal<Boolean> zeropad = new OVal<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final BooleanProperty orig_index = table.showOriginalIndex;
+    public final OVal<Boolean> orig_index = new OVal<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final BooleanProperty show_header = table.headerVisible;
+    public final OVal<Boolean> show_header = new OVal<>(GUI.table_show_header);
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
+    public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
     @IsConfig(editable = false)
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
     private final BooleanProperty editOnAdd = editOnAdd_menuItem.selected;
     
-    // disposables
-    private Subscription d1, d2, d3, d4;
-    private final LimitedExecutor runOnce = new LimitedExecutor(1);
+    private final ExecuteN runOnce = new ExecuteN(1);
     
 
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
-        Player.librarySelected.i.bind(out_sel);
+        d(Player.librarySelected.i.bind(out_sel));
         
         actPane = new ActionChooser(this);
         
@@ -190,10 +191,14 @@ public class LibraryController extends FXMLController implements SongReader {
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
         table.searchSetColumn(TITLE);
-        d1 = maintain(GUI.show_table_controls,table.bottomControlsVisible);
+        d(maintain(orient,table.nodeOrientationProperty()));
+        d(maintain(zeropad,table.zeropadIndex));
+        d(maintain(orig_index,table.showOriginalIndex));
+        d(maintain(show_header,table.headerVisible));
+        d(maintain(show_footer,table.footerVisible));
         
         // add progress indicator to bottom controls
-        table.bottomControlsPane.setRight(new HBox(7,taskInfo.message, taskInfo.progressIndicator));
+        table.footerPane.setRight(new HBox(7,taskInfo.message, taskInfo.progressIndicator));
         taskInfo.setVisible(false);
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
@@ -257,7 +262,7 @@ public class LibraryController extends FXMLController implements SongReader {
                 .styleRuleAdd("played", m -> Player.playingtem.get().same(m))
         );
         // maintain playing item css by refreshing column
-        d4 = Player.playingtem.subscribeToChanges(o -> table.updateStyleRules());
+        d(Player.playingtem.subscribeToChanges(o -> table.updateStyleRules()));
         
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
@@ -303,8 +308,8 @@ public class LibraryController extends FXMLController implements SongReader {
         table.setOnScroll(Event::consume);
         
         // update selected items for application
-        d2 = Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty()));
-        d3 = Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectionModel().getSelectedItems()).map(i->table.getSelectedItemsCopy()));
+        d(Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty())));
+        d(Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectedItems()).map(i->table.getSelectedItemsCopy())));
         
         // update library comparator
         maintain(table.itemsComparator,DB.library_sorter);
@@ -319,15 +324,6 @@ public class LibraryController extends FXMLController implements SongReader {
         
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
-    }
-
-    @Override
-    public void onClose() {
-        Player.librarySelected.i.unbind(out_sel);
-        d1.unsubscribe();
-        d2.unsubscribe();
-        d3.unsubscribe();
-        d4.unsubscribe();
     }
     
     @Override

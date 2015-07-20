@@ -15,14 +15,14 @@ import java.util.concurrent.Executor;
  * 
  * @author Plutonium_
  */
-public class LimitedExecutor implements Executor {
+public class ExecuteN implements Executor {
     
     private long executed = 0;
     private final long max;
 
     /** @param limit maximum number of times this executor can execute any 
         runnable */
-    public LimitedExecutor(long limit) {
+    public ExecuteN(long limit) {
         max = limit;
     }
     

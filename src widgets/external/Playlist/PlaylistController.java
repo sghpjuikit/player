@@ -1,6 +1,5 @@
 package Playlist;
 
-
 import AudioPlayer.Player;
 import AudioPlayer.playlist.NamedPlaylist;
 import AudioPlayer.playlist.PlaylistItem;
@@ -19,6 +18,7 @@ import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.PlaylistFeature;
 import Layout.Widgets.feature.SongReader;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import gui.GUI;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
@@ -30,8 +30,6 @@ import java.util.Date;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -41,12 +39,12 @@ import javafx.scene.control.Menu;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
-import org.reactfx.Subscription;
 import unused.SimpleConfigurator;
 import static util.Util.menuItem;
 import static util.Util.setAnchors;
 import util.access.Accessor;
-import util.async.executor.LimitedExecutor;
+import util.access.OVal;
+import util.async.executor.ExecuteN;
 import util.async.runnable.Run;
 import static util.functional.Util.isNotNULL;
 import static util.reactive.Util.maintain;
@@ -94,13 +92,15 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final ObjectProperty<NodeOrientation> table_orient = table.nodeOrientationProperty();
+    public final OVal<NodeOrientation> orient = new OVal<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final BooleanProperty zeropad = table.zeropadIndex;
+    public final OVal<Boolean> zeropad = new OVal<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final BooleanProperty orig_index = table.showOriginalIndex;
+    public final OVal<Boolean> orig_index = new OVal<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final BooleanProperty show_header = table.headerVisible;
+    public final OVal<Boolean> show_header = new OVal<>(GUI.table_show_header);
+    @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
+    public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
@@ -114,19 +114,15 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         setUseFilterForPlayback(v);
     });
     
-    private final LimitedExecutor runOnce = new LimitedExecutor(1);
-    private final ListChangeListener<PlaylistItem> playlistitemsL = c -> 
-            table.setItemsRaw((Collection) c.getList());
+    private final ExecuteN columnInitializer = new ExecuteN(1);
     private final InvalidationListener predicateL = o -> 
             PlaylistManager.playingItemSelector.setFilter((Predicate)table.itemsPredicate.get());
-    
-    // disposables
-    Subscription d;
     
     @Override
     public void init() {        
         out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
-        Player.playlistSelected.i.bind(out_sel);
+        d(Player.playlistSelected.i.bind(out_sel));
+        
         actPane = new ActionChooser(this);
         
         // add table to scene graph
@@ -136,7 +132,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         // table properties
         table.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
-        d = maintain(gui.GUI.show_table_controls,table.bottomControlsVisible);
+        d(maintain(orient,table.nodeOrientationProperty()));
+        d(maintain(zeropad,table.zeropadIndex));
+        d(maintain(orig_index,table.showOriginalIndex));
+        d(maintain(show_header,table.headerVisible));
+        d(maintain(show_footer,table.footerVisible));
         
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
@@ -163,11 +163,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             menuItem("Remove duplicates", PlaylistManager::removeDuplicates),
             menuItem("Remove all", PlaylistManager::removeAllItems)
         );
-        table.menuSelected.getItems().addAll(
-            menuItem("Select inverse", table::selectInverse),
-            menuItem("Select all", table::selectAll),
-            menuItem("Select none", table::selectNone)
-        );
         table.menuOrder.getItems().addAll(
             menuItem("Order reverse", PlaylistManager::reversePlaylist),
             menuItem("Order randomly", PlaylistManager::randomizePlaylist),
@@ -181,22 +176,18 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         table.menuOrder.getItems().add(0, sortM);
         
         // for now...  either get rid of PM and allow multiple playlists OR allow binding
+        ListChangeListener<PlaylistItem> playlistitemsL = c -> table.setItemsRaw(c.getList());
         PlaylistManager.getItems().addListener(playlistitemsL);
+        d(() -> PlaylistManager.getItems().removeListener(playlistitemsL));
         
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
         
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
-    }
-    
-    @Override
-    public void onClose() {
-        setUseFilterForPlayback(false);
-        PlaylistManager.getItems().removeListener(playlistitemsL);
-        Player.playlistSelected.i.unbind(out_sel);
-        table.dispose();
-        d.unsubscribe();
+        
+        d(table::dispose);
+        d(() -> table.itemsPredicate.removeListener(predicateL));
     }
     
     @Override
@@ -210,7 +201,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     @Override
     public void refresh() {
-        runOnce.execute(() -> {
+        columnInitializer.execute(() -> {
             String c = getWidget().properties.getS("columns");
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });

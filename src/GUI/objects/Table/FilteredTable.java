@@ -44,6 +44,7 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import static javafx.util.Duration.millis;
 import static org.reactfx.EventStreams.changesOf;
+import static util.Util.menuItem;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
@@ -152,7 +153,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         changesOf(filtereditems.predicateProperty()).subscribe(c -> resizeIndexColumn());
         changesOf(allitems).subscribe(c -> resizeIndexColumn());
 
-        bottomControlsVisible.set(true);
+        footerVisible.set(true);
     }
     
     /** The root is a container for this table and the filter. Use the root instead
@@ -182,7 +183,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * 
      * @param items 
      */
-    public void setItemsRaw(Collection<T> items) {
+    public void setItemsRaw(Collection<? extends T> items) {
         allitems.setAll(items);
     }
     
@@ -251,7 +252,11 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     public final Menu menuAdd = new Menu("", Icons.createIcon(FontAwesomeIconName.PLUS, 11));
     public final Menu menuRemove = new Menu("", Icons.createIcon(FontAwesomeIconName.MINUS, 11));
-    public final Menu menuSelected = new Menu("", Icons.createIcon(FontAwesomeIconName.CROP, 11));
+    public final Menu menuSelected = new Menu("", Icons.createIcon(FontAwesomeIconName.CROP, 11),
+            menuItem("Select inverse", this::selectAll),
+            menuItem("Select all", this::selectInverse),
+            menuItem("Select none", this::selectNone)
+    );
     public final Menu menuOrder = new Menu("", Icons.createIcon(FontAwesomeIconName.NAVICON, 11));
     /** Table menubar in the bottom with menus. Feel free to modify. */
     public final MenuBar menus = new MenuBar(menuAdd,menuRemove,menuSelected,menuOrder);
@@ -268,20 +273,20 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * Feel free to modify its content. Menubar and item info label are on the 
      * left {@link BorderPane#leftProperty()}.
      */
-    public final BorderPane bottomControlsPane = new BorderPane(null, null, null, null, bottomLeftPane);
+    public final BorderPane footerPane = new BorderPane(null, null, null, null, bottomLeftPane);
     
     /**
      * Visibility of the bottom controls and information panel. Displays
      * information about table items and menubar.
      */
-    public BooleanProperty bottomControlsVisible = new SimpleBooleanProperty(true) {
+    public BooleanProperty footerVisible = new SimpleBooleanProperty(true) {
         @Override public void set(boolean v) {
             super.set(v);
             if(v) {
-                if(!root.getChildren().contains(bottomControlsPane))
-                    root.getChildren().add(bottomControlsPane);
+                if(!root.getChildren().contains(footerPane))
+                    root.getChildren().add(footerPane);
             } else {
-                root.getChildren().remove(bottomControlsPane);
+                root.getChildren().remove(footerPane);
             }
         }
     };

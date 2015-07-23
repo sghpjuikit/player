@@ -12,7 +12,7 @@ Aims:
 
 ## Features
 
-###playback 
+###Playback 
 
 Filetypes:
 - mp3
@@ -24,11 +24,12 @@ Protocols:
 - file
 - http
 
-###media library 
+###Media library 
   
-Song database
+Song database:
 - small footprint: roughly about 10MB for 20000 files
-- big: 40000 no problem. The only drawback can be real-time library refresh speed.
+- big: 40000 no problem
+- fast: library is loaded into main memory.
 - no dependency: song files always store all data in their tag, moving or renaming files poses no problem
 - no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application
 - no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a cache, rather than storage.
@@ -42,7 +43,7 @@ Song tables:
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
 - cascading - link tables to other tables as filters and display only selected items (e.g. show songs by authors selected in linked table)
 
-###tag editing
+###Tag editing
 
   Application supports reading and writing song tag information, individually or for number of songs at once. The supported are standard fields like artist or title, but possibly many more later. Interoperability with other players is intended. Some of the less supported by other players, but fully supported (read/write) tags are:
 
@@ -52,10 +53,10 @@ Song tables:
 - interoperable with other players, but most of them will only recognize the value as 3/5 or so
   
   **Playcount**
-Signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
+  Signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
   
   **Chapters**
-Comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value is unknown, but at least 500 characters (for all chapters together), very likely a lot more).
+  Comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value is unknown, but at least 500 characters (for all chapters together), very likely a lot more).
   
   **Cover**
 - image in tag can be imported/exported
@@ -64,13 +65,13 @@ Comments added at specific time of the song. They can be added during playback o
   - song album
   - "cover" or "folder"
   
-### configurability
+### Configurability
 
-All settings and entire user interface layout serialize into a human readable and editable files. These can be edited, backed up or switched between applications.
+  All settings and entire user interface layout serialize into a human readable and editable files. These can be edited, backed up or switched between applications.
 
-### extensibility & modularity
+### Modularity
 
-Most of the functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added as plugins.
+  Most of the functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added as plugins.
   Some of the existing widgets are:
 - Playback & Mini - controls for playback, like seeking. Supports chapters.
 - FileInfo - shows cover and information about song (e.g. playing). Allows cover download on drag&drop.
@@ -83,7 +84,7 @@ Most of the functionalitiess are implemented as widgets, that can be loaded, clo
 - Inspector - displays hierarchies, like file system or gui scene graph. 
 - Icon - fully configurable icon bar. Icons can execute any (supported) application action.
 
-### portability
+### Portability
 
   The application in its self-contained form:
 - has executable .exe
@@ -93,48 +94,50 @@ Most of the functionalitiess are implemented as widgets, that can be loaded, clo
 - does not require internet access
 - does not write to registry or create any file outside its directory (as long as java itself does not require it, e.g., cached data by WebView (in-app web browser)
 
-### gui
+### GUI
 
-widgets:
+- minimalistic - shows only whats important, no endless headers and borders taking up important space. With headerless and borderless window mode 100% of the space is given to the widgets.
+- powerful - infinite space, horizontally scrollable, zoomable
+- layout mode - powerful mode displaying 2nd ui layer allowing user to edit and configure the layout, widgets and more, alleviating normal user interface from all this
+- skinnable completely by css
+- skin discovery + change + refresh without requiring application restart
+- custom skins supported
+
+Widgets:
 - can provide input and output (e.g. playlist table has selected song as output)
 - inputs and outputs can be bound - when output value changes, it is passed into the listening input of other widget
 - inputs can be set to custom values
 - the whole system is displayed visually as editable graph
 
-layouts:
+Layouts:
 - widget management: Gui gives the ability to divide layouts into containers for widgets. These allow resizing, positioning, swapping, adding, removing and many more widget operations
 - multiple layout support/virtual layout space. Switching layouts by dragging them horizontally (left,right) opens new space for more layouts. This provides virtually infinitely large and conveniently navigable working space.
 
-windows:
-- snap to screen edges and other windows docking
+Windows:
+- snap to screen edges and other windows, screen-to-screen edges also supported.
 - auto-resize when put into screen edges and corners (altogether 7 different modes - all, left/right half, right half, topleft/topright/bottomleft/bottomright quadrant)
 - system tray, taskbar, fullscreen, always on top
 - mini mode - a docked bar snapped to the top edge of the screen
 - multiple screen support
 - multiple windows
 - configurable notification positions (corners, center) + window/screen oriented
-  
-### global & media hotkeys
+
+### Hotkeys
 
 - global hotkey supported - shortcuts dont need application focus if so desired
 - media keys supported
 - customizable (any combination of keys:  "F5", "CTRL+L", etc)
-- number of actions (playback control, layout, etc)
+- large number of actions (playback control, layout, etc)
 
-### usability
-- icons: No ugly buttons doing the unexpected. Icons are designed to visually aid user to understand the action. Decorated ith tooltips. Some are also skinnable or change to visualize application state.
-- tooltips: everywhere and big ones too. They explain all kinds of functionalities, so read to your heart's content. There are also info buttons opening information popups.
+### Usability
+- navigation: No more back and up buttons. Use left and right mouse butttons to quickly and seamlessly navigate within user interface.
+- icons: No ugly buttons doing the unexpected. Icons are designed to visually aid user to understand the action. Decorated with tooltips. Some are also skinnable or change to visualize application state.
+- tooltips: Everywhere. And big too. Explain all kinds of functionalities, so read to your heart's content. There are also info buttons opening information popups.
 - units: No more '5000 of what questions', everything that needs a unit has a unit, e.g. filesize (kB,MB,...), time duration, bitrate, etc. Multiple units are supported when possible, e.g., using 2000ms or 2s has the same effect. This is all supported in application settings or in table filter queries.  
 - validation: Designed to eliminate input errors by preventing user to input incorrect data. Warning icons signal incorrect input. Really helps with writing regular exressions.
 - defaults: every settings has a default value you can revert to easily
 
-### skin support
-
-- skinnable completely by css
-- skin discovery + change + relfresh without requiring application restart
-- custom skins
-
-### more
+### More
 
 - configurable playcount incrementing strategy: at specified minimal time or percent of song playback
 - cover downloading on drag&drop

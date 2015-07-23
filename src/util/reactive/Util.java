@@ -32,7 +32,7 @@ public class Util {
         return () -> o.removeListener(l);
     }
     
-    public static<O,V> Subscription maintain(ObservableValue<O> o, Function<O,V> m, WritableValue<V> w) {
+    public static<O,V> Subscription maintain(ObservableValue<O> o, Function<? super O, ? extends V> m, WritableValue<V> w) {
         w.setValue(m.apply(o.getValue()));
         return valuesOf(o).map(m).subscribe(w::setValue);
     }

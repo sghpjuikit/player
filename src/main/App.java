@@ -16,6 +16,7 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
+import Layout.Component;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.controller.io.Output;
@@ -23,13 +24,15 @@ import Layout.Widgets.feature.ConfiguringFeature;
 import action.Action;
 import action.IsAction;
 import action.IsActionable;
-import de.jensd.fx.glyphs.testapps.GlyphsBrowser;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.PopOver.PopOver;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
+import gui.objects.icon.IconInfo;
+import gui.pane.CellPane;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -41,10 +44,10 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.ImageCursor;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
@@ -53,7 +56,9 @@ import util.File.FileUtil;
 import util.access.AccessorEnum;
 import static util.async.Async.FX;
 import static util.async.Async.run;
+import static util.async.Async.runLater;
 import util.async.future.Fut;
+import static util.functional.Util.map;
 import util.plugin.PluginMap;
 
 
@@ -155,6 +160,7 @@ public class App extends Application {
         Output.addStringConverter(MetadataGroup.class, o -> Objects.toString(o.getValue()));
         Output.addStringConverter(Metadata.class, o -> o.getTitle());
         Output.addStringConverter(PlaylistItem.class, o -> o.getTitle());
+        Output.addStringConverter(Component.class, o -> o.getName());
     }
     
     /**
@@ -440,7 +446,7 @@ public class App extends Application {
         browse(getLocation());
     }
     
-    @IsAction(name = "Open css guide", description = "Open offocial oracle css "
+    @IsAction(name = "Open css guide", description = "Open official oracle css "
             + "reference guide. Helps with skinning. For developers.")
     public static void openCssGuide() {
         browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html");
@@ -449,9 +455,17 @@ public class App extends Application {
     @IsAction(name = "Open icon viewer", description = "Open viewer to browse "
             + "application supported icons. For developers")
     public static void openIconViewer() {
-        Pane g = new GlyphsBrowser();
-             g.setPrefHeight(700);
-        new PopOver(g).show(App_Center);
+        Fut.fut()
+           .thenR(() -> {
+                CellPane c = new CellPane(70,80,5);
+                c.getChildren().addAll(map(FontAwesomeIcon.values(),i -> new IconInfo(i,55)));
+                ScrollPane p = c.scrollable();
+                p.setPrefSize(500, 720);
+                PopOver o = new PopOver(p);
+                runLater(() -> o.show(App_Center));
+           })
+           .showProgress(Window.getActive().taskAdd())
+           .run();
     }
     
     @IsAction(name = "Open settings", description = "Open preferred "

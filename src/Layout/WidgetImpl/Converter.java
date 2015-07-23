@@ -11,13 +11,12 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Config;
-import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
 import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.feature.SongWriter;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLAY_CIRCLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
 import gui.itemnode.*;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
@@ -38,7 +37,6 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
@@ -253,7 +251,6 @@ public class Converter extends ClassController implements SongWriter {
         VBox root = new VBox(5, new StackPane(new Label("Action")),actCB, new StackPane(new Label("Apply", okB)));
         
         public Applier() {
-            okB.setPadding(new Insets(8));
             actCB.valueProperty().addListener((o,ov,nv) -> {
                 if(ins!=null) root.getChildren().remove(ins.node());
                 if(root.getChildren().size()==4) root.getChildren().remove(2);

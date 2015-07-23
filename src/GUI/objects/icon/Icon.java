@@ -5,148 +5,139 @@
  */
 package gui.objects.icon;
 
-import Configuration.Configurable;
 import action.Action;
-import de.jensd.fx.glyphs.GlyphIconName;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ADJUST;
+import com.sun.javafx.css.ParsedValueImpl;
+import com.sun.javafx.css.parser.CSSParser;
+import de.jensd.fx.glyphs.GlyphIcons;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import gui.objects.Text;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.css.*;
 import javafx.event.EventHandler;
-import static javafx.scene.control.ContentDisplay.CENTER;
-import javafx.scene.control.Label;
+import javafx.fxml.FXML;
 import javafx.scene.control.Tooltip;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.text.Font;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
-import javafx.scene.text.TextBoundsType;
 
 
-public class Icon<I extends Icon> extends Label implements Configurable {
+
+
+
+
+
+
+
+
+
+public class Icon<I extends Icon> extends Text {
     
-    private static final StyleablePropertyFactory<Icon> FACTORY = new StyleablePropertyFactory(Label.getClassCssMetaData());
-    private static final CssMetaData<Icon, FontAwesomeIconName> ICON_CMD = FACTORY.createEnumCssMetaData(FontAwesomeIconName.class, "icon", i -> i.icon);
-    
-    public final StyleableProperty<FontAwesomeIconName> icon = new SimpleStyleableObjectProperty<FontAwesomeIconName>(ICON_CMD, this, "icon") {
+        public final static String TTF_PATH = "/de/jensd/fx/glyphs/fontawesome/fontawesome-webfont.ttf";
 
-        @Override
-        protected void invalidated() {
-            super.invalidated();
-            if(get()==null) return;
-            Text t = (Text)getGraphic();
-            t.setText(get().characterToString());
-            t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",get().getFontFamily(), icon_size.get()));
-        }
-        
-//        public void set(FontAwesomeIconName v) {
-//            super.set(v);
-//        }
+    static {
+        Font.loadFont(Icon.class.getResource(TTF_PATH).toExternalForm(), 10.0);
+    }
 
-        @Override
-        public FontAwesomeIconName getValue() {
-            FontAwesomeIconName i = super.getValue(); //To change body of generated methods, choose Tools | Templates.
-            return i==null ? ADJUST : i;
-        }
-    };
-    
-    public final ObservableValue<GlyphIconName> iconProperty() { return (ObservableValue<GlyphIconName>)icon; }
-    public final GlyphIconName getIcon() { return icon.getValue(); }
-    public final void setIcon(FontAwesomeIconName i) { icon.setValue(i); }
-    
-    public final IntegerProperty icon_size = new SimpleIntegerProperty() {
-        public void set(int nv) {
-            super.set(nv);
-//            t.setText(icon.getValue().characterToString());
-//            t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getValue().getFontFamily(), get()));
-            ((Text)getGraphic()).setStyle(String.format("-fx-font-size: %s;",nv));
-//            t.getStyleClass().add("glyph");
+    public final static Double DEFAULT_ICON_SIZE = 12.0;
+    public final static String DEFAULT_FONT_SIZE = "1em";
 
-//            setMinSize(nv, nv);
-            setPrefSize(nv, nv); // makes sure the 'no icon' icon will keep consistent size
-//            setMaxSize(nv, nv);
+    private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text 
+    private final ObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
+    private final ObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", 12);
+    private final Class typeOfT = FontAwesomeIcon.class;
 
-//            ((Text)getGraphic()).minHeight(nv);
-//            ((Text)getGraphic()).minWidth(nv);
-//            ((Text)getGraphic()).prefWidth(nv);
-//            ((Text)getGraphic()).prefHeight(nv);
-//            ((Text)getGraphic()).maxWidth(nv);
-//            ((Text)getGraphic()).maxHeight(nv);
-//            ((Text)getGraphic()).getTransforms().clear();
-        }
-    };
 
     public Icon() {
-        this(null,12);
+        this(null,-1);
     }
-    public Icon(FontAwesomeIconName i) {
-        this(i, 12);
+    public Icon(GlyphIcons i) {
+        this(i, -1);
     }
-    public Icon(FontAwesomeIconName i, int size) {
+    public Icon(GlyphIcons i, double size) {
         this(i, size, null, (EventHandler)null);
     }
-    public Icon(FontAwesomeIconName i, int size, String tooltip) {
+    public Icon(GlyphIcons i, double size, String tooltip) {
         this(i, size, tooltip, (EventHandler)null);
     }
-    public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
-        setGraphic(new Text());
-        getGraphic().getStyleClass().add("glyph");
-        ((Text)getGraphic()).setBoundsType(TextBoundsType.VISUAL);
-        icon_size.set(size);
-//        if(ico!=null) icon.applyStyle(null, ico);
-        if(ico!=null) icon.setValue(ico);
+    public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
+        glyphSizeProperty().addListener((o,ov,nv) -> {
+            updateSize();
+        });
+        glyphStyleProperty().addListener((o,ov,nv) -> {
+            updateStyle();
+        });
+        glyphNameProperty().addListener((o,ov,nv) -> {
+            updateIcon();
+        });
+        
+//        setFont(new Font("FontAwesome", DEFAULT_ICON_SIZE));
+        
+        getStyleClass().clear();
+        styleclass("icon");
+//        ((Text)getGraphic()).setBoundsType(TextBoundsType.VISUAL);
+        if(size!=-1) size(size);
+        if(i!=null) icon(i);
         tooltip(tooltip);
         onClick(onClick);
-        getStyleClass().add("icon");
         
-        setContentDisplay(CENTER);
         setCache(true);
-        setPickOnBounds(true);
-        getGraphic().setPickOnBounds(true);
     }
 
     
-    public Icon(FontAwesomeIconName ico, int size, String tooltip, Runnable onClick) {
+    public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
         this(ico, size, tooltip);
         onClick(onClick);
     }
-    public Icon(FontAwesomeIconName ico, int size, Action action) {
+    public Icon(GlyphIcons ico, double size, Action action) {
         this(ico, size, action.getInfo(), (Runnable)action);
     }
     
-    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
-        return FACTORY.getCssMetaData();
+
+    @FXML
+    public void init() {
     }
 
-    @Override
-    public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
-        return FACTORY.getCssMetaData();
+/******************************************************************************/
+    
+    private Runnable click_runnable;
+    
+    public Runnable getOnClickRunnable() {
+        return click_runnable;
     }
     
-//    @Override
-//    public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
-//        return FACTORY.getCssMetaData();
-//    }
+    public Action getOnClickAction() {
+        return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
+    }
     
-    public I icon(FontAwesomeIconName i) {
-        icon.setValue(i);
+/********************************* FLUENT API *********************************/
+    
+    public I icon(GlyphIcons i) {
+        setIcon(i);
         return (I)this;
     }
     
-    public I size(int s) {
-        icon_size.setValue(s);
+    public I size(double s) {
+        setGlyphSize(s);
         return (I)this;
     }
     
     public final I tooltip(String text) {
-        if(text!=null && !text.isEmpty()) {
-            Tooltip t = new Tooltip(text);
-                    t.setWrapText(true);
-                    t.setMaxWidth(300);
-                    t.setTextAlignment(JUSTIFY);
+        if(text!=null && !text.isEmpty()) return tooltip(new Tooltip(text));
+        return (I)this;
+    }
+    
+    public final I tooltip(Tooltip t) {
+        if(t!=null) {
+            t.setWrapText(true);
+            t.setMaxWidth(300);
+            t.setTextAlignment(JUSTIFY);
             Tooltip.install(this, t);
         }
         return (I)this;
@@ -155,13 +146,22 @@ public class Icon<I extends Icon> extends Label implements Configurable {
     /** Sets styleclass. Returns this icon (fluent API). */
     public final I styleclass(String s) {
         getStyleClass().add(s);
+        updateIcon();
+        updateSize();
+        updateStyle();
         return (I)this;
     }
+    
+    public final I embedded() {
+        return styleclass("embedded-icon");
+    } 
+    
     
     public final I onClick(EventHandler<MouseEvent> action) {
         if(action!=null) setOnMouseClicked(action);
         return (I)this;
     }
+    
     public final I onClick(Runnable action) {
         click_runnable = action;
         return onClick(action==null ? null : e -> { 
@@ -172,200 +172,151 @@ public class Icon<I extends Icon> extends Label implements Configurable {
         });
     }
     
-    private Runnable click_runnable;
-    public Runnable getOnClickRunnable() {
-        return click_runnable;
+/******************************************************************************/
+
+    
+    
+    public FontAwesomeIcon getIco() {
+        return FontAwesomeIcon.valueOf(getGlyphName());
     }
-    public Action getOnClickAction() {
-        return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
+    
+    
+    
+    
+    
+
+    public final StringProperty glyphStyleProperty() {
+        if (glyphStyle == null) {
+            glyphStyle = new SimpleStringProperty("");
+        }
+        return glyphStyle;
+    }
+
+    public final String getGlyphStyle() {
+        return glyphStyleProperty().getValue();
+    }
+
+    public final void setGlyphStyle(String style) {
+        glyphStyleProperty().setValue(style);
+    }
+
+    public final ObjectProperty<String> glyphNameProperty() { return icon; }
+
+    public final String getGlyphName() { return icon.getValue(); }
+
+    public final void setGlyphName(String glyphName) { icon.setValue(glyphName); }
+
+    public final ObjectProperty<Number> glyphSizeProperty() {
+        return size;
+    }
+
+    public final Number getGlyphSize() {
+        return glyphSizeProperty().getValue();
+    }
+
+    public final void setGlyphSize(Number size) {
+        size = (size == null) ? DEFAULT_ICON_SIZE : size;
+        glyphSizeProperty().setValue(size);
+    }
+
+    // kept for compability reasons and for SceneBuilder/FXML support
+    public final String getSize() {
+        return getGlyphSize().toString();
+    }
+
+    // kept for compability reasons and for SceneBuilder/FXML support
+    public final void setSize(String sizeExpr) {
+        Number s = convert(sizeExpr);
+        setGlyphSize(s);
+    }
+
+    public final void setIcon(GlyphIcons glyph) {
+        setGlyphName(glyph.name());
+    }
+
+    public FontAwesomeIcon getDefaultGlyph(){ return ADJUST; };
+
+    private void updateSize() {
+        Font f = new Font(getFont().getFamily(), getGlyphSize().doubleValue());
+        setFont(f);
+    }
+
+    private void updateIcon() {
+        GlyphIcons i = getDefaultGlyph();
+        try {
+            i = ((GlyphIcons) Enum.valueOf(typeOfT, getGlyphName()));
+        } catch (Exception e) {}
+        
+        Font f = new Font(i.getFontFamily(), getFont().getSize());
+        setFont(f);
+        setText(i.characterToString());
+    }
+
+    private void updateStyle() {
+        setStyle(getGlyphStyle());
+    }
+
+    // CSS 
+    private static class StyleableProperties {
+
+        private static final CssMetaData<Icon, String> GLYPH_NAME
+                = new CssMetaData<Icon, String>("-glyph-name", StyleConverter.getStringConverter(), "BLANK") {
+
+                    @Override
+                    public boolean isSettable(Icon styleable) {
+                        return styleable.icon == null || !styleable.icon.isBound();
+                    }
+
+                    @Override
+                    public StyleableProperty<String> getStyleableProperty(Icon styleable) {
+                        return (StyleableProperty) styleable.glyphNameProperty();
+                    }
+
+                    @Override
+                    public String getInitialValue(Icon styleable) {
+                        return "BLANK";
+                    }
+                };
+
+        private static final CssMetaData<Icon, Number> GLYPH_SIZE
+                = new CssMetaData<Icon, Number>("-glyph-size", StyleConverter.getSizeConverter(), DEFAULT_ICON_SIZE) {
+                    @Override
+                    public boolean isSettable(Icon styleable) {
+                        return styleable.size == null || !styleable.size.isBound();
+                    }
+
+                    @Override
+                    public StyleableProperty<Number> getStyleableProperty(Icon styleable) {
+                        return (StyleableProperty) styleable.glyphSizeProperty();
+                    }
+
+                    @Override
+                    public Number getInitialValue(Icon styleable) {
+                        return DEFAULT_ICON_SIZE;
+                    }
+                };
+        private static final List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
+
+        static {
+            final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(Text.getClassCssMetaData());
+            Collections.addAll(styleables, GLYPH_NAME, GLYPH_SIZE);
+            STYLEABLES = Collections.unmodifiableList(styleables);
+        }
+    }
+
+    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
+        return StyleableProperties.STYLEABLES;
+    }
+
+    @Override
+    public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
+        return getClassCssMetaData();
+    }
+
+    private static final CSSParser CSS_PARSER = CSSParser.getInstance();
+
+    public Number convert(String sizeString) {
+        ParsedValueImpl parsedValueImpl = CSS_PARSER.parseExpr("", sizeString);
+        return (Number) parsedValueImpl.convert(getFont());
     }
 }
-//public class Icon extends Text {
-//    
-//    private static final StyleablePropertyFactory<Icon> FACTORY = new StyleablePropertyFactory(Text.getClassCssMetaData());
-//    private static final CssMetaData<Icon, FontAwesomeIconName> ICON_CMD = FACTORY.createEnumCssMetaData(FontAwesomeIconName.class, "icon", i -> i.icon);
-//    
-//    public final StyleableProperty<FontAwesomeIconName> icon = new SimpleStyleableObjectProperty<FontAwesomeIconName>(ICON_CMD, this, "icon") {
-//
-//        @Override
-//        protected void invalidated() {
-//            super.invalidated();
-//            setText(get().characterToString());
-//            setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",get().getFontFamily(), icon_size.get()));
-//            getStyleClass().add("glyph");
-//        }
-//        
-////        public void set(FontAwesomeIconName v) {
-////            super.set(v);
-////        }
-//    };
-//    
-//     public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
-//     public final GlyphIconName getIcon() { return icon.getValue(); }
-//     public final void setIcon(FontAwesomeIconName isSelected) { icon.setValue(isSelected); }
-//    
-//    
-//    public final IntegerProperty icon_size = new SimpleIntegerProperty() {
-//        public void set(int nv) {
-//            super.set(nv);
-////            t.setText(icon.getValue().characterToString());
-////            t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getValue().getFontFamily(), get()));
-////            t.getStyleClass().add("glyph");
-//            
-//        }
-//    };
-//
-//    public Icon() {
-//        this(null,12);
-//    }
-//    public Icon(FontAwesomeIconName i) {
-//        this(i, 12);
-//    }
-//    public Icon(FontAwesomeIconName i, int size) {
-//        this(i, size, null, (EventHandler)null);
-//    }
-//    public Icon(FontAwesomeIconName i, int size, String tooltip) {
-//        this(i, size, tooltip, (EventHandler)null);
-//    }
-//    public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
-//        icon_size.set(size);
-////        if(ico!=null) icon.applyStyle(null, ico);
-//        if(ico!=null) icon.setValue(ico);
-//        tooltip(tooltip);
-//        if(onClick!=null) setOnMouseClicked(onClick);
-//        getStyleClass().add("icon");
-//    }
-//
-//    
-//    public Icon(FontAwesomeIconName ico, int size, String tooltip, Runnable onClick) {
-//        this(ico, size, tooltip, onClick==null ? null : e -> { onClick.run(); e.consume(); });
-//    }
-//    
-//    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
-//        return FACTORY.getCssMetaData();
-//    }
-//
-//    @Override
-//    public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
-//        return FACTORY.getCssMetaData();
-//    }
-//    
-//    public final void tooltip(Tooltip tooltip) {
-//        if(tooltip!=null)
-//            Tooltip.install(this, tooltip);
-//    }
-//    
-//    public final void tooltip(String text) {
-//        if(text!=null && !text.isEmpty())
-//            Tooltip.install(this, new Tooltip(text));
-//    }
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///*
-// * To change this license header, choose License Headers in Project Properties.
-// * To change this template file, choose Tools | Templates
-// * and open the template in the editor.
-// */
-//package GUI.objects;
-//
-//import de.jensd.fx.glyphs.GlyphIconName;
-//import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-//import java.util.List;
-//import javafx.beans.property.IntegerProperty;
-//import javafx.beans.property.SimpleIntegerProperty;
-//import javafx.beans.value.ObservableValue;
-//import javafx.css.*;
-//import javafx.event.EventHandler;
-//import javafx.scene.control.ContentDisplay;
-//import javafx.scene.control.Label;
-//import javafx.scene.control.Tooltip;
-//import javafx.scene.input.MouseEvent;
-//import util.graphics.Icons;
-//
-///**
-// <p>
-// @author Plutonium_
-// */
-//public class Icon extends Label {
-//    
-//    private static final StyleablePropertyFactory<Icon> FACTORY = new StyleablePropertyFactory(Label.getClassCssMetaData());
-//    private static final CssMetaData<Icon, FontAwesomeIconName> ICON_CMD = FACTORY.createEnumCssMetaData(FontAwesomeIconName.class, "icon", i -> i.icon);
-//    
-//    
-//    
-//    public final StyleableProperty<FontAwesomeIconName> icon = new SimpleStyleableObjectProperty<FontAwesomeIconName>(ICON_CMD, this, "icon") {
-//
-//        @Override
-//        protected void invalidated() {
-//            super.invalidated(); //To change body of generated methods, choose Tools | Templates.
-//            Icons.setIcon(Icon.this, get(), String.valueOf(icon_size.get()));
-//        }
-//        
-////        public void set(FontAwesomeIconName v) {
-////            super.set(v);
-////        }
-//    };
-//    
-//     public ObservableValue<GlyphIconName> iconProperty() { return ( ObservableValue<GlyphIconName>)icon; }
-//     public final GlyphIconName getIcon() { return icon.getValue(); }
-//     public final void setIcon(FontAwesomeIconName isSelected) { icon.setValue(isSelected); }
-//    
-//    
-//    public final IntegerProperty icon_size = new SimpleIntegerProperty() {
-//        public void set(int nv) {
-//            super.set(nv);
-//            setMinSize(nv, nv);
-//            setPrefSize(nv, nv);
-//            setMaxSize(nv, nv);
-//        }
-//    };
-//
-//    public Icon() {
-//        this(null,12);
-//    }
-//    public Icon(FontAwesomeIconName i) {
-//        this(i, 12);
-//    }
-//    public Icon(FontAwesomeIconName i, int size) {
-//        this(i, size, null, (EventHandler)null);
-//    }
-//    public Icon(FontAwesomeIconName i, int size, String tooltip) {
-//        this(i, size, tooltip, (EventHandler)null);
-//    }
-//    public Icon(FontAwesomeIconName ico, int size, String tooltip, EventHandler<MouseEvent> onClick) {
-//        setContentDisplay(ContentDisplay.CENTER);
-//        icon_size.set(size);
-////        if(ico!=null) icon.applyStyle(null, ico);
-//        if(ico!=null) icon.setValue(ico);
-//        if(tooltip!=null && !tooltip.isEmpty()) tooltip(new Tooltip(tooltip));
-//        if(onClick!=null) setOnMouseClicked(onClick);
-//        getStyleClass().add("icon");
-//    }
-//    public Icon(FontAwesomeIconName ico, int size, String tooltip, Runnable onClick) {
-//        this(ico, size, tooltip, onClick==null ? null : e -> { onClick.run(); e.consume(); });
-//    }
-//    
-//    public static List<CssMetaData<? extends Styleable, ?>> getClassCssMetaData() {
-//        return FACTORY.getCssMetaData();
-//    }
-//
-//     @Override
-//    public List<CssMetaData<? extends Styleable, ?>> getControlCssMetaData() {
-//        return FACTORY.getCssMetaData();
-//    }
-//     
-//}

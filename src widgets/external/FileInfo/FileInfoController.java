@@ -9,23 +9,23 @@ import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.SongReader;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.objects.ActionChooser;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import gui.pane.ActionPane;
+import gui.pane.ActionPane.ActionData;
 import gui.objects.Rater.Rating;
 import gui.objects.image.ChangeableThumbnail;
-import gui.objects.icon.Icon;
 import gui.pane.ImageFlowPane;
 import java.io.File;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -34,7 +34,6 @@ import javafx.fxml.FXML;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import javafx.scene.layout.AnchorPane;
@@ -185,10 +184,20 @@ public class FileInfoController extends FXMLController implements SongReader {
         
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
-        cover.onFileDropped = f -> {
-            actPane.item = f;
-            getArea().setActivityVisible(true);
-        };
+        cover.onFileDropped = f -> 
+            ActionPane.PANE.show(File.class, f, 
+                new ActionData<>("Copy and set as cover", 
+                        "Sets image as cover. Copies file to "
+                      + data.getLocation().getPath() + " and renames it to 'cover'. "
+                      + "Previous cover file (if exists) will be preserved and renamed.",
+                        PLUS_SQUARE,
+                        fs -> setCover(fs, true)),
+                new ActionData<>("Copy", 
+                        "Copies file to " + data.getLocation().getPath() + ". Any "
+                      + "existing file is overwritten.",
+                        PLUS_SQUARE_ALT,
+                        fs -> setCover(fs, false))
+            );
                   
         entireArea.getChildren().add(layout);
         setAnchors(layout,0);
@@ -225,21 +234,6 @@ public class FileInfoController extends FXMLController implements SongReader {
                 e.consume();
             }
         });
-        
-        
-        actPane = new ActionChooser(this);
-        
-        Icon coverB = actPane.addIcon(PLUS_SQUARE, "Set as cover");
-             coverB.setOnMouseClicked(e -> setCover(actPane.getItem(),true));
-        Icon copyB = actPane.addIcon(PLUS, "Copy to the location");
-             copyB.setOnMouseClicked(e -> setCover(actPane.getItem(),false));
-    }
-    
-    ActionChooser<Supplier<File>> actPane;
-    
-    @Override
-    public Node getActivityNode() {
-        return actPane;
     }
     
     @Override
@@ -437,15 +431,11 @@ public class FileInfoController extends FXMLController implements SongReader {
         
         Consumer<File> action = setAsCover
             ? file -> copyFileSafe(file, data.getLocation(), "cover")
-            : file -> copyFiles(list(file), data.getLocation());
+            : file -> copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
         
         fut().supply(f)
             .use(action)
-            .thenR(() -> {
-                cover_source.applyValue();              // refresh cover
-                getArea().setActivityVisible(false);
-                actPane.item = null;
-            },FX)
+            .thenR(cover_source::applyValue,FX)         // refresh cover
             .showProgress(App.getWindow().taskAdd())
             .run();
     }

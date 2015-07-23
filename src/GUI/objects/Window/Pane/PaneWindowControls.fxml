@@ -7,12 +7,12 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<fx:root id="AnchorPane" fx:id="root" prefHeight="111.0" prefWidth="111.0" snapToPixel="false" styleClass="window" type="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root id="AnchorPane" fx:id="root" prefHeight="111.0" prefWidth="111.0" snapToPixel="false" styleClass="window" type="AnchorPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
   <children><AnchorPane fx:id="borders" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 <children>
             <StackPane fx:id="header" prefHeight="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-              <HBox fx:id="controls" alignment="CENTER_RIGHT" disable="false" fillHeight="false" nodeOrientation="LEFT_TO_RIGHT" pickOnBounds="false" spacing="5.0" visible="true" StackPane.alignment="CENTER_RIGHT">
+              <HBox fx:id="controls" alignment="CENTER_RIGHT" disable="false" fillHeight="false" pickOnBounds="false" spacing="5.0" visible="true" StackPane.alignment="CENTER_RIGHT">
                 <children>
                   <Button fx:id="minimizeB" minHeight="15.0" minWidth="15.0" mnemonicParsing="false" prefHeight="15.0" prefWidth="15.0" styleClass="header-button" text="▁">
                     <tooltip>

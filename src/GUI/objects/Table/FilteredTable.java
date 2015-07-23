@@ -7,17 +7,17 @@ package gui.objects.Table;
 
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.InfoNode.InfoTable;
 import gui.itemnode.TableFilterGenerator;
 import gui.objects.ContextMenu.SelectionMenuItem;
+import gui.objects.icon.Icon;
 import static java.lang.Integer.max;
 import static java.lang.Integer.min;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
-import static javafx.application.Platform.runLater;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -31,7 +31,13 @@ import javafx.event.Event;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyCode.F;
@@ -48,9 +54,11 @@ import static util.Util.menuItem;
 import static util.Util.zeroPad;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
+import static util.async.Async.runLater;
 import util.async.executor.FxTimer;
-import static util.functional.Util.*;
-import util.graphics.Icons;
+import static util.functional.Util.by;
+import static util.functional.Util.filterMap;
+import static util.functional.Util.isIn;
 import static util.reactive.Util.sizeOf;
 
 /**
@@ -250,14 +258,14 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
 /******************************* BOTTOM CONTROLS ******************************/
     
-    public final Menu menuAdd = new Menu("", Icons.createIcon(FontAwesomeIconName.PLUS, 11));
-    public final Menu menuRemove = new Menu("", Icons.createIcon(FontAwesomeIconName.MINUS, 11));
-    public final Menu menuSelected = new Menu("", Icons.createIcon(FontAwesomeIconName.CROP, 11),
+    public final Menu menuAdd = new Menu("", new Icon(FontAwesomeIcon.PLUS, 11).embedded());
+    public final Menu menuRemove = new Menu("", new Icon(FontAwesomeIcon.MINUS, 11).embedded());
+    public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP, 11).embedded(),
             menuItem("Select inverse", this::selectAll),
             menuItem("Select all", this::selectInverse),
             menuItem("Select none", this::selectNone)
     );
-    public final Menu menuOrder = new Menu("", Icons.createIcon(FontAwesomeIconName.NAVICON, 11));
+    public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON, 11).embedded());
     /** Table menubar in the bottom with menus. Feel free to modify. */
     public final MenuBar menus = new MenuBar(menuAdd,menuRemove,menuSelected,menuOrder);
     /** 

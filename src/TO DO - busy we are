@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- dirviewer use thread pool for icons
+- make sure OVal  setDefault & deserilization works
+- icon any Glyph support
 - update LastFM and DB, turn into proper service modules
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
 - make containers & widgets extremely lightweight - all their graphics unite
@@ -116,6 +119,12 @@ SOLVED (but the underlying cause still deserves attention)
   solution: iterate over the list with toS() method, this makes no sense, but 
   thats all i know works right now, this is dangerous
   affected: LibraryView filterList(), InfoTable
+- Icon does not support disabled style (opacity 0.4). Thus it was added in css. (minor, inconvenience)
+  But if set as graphics in MenuBar (and probably in MenuItem and so on) the 
+  style gets applied twice! javafx apparently applies the disabled state on the
+  graphics on its own!
+  workaround: when intended to be used as graphics, call embedded() method
+  on the icon. it will set different styleclass disabling the disable style
 
 --------------------------------------------------------------------------------
 ------------------------ CODE IMPERFECTIONS - what sets off my OCD -------------
@@ -124,13 +133,11 @@ SOLVED (but the underlying cause still deserves attention)
 UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - item->metadata
 - Playback/Player/Playlist state and suspending/restoring them
-- traits
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI
 - Accessors and all... maybe make Val/Var class
-- Config and Accessor static constructors
 - Serializator and serialization
 - window manager
 - window color overlay effect

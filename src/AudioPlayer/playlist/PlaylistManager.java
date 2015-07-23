@@ -14,7 +14,7 @@ import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import unused.SimpleConfigurator;
 import gui.objects.Text;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.INFO;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;

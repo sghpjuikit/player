@@ -8,15 +8,13 @@ package gui.objects.Window.Pane;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Window.Resize;
 import static gui.objects.Window.Resize.*;
-import gui.virtual.IconBox;
 import Layout.Component;
 import Layout.Layout;
 import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import java.io.*;
 import java.net.URL;
 import javafx.css.PseudoClass;
-import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
@@ -90,14 +88,14 @@ public class PaneWindowControls extends WindowPane {
 //	});
         
         
-        // make right menu
-	IconBox right_icons = new IconBox(controls);
+        // controls
 	setIcon(minimizeB,MINUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
         minimizeB.setOnMouseClicked(e -> close());
 	setIcon(maximizeB,PLUS_SQUARE_ALT, "13", GRAPHIC_ONLY);
         maximizeB.setOnMouseClicked(e -> close());
 	setIcon(closeB,CLOSE, "13", GRAPHIC_ONLY);
         closeB.setOnMouseClicked(e -> close());
+        controls.getChildren().addAll();
     }
 
     /**

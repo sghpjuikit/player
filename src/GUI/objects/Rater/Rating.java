@@ -15,15 +15,10 @@
  */
 package gui.objects.Rater;
 
-import Configuration.IsConfig;
-import gui.Traits.EditableTrait;
-import gui.Traits.ScaleOnHoverTrait;
 import java.util.function.Consumer;
 import javafx.beans.property.*;
-import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.Skin;
-import javafx.util.Duration;
 import static util.Util.clip;
 
 /**
@@ -103,7 +98,7 @@ import static util.Util.clip;
  * automatically follow the users mouse as they move it along the Rating scale.
  * To enable this, just set both properties to true.
  */
-public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait {
+public class Rating extends Control {
     
     /** Creates rating with 5 icons*/
     public Rating() {
@@ -130,7 +125,6 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait 
         
         this.icons.set(icons);
         rating.set(r);
-        installScaleOnHover();
     }
     
     /** {@inheritDoc} */
@@ -164,42 +158,9 @@ public class Rating extends Control implements EditableTrait, ScaleOnHoverTrait 
      * the new rating with this control.
      */
     public final BooleanProperty updateOnHover = new SimpleBooleanProperty(this, "updateOnHover", false);
-    
-    
-    /***************************************************************************
-     * 
-     * Implemented Traits
-     * 
-     **************************************************************************/
-    
-    
-    // --- editable
-    @Override
-    public BooleanProperty editableProperty() {
-        return editable;
-    }
+
     public final BooleanProperty editable = new SimpleBooleanProperty(this, "editable", true);
-    
-    // --- scale on hover
-    @Override
-    public ObjectProperty<Duration> DurationOnHoverProperty() {
-        return durationOnHover;
-    }
-    @Override
-    public BooleanProperty hoverableProperty() {
-        return hoverable;
-    }
-    
-    @IsConfig(name="Rating anim duration", info = "Preffered hover scale animation duration for rating control.")
-    public static double animDur = 200;
-    private ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty<>(this, "durationOnHover", Duration.millis(animDur));
-    private BooleanProperty hoverable = new SimpleBooleanProperty(this, "hoverable", false);
-    
-    @Override
-    public Node getNode() {
-        return this;
-    }
-    
+
     
     
     protected Consumer<Double> ratingChanged;

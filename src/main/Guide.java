@@ -12,7 +12,7 @@ import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.WidgetManager;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;

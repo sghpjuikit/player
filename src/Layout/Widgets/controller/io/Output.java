@@ -43,7 +43,7 @@ public class Output<T> extends Put<T> {
     
     private static final ClassMap<Function<Object,String>> string_coverters = new ClassMap<>();
     
-    public static <T> void addStringConverter(Class<T> c, Function<T,String> f) {
+    public static <T> void addStringConverter(Class<T> c, Function<? extends T,String> f) {
         string_coverters.put(c, (Function) f);
     }
     public static <T> Function<Object,String> getStringConverter(Class<T> c) {

@@ -6,6 +6,7 @@ import static gui.GUI.openAndDo;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
+import gui.pane.IOPane;
 import java.io.IOException;
 import static java.util.Collections.singletonList;
 import java.util.List;
@@ -107,12 +108,10 @@ public final class WidgetArea extends Area<Container> {
         controls.propB.setDisable(w.getFields().isEmpty());
         
         // put up activity node
-        Node an = w.getController().getActivityNode();
-        if(an!=null) {
-            an.setUserData(this);
-            setActivityContent(an);
-            setActivityVisible(false);
-        }
+        IOPane an = new gui.pane.IOPane(w.getController());
+        an.setUserData(this);
+        setActivityContent(an);
+        setActivityVisible(false);
         wNode.setUserData(this);
         
     }

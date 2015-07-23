@@ -8,7 +8,7 @@ import gui.objects.icon.Icon;
 import gui.objects.PopOver.PopOver;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.COGS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;

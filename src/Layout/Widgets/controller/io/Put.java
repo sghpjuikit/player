@@ -44,7 +44,6 @@ public class Put<T> {
     public String getValueAsS() {
         T v = val.getValue();
         return v==null ? "null" : getStringConverter(v.getClass()).apply(v);
-//        return "";
     }
     
     public Subscription monitor(Consumer<? super T> action) {

@@ -8,7 +8,6 @@ package ColorGraph;
 
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.controller.FXMLController;
 import static java.time.Duration.ofMillis;
 import java.util.HashMap;
@@ -24,6 +23,7 @@ import javafx.scene.shape.Shape;
 import org.reactfx.EventStreams;
 import static org.reactfx.EventStreams.valuesOf;
 import org.reactfx.Subscription;
+import static util.functional.Util.list;
 import util.graphics.drag.DragUtil;
 
 /**
@@ -74,7 +74,8 @@ public class ColorGraphController extends FXMLController {
 
     @Override
     public void refresh() {
-        dataChanged(Player.librarySelectedItemsES.getValue());
+        Metadata m = Player.librarySelected.o.getValue();
+        if(m!=null) dataChanged(list(m));
     }
 
     @Override

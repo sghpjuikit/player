@@ -9,7 +9,7 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import gui.objects.PopOver.PopOver;
 import static gui.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static java.time.Duration.ofMillis;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,13 +108,13 @@ public final class Seeker extends AnchorPane {
                       addB.i.setOpacity(0);
         addEventFilter(MOUSE_MOVED, e -> {
             if(addB.isVisible() && addB.i.getOpacity()>0) {
-                addB.p.setX(e.getScreenX()-addB.i.getWidth()/2);
+                addB.p.setX(e.getScreenX()-addB.root.getWidth()/2);
                 addB.p.setY(seeker.localToScreen(0,0).getY()+18);
             }
         });
         seeker.addEventFilter(MOUSE_ENTERED, e -> {
             addB.show();
-            addB.p.setX(e.getScreenX()-addB.i.getWidth()/2);
+            addB.p.setX(e.getScreenX()-addB.root.getWidth()/2);
             addB.p.setY(seeker.localToScreen(0,0).getY()+18);
             addB.i.setDisable(!Player.playingtem.get().isFileBased());
         });
@@ -246,7 +246,7 @@ public final class Seeker extends AnchorPane {
             root.setPrefSize(25, 25);
             p.getContent().add(new StackPane(i,root));
             i.getStyleClass().add("seeker-add-chapter-button");
-            i.getGraphic().getStyleClass().add("seeker-add-chapter-button");
+            i.styleclass("seeker-add-chapter-button");
             i.setDisable(false);
             root.setOnMouseClicked(e -> {
                 double deltaX = p.getX()+p.getWidth()/2-seeker.localToScreen(0,0).getX();

@@ -14,7 +14,7 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import action.IsAction;
 import action.IsActionable;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
 import java.io.File;
@@ -127,9 +127,9 @@ public class WindowManager {
                 // menu
             Icon closeB = new Icon(CLOSE, 13, "Close window", App::close);
             Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
-            maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
+            maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
             Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
-            maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB.icon);
+            maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB::icon);
             
             HBox controls = new HBox(8,mainB,miniB,closeB);
                  controls.setAlignment(Pos.CENTER_RIGHT);
@@ -142,7 +142,7 @@ public class WindowManager {
             miniWindow.setHeaderAllowed(false);
             miniWindow.setBorderless(true);
             miniWindow.update();
-            miniWindow.bgrImgLayer.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
+            miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
             miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> WidgetManager.standaloneWidgets.remove(w));
             

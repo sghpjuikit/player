@@ -8,7 +8,7 @@ package Layout.Areas;
 import Layout.*;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS_SQUARE_ALT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE_ALT;
 import gui.GUI;
 import static gui.GUI.closeAndDo;
 import gui.objects.icon.Icon;

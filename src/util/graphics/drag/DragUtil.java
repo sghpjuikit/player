@@ -92,6 +92,16 @@ public final class DragUtil {
         }
     };
     
+    
+    public static Object getAny(DragEvent e) {
+        Dragboard d = e.getDragboard();
+        if(d.hasFiles()) return d.getFiles();
+        if(d.hasImage()) return d.getImage();
+        if(d.hasString()) return d.getString();
+        if(d.hasUrl()) return d.hasUrl();
+        return data;
+    }
+    
 /********************************** FILES *************************************/
     
     /** Accepts and consumes drag over event if contains at least 1 image file. */

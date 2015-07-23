@@ -10,7 +10,7 @@ import Layout.BiContainer;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import java.io.IOException;
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ChangeListener;
@@ -231,16 +231,16 @@ public final class Splitter implements ContainerNode {
             }
         });
         Icon lockB = new Icon(LOCK, 12, "Lock container", this::toggleLocked);
-        maintain(c.locked,mapB(LOCK,UNLOCK), lockB.icon);
+        maintain(c.locked,mapB(LOCK,UNLOCK), lockB::icon);
         Icon absB = new Icon(CHAIN, 12, "Switch proportionally resizable content", this::toggleAbsoluteSize);absB.setText("1");
         Icon switchB = new Icon(EXCHANGE, 12, "Swap content", this::switchChildren);
         Icon orienB = new Icon(MAGIC, 12, "Change orientation", this::toggleOrientation);
-        maintain(c.orientation,o->o==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H, orienB.icon);
+        maintain(c.orientation,o->o==VERTICAL ? ELLIPSIS_V : ELLIPSIS_H, orienB::icon);
         Icon closeB = new Icon(CLOSE, 12, "Close container", ()->closeAndDo(root, container::close));
         Icon coll1B = new Icon(ARROW_RIGHT, 10, "Collapse", this::toggleCollapsed1);
-        maintain(c.orientation,o->o==VERTICAL ? ARROW_RIGHT : ARROW_DOWN, coll1B.icon);
+        maintain(c.orientation,o->o==VERTICAL ? ARROW_RIGHT : ARROW_DOWN, coll1B::icon);
         Icon coll2B = new Icon(ARROW_LEFT, 10, "Collapse", this::toggleCollapsed2);
-        maintain(c.orientation,o->o==VERTICAL ? ARROW_LEFT : ARROW_UP, coll2B.icon);
+        maintain(c.orientation,o->o==VERTICAL ? ARROW_LEFT : ARROW_UP, coll2B::icon);
         collapseBox.getChildren().setAll(coll1B,coll2B);
         controlsBox.getChildren().setAll(infoB,dragB,absB,collapseBox,lockB,orienB,switchB,closeB);
         

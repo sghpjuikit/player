@@ -29,9 +29,9 @@ package gui.objects.Rater;
 
 import com.sun.javafx.scene.control.behavior.BehaviorBase;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
-import de.jensd.fx.glyphs.GlyphIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.STAR_ALT;
+import de.jensd.fx.glyphs.GlyphIcons;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.STAR_ALT;
 import static java.lang.Math.ceil;
 import java.util.Collections;
 import static javafx.application.Platform.runLater;
@@ -72,17 +72,17 @@ public class RatingSkin extends BehaviorSkinBase<Rating, BehaviorBase<Rating>> {
     private double old_rating;
     
     private final EventHandler<MouseEvent> mouseMoveHandler = e -> {
-        e.consume();
-        if (!getSkinnable().updateOnHover.get() || !getSkinnable().isEditable())
+        if (!getSkinnable().updateOnHover.get() || !getSkinnable().editable.get())
             return;
         
         double v = calculateRating(e.getSceneX(), e.getSceneY());
         updateRating(v);
+        
+        e.consume();
     };
     
     private final EventHandler<MouseEvent> mouseClickHandler = e-> {
-        e.consume();
-        if (!getSkinnable().isEditable() || e.getButton()==SECONDARY) 
+        if (!getSkinnable().editable.get() || e.getButton()==SECONDARY) 
             return;
         
         double v = calculateRating(e.getSceneX(), e.getSceneY());
@@ -92,6 +92,8 @@ public class RatingSkin extends BehaviorSkinBase<Rating, BehaviorBase<Rating>> {
         // fire rating changed event
         if (getSkinnable().ratingChanged != null)
             getSkinnable().ratingChanged.accept(v);
+        
+        e.consume();
     };
     
 
@@ -194,7 +196,7 @@ public class RatingSkin extends BehaviorSkinBase<Rating, BehaviorBase<Rating>> {
         backgroundContainer.getChildren().forEach(n->n.pseudoClassStateChanged(min,is0));
     }
         
-    private Node createButton(GlyphIconName icon) {
+    private Node createButton(GlyphIcons icon) {
         Text l = Icons.createIcon(icon, getSkinnable().icons.get(), 10);
              l.setCache(true);
              l.setCacheHint(CacheHint.SPEED);

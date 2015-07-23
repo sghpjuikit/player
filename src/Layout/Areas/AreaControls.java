@@ -11,7 +11,7 @@ import Layout.BiContainer;
 import Layout.Container;
 import Layout.WidgetImpl.Configurator;
 import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.GUI;
 import static gui.GUI.OpenStrategy.INSIDE;
 import static gui.GUI.OpenStrategy.POPUP;
@@ -149,7 +149,7 @@ public final class AreaControls {
             toggleLocked();
 	    App.actionStream.push("Widget layout lock");
         });
-        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB.icon);
+        maintain(area.container.locked, mapB(LOCK,UNLOCK),lockB::icon);
 	absB = new Icon(LINK, 12, absbTEXT, e -> {
 	    toggleAbsSize();
 	    updateAbsB();
@@ -385,7 +385,7 @@ public final class AreaControls {
 	Container c = area.container.getParent();
 	if (c instanceof BiContainer) {
 	    boolean l = c.properties.getI("abs_size") == area.container.indexInParent();
-            absB.icon.setValue(l ? UNLINK : LINK);
+            absB.icon(l ? UNLINK : LINK);
 	    if (!header_buttons.getChildren().contains(absB))
 		header_buttons.getChildren().add(6, absB);
 	} else

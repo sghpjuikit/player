@@ -366,9 +366,9 @@
 }
 
 .popup {
-    // Make popups transparent
-    // do not change this. there are dependencies on this transparent value
-    // for example .popover depends on this. Changing it can break functionality
+    /* Make popups transparent
+    do not change this. there are dependencies on this transparent value
+    for example .popover depends on this. Changing it can break functionality */
     -fx-background-color: transparent;
 }
 
@@ -3211,7 +3211,7 @@
 // complex backgrounds by specifying both .background and .bgr-image while using
 // sub 1 opacity
 // an example would be a slight image overlay over background
-.window > .brg-image {
+.window > .bgr-image {
     -fx-opacity:1;
     // do not provide any image by default
     //-fx-background-image: url("bgr.jpg");
@@ -3559,33 +3559,31 @@
 
 //*********************************** ICONS **********************************//
 
-// Text using glyph to make icon
-// inherits nothing
-
-.glyph {
+/** 
+ * Icon
+ * Text using glyph to make icon.
+ * inherits: nothing
+ * properties: -glyph-name - String of the glyph
+ *             -glyph-size - size
+ */
+.icon {
     -fx-fill: -fx-def-font-color;
-    // id love to do this, but animations get jerky
-    //-fx-effect: dropshadow(three-pass-box, rgb(130,170,255), 4,0, 0,0);
+    -glyph-name: "CLOSE";
+    -glyph-size: 1em;
 }
-.glyph:hover {
+
+.icon:hover {
     -fx-fill: -fx-def-font-color-hover;
     -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
-
-/** 
- * Icon
- * inherits: .glyph
- * properties: icon - String of the glyph
- */
-.icon {
-    // default icon shown when none is specified by code
-    icon: "CLOSE";
+.icon:disabled {
+    -fx-opacity: 0.4;
 }
 
-.icon:hover {
-    -fx-fill: -fx-def-font-color-hover;
+.embedded-icon:disabled {
+   -fx-opacity: 1;
 }
 
 /** 
@@ -3594,10 +3592,10 @@
  * pseudoclases: checked
  */
 .check-icon {
-   icon: TOGGLE_OFF;
+   -glyph-name: TOGGLE_OFF;
 }
 .check-icon:selected {
-   icon: TOGGLE_ON;
+   -glyph-name: TOGGLE_ON;
 }
 
 /** 
@@ -3605,11 +3603,11 @@
  * inherits: .check-icon
  */
 .filter-negate-icon {
-   icon: CIRCLE;
-   -fx-padding: 2 0 0 0; // for some reason the icon is misaligned, fix
+   -glyph-name: CIRCLE;
+   -fx-translate-y: 1; // for some reason the icon is misaligned, fix
 }
 .filter-negate-icon:selected {
-   icon: CIRCLE_ALT;
+   -glyph-name: CIRCLE_ALT;
 }
 
 /********************************** CONFIG ************************************/
@@ -3634,7 +3632,7 @@
  * inherits: .icon
  */
 .congfig-field-ok-button {
-    icon: CHECK;
+    -glyph-name: CHECK;
 }
 
 /** 
@@ -3642,7 +3640,7 @@
  * inherits: .icon
  */
 .congfig-field-warn-button {
-    icon: EXCLAMATION_TRIANGLE;
+    -glyph-name: EXCLAMATION_TRIANGLE;
     -fx-fill: -fx-focus-color;
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
@@ -3689,7 +3687,7 @@
 // the stars (although not necessarily stars (not settable in css))), all of the
 // icons are one object due to performance optimizations, so so separete effects
 // on individual icons are impossible
-// should inherit .glyph, but does not due to possible atifacts
+// should inherit .glyph, but does not due to possible problems
 
 // the 'empty' rating button 
 .rating-button {
@@ -3752,10 +3750,33 @@
 }
 
 
-/***************** LAYOUT MODE WIDGET INPUT OUTPUT *****************************
- *
+/***************************** WIDGET INPUT OUTPUT *****************************
+ * Shown in layout mode, a graph displaying widget outputs and inputs as nodes
+ * and their bindings as edges.
  */
 
+// input node icon, output node icon, input/output node icon
+// all three behave the same with same properties, etc.
+// inherits: .icon
+// pseudoclasses: drag-over  - when user's drag&drop hovers on this icon
+.inode,
+.onode,
+.ionode {
+    -glyph-name: TOGGLE_RIGHT;
+    -glyph-size: 10;
+}
+
+.inode:drag-over,
+.onode:drag-over,
+.ionode:drag-over {
+    -fx-fill: -fx-def-font-color-hover;
+    -fx-scale-x: 1.3;
+    -fx-scale-y: 1.3;
+}
+
+
+// Edge
+// inherits: .path
 .input-output-line {
     -fx-stroke: -fx-def-font-color; 
     -fx-stroke-width: 2;
@@ -3765,6 +3786,34 @@
     -fx-stroke: -fx-focus-color;
     -fx-stroke-width: 3;
 }
+
+
+/***************************** WIDGET INPUT OUTPUT *****************************
+ * Action chooser
+ */
+
+// Pane covering whole window.
+// inherits: .stack-pane
+.action-pane {
+    -fx-background-color: rgba(0,0,0,0.2);
+}
+
+// Pane for content, doesnt cover all space, sort of inner box.
+// inherits: .stack-pane
+.action-pane-content {
+    -fx-background-color: rgba(0,0,0,0.4);
+    -fx-background-radius: 15;
+    -fx-padding: 15;
+}
+
+// Action icon.
+// inherits: .icon
+.action-pane-icon {
+    -glyph-size: 2em;
+}
+/*.action-pane-icon:hover {*/
+    /*-glyph-size: 2em;*/
+/*}*/
 
 
 

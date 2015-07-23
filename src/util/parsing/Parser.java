@@ -1,7 +1,6 @@
 package util.parsing;
 
-import de.jensd.fx.glyphs.GlyphIconName;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
 import java.io.File;
 import static java.lang.Double.parseDouble;
@@ -128,7 +127,7 @@ public class Parser {
         registerConverter(URI.class,toString, noEx(URI::create, IllegalArgumentException.class));
         registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
         registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
-        registerConverterToS(FontAwesomeIconName.class,FontAwesomeIconName::name);
+        registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
     }
     
     public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {

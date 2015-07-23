@@ -6,7 +6,7 @@
 
 package gui.objects.icon;
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.paint.Color;
@@ -20,9 +20,9 @@ public class GlowIcon extends Icon {
     
     public static final String STYLECLASS = "glow-icon";
     
-    public GlowIcon(FontAwesomeIconName i, int size) {
+    public GlowIcon(GlyphIcons i, int size) {
         super(i,size);
-        getGraphic().getStyleClass().setAll(STYLECLASS);
+        styleclass(STYLECLASS);
         getStyleClass().clear();
         applyCss();
         

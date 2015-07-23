@@ -5,7 +5,7 @@
  */
 package gui.objects.image;
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -59,7 +59,7 @@ public class ChangeableThumbnail extends Thumbnail {
         setAnchors(rt,0);
         
         // cover add icon
-        icon = Icons.createIcon(FontAwesomeIconName.PLUS, 40);
+        icon = Icons.createIcon(PLUS, 40);
         icon.setMouseTransparent(true);
         icon.setVisible(false);
         rt.getChildren().add(icon);

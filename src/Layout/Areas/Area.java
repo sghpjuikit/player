@@ -5,6 +5,7 @@ import Layout.Component;
 import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.Widget;
+import gui.pane.IOPane;
 import gui.objects.Window.stage.ContextManager;
 import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import javafx.css.PseudoClass;
 import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -51,6 +51,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
     AreaControls controls;
     /** The root of activity content. ContainsKey custom content. */
     public final StackPane activityPane;
+    public IOPane actionpane;
     
     /**
      * @param c container to make contract with
@@ -180,8 +181,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
 /**************************** activity node ***********************************/
     
     public final void setActivityVisible(boolean v) {
-        Node an = getActiveWidget().getController().getActivityNode();
-        setActivityContent(an);
+        setActivityContent(actionpane);
         activityPane.setVisible(v);
 //        activityPane.getStyleClass().setAll(bgr_STYLECLASS);
 //        activityPane.pseudoClassStateChanged(draggedPSEUDOCLASS, v);
@@ -193,7 +193,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
 //        if(v)progress.getParent().toFront();
     }
     
-    public final void setActivityContent(Node n) {
+    public final void setActivityContent(IOPane n) {actionpane = n;
 //        if(!activityPane.getChildren().contains(n)) {
             activityPane.getChildren().setAll(n);
             activityPane.toFront();

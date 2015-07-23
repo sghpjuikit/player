@@ -1,6 +1,7 @@
 package Layout.WidgetImpl;
 
 import Configuration.Config;
+import Configuration.Configurable;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import Layout.Widgets.IsWidget;
@@ -8,7 +9,7 @@ import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.APP;
 import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.feature.ConfiguringFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
 import java.util.*;
@@ -54,6 +55,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     private final Map<String, ConfigGroup> groups = new HashMap<>();
     private final List<ConfigField> configFields = new ArrayList<>();
     private final boolean isSimple;
+//    private final Input configurableIn = inputs.create("To configure", Configurable.class, this::configure);
 
     // auto applied configurables
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
@@ -70,6 +72,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     private final Icon defI = new Icon(RECYCLE,13,"Set all to default",this::defaults);
 
     
+    
     public Configurator() {
         // creating widget loads controller's no-arg construstor - this one,
         // and we need widget to be in non-simple mode, hence param==false
@@ -78,7 +81,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
     /**
      * @param simple simple mode==true hides home button and categories
      */
-    public Configurator(boolean simple) {
+    public Configurator(boolean simple) {inputs.create("To configure", Configurable.class, this::configure);
         isSimple = simple;
         
         // load fxml part

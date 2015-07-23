@@ -6,8 +6,8 @@
 package unused.hierarchy;
 
 import gui.objects.icon.Icon;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FILE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;

@@ -5,7 +5,7 @@
  */
 package gui.objects.icon;
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
+import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
@@ -34,10 +34,10 @@ public class CheckIcon extends Icon<CheckIcon> {
         this(new SimpleBooleanProperty(s));
     }
     
-    /** Creates icon with selection value. {@link #selected}==s will always be true. */
+    /** Creates icon with property as selection value. {@link #selected}==s will always be true. */
     public CheckIcon(BooleanProperty s) {
         selected = s==null ? new SimpleBooleanProperty(true) : s;
-        getStyleClass().add(STYLECLASS);
+        styleclass(STYLECLASS);
         maintain(selected, v -> pseudoClassStateChanged(selectedPC,v));
         addEventHandler(MOUSE_CLICKED, e -> selected.set(!selected.get()));
     }
@@ -46,9 +46,9 @@ public class CheckIcon extends Icon<CheckIcon> {
     private Subscription s = null;
     
     /** Sets normal and selected icons. Overrides css values. */
-    public CheckIcon icons(FontAwesomeIconName normalIcon, FontAwesomeIconName selectedIcon) {
+    public CheckIcon icons(GlyphIcons normalIcon, GlyphIcons selectedIcon) {
         if(s!=null) s.unsubscribe();
-        s = maintain(selected, v -> setIcon(v ? selectedIcon : normalIcon));
+        s = maintain(selected, v -> icon(v ? selectedIcon : normalIcon));
         return this;
     }
 }

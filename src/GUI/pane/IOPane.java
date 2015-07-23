@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package gui.objects;
+package gui.pane;
 
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
@@ -11,15 +11,15 @@ import Layout.Widgets.controller.Controller;
 import Layout.Widgets.controller.io.InOutput;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
 import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Text;
 import gui.objects.icon.Icon;
-import java.io.File;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 import java.util.*;
 import javafx.collections.ListChangeListener;
-import javafx.geometry.Insets;
+import javafx.css.PseudoClass;
+import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -31,8 +31,6 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
-import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 import static javafx.util.Duration.millis;
 import main.App;
 import util.ClassName;
@@ -44,71 +42,14 @@ import util.graphics.drag.DragUtil;
  <p>
  @author Plutonium_
  */
-public class ActionChooser<T> extends StackPane {
+public class IOPane extends StackPane {
 
-    public final Text description = new Text();
-    public final HBox actionBox;
-
-    private int icon_size = 40;
-    public T item;
-
-    public ActionChooser(Controller controller) {
-        
-        setAlignment(Pos.CENTER);
-
-        actionBox = new HBox(15);
-        actionBox.setAlignment(Pos.CENTER);
-
-        description.setTextAlignment(TextAlignment.CENTER);
-//        description.wrappingWidthProperty().bind(actPane.widthProperty());
-//        description.setWrappingWidthNatural(true);
-
-//        StackPane h2 = new StackPane(descL);
-//                  h2.setAlignment(TOP_CENTER);
-        description.setWrappingWidth(150);
-//        descL.wrappingWidthProperty().bind(actPane.widthProperty());
-        getChildren().addAll(actionBox, description);
-        StackPane.setMargin(description, new Insets(20));
-        StackPane.setAlignment(description, Pos.BOTTOM_CENTER);
-        StackPane.setAlignment(actionBox, Pos.CENTER);
-        
-        
+    public IOPane(Controller controller) {
         c = controller;
         out_nodes = map(c.getOutputs().getOutputs(), OutputNode::new);
         in_nodes = map(c.getInputs().getInputs(), InputNode::new);
         getChildren().addAll(out_nodes);
         getChildren().addAll(in_nodes);
-    }
-
-    public Icon addIcon(FontAwesomeIconName icon, String descriptn) {
-        return addIcon(icon, null, descriptn);
-    }
-    public Icon addIcon(FontAwesomeIconName icon, String text, String descriptn) {
-        Icon l = new Icon(icon, icon_size);
-        l.setFont(new Font(l.getFont().getName(), 13));
-//        l.setText(text);
-        boolean drag_activated = false;
-        boolean hover_activated = true;
-        
-        l.scaleYProperty().bind(l.scaleXProperty());
-        if(drag_activated) {
-            l.addEventHandler(DRAG_ENTERED, e -> description.setText(descriptn));
-            l.addEventHandler(DRAG_EXITED, e -> description.setText(""));
-            l.addEventHandler(DRAG_ENTERED, e -> l.setScaleX(1.1));
-            l.addEventHandler(DRAG_EXITED, e -> l.setScaleX(1));
-        }
-        if(hover_activated) {
-            l.addEventHandler(MOUSE_ENTERED, e -> description.setText(descriptn));
-            l.addEventHandler(MOUSE_EXITED, e -> description.setText(""));
-            l.addEventHandler(MOUSE_ENTERED, e -> l.setScaleX(1.1));
-            l.addEventHandler(MOUSE_EXITED, e -> l.setScaleX(1));
-        }
-        actionBox.getChildren().add(l);
-        return l;
-    }
-    
-    public T getItem() {
-        return item;
     }
     
     private final Controller c;
@@ -130,13 +71,18 @@ public class ActionChooser<T> extends StackPane {
         forEachWithI(in_nodes, (i,o) -> o.relocate(5, ihx*(i+1)-o.getHeight()/2));
     }
     
+
+    public static final String INODE_STYLECLASS = "inode";
+    public static final String ONODE_STYLECLASS = "onode";
+    public static final String IONODE_STYLECLASS = "ionode";
+    public static final PseudoClass DRAGOVER_PSEUDOCLASS = getPseudoClass("drag-over");
     
     static interface XNode {
         Icon getIcon();
     }
     static class OutputNode<T> extends HBox implements XNode {
         Text t = new Text();
-        Icon i = new Icon(FontAwesomeIconName.TOGGLE_RIGHT, 10);
+        Icon i = new Icon();
         Output output;
         OutputNode(Output<T> o) {
             super(8);
@@ -145,6 +91,7 @@ public class ActionChooser<T> extends StackPane {
             setMaxSize(80,120);
             getChildren().addAll(t,i);
             setAlignment(Pos.CENTER_RIGHT);
+            i.styleclass(ONODE_STYLECLASS);
             
             Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
@@ -154,6 +101,8 @@ public class ActionChooser<T> extends StackPane {
                 DragUtil.setWidgetOutput(o,i.startDragAndDrop(TransferMode.LINK));
                 e.consume();
             });
+            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
+            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
             o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
         }
@@ -165,7 +114,7 @@ public class ActionChooser<T> extends StackPane {
     }
     static class InputNode<T> extends HBox implements XNode {
         Text t = new Text();
-        Icon i = new Icon(FontAwesomeIconName.TOGGLE_LEFT, 10);
+        Icon i = new Icon();
         Input input;
         InputNode(Input<T> in) {
             super(8);
@@ -174,24 +123,31 @@ public class ActionChooser<T> extends StackPane {
             setMaxSize(80,120);
             getChildren().addAll(i,t);
             setAlignment(Pos.CENTER_LEFT);
+            i.styleclass(INODE_STYLECLASS);
             
             Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
             
-            i.addEventFilter(DRAG_OVER,DragUtil.widgetOutputDragAccepthandler);
+            i.addEventFilter(DRAG_OVER,e -> { e.acceptTransferModes(TransferMode.ANY); e.consume();});
             i.addEventFilter(DRAG_DROPPED,e -> {
                 if(DragUtil.hasWidgetOutput()) {
                     in.bind(DragUtil.getWidgetOutput(e));
                     drawWidgetIO();
                     e.setDropCompleted(true);
                     e.consume();
-                } else if (in.getType().equals(File.class) && DragUtil.hasFiles(e)) {
-                    in.setValue((T)DragUtil.getFiles(e).get(0));
-                    e.setDropCompleted(true);
-                    e.consume();
+                } else {
+                    Object o = DragUtil.hasComponent() ? DragUtil.getComponent().child : DragUtil.getAny(e);
+                    Class c = o.getClass();
+                    if(in.getType().isAssignableFrom(c)) {
+                        in.setValue((T)o);
+                        e.setDropCompleted(true);
+                        e.consume();
+                    }
                 }
             });
+            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
+            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
             t.setText(ClassName.get(in.getType()) + " : " + in.getName() + "\n");
         }
@@ -203,7 +159,7 @@ public class ActionChooser<T> extends StackPane {
     }
     static class InOutputNode<T> extends VBox implements XNode {
         Text t = new Text();
-        Icon i = new Icon(FontAwesomeIconName.TOGGLE_LEFT, 10);
+        Icon i = new Icon();
         InOutput inoutput;
         InOutputNode(InOutput<T> inout) {
             super(8);
@@ -212,6 +168,7 @@ public class ActionChooser<T> extends StackPane {
             setMaxSize(80,120);
             getChildren().addAll(i,t);
             setAlignment(Pos.CENTER_LEFT);
+            i.styleclass(IONODE_STYLECLASS);
             
             Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
@@ -233,6 +190,8 @@ public class ActionChooser<T> extends StackPane {
                     e.consume();
                 }
             });
+            i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
+            i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
             Output<T> o = inout.o;
             o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
@@ -326,7 +285,7 @@ public class ActionChooser<T> extends StackPane {
         
         WidgetManager.findAll(WidgetSource.ANY).map(w->w.getController().getActivityNode())
             .filter(isNotNULL)
-            .map(ActionChooser.class::cast)
+            .map(IOPane.class::cast)
             .forEach(c -> {
                 c.in_nodes.forEach(i -> is.put(((InputNode)i).input, ((XNode)i)));
                 c.out_nodes.forEach(o -> os.put(((OutputNode)o).output, ((XNode)o)));
@@ -348,15 +307,15 @@ public class ActionChooser<T> extends StackPane {
             outs.forEach(output -> {
                 XNode outputnode = os.get(output);
                 if(outputnode!=null) {
-                    Node ni = inputnode.getIcon().getGraphic();
-                    Node no = outputnode.getIcon().getGraphic();
+                    Node ni = inputnode.getIcon();
+                    Node no = outputnode.getIcon();
                     Point2D scale = new Point2D(widget_io.getParent().getScaleX(),widget_io.getParent().getScaleY());
                     double translation_x = widget_io.getTranslateX();
                     double header = widget_io.localToScene(0,0).getY() - 5;
-                    Point2D start = ni.localToScene(ni.getBoundsInParent().getMinX()+10,ni.getBoundsInParent().getMinY());
+                    Point2D start = ni.localToScene(ni.getLayoutBounds().getMinX(),ni.getLayoutBounds().getMinY());
                             start = start.subtract(translation_x,header);
 //                            start = new Point2D(start.getX()/scale.getX(), start.getY()/scale.getY());
-                    Point2D end = no.localToScene(no.getBoundsInParent().getMinX()+10,no.getBoundsInParent().getMinY());
+                    Point2D end = no.localToScene(no.getLayoutBounds().getMinX(),no.getLayoutBounds().getMinY());
                             end = end.subtract(translation_x,header);
 //                            end = new Point2D(end.getX()-translation_x*scale.getX(), end.getY()/scale.getY());
                     new IOLine(input,output).lay(start.getX(),start.getY(),end.getX(),end.getY());

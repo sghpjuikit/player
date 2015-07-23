@@ -28,7 +28,6 @@ import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.InfoNode.InfoTask;
-import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuInstance;
@@ -46,12 +45,10 @@ import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
@@ -70,9 +67,6 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import javafx.util.Callback;
 import main.App;
-import static org.reactfx.EventStreams.changesOf;
-import static org.reactfx.EventStreams.nonNullValuesOf;
-import org.reactfx.Subscription;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
@@ -150,7 +144,6 @@ public class LibraryController extends FXMLController implements SongReader {
                 .intpl(reverse(new ElasticInterpolator())).then(taskInfo::hideNunbind)::play);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
     private final SelectionMenuItem editOnAdd_menuItem = new SelectionMenuItem("Edit added items",false);
-    ActionChooser actPane;
     
     // input/output
     private Output<Metadata> out_sel;
@@ -180,8 +173,6 @@ public class LibraryController extends FXMLController implements SongReader {
     public void init() {
         out_sel = outputs.create(widget.id,"Selected", Metadata.class, null);
         d(Player.librarySelected.i.bind(out_sel));
-        
-        actPane = new ActionChooser(this);
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
@@ -308,8 +299,8 @@ public class LibraryController extends FXMLController implements SongReader {
         table.setOnScroll(Event::consume);
         
         // update selected items for application
-        d(Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty())));
-        d(Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectedItems()).map(i->table.getSelectedItemsCopy())));
+        // d(Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty())));
+        // d(Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectedItems()).map(i->table.getSelectedItemsCopy())));
         
         // update library comparator
         maintain(table.itemsComparator,DB.library_sorter);
@@ -324,11 +315,6 @@ public class LibraryController extends FXMLController implements SongReader {
         
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
-    }
-    
-    @Override
-    public Node getActivityNode() {
-        return actPane;
     }
     
     @FXML private void addDirectory() {

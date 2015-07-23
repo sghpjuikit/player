@@ -11,16 +11,15 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.EXCLAMATION_TRIANGLE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.TAGS;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
 import gui.itemnode.TextFieldItemNode.MoodItemNode;
-import gui.objects.GraphicalTextField;
+import gui.itemnode.TextFieldItemNode.TextFieldItemNode;
 import gui.objects.PopOver.PopOver;
 import gui.objects.PopOver.PopOver.NodeCentricPos;
 import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
@@ -487,7 +486,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         } else {
             // set info
             infoL.setText(items.size() + " " + plural("item", items.size()) + " loaded.");  
-            infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIconName.TAG : TAGS));
+            infoL.setGraphic(Icons.createIcon(items.size()==1 ? FontAwesomeIcon.TAG : TAGS));
 
             fields.forEach(TagField::enable);
             coverSuperContainer.setDisable(false);
@@ -601,7 +600,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             c = control;
             f = field;
             
-            c.getStyleClass().setAll(GraphicalTextField.getTextFieldStyleClass());
+            c.getStyleClass().setAll(TextFieldItemNode.STYLECLASS());
             c.setMinSize(0, 0);
             c.setPrefSize(-1, -1);
             
@@ -817,7 +816,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
            
         
         // build content controls
-        Icon helpB = new Icon(FontAwesomeIconName.INFO,11, "Help");                     
+        Icon helpB = new Icon(FontAwesomeIcon.INFO,11, "Help");                     
         helpB.setOnMouseClicked( e -> {
             // build help popup lazily
             if(helpP == null) {

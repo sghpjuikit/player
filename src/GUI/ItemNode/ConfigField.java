@@ -5,7 +5,7 @@ import Configuration.Config;
 import Configuration.Config.ListConfig;
 import Configuration.Config.PropertyConfig;
 import action.Action;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
@@ -95,9 +95,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                     // we dont want hundreds of buttons we will never use anyway
                     if(defB==null) {
                         defB = new Icon(RECYCLE, 11, null, this::setNapplyDefault);
-                        defB.setTooltip(defTooltip);
+                        defB.tooltip(defTooltip);
+                        defB.styleclass("congfig-field-default-button");
                         defB.setOpacity(0);
-                        defB.getStyleClass().setAll("congfig-field-default-button");
                         root.getChildren().add(defB);
                         root.setPadding(Insets.EMPTY);
                     }
@@ -341,9 +341,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final class GeneralField extends ConfigField<Object> {
         CustomTextField n = new CustomTextField();
         Icon okI= new Icon();
-        Icon warnI = new Icon();
+        Icon warnB = new Icon();
         AnchorPane okB = new AnchorPane(okI);
-        AnchorPane warnB = new AnchorPane(warnI);
         
         private GeneralField(Config c) {
             super(c);
@@ -356,16 +355,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             okB.setPrefSize(11, 11);
             okB.setMinSize(11, 11);
             okB.setMaxSize(11, 11);
-            warnB.setPrefSize(11, 11);
-            warnB.setMinSize(11, 11);
-            warnB.setMaxSize(11, 11);
-            okI.getStyleClass().setAll("congfig-field-ok-button");
-            okI.icon_size.set(11);
-            okI.setTooltip(okTooltip);
-            setAnchors(okI,0,0,0,8);       // fix alignment
-            warnI.icon_size.set(11);
-            warnI.getStyleClass().setAll("congfig-field-warn-button");
-            warnI.setTooltip(warnTooltip);
+            okI.styleclass("congfig-field-ok-button");
+            okI.size(11);
+            okI.tooltip(okTooltip);
+            warnB.size(11);
+            warnB.styleclass("congfig-field-warn-button");
+            warnB.tooltip(warnTooltip);
             
             n.getStyleClass().setAll("text-field","text-input");
             n.getStyleClass().add("text-field-config");
@@ -441,13 +436,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             insonsistent_state = false;
         }
         private void showOkButton(boolean val) {
-            if (val) n.setLeft(okB);
-            else n.setLeft(null);
-            okB.setVisible(val);
+            n.setLeft(val ? okI : null);
+            okI.setVisible(val);
         }
         private void showWarnButton(boolean val) {
-            if (val) n.setRight(warnB);
-            else n.setRight(null);
+            n.setRight(val ? warnB : null);
             warnB.setVisible(val);
         }
         
@@ -617,7 +610,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             
             globB = new CheckIcon();
             globB.selected.set(a.isGlobal());
-            globB.setTooltip(globTooltip);
+            globB.tooltip(globTooltip);
             globB.selected.addListener((o,ov,nv) -> apply(false));
             group = new HBox(5, globB,txtF);
             group.setAlignment(CENTER_LEFT);
@@ -799,7 +792,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 f.setAccessible(false);
                 
                 BooleanField bf = new BooleanField(Config.forProperty("Override", pr.override));
-                             bf.getControl().setTooltip(overTooltip);
+                             bf.getControl().tooltip(overTooltip);
                 ConfigField cf = create(Config.forProperty("", pr.real));
                 maintain(pr.override,b->!b,cf.getControl().disableProperty());
                 root.getChildren().addAll(cf.getNode(),bf.getNode());

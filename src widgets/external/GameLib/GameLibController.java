@@ -7,11 +7,10 @@ package GameLib;
 
 import static GameLib.GameLibController.InfoType.EXPLORER;
 import static GameLib.GameLibController.InfoType.PLAY;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.gamelib.GameItem;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.FOLDER;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.GAMEPAD;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
 import gui.GUI;
 import gui.objects.image.Thumbnail;
 import gui.objects.icon.Icon;

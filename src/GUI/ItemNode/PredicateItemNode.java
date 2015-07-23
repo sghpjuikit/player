@@ -58,9 +58,9 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
             config.onItemChange = v -> generatePredicate();
             generatePredicate();
         });
-        negB.icon_size.set(13);
+        negB.size(13);
         negB.selected.addListener((o,nv,ov) -> generatePredicate());
-        negB.setTooltip(negTooltip);
+        negB.tooltip(negTooltip);
     }
     
     public void setPrefTypeSupplier(Supplier<Tuple3<String,Class,T>> supplier) {

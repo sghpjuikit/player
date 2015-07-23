@@ -8,8 +8,8 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
 import Layout.Widgets.feature.Feature;
+import gui.pane.IOPane;
 import java.util.List;
-import javafx.scene.Node;
 
 /**
  * Controller is an object defining behavior of some graphical object and acts
@@ -101,10 +101,6 @@ public interface Controller<W extends Widget> extends Configurable<Object> {
      */
     default boolean isEmpty() { return false; }
     
-    default public Node getActivityNode() {
-        return null;
-    }
-    
     /**
      * Returns the graphics of the container where this widget is loaded. The area
      * provides access to the layout graph.
@@ -114,7 +110,7 @@ public interface Controller<W extends Widget> extends Configurable<Object> {
     default public Area getArea() {
         Object o = getWidget().load().getUserData();
         if(o instanceof Area) return (Area)o;
-        throw new IllegalStateException(getWidget().getName() + "'s controller cant access Area");
+        return null; //throw new IllegalStateException(getWidget().getName() + "'s controller cant access Area");
     }
     
     Outputs getOutputs(); 
@@ -123,5 +119,9 @@ public interface Controller<W extends Widget> extends Configurable<Object> {
     /** @return all implemented features */
     default List<Feature> getFeatures() {
         return getWidget().getFactory().getFeatures();
+    }
+    
+    public default IOPane getActivityNode() {
+        return getArea()==null ? null : getArea().actionpane;
     }
 }

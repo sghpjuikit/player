@@ -40,20 +40,22 @@ public class ClassName {
     }
     
     private static String getName(Class c) {
-            String n = "";
-            Name a = (Name) c.getAnnotation(Name.class);
-            if(a!=null) n = a.value();
-            return n.isEmpty() ? c.getSimpleName().isEmpty() ? c.toString()
-                                                             : c.getSimpleName()
-                                  : n;
+        String n = "";
+        Name a = (Name) c.getAnnotation(Name.class);
+        if(a!=null) n = a.value();
+        return n.isEmpty() ? c.getSimpleName().isEmpty() ? c.toString()
+                                                         : c.getSimpleName()
+                              : n;
     }
     
     
     /**
-     * Defines human readable name of the class. For example for use in user
-     * interface when type of the entity requires sensible name.
+     * Defines human readable name of the class. Inherited annotation.
+     * For example for use in user interface when type of the entity 
+     * requires sensible name.
      */
     @Documented
+    @Inherited
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
     public static @interface Name {

@@ -6,17 +6,15 @@ import AudioPlayer.Player;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.feature.ImageDisplayFeature;
 import Layout.Widgets.feature.ImagesDisplayFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_LEFT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.ARROW_RIGHT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
 import gui.InfoNode.ItemInfo;
-import gui.objects.ActionChooser;
 import gui.objects.image.Thumbnail;
 import gui.objects.icon.Icon;
 import java.io.File;
@@ -39,10 +37,8 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
-import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import static javafx.scene.input.DragEvent.DRAG_DROPPED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
@@ -177,12 +173,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private int active_image = -1;
     
     
-    ActionChooser act_pane;
-    @Override
-    public Node getActivityNode() {
-        return act_pane;
-    }
-    
     
     /** {@inheritDoc} */
     @Override
@@ -288,8 +278,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         // consume scroll event to prevent app scroll behavior // optional
         entireArea.setOnScroll(Event::consume);
-        
-        act_pane = new ActionChooser(this);
     }
     
     /** {@inheritDoc} */
@@ -444,7 +432,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         Thumbnail t = new Thumbnail(thumbSize.getValue(),thumbSize.getValue());
                   t.setBorderToImage(!thums_rect.getValue());
                   t.setBackgroundVisible(thums_rect.getValue());
-                  t.setHoverable(true);
+                  t.hoverable.set(true);
                   t.loadImage(f);
                   t.getPane().setOnMouseClicked( e -> {
                       if (e.getButton() == PRIMARY) {

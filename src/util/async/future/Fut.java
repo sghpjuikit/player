@@ -41,10 +41,10 @@ public class Fut<T> implements Runnable{
     
     
     public final <R> Fut<R> then(Function<T,R> action, Consumer<Runnable> executor) {
-        return new Fut(f.thenApplyAsync(action, executor::accept));
+        return new Fut<>(f.thenApplyAsync(action, executor::accept));
     }
     public final <R> Fut<R> then(Function<T,R> action) {
-        return new Fut(f.thenApplyAsync(action));
+        return new Fut<>(f.thenApplyAsync(action));
     }
     public final <R> Fut<R> supply(Supplier<R> action, Consumer<Runnable> executor) {
         return then(r -> action.get(), executor);
@@ -56,23 +56,23 @@ public class Fut<T> implements Runnable{
         return supply(() -> value);
     }
     public final <R> Fut<R> then(CompletableFuture<R> action) {
-        return new Fut(f.thenComposeAsync(res -> action));
+        return new Fut<>(f.thenComposeAsync(res -> action));
     }
     public final Fut<Void> use(Consumer<T> action) {
-        return new Fut(f.thenAcceptAsync(action));
+        return new Fut<>(f.thenAcceptAsync(action));
     }
     public final Fut<Void> use(Consumer<T> action, Consumer<Runnable> executor) {
-        return new Fut(f.thenAcceptAsync(action, executor::accept));
+        return new Fut<>(f.thenAcceptAsync(action, executor::accept));
     }
     public final Fut<T> thenR(Runnable action) {
-        return new Fut(f.thenApplyAsync(r -> { action.run(); return r; }));
+        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
     }
     public final Fut<T> thenR(Runnable action, Consumer<Runnable> executor) {
-        return new Fut(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
+        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
     }
     
     public final Fut<T> showProgress(ProgressIndicator p) {
-        return new Fut(CompletableFuture
+        return new Fut<>(CompletableFuture
             .runAsync(()->p.setProgress(-1),eFX)
             .thenComposeAsync(res -> f)
             .thenApplyAsync(t -> {

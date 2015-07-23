@@ -8,8 +8,7 @@ package Layout.Areas;
 import Layout.*;
 import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
-import gui.GUI;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.objects.icon.Icon;
 import gui.objects.Window.stage.ContextManager;
 import gui.objects.Window.stage.Window;
@@ -68,7 +67,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	    container.locked.set(!container.locked.get());
 	    App.actionStream.push("Widget layout lock");
 	});
-        maintain(container.locked, mapB(LOCK,UNLOCK),lockB.icon);
+        maintain(container.locked, mapB(LOCK,UNLOCK),lockB::icon);
 	absB = new Icon(LINK, 12, "Resize widget proportionally", e -> {
 	    toggleAbsSize();
 	    updateAbsB();
@@ -200,7 +199,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	Container c = container.getParent();
 	if (c != null && c instanceof BiContainer) {
 	    boolean l = c.properties.getI("abs_size") == container.indexInParent();
-            absB.icon.setValue(l ? UNLINK : LINK);
+            absB.icon(l ? UNLINK : LINK);
 	    if (!icons.getChildren().contains(absB))
 		icons.getChildren().add(5, absB);
 	} else

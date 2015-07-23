@@ -182,16 +182,14 @@ public class Anim extends Transition {
         super.playFrom(getCycleDuration().subtract(getCycleDuration().multiply(position)));
     }
     
-    public void closeAndDo(Runnable action) {
-        setOnFinished(a -> action.run());
-        setRate(-1);
-        playOpenFrom(1-position.get());
+    public void playCloseAnd(Runnable action) {
+        setOnFinished(action==null ? null : a -> action.run());
+        playClose();
     }
     
-    public void openAndDo(Runnable action) {
-        setOnFinished(a -> action.run());
-        setRate(1);
-        playOpenFrom(position.get());
+    public void playOpenAnd(Runnable action) {
+        setOnFinished(action==null ? null : a -> action.run());
+        playOpen();
     }
     
     

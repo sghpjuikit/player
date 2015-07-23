@@ -6,7 +6,7 @@
 package gui.objects.tree;
 
 import de.jensd.fx.glyphs.GlyphsDude;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;

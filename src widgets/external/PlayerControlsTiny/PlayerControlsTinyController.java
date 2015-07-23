@@ -8,11 +8,10 @@ import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.PlaybackFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.GUI;
 import gui.objects.Seeker;
 import gui.objects.icon.Icon;
@@ -155,17 +154,17 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     private void statusChanged(Status status) {
         if (status == null || status == UNKNOWN ) {
             seeker.setDisable(true);
-            playB.icon.setValue(PLAY);
+            playB.icon(PLAY);
         } else if (status == PLAYING) {
             seeker.setDisable(false);
-            playB.icon.setValue(PAUSE);
+            playB.icon(PAUSE);
         } else {
             seeker.setDisable(false);
-            playB.icon.setValue(PLAY);
+            playB.icon(PLAY);
         }
     }
     private void muteChanged(boolean mute, double vol) {
-        volB.icon.setValue(mute ? VOLUME_OFF : vol>.5 ? VOLUME_UP : VOLUME_DOWN);
+        volB.icon(mute ? VOLUME_OFF : vol>.5 ? VOLUME_UP : VOLUME_DOWN);
     }
     private void currentTimeChanged() {
         // update label

@@ -146,7 +146,7 @@ public abstract class TextFieldItemNode<T> extends CustomTextField implements Ac
      * <p>
      * Should be: text-input, text-field.
      */
-    private static List<String> STYLECLASS() {
+    public static List<String> STYLECLASS() {
         // debug (prints: text-input, text-field.)
         // new TextField().getStyleClass().forEach(System.out::println);
         

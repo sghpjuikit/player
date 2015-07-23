@@ -8,9 +8,7 @@ package gui.itemnode;
 import Configuration.Config;
 import Configuration.Configurable;
 import Layout.Widgets.feature.ConfiguringFeature;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.MINUS;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.PLUS;
+import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
@@ -19,6 +17,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -168,12 +168,12 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      * @param t tooltip
      * @param action on click action
      */
-    public void setButton(FontAwesomeIconName icon, Tooltip t, Run action) {
+    public void setButton(GlyphIcons icon, Tooltip t, Run action) {
         Link c = chain.get(0);
         Icon i = c.rem;
-             i.icon.setValue(icon==null ? MINUS : icon);
+             i.icon(icon==null ? MINUS : icon);
              i.setOnMouseClicked(icon==null ? c::onRem : action.toHandlerConsumed());
-             i.setTooltip(icon==null ? addTooltip : t);
+             i.tooltip(icon==null ? addTooltip : t);
         c.rem_alt = true;
         c.updateIcons();
     }
@@ -197,15 +197,15 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
             chained.onItemChange = f -> generateValue();
             setSpacing(5);
             getChildren().addAll(rem,add,onB,chained.getNode());
+            setPadding(new Insets(0, 0, 0, 5));
             HBox.setHgrow(chained.getNode(), ALWAYS);
             setAlignment(CENTER_LEFT);
             on.addListener((o,ov,nv) -> generateValue());
             rem.setOnMouseClicked(this::onRem);
             add.setOnMouseClicked(e -> addChained(getIndex()+1));
-            rem.setPadding(new Insets(0, 0, 0, 5));
-            rem.setTooltip(remTooltip);
-            add.setTooltip(addTooltip);
-            onB.setTooltip(onTooltip);
+            rem.tooltip(remTooltip);
+            add.tooltip(addTooltip);
+            onB.tooltip(onTooltip);
             updateIcons();
         }
         

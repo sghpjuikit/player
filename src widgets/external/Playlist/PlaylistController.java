@@ -17,24 +17,20 @@ import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.PlaylistFeature;
 import Layout.Widgets.feature.SongReader;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.GUI;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
-import gui.objects.ActionChooser;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Table.PlaylistTable;
 import gui.objects.Table.TableColumnInfo;
-import java.io.File;
 import java.util.Collection;
 import java.util.Date;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
-import javafx.scene.Node;
 import javafx.scene.control.Menu;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.Tooltip;
@@ -88,8 +84,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     private Output<PlaylistItem> out_sel;
     
-    ActionChooser<Supplier<File>> actPane;
-    
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final OVal<NodeOrientation> orient = new OVal<>(GUI.table_orient);
@@ -122,8 +116,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public void init() {        
         out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
         d(Player.playlistSelected.i.bind(out_sel));
-        
-        actPane = new ActionChooser(this);
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
@@ -207,11 +199,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         });
         filter_for_playback.applyValue();
         table.setItemsRaw(PlaylistManager.getItems());
-    }
-    
-    @Override
-    public Node getActivityNode() {
-        return actPane;
     }
     
 /***************************** HELPER METHODS *********************************/

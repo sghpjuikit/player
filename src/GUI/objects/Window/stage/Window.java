@@ -19,19 +19,17 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIconName.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
-import gui.objects.ActionChooser;
+import gui.pane.IOPane;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.Resize;
 import static gui.objects.Window.Resize.*;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
-import gui.virtual.IconBox;
 import java.io.*;
 import static java.lang.Math.*;
 import java.util.ArrayList;
@@ -39,14 +37,10 @@ import java.util.Objects;
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
-import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
-import static javafx.geometry.NodeOrientation.RIGHT_TO_LEFT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
@@ -75,7 +69,6 @@ import util.dev.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.*;
-import util.graphics.Icons;
 import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
 
@@ -278,17 +271,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     boolean main = false;
     
     // root is assigned '.window' styleclass
-    @FXML AnchorPane root = new AnchorPane();
+    @FXML public AnchorPane root = new AnchorPane();
+    @FXML public AnchorPane back;
+    @FXML public AnchorPane front;
     @FXML public AnchorPane borders;
     @FXML public AnchorPane content;
-    @FXML private HBox controls;
-    @FXML AnchorPane bgrImgLayer;
+    @FXML private HBox rightHeaderBox;
     
-    /**  Left icon header menu. */
-    public IconBox left_icons;
-    /**  Right icon header menu. */
-    public IconBox right_icons;
-        
     private Window() {
 	super();
     }
@@ -382,7 +371,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	root.addEventFilter(KeyEvent.ANY, e -> {
 	    if (e.getCode().equals(Action.Shortcut_ALTERNATE)) {
 		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
-                if(e.getEventType().equals(KEY_PRESSED)) ActionChooser.drawWidgetIO();
+                if(e.getEventType().equals(KEY_PRESSED)) IOPane.drawWidgetIO();
 	    }
 	});        
         
@@ -396,7 +385,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
         // lasFm button - show basic lastFm settings and toggle scrobbling
 	Icon lastFMB = new Icon(null, 13, "LastFM");
-        maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB.icon);
+        maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB::icon);
 	lastFMB.setOnMouseClicked(e -> {
 	    if (e.getButton() == MouseButton.PRIMARY)
 		if (LastFM.getScrobblingEnabled())
@@ -411,13 +400,13 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	});
 	// lock layout button
 	Icon lockB = new Icon(null, 13, "Lock layout", GUI::toggleLayoutLocked);
-        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB.icon);
+        maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
 	// layout mode button
 	Icon lmB = new Icon(null, 13, "Layout mode", GUI::toggleLayoutNzoom);
 	// layout tab buttons
 	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", () -> ((SwitchPane)getLayoutAggregator()).alignLeftTab());
 	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", () -> ((SwitchPane)getLayoutAggregator()).alignRightTab());
-        maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB.icon);
+        maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
 	// guide button - sho layout manager in a popp
 	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
 	    App.guide.resume();
@@ -445,29 +434,26 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	});
 	
         // left header
-	left_icons = new IconBox(leftHeaderBox, LEFT_TO_RIGHT);
-        ltB.setContentDisplay(GRAPHIC_ONLY);
-        rtB.setContentDisplay(GRAPHIC_ONLY);
-        ltB.setPadding(new Insets(0, 0, 0, 15));
-        rtB.setPadding(new Insets(0, 15, 0, 0));
-	left_icons.add(gitB, cssB, dirB, iconsB, layB, propB, lastFMB, ltB, lockB, lmB, rtB, guideB, helpB);
+	leftHeaderBox.getChildren().addAll(
+            gitB, cssB, dirB, iconsB, layB, propB, lastFMB, new Icon(BLANK),
+            ltB, lockB, lmB, rtB, new Icon(BLANK), guideB, helpB
+        );
         
         Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
-        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB.icon);
+        maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
         Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
-        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB.icon);
+        maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB::icon);
         Icon fullscrB = new Icon(null, 13, "Fullscreen mode", this::toggleFullscreen);
-        maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB.icon);
+        maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB::icon);
         Icon minimB = new Icon(MINUS_SQUARE_ALT, 13, "Minimize application", this::toggleMinimize);
-        // maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB.icon);
+        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB::icon);
         Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize window", this::toggleMaximize);
-        // maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
+        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
         Icon closeB = new Icon(CLOSE, 13, "Close window", this::close);
-        // maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB.icon);
+        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
         
         // right header
-	right_icons = new IconBox(controls, RIGHT_TO_LEFT);
-	right_icons.add(miniB, ontopB, fullscrB, minimB, maximB, closeB);
+	rightHeaderBox.getChildren().addAll(miniB, ontopB, fullscrB, minimB, maximB, closeB);
 
     }
     
@@ -513,25 +499,25 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
 	if (la instanceof SwitchPane) {
 	    double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
-	    bgrImgLayer.translateXProperty().unbind();
-	    bgrImgLayer.setTranslateX(0);
-	    bgrImgLayer.setScaleX(scaleFactor);
-	    bgrImgLayer.setScaleY(scaleFactor);
+	    back.translateXProperty().unbind();
+	    back.setTranslateX(0);
+	    back.setScaleX(scaleFactor);
+	    back.setScaleY(scaleFactor);
             // scroll bgr along with the tabs
 	    // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
 	    // -try at: http://www.mathe-fa.de
 	    ((SwitchPane) la).translateProperty().addListener((o, oldx, newV) -> {
 		double x = newV.doubleValue();
-		double space = bgrImgLayer.getWidth() * ((scaleFactor - 1) / 2d);
+		double space = back.getWidth() * ((scaleFactor - 1) / 2d);
 		double dir = signum(x);
 		x = abs(x);
-		bgrImgLayer.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
+		back.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
 	    });
 	    ((SwitchPane) la).zoomProperty().addListener((o, oldx, newV) -> {
 		double x = newV.doubleValue();
 		x = 1 - (1 - x) / 5;
-		bgrImgLayer.setScaleX(scaleFactor * pow(x, 0.25));
-		bgrImgLayer.setScaleY(scaleFactor * pow(x, 0.25));
+		back.setScaleX(scaleFactor * pow(x, 0.25));
+		back.setScaleY(scaleFactor * pow(x, 0.25));
 	    });
 	}
     }
@@ -563,7 +549,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /**
      **************************** HEADER & BORDER    *********************************
      */
-    @FXML private BorderPane header;
+    @FXML public BorderPane header;
     @FXML private Pane header_activator;
     @FXML private Region lBorder;
     @FXML private Region rBorder;
@@ -589,8 +575,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     private void applyHeaderVisible(boolean val) {
         if (!headerAllowed & val) return;
-        if(controls.isVisible()==val) return;
-	controls.setVisible(val);
+        if(rightHeaderBox.isVisible()==val) return;
+	rightHeaderBox.setVisible(val);
 	leftHeaderBox.setVisible(val);
 	if (val) {
 	    header.setPrefHeight(25);
@@ -600,11 +586,11 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             
             Anim.par(
                 par(
-                    forEachIStream(left_icons.box.getChildren(),(i,icon)-> 
+                    forEachIStream(leftHeaderBox.getChildren(),(i,icon)-> 
                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
                 ),
                 par(
-                    forEachIRStream(right_icons.box.getChildren(),(i,icon)-> 
+                    forEachIRStream(rightHeaderBox.getChildren(),(i,icon)-> 
                         new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*45))
                 )
             ).play();
@@ -673,23 +659,18 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         p.progressProperty().addListener((o,ov,nv) -> {
             if(nv.doubleValue()==-1) {
                 // add indicator to header
-                left_icons.box.getChildren().add(p);
+                leftHeaderBox.getChildren().add(p);
                 a.then(null)
                  .play();
             }
             if(nv.doubleValue()==1) {
                 // remove indicator from header
-                a.then(() -> left_icons.box.getChildren().remove(p))
+                a.then(() -> leftHeaderBox.getChildren().remove(p))
                  .playClose();
             }
         });
         return p;
     }
-
-    private void icon(Labeled l, FontAwesomeIconName i) {
-        Icons.setIcon(l, i, "13", GRAPHIC_ONLY);
-    }
-
 
     /**
      ************************** WINDOW MECHANICS *******************************

@@ -23,7 +23,6 @@ import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
-import gui.objects.ActionChooser;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.ContextMenu.TableContextMenuRInstance;
@@ -42,15 +41,12 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import java.util.stream.Stream;
 import static javafx.application.Platform.runLater;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
@@ -63,7 +59,6 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import javafx.util.Callback;
 import main.App;
 import org.reactfx.EventStreams;
-import org.reactfx.Subscription;
 import util.File.Environment;
 import static util.Util.*;
 import util.access.AccessorEnum;
@@ -107,7 +102,6 @@ public class LibraryViewController extends FXMLController {
     
     private @FXML AnchorPane root;
     private final FilteredTable<MetadataGroup,MetadataGroup.Field> table = new FilteredTable<>(VALUE);
-    ActionChooser actPane;
     
     // input/output
     private Output<MetadataGroup> out_sel;
@@ -137,8 +131,6 @@ public class LibraryViewController extends FXMLController {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
         out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST);
         in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
-        
-        actPane = new ActionChooser(this);
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
@@ -262,11 +254,6 @@ public class LibraryViewController extends FXMLController {
         
         // prevent volume change
         table.setOnScroll(Event::consume);
-    }
-    
-    @Override
-    public Node getActivityNode() {
-        return actPane;
     }
     
     @Override

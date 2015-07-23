@@ -17,7 +17,6 @@ import org.reactfx.Subscription;
  */
 public class Input<T> extends Put<T>{
     final String name;
-//    final Consumer<? super T> applier;
     final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
     
     public Input(String name, Class<T> c, Consumer<? super T> action) {
@@ -27,7 +26,6 @@ public class Input<T> extends Put<T>{
     public Input(String name, Class<T> c, T init_val, Consumer<? super T> action) {
         super(c, init_val);
         this.name = name;
-//        this.applier = action;
         monitor(action);
     }
     
@@ -35,13 +33,6 @@ public class Input<T> extends Put<T>{
     public String getName() {
         return name;
     }
-    
-//    @Override
-//    public void setValue(T v) {
-//        super.setValue(v);
-//        applier.accept(v);
-//    }
-
     
     public Subscription bind(Output<? extends T> o) {
         Subscription s = sources.get(o);

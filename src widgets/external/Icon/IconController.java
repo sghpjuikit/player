@@ -8,15 +8,17 @@ import Configuration.ListConfigurable;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.controller.FXMLController;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import gui.objects.icon.Icon;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import util.access.AccessorAction;
+import util.access.FunctAccessor;
+import static util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
@@ -34,25 +36,21 @@ public class IconController extends FXMLController {
     
     
     @IsConfig(name = "Icon size", info = "Size of each icon")
-    private final IntegerProperty icon_size = new SimpleIntegerProperty(13);
+    private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
     @IsConfig(name = "Icons", info = "List of icons to show")
     private final ListAccessor<Icon> icons = new ListAccessor<>(() -> {
-            Icon i = new Icon();
-            i.icon_size.set(icon_size.get());
-            i.icon_size.bind(icon_size);
+            Icon i = new Icon(BUS);
+            maintain(icon_size,v -> i.size(v.doubleValue()));
             return i;
         }, i ->
         new ListConfigurable(
-            Config.forProperty("Icon", i.icon),
+            Config.forProperty("Icon", new FunctAccessor<>(i::icon,i::getIco)),
             Config.forProperty("Action",new AccessorAction(i.getOnClickAction(),i::onClick))
         )
     );
     @FXML private StackPane root;
     private final FlowPane box = new FlowPane(5,5);
     
-    
-    private final Label button = new Label("");
-    int size = 12;
     
     @Override
     public void init() {

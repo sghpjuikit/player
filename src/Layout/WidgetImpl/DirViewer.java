@@ -13,9 +13,9 @@ import Layout.Widgets.Widget;
 import static Layout.Widgets.Widget.Group.OTHER;
 import Layout.Widgets.controller.ClassController;
 import gui.objects.image.Thumbnail;
+import gui.pane.CellPane;
 import java.io.File;
 import static java.lang.Character.isAlphabetic;
-import static java.lang.Math.*;
 import java.util.ArrayList;
 import java.util.List;
 import static java.util.stream.Collectors.toList;
@@ -27,7 +27,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import static javafx.scene.control.ScrollPane.ScrollBarPolicy.*;
 import javafx.scene.image.Image;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -39,10 +38,8 @@ import static util.File.FileUtil.getName;
 import static util.File.FileUtil.listFiles;
 import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
-import static util.async.Async.runLater;
 import static util.functional.Util.by;
 import static util.functional.Util.filterMap;
-import static util.functional.Util.forEachWithI;
 import static util.functional.Util.split;
 import static util.functional.Util.stream;
 import static util.functional.Util.toS;
@@ -83,15 +80,10 @@ public class DirViewer extends ClassController {
         
         files.onInvalid(list -> viewDir(new TopCell()));
         
-        ScrollPane layout = new ScrollPane();
-        layout.setContent(cells);
-        layout.setFitToWidth(true);
-        layout.setFitToHeight(false);
-        layout.setHbarPolicy(NEVER);
-        layout.setVbarPolicy(AS_NEEDED);
+        ScrollPane layout = cells.scrollable();
         getChildren().add(layout);
         setAnchors(layout,0);
-                    
+        
         setOnScroll(Event::consume);
     }
 
@@ -225,44 +217,6 @@ public class DirViewer extends ClassController {
         @Override
         public File getCoverFile() {
             return null;
-        }
-        
-    }
-    public class CellPane extends Pane {
-        double cellw = 100;
-        double cellh = 100;
-        double cellg = 5;
-        
-        CellPane(double cellw, double cellh, double gap) {
-            this.cellw = cellw;
-            this.cellh = cellh;
-            this.cellg = gap;
-            //setBackground(new Background(new BackgroundFill(Color.CADETBLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        }
-        
-        @Override
-        protected void layoutChildren() {
-            double width = getWidth();
-            List<Node> cells = getChildren();
-            
-            int elements = cells.size();
-            if(elements==0) return;
-
-            int c = (int) floor((width+cellg)/(cellw+cellg));
-            int columns = max(1,c);
-            double gapx = cellg+(width+cellg-columns*(cellw+cellg))/columns;
-            double gapy = cellg;
-
-            forEachWithI(cells, (i,n) -> {
-                double x = i%columns * (cellw+gapx);
-                double y = i/columns * (cellh+gapy);
-                n.relocate(x,y);
-                n.resize(cellw, cellh);
-            });
-            
-            int rows = (int) ceil(elements/(double)columns);
-
-            runLater(()->setPrefHeight(rows*(cellh+gapy)));
         }
         
     }

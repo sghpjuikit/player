@@ -10,7 +10,6 @@ import Configuration.IsConfigurable;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.feature.ImageDisplayFeature;
-import gui.Traits.ScaleOnHoverTrait;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.WindowBase;
 import java.io.File;
@@ -36,6 +35,8 @@ import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.MouseButton.*;
 import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.*;
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 import static javafx.scene.paint.Color.BLACK;
@@ -50,6 +51,8 @@ import util.SingleInstance;
 import util.Util;
 import static util.Util.menuItem;
 import static util.Util.setAnchors;
+import static util.Util.setScaleXY;
+import util.animation.Anim;
 import util.dev.Dependency;
 import util.dev.Log;
 import util.dev.TODO;
@@ -106,7 +109,7 @@ import util.graphics.fxml.ConventionFxmlLoader;
  */
 @TODO(purpose = FUNCTIONALITY, note = "add picture stick from outside/inside for keep ratio=true case")
 @IsConfigurable("Images")
-public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
+public class Thumbnail extends ImageNode {
     
     // styleclasses
     public final String bgr_styleclass = "thumbnail";
@@ -178,9 +181,6 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
 
         image = imageView.imageProperty();
         imageView.getStyleClass().add(image_styleclass);
-        
-        // animations
-        installScaleOnHover();
         
         // set size
         root.setMinSize(width,height);
@@ -455,21 +455,34 @@ public class Thumbnail extends ImageNode implements ScaleOnHoverTrait {
         }
     }
     
-/***************************  Implemented Traits  *****************************/
+/********************************  HOVERING  **********************************/
     
-    // --- scale on hover
-    @Override public ObjectProperty<Duration> DurationOnHoverProperty() {
-        return durationOnHover;
-    }
-    @Override public BooleanProperty hoverableProperty() {
-        return hoverable;
-    }
-    private final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", millis(animDur));
-    private final BooleanProperty hoverable = new SimpleBooleanProperty(this, "hoverable", false);
+    /** Duration of the scaling animation effect when transitioning to gover state. */
+    public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", millis(animDur));
+    private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> setScaleXY(root,1+0.05*at));
+    private final EventHandler<MouseEvent> hoverHandler = e -> {
+            hoverAnimation.dur(durationOnHover.get());
+            if(isH())
+                hoverAnimation.playFromDir(e.getEventType().equals(MOUSE_ENTERED));
+    };
+    /** Hover scaling efect on/off. Default false.*/
+    public final BooleanProperty hoverable = new SimpleBooleanProperty(this, "hoverable", false) {
+        @Override public void set(boolean v) {
+            super.set(v);
+            if(v) {
+                root.addEventFilter(MOUSE_ENTERED, hoverHandler);
+                root.addEventFilter(MOUSE_EXITED, hoverHandler);
+            } else {
+                root.removeEventFilter(MOUSE_ENTERED, hoverHandler);
+                root.removeEventFilter(MOUSE_EXITED, hoverHandler);
+            }
+        }
+    };
     
-    @Override public Node getNode() {
-        return root;
+    private boolean isH() {
+        return hoverable.get();
     }
+
     
 /******************************************************************************/
     

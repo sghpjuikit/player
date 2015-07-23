@@ -2,12 +2,13 @@
 
 JavaFX based audio player application.
 Aims:
-- customizability - allow user use the application how he wants, lots of settngs, skins, etc
+- customizability - allow user use the application how he wants, lots of settings, skins, etc.
 - modular user interface - ability to 'make your own gui'
-- support fancy features like: rating in tag, time comments, big covers, advanced & intuitive library management
-- song independence from library (you can freely move files, rename them and never lose any metadata information)
-- usability - efficient workflow and no repetitive tasks
-- responsive - no waiting for tasks, no modal dialogs
+- support fancy features like: rating in tag, time comments, big images, advanced & intuitive library management
+- no library dependence(moving & renaming files will not result in loss of any information)
+- usability - efficient gui & workflow
+- responsive - fast and responsive gui, no modal dialogs, etc.
+- sexy
 
 ## Features
 
@@ -23,24 +24,20 @@ Protocols:
 - file
 - http
 
-In addition:
-- rate of play changable
-- left-right stereo volume
-
 ###media library 
   
-Song library database
+Song database
 - small footprint: roughly about 10MB for 20000 files
-- can handle big collections: 40000 no problem. The only drawback can be real-time library refresh speed.
-- no dependency: songs always store all data in tag, moving or renaming files poses no problem
-- no inconsistencies: any song data changes are always reconfirmed with the files 
+- big: 40000 no problem. The only drawback can be real-time library refresh speed.
+- no dependency: song files always store all data in their tag, moving or renaming files poses no problem
+- no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application
 - no data loss guarantee: losing database has no effect at all, it can be completely rebuilt anytime. The library serves as a cache, rather than storage.
 
 Song tables:
-- big - 30000 songs in playlist = 0 problem
-- column customization - set visibility, width, sorting, order of any column for any song attribute
-- real-time searching (on type) by any (textual) attribute (artist, composer, title, etc). Scrolls to center and highlights rows - the matches 'pop' visually - the result is very convenient search, particularly on sorted tables.
-- real-time chainable filtering by any attribute. Stack filters, individually turn them on/off, negate, filter 
+- big: 30000 songs in playlist no problem
+- smart columns: set visibility, width, sorting, order of any column for any song attribute
+- visual searching: by any (textual) attribute (artist, composer, title, etc). Scrolls 1st match (to center) and highlights matches - so they 'pop' visually - the result is very convenient search, particularly on presorted tables.
+- powerful filtering - by any attribute, infinitely chainable, custom queries, negation, etc 
 - group by - e.g. table of songs per year, artist, etc. Searching, filtering and sorting fully supported.
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
 - cascading - link tables to other tables as filters and display only selected items (e.g. show songs by authors selected in linked table)
@@ -58,7 +55,7 @@ Song tables:
 Signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
   
   **Chapters**
-Comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value remains a mystery, but surpasses 500 characters (definitely for all chapters together) - probably by a large margin).
+Comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value is unknown, but at least 500 characters (for all chapters together), very likely a lot more).
   
   **Cover**
 - image in tag can be imported/exported
@@ -66,21 +63,14 @@ Comments added at specific time of the song. They can be added during playback o
   - song title
   - song album
   - "cover" or "folder"
-
-### portability 
-
-  The application in its self-contained form:
-- has executable .exe
-- requires no installation
-- requires no software (e.g. java) preinstalled
-- runs from anywhere
-- does not require internet access
-- does not create any file outside its directory
-- writes to registry only as long as java itself requires it, an example is cached data by WebView (in-app web browser)
   
-extensibility & modularity
+### configurability
 
-  Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added for created as plugins.
+All settings and entire user interface layout serialize into a human readable and editable files. These can be edited, backed up or switched between applications.
+
+### extensibility & modularity
+
+Most of the functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added as plugins.
   Some of the existing widgets are:
 - Playback & Mini - controls for playback, like seeking. Supports chapters.
 - FileInfo - shows cover and information about song (e.g. playing). Allows cover download on drag&drop.
@@ -88,17 +78,41 @@ extensibility & modularity
 - Library & LibraryView - song tables
 - ImageViewer - shows images associated with the songs, supports subfolders when discovering the images
 - Settings - application settings, but it is also a generic configurator for any object exposing its Configurable API (like widgets or even GUI itself)
-- Converter - text -> text converting. Also very handy file renamer. Supports text transformation chaining similar to table filters. Also manual editing using text area, regex, etc.
-- Explorer - simple file system browser. Currently slow for big folders.
-- Gui Inspector - displays gui objects hierarchically and uses Settings for editing their properties
-- Image - displays static image
-- Action - contains icon that can execute any application action (supported by shortcut)
-  
+- Converter - object -> object converting. Displays objects as text while allowing user to apply functions transformations. Handy file renamer and per-song tagger. Supports object lists, text transformations, manual text editing, regex, writing to file etc.
+- Explorer - simple file system browser. Nothing bigCurrently slow for big folders.
+- Inspector - displays hierarchies, like file system or gui scene graph. 
+- Icon - fully configurable icon bar. Icons can execute any (supported) application action.
+
+### portability
+
+  The application in its self-contained form:
+- has executable .exe
+- requires no installation
+- requires no software (e.g. java) preinstalled
+- runs from anywhere
+- does not require internet access
+- does not write to registry or create any file outside its directory (as long as java itself does not require it, e.g., cached data by WebView (in-app web browser)
+
 ### gui
 
-  The gui allows custom layouts by providing the ability to divide layouts into containers for widgets. Window can contain multiple layouts similar to virtual desktops. The layouts are easily accessible by dragging the gui horizontally. This provides virtually infinitely large and convenient to navigate working space. The application supports multiple windows like this, which themselves form a higher level layout.
-  
-  The windows have docking (to other windows or screen edges) feature, and also auto-resize when put into cscreen edges and corners (altogether 7 different modes). There is (so far imperfect) support for system tray, taskbar, fullscreen mode and mini mode as a docked bar snapped to the edge of the screen.
+widgets:
+- can provide input and output (e.g. playlist table has selected song as output)
+- inputs and outputs can be bound - when output value changes, it is passed into the listening input of other widget
+- inputs can be set to custom values
+- the whole system is displayed visually as editable graph
+
+layouts:
+- widget management: Gui gives the ability to divide layouts into containers for widgets. These allow resizing, positioning, swapping, adding, removing and many more widget operations
+- multiple layout support/virtual layout space. Switching layouts by dragging them horizontally (left,right) opens new space for more layouts. This provides virtually infinitely large and conveniently navigable working space.
+
+windows:
+- snap to screen edges and other windows docking
+- auto-resize when put into screen edges and corners (altogether 7 different modes - all, left/right half, right half, topleft/topright/bottomleft/bottomright quadrant)
+- system tray, taskbar, fullscreen, always on top
+- mini mode - a docked bar snapped to the top edge of the screen
+- multiple screen support
+- multiple windows
+- configurable notification positions (corners, center) + window/screen oriented
   
 ### global & media hotkeys
 
@@ -107,11 +121,24 @@ extensibility & modularity
 - customizable (any combination of keys:  "F5", "CTRL+L", etc)
 - number of actions (playback control, layout, etc)
 
+### usability
+- icons: No ugly buttons doing the unexpected. Icons are designed to visually aid user to understand the action. Decorated ith tooltips. Some are also skinnable or change to visualize application state.
+- tooltips: everywhere and big ones too. They explain all kinds of functionalities, so read to your heart's content. There are also info buttons opening information popups.
+- units: No more '5000 of what questions', everything that needs a unit has a unit, e.g. filesize (kB,MB,...), time duration, bitrate, etc. Multiple units are supported when possible, e.g., using 2000ms or 2s has the same effect. This is all supported in application settings or in table filter queries.  
+- validation: Designed to eliminate input errors by preventing user to input incorrect data. Warning icons signal incorrect input. Really helps with writing regular exressions.
+- defaults: every settings has a default value you can revert to easily
+
 ### skin support
 
 - skinnable completely by css
 - skin discovery + change + relfresh without requiring application restart
 - custom skins
+
+### more
+
+- configurable playcount incrementing strategy: at specified minimal time or percent of song playback
+- cover downloading on drag&drop
+- animations & effects
 
 ## Screenshots
 

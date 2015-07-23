@@ -11,7 +11,7 @@ Aims:
 
 ## Features
 
-- ###playback 
+###playback 
 
 Filetypes:
 - mp3
@@ -27,7 +27,7 @@ In addition:
 - rate of play changable
 - left-right stereo volume
 
-- ###media library 
+###media library 
   
 Song library database
 - small footprint: roughly about 10MB for 20000 files
@@ -45,7 +45,7 @@ Song tables:
 - multiple column sorting by any attribute (artist, year, rating, bitrate, etc)
 - cascading - link tables to other tables as filters and display only selected items (e.g. show songs by authors selected in linked table)
 
-- ###tag editing
+###tag editing
 
   Application supports reading and writing song tag information, individually or for number of songs at once. The supported are standard fields like artist or title, but possibly many more later. Interoperability with other players is intended. Some of the less supported by other players, but fully supported (read/write) tags are:
 
@@ -67,7 +67,7 @@ Comments added at specific time of the song. They can be added during playback o
   - song album
   - "cover" or "folder"
 
-- ### portability 
+### portability 
 
   The application in its self-contained form:
 - has executable .exe
@@ -78,7 +78,7 @@ Comments added at specific time of the song. They can be added during playback o
 - does not create any file outside its directory
 - writes to registry only as long as java itself requires it, an example is cached data by WebView (in-app web browser)
   
-- ### extensibility & modularity
+extensibility & modularity
 
   Almost all functionalitiess are implemented as widgets, that can be loaded, closed, moved and configured separately. Multiple instances of the same widget can run at once in windows, layouts or popups. New widgets can be added for created as plugins.
   Some of the existing widgets are:
@@ -94,20 +94,20 @@ Comments added at specific time of the song. They can be added during playback o
 - Image - displays static image
 - Action - contains icon that can execute any application action (supported by shortcut)
   
-- ### gui
+### gui
 
   The gui allows custom layouts by providing the ability to divide layouts into containers for widgets. Window can contain multiple layouts similar to virtual desktops. The layouts are easily accessible by dragging the gui horizontally. This provides virtually infinitely large and convenient to navigate working space. The application supports multiple windows like this, which themselves form a higher level layout.
   
   The windows have docking (to other windows or screen edges) feature, and also auto-resize when put into cscreen edges and corners (altogether 7 different modes). There is (so far imperfect) support for system tray, taskbar, fullscreen mode and mini mode as a docked bar snapped to the edge of the screen.
   
-- ### global & media hotkeys
+### global & media hotkeys
 
 - global hotkey supported - shortcuts dont need application focus if so desired
 - media keys supported
 - customizable (any combination of keys:  "F5", "CTRL+L", etc)
 - number of actions (playback control, layout, etc)
 
-- ### skin support
+### skin support
 
 - skinnable completely by css
 - skin discovery + change + relfresh without requiring application restart

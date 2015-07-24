@@ -46,7 +46,6 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 import main.App;
-import util.ClassName;
 import util.File.Environment;
 import util.File.FileUtil;
 import static util.File.FileUtil.listFiles;
@@ -336,7 +335,7 @@ public class TreeItems {
         return Stream.concat(Stream.of(o), t);
     }
     private static String toS(Node n) {
-        return emptifyString(n.getId())+":"+ClassName.get(n.getClass());
+        return emptifyString(n.getId())+":"+App.className.get(n.getClass());
     }
     
     private static Map<ObservableValue,String> propertes(Object target) {

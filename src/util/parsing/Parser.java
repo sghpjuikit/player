@@ -85,8 +85,8 @@ import util.parsing.StringParseStrategy.To;
  */
 public class Parser {
     
-    private static final Map<Class,Function<?,String>> parsersToS = new HashMap();
-    private static final Map<Class,Function<String,?>> parsersFromS = new HashMap();
+    private static final Map<Class,Function<?,String>> parsersToS = new HashMap<>();
+    private static final Map<Class,Function<String,?>> parsersFromS = new HashMap<>();
     private static final Function<String,Object> errFP = o -> null;
     private static final Function<Object,String> errTP = toString;
     

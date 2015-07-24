@@ -3,6 +3,9 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- converter add input area & display type of object
+- all tables sel + all sel outputs
+- generate widget inputs from annotation
 - dirviewer use thread pool for icons
 - make sure OVal  setDefault & deserilization works
 - icon any Glyph support

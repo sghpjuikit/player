@@ -5,11 +5,8 @@
  */
 package Layout.Widgets.controller.io;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
-import util.collections.map.ClassMap;
 
 /**
  *
@@ -39,19 +36,6 @@ public class Output<T> extends Put<T> {
     public int hashCode() {
         return 5 * 89 + Objects.hashCode(this.id);
     }
-    
-    
-    private static final ClassMap<Function<Object,String>> string_coverters = new ClassMap<>();
-    
-    public static <T> void addStringConverter(Class<T> c, Function<? extends T,String> f) {
-        string_coverters.put(c, (Function) f);
-    }
-    public static <T> Function<Object,String> getStringConverter(Class<T> c) {
-        List<Function<Object,String>> f = string_coverters.getElementsOfSuper(c);
-        return f.isEmpty() ? Object::toString : f.get(0);
-    }
-
-    
     
     public static class Id {
         public final UUID carrier_id;

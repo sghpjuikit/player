@@ -258,14 +258,14 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
 /******************************* BOTTOM CONTROLS ******************************/
     
-    public final Menu menuAdd = new Menu("", new Icon(FontAwesomeIcon.PLUS, 11).embedded());
-    public final Menu menuRemove = new Menu("", new Icon(FontAwesomeIcon.MINUS, 11).embedded());
-    public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP, 11).embedded(),
+    public final Menu menuAdd = new Menu("", new Icon(FontAwesomeIcon.PLUS).embedded());
+    public final Menu menuRemove = new Menu("", new Icon(FontAwesomeIcon.MINUS).embedded());
+    public final Menu menuSelected = new Menu("", new Icon(FontAwesomeIcon.CROP).embedded(),
             menuItem("Select inverse", this::selectAll),
             menuItem("Select all", this::selectInverse),
             menuItem("Select none", this::selectNone)
     );
-    public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON, 11).embedded());
+    public final Menu menuOrder = new Menu("", new Icon(FontAwesomeIcon.NAVICON).embedded());
     /** Table menubar in the bottom with menus. Feel free to modify. */
     public final MenuBar menus = new MenuBar(menuAdd,menuRemove,menuSelected,menuOrder);
     /** 

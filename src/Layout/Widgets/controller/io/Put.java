@@ -5,7 +5,6 @@
  */
 package Layout.Widgets.controller.io;
 
-import static Layout.Widgets.controller.io.Output.getStringConverter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -39,11 +38,6 @@ public class Put<T> {
     public void setValue(T v) {
         val.setValue(v);
         monitors.forEach(m -> m.accept(v));
-    }
-    
-    public String getValueAsS() {
-        T v = val.getValue();
-        return v==null ? "null" : getStringConverter(v.getClass()).apply(v);
     }
     
     public Subscription monitor(Consumer<? super T> action) {

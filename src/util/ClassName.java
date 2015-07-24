@@ -5,61 +5,61 @@
  */
 package util;
 
-import java.lang.annotation.*;
-import java.util.HashMap;
-import java.util.Map;
+import util.collections.map.ClassMap;
 
 /**
  *
  * @author Plutonium_
  */
 public class ClassName {
-    private static final Map<Class,String> m = new HashMap();
     
+    private final ClassMap<String> m = new ClassMap<>();
+    private final ClassMap<String> cache = new ClassMap<>();
+
+    /**
+     * Registers name for specified class and all its subclasses that dont
+     * have any name registered.
+     */
+    public void add(Class<?> c, String name) {
+        m.put(c, name);
+    }
     
     /**
-     * Returns name of the class.
+     * Returns name of the class. If there is no registered name, names of
+     * superclasses are looked up. If this fails, the name is derived from the 
+     * class.
      * <p>
-     * Class names are computed lazily (when requested) and cached (every name
-     * will be computed only once), with access O(1).
-     * <p>
-     * Name computation is as follows:
+     * Name computation is in order:
      * <ul>
-     * <li> value of the {@link Name} annotation on the class
-     * <li> if empty, {@link Class#getSimpleName()}
-     * <li> if empty, {@link Class#toString()}
+     * <li> registered name of class
+     * <li> first registered name of superclass in inheritance order 
+     * <li> first registered name of interface (no order)
+     * <li> {@link Class#getSimpleName()}
+     * <li> {@link Class#toString()}
      * </ul>
+     * This is computed lazily (when requested) and cached (every name
+     * will be computed only once), with access O(1).
+     * 
+     * @return computed name of the class. Never null or empty string.
      */
-    public static String get(Class c) {
-        String n = m.get(c);
-        if(n==null){
-            n = getName(c);
-            m.put(c, n);
-        }
+    public String get(Class<?> c) {
+        String n = cache.get(c);
+        if(n!=null) return n;
+    
+        if(n==null) n = m.getElementOfSuperV(c);
+        if(n==null) n = getName(c);
+        
+        cache.put(c, n);
         return n;
     }
     
-    private static String getName(Class c) {
-        String n = "";
-        Name a = (Name) c.getAnnotation(Name.class);
-        if(a!=null) n = a.value();
-        return n.isEmpty() ? c.getSimpleName().isEmpty() ? c.toString()
-                                                         : c.getSimpleName()
-                              : n;
+    public String getOf(Object instance) {
+        return get(instance==null ? Void.class : instance.getClass());
     }
     
     
-    /**
-     * Defines human readable name of the class. Inherited annotation.
-     * For example for use in user interface when type of the entity 
-     * requires sensible name.
-     */
-    @Documented
-    @Inherited
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.TYPE)
-    public static @interface Name {
-        String value() default "";
+    private static String getName(Class<?> c) {
+        String n = c.getSimpleName();
+        return n.isEmpty() ? c.toString() : n;
     }
-
 }

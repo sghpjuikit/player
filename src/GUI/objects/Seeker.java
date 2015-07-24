@@ -18,6 +18,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
@@ -27,6 +28,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import static javafx.scene.input.KeyCode.ENTER;
 import static javafx.scene.input.KeyCode.ESCAPE;
+import javafx.scene.input.KeyEvent;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
@@ -434,6 +436,8 @@ public final class Seeker extends AnchorPane {
                     // even if disabled)
                     e.consume();
                 });
+                // consume all key events to prevent accidents
+                content.addEventHandler(KeyEvent.ANY, Event::consume);
             }
             // show if not already
             if(!p.isShowing()) p.show(this);

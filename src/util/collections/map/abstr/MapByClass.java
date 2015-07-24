@@ -18,7 +18,7 @@ public interface MapByClass<E> {
     
     /** 
      * Multi key get returning the aggregation of results for each key.
-     * @return list of all values mapped to any of the keys.
+     * @return list of all values mapped to any of the keys (in that order).
      */
     public List<E> getElementsOf(Collection<Class> keys);
     
@@ -27,34 +27,81 @@ public interface MapByClass<E> {
     
     
     /** 
-     * Returns elements mapped to one of:
+     * Returns elements mapped to one of (in that order):
      * <ul>
      * <li>specified class
      * <li>any of specified class' superclasses up to Object.class
      * <li>any of specified class' interfaces
-     * <li>Void.class
+     * </ul>
+     * or empty list if no such mapping exists.
+     */
+    public default List<E> getElementsOfSuper(Class key) {
+        List<Class> keys = getSuperClassesInc(key);
+        List<E> o = getElementsOf(keys);
+        return o;
+    }
+    
+    /** 
+     * Returns elements mapped to one of (in that order):
      * <ul>
+     * <li>specified class
+     * <li>any of specified class' superclasses up to Object.class
+     * <li>any of specified class' interfaces
+     * <li>Void.class or void.class
+     * </ul>
+     * or empty list if no such mapping exists.
      * <p>
      * Note: Void.class is useful for mapping objects based on their generic
      * type.
      */
     public default List<E> getElementsOfSuperV(Class key) {
-        List<E> o = getElementsOf(getSuperClassesInc(key));
+        List<Class> keys = getSuperClassesInc(key);
+                    keys.add(Void.class);
+                    keys.add(void.class);
+        List<E> o = getElementsOf(keys);
         if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
         return o;
     }
+
     
     /** 
-     * Returns elements mapped to one of:
+     * Returns first element mapped to one of (in that order):
      * <ul>
      * <li>specified class
      * <li>any of specified class' superclasses up to Object.class
      * <li>any of specified class' interfaces
-     * <ul>
+     * </ul>
+     * or null if no such mapping exists.
      */
-    public default List<E> getElementsOfSuper(Class key) {
-        List<E> o = getElementsOf(getSuperClassesInc(key));
-        if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
-        return o;
+    public default E getElementOfSuper(Class key) {
+        List<Class> keys = getSuperClassesInc(key);
+        for(Class c : keys) {
+            List<E> es = getElementsOf(c);
+            if(!es.isEmpty())
+                return es.get(0);
+        }
+        return null;
+    }
+    
+    /** 
+     * Returns first element mapped to one of (in that order):
+     * <ul>
+     * <li>specified class
+     * <li>any of specified class' superclasses up to Object.class
+     * <li>any of specified class' interfaces
+     * <li>Void.class or void.class
+     * </ul>
+     * or null if no such mapping exists.
+     */
+    public default E getElementOfSuperV(Class key) {
+        List<Class> keys = getSuperClassesInc(key);
+                    keys.add(Void.class);
+                    keys.add(void.class);
+        for(Class c : keys) {
+            List<E> es = getElementsOf(c);
+            if(!es.isEmpty())
+                return es.get(0);
+        }
+        return null;
     }
 }

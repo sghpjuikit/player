@@ -177,6 +177,9 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         c.rem_alt = true;
         c.updateIcons();
     }
+    public Icon getButton() {
+        return chain.get(0).rem;
+    }
     
     
     private static final Tooltip addTooltip = new Tooltip("Add");

@@ -33,7 +33,6 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import static javafx.util.Duration.millis;
 import main.App;
-import util.ClassName;
 import util.animation.Anim;
 import static util.functional.Util.*;
 import util.graphics.drag.DragUtil;
@@ -104,7 +103,11 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
-            o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
+            o.monitor(v -> t.setText(
+                    App.className.get(o.getType()) + " : " + 
+                    o.getName() + "\n" + 
+                    App.instanceName.get(o.getValue()))
+            );
         }
 
         @Override
@@ -129,7 +132,7 @@ public class IOPane extends StackPane {
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
             
-            i.addEventFilter(DRAG_OVER,e -> { e.acceptTransferModes(TransferMode.ANY); e.consume();});
+            i.addEventFilter(DRAG_OVER, DragUtil.anyDragAccepthandler);
             i.addEventFilter(DRAG_DROPPED,e -> {
                 if(DragUtil.hasWidgetOutput()) {
                     in.bind(DragUtil.getWidgetOutput(e));
@@ -149,7 +152,7 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
-            t.setText(ClassName.get(in.getType()) + " : " + in.getName() + "\n");
+            t.setText(App.className.get(in.getType()) + " : " + in.getName() + "\n");
         }
 
         @Override
@@ -194,7 +197,11 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
             Output<T> o = inout.o;
-            o.monitor(v -> t.setText(ClassName.get(o.getType()) + " : " + o.getName() + "\n" + o.getValueAsS()));
+            o.monitor(v -> t.setText(
+                    App.className.get(o.getType()) + " : " + 
+                    o.getName() + "\n" + 
+                    App.instanceName.get(o.getValue()))
+            );
         }
 
         @Override

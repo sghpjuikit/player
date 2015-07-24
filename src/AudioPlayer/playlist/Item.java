@@ -8,7 +8,6 @@ import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
-import util.ClassName.Name;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
@@ -35,7 +34,6 @@ import util.units.FileSize;
  * 
  * @author uranium
  */
-@Name("Song")
 public abstract class Item<CT extends Item> implements Comparable<CT> {
     
 

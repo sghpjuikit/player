@@ -3569,7 +3569,7 @@
 .icon {
     -fx-fill: -fx-def-font-color;
     -glyph-name: "CLOSE";
-    -glyph-size: 1em;
+    -glyph-size: 12;
 }
 
 .icon:hover {
@@ -3579,17 +3579,25 @@
     -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
 }
 .icon:disabled {
+    // we want to support disabled state, this should be consistent with other
+    // components' disaled styles
     -fx-opacity: 0.4;
 }
 
+/**
+ * Icon used as graphics in menu bars, context menus, etc
+ * inherits: .icon
+ */
+.embedded-icon {
+}
 .embedded-icon:disabled {
-   -fx-opacity: 1;
+   -fx-opacity: 1;  // this is a bugfix to apply disabled state properly
 }
 
 /** 
  * Toggle icon - checkbox
  * inherits: .icon
- * pseudoclases: checked
+ * pseudoclases: selected
  */
 .check-icon {
    -glyph-name: TOGGLE_OFF;
@@ -3604,7 +3612,6 @@
  */
 .filter-negate-icon {
    -glyph-name: CIRCLE;
-   -fx-translate-y: 1; // for some reason the icon is misaligned, fix
 }
 .filter-negate-icon:selected {
    -glyph-name: CIRCLE_ALT;
@@ -3809,12 +3816,8 @@
 // Action icon.
 // inherits: .icon
 .action-pane-icon {
-    -glyph-size: 2em;
+    -glyph-size: 25;
 }
-/*.action-pane-icon:hover {*/
-    /*-glyph-size: 2em;*/
-/*}*/
-
 
 
 

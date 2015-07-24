@@ -92,6 +92,12 @@ public final class DragUtil {
         }
     };
     
+    /** Always accepts and consumes drag over event. */
+    public static final EventHandler<DragEvent> anyDragAccepthandler = e -> { 
+        e.acceptTransferModes(ANY); 
+        e.consume();
+    };
+    
     
     public static Object getAny(DragEvent e) {
         Dragboard d = e.getDragboard();

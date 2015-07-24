@@ -22,7 +22,6 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
-import util.ClassName.Name;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import static util.File.AudioFileFormat.Use.APP;
@@ -61,7 +60,6 @@ import util.units.FormattedDuration;
  * into more generic ObjectProperty. It will cause XStream serializing
  * to malperform (java7)(needs more testing).
  */
-@Name("Playlist Song")
 public final class PlaylistItem extends Item<PlaylistItem> implements FieldedValue<PlaylistItem,PlaylistItem.Field>{
     
     private final SimpleObjectProperty<URI> uri;

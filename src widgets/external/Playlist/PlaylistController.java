@@ -23,6 +23,7 @@ import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Table.PlaylistTable;
 import gui.objects.Table.TableColumnInfo;
+import gui.objects.icon.Icon;
 import java.util.Collection;
 import java.util.Date;
 import java.util.function.Predicate;
@@ -41,7 +42,6 @@ import static util.Util.setAnchors;
 import util.access.Accessor;
 import util.access.OVal;
 import util.async.executor.ExecuteN;
-import util.async.runnable.Run;
 import static util.functional.Util.isNotNULL;
 import static util.reactive.Util.maintain;
 import util.units.FormattedDuration;
@@ -95,7 +95,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public final OVal<Boolean> show_header = new OVal<>(GUI.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
-    @IsConfig(name = "Play displayed only", info = "Only displayed items will be played. Applies search filter for playback.")
+    @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
     public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
                   + "to play only displayed items.";
@@ -104,7 +104,12 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         Tooltip t = new Tooltip(v ? on : of);
                 t.setWrapText(true);
                 t.setMaxWidth(200);
-        table.filterPane.setButton(v ? ERASER : FILTER, t, filterToggler());
+        Icon i = table.filterPane.getButton();
+             i.icon(FILTER);
+             i.onClick(this::filterToggle);
+             i.setOpacity(v ? 1 : 0.4);
+             i.tooltip(v ? on : of);
+             i.setDisable(false);
         setUseFilterForPlayback(v);
     });
     
@@ -251,7 +256,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         }
     }
     
-    private Run filterToggler() {
-        return filter_for_playback::setCycledNapplyValue;
+    private void filterToggle() {
+        filter_for_playback.setCycledNapplyValue();
     }
 }

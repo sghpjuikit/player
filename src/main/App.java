@@ -19,7 +19,6 @@ import Configuration.*;
 import Layout.Component;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
-import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.ConfiguringFeature;
 import action.Action;
 import action.IsAction;
@@ -51,8 +50,10 @@ import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
+import util.ClassName;
 import static util.File.Environment.browse;
 import util.File.FileUtil;
+import util.InstanceName;
 import util.access.AccessorEnum;
 import static util.async.Async.FX;
 import static util.async.Async.run;
@@ -141,6 +142,9 @@ public class App extends Application {
     
 /******************************************************************************/
     
+    public static InstanceName instanceName = new InstanceName();
+    public static ClassName className = new ClassName();
+    
     /**
      * The application initialization method. This method is called immediately 
      * after the Application class is loaded and constructed. An application may
@@ -153,14 +157,19 @@ public class App extends Application {
      */
     @Override
     public void init() {
-        
-        // add widget input output text converters
-        // not required, only makes ui more human readable
-        Output.addStringConverter(List.class, o -> String.valueOf(o.size()));
-        Output.addStringConverter(MetadataGroup.class, o -> Objects.toString(o.getValue()));
-        Output.addStringConverter(Metadata.class, o -> o.getTitle());
-        Output.addStringConverter(PlaylistItem.class, o -> o.getTitle());
-        Output.addStringConverter(Component.class, o -> o.getName());
+        // add optional object instance -> string converters
+        className.add(Item.class, "Song");
+        className.add(PlaylistItem.class, "Playlist Song");
+        className.add(Metadata.class, "Library Song");
+        className.add(MetadataGroup.class, "Song Group");
+        // add optional object class -> string converters
+        instanceName.add(Item.class, Item::getPath);
+        instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
+        instanceName.add(Metadata.class,Metadata::getTitle);
+        instanceName.add(MetadataGroup.class, o -> Objects.toString(o.getValue()));
+        instanceName.add(Component.class, o -> o.getName());
+        instanceName.add(List.class, o -> String.valueOf(o.size()));
+        instanceName.add(File.class, File::getPath);
     }
     
     /**

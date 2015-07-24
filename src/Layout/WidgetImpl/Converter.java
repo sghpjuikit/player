@@ -40,7 +40,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import static javafx.scene.input.DragEvent.DRAG_OVER;
-import javafx.scene.input.Dragboard;
 import javafx.scene.layout.*;
 import static javafx.scene.layout.Priority.ALWAYS;
 import main.App;
@@ -109,6 +108,8 @@ public class Converter extends ClassController implements SongWriter {
     
     
     public Converter() {
+        inputs.create("To convert", Object.class, this::setData);
+        
         // layout
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
@@ -116,17 +117,24 @@ public class Converter extends ClassController implements SongWriter {
         setAnchors(ll,0);
         
         // behavior
-        addEventHandler(DRAG_OVER,DragUtil.audioDragAccepthandler);
-        addEventHandler(DRAG_OVER,DragUtil.fileDragAccepthandler);
-        addEventHandler(DRAG_OVER,DragUtil.textDragAccepthandler);
+        addEventHandler(DRAG_OVER,DragUtil.anyDragAccepthandler);
         setOnDragDropped(e -> {
-            Dragboard db = e.getDragboard();
-            if (db.hasFiles())
-                source.setAll(filter(db.getFiles(),File::isFile));
-            else if(DragUtil.hasItemList())
-                read(DragUtil.getItemsList());
-            else if(DragUtil.hasText(e))
-                source.setAll(split(DragUtil.getText(e), "\n", x->x));
+//            Dragboard db = e.getDragboard();
+//            if (db.hasFiles())
+//                source.setAll(filter(db.getFiles(),File::isFile));
+//            else if(DragUtil.hasItemList())
+//                read(DragUtil.getItemsList());
+//            else if(DragUtil.hasText(e))
+//                source.setAll(split(DragUtil.getText(e), "\n", x->x));
+//            else {
+//                Object o = DragUtil.getAny(e);
+//                if(o instanceof Collection) source.setAll((Collection) o);
+//                else source.setAll(listRO(o));
+//            }
+            setData(DragUtil.getAny(e));
+            
+            e.setDropCompleted(true);
+            e.consume();
         });
         
         // on source change run transformation
@@ -164,7 +172,7 @@ public class Converter extends ClassController implements SongWriter {
             String name = data.get("Filename");
             FileUtil.renameFile(file, name);
         }));
-        acts.accumulate(new Act<>("Edit song tags", Metadata.class, 100, () -> map(getEnumConstants(Metadata.Field.class),Object::toString), data -> {
+        acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class),Object::toString), data -> {
             List<Item> songs = list(source);
             if(songs.isEmpty()) return;
             Fut.fut()
@@ -186,6 +194,14 @@ public class Converter extends ClassController implements SongWriter {
     
     private void transform() {
         ta_in.setData(source);
+    }
+    
+    public void setData(Object o) {
+        if(o instanceof String)
+            source.setAll(split((String) o, "\n", x->x));
+        else if(o instanceof Collection)
+            source.setAll((Collection) o);
+        else source.setAll(listRO(o));
     }
 
 /******************************** features ************************************/

@@ -10,7 +10,6 @@ import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import static java.util.stream.Collectors.toList;
@@ -28,7 +27,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
 import static javafx.util.Duration.millis;
-import util.ClassName;
+import main.App;
 import static util.Util.setAnchors;
 import util.animation.Anim;
 import static util.functional.Util.list;
@@ -105,7 +104,8 @@ public class ActionPane extends StackPane {
 
     private void build() {
         // set content
-        dataInfo.setText("Data: " + ClassName.get(o_type) + "\n" + Objects.toString(o));
+        String iname = o instanceof Supplier ? "n/a" : App.instanceName.get(o);
+        dataInfo.setText("Data: " + iname + "\nType: " + App.className.get(o_type));
         description.setText("");
         icons.getChildren().setAll(o_actions.stream().map(a -> {
             String d = a.name + "\n\n" + a.description;

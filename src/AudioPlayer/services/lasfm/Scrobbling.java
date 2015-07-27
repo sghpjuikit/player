@@ -11,7 +11,7 @@ import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.scrobble.ScrobbleResult;
 import java.util.prefs.Preferences;
-import util.dev.Log;
+import unused.Log;
 
 /**
  *

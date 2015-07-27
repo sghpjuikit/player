@@ -6,7 +6,7 @@ package Layout.Widgets;
 
 import Layout.Widgets.controller.Controller;
 import javafx.scene.Node;
-import util.dev.Log;
+import unused.Log;
 
 /**
  * Generic widget object. Used for widgets loaded dynamically by instantiating

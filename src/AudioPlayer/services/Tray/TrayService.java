@@ -32,7 +32,7 @@ import main.App;
 import org.reactfx.Subscription;
 import static util.Util.menuItem;
 import util.access.Accessor;
-import util.dev.Log;
+import unused.Log;
 
 /**
  * Provides tray facilities, including tray icon, tray tooltip, tray click

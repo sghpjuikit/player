@@ -26,7 +26,7 @@ import javafx.stage.Window;
 import main.App;
 import util.File.AudioFileFormat.Use;
 import util.Util;
-import util.dev.Log;
+import unused.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.MEDIUM;

@@ -163,6 +163,7 @@ public class Icon<I extends Icon> extends Text {
     }
     
     public final I onClick(Runnable action) {
+        if(action instanceof Action) tooltip(((Action)action).getInfo());
         click_runnable = action;
         return onClick(action==null ? null : e -> { 
             if(e.getButton()==PRIMARY) {

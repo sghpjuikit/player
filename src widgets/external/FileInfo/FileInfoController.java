@@ -99,9 +99,10 @@ public class FileInfoController extends FXMLController implements SongReader {
     private final Label comment = new Label(); 
     private final Label category = new Label(); 
     private final Label gap3 = new Label(); 
-    private final Label filesize = new Label(); 
-    private final Label filename = new Label(); 
-    private final Label format = new Label(); 
+    private final Label filesize = new Label();
+    private final Label length = new Label();
+    private final Label filename = new Label();
+    private final Label format = new Label();
     private final Label bitrate = new Label(); 
     private final Label encoding = new Label(); 
     private final Label location = new Label(); 
@@ -110,8 +111,8 @@ public class FileInfoController extends FXMLController implements SongReader {
     private final List<Label> visible_labels = new ArrayList();
     private final List<Label> labels = list(title, track, disc, gap1, artist, 
         album, album_artist, year, genre, composer, publisher, gap2, rating, 
-        playcount, comment, category, gap3, filesize, filename, format, bitrate,
-        encoding, location);
+        playcount, comment, category, gap3, filesize, length, filename, format, 
+        bitrate, encoding, location);
     
     private Input<Item> data_in;
     private Output<Metadata> data_out;
@@ -163,6 +164,8 @@ public class FileInfoController extends FXMLController implements SongReader {
     public final Accessor<Boolean> showcategory = new Accessor<>(true, this::update);
     @IsConfig(name = "Show filesize", info = "Show this field.")
     public final Accessor<Boolean> showfilesize = new Accessor<>(true, this::update);
+    @IsConfig(name = "Show length", info = "Show this field.")
+    public final Accessor<Boolean> showlength = new Accessor<>(true, this::update);
     @IsConfig(name = "Show filename", info = "Show this field.")
     public final Accessor<Boolean> showfilename = new Accessor<>(true, this::update);
     @IsConfig(name = "Show format", info = "Show this field.")
@@ -318,8 +321,9 @@ public class FileInfoController extends FXMLController implements SongReader {
             comment.setText("comment: "           + "");
             category.setText("category: "         + m.getFieldS(CATEGORY,""));
             gap3.setText(" ");      
-            filesize.setText("filesize: "         + m.getFieldS(FILESIZE,""));
             filename.setText("filename: "         + m.getFieldS(FILENAME,""));
+            length.setText("length: "             + m.getFieldS(LENGTH,""));
+            filesize.setText("filesize: "         + m.getFieldS(FILESIZE,""));
             format.setText("format: "             + m.getFieldS(FORMAT,""));
             bitrate.setText("bitrate: "           + m.getFieldS(BITRATE,""));
             encoding.setText("encoding: "         + m.getFieldS(ENCODING,""));
@@ -348,8 +352,9 @@ public class FileInfoController extends FXMLController implements SongReader {
         comment.setText("comment: " );
         category.setText("category: ");
         gap3.setText(" ");
-        filesize.setText("filesize: ");
         filename.setText("filename: ");
+        length.setText("length: ");
+        filesize.setText("filesize: ");
         format.setText("format: ");
         bitrate.setText("bitrate: ");
         encoding.setText("encoding: ");
@@ -398,6 +403,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         if (!showcomment.getValue())       visible_labels.remove(comment);
         if (!showcategory.getValue())      visible_labels.remove(category);
         if (!showfilesize.getValue())      visible_labels.remove(filesize);
+        if (!showlength.getValue())        visible_labels.remove(length);
         if (!showformat.getValue())        visible_labels.remove(format);
         if (!showfilename.getValue())      visible_labels.remove(filename);
         if (!showbitrate.getValue())       visible_labels.remove(bitrate);

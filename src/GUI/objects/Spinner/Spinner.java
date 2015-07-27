@@ -95,7 +95,7 @@ public class Spinner extends ProgressIndicator {
 
         private void update() {
             Spinner s = getSkinnable();
-            double p = s.getProgress();System.out.println("spiner progress " + p);
+            double p = s.getProgress();
             if(s.getParent()!=null && s.getScene()!=null && s.isVisible() && p!=1) {
                 if(rt==null) {
                     rt = new RotateTransition(Duration.seconds(80), inner);

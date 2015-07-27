@@ -5,6 +5,7 @@
 package util.units;
 
 import java.io.File;
+import static java.lang.Integer.max;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.dev.Dependency;
 import util.parsing.StringParseStrategy;
@@ -136,17 +137,17 @@ public final class FileSize implements Comparable<FileSize> {
     public String toString() {
         if(v == -1) return NAString;
         double EB = (v / (double)Ei);
-        if (EB>=1) return String.format("%.2f EB", EB);
+        if (EB>=1) return String.format("%.2f EiB", EB);
         double PB = (v / (double)Pi);
-        if (PB>=1) return String.format("%.2f PB", PB);
+        if (PB>=1) return String.format("%.2f PiB", PB);
         double TB = (v / (double)Ti);
-        if (TB>=1) return String.format("%.2f TB", TB);
+        if (TB>=1) return String.format("%.2f TiB", TB);
         double GB = (v / (double)Gi);
-        if (GB>=1) return String.format("%.2f GB", GB);
+        if (GB>=1) return String.format("%.2f GiB", GB);
         double MB = (v / (double)Mi);
-        if (MB>=1) return String.format("%.2f MB", MB);
+        if (MB>=1) return String.format("%.2f MiB", MB);
         double kB = (v / (double)Ki);
-        if (kB>1) return String.format("%.2f kB", kB);
+        if (kB>1) return String.format("%.2f kiB", kB);
         else return String.format("%d B", v);
     }
 
@@ -174,8 +175,8 @@ public final class FileSize implements Comparable<FileSize> {
         long unit = 1;
         
         if(s.equals(NAString)) return NA;
-        if (s.contains("B")) {
-            int b = s.indexOf("B");
+        int b = max(s.indexOf("B"),s.indexOf("b"));
+        if (b>0) {
             String prefix = s.substring(b-1, b);
             int skip = 0;
             if("k".equalsIgnoreCase(prefix)) {

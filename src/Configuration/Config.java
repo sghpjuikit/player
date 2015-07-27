@@ -24,7 +24,7 @@ import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.OVal;
 import util.access.TypedValue;
-import util.dev.Log;
+import unused.Log;
 import util.dev.TODO;
 import static util.dev.Util.forbidNull;
 import util.functional.Functors.F1;

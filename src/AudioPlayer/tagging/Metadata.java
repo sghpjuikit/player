@@ -59,7 +59,7 @@ import static util.Util.emptifyString;
 import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
-import util.dev.Log;
+import unused.Log;
 import util.dev.TODO;
 import static util.functional.Util.isIn;
 import static util.functional.Util.stream;
@@ -934,11 +934,21 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * @return ordered list of chapters parsed from xml data
      */
     private List<Chapter> getChaptersFromXML() {
-        MetadataExtended me = new MetadataExtended(this);
-                         me.readFromFile();
-        List<Chapter> cs = me.getChapters();
-                      cs.sort(Chapter::compareTo);
-        return cs;
+        try{
+            MetadataExtended me = new MetadataExtended(this);
+                             me.readFromFile();
+            List<Chapter> cs = me.getChapters();
+                          cs.sort(Chapter::compareTo);
+            return cs;
+        // we need to make sure parsing errors are handled, these are Runtime 
+        // exceptions
+        // cant avoid, since we have no control over user input
+        // although the XMLs were generated, it can still fail because of manual
+        // edit or when special characters in text are not escaped (whoever coded
+        // the ChapterBox plugin for winamp did a sloppy job)...
+        } catch(Exception e){
+            return new ArrayList<>();
+        }
     }
     
     public boolean containsChapterAt(Duration at) {

@@ -23,6 +23,10 @@ import Layout.Widgets.feature.ConfiguringFeature;
 import action.Action;
 import action.IsAction;
 import action.IsActionable;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.PopOver.PopOver;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
@@ -50,6 +54,8 @@ import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.ClassName;
 import static util.File.Environment.browse;
 import util.File.FileUtil;
@@ -79,6 +85,8 @@ public class App extends Application {
         launch(args);
     }
     
+    private final Logger logger = LoggerFactory.getLogger(App.class);
+    
 /******************************************************************************/
     
     /**
@@ -97,17 +105,19 @@ public class App extends Application {
     
 /******************************************************************************/
     
+    
     // NOTE: for some reason cant make fields final in this class +
     // initializing fields right up here (or constructor) will have no effect
     public static Window window;
-    private Window windowOwner;
-    public static Guide guide;
-    private boolean initialized = false;
-    
     public static final ServiceManager services = new ServiceManager();
     public static PluginMap plugins = new PluginMap();
-    
     private static App instance;
+    public static Guide guide;
+    private Window windowOwner;
+    
+    private boolean initialized = false;
+    
+    
     public App() {
         instance = this;
     }    
@@ -157,6 +167,26 @@ public class App extends Application {
      */
     @Override
     public void init() {
+        // configure logging
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        try {
+            JoranConfigurator jc = new JoranConfigurator();
+            jc.setContext(lc);
+            lc.reset();
+            lc.putProperty("LOG_DIR", LOG_DIR.getPath());
+            // override default configuration
+            jc.doConfigure(LOG_CONFIG_FILE);
+        } catch (JoranException ex) {
+            logger.error(ex.getMessage());
+        }
+        StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+        
+        // log uncaught thread termination exceptions
+        Thread.setDefaultUncaughtExceptionHandler((Thread t, Throwable e) -> 
+            logger.error(t.getName(), e)
+        );
+        
+        
         // add optional object instance -> string converters
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
@@ -307,11 +337,11 @@ public class App extends Application {
     @Override
     public void stop() {
         if(initialized) {
+            Player.state.serialize();            
+            Configuration.save();
             services.getAllServices()
                     .filter(Service::isRunning)
                     .forEach(Service::stop);
-            Player.state.serialize();            
-            Configuration.save();
         }
         DB.stop();
         Action.stopGlobalListening();
@@ -420,6 +450,8 @@ public class App extends Application {
         return new File(DATA_FOLDER(),"Playlists");
     }
     
+    public static File LOG_DIR = new File("log").getAbsoluteFile();
+    public static File LOG_CONFIG_FILE = new File(LOG_DIR,"log_configuration.xml");
     
     
     // jobs

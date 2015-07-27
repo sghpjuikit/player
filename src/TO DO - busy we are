@@ -3,13 +3,23 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- seeker on click seek ~busted
+- implement smooth volume on seek
+- flac playback improve seeking + consecutive seeking performance
+- custom Log -> logback
+- implement flac playback volume consistently with others
+  add linear vs logarithmic option
+- improve app start+stop speed
+- ogg playback support
 - converter add input area & display type of object
 - all tables sel + all sel outputs
 - generate widget inputs from annotation
 - dirviewer use thread pool for icons
 - make sure OVal  setDefault & deserilization works
 - icon any Glyph support
-- update LastFM and DB, turn into proper service modules
+- LastFM -> service
+- DB -> service
+- global shourtcuts -> service + make sure jintellitype dependency !cause errors
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
@@ -27,6 +37,7 @@
   a good delimiter character - '|' is too common i think
   minimode popups should prevent from autohiding, but how?
 - investigate how to properly remove image scaling artifacts
+- Code Breaker (.m4a) and Interstellar (.flac) not playing, investigate
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dont want to hear about ------------------

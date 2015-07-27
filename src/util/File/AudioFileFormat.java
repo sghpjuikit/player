@@ -29,6 +29,17 @@ public enum AudioFileFormat {
     wav,
     m4a,
     mp4,
+    
+    
+    spx,
+    snd,
+    aifc,
+    aif,
+    au,
+    mp1,
+    mp2,
+    aac,
+    
     UNKNOWN;
     
     /**
@@ -38,7 +49,24 @@ public enum AudioFileFormat {
      * @return true if supported, false otherwise
      */
     public boolean isSupported(Use use) {
-        return this!=UNKNOWN && !((this==flac || this==ogg) && use==Use.PLAYBACK);
+        switch(this) {
+            case mp4  :
+            case m4a  :
+            case mp3  :
+            case ogg  :
+            case wav  :
+            case flac : return true;
+            case spx  :
+            case snd  :
+            case aifc :
+            case aif  :
+            case au   :
+            case mp1  :
+            case mp2  :
+            case aac  :
+            case UNKNOWN : return false;
+            default: throw new AssertionError("corrupted switch statement");
+        }
     }
     
     public String toExt() {
@@ -52,12 +80,20 @@ public enum AudioFileFormat {
     /** Returns whether writing the field to tag for this format is supported. */
     public boolean isTagWriteSupported(Metadata.Field f) {
         switch(this) {
-            case mp4 :
-            case m4a :
-            case mp3 : return true;
-            case wav : return false;
-            case ogg : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
-            case flac: return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
+            case mp4  :
+            case m4a  :
+            case mp3  : return true;
+            case ogg  : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
+            case flac : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
+            case wav  : 
+            case spx  :
+            case snd  :
+            case aifc :
+            case aif  :
+            case au   :
+            case mp1  :
+            case mp2  :
+            case aac  :
             case UNKNOWN : return false;
             default: throw new AssertionError("corrupted switch statement");
         }

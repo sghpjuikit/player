@@ -18,7 +18,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import main.App;
 import util.File.Environment;
-import util.dev.Log;
+import unused.Log;
 import static util.functional.Util.toCSList;
 
 /**

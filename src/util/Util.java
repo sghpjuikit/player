@@ -38,7 +38,7 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import org.jaudiotagger.tag.images.Artwork;
 import util.File.FileUtil;
-import util.dev.Log;
+import unused.Log;
 import static util.functional.Util.list;
 import util.functional.functor.FunctionC;
 import static util.functional.functor.FunctionC.composable;

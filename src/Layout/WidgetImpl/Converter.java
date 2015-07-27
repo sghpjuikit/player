@@ -119,20 +119,7 @@ public class Converter extends ClassController implements SongWriter {
         // behavior
         addEventHandler(DRAG_OVER,DragUtil.anyDragAccepthandler);
         setOnDragDropped(e -> {
-//            Dragboard db = e.getDragboard();
-//            if (db.hasFiles())
-//                source.setAll(filter(db.getFiles(),File::isFile));
-//            else if(DragUtil.hasItemList())
-//                read(DragUtil.getItemsList());
-//            else if(DragUtil.hasText(e))
-//                source.setAll(split(DragUtil.getText(e), "\n", x->x));
-//            else {
-//                Object o = DragUtil.getAny(e);
-//                if(o instanceof Collection) source.setAll((Collection) o);
-//                else source.setAll(listRO(o));
-//            }
             setData(DragUtil.getAny(e));
-            
             e.setDropCompleted(true);
             e.consume();
         });

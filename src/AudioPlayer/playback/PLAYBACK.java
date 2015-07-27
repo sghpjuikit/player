@@ -5,7 +5,7 @@ import AudioPlayer.services.playcountincr.PlaycountIncrementer;
 import action.IsAction;
 import action.IsActionable;
 import AudioPlayer.Player;
-import AudioPlayer.playback.MediaSupport.GeneralPlayer;
+import AudioPlayer.playback.player.GeneralPlayer;
 import static AudioPlayer.playback.PlayTimeHandler.at;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
@@ -51,7 +51,7 @@ public final class PLAYBACK implements Configurable {
     public static double seekUnitP = 0.05;
     
     public static final PlaybackState state = Player.state.playback;
-    static GeneralPlayer player = new GeneralPlayer();
+    private static GeneralPlayer player = new GeneralPlayer();
     
     /** Initializes the Playback. */
     public static void initialize() {
@@ -70,6 +70,9 @@ public final class PLAYBACK implements Configurable {
                 default:
             }
         });
+        
+        addOnPlaybackEnd(() -> System.out.println("gfgfgf"));
+        Player.playing.o.monitor(i -> System.out.println("CHANGED SONG")  );
     }
     
     /** Initialize state from last session */
@@ -80,11 +83,7 @@ public final class PLAYBACK implements Configurable {
         if (continuePlaybackPaused)
             state.status.set(Status.PAUSED);
         
-        // create player
-        player.createPlayback(PlaylistManager.getPlayingItem().getURI().toString(), state);
-        if (state.status.get()== PAUSED || state.status.get()==PLAYING) {
-            seek(state.currentTime.get());
-        }
+        activate();
     }
     
     public static void suspend() {
@@ -93,11 +92,12 @@ public final class PLAYBACK implements Configurable {
         player.dispose();
     }
     public static void activate() {
-        player.createPlayback(PlaylistManager.getPlayingItem().getURI().toString(), state);
         if (state.status.get()== PAUSED || state.status.get()==PLAYING) {
+            player.play(PlaylistManager.getPlayingItem());
             seek(state.currentTime.get());
         }
     }
+    
 /******************************************************************************/
     
     /**
@@ -428,10 +428,7 @@ public final class PLAYBACK implements Configurable {
         onEndHandlers.add(b);
     }
     
-    /**
-     * Remove behavior that executes when item player ends.
-     * @param b 
-     */
+    /** Remove... */
     public static void removeOnPlaybackEnd(Runnable b) {
         onEndHandlers.remove(b);
     }
@@ -473,9 +470,9 @@ public final class PLAYBACK implements Configurable {
      */
     public static void addAudioSpectrumListener(AudioSpectrumListener l) {
         spectrumListeners.add(l);
-        if(spectrumListeners.size()==1)
-            if(player.playback!=null)
-                player.playback.setAudioSpectrumListener(spectrumListenerDistributor);
+//        if(spectrumListeners.size()==1)
+//            if(player.player!=null)
+//                player.player.setAudioSpectrumListener(spectrumListenerDistributor);
     }
     
     /**
@@ -484,8 +481,8 @@ public final class PLAYBACK implements Configurable {
      */
     public static void removeAudioSpectrumListener(AudioSpectrumListener l) {
         spectrumListeners.remove(l);
-        if(spectrumListeners.isEmpty())
-            if(player.playback!=null)
-                player.playback.setAudioSpectrumListener(null);
+//        if(spectrumListeners.isEmpty())
+//            if(player.player!=null)
+//                player.player.setAudioSpectrumListener(null);
     }
 }

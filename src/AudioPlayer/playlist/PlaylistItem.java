@@ -30,7 +30,7 @@ import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
-import util.dev.Log;
+import unused.Log;
 import util.units.FormattedDuration;
 
 /**
@@ -183,7 +183,6 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public void update() {
         if (updated || isCorrupt(APP)) return;
         updated = true;
-        System.out.println(getPath());
         if(isFileBased()) {
             // update as file based item
             try {

@@ -24,7 +24,7 @@ import org.atteo.classindex.ClassIndex;
 import util.File.FileUtil;
 import static util.Util.getAllFields;
 import util.collections.map.MapSet;
-import util.dev.Log;
+import unused.Log;
 import static util.dev.Util.forbidFinal;
 import static util.dev.Util.requireFinal;
 

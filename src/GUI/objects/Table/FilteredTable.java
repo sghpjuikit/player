@@ -88,8 +88,9 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         
         setItems(sortedItems);
         sortedItems.comparatorProperty().bind(comparatorProperty());
-        items_info.bind(this);
         VBox.setVgrow(this, ALWAYS);
+        
+        items_info.bind(this);
         
         // visually hint user menus are empty
         sizeOf(menuAdd.getItems(), size -> menuAdd.setDisable(size==0));

@@ -7,7 +7,7 @@ package gui.InfoNode;
 
 import java.util.List;
 import java.util.function.BiFunction;
-import javafx.beans.InvalidationListener;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TableView;
@@ -71,12 +71,12 @@ public final class InfoTable<E> implements InfoNode<TableView<E>> {
         
         ObservableList<E> al = t.getItems();
         ObservableList<E> sl = t.getSelectionModel().getSelectedItems();
-        InvalidationListener l = o -> updateText(al, sl);
+        ListChangeListener l = o -> updateText(al, sl);
         
         al.addListener(l);
         sl.addListener(l);
-        s = () -> t.getItems().removeListener(l);
-        s = s.and(() -> t.getSelectionModel().getSelectedItems().removeListener(l));
+        s = () -> al.removeListener(l);
+        s = s.and(() -> sl.removeListener(l));
         
         updateText(al,sl);
     }

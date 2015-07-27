@@ -65,7 +65,7 @@ import util.animation.Anim;
 import static util.animation.Anim.par;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
-import util.dev.Log;
+import unused.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.*;
@@ -376,8 +376,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	});        
         
 	Icon gitB = new Icon(GITHUB, 13, Action.getAction("Open github page"));
-	Icon dirB = new Icon(CSS3, 13, Action.getAction("Open app dir"));
-	Icon cssB = new Icon(FOLDER, 13, Action.getAction("Open css guide"));
+	Icon dirB = new Icon(FOLDER, 13, Action.getAction("Open app dir"));
+	Icon cssB = new Icon(CSS3, 13, Action.getAction("Open css guide"));
 	Icon iconsB = new Icon(IMAGE, 13, Action.getAction("Open icon viewer"));
 	Icon propB = new Icon(GEARS, 13, Action.getAction("Open settings"));
 	// manage layout button - sho layout manager in a popp

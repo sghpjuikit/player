@@ -54,7 +54,7 @@ import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
 import util.animation.Anim;
 import util.dev.Dependency;
-import util.dev.Log;
+import unused.Log;
 import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import util.graphics.fxml.ConventionFxmlLoader;

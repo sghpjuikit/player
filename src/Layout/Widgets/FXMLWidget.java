@@ -8,7 +8,7 @@ import Layout.Widgets.controller.FXMLController;
 import java.io.File;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import util.dev.Log;
+import unused.Log;
 
 /**
  * Widget based on .fxml file. Uses {@link FXMLController}.

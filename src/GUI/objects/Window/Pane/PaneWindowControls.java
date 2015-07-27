@@ -28,7 +28,7 @@ import javafx.scene.layout.*;
 import static javafx.scene.paint.Color.BLACK;
 import javafx.scene.shape.Rectangle;
 import static util.Util.setAnchors;
-import util.dev.Log;
+import unused.Log;
 
 /**
  */

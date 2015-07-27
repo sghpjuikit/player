@@ -43,7 +43,6 @@ import util.dev.TODO;
 import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.by;
 import static util.functional.Util.filterMap;
-import static util.functional.Util.forEachWithI;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -135,7 +134,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // resizing
         setColumnResizePolicy(resize -> {
             // handle column resize (except index)
-            if(resize!=null && resize.getColumn()!=null && resize.getColumn()!=columnIndex) {System.out.println("ddddddddd");
+            if(resize!=null && resize.getColumn()!=null && resize.getColumn()!=columnIndex) {
                 if(getColumns().contains(columnName))
                     columnName.setPrefWidth(columnName.getWidth()-resize.getDelta());
                 resize.getColumn().setPrefWidth(resize.getColumn().getWidth()+resize.getDelta());
@@ -173,9 +172,8 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
             if(mc!=null) {
                 cs.remove(mc);
-                forEachWithI(cs, (a,b) -> System.out.println(a + " " + b.getText() + " " + b.getWidth()));
                 double W4 = cs.stream().mapToDouble(c->c.getWidth()).sum();
-                mc.setPrefWidth(W-W4-S-G);System.out.println(W + " " + W4 + " " + (W-W4-S-G) + " ff" + S + " " + G);
+                mc.setPrefWidth(W-W4-S-G);
             }
             return true; // false/true, doesnt matter
         });

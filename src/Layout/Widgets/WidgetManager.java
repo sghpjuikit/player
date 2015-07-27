@@ -19,7 +19,7 @@ import javafx.scene.Node;
 import main.App;
 import org.atteo.classindex.ClassIndex;
 import util.File.FileUtil;
-import util.dev.Log;
+import unused.Log;
 
 /**
  * Handles operations with Widgets.

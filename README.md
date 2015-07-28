@@ -15,20 +15,18 @@ Aims:
 ###Playback 
 
 Filetypes:
-- mp3
-- mp4, m4a
-- wav
-- ogg, flac (not yet, but planned)
+- mp3,mp4, m4a, wav, ogg, flac
+- possibly more to come
 
 Protocols:
 - file
-- http
+- http: playback over internet (no flac & ogg)
 
 ###Media library 
   
 Song database:
 - small footprint: roughly about 10MB for 20000 files
-- big: 40000 no problem
+- big: 40000 files no problem
 - fast: library is loaded into main memory.
 - no dependency: song files always store all data in their tag, moving or renaming files poses no problem
 - no inconsistencies: displayed song metadata can only be out of sync with real data if tag is edited by external application
@@ -45,19 +43,25 @@ Song tables:
 
 ###Tag editing
 
-  Application supports reading and writing song tag information, individually or for number of songs at once. The supported are standard fields like artist or title, but possibly many more later. Interoperability with other players is intended. Some of the less supported by other players, but fully supported (read/write) tags are:
+  Application supports reading and writing song tag information, individually or for number of songs at once. The supported are all standard fields (e.g. artist or title), but also rating, playcount, color or timed comments. The aim is to be interoperable with other players. Noteworthy or nonstandard supported tags include:
 
   **Rating** 
-- values are in percent values
-- granularity limited only by tag (1/255 for mp3, 1/100 for other formats)
-- interoperable with other players, but most of them will only recognize the value as 3/5 or so
+- values are in percent values forget implementation detail (mp3 max=255, flac/ogg max=100)
+- seamless values. Forget limiting scales like 1-5. Use full granularity (limited only by tag (1/255 for mp3, 1/100 for other formats)) and decide your own visual representation (progress bar or any number of "stars" you want)
+- interoperable with other players (POPM frame), but most of them will only recognize the value as 3/5 or so.
   
   **Playcount**
-  Signifies number of times the song was played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily.
+- number of times the song has been played (the exact definition is left upon the user, who can set up the playcount incrementation behavior arbitrarily, or edit the value manually (increment/decrement/set arbitrary number - its your collection, excert your power).
+- the data are written in custom tag (in mp3, writen duplicitly in POPM frame counter)
   
   **Chapters**
-  Comments added at specific time of the song. They can be added during playback on the seeker and browsed as popup menus. The comments' length should be a non-issue (the upper value is unknown, but at least 500 characters (for all chapters together), very likely a lot more).
-  
+- comments associated with specific time/part of the song. They can be added during playback on the seeker and browsed as popup menus. The length of the comment should be a non-issue (the upper value is unknown, but at least 500 characters (for all chapters together), very likely a lot more).
+- The gui makes it really easy to add or edit these and takes no space, since it is using seeker bar and popup windows.
+- the data are written in custom tag
+- 
+  **Chapters**
+- just in case you associate some songs with a color...
+
   **Cover**
 - image in tag can be imported/exported
 - cover read from file location is supported too, looking for image files named:
@@ -135,14 +139,22 @@ Windows:
 - tooltips: Everywhere. And big too. Explain all kinds of functionalities, so read to your heart's content. There are also info buttons opening information popups.
 - units: No more '5000 of what questions', everything that needs a unit has a unit, e.g. filesize (kB,MB,...), time duration, bitrate, etc. Multiple units are supported when possible, e.g., using 2000ms or 2s has the same effect. This is all supported in application settings or in table filter queries.  
 - validation: Designed to eliminate input errors by preventing user to input incorrect data. Warning icons signal incorrect input. Really helps with writing regular exressions.
-- defaults: every settings has a default value you can revert to easily
+- defaults: Every settings has a default value you can revert to easily.
+- shortcuts: Quick & easy control over the application anytime.
+- smart ui: Notifications that can be closed when they get in the way or keep being open when mouse hovers over. Throw notifications manually or put whole widgets in it. Tables or docked window that monitor user activity. Clickless ui reacting on mouse hover rather than click
 
 ### More
 
 - configurable playcount incrementing strategy: at specified minimal time or percent of song playback
 - cover downloading on drag&drop
 - animations & effects
+- crisp images in any size, be it 100x100px thumbnail or mammoth image displayed on your new big display. Images load quickly and dont cause any lag (not even the big ones), images around 5000px are handled just fine (just dont look at memory).
 
+Platforms:
+- Windows
+- Linux (not fully tested, no support for global shortcuts)
+- Mac (untested).
+- 
 ## Screenshots
 
 ![ScreenShot](/extra/screenshot1.png)
@@ -151,43 +163,49 @@ Windows:
 
 ## The Catch XXII
 
-- Memory consumption varies, but is higher than native apps. Normally i have get about 250-400MB, but it depends on use case. Lots of widgets will eat more MB. 32bit is more effective (64bit effectively doubles memory - so ill only provide 32-bit version). Handling large pictures (4000^2 px) fullscreen on large monitors can also rapidly increase memory consumption (but picture quality stays great).
-- Some of the widgets or features are **experimental** or confusing
-- No flac and ogg playback. Library supports them.
-- No playlist file support (.m3u, etc)
+- Some of the widgets or features are **experimental**, buggy or confusing (its being worked on, so stay tuned).
+- Linux and Mac not tested for now.
+- Memory consumption is worse than what native applications could do. Normally i have get about 250-450MB, but it depends on use case. Lots of widgets will eat more memory. Handling large pictures (4000^2 px) on large monitors can also rapidly increase memory consumption (but picture quality stays great). 32bit is more effective (64bit effectively doubles memory consumption), so ill only provide 32-bit version.
+- No playlist  support (.m3u, etc) for now. Maybe later.
+- Using shadows on text or icons (in custom skins) can severely impact performance, but i think that goes true for any app.
+- no transparent bgr for now (due to java bug causing massive performance degradation)
+- visually big tables with lots of text can impact performance (we are talking full-hd and beyond)
 
 ## Download & Use
 
 Download link coming soon.
 
-Starting the application for the first time will run an automatic guide, that will guide you through the basics of the application. Nothing invasive, it can be closed forever very easily, but it does provide some context to the features of the application, so i **recomment the guide**.
+- download zip
+- extract anywhere
+- run the exe file
 
-Platforms:
-- Windows
-- Linux (not fully tested, no support for global shortcuts)
-- Mac (untested).
+  Starting the application for the first time will run a guide. Before you close it, read at least first couple of tips (like where to find the guide if you need it again...).
+
 
 Tips:
 - use tooltips! Cant stress enough.
+- If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
+
+## Contact
+
+If, for whatever reason you want to get in touch, mail the address associated with this account.
 
 ## Contribution
 
-In case you are interested in the development or in contribution, send mail to the address associated with this github account.
-
 There are several areas that one can contribute to:
 - application core - involves java & javaFX code, OOP + Functional + Reactive styles
-- skins - requires very basic knowledge of css and a lots of patience
-- widgets - involves java & javaFX code
+- skins - requires very basic knowledge of css and a some of patience
+- widgets - involves java & javaFX code & knowledge of the APIs
 - testing & bug reporting
-- design - logos, overal app motives and spreading the word (no, not yet...)
+- feedback and spreading the word
 
 ### Development
 
 The provided files are
 - source files
 - working directory containing application data.
-- libraries
+- dependencies (libraries and projects to import)
 
 In order to successfully build and run the application the working directory should be set up in the project's settings in the IDE to: '/working dir'. All libraries in the 'extra/lib' must be imported in the project.
 

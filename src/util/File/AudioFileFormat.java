@@ -6,7 +6,6 @@ package util.File;
 
 import AudioPlayer.playlist.Item;
 import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.Field.*;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -82,10 +81,10 @@ public enum AudioFileFormat {
         switch(this) {
             case mp4  :
             case m4a  :
-            case mp3  : return true;
-            case ogg  : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
-            case flac : return f!=RATING && f!=RATING_RAW && f!=PUBLISHER;
-            case wav  : 
+            case mp3  :
+            case ogg  :
+            case flac : return true;
+            case wav  : return false; // is not and never will be supported
             case spx  :
             case snd  :
             case aifc :

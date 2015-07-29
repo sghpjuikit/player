@@ -17,6 +17,7 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 import static util.File.AudioFileFormat.mp3;
 import unused.Log;
+import static util.Util.clip;
 
 /**
  *
@@ -36,9 +37,7 @@ public abstract class MetaItem<CI extends Item> extends Item<CI> {
     
     /** @return provided value clipped to min and max rating */
     double clipRating(double v) {
-        double min = getRatingMin();
-        double max = getRatingMax();
-        return v<min ? min : v>max ? max : v; 
+        return clip(getRatingMin(),v,getRatingMax()); 
     }
     
 //****************************** HELPER FUNCTIONS ****************************//

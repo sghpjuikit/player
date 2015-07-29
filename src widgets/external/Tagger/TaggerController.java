@@ -1,38 +1,12 @@
 
 package Tagger;
 
-import AudioPlayer.playlist.Item;
-import AudioPlayer.services.Database.DB;
-import AudioPlayer.services.notif.Notifier;
-import gui.objects.image.cover.Cover;
-import static gui.objects.image.cover.Cover.CoverSource.TAG;
-import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.Field.*;
-import AudioPlayer.tagging.MetadataReader;
-import AudioPlayer.tagging.MetadataWriter;
-import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.feature.SongReader;
-import Layout.Widgets.feature.SongWriter;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
-import gui.itemnode.TextFieldItemNode.MoodItemNode;
-import gui.itemnode.TextFieldItemNode.TextFieldItemNode;
-import gui.objects.PopOver.PopOver;
-import gui.objects.PopOver.PopOver.NodeCentricPos;
-import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
-import gui.objects.image.ChangeableThumbnail;
-import gui.objects.icon.CheckIcon;
-import gui.objects.icon.Icon;
 import java.io.File;
 import java.net.URI;
 import java.time.Year;
 import java.util.*;
-import static java.util.Collections.singletonList;
 import java.util.function.Predicate;
-import static javafx.application.Platform.runLater;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -42,40 +16,70 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
-import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.image.Image;
 import javafx.scene.input.*;
-import static javafx.scene.input.KeyCode.*;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import main.App;
-import static main.App.TAG_MULTIPLE_VALUE;
-import static main.App.TAG_NO_VALUE;
-import static org.atteo.evo.inflector.English.plural;
+
 import org.controlsfx.control.textfield.CustomTextField;
 import org.controlsfx.control.textfield.TextFields;
+
+import AudioPlayer.playlist.Item;
+import AudioPlayer.services.Database.DB;
+import AudioPlayer.services.notif.Notifier;
+import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataReader;
+import AudioPlayer.tagging.MetadataWriter;
+import Configuration.IsConfig;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.feature.SongReader;
+import Layout.Widgets.feature.SongWriter;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.itemnode.TextFieldItemNode.MoodItemNode;
+import gui.itemnode.TextFieldItemNode.TextFieldItemNode;
+import gui.objects.PopOver.PopOver;
+import gui.objects.PopOver.PopOver.NodeCentricPos;
+import gui.objects.icon.CheckIcon;
+import gui.objects.icon.Icon;
+import gui.objects.image.ChangeableThumbnail;
+import gui.objects.image.cover.Cover;
+import main.App;
+import unused.Log;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import static util.File.FileUtil.EMPTY_COLOR;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
 import util.access.Accessor;
-import static util.async.Async.FX;
 import util.async.future.Fut;
-import static util.async.future.Fut.fut;
 import util.collections.map.MapSet;
-import unused.Log;
-import static util.functional.Util.*;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
+
+import static AudioPlayer.tagging.Metadata.Field.*;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
+import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
+import static gui.objects.image.cover.Cover.CoverSource.TAG;
+import static java.util.Collections.singletonList;
+import static javafx.application.Platform.runLater;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
+import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseDragEvent.MOUSE_DRAG_RELEASED;
+import static main.App.TAG_MULTIPLE_VALUE;
+import static main.App.TAG_NO_VALUE;
+import static org.atteo.evo.inflector.English.plural;
+import static util.File.FileUtil.EMPTY_COLOR;
+import static util.async.Async.FX;
+import static util.async.future.Fut.fut;
+import static util.functional.Util.*;
 
 /**
  * TaggerController graphical component.
@@ -104,7 +108,7 @@ import util.parsing.Parser;
     year = "2015",
     group = Widget.Group.TAGGER)
 public class TaggerController extends FXMLController implements SongWriter, SongReader {
-    
+
     @FXML AnchorPane root;
     @FXML AnchorPane content;
     @FXML BorderPane header;
@@ -128,7 +132,8 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     @FXML CustomTextField PlaycountF;
     @FXML CustomTextField CommentF;
           MoodItemNode MoodF = new MoodItemNode();
-    @FXML ColorPicker ColorF;
+    @FXML ColorPicker ColorFPicker;
+    @FXML CustomTextField ColorF;
     @FXML CustomTextField Custom1F;
     @FXML CustomTextField Custom2F;
     @FXML CustomTextField Custom3F;
@@ -183,11 +188,11 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         
         // validators
         Predicate<String> IsBetween0And1 = noEx(false,(String t) -> {
-            double i = new Double(t);
+            double i = Double.parseDouble(t);
             return i>=0 && i<=1;
         },NumberFormatException.class)::apply;
         Predicate<String> isPastYearS = noEx(false,(String t) -> {
-            int i = new Integer(t);
+            int i = Integer.parseInt(t);
             int max = Year.now().getValue();
             return i>0 && i<=max;
         },NumberFormatException.class)::apply;
@@ -215,16 +220,18 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         fields.add(new TagField(PlaycountF,PLAYCOUNT));
         fields.add(new TagField(CommentF,Metadata.Field.COMMENT));
         fields.add(new TagField(MoodF,MOOD));
+        fields.add(new TagField(ColorF,CUSTOM1,Parser.isParsable(Color.class)));
         fields.add(new TagField(Custom1F,CUSTOM1));
         fields.add(new TagField(Custom2F,CUSTOM2));
         fields.add(new TagField(Custom3F,CUSTOM3));
         fields.add(new TagField(Custom4F,CUSTOM4));
         fields.add(new TagField(Custom5F,CUSTOM5));
         fields.add(new TagField(LyricsA,LYRICS));
-            // associate color picker with custom1 field
-        Custom1F.setEditable(false);
-        ColorF.disableProperty().bind(Custom1F.disabledProperty());
-        ColorF.valueProperty().addListener((o,ov,nv) -> Custom1F.setText(Parser.toS(nv)));
+        // associate color picker with custom1 field
+        ColorFPicker.disableProperty().bind(ColorF.disabledProperty());
+        ColorFPicker.valueProperty().addListener((o,ov,nv) -> 
+            ColorF.setText(nv==null || nv==EMPTY_COLOR ? "" : Parser.toS(nv))
+        );
         
 
         // deselect text fields on click
@@ -269,7 +276,6 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         
         populate(null);
     }
-    
 
     
     private void setR() {
@@ -431,15 +437,19 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             if ((boolean)PlaycountF.getUserData())    w.setPlaycount(PlaycountF.getText());
             if ((boolean)CommentF.getUserData())      w.setComment(CommentF.getText());
             if ((boolean)MoodF.getUserData())         w.setMood(MoodF.getText());
-            ColorF.setUserData(true);
-            if ((boolean)ColorF.getUserData())        w.setColor(ColorF.getValue());
-            if ((boolean)Custom1F.getUserData())      w.setCustom1(Custom1F.getText());
-            if ((boolean)Custom2F.getUserData())      w.setCustom2(Custom2F.getText());
-            if ((boolean)Custom3F.getUserData())      w.setCustom3(Custom3F.getText());
-            if ((boolean)Custom4F.getUserData())      w.setCustom4(Custom4F.getText());
-            if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
+            ColorFPicker.setUserData(true);
+            if ((boolean)ColorFPicker.getUserData()&&ColorFPicker.getValue()!=EMPTY_COLOR)        w.setColor(ColorFPicker.getValue());
+            if ((boolean)ColorF.getUserData())      w.setCustom1(ColorF.getText());
             if ((boolean)LyricsA.getUserData())       w.setLyrics(LyricsA.getText());
             if ((boolean)CoverL.getUserData())        w.setCover(new_cover_file);
+            if ((boolean)Custom4F.getUserData())      w.setCustom4(Custom4F.getText());
+            if ((boolean)Custom5F.getUserData())      w.setCustom5(Custom5F.getText());
+            // enabling the following three has no effect as they are not
+            // editable and graphics are disabled, thus will always be empty
+            // we comment it out to prevent needless checking
+            // if ((boolean)Custom1F.getUserData())      w.setCustom2(Custom1F.getText());
+            // if ((boolean)Custom2F.getUserData())      w.setCustom2(Custom2F.getText());
+            // if ((boolean)Custom3F.getUserData())      w.setCustom3(Custom3F.getText());
         }, items -> {
             // post (make sure its on FX)
             runLater(() -> {
@@ -533,6 +543,10 @@ public class TaggerController extends FXMLController implements SongWriter, Song
 
                         // enable/disable playcount field
                         if(!allow_playcount_change.getValue()) PlaycountF.setDisable(true);
+                        RatingF.setDisable(true);
+                        Custom1F.setDisable(true);
+                        Custom2F.setDisable(true);
+                        Custom3F.setDisable(true);
 
                         hideProgress();
                     });
@@ -733,8 +747,8 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         public void histogramEnd(Collection<AudioFileFormat> formats) {
             if(f==CUSTOM1) {
                 Color c = Parser.fromS(Color.class,histogramS);
-                ColorF.setValue(c==null ? EMPTY_COLOR : c);   
-                Custom1F.setText("");
+                ColorFPicker.setValue(c==null ? EMPTY_COLOR : c);   
+                ColorF.setText("");
             }
             
             if      (histogramI == 0)   c.setPromptText(TAG_NO_VALUE);

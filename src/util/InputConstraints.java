@@ -85,7 +85,8 @@ public class InputConstraints {
     public static EventHandler<KeyEvent> createNumbersOnlyInputHandler(int maxLength, boolean negative, boolean floating) {
         String n = negative ? "//-" : "";
         String f = floating ? "." : "";
-        return createPatternInputHandler(maxLength, "[0-9]");
+        String pattern = "[0-9" + f + n + "]";
+        return createPatternInputHandler(maxLength, pattern);
     }
     public static EventHandler<KeyEvent> createNumbersOnlyInputHandler(int maxLength) {
         return createPatternInputHandler(maxLength, "[0-9.//-]");

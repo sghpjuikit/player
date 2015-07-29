@@ -20,7 +20,7 @@
                   <Insets bottom="5.0" left="10.0" right="10.0" top="5.0" />
                </padding>
             </BorderPane>
-          <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="523.0" prefWidth="500.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
+          <ScrollPane id="ScrollPane" fitToWidth="true" hbarPolicy="NEVER" prefHeight="543.0" prefWidth="500.0" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
             <content>
               <AnchorPane id="AnchorPane" fx:id="scrollContent" prefWidth="-1.0">
                 <children>
@@ -101,27 +101,32 @@
       <Insets right="10.0" />
       </GridPane.margin>
                               </Label>
-                              <Label text="Custom 1" GridPane.halignment="RIGHT" GridPane.rowIndex="15">
+                              <Label text="Color" GridPane.halignment="RIGHT" GridPane.rowIndex="15">
+      <GridPane.margin>
+      <Insets right="10.0" />
+      </GridPane.margin>
+                              </Label>                              
+                              <Label text="Custom 1" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
       <GridPane.margin>
       <Insets right="10.0" />
       </GridPane.margin>
                               </Label>
-                              <Label text="Custom 2" GridPane.halignment="RIGHT" GridPane.rowIndex="16">
+                              <Label text="Custom 2" GridPane.halignment="RIGHT" GridPane.rowIndex="17">
       <GridPane.margin>
       <Insets right="10.0" />
       </GridPane.margin>
                               </Label>
-                              <Label text="Custom 3" GridPane.halignment="RIGHT" GridPane.rowIndex="17">
+                              <Label text="Custom 3" GridPane.halignment="RIGHT" GridPane.rowIndex="18">
       <GridPane.margin>
       <Insets right="10.0" />
       </GridPane.margin>
                               </Label>
-                              <Label text="Custom 4" GridPane.halignment="RIGHT" GridPane.rowIndex="18">
+                              <Label text="Custom 4" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
       <GridPane.margin>
       <Insets right="10.0" />
       </GridPane.margin>
                               </Label>
-                              <Label text="Custom 5" GridPane.halignment="RIGHT" GridPane.rowIndex="19">
+                              <Label text="Custom 5" GridPane.halignment="RIGHT" GridPane.rowIndex="20">
       <GridPane.margin>
       <Insets right="10.0" />
       </GridPane.margin>
@@ -171,14 +176,15 @@
                       <CustomTextField fx:id="CommentF" alignment="CENTER_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="-1.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.rowIndex="13" />
                               <AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="15">
       <children>
-      <CustomTextField fx:id="Custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
-                                    <ColorPicker fx:id="ColorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
+      <CustomTextField fx:id="ColorF" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="30.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                                    <ColorPicker fx:id="ColorFPicker" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" prefWidth="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="15" />
       </children>
                               </AnchorPane>
-                              <CustomTextField fx:id="Custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
-                              <CustomTextField fx:id="Custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" />
-                              <CustomTextField fx:id="Custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
-                              <CustomTextField fx:id="Custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
+                              <CustomTextField fx:id="Custom1F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="16" />
+                              <CustomTextField fx:id="Custom2F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="17" />
+                              <CustomTextField fx:id="Custom3F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="18" />
+                              <CustomTextField fx:id="Custom4F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="19" />
+                              <CustomTextField fx:id="Custom5F" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0.0" minWidth="0.0" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.rowIndex="20" />
                     </children>
                     <columnConstraints>
                       <ColumnConstraints fillWidth="false" hgrow="NEVER" minWidth="-Infinity" />
@@ -204,11 +210,12 @@
                       <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                       <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                       <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
-      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
+                      <RowConstraints fillHeight="false" prefHeight="25.0" vgrow="NEVER" />
                     </rowConstraints>
                   </GridPane>
                   <AnchorPane id="AnchorPane" prefHeight="137.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="230.0">

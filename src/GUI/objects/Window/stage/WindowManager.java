@@ -87,7 +87,7 @@ public class WindowManager {
     }
     
     
-    @IsAction(name = "Toggle mini mode", description = "Toggle minimal layout docked mode", global = true, shortcut = "F9")    
+    @IsAction(name = "Toggle mini mode", descr = "Toggle minimal layout docked mode", global = true, shortcut = "F9")    
     public static void toggleMini() {
         setMini(!mini);
     }

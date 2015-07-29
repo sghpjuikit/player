@@ -13,13 +13,13 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
 import javafx.util.Duration;
 import org.reactfx.Subscription;
 import unused.Log;
-import static util.dev.Util.forbidNull;
 import static util.reactive.Util.maintain;
 
 /**
@@ -29,44 +29,30 @@ import static util.reactive.Util.maintain;
 public class JavaFxPlayer implements Play {
     
     public MediaPlayer player;
-    public boolean needs_seek = false;
-    public Duration seekTo;
     Subscription d1,d2,d3,d4,d5,d6,d7;
     
     @Override
     public void play() {
-        forbidNull(player);
         player.play();
     }
 
     @Override
     public void pause() {
-        forbidNull(player);
         player.pause();
     }
 
     @Override
     public void resume() {
-        forbidNull(player);
         player.play();
     }
 
     @Override
     public void seek(Duration duration) {
-        forbidNull(player);
-        MediaPlayer.Status s = player.getStatus();
-        if(s==PLAYING || s==PAUSED) {
-            player.seek(duration);
-            needs_seek = false;
-        } else {
-            needs_seek = true;
-            seekTo = duration;
-        }
+        player.seek(duration);
     }
 
     @Override
     public void stop() {
-        forbidNull(player);
         player.stop();
     }
     
@@ -77,6 +63,7 @@ public class JavaFxPlayer implements Play {
             media = new Media(item.getURI().toString());
         } catch (MediaException e) {
             Log.err(e.getLocalizedMessage());
+            // this should be actually handled
             return;
         }
 
@@ -87,9 +74,9 @@ public class JavaFxPlayer implements Play {
         // player.setAudioSpectrumThreshold(i) // ? what val is ok?
 
         // bind (not read only) values
-        d1 = maintain(state.volume.volumeProperty(),player.volumeProperty());
+        d1 = maintain(state.volume,player.volumeProperty());
         d2 = maintain(state.mute,player.muteProperty());
-        d3 = maintain(state.balance.balanceProperty(),player.balanceProperty());
+        d3 = maintain(state.balance,player.balanceProperty());
         d4 = maintain(state.rate,player.rateProperty());
 
         // register listener/event distributors
@@ -111,36 +98,27 @@ public class JavaFxPlayer implements Play {
                 }
             }
         });
-        player.statusProperty().addListener(new ChangeListener<MediaPlayer.Status>() {
-            @Override
-            public void changed(ObservableValue<? extends MediaPlayer.Status> o, MediaPlayer.Status oldV, MediaPlayer.Status newV) {
-                if (newV == MediaPlayer.Status.PLAYING || newV == PAUSED ) {
-                    if (needs_seek) {
-                        seek(seekTo);
-                    }
-                    // make one time only
-                    player.statusProperty().removeListener(this);
+        player.statusProperty().addListener((o,ov,nv) -> {
+            if (nv == PLAYING || nv == PAUSED ) {
+                if (PLAYBACK.startTime!=null) {
+                    seek(PLAYBACK.startTime);
+                    PLAYBACK.startTime = null;
                 }
             }
         });
 
-        // initialize (read only) values
-        //status && duration(auto)(item_length) && current time (auto)(0)
-        if (state.status.get() == MediaPlayer.Status.PLAYING) {
-            player.play();
-        } else
-        if (state.status.get() == MediaPlayer.Status.PAUSED) {
-            player.pause();
-        } else {
-            player.stop();
+        Status s = state.status.get();
+        if(PLAYBACK.startTime!=null) {
+            if (s == PLAYING) player.play();
+            else if (s == PAUSED) player.pause();
         }
     }
 
     @Override
     public void dispose() {
+        // render subsequent calls void
         if(player==null) return;
-            
-        if(player == null) return;
+        // cut player sideffects, do so before disposing
         if(d1!=null) d1.unsubscribe();
         if(d2!=null) d2.unsubscribe();
         if(d3!=null) d3.unsubscribe();
@@ -148,10 +126,8 @@ public class JavaFxPlayer implements Play {
         if(d5!=null) d5.unsubscribe();
         if(d6!=null) d6.unsubscribe();
         if(d7!=null) d7.unsubscribe();
-        PLAYBACK.state.currentTime.unbind();
-        PLAYBACK.state.duration.unbind();
-        PLAYBACK.state.status.unbind();
-        player.stop();
+        // stop() not necessary, wouldnt even work since these calls are 
+        // asynchronous, calling dispose stops playback and frees resources
         player.dispose();
         player = null;
     }

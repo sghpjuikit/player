@@ -476,24 +476,24 @@ public class App extends Application {
     
 /************************************ actions *********************************/
     
-    @IsAction(name = "Open github page", description = "Open github project "
+    @IsAction(name = "Open github page", descr = "Open github project "
             + "website of this application in default browser. For developers.")
     public static void openAppGithubPage() {
         browse(GITHUB_URI);
     }
     
-    @IsAction(name = "Open app dir", description = "Open application location.")
+    @IsAction(name = "Open app dir", descr = "Open application location.")
     public static void openAppLocation() {
         browse(getLocation());
     }
     
-    @IsAction(name = "Open css guide", description = "Open official oracle css "
+    @IsAction(name = "Open css guide", descr = "Open official oracle css "
             + "reference guide. Helps with skinning. For developers.")
     public static void openCssGuide() {
         browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html");
     }
     
-    @IsAction(name = "Open icon viewer", description = "Open viewer to browse "
+    @IsAction(name = "Open icon viewer", descr = "Open viewer to browse "
             + "application supported icons. For developers")
     public static void openIconViewer() {
         Fut.fut()
@@ -509,7 +509,7 @@ public class App extends Application {
            .run();
     }
     
-    @IsAction(name = "Open settings", description = "Open preferred "
+    @IsAction(name = "Open settings", descr = "Open preferred "
             + "settings widget to show applciation settings. Widget is open in "
             + "a popup or layout, or already open widget is reused, depending "
             + "on the settings")

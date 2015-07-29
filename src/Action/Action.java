@@ -62,7 +62,7 @@ public final class Action extends Config<Action> implements Runnable {
     private final boolean defaultGlobal;
     
     private Action(IsAction a, Runnable action) {
-        this(a.name(),action,a.description(),a.shortcut(),a.global(),a.continuous());
+        this(a.name(),action,a.descr(),a.shortcut(),a.global(),a.continuous());
     }
     
     /**
@@ -609,8 +609,8 @@ public final class Action extends Config<Action> implements Runnable {
             else if(i==JIntellitype.APPCOMMAND_MEDIA_NEXTTRACK) PlaylistManager.playNextItem();
             else if(i==JIntellitype.APPCOMMAND_MEDIA_PLAY_PAUSE) PLAYBACK.pause_resume();
             else if(i==JIntellitype.APPCOMMAND_MEDIA_STOP) PLAYBACK.stop();
-            else if(i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.decVolume();
-            else if(i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.incVolume();
+            else if(i==JIntellitype.APPCOMMAND_VOLUME_DOWN) PLAYBACK.volumeDec();
+            else if(i==JIntellitype.APPCOMMAND_VOLUME_UP) PLAYBACK.volumeInc();
             else if(i==JIntellitype.APPCOMMAND_VOLUME_MUTE) PLAYBACK.toggleMute();
             else if(i==JIntellitype.APPCOMMAND_CLOSE) App.close();
         });

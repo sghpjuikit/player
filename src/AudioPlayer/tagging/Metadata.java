@@ -49,6 +49,7 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyPOPM;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import static util.File.FileUtil.EMPTY_COLOR;
@@ -210,13 +211,13 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         Tag tag = audiofile.getTagOrCreateAndSetDefault();
         loadGeneralFields(audiofile, tag);
         switch (getFormat()) {
-            case mp3:   loadSpecificFieldsMP3((MP3File)audiofile);  break;
-            case flac:  loadFieldsFLAC((FlacTag)tag);       break;
-            case ogg:   loadFieldsOGG(tag);                 break;
-            case wav:   loadFieldsWAV((WavTag)tag);         break;
+            case mp3:  loadSpecificFieldsMP3((MP3File)audiofile);           break;
+            case flac: loadFieldsVorbis(((FlacTag)tag).getVorbisCommentTag());break;
+            case ogg:  loadFieldsVorbis((VorbisCommentTag)tag);                break;
+            case wav:  loadFieldsWAV((WavTag)tag);                          break;
             case mp4:
-            case m4a:   loadFieldsMP4((Mp4Tag)tag);         break;
-            default: throw new AssertionError("Illegal case in switch");
+            case m4a:  loadFieldsMP4((Mp4Tag)tag);                          break;
+            default:   // do nothing for the rest;
         }        
         
     }
@@ -250,10 +251,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         int i = tr.indexOf('/');
         if(i!=-1) {
             // some apps use TRACK for "x/y" string format, we cover that
-            track = getNumber(tr.substring(0, i));
-            tracks_total = getNumber(tr.substring(i+1, tr.length()));
+            track = number(tr.substring(0, i));
+            tracks_total = number(tr.substring(i+1, tr.length()));
         } else {
-            track = getNumber(tr);
+            track = number(tr);
             tracks_total = getNumber(tag,FieldKey.TRACK_TOTAL);
         }
         
@@ -262,10 +263,10 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         int j = dr.indexOf('/');
         if(j!=-1) {
             // some apps use DISC_NO for "x/y" string format, we cover that
-            disc = getNumber(dr.substring(0, j));
-            discs_total = getNumber(dr.substring(j+1, dr.length()));
+            disc = number(dr.substring(0, j));
+            discs_total = number(dr.substring(j+1, dr.length()));
         } else {
-            disc = getNumber(dr);
+            disc = number(dr);
             discs_total = getNumber(tag,FieldKey.DISC_TOTAL);
         }
         
@@ -293,9 +294,9 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         return Util.emptifyString(tag.getFirst(f));
     }
     private int getNumber(Tag tag, FieldKey field) {
-        return getNumber(getGeneral(tag, field));
+        return number(getGeneral(tag, field));
     } 
-    private int getNumber(String s) {
+    private int number(String s) {
         try {
             return s.isEmpty() ? -1 : parseInt(s);
         } catch(NumberFormatException e){
@@ -343,17 +344,15 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     
     
     private void loadSpecificFieldsMP3(MP3File mp3) {
-        Objects.requireNonNull(mp3);
-        
-        // we obtain the tag
         ID3v24Tag tag = mp3.getID3v2TagAsv24();
-        // if no tag is present we get null, nothing to read -> leave default values
+        // null == no tag == nothing to read -> leave default values
         if(tag==null) {
             Log.warn("MP3 file is missing tag: " + getURI() + ". Some values will be left empty.");
             return;
         }
         
-        // we obtain the POPM field (rating + counter + mail/user)
+        // RATING +PLAYCOUNT ---------------------------------------------------
+        // we use POPM field (rating + counter + mail/user)
         AbstractID3v2Frame frame1 = tag.getFirstField(ID3v24Frames.FRAME_ID_POPULARIMETER);
         // if not present we get null and leave default values
         if (frame1 != null) {
@@ -380,14 +379,15 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
             }
         }
         
-        // we obtain publisher
+        // PUBLISHER -----------------------------------------------------------
         publisher = emptifyString(tag.getFirst(ID3v24Frames.FRAME_ID_PUBLISHER));
     }
+    
     private void loadFieldsWAV(WavTag tag) {
-        // unfortunately WAV is completely unsupported, as far as i know it doesnt have tag
-        rating = -1;
-        publisher = "";
+        // WAV doesnt support tag
     }
+    
+    // mp4 & m4a
     private void loadFieldsMP4(Mp4Tag tag) {
         // RATING --------------------------------------------------------------
         // id: 'rate'
@@ -416,17 +416,27 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         publisher = emptifyString(tag.getFirst(Mp4FieldKey.WINAMP_PUBLISHER));
         if(publisher.isEmpty()) publisher = emptifyString(tag.getFirst(Mp4FieldKey.MM_PUBLISHER));
     }
-    private void loadFieldsOGG(Tag tag) {
-        rating = -1;
-        publisher = "";
-        // try to get category as winamp does it
-        if(category.isEmpty()) category = Util.emptifyString(tag.getFirst("CATEGORY"));
-    }
-    private void loadFieldsFLAC(FlacTag tag) {
-        rating = -1;
-        publisher = "";
-        // try to get category as winamp does it
-        if(category.isEmpty()) category = Util.emptifyString(tag.getFirst("CATEGORY"));
+    
+    // ogg & flac 
+    // both use vorbis tag, the only difference between the two is cover
+    // handling, which jaudiotagger takes care of in type agnostic way
+    private void loadFieldsVorbis(VorbisCommentTag tag) {
+        // RATING --------------------------------------------------------------
+        // some players use 0-5 value, so extends it to 100
+        rating = number(emptifyString(tag.getFirst("RATING")));
+        if(0<rating && rating<6) rating *=20;
+        
+        // PLAYCOUNT -----------------------------------------------------------
+        // if we want to support playcount in vorbis specific field, we can
+        // just lets not overwrite value we obtained with previous methods
+        // if(playcount==-1) playcount = number(emptifyString(tag.getFirst("PLAYCOUNT")));
+        
+        // PUBLISHER -----------------------------------------------------------
+        publisher = emptifyString(tag.getFirst("PUBLISHER"));
+        
+        // CATEGORY ------------------------------------------------------------
+        // try to get category the winamp way, dont if we already have a value
+        if(category.isEmpty()) category = emptifyString(tag.getFirst("CATEGORY"));
     }
 
 /******************************************************************************/  
@@ -778,8 +788,6 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
     @MetadataFieldMethod(Field.RATING)
     public double getRatingPercent() {
         return getRating()/(double)getRatingMax();
-//        if(ratingP==-1) ratingP = getRating()/(double)getRatingMax();
-//        return ratingP;
     }
     
     /**
@@ -1109,7 +1117,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         COVER_INFO("Cover information"),
         RATING("Song rating in 0-1 range"),
         RATING_RAW("Song rating tag value. Depends on tag type"),
-        PLAYCOUNT("Number of times the song was played. Definition may vary."),
+        PLAYCOUNT("Number of times the song was played. Definition of played is arbitrary."),
         CATEGORY("Category of the song. Arbitrary"),
         COMMENT("User comment of the song. Arbitrary"),
         LYRICS("Lyrics for the song"),
@@ -1118,7 +1126,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         CHAPTERS("Comments at specific time points of the song"),
         CUSTOM1("Custom field 1. Reserved for chapters."),
         CUSTOM2("Custom field 2. Reserved for color."),
-        CUSTOM3("Custom field 3"),
+        CUSTOM3("Custom field 3. Reserved for playback."),
         CUSTOM4("Custom field 4"),
         CUSTOM5("Custom field 5");
         

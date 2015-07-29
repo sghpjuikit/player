@@ -363,8 +363,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// if some component has its own onScroll behavior, it should consume
 	// the event so this will not fire
 	root.setOnScroll(e -> {
-	    if (e.getDeltaY() > 0) PLAYBACK.incVolume();
-	    else if (e.getDeltaY() < 0) PLAYBACK.decVolume();
+	    if (e.getDeltaY() > 0) PLAYBACK.volumeInc();
+	    else if (e.getDeltaY() < 0) PLAYBACK.volumeDec();
 	});
 
         // layout mode on key press/release

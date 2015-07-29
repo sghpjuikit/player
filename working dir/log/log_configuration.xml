@@ -2,7 +2,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_DIR}/log_contents.log</File>
         <!-- deny all events with a level below WARN, that is TRACE-INFO
-             for the record the levels are: TRACE, DEBUG, INFO, WARN, ERROR-->
+        for the record the levels are: TRACE, DEBUG, INFO, WARN, ERROR-->
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
           <level>WARN</level>
         </filter>
@@ -15,13 +15,14 @@
             <MaxFileSize>512KB</MaxFileSize>
         </triggeringPolicy>
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%-28thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%-25thread] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} %-5level [%-28thread] %logger{36} - %msg%n</pattern>
+            <!-- {0} log only class name (no packages)-->
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%-25thread] %logger{0} - %msg%n</pattern>
         </encoder>
     </appender>
 

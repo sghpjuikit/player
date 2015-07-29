@@ -60,6 +60,8 @@ import org.tritonus.share.sampled.TAudioFormat;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
 
 import javazoom.spi.PropertiesContainer;
+import util.dev.TODO;
+import static util.dev.TODO.Purpose.BUG;
 
 /**
  *
@@ -67,7 +69,8 @@ import javazoom.spi.PropertiesContainer;
  */
 public class AudioPlayer implements Callable<Void> {
 
-    private final Logger logger = LoggerFactory.getLogger(AudioPlayer.class);
+    private static final Logger logger = LoggerFactory.getLogger(AudioPlayer.class);
+    
     protected final int READ_BUFFER_SIZE = 4 * 1024;
     protected final Lock lock = new ReentrantLock();
     protected final Condition pauseCondition = lock.newCondition();
@@ -536,7 +539,7 @@ public class AudioPlayer implements Callable<Void> {
      * Sets Gain value.
      * @param gain a value bitween -1.0 and +1.0
      */
-    public void setgAIN(float gain) {
+    public void setGain(float gain) {
         if (gainControl != null) {
             double minGain = gainControl.getMinimum();
             double maxGain = gainControl.getMaximum();
@@ -785,15 +788,21 @@ public class AudioPlayer implements Callable<Void> {
         return totalSkipped;
     }
 
+    @TODO(purpose = BUG)
     protected void closeStream() {
         if (audioInputStream != null) {
             try {
-                audioInputStream.close();
+                audioInputStream.close(); // bugged, see below
                 audioInputStream = null;
                 logger.info("Stream closed");
             } catch (IOException ex) {
                 logger.error("Cannot close stream", ex);
             }
+            // bug fix, close() wont release file sometimes, this would prevent
+            // this app and whole OS from accessing the file until this app
+            // terminates
+            // apparently a widespread java bug, java devs dont care
+            System.gc();
         }
     }
 }

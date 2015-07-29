@@ -3,6 +3,7 @@ package PlayerControlsTiny;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
@@ -26,10 +27,8 @@ import javafx.scene.media.MediaPlayer.Status;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
-import org.reactfx.Subscription;
 import util.Util;
 import util.access.Accessor;
-import static util.functional.Util.list;
 import static util.functional.Util.map;
 import util.graphics.drag.DragUtil;
 import static util.reactive.Util.maintain;
@@ -50,7 +49,6 @@ import static util.reactive.Util.maintain;
 )
 public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
     
-    // gui
     @FXML AnchorPane root;
     @FXML BorderPane seekerPane;
     @FXML HBox controlBox;
@@ -61,11 +59,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     @FXML Label artistL;
     Seeker seeker = new Seeker();
     Icon prevB, playB, stopB, nextB, volB;
-    // dpendencies that should be disposed of - listeners, etc
-    Subscription d1,d2,d3,d4,d5,d6;
-    List<Subscription> ds;
     
-    // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
@@ -82,15 +76,21 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         
     @Override
     public void init() {
+        PlaybackState ps = PLAYBACK.state;
+        
         // make volume
-        volume.setMin(PLAYBACK.getVolumeMin());
-        volume.setMax(PLAYBACK.getVolumeMax());
-        volume.setValue(PLAYBACK.getVolume());
-        volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
+        volume.setMin(ps.volume.getMin());
+        volume.setMax(ps.volume.getMax());
+        volume.setValue(ps.volume.get());
+        volume.valueProperty().bindBidirectional(ps.volume);
+        d(volume.valueProperty()::unbind);
+        
         // make seeker
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
-        d6 = maintain(GUI.snapDistance, d->d, seeker.chapterSnapDistance);
+        d(seeker::unbindTime);
+        d(maintain(GUI.snapDistance, d->d, seeker.chapterSnapDistance));
         seekerPane.setCenter(seeker);
+        
         // make icons
         prevB = new Icon(STEP_BACKWARD, 14, null, PlaylistManager::playPreviousItem);
         playB = new Icon(null, 14, null, PLAYBACK::pause_resume);
@@ -101,13 +101,13 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         volBox.getChildren().add(0,volB);
         
         // monitor properties and update graphics + initialize
-        d1 = maintain(PLAYBACK.volumeProperty(), v->muteChanged(PLAYBACK.isMute(), v.doubleValue()));
-        d2 = maintain(PLAYBACK.muteProperty(), m->muteChanged(m, PLAYBACK.getVolume()));
-        d3 = maintain(PLAYBACK.statusProperty(), this::statusChanged);
-        d4 = Player.playingtem.subscribeToUpdates(this::playbackItemChanged);   
-        d5 = maintain(PLAYBACK.currentTimeProperty(),t->currentTimeChanged());
+        d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
+        d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
+        d(maintain(ps.status, this::statusChanged));
+        d(maintain(ps.currentTime,t->currentTimeChanged()));
+        d(Player.playingtem.subscribeToUpdates(this::playbackItemChanged));   
         
-        // audio drag
+        // drag & drop
         root.setOnDragOver(DragUtil.audioDragAccepthandler);
         root.setOnDragDropped( e -> {
             if (DragUtil.hasAudio(e.getDragboard())) {
@@ -124,20 +124,10 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 }
             }
         });
-        
-        ds = list(d1,d2,d3,d4,d5,d6);
     }
     
     @Override
     public void refresh() { }
-
-    @Override
-    public void onClose() {
-        // remove listeners
-        ds.forEach(Subscription::unsubscribe);
-        seeker.unbindTime();
-        volume.valueProperty().unbind();
-    }
     
 /******************************************************************************/
         
@@ -151,6 +141,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         artistL.setText(m.getArtist());
         seeker.reloadChapters(m);
     }
+    
     private void statusChanged(Status status) {
         if (status == null || status == UNKNOWN ) {
             seeker.setDisable(true);
@@ -163,9 +154,11 @@ public class PlayerControlsTinyController extends FXMLController implements Play
             playB.icon(PLAY);
         }
     }
+    
     private void muteChanged(boolean mute, double vol) {
         volB.icon(mute ? VOLUME_OFF : vol>.5 ? VOLUME_UP : VOLUME_DOWN);
     }
+    
     private void currentTimeChanged() {
         // update label
         if (elapsedTime) {

@@ -454,25 +454,25 @@ public class PlaylistManager implements Configurable {
     }
     
     /** Plays first item on playlist.*/
-    @IsAction(name = "Play first", description = "Plays first item on playlist.", shortcut = "ALT+W", global = true)
+    @IsAction(name = "Play first", descr = "Plays first item on playlist.", shortcut = "ALT+W", global = true)
     public static void playFirstItem() {
         playItem(0);
     }
     
     /** Plays last item on playlist.*/
-    @IsAction(name = "Play last", description = "Plays last item on playlist.", global = true)
+    @IsAction(name = "Play last", descr = "Plays last item on playlist.", global = true)
     public static void playLastItem() {
         playItem(playlist.getSize()-1);
     }
     
     /** Plays next item on playlist according to its selector logic.*/
-    @IsAction(name = "Play next", description = "Plays next item on playlist.", shortcut = "ALT+Z", global = true)
+    @IsAction(name = "Play next", descr = "Plays next item on playlist.", shortcut = "ALT+Z", global = true)
     public static void playNextItem() {
         playItem(playingItemSelector.getNextPlaying(), playingItemSelector::getNext);
     }
     
     /** Plays previous item on playlist according to its selector logic.*/
-    @IsAction(name = "Play previous", description = "Plays previous item on playlist.", shortcut = "ALT+BACK_SLASH", global = true)
+    @IsAction(name = "Play previous", descr = "Plays previous item on playlist.", shortcut = "ALT+BACK_SLASH", global = true)
     public static void playPreviousItem() {
         playItem(playingItemSelector.getPreviousPlaying(), playingItemSelector::getPrevious);
     }
@@ -514,7 +514,7 @@ public class PlaylistManager implements Configurable {
     }
     
     /** Plays previous item on playlist according to its selector logic.*/
-    @IsAction(name = "Play previous", description = "Plays previous item on playlist.", shortcut = "ALT+\\", global = true)
+    @IsAction(name = "Play previous", descr = "Plays previous item on playlist.", shortcut = "ALT+\\", global = true)
     public static void openFile() {
         playItem(playingItemSelector.getPreviousPlaying());
     }
@@ -527,32 +527,32 @@ public class PlaylistManager implements Configurable {
     public static int folder_depth = 1;
     
     /** Open chooser and add new to end of playlist. */
-    @IsAction(name = "Choose and Add Files", description = "Open file chooser to add files to playlist.")
+    @IsAction(name = "Choose and Add Files", descr = "Open file chooser to add files to playlist.")
     public static void chooseFilestoAdd() {
         addOrEnqueueFiles(true);
     }
     /** Open chooser and add new to end of playlist. */
-    @IsAction(name = "Choose and Add Directory", description = "Open file chooser to add files from directory to playlist.")
+    @IsAction(name = "Choose and Add Directory", descr = "Open file chooser to add files from directory to playlist.")
     public static void chooseFoldertoAdd() {
         addOrEnqueueFolder(true);
     }
     /** Open chooser and add new to end of playlist. */
-    @IsAction(name = "Choose and Add Url", description = "Open file chooser to add url to playlist.")
+    @IsAction(name = "Choose and Add Url", descr = "Open file chooser to add url to playlist.")
     public static void chooseUrltoAdd() {
         addOrEnqueueUrl(true);
     }
     /** Open chooser and play new items. Clears previous playlist */
-    @IsAction(name = "Choose and Play Files", description = "Open file chooser to play files to playlist.")
+    @IsAction(name = "Choose and Play Files", descr = "Open file chooser to play files to playlist.")
     public static void chooseFilesToPlay() {
         addOrEnqueueFiles(true);
     }
     /** Open chooser and play new items. Clears previous playlist */
-    @IsAction(name = "Choose and Play Directory", description = "Open file chooser to play files from directory to playlist.")
+    @IsAction(name = "Choose and Play Directory", descr = "Open file chooser to play files from directory to playlist.")
     public static void chooseFolderToPlay() {
         addOrEnqueueFolder(true);
     }
     /** Open chooser and play new items. Clears previous playlist */
-    @IsAction(name = "Choose and Play Url", description = "Open file chooser to add url play playlist.")
+    @IsAction(name = "Choose and Play Url", descr = "Open file chooser to add url play playlist.")
     public static void chooseUrlToPlay() {
         addOrEnqueueUrl(true);
     }

@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- make time property 
 - seeker on click seek ~busted
 - implement smooth volume on seek
 - flac playback improve seeking + consecutive seeking performance
@@ -10,7 +11,6 @@
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
 - improve app start+stop speed
-- ogg playback support
 - converter add input area & display type of object
 - all tables sel + all sel outputs
 - generate widget inputs from annotation
@@ -38,13 +38,12 @@
   minimode popups should prevent from autohiding, but how?
 - investigate how to properly remove image scaling artifacts
 - Code Breaker (.m4a) and Interstellar (.flac) not playing, investigate
+- variable bitrate oggs not playing
+- JavaSoundPlayer not releasing file locks
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dont want to hear about ------------------
 --------------------------------------------------------------------------------
-
-PROTIP:
-- util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
 
 GENERAL
 - cant hide index column, shows artefacts                                       (medium)
@@ -146,7 +145,6 @@ SOLVED (but the underlying cause still deserves attention)
 
 UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - item->metadata
-- Playback/Player/Playlist state and suspending/restoring them
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel
   a bit here. It is questionable whether it is worth the effort
@@ -164,6 +162,9 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
   menu item for on/off autoresize columns option
 
 
+
+PROTIP:
+- util.dev.TODO annotates also bugged code, CTRL+F it throurough the project
 - heap: Use -Xmx1g, possibly more
   Large images need more memory. Default heap size WILL cause out of memory
   exceptions for images like 6k x 6k px & closing in on 10MB...

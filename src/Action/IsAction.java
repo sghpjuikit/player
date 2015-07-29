@@ -43,7 +43,7 @@ public @interface IsAction {
      * toolips.
      * @return description of the action
      */
-    String description() default "";
+    String descr() default "";
     
     /** 
      * Key combination for shortcut of the action. Default is "".

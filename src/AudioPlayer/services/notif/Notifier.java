@@ -43,7 +43,7 @@ public final class Notifier extends ServiceBase {
     public static void notifHide() {
         App.use(Notifier.class, Notifier::hideNotification);
     }
-    @IsAction(name = "Notify now playing", description = "Shows notification about currently playing song.", global = true, shortcut = "ALT + N")
+    @IsAction(name = "Notify now playing", descr = "Shows notification about currently playing song.", global = true, shortcut = "ALT + N")
     public static void notifNowPlaying() {
         App.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
     }

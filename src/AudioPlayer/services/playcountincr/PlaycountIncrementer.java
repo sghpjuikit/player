@@ -14,7 +14,6 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import static java.awt.TrayIcon.MessageType.INFO;
 import javafx.util.Duration;
-import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import main.App;
 import util.access.Accessor;
@@ -47,8 +46,8 @@ public class PlaycountIncrementer extends ServiceBase {
     
     @Override
     public void start() {
-        apply();
         running = true;
+        apply();
     }
 
     @Override
@@ -58,9 +57,8 @@ public class PlaycountIncrementer extends ServiceBase {
     
     @Override
     public void stop() {
-        running = true;
-        removeOld();
-        incrHand=null;
+        running = false;
+        apply();
     }
 
     @Override
@@ -87,9 +85,9 @@ public class PlaycountIncrementer extends ServiceBase {
     };
     
     private void apply() {
+        removeOld();
         if(!running) return;
         
-        removeOld();
         if (when.get() == ON_PERCENT) {
             incrHand = new PlayTimeHandler(total -> total.multiply(when_percent.get()),incr);
             PLAYBACK.addOnPlaybackAt(incrHand);

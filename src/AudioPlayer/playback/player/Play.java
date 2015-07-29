@@ -14,12 +14,16 @@ import javafx.util.Duration;
  * @author Plutonium_
  */
 public interface Play {
-    void createPlayback(Item item, PlaybackState state);
-    void dispose();
     
     void play();
     void pause();
     void resume();
     void seek(Duration duration);
     void stop();
+    
+    void createPlayback(Item item, PlaybackState state);
+    /**
+     * Stops playback if any and disposes of the player resources.
+     */
+    void dispose();
 }

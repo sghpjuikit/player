@@ -88,8 +88,6 @@ public class Util {
      * @return 
      */
     public static String formatDuration(Duration duration) {
-        Objects.requireNonNull(duration);
-        
         double sec_total = duration.toMillis()/1000;
         int seconds = (int) sec_total %60;
         int minutes = (int)((sec_total-seconds) /60) %60;
@@ -120,7 +118,6 @@ public class Util {
      * @return 
      */
     public static String formatDuration(Duration duration, boolean include_zeros) {
-        Objects.requireNonNull(duration);
         if (include_zeros) return formatDuration(duration);
         
         double sec_total = duration.toMillis()/1000;

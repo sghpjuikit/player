@@ -21,6 +21,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
 import main.App;
 import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
@@ -28,6 +29,7 @@ import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frame;
 import org.jaudiotagger.tag.id3.ID3v24Frames;
@@ -37,6 +39,9 @@ import org.jaudiotagger.tag.id3.framebody.FrameBodyTPUB;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.File.AudioFileFormat;
 import static util.File.AudioFileFormat.*;
 import static util.Util.clip;
@@ -58,6 +63,8 @@ import util.units.NofX;
  */
 @TODO(purpose = FUNCTIONALITY, note = "limit rating bounds value, multiple values, id3 popularimeter mail settings")
 public class MetadataWriter extends MetaItem {
+    
+    private static final Logger logger = LoggerFactory.getLogger(MetadataWriter.class);
     
     // state
     private File file;
@@ -110,22 +117,22 @@ public class MetadataWriter extends MetaItem {
 
     /** @param encoder the encoder to set */
     public void setEncoder(String encoder) {
-        setField(FieldKey.ENCODER, encoder);
+        setGeneralField(FieldKey.ENCODER, encoder);
     }
 
     /** @param album the album to set */
     public void setAlbum(String album) {
-        setField(FieldKey.ALBUM, album);
+        setGeneralField(FieldKey.ALBUM, album);
     }
 
     /**  @param val the artist to set */
     public void setArtist(String val) {
-        setField(FieldKey.ARTIST, val);
+        setGeneralField(FieldKey.ARTIST, val);
     }
     
     /**  @param val the album_artist to set */
     public void setAlbum_artist(String val) {
-        setField(FieldKey.ALBUM_ARTIST, val);
+        setGeneralField(FieldKey.ALBUM_ARTIST, val);
     }
     
     /**  @param artists the artists to set */
@@ -147,17 +154,17 @@ public class MetadataWriter extends MetaItem {
     
     /** @param val the composer to set */
     public void setComposer(String val) {
-        setField(FieldKey.COMPOSER, val);
+        setGeneralField(FieldKey.COMPOSER, val);
     }
     
     /**  @param val the category to set  */
     public void setCategory(String val) {
-        setField(FieldKey.GROUPING, val);
+        setGeneralField(FieldKey.GROUPING, val);
     }
 
     /** @param val the comment to set */
     public void setComment(String val) {
-        setField(FieldKey.COMMENT, val);
+        setGeneralField(FieldKey.COMMENT, val);
     }
     
     /** @param cover the cover to set */
@@ -181,17 +188,17 @@ public class MetadataWriter extends MetaItem {
     
     /** @param disc the disc to set */
     public void setDisc(String disc) {
-        setField(FieldKey.DISC_NO, disc);
+        setGeneralField(FieldKey.DISC_NO, disc);
     }
 
     /**  @param discs_total the discs_total to set */
     public void setDiscs_total(String discs_total) {
-        setField(FieldKey.DISC_TOTAL, discs_total);
+        setGeneralField(FieldKey.DISC_TOTAL, discs_total);
     }
 
     /** @param genre the genre to set */
     public void setGenre(String genre) {
-        setField(FieldKey.GENRE, genre);
+        setGeneralField(FieldKey.GENRE, genre);
     }
     
     /**  
@@ -260,20 +267,21 @@ public class MetadataWriter extends MetaItem {
      * @param val rating to set. -1 to remove the field from tag. Value will be 
      * clipped to 0-max value. */
     public void setRating(double val) {
-        val = val==-1 ? -1 : clipRating(val);
+        val = val<0 ? -1 : clipRating(val);
         
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   setRatingMP3(val); break;
-            case flac:  Log.info("Unsupported operation."); break;
-            case ogg:   Log.info("Unsupported operation."); break;
-            case wav:   Log.info("Unsupported operation."); break;
+            case flac:
+            case ogg:   setRatingVorbisOgg(val); break;
             case mp4:
             case m4a:   setRatingMP4(val); break;
-            default: throw new AssertionError("corrupted switch statement");
-        } 
+            default:    // rest not supported
+        }
+        // increment fields_changed in implementations
     }
     
+    // dont make this public, we need to guarantee we stay in range
     private void setRatingMP3(double val) {
         MP3File mp3File = ((MP3File)audioFile);
                 mp3File.getTagOrCreateAndSetDefault();
@@ -308,20 +316,26 @@ public class MetadataWriter extends MetaItem {
             Log.info("Ignoring rating field. Data invalid.");
         }
     }
+    private void setRatingVorbisOgg(double v) {
+        String sv = v<0 ? null : Integer.toString((int)v); // lets stay decimal
+        setVorbisField("RATING", sv);
+    }
+    
 
+    
     /** @param title the title to set  */
     public void setTitle(String title) {
-        setField(FieldKey.TITLE, title);
+        setGeneralField(FieldKey.TITLE, title);
     }
     
     /** @param track the track to set */
     public void setTrack(String track) {
-        setField(FieldKey.TRACK, track);
+        setGeneralField(FieldKey.TRACK, track);
     }
 
     /** @param tracks_total the tracks_total to set  */
     public void setTracks_total(String tracks_total) {
-        setField(FieldKey.TRACK_TOTAL, tracks_total);
+        setGeneralField(FieldKey.TRACK_TOTAL, tracks_total);
     }
     
     /**  @param count the rating to set */
@@ -342,21 +356,17 @@ public class MetadataWriter extends MetaItem {
     
     /** @param val rating to set. -1 to remove the field from tag. */
     public void setPlaycount(int val) {
+        // set universally
+        setGeneralField(CUSTOM3, val<0 ? "" : String.valueOf(val));
         AudioFileFormat f = getFormat();
-        switch(f) {
-            case ogg:
-            case wav:
-            case mp4:
-            case m4a:
-            case flac:  break;
-            case mp3:   setPlaycountMP3(val); break;
-            default: throw new AssertionError("corrupted switch statement");
-        } 
-        setField(CUSTOM3, val<0 ? "" : String.valueOf(val));
+        // set also mp3 specific
+        if(f==mp3) setPlaycountMP3(val);
     }
     
     /** @param increments playcount by 1. */
-    public void inrPlaycount(Metadata m) {
+    public void inrPlaycount(Metadata m) { 
+        // we kind of can reread the info from tag instead of parameter
+        // so this should be fixed to no param version
         setPlaycount(m.getPlaycount()+1);
     }
     
@@ -392,19 +402,20 @@ public class MetadataWriter extends MetaItem {
             Log.info("Ignoring playcount field. Data invalid.");
         }
     }
- 
+
 
     /** @param val the publisher to set  */
     public void setPublisher(String val) {
         AudioFileFormat f = getFormat();
         switch(f) {
+            case flac:
+            case ogg:   setVorbisField("PUBLISHER", val); break;
             case mp3:   setPublisherMP3(val); break;
-            case flac:  Log.info("Unsupported operation."); break;
-            case ogg:   Log.info("Unsupported operation."); break;
-            case wav:   Log.info("Unsupported operation."); break;
+            case mp4:
             case m4a:   setPublisherMP4(val); break;
-            default: throw new AssertionError("corrupted switch statement");
-        }        
+            default:    // rest not supported
+        }
+        // increment fields_changed in implementations
     }
     
     private void setPublisherMP3(String val) {
@@ -446,16 +457,10 @@ public class MetadataWriter extends MetaItem {
      * supporting id3 tag (mp3). For other types (flac, ogg, wav) does nothing.
      */
     public void setUserMailID3(String val) {
-        
         AudioFileFormat f = getFormat();
         switch(f) {
             case mp3:   seUserPopmID3(val); break;
-            case flac:  Log.info("Unsupported operation."); break;
-            case ogg:   Log.info("Unsupported operation."); break;
-            case wav:   Log.info("Unsupported operation."); break;
-            case mp4:
-            case m4a:   Log.info("Unsupported operation."); break;
-            default: throw new AssertionError("corrupted switch statement");
+            default:    // rest not supported
         }
     }
     private void seUserPopmID3(String val) {
@@ -481,17 +486,17 @@ public class MetadataWriter extends MetaItem {
 
     /** @param val the lyrics to set */
     public void setLyrics(String val) {
-        setField(FieldKey.LYRICS, val);
+        setGeneralField(FieldKey.LYRICS, val);
     }
 
     /** @param val the mood to set */
     public void setMood(String val) {
-        setField(FieldKey.MOOD, val);
+        setGeneralField(FieldKey.MOOD, val);
     }
     
     /** @param c the color to set */
     public void setColor(Color c) {
-        setField(FieldKey.CUSTOM1, Parser.toS(c));
+        setGeneralField(FieldKey.CUSTOM1, Parser.toS(c));
     }
     
     /**
@@ -545,40 +550,40 @@ public class MetadataWriter extends MetaItem {
     
     /** @param val the year to set  */
     public void setYear(String val) {
-        setField(FieldKey.YEAR, val);
+        setGeneralField(FieldKey.YEAR, val);
     }
     
     /** 
      * Do not use. Used as color field.
      * @param val custom1 field value to set  */
     public void setCustom1(String val) {
-        setField(FieldKey.CUSTOM1, val);
+        setGeneralField(FieldKey.CUSTOM1, val);
     }
     
     /** 
      * Do not use. Used for chapters.
      * @param val custom1 field value to set  */
     public void setCustom2(String val) {
-        setField(FieldKey.CUSTOM2, val);
+        setGeneralField(FieldKey.CUSTOM2, val);
     }
     
     /** @param val custom3 field value to set  */
     public void setCustom3(String val) {
-        setField(FieldKey.CUSTOM3, val);
+        setGeneralField(FieldKey.CUSTOM3, val);
     }
     
     /** @param val custom4 field value to set  */
     public void setCustom4(String val) {
-        setField(FieldKey.CUSTOM4, val);
+        setGeneralField(FieldKey.CUSTOM4, val);
     }
     
     /** @param val custom5 field value to set  */
     public void setCustom5(String val) {
-        setField(FieldKey.CUSTOM5, val);
+        setGeneralField(FieldKey.CUSTOM5, val);
     }
     
-    /** sets field */
-    private void setField(FieldKey field, String val) {
+    /** sets field for any type (supported by jaudiotagger) */
+    private void setGeneralField(FieldKey field, String val) {
         try {
             boolean e = val == null || val.isEmpty();
             if (e) tag.deleteField(field);
@@ -592,6 +597,26 @@ public class MetadataWriter extends MetaItem {
             Log.info("Unsupported operation.");
         }
     }
+    /** 
+     * sets field for flac/ogg - use for non standard flac/ogg fields.
+     * @param field arbitrary (vorbis is that cool) value denoting the field
+     * @param field null or "" deletes field, otherwise value to be set
+     */
+    private void setVorbisField(String field, String value) {
+        // get tag
+        VorbisCommentTag t = tag instanceof FlacTag 
+                ? ((FlacTag)tag).getVorbisCommentTag() 
+                : (VorbisCommentTag)tag;
+        // set if possible
+        try {
+            if(value==null || value.isEmpty()) t.deleteField(field);
+            else t.setField(field,value);
+            fields_changed++;
+        } catch (KeyNotFoundException | FieldDataInvalidException e) {
+            
+        }
+    }
+    
     
     public void setFieldS(Metadata.Field fieldType, String data) {
         switch(fieldType) {
@@ -651,40 +676,50 @@ public class MetadataWriter extends MetaItem {
     
     /** 
      * Writes all changes to tag.
+     * <p>
+     * Must never execute on main thread. This method is blocking due to I/O
+     * and possibly sleeping the thread.
+     * 
      * @return true if data were written to tag or false if tag didnt change,
      * either because there was nothing to change or writing failed.
      */
     private boolean write() {
-        // write changes to tag
-        String f = (fields_changed == 1) ? "field" : "fields";
-        Log.deb("Writing " + fields_changed + f + " to tag for: " + getURI() + ".");
+        logger.info("Writing {} fields to tag for: {}",fields_changed,getURI());
         
         // do nothing if nothing to write
         if (!hasFields()) return false;  
         
-        try {      
-            // save tag
-            try {
-                audioFile.commit();
-            } catch (Exception ex) {
-                System.out.println("TAGING FAILED");
-                if (PlaylistManager.isSameItemPlaying(this)) {System.out.println("TRYING AGAIN");
-                    PLAYBACK.suspend();
-                    audioFile.commit();
-                    PLAYBACK.activate();
-                } else {
-//                    throw ex;
-                    Log.info("Can not write to tag for file: " + audioFile.getFile().getPath() + ex);
-                    return false;
+        // save tag
+        try {
+            audioFile.commit();
+        } catch (Exception ex) {
+            if (PlaylistManager.isSameItemPlaying(this)) {
+                logger.info("File being played, will attempt to suspend playback");
+                PLAYBACK.suspend();
+                for(int i=0; i<=2; i++) {
+                    int tosleep = i*i*250;
+                    logger.info("Attempt {}, sleeping for {}",i,tosleep);
+                    try {
+                        Thread.sleep(tosleep);
+                        audioFile.commit();
+                        break;
+                    } catch (CannotWriteException | InterruptedException e) {
+                        if(i==2) {
+                            logger.info("Can not write file tag: {} {}",audioFile.getFile().getPath(),e);
+                            PLAYBACK.activate();
+                            return false;
+                        }
+                    }
                 }
-            }            
-            
-            return true;
-            
-        } catch (Exception e) {
-            Log.info("Can not write to tag for file: " + audioFile.getFile().getPath() + e);
-            return false;
-        }
+                PLAYBACK.activate();
+            } else {
+                logger.info("Can not write file tag: {}",audioFile.getFile().getPath(),ex);
+                return false;
+            }
+        }            
+        
+        logger.info("Writing success");
+        return true;
     }
     
     /**
@@ -700,7 +735,7 @@ public class MetadataWriter extends MetaItem {
      * More formally returns fields() != 0.
      */
     public boolean hasFields() {
-        return fields() != 0;
+        return fields_changed > 0;
     }
     
     /**

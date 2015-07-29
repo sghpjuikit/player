@@ -2,6 +2,7 @@ package PlayerControls;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
 import AudioPlayer.playlist.Playlist;
@@ -20,8 +21,6 @@ import gui.objects.icon.GlowIcon;
 import gui.objects.icon.Icon;
 import java.io.File;
 import java.util.List;
-import javafx.beans.InvalidationListener;
-import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -36,8 +35,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
-import org.reactfx.Subscription;
 import util.Util;
+import static util.Util.formatDuration;
 import util.access.Accessor;
 import static util.functional.Util.map;
 import util.graphics.drag.DragUtil;
@@ -83,20 +82,19 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Label sampleRateL;
     @FXML Label channelsL;
     
+    @FXML HBox infoBox;
+    
     @FXML HBox playButtons;
-    Icon p1 = new GlowIcon(ANGLE_DOUBLE_LEFT,25); // BACKWARD is a good choice too
+    Icon p1 = new GlowIcon(ANGLE_DOUBLE_LEFT,25);
     Icon f2 = new GlowIcon(FAST_BACKWARD,25);
     Icon f3 = new GlowIcon(PLAY,25);
     Icon f4 = new GlowIcon(FAST_FORWARD,25);
-    Icon f5 = new GlowIcon(ANGLE_DOUBLE_RIGHT,25);// FORWARD is a good choice too
+    Icon f5 = new GlowIcon(ANGLE_DOUBLE_RIGHT,25);
     Icon f6 = new GlowIcon(STOP,25);
     Icon muteB = new GlowIcon(VOLUME_UP,15);
     Icon addB = new GlowIcon(PLUS_SQUARE_ALT,10);
     Icon loopB = new GlowIcon(RANDOM,14);
     
-    @FXML HBox infoBox;
-    
-    // properties
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
@@ -110,32 +108,34 @@ public class PlayerControlsController extends FXMLController implements Playback
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
     
-    // dependencies
-    Subscription d1;
-    
 
     @Override
     public void init() {
+        PlaybackState ps = PLAYBACK.state;
+        
         // create balancer
         balance = new Balancer();
         soundGrid.add(balance, 1, 1);
         balance.setPrefSize(50,20);
         
-        balance.setMax(PLAYBACK.getBalanceMax());
-        balance.setMin(PLAYBACK.getBalanceMin());
-        balance.balanceProperty().bindBidirectional(PLAYBACK.balanceProperty());
+        balance.setMin(ps.balance.getMin());
+        balance.setMax(ps.balance.getMax());
+        balance.balanceProperty().bindBidirectional(ps.balance);
+        d(balance.balanceProperty()::unbind);
         
-        volume.setMin(PLAYBACK.getVolumeMin());
-        volume.setMax(PLAYBACK.getVolumeMax());
-        volume.setValue(PLAYBACK.getVolume());
-        volume.valueProperty().bindBidirectional(PLAYBACK.volumeProperty());
+        volume.setMin(ps.volume.getMin());
+        volume.setMax(ps.volume.getMax());
+        volume.setValue(ps.volume.get());
+        volume.valueProperty().bindBidirectional(ps.volume);
+        d(volume.valueProperty()::unbind);
         
-        seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
+        seeker.bindTime(ps.duration, ps.currentTime);
+        d(seeker::unbindTime);
         entireArea.getChildren().add(seeker);
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        d1 = maintain(GUI.snapDistance, d->d ,seeker.chapterSnapDistance);
+        d(maintain(GUI.snapDistance, d->d ,seeker.chapterSnapDistance));
         
         // create play buttons
         p1.setOnMouseClicked(e->rewind());
@@ -144,11 +144,10 @@ public class PlayerControlsController extends FXMLController implements Playback
         f4.setOnMouseClicked(e->next());
         f5.setOnMouseClicked(e->forward());
         f6.setOnMouseClicked(e->stop());
-        
         playButtons.getChildren().setAll(p1,f2,f3,f4,f5,f6);
         
         // addButton
-        Tooltip.install(addB, new Tooltip("Add files or folder (left/right click)."));
+        Tooltip.install(addB, new Tooltip("Add files or folder\n\nUse left for files and right click for directory."));
         addB.setOnMouseClicked(e->{
             if(e.getButton()==MouseButton.PRIMARY)
                 PlaylistManager.addOrEnqueueFiles(true);
@@ -168,33 +167,18 @@ public class PlayerControlsController extends FXMLController implements Playback
         muteB.setOnMouseClicked(e->cycleMute());
         soundGrid.add(muteB, 0, 0);
      
+        // set gui updating
+        d(Player.playingtem.subscribeToUpdates(this::playingItemChanged));  // add listener
+        playingItemChanged(Player.playingtem.get());                    // init value
+        d(maintain(ps.duration, t -> totTime.setText(formatDuration(t))));
+        d(maintain(ps.currentTime, t -> timeChanged()));
+        d(maintain(ps.status, this::statusChanged));
+        d(maintain(ps.loopMode, this::loopModeChanged));
+        d(maintain(ps.mute, v -> muteChanged(v, ps.volume.get())));
+        d(maintain(ps.volume, v -> muteChanged(ps.mute.get(), v.doubleValue())));
         
-        // set updating + initialize manually
-        playingItemMonitoring = Player.playingtem.subscribeToUpdates(this::playingItemChanged);  // add listener
-        playingItemChanged(Player.playingtem.get());                  // init value
-        
-        PLAYBACK.statusProperty().addListener(statusListener);          // add listener
-        statusChanged(PLAYBACK.getStatus());                            // init value
-        
-        PLAYBACK.loopModeProperty().addListener(loopModeListener);      // add listener
-        loopModeChanged(PLAYBACK.getLoopMode());                        // init value
-                
-        PLAYBACK.muteProperty().addListener(muteListener);              // add listener
-        muteChanged(PLAYBACK.getMute(), volume.getValue());             // init value
-        
-        
-        PLAYBACK.totalTimeProperty().addListener(totalTimeListener);    // add listener
-        PLAYBACK.realTimeProperty().addListener(realTimeListener);      // add listener        
-        PLAYBACK.currentTimeProperty().addListener(currTimeListener);   // add listener
-        currTimeListener.invalidated(null);                             // init value
-        
-        ChangeListener<Number> volumeListener = (o,ov,nv) -> 
-                muteChanged(PLAYBACK.isMute(), nv.doubleValue());
-        volume.valueProperty().addListener(volumeListener);
-        
-        // support drag transfer
+        // drag & drop
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
-        // handle drag transfer
         entireArea.setOnDragDropped( e -> {
             if (DragUtil.hasAudio(e.getDragboard())) {
                 // get items
@@ -210,29 +194,10 @@ public class PlayerControlsController extends FXMLController implements Playback
                 }
             }
         });
-        
     }
     
     @Override
     public void refresh() { }
-
-    @Override
-    public void onClose() {
-        // remove listeners
-        playingItemMonitoring.unsubscribe();
-        PLAYBACK.statusProperty().removeListener(statusListener);       
-        PLAYBACK.loopModeProperty().removeListener(loopModeListener);   
-        PLAYBACK.muteProperty().removeListener(muteListener);           
-        PLAYBACK.totalTimeProperty().removeListener(totalTimeListener); 
-        PLAYBACK.realTimeProperty().removeListener(realTimeListener);           
-        PLAYBACK.currentTimeProperty().removeListener(currTimeListener);
-        // unbind
-        balance.balanceProperty().unbind();
-        volume.valueProperty().unbind();
-        seeker.unbindTime();
-        
-        d1.unsubscribe();
-    }
     
 /******************************************************************************/
     
@@ -275,23 +240,16 @@ public class PlayerControlsController extends FXMLController implements Playback
     
     @FXML private void cycleElapsed() {
         elapsedTime = !elapsedTime;
-        currentTimeChanged();
+        timeChanged();
     }
 
     
+    // for example to prevent dragging application on some areas
     @FXML private void consumeMouseEvent(MouseEvent event) {
-        event.consume(); // for example to prevent dragging application on some areas
+        event.consume();
     }
     
 /******************************************************************************/
-    
-    Subscription playingItemMonitoring;
-    private final ChangeListener<Status> statusListener = (o,ov,nv)-> statusChanged(nv);
-    private final ChangeListener<LoopMode> loopModeListener = (o,ov,nv)-> loopModeChanged(nv);
-    private final ChangeListener<Boolean> muteListener = (o,ov,nv)-> muteChanged(nv, volume.getValue());
-    private final InvalidationListener currTimeListener = o -> currentTimeChanged();
-    private final InvalidationListener realTimeListener = o -> realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
-    private final InvalidationListener totalTimeListener = o -> totTime.setText(Util.formatDuration(PLAYBACK.getTotalTime()));       
     
     private void playingItemChanged(Metadata nv) {
         titleL.setText(nv.getTitle());
@@ -301,6 +259,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         channelsL.setText(nv.getChannels());
         seeker.reloadChapters(nv);
     }
+    
     private void statusChanged(Status newStatus) {
         if (newStatus == null || newStatus == Status.UNKNOWN ) {
             controlPanel.setDisable(true);
@@ -318,6 +277,7 @@ public class PlayerControlsController extends FXMLController implements Playback
             }
         }
     }
+    
     private void loopModeChanged(LoopMode new_mode) {
         switch (new_mode) {
             case OFF:       loopB.setIcon(ALIGN_CENTER); // linear
@@ -334,6 +294,7 @@ public class PlayerControlsController extends FXMLController implements Playback
                             break;
         }
     }
+    
     private void muteChanged(boolean mute, double valume) {
         if (mute) {
             muteB.setIcon(VOLUME_OFF);
@@ -341,18 +302,16 @@ public class PlayerControlsController extends FXMLController implements Playback
             muteB.setIcon(valume>0.5 ? VOLUME_UP : VOLUME_DOWN);
         }
     }
-    
 
-    private void currentTimeChanged() {
-        // update label
+    private void timeChanged() {
         if (elapsedTime) {
             Duration elapsed = PLAYBACK.getCurrentTime();
             currTime.setText(Util.formatDuration(elapsed));  
         } else {
-            if (PLAYBACK.getTotalTime() == null) return;
             Duration remaining = PLAYBACK.getRemainingTime();
             currTime.setText("- " + Util.formatDuration(remaining)); 
         }
+        realTime.setText(Util.formatDuration(PLAYBACK.getRealTime()));
     }
     
 }

@@ -8,6 +8,8 @@ package AudioPlayer.playback.player;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
+import static AudioPlayer.playback.PLAYBACK.post_activating;
+import static AudioPlayer.playback.PLAYBACK.post_activating_1st;
 import static AudioPlayer.playback.PLAYBACK.state;
 import AudioPlayer.playback.RealTimeProperty;
 import AudioPlayer.playlist.Item;
@@ -22,6 +24,7 @@ import static util.File.AudioFileFormat.m4a;
 import static util.File.AudioFileFormat.mp3;
 import static util.File.AudioFileFormat.mp4;
 import static util.File.AudioFileFormat.wav;
+import util.async.Async;
 
 /**
  *
@@ -68,14 +71,19 @@ public class GeneralPlayer {
         realTime.real_seek = state.realTime.get();
         realTime.curr_sek = Duration.ZERO;
         p.play();
-        
-        realTime.synchroRealTime_onPlayed();
-        // throw item change event
-        Player.playingtem.itemChanged(item);
-        PlaylistManager.setPlayingItem(item);
-        // fire other events (may rely on the above)
-        PLAYBACK.playbackStartDistributor.run();
-        PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
+
+        Async.runFX(() -> {
+            realTime.synchroRealTime_onPlayed();
+            // throw item change event
+            Player.playingtem.itemChanged(item);
+            PlaylistManager.setPlayingItem(item);
+            // fire other events (may rely on the above)
+            PLAYBACK.playbackStartDistributor.run();
+            if(post_activating_1st || !post_activating)
+                PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
+            post_activating = false;
+            post_activating_1st = false;
+        });
     }
     
     public void resume() {

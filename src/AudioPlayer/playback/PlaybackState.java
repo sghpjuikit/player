@@ -4,6 +4,8 @@
  */
 package AudioPlayer.playback;
 
+import AudioPlayer.playback.state.BalanceProperty;
+import AudioPlayer.playback.state.VolumeProperty;
 import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
 import java.net.URI;
 import java.util.Objects;
@@ -116,5 +118,22 @@ public final class PlaybackState {
     }
     public static PlaybackState getDefault(UUID _id) {
         return new PlaybackState(_id);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    public class TimeProperty extends SimpleDoubleProperty {
+        
     }
 }

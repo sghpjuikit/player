@@ -205,7 +205,7 @@ There are several areas that one can contribute to:
 ### Project set up
 
 - JDK
-  Use (always) latest 32-bit java9 build from [a link](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
+Use (always) latest 32-bit java9 build from [a link](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
 
 - IDE
   Any IDE should work. THis project is being developed on Netbeans 9, 32-bit (64-bit is memory hungy for no benefit). Netbeans 9 is mandatory (to run java 9).

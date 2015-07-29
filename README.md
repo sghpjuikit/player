@@ -234,16 +234,21 @@ It is imperative for working directory to be set up for the project to run succe
 This project uses slf4j logging facade and bindings to logback library. To log, simply create static final instance of org.slf4j.Logger using org.slf4j.LoggerFactory. All logging configuration is in an xml in /working dir/log, where the log files are also located. The logger is configured to log WARN and ERROR lvls to the file and log every logging level to console.
 
 - Imports
-
-use static imports where possible (aim for short code, IDEs can guide us where the object/method comes from), particularly for enum types, but also utility methods (Math, etc).
+  - use static imports where possible (aim for short code, IDEs can guide us where the object/method comes from), particularly for enum types, but also utility methods (Math, etc).
   - separate imports and static imports
   - separate imports (java, javax, javafx packages or more if you like)
   - no package imports and group imports if possible (causes problems when classes share same name)
+
+Setting IDE to auto-collapse imports is recommended.
 
 - Assertions
 
 This project doess not use any. They are disabled by default, thus unreliable. Use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(). There is bunch of similar methods in util package.
 
+- Comments
+
+Try to write javadoc for every public method and class. Use simple comments (//) to provide intent dr the code.
+Setting IDE to auto-collapse javadoc is recommended.
 
 The provided files are
 - source files

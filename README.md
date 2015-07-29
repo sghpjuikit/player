@@ -152,9 +152,9 @@ Windows:
 
 Platforms:
 - Windows
-- Linux (not fully tested, no support for global shortcuts)
-- Mac (untested).
-- 
+- Linux (not thoroughly tested, no support for global shortcuts)
+- Mac (untested)
+
 ## Screenshots
 
 ![ScreenShot](/extra/screenshot1.png)
@@ -205,17 +205,22 @@ There are several areas that one can contribute to:
 ### Project set up
 
 - JDK
+
 Use (always) latest 32-bit java9 build from [a link](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
 
 - IDE
-  Any IDE should work. THis project is being developed on Netbeans 9, 32-bit (64-bit is memory hungy for no benefit). Netbeans 9 is mandatory (to run java 9).
+
+Any IDE should work. THis project is being developed on Netbeans 9, 32-bit (64-bit is memory hungy for no benefit). Netbeans 9 is mandatory (to run java 9).
 
 - Dependencies
-  All dependencies are included in this repository. Import all libraries in /extra/lib directory. Similarly import the projects in /extra/projects as you did the libraries ( in Netbeans its in project > properties > libraries > add project). If any of the projects is mising a library, open the project and import the library from /extra/projects_lib.
-  The library dependencies are all mandatory for the proejct to compile. The compilation will succeed without the project dependenciesm, but they are required for playback to work for certain audio file types (e.g. flac, ogg).
+
+All dependencies are included in this repository. Import all libraries in /extra/lib directory. Similarly import the projects in /extra/projects as you did the libraries ( in Netbeans its in project > properties > libraries > add project). If any of the projects is mising a library, open the project and import the library from /extra/projects_lib.
+
+The library dependencies are all mandatory for the proejct to compile. The compilation will succeed without the project dependenciesm, but they are required for playback to work for certain audio file types (e.g. flac, ogg).
 
 - working directory
-  It is imperative for working directory to be set up for the project to run successfully. Use /working dir located in this repository.
+
+It is imperative for working directory to be set up for the project to run successfully. Use /working dir located in this repository.
 
 - VM run options
   - "-Xmx1g" gets rid of memory errors when loading large images, the 1g (1GB) value can be less, but this works. Not using this parameter at all will result in some functionalities not working properly.
@@ -225,16 +230,19 @@ Use (always) latest 32-bit java9 build from [a link](https://jdk9.java.net/downl
 ### Coding style
 
 - Logging
-  This project uses slf4j logging facade and bindings to logback library. To log, simply create static final instance of org.slf4j.Logger using org.slf4j.LoggerFactory. All logging configuration is in an xml in /working dir/log, where the log files are also located. The logger is configured to log WARN and ERROR lvls to the file and log every logging level to console.
+
+This project uses slf4j logging facade and bindings to logback library. To log, simply create static final instance of org.slf4j.Logger using org.slf4j.LoggerFactory. All logging configuration is in an xml in /working dir/log, where the log files are also located. The logger is configured to log WARN and ERROR lvls to the file and log every logging level to console.
 
 - Imports
-  - use static imports where possible (aim for short code, IDEs can guide us where the object/method comes from), particularly for enum types, but also utility methods (Math, etc).
+
+use static imports where possible (aim for short code, IDEs can guide us where the object/method comes from), particularly for enum types, but also utility methods (Math, etc).
   - separate imports and static imports
   - separate imports (java, javax, javafx packages or more if you like)
   - no package imports and group imports if possible (causes problems when classes share same name)
 
 - Assertions
-  This project doess not use any. They are disabled by default, thus unreliable. Use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(). There is bunch of similar methods in util package.
+
+This project doess not use any. They are disabled by default, thus unreliable. Use runtime exceptions (e.g. AssertionError) or methods like Objects.requireNonNull(). There is bunch of similar methods in util package.
 
 
 The provided files are

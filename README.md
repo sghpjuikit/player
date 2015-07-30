@@ -181,15 +181,10 @@ Download link coming soon.
 
   Starting the application for the first time will run a guide. Before you close it, read at least first couple of tips (like where to find the guide if you need it again...).
 
-
 Tips:
 - use tooltips! Cant stress enough.
 - If you get 'trapped' and 'locked in' with no idea what to do, press right ALT (layout edit mode) or click anywhere (mouse buttons often navigate) - once you get the hang of it, you will see how convenient it is.
 - widgets, popups and containers have informative "i" buttons that provide valuable info on possible course of action
-
-## Contact
-
-If, for whatever reason you want to get in touch, mail the address associated with this account.
 
 ### Contribution
 
@@ -206,36 +201,53 @@ There are several areas that one can contribute to:
 
 - JDK
 
-Use (always) latest 32-bit java9 build from [a link](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
+Download and install latest 32-bit java9 build from [a link](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
 
 - IDE
 
-Any IDE should work. THis project is being developed on Netbeans 9, 32-bit (64-bit is memory hungy for no benefit). Netbeans 9 is mandatory (to run java 9).
+Any IDE should work. THis project is being developed on Netbeans 9, 32-bit (64-bit is memory hungy for no benefit). Netbeans 9 is mandatory (to run java 9). If you have the IDE, download and open this project in it.
 
 - Dependencies
 
 All dependencies are included in this repository. Import all libraries in /extra/lib directory. Similarly import the projects in /extra/projects as you did the libraries ( in Netbeans its in project > properties > libraries > add project). If any of the projects is mising a library, open the project and import the library from /extra/projects_lib.
 
-The library dependencies are all mandatory for the proejct to compile. The compilation will succeed without the project dependenciesm, but they are required for playback to work for certain audio file types (e.g. flac, ogg).
+The library dependencies are all mandatory for the project to compile. The compilation will succeed without the project dependencies, but they are required for playback to work for certain audio file types (e.g. flac, ogg).
 
 - working directory
 
 It is imperative for working directory to be set up for the project to run successfully. Use /working dir located in this repository.
 
+- widgets
+
+It is required to add widget source codes to the source code of the project. In Netbeans: project > properties > sources > add folder. Add /src widgets directory. You should see 2 source directories in you project: 'src' and 'src widgets'.
+
+
 - VM run options
   - "-Xmx1g" gets rid of memory errors when loading large images, the 1g (1GB) value can be less, but this works. Not using this parameter at all will result in some functionalities not working properly.
 
-- main class: main.App
+- annotation processing
+
+The project makes heavy use of annotations and even annotation processor. It requires annotation processing to be enabled. In netbeans: project > properties > build > compiling  select both Enable annotation Processing and Enable Annotation Processing in Editor. Should be enabled by default.
+
+- other options
+
+These should not be necessary since they are default settings, but just in case:
+ - dont binary encode javaFX css files (it will prevent skins from working since this changes .css to .bss and causes paths no longer work
+ - assertion dont have to be enabled
+
+This is default so it sh
+
+Set main.App class as main class in project properties, if not already
 
 ### Coding style
 
 - Logging
 
-This project uses slf4j logging facade and bindings to logback library. To log, simply create static final instance of org.slf4j.Logger using org.slf4j.LoggerFactory. All logging configuration is in an xml in /working dir/log, where the log files are also located. The logger is configured to log WARN and ERROR lvls to the file and log every logging level to console.
+This project uses slf4j logging facade and bindings to logback library. To log, simply create static final instance of org.slf4j.Logger using org.slf4j.LoggerFactory. All logging configuration is in an xml in /working dir/log, where the log files are also located. The logger is configured to log WARN and ERROR levels to the file and in addition log every logging level to console.
 
 - Imports
   - use static imports where possible (aim for short code, IDEs can guide us where the object/method comes from), particularly for enum types, but also utility methods (Math, etc).
-  - separate imports and static imports
+  - separate imports and static imports (Netbeans > Tools > Options > Formatting > Imports)
   - separate imports (java, javax, javafx packages or more if you like)
   - no package imports and group imports if possible (causes problems when classes share same name)
 
@@ -254,8 +266,6 @@ The provided files are
 - source files
 - working directory containing application data.
 - dependencies (libraries and projects to import)
-
-In order to be able to develop and use widgets (even those included in this project already) '/src widgets' directory must be included as a source location for source files in project properties.
 
 ### Skinning
 

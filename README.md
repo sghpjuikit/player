@@ -201,7 +201,7 @@ There are several areas that one can contribute to:
 
 - JDK
 
-Download and install latest 32-bit java9 build from [a link](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
+Download and install latest 32-bit java9 build from [java kenai](https://jdk9.java.net/download/). Using 64-bit JDK/JRE is possible, but provides no benefits and causes high memory usage.
 
 - IDE
 
@@ -229,15 +229,11 @@ It is required to add widget source codes to the source code of the project. In 
 
 The project makes heavy use of annotations and even annotation processor. It requires annotation processing to be enabled. In netbeans: project > properties > build > compiling  select both Enable annotation Processing and Enable Annotation Processing in Editor. Should be enabled by default.
 
-- other options
+- other options (should not be necessary since they are default settings, but just in case)
+  - dont binary encode javaFX css files (it will prevent skins from working since this changes .css to .bss and causes paths no longer work
+  - assertion dont have to be enabled
 
-These should not be necessary since they are default settings, but just in case:
- - dont binary encode javaFX css files (it will prevent skins from working since this changes .css to .bss and causes paths no longer work
- - assertion dont have to be enabled
-
-This is default so it sh
-
-Set main.App class as main class in project properties, if not already
+- Set main.App class as main class in project properties, if not already set
 
 ### Coding style
 
@@ -259,7 +255,7 @@ This project doess not use any. They are disabled by default, thus unreliable. U
 
 - Comments
 
-Try to write javadoc for every public method and class. Use simple comments (//) to provide intent dr the code.
+Try to write javadoc for every public method and class. Use simple comments (//) to provide intent of the code.
 Setting IDE to auto-collapse javadoc is recommended.
 
 The provided files are
@@ -269,7 +265,7 @@ The provided files are
 
 ### Skinning
 
-A skin is a single css file that works the same way as if you are skinning a html web site. [a link](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
+A skin is a single css file that works the same way as if you are skinning a html web site. [javafx css reference guide](http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html) is an official reference guide that contains a lot of useful information.
 The application autodiscovers the skins when it starts. The skins are located in Skins directory, each in its own folder. Press F5 (by default) to refresh skin changes.
 
 ## Credits & Licence

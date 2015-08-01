@@ -1,17 +1,19 @@
 
-package AudioPlayer.playlist;
+package AudioPlayer;
 
-import AudioPlayer.Player;
-import AudioPlayer.services.Database.DB;
-import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataReader;
 import java.io.File;
 import java.net.URI;
 import java.util.Comparator;
+
+import AudioPlayer.playlist.PlaylistItem;
+import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataReader;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import static util.File.AudioFileFormat.Use.PLAYBACK;
 import util.units.FileSize;
+
+import static util.File.AudioFileFormat.Use.PLAYBACK;
 
 /**
  * Representation of audio resource referenced by {@link URI}.
@@ -198,7 +200,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
         return !getFormat().isSupported(use) || isCorruptWeak();
     }
     
-    boolean isCorruptWeak() {
+    protected boolean isCorruptWeak() {
         if(isFileBased()) {
             File f = getFile();
             return !f.isFile() ||
@@ -294,6 +296,11 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      */
     public PlaylistItem toPlaylist() {
          return new PlaylistItem(getURI());
+    }
+    
+    /** @return true iff this item's underlying resource (e.g. file) is being played. */
+    public boolean isPlaying() {
+        return same(Player.playingtem.get());
     }
     
 /******************************************************************************/

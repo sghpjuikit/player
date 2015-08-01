@@ -1,33 +1,13 @@
 package PlayerControls;
 
-import AudioPlayer.Player;
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.Field.BITRATE;
-import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.feature.PlaybackFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import gui.GUI;
-import gui.objects.Balancer.Balancer;
-import gui.objects.Seeker;
-import gui.objects.icon.GlowIcon;
-import gui.objects.icon.Icon;
 import java.io.File;
 import java.util.List;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseButton;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
@@ -35,12 +15,33 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
+
+import AudioPlayer.Player;
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlaybackState;
+import AudioPlayer.Item;
+import AudioPlayer.playlist.sequence.PlayingSequence.LoopMode;
+import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.Metadata;
+import Configuration.IsConfig;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.feature.PlaybackFeature;
+import gui.GUI;
+import gui.objects.Balancer.Balancer;
+import gui.objects.Seeker;
+import gui.objects.icon.GlowIcon;
+import gui.objects.icon.Icon;
 import util.Util;
-import static util.Util.formatDuration;
 import util.access.Accessor;
-import static util.functional.Util.map;
 import util.graphics.drag.DragUtil;
-import static util.reactive.Util.*;
+
+import static AudioPlayer.tagging.Metadata.Field.BITRATE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static util.Util.formatDuration;
+import static util.reactive.Util.maintain;
 
 
 /**
@@ -148,11 +149,11 @@ public class PlayerControlsController extends FXMLController implements Playback
         
         // addButton
         Tooltip.install(addB, new Tooltip("Add files or folder\n\nUse left for files and right click for directory."));
-        addB.setOnMouseClicked(e->{
+        addB.setOnMouseClicked(e-> {
             if(e.getButton()==MouseButton.PRIMARY)
-                PlaylistManager.addOrEnqueueFiles(true);
+                PlaylistManager.chooseFilesToPlay();
             else
-                PlaylistManager.addOrEnqueueFolder(true);
+                PlaylistManager.chooseFolderToPlay();
         });
         entireArea.getChildren().add(addB);
         AnchorPane.setTopAnchor(addB, 5d);
@@ -187,11 +188,10 @@ public class PlayerControlsController extends FXMLController implements Playback
                 e.setDropCompleted(true);
                 e.consume();
                 // handle result
-                if(playDropped) {
-                    PlaylistManager.playPlaylist(new Playlist(map(items, Item::toPlaylist)));
-                } else {
-                    PlaylistManager.addItems(items);
-                }
+                PlaylistManager.use(p -> {
+                    if(!playDropped) p.addItems(items);
+                    else p.setNplay(items);
+                });
             }
         });
     }
@@ -202,8 +202,10 @@ public class PlayerControlsController extends FXMLController implements Playback
 /******************************************************************************/
     
     private void playFile(File file) {
-         PlaylistManager.addUri(file.toURI());
-         PlaylistManager.playLastItem();
+         PlaylistManager.use(p -> {
+             p.addUri(file.toURI());
+             p.playLastItem();
+         });
     }
     @FXML private void play_pause() {
          PLAYBACK.pause_resume();

@@ -5,32 +5,35 @@
  */
 package util.File;
 
-import AudioPlayer.playlist.PlaylistManager;
-import gui.GUI;
-import Layout.Widgets.feature.ImageDisplayFeature;
-import Layout.Widgets.feature.ImagesDisplayFeature;
-import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import java.awt.Desktop;
-import static java.awt.Desktop.Action.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
+
+import AudioPlayer.playlist.PlaylistManager;
+import Layout.Widgets.WidgetManager;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.Widgets.feature.ImagesDisplayFeature;
+import gui.GUI;
 import main.App;
+import unused.Log;
 import util.File.AudioFileFormat.Use;
 import util.Util;
-import unused.Log;
 import util.dev.TODO;
+
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static java.awt.Desktop.Action.*;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import static util.dev.TODO.Severity.MEDIUM;
 import static util.functional.Util.filter;
+import static util.functional.Util.map;
 
 /**
  * Provides methods to handle external often platform specific tasks. Browsing
@@ -162,7 +165,7 @@ public class Environment {
         
         // open audio file
         else if (inApp && AudioFileFormat.isSupported(f,Use.PLAYBACK)) {
-            PlaylistManager.addUri(f.toURI());
+            PlaylistManager.use(p -> p.addUri(f.toURI()));
         }
         
         // open image file
@@ -184,7 +187,7 @@ public class Environment {
                 List<File> images = filter(files, f->ImageFileFormat.isSupported(f));
 
                 if(!audio.isEmpty())
-                    PlaylistManager.addUris(audio.stream().map(f->f.toURI()).collect(Collectors.toList()));
+                    PlaylistManager.use(p -> p.addUris(map(audio,File::toURI)));
 
                 if(images.size()==1) {
                     WidgetManager.use(ImageDisplayFeature.class,NO_LAYOUT, w->w.showImage(images.get(0)));

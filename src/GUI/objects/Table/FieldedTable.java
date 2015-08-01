@@ -5,45 +5,48 @@
  */
 package gui.objects.Table;
 
-import com.sun.javafx.scene.control.skin.TableHeaderRow;
-import com.sun.javafx.scene.control.skin.TableViewSkinBase;
-import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static javafx.application.Platform.runLater;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.CENTER_RIGHT;
-import static javafx.geometry.Side.BOTTOM;
 import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.SortType;
-import static javafx.scene.control.TableColumn.SortType.ASCENDING;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
-import static util.Util.getEnumConstants;
+
+import com.sun.javafx.scene.control.skin.TableHeaderRow;
+import com.sun.javafx.scene.control.skin.TableViewSkinBase;
+import gui.objects.ContextMenu.SelectionMenuItem;
+import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldEnum.ColumnField;
 import util.access.FieldValue.FieldedValue;
 import util.dev.TODO;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import static util.functional.Util.*;
 import util.functional.functor.FunctionC;
 import util.parsing.Parser;
+
+import static java.util.Objects.requireNonNull;
+import static javafx.application.Platform.runLater;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.geometry.Side.BOTTOM;
+import static javafx.scene.control.TableColumn.SortType.ASCENDING;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static util.Util.getEnumConstants;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.functional.Util.*;
 
 /**
  * Table for {@link FieldedValue}. This facilitates column creation, sorting and
@@ -182,7 +185,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             visibleColumns.add(tc);
         });
         // restore all at once => 1 update
-        getColumns().setAll(visibleColumns);System.out.println("DESERIALIZING");
+        getColumns().setAll(visibleColumns);
         // restore sort order
         state.sortOrder.toTable(this);
     }
@@ -284,7 +287,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * Comparator for ordering items reflecting this table's sort order.
      * Read only, changing value will have no effect.
      */
-    public final ObjectProperty<Comparator<T>> itemsComparator = new SimpleObjectProperty<>((a,b)->0);
+    public final ObjectProperty<Comparator<? super T>> itemsComparator = new SimpleObjectProperty<>((a,b)->0);
     
     /**
      * Sorts the items by the field. Sorting does not operate on table's sort

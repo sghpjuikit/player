@@ -4,8 +4,9 @@
  */
 package util.File;
 
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
+
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javafx.stage.FileChooser;
 
 /**

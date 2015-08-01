@@ -5,31 +5,20 @@
  */
 package gui.objects.Table;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.InfoNode.InfoTable;
-import gui.itemnode.TableFilterGenerator;
-import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.icon.Icon;
-import static java.lang.Integer.max;
-import static java.lang.Integer.min;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
-import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -39,26 +28,38 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.KeyCode;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.KeyCode.F;
-import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 import javafx.util.Duration;
+
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.InfoNode.InfoTable;
+import gui.itemnode.TableFilterGenerator;
+import gui.objects.ContextMenu.SelectionMenuItem;
+import gui.objects.icon.Icon;
+import util.access.FieldValue.FieldEnum;
+import util.access.FieldValue.FieldedValue;
+import util.async.executor.FxTimer;
+
+import static java.lang.Integer.max;
+import static java.lang.Integer.min;
+import static javafx.collections.FXCollections.observableArrayList;
+import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.KeyCode.F;
+import static javafx.scene.input.KeyEvent.KEY_PRESSED;
+import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.util.Duration.millis;
 import static org.reactfx.EventStreams.changesOf;
 import static util.Util.menuItem;
 import static util.Util.zeroPad;
-import util.access.FieldValue.FieldEnum;
-import util.access.FieldValue.FieldedValue;
 import static util.async.Async.runLater;
-import util.async.executor.FxTimer;
-import static util.functional.Util.by;
-import static util.functional.Util.filterMap;
-import static util.functional.Util.isIn;
+import static util.functional.Util.*;
 import static util.reactive.Util.sizeOf;
 
 /**
@@ -70,21 +71,30 @@ import static util.reactive.Util.sizeOf;
 @IsConfigurable("Table")
 public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends FieldedTable<T,F> {
     
-    private final ObservableList<T> allitems = FXCollections.observableArrayList();
-    private final FilteredList<T> filtereditems = new FilteredList(allitems);
-    private final SortedList<T> sortedItems = new SortedList(filtereditems);
+    private final ObservableList<T> allitems;
+    private final FilteredList<T> filtereditems;
+    private final SortedList<T> sortedItems;
     final VBox root = new VBox(this);
 
+    public FilteredTable(F main_field) {
+        this(main_field, observableArrayList());
+    }
     
     /**
      * @param main_field field that will denote main column. Must not be null.
      * Also initializes {@link #searchField}.
      * 
-     * @param main_field WIll be chosen as main and default search field
+     * @param main_field be chosen as main and default search field
+     * @param backing_list
      */
-    public FilteredTable(F main_field) {
+    public FilteredTable(F main_field, ObservableList<T> backing_list) {
         super((Class<F>)main_field.getClass());
         searchField = main_field;
+
+        allitems = backing_list;
+        filtereditems = new FilteredList<>(allitems);
+        sortedItems = new SortedList<>(filtereditems);
+        itemsPredicate = filtereditems.predicateProperty();
         
         setItems(sortedItems);
         sortedItems.comparatorProperty().bind(comparatorProperty());
@@ -220,7 +230,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      * search box predicate changes, it will in turn override effect of a
      * custom predicate. 
      */
-    public final ObjectProperty<Predicate<? super T>> itemsPredicate = filtereditems.predicateProperty();
+    public final ObjectProperty<Predicate<? super T>> itemsPredicate;
     /**
      * Visibility of the filter pane.
      * Filter is displayed in the top of the table.

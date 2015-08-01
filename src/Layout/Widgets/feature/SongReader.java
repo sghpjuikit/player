@@ -5,10 +5,13 @@
  */
 package Layout.Widgets.feature;
 
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
+
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
+
 import java.util.List;
+
 import static util.dev.Util.forbidNull;
 
 /**

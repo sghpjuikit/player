@@ -4,15 +4,6 @@
  */
 package AudioPlayer;
 
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.PlaylistState;
-import Serialization.PlaybackStateConverter;
-import Serialization.PlaylistItemConverter;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import com.thoughtworks.xstream.io.StreamException;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -20,6 +11,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javafx.collections.ObservableListBase;
+
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlaybackState;
+import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.playlist.Playlist;
+import Serialization.PlaybackStateConverter;
+import Serialization.PlaylistItemConverter;
+import com.sun.javafx.collections.ObservableListWrapper;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import com.thoughtworks.xstream.io.StreamException;
+import com.thoughtworks.xstream.io.xml.DomDriver;
 import main.App;
 import unused.Log;
 
@@ -33,11 +38,8 @@ import unused.Log;
 public final class PlayerState {
     @XStreamOmitField
     public final PlaybackState playback;
-    @XStreamOmitField
-    public final PlaylistState playlist;
     public final List<PlaybackState> playbacks = new ArrayList<>();
-    public final List<PlaylistState> playlists = new ArrayList<>();
-    // for serialization only, active state flags
+    public final List<Playlist> playlists = new ArrayList<>();
     private UUID playlist_id;
     private UUID playback_id;
 
@@ -46,9 +48,7 @@ public final class PlayerState {
      */
     public PlayerState() {
         playback = PlaybackState.getDefault();
-        playlist = PlaylistState.getDefault();
         playbacks.add(playback);
-        playlists.add(playlist);
     }
     
     public void suspendPlayback() {
@@ -64,16 +64,21 @@ public final class PlayerState {
     
     public void serialize() {
         try {
-            playlists.forEach(PlaylistState::suspend);
             playback.realTime.set(PLAYBACK.getRealTime());
             suspendPlayback();
             playback_id = playback.getId();
-            playlist_id = UUID.fromString(playlist.getId().toString()); // without string conversion serialization errored out... weird
+            playlist_id = PlaylistManager.active;
+            
+            playlists.clear();
+            playlists.addAll(PlaylistManager.playlists);
             
             XStream x = new XStream(new DomDriver());
             x.autodetectAnnotations(true);
             x.registerConverter(new PlaybackStateConverter());
             x.registerConverter(new PlaylistItemConverter());
+            x.omitField(ObservableListBase.class, "listenerHelper");
+            x.omitField(ObservableListBase.class, "changeBuilder");
+            x.omitField(ObservableListWrapper.class, "elementObserver");
             x.toXML(this, new BufferedWriter(new FileWriter(App.PLAYER_STATE_FILE())));
         } catch (IOException ex) {
             Log.err("Unable to save player state into the file: "+ App.PLAYER_STATE_FILE());
@@ -90,11 +95,13 @@ public final class PlayerState {
             
             playbacks.clear();
             playbacks.addAll(ps.playbacks);
+            playback.change(getPb(ps.playback_id));
+            
             playlists.clear();
             playlists.addAll(ps.playlists);
-            playback.change(getPb(ps.playback_id));
-            playlist.change(getPl(ps.playlist_id));
-            playlist.activate();
+            PlaylistManager.playlists.addAll(playlists);
+            PlaylistManager.active = ps.playlist_id;
+            
         } catch (ClassCastException | StreamException ex) {
             Log.err("Unable to load player state from the file: "+ App.PLAYER_STATE_FILE() + 
                     ". The file not found or content corrupted. Loading default state. ");
@@ -109,11 +116,4 @@ public final class PlayerState {
         }
         return null;
     }
-    private PlaylistState getPl(UUID id) {
-        for (PlaylistState s: playlists) {
-            if (s.getId().equals(id))
-                return s;
-        }
-        return null;
-    }  
 }

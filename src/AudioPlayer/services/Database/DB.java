@@ -6,23 +6,27 @@
 
 package AudioPlayer.services.Database;
 
-import AudioPlayer.playlist.Item;
-import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.controller.io.InOutput;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
-import static java.util.UUID.fromString;
-import static javafx.application.Platform.runLater;
+
+import javax.persistence.*;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javax.persistence.*;
+
+import AudioPlayer.Item;
+import AudioPlayer.tagging.Metadata;
+import Layout.Widgets.controller.io.InOutput;
 import main.App;
-import static util.File.FileUtil.readFileLines;
-import static util.async.Async.FX;
 import util.async.future.Fut;
 import util.collections.map.MapSet;
 import util.functional.Functors.F2;
+
+import static java.util.UUID.fromString;
+import static javafx.application.Platform.runLater;
+import static util.File.FileUtil.readFileLines;
+import static util.async.Async.FX;
 import static util.functional.Util.stream;
 
 /**
@@ -225,7 +229,7 @@ public class DB {
      * <p>
      * The comparator should reflect library table sort order.
      */
-    public static ObjectProperty<Comparator<Metadata>> library_sorter = new SimpleObjectProperty<>(Metadata::compareTo);
+    public static ObjectProperty<Comparator<? super Metadata>> library_sorter = new SimpleObjectProperty<>(Metadata::compareTo);
 
     /**
      * In memory storage for strings that persists in database.

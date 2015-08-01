@@ -5,14 +5,18 @@
  */
 package AudioPlayer.playlist;
 
+import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.Objects;
+
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.media.Media;
+
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
@@ -22,12 +26,17 @@ import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
+
 import static util.File.AudioFileFormat.Use.APP;
+
 import util.File.FileUtil;
+
 import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
+
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import unused.Log;

@@ -23,7 +23,6 @@
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will start playing playlist selected song too...
 - make containers & widgets extremely lightweight - all their graphics unite
   into Pane each container overriding the layoutChildren...
-- decouple playlists
 - Inspector fix & improve
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo
@@ -39,7 +38,6 @@
 - investigate how to properly remove image scaling artifacts
 - Code Breaker (.m4a) and Interstellar (.flac) not playing, investigate
 - variable bitrate oggs not playing
-- JavaSoundPlayer not releasing file locks
 
 --------------------------------------------------------------------------------
 ------------------------ BUGS - what i dont want to hear about ------------------

@@ -7,19 +7,25 @@ package AudioPlayer.playback.player;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
+
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
+
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+
 import javafx.util.Duration;
+
 import org.reactfx.Subscription;
+
 import unused.Log;
+
 import static util.reactive.Util.maintain;
 
 /**

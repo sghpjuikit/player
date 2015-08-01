@@ -18,7 +18,6 @@
  */
 package AudioPlayer.playback.player.xtrememp.audio;
 
-import AudioPlayer.playback.player.xtrememp.dsp.DigitalSignalSynchronizer;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -38,7 +37,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
-import javafx.util.Duration;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -54,13 +52,17 @@ import javax.sound.sampled.Mixer;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import javafx.util.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tritonus.share.sampled.TAudioFormat;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
 
+import AudioPlayer.playback.player.xtrememp.dsp.DigitalSignalSynchronizer;
 import javazoom.spi.PropertiesContainer;
 import util.dev.TODO;
+
 import static util.dev.TODO.Purpose.BUG;
 
 /**

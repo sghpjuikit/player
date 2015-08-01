@@ -6,17 +6,21 @@
 package Layout.WidgetImpl;
 
 import AudioPlayer.Player;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.Config;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
+
 import static Layout.Widgets.Widget.Group.APP;
+
 import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.feature.SongWriter;
+
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLAY_CIRCLE;
+
 import gui.itemnode.*;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
@@ -24,34 +28,52 @@ import gui.itemnode.ItemNode.ValueNode;
 import gui.itemnode.StringSplitParser.SplitData;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
+
 import java.io.File;
+
 import static java.lang.Integer.MAX_VALUE;
+
 import java.util.*;
+
 import static java.util.Collections.EMPTY_LIST;
+
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import static java.util.stream.Collectors.*;
+
 import java.util.stream.Stream;
+
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+
 import static javafx.scene.input.DragEvent.DRAG_OVER;
+
 import javafx.scene.layout.*;
+
 import static javafx.scene.layout.Priority.ALWAYS;
+
 import main.App;
 import util.File.FileUtil;
+
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
+
 import util.access.Accessor;
 import util.access.AccessorEnum;
+
 import static util.async.Async.runNew;
+
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
+
 import static util.functional.Util.*;
+
 import util.graphics.drag.DragUtil;
 
 @IsWidget

@@ -1,5 +1,26 @@
 package gui.objects.Window.stage;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Objects;
+
+import javafx.beans.value.ChangeListener;
+import javafx.css.PseudoClass;
+import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.*;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Screen;
+
+import org.reactfx.Subscription;
+
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.lasfm.LastFM;
@@ -19,57 +40,40 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
-import gui.pane.IOPane;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.Resize;
-import static gui.objects.Window.Resize.*;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
-import java.io.*;
+import gui.pane.IOPane;
+import main.App;
+import unused.Log;
+import util.Util;
+import util.access.Accessor;
+import util.animation.Anim;
+import util.animation.interpolator.ElasticInterpolator;
+import util.async.executor.FxTimer;
+import util.dev.TODO;
+import util.graphics.fxml.ConventionFxmlLoader;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.objects.Window.Resize.*;
 import static java.lang.Math.*;
-import java.util.ArrayList;
-import java.util.Objects;
-import javafx.beans.value.ChangeListener;
-import javafx.css.PseudoClass;
-import javafx.fxml.FXML;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.*;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import static javafx.scene.paint.Color.BLACK;
-import javafx.scene.shape.Rectangle;
-import javafx.stage.Screen;
-import static javafx.stage.StageStyle.*;
-import main.App;
-import org.reactfx.Subscription;
-import util.Util;
+import static javafx.stage.StageStyle.UNDECORATED;
 import static util.Util.setAnchors;
 import static util.Util.setScaleXY;
-import util.access.Accessor;
-import util.animation.Anim;
 import static util.animation.Anim.par;
-import util.animation.interpolator.ElasticInterpolator;
-import util.async.executor.FxTimer;
-import unused.Log;
-import util.dev.TODO;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.*;
-import util.graphics.fxml.ConventionFxmlLoader;
 import static util.reactive.Util.maintain;
 
 /**
@@ -671,14 +675,22 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         });
         return p;
     }
-
+    boolean a(){
+        return true;
+    }
     /**
      ************************** WINDOW MECHANICS *******************************
      */
     @Override
     public void close() {
-	// serialize windows if this is main app window
-	if (main) WindowManager.serialize();
+	// close app if last window
+        int ws = 1;
+        if(WindowManager.mini) ws++;
+	if (windows.size()<=ws) {
+            App.close();
+            return;
+        }
+        
         // after serialisation, close content it could prevent app closing
 	// normally if it runs bgr threads + we want to sae it
 	layout_aggregator.getLayouts().values().forEach(Layout::close);
@@ -694,8 +706,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	// in the end close itself
 	super.close();
 
-	if (main) App.close();
-	else App.getWindow().focus();
+        App.getWindow().focus();
     }
 
     @Override

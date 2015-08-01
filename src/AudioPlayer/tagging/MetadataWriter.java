@@ -1,32 +1,22 @@
 
 package AudioPlayer.tagging;
 
-import AudioPlayer.Player;
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.services.notif.Notifier;
-import AudioPlayer.tagging.Chapters.Chapter;
 import java.io.File;
 import java.io.IOException;
-import static java.lang.Math.max;
 import java.net.URI;
-import static java.util.Collections.singletonList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import static javafx.application.Platform.runLater;
+
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.scene.paint.Color;
-import main.App;
+
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.mp3.MP3File;
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
-import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
-import static org.jaudiotagger.tag.FieldKey.RATING;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.flac.FlacTag;
@@ -42,15 +32,28 @@ import org.jaudiotagger.tag.mp4.Mp4Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import AudioPlayer.Player;
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.Item;
+import AudioPlayer.services.notif.Notifier;
+import AudioPlayer.tagging.Chapters.Chapter;
+import main.App;
+import unused.Log;
 import util.File.AudioFileFormat;
+import util.dev.TODO;
+import util.parsing.Parser;
+import util.units.NofX;
+
+import static java.lang.Math.max;
+import static java.util.Collections.singletonList;
+import static javafx.application.Platform.runLater;
+import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
+import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.File.AudioFileFormat.*;
 import static util.Util.clip;
 import static util.async.Async.runNew;
-import unused.Log;
-import util.dev.TODO;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
-import util.parsing.Parser;
-import util.units.NofX;
 
 /**
  * 
@@ -87,7 +90,7 @@ public class MetadataWriter extends MetaItem {
      * @return writer or null if error occurs.
      * @throws UnsupportedOperationException if item not file based
      */
-    public static MetadataWriter create(Item item) {
+    private static MetadataWriter create(Item item) {
         if (!item.isFileBased()) throw new UnsupportedOperationException("Item must be file based");
         
         MetadataWriter w = new MetadataWriter();
@@ -693,7 +696,7 @@ public class MetadataWriter extends MetaItem {
         try {
             audioFile.commit();
         } catch (Exception ex) {
-            if (PlaylistManager.isSameItemPlaying(this)) {
+            if (isPlaying()) {
                 logger.info("File being played, will attempt to suspend playback");
                 PLAYBACK.suspend();
                 for(int i=0; i<=2; i++) {

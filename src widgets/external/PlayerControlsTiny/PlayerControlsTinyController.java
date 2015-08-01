@@ -1,22 +1,8 @@
 package PlayerControlsTiny;
 
 
-import AudioPlayer.Player;
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.tagging.Metadata;
-import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.feature.PlaybackFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import gui.GUI;
-import gui.objects.Seeker;
-import gui.objects.icon.Icon;
 import java.util.List;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -24,13 +10,28 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
-import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import javafx.util.Duration;
+
+import AudioPlayer.Player;
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlaybackState;
+import AudioPlayer.Item;
+import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.Metadata;
+import Configuration.IsConfig;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.feature.PlaybackFeature;
+import gui.GUI;
+import gui.objects.Seeker;
+import gui.objects.icon.Icon;
 import util.Util;
 import util.access.Accessor;
-import static util.functional.Util.map;
 import util.graphics.drag.DragUtil;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import static util.reactive.Util.maintain;
 
 /** FXMLController for widget. */
@@ -118,9 +119,9 @@ public class PlayerControlsTinyController extends FXMLController implements Play
                 e.consume();
                 // handle result
                 if(playDropped) {
-                    PlaylistManager.playPlaylist(new Playlist(map(items, Item::toPlaylist)));
+                    PlaylistManager.use(p -> p.setNplay(items));
                 } else {
-                    PlaylistManager.addItems(items);
+                    PlaylistManager.use(p -> p.addItems(items));
                 }
             }
         });

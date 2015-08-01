@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package AudioPlayer.playlist.ItemSelection;
+package AudioPlayer.playlist.sequence;
 
 import java.util.List;
 

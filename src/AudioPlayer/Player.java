@@ -1,26 +1,28 @@
 
 package AudioPlayer;
 
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
+
+import org.reactfx.EventSource;
+import org.reactfx.Subscription;
+
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playlist.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.EMPTY;
 import AudioPlayer.tagging.MetadataReader;
 import Layout.Widgets.controller.io.InOutput;
-import java.net.URI;
-import static java.util.Collections.singletonList;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Consumer;
-import org.reactfx.EventSource;
-import org.reactfx.Subscription;
-import static util.async.Async.runLater;
+import unused.Log;
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
-import unused.Log;
+
+import static AudioPlayer.tagging.Metadata.EMPTY;
+import static java.util.Collections.singletonList;
+import static util.async.Async.runLater;
 import static util.dev.Util.forbidNull;
 
 /**
@@ -32,14 +34,12 @@ public class Player {
     
     public static void initialize() {
         PLAYBACK.initialize();
+        state.deserialize();
     }
     
     public static void loadLast() {
-        state.deserialize();
-        PlaylistManager.changeState();
         PLAYBACK.loadLastState();
     }
-
     
 /******************************************************************************/
     
@@ -48,28 +48,6 @@ public class Player {
      * metadata if none. Never null.
      */
     public static final CurrentItem playingtem = new CurrentItem();
-//    /** Stream for selected item in library that remembers value. Value is 
-//    Metadata.EMPTY if null is pushed into the stream, never null. */
-//    public static final ValueEventSource<Metadata> librarySelectedItemES = new ValueEventSourceN(Metadata.EMPTY);
-//    /** Stream for selected item in playlist that remembers value. Value is 
-//    Metadata.EMPTY if null is pushed into the stream, never null. */
-//    public static final ValueEventSource<Metadata> playlistSelectedItemES = new ValueEventSourceN(Metadata.EMPTY);
-////    /** Merge of playlist and library selected item streams. */
-////    public static final ValueStream<Metadata> selectedItemES = new ValueStream(Metadata.EMPTY, merge(librarySelectedItemES,playlistSelectedItemES));
-////    /** Merge of playing item and playlist and library selected item streams. */
-////    public static final ValueStream<Metadata> anyItemES = new ValueStream(Metadata.EMPTY, librarySelectedItemES,playlistSelectedItemES,playingtem.itemUpdatedES);
-//    
-//    /** Stream for selected items in library that remembers value. The list can
-//    be empty, but never null. */
-//    public static final ValueEventSource<List<Metadata>> librarySelectedItemsES = new ValueEventSourceN(EMPTY_LIST);
-//    /** Stream for selected items in playlist that remembers value. The list can
-//    be empty, but never null. */
-//    public static final ValueEventSource<List<Metadata>> playlistSelectedItemsES = new ValueEventSourceN(EMPTY_LIST);
-//    /** Merge of playlist and library selected items streams. */
-//    public static final ValueStream<List<Metadata>> selectedItemsES = new ValueStream(EMPTY_LIST, merge(librarySelectedItemsES,playlistSelectedItemsES));
-//    public static final ValueStream<List<Metadata>> anyItemsES = new ValueStream(EMPTY_LIST, merge(librarySelectedItemsES,playlistSelectedItemsES.map(m->singletonList(m))));
-    
-    
     
     public static final InOutput<Metadata> playing = new InOutput<>(UUID.fromString("876dcdc9-48de-47cd-ab1d-811eb5e95158"),"Playing", Metadata.class);
     public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"),"Selected in playlist", PlaylistItem.class);
@@ -109,7 +87,7 @@ public class Player {
         forbidNull(m);
         
         // update all playlist items referring to this updated metadata
-        PlaylistManager.getItems().stream().filter(p->p.same(m)).forEach(p -> p.update(m));
+        PlaylistManager.playlists.forEach(pl -> pl.stream().filter(p->p.same(m)).forEach(p -> p.update(m)));
 
         // update library
         DB.updateItems(singletonList(m));
@@ -117,10 +95,6 @@ public class Player {
         // rfresh playing item data
         if (playingtem.get().same(m)) playingtem.update(m);
 
-        // refresh selection event streams
-//        if(librarySelectedItemES.getValue().same(m)) librarySelectedItemES.push(m);
-//        if(playlistSelectedItemES.getValue().same(m)) playlistSelectedItemES.push(m);
-        
         // rfresh playing item data
         if(playing.i.getValue()!=null) if(playing.i.getValue().same(m)) playing.i.setValue(m);
         if(playlistSelected.i.getValue()!=null) if(playlistSelected.i.getValue().same(m)) playlistSelected.i.setValue(m.toPlaylist());
@@ -135,7 +109,7 @@ public class Player {
         MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,metas);
 
         // update all playlist items referring to this updated metadata
-        PlaylistManager.getItems().forEach(p -> mm.ifHasK(p.getURI(), p::update));
+        PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
 
         // update library
         DB.updateItems(metas);
@@ -143,11 +117,6 @@ public class Player {
         // rfresh playing item data
         mm.ifHasE(playingtem.get(), playingtem::update);
 
-        // refresh selection event streams
-//        mm.ifHasE(librarySelectedItemES.getValue(), librarySelectedItemES::push);
-//        mm.ifHasE(playlistSelectedItemES.getValue(), playlistSelectedItemES::push);
-        
-        
         if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
         if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
         if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
@@ -164,12 +133,9 @@ public class Player {
         
         runLater(() -> {
             // update all playlist items referring to this updated metadata
-            PlaylistManager.getItems().forEach(p -> mm.ifHasK(p.getURI(), p::update));
+            PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
             // rfresh playing item data
             mm.ifHasE(playingtem.get(), playingtem::update);
-            // refresh selection event streams
-//            mm.ifHasE(librarySelectedItemES.getValue(), librarySelectedItemES::push);
-//            mm.ifHasE(playlistSelectedItemES.getValue(), playlistSelectedItemES::push);        
         
             if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
             if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
@@ -300,7 +266,7 @@ public class Player {
         
         private void preloadNext(){
             Log.deb("Preloading metadata for next item to play.");
-            PlaylistItem next = PlaylistManager.playingItemSelector.getNextPlaying();
+            PlaylistItem next = PlaylistManager.use(p -> p.getNextPlaying(),null);
             if (next == null){
                 Log.deb("Preloading aborted. No next playing item.");
             } else {

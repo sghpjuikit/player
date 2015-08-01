@@ -28,7 +28,7 @@ import javafx.scene.text.Text;
 import org.controlsfx.control.textfield.CustomTextField;
 import org.controlsfx.control.textfield.TextFields;
 
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Metadata;

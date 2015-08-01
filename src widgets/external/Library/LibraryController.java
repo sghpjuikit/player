@@ -1,24 +1,38 @@
 
 package Library;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.concurrent.Task;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.TableColumn;
+import javafx.scene.input.Dragboard;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
+import javafx.util.Callback;
+
 import AudioPlayer.Player;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.PlaylistItem;
+import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.playlist.SimpleItem;
+import AudioPlayer.SimpleItem;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import static AudioPlayer.tagging.Metadata.Field.PATH;
-import static AudioPlayer.tagging.Metadata.Field.RATING;
-import static AudioPlayer.tagging.Metadata.Field.TITLE;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.Config;
 import Configuration.IsConfig;
-import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
@@ -26,7 +40,6 @@ import Layout.Widgets.feature.FileExplorerFeature;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
-import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.InfoNode.InfoTask;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
@@ -38,60 +51,41 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
 import gui.objects.spinner.Spinner;
-import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
-import static java.util.stream.Collectors.toList;
-import java.util.stream.Stream;
-import javafx.beans.property.BooleanProperty;
-import javafx.concurrent.Task;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.NodeOrientation;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
-import static javafx.scene.control.SelectionMode.MULTIPLE;
-import javafx.scene.control.TableColumn;
-import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
-import javafx.scene.input.Dragboard;
-import static javafx.scene.input.KeyCode.DELETE;
-import static javafx.scene.input.KeyCode.ENTER;
-import static javafx.scene.input.KeyCode.ESCAPE;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.TransferMode.COPY;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Window;
-import javafx.util.Callback;
 import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
-import static util.File.FileUtil.getCommonRoot;
-import static util.File.FileUtil.getFilesAudio;
-import static util.Util.menuItem;
-import static util.Util.menuItems;
-import static util.Util.setAnchors;
-import static util.Util.setScaleXY;
 import util.access.FieldValue.FieldEnum.ColumnField;
 import util.access.OVal;
 import util.animation.Anim;
-import static util.animation.Anim.Interpolators.reverse;
 import util.animation.interpolator.ElasticInterpolator;
-import static util.async.Async.FX;
-import util.async.executor.FxTimer;
 import util.async.executor.ExecuteN;
+import util.async.executor.FxTimer;
+import util.graphics.drag.DragUtil;
+import util.parsing.Parser;
+import util.units.FormattedDuration;
+import web.HttpSearchQueryBuilder;
+
+import static AudioPlayer.tagging.Metadata.Field.*;
+import static Layout.Widgets.Widget.Group.LIBRARY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static java.util.stream.Collectors.toList;
+import static javafx.scene.control.ProgressIndicator.INDETERMINATE_PROGRESS;
+import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
+import static javafx.scene.input.KeyCode.*;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.TransferMode.COPY;
+import static util.File.FileUtil.getCommonRoot;
+import static util.File.FileUtil.getFilesAudio;
+import static util.Util.*;
+import static util.animation.Anim.Interpolators.reverse;
+import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
-import util.graphics.drag.DragUtil;
-import util.parsing.Parser;
 import static util.reactive.Util.maintain;
-import util.units.FormattedDuration;
-import web.HttpSearchQueryBuilder;
 
 
 @Info(
@@ -238,10 +232,9 @@ public class LibraryController extends FXMLController implements SongReader {
                 
         // row behavior
         table.setRowFactory(tbl -> new ImprovedTableRow<Metadata>()
-                .onLeftDoubleClick((r,e) -> {
-                    Playlist p = new Playlist(map(table.getItems(),Metadata::toPlaylist));
-                    PlaylistManager.playPlaylistFrom(p, r.getIndex());
-                })
+                .onLeftDoubleClick((r,e) -> 
+                    PlaylistManager.use(pl->pl.setNplayFrom(table.getItems(), r.getIndex()))
+                )
                 .onRightSingleClick((r,e) -> {
                     // prep selection for context menu
                     if(!r.isSelected())
@@ -262,8 +255,7 @@ public class LibraryController extends FXMLController implements SongReader {
         table.setOnKeyReleased(e -> {
             if (e.getCode() == ENTER) {     // play first of the selected
                 if(!table.getSelectionModel().isEmpty()) {
-                    Playlist p = new Playlist(map(table.getItems(),Metadata::toPlaylist));
-                    PlaylistManager.playPlaylistFrom(p, table.getSelectionModel().getSelectedIndex());
+                    PlaylistManager.use(pl ->pl.setNplayFrom(table.getItems(), table.getSelectionModel().getSelectedIndex()));
                 }
             }
             else if (e.getCode() == DELETE)    // delete selected
@@ -297,10 +289,6 @@ public class LibraryController extends FXMLController implements SongReader {
         
         // prevent volume change
         table.setOnScroll(Event::consume);
-        
-        // update selected items for application
-        // d(Player.librarySelectedItemES.feedFrom(nonNullValuesOf(table.getSelectionModel().selectedItemProperty())));
-        // d(Player.librarySelectedItemsES.feedFrom(changesOf(table.getSelectedItems()).map(i->table.getSelectedItemsCopy())));
         
         // update library comparator
         maintain(table.itemsComparator,DB.library_sorter);
@@ -403,22 +391,18 @@ public class LibraryController extends FXMLController implements SongReader {
     private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
-            m.getItems().addAll(menuItem("Play items", e -> {                     
-                    List<PlaylistItem> to_play = map(m.getValue(), Metadata::toPlaylist);
-                    PlaylistManager.playPlaylist(new Playlist(to_play));
-                }),
-                menuItem("Enqueue items", e -> {
-                    List<Metadata> items = m.getValue();
-                    PlaylistManager.addItems(items);
-                }),
-                menuItem("Update from file", e -> {
-                    List<Metadata> items = m.getValue();
-                    App.refreshItemsFromFileJob(items);
-                }),
-                menuItem("Remove from library", e -> {
-                    List<Metadata> items = m.getValue();
-                    DB.removeItems(items);
-                }),
+            m.getItems().addAll(menuItem("Play items", e ->                    
+                    PlaylistManager.use(p -> p.setNplay(m.getValue()))
+                ),
+                menuItem("Enqueue items", e -> 
+                    PlaylistManager.use(p -> p.addItems(m.getValue()))
+                ),
+                menuItem("Update from file", e -> 
+                    App.refreshItemsFromFileJob(m.getValue())
+                ),
+                menuItem("Remove from library", e -> 
+                    DB.removeItems(m.getValue())
+                ),
                 new Menu("Show in",null,
                     menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
                             (String f) -> f,

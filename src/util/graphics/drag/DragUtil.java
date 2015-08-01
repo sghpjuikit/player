@@ -1,32 +1,34 @@
 
 package util.graphics.drag;
 
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.Playlist;
-import AudioPlayer.playlist.SimpleItem;
-import Layout.Component;
-import Layout.Container;
-import Layout.Widgets.controller.io.Output;
 import java.io.File;
 import java.io.IOException;
-import static java.lang.Integer.MAX_VALUE;
 import java.net.URI;
 import java.util.*;
-import static java.util.Collections.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
 import javafx.event.EventHandler;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.TransferMode.ANY;
+
+import AudioPlayer.Item;
+import AudioPlayer.SimpleItem;
+import Layout.Component;
+import Layout.Container;
+import Layout.Widgets.controller.io.Output;
 import main.App;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import static util.File.AudioFileFormat.Use.APP;
 import util.File.FileUtil;
-import static util.File.FileUtil.getFilesAudio;
 import util.File.ImageFileFormat;
+
+import static java.lang.Integer.MAX_VALUE;
+import static java.util.Collections.*;
+import static javafx.scene.input.TransferMode.ANY;
+import static util.File.AudioFileFormat.Use.APP;
+import static util.File.FileUtil.getFilesAudio;
 
 /**
  *

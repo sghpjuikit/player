@@ -10,7 +10,9 @@ import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
 import util.dev.TODO;
+
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Severity.SEVERE;
 
@@ -98,6 +100,10 @@ public class MapSet<K,E> implements Set<E> {
     
     public E get(K key) {
         return m.get(key);
+    }
+    
+    public E getOr(K key, E e) {
+        return m.containsKey(key) ? m.get(key) : e;
     }
 
     @Override

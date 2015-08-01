@@ -6,14 +6,19 @@ import AudioPlayer.playback.player.xtrememp.audio.AudioPlayer;
 import AudioPlayer.playback.player.xtrememp.audio.PlaybackEvent;
 import AudioPlayer.playback.player.xtrememp.audio.PlaybackListener;
 import AudioPlayer.playback.player.xtrememp.audio.PlayerException;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.scene.media.MediaPlayer.Status;
+
 import static javafx.scene.media.MediaPlayer.Status.PAUSED;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+
 import javafx.util.Duration;
+
 import static javafx.util.Duration.millis;
 import static util.async.Async.runLater;
 

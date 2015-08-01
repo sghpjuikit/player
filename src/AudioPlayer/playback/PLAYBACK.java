@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.player.GeneralPlayer;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector.LoopMode;
+import AudioPlayer.Item;
+import AudioPlayer.playlist.sequence.PlayingSequence;
+import AudioPlayer.playlist.sequence.PlayingSequence.LoopMode;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.playcountincr.PlaycountIncrementer;
@@ -64,7 +64,7 @@ public final class PLAYBACK implements Configurable {
     /** Initializes the Playback. */
     public static void initialize() {
         player.realTime.initialize();
-        addOnPlaybackAt(at(1, () -> onTimeHandlers.forEach(h->h.restart(PlaylistManager.getPlayingItem().getTime()))));
+        addOnPlaybackAt(at(1, () -> onTimeHandlers.forEach(h->h.restart(Player.playingtem.get().getLength()))));
         
         // add end of player behavior
         addOnPlaybackEnd(() -> {
@@ -83,7 +83,7 @@ public final class PLAYBACK implements Configurable {
     /** Initialize state from last session */
     public static void loadLastState() {
         if(!continuePlaybackOnStart) return;
-        if (PlaylistManager.getPlayingItem()==null) return;
+        if (PlaylistManager.use(p -> p.getPlaying(),null)==null) return;
         
         if (continuePlaybackPaused)
             state.status.set(Status.PAUSED);
@@ -105,11 +105,11 @@ public final class PLAYBACK implements Configurable {
         if (s == PAUSED || s == PLAYING)
             startTime = state.currentTime.get();
         if (s == PAUSED) {
-            player.play(PlaylistManager.getPlayingItem());
+            player.play(PlaylistManager.use(p -> p.getPlaying(),null));
             util.async.Async.runFX(1000, player::pause);
         }
         if (s == PLAYING) {
-            player.play(PlaylistManager.getPlayingItem());
+            player.play(PlaylistManager.use(p -> p.getPlaying(),null));
         }
     }
     
@@ -117,7 +117,7 @@ public final class PLAYBACK implements Configurable {
     // this prevents onTima handlers to reset after playbac activation
     // the suspension-activation should undergo as if it never happen
     public static boolean post_activating = false;
-    // this negates the above when app starts ad playback is activated 1st time
+    // this negates the above when app starts and playback is activated 1st time
     public static boolean post_activating_1st = true;
     
     
@@ -237,7 +237,7 @@ public final class PLAYBACK implements Configurable {
         App.use(PlaycountIncrementer.class, PlaycountIncrementer::increment);
     };
     
-    public static PlayingItemSelector.LoopMode getLoopMode() {
+    public static PlayingSequence.LoopMode getLoopMode() {
         return state.loopMode.get();
     }
     
@@ -323,8 +323,8 @@ public final class PLAYBACK implements Configurable {
      * and 1 maximum possible rating for current item.
      */
     public static void rate(double rating) {
-        if (PlaylistManager.isItemPlaying())
-            MetadataWriter.useToRate(Player.playingtem.get(), rating);
+        if (PlaylistManager.active==null) return;
+        MetadataWriter.useToRate(Player.playingtem.get(), rating);
     }
     
     /** Rate playing item 0/5. */
@@ -360,7 +360,8 @@ public final class PLAYBACK implements Configurable {
     /** Explore current item directory - opens file browser for its location. */
     @IsAction(name = "Explore current item directory", descr = "Explore current item directory.", shortcut = "ALT+V", global = true)
     public static void openPlayedLocation() {
-        Item i = PlaylistManager.getPlayingItem();
+        if (PlaylistManager.active==null) return;
+        Item i = PlaylistManager.use(p -> p.getPlaying(),null);
         Environment.browse(i==null ? null : i.getURI());
     }
 

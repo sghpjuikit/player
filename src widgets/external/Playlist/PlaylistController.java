@@ -1,7 +1,20 @@
 package Playlist;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import javafx.scene.control.Menu;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.AnchorPane;
+
 import AudioPlayer.Player;
-import AudioPlayer.playlist.NamedPlaylist;
+import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistItem.Field;
 import AudioPlayer.playlist.PlaylistManager;
@@ -10,41 +23,33 @@ import Configuration.IsConfig;
 import Configuration.MapConfigurable;
 import Configuration.ValueConfig;
 import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.PLAYLIST;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.PlaylistFeature;
 import Layout.Widgets.feature.SongReader;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.GUI;
-import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Table.PlaylistTable;
 import gui.objects.Table.TableColumnInfo;
 import gui.objects.icon.Icon;
-import java.util.Collection;
-import java.util.Date;
-import java.util.function.Predicate;
-import javafx.beans.InvalidationListener;
-import javafx.collections.ListChangeListener;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.NodeOrientation;
-import javafx.scene.control.Menu;
-import static javafx.scene.control.SelectionMode.MULTIPLE;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.AnchorPane;
+import main.App;
 import unused.SimpleConfigurator;
-import static util.Util.menuItem;
-import static util.Util.setAnchors;
 import util.access.Accessor;
 import util.access.OVal;
 import util.async.executor.ExecuteN;
+import util.units.FormattedDuration;
+
+import static Layout.Widgets.Widget.Group.PLAYLIST;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
+import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
+import static java.util.stream.Collectors.toList;
+import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static util.Util.menuItem;
+import static util.Util.setAnchors;
 import static util.functional.Util.isNotNULL;
 import static util.reactive.Util.maintain;
-import util.units.FormattedDuration;
 
 /**
  * Playlist FXML Controller class
@@ -80,7 +85,9 @@ import util.units.FormattedDuration;
 public class PlaylistController extends FXMLController implements PlaylistFeature {
 
     private @FXML AnchorPane root;
-    private final PlaylistTable table = new PlaylistTable();
+    private Playlist playlist;
+    private PlaylistTable table;
+    private final ExecuteN columnInitializer = new ExecuteN(1);
     
     private Output<PlaylistItem> out_sel;
     
@@ -113,14 +120,23 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         setUseFilterForPlayback(v);
     });
     
-    private final ExecuteN columnInitializer = new ExecuteN(1);
-    private final InvalidationListener predicateL = o -> 
-            PlaylistManager.playingItemSelector.setFilter((Predicate)table.itemsPredicate.get());
     
     @Override
     public void init() {        
         out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
         d(Player.playlistSelected.i.bind(out_sel));
+        
+        // obtain playlist by id, we will use this widget's id
+        UUID id = getWidget().id;
+        playlist = PlaylistManager.playlists.getOr(id, new Playlist(id));
+        // maybe this widget was created & no playlist exists, add it to list
+        PlaylistManager.playlists.add(playlist); // if exists, nothing happens
+        // when widget closes we must remove the playlist or it would get saved
+        // and playlist list would infinitely grow, when widgets close naturally
+        // on app close, the playlist will get removed after it was saved => no problem
+        d(() -> PlaylistManager.playlists.remove(playlist));
+        
+        table = new PlaylistTable(playlist);
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
@@ -148,21 +164,21 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             menuItem("Play files",PlaylistManager::chooseFilesToPlay),
             menuItem("Play directory",PlaylistManager::chooseFolderToPlay),
             menuItem("Play URL",PlaylistManager::chooseUrlToPlay),
-            menuItem("Duplicate selected (+)",() -> PlaylistManager.duplicateItemsByOne(table.getSelectedItems())),
-            menuItem("Duplicate selected (*)",() -> PlaylistManager.duplicateItemsAsGroup(table.getSelectedItems()))
+            menuItem("Duplicate selected (+)",() -> playlist.duplicateItemsByOne(table.getSelectedItems())),
+            menuItem("Duplicate selected (*)",() -> playlist.duplicateItemsAsGroup(table.getSelectedItems()))
 //            editOnAdd_menuItem    // add to lib option
 //            editOnAdd_menuItem    // add to lib + edit option
         );
         table.menuRemove.getItems().addAll(
-            menuItem("Remove selected", () -> PlaylistManager.removeItems(table.getSelectedItems())),
-            menuItem("Remove not selected", () -> PlaylistManager.retainItems(table.getSelectedItems())),
-            menuItem("Remove unsupported", PlaylistManager::removeCorrupt),
-            menuItem("Remove duplicates", PlaylistManager::removeDuplicates),
-            menuItem("Remove all", PlaylistManager::removeAllItems)
+            menuItem("Remove selected", () -> playlist.removeAll(table.getSelectedItems())),
+            menuItem("Remove not selected", () -> playlist.retainAll(table.getSelectedItems())),
+            menuItem("Remove unsupported", playlist::removeUnplayable),
+            menuItem("Remove duplicates", playlist::removeDuplicates),
+            menuItem("Remove all", playlist::clear)
         );
         table.menuOrder.getItems().addAll(
-            menuItem("Order reverse", PlaylistManager::reversePlaylist),
-            menuItem("Order randomly", PlaylistManager::randomizePlaylist),
+            menuItem("Order reverse", playlist::reverse),
+            menuItem("Order randomly", playlist::randomize),
             menuItem("Edit selected", () -> WidgetManager.use(SongReader.class,NO_LAYOUT,w->w.read(table.getSelectedItems()))),
             menuItem("Save selected as...", this::saveSelectedAsPlaylist),
             menuItem("Save playlist as...", this::savePlaylist)
@@ -172,11 +188,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
         table.menuOrder.getItems().add(0, sortM);
         
-        // for now...  either get rid of PM and allow multiple playlists OR allow binding
-        ListChangeListener<PlaylistItem> playlistitemsL = c -> table.setItemsRaw(c.getList());
-        PlaylistManager.getItems().addListener(playlistitemsL);
-        d(() -> PlaylistManager.getItems().removeListener(playlistitemsL));
-        
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
         
@@ -184,7 +195,6 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
         
         d(table::dispose);
-        d(() -> table.itemsPredicate.removeListener(predicateL));
     }
     
     @Override
@@ -203,23 +213,23 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             table.setColumnState(c==null ? table.getDefaultColumnInfo() : TableColumnInfo.fromString(c));
         });
         filter_for_playback.applyValue();
-        table.setItemsRaw(PlaylistManager.getItems());
     }
     
 /***************************** HELPER METHODS *********************************/
     
     void savePlaylist() {
-        if(table.getItems().isEmpty()) return;
+        List<PlaylistItem> l = table.getItems();
+        if(l.isEmpty()) return;
         
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
         MapConfigurable mc = new MapConfigurable(
-                new ValueConfig("Name", initialName),
-                new ValueConfig("Category", "Listening to..."));
+                new ValueConfig("Name", initialName)
+        );
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
-            String name = c.getField("Name").getValue();
-            NamedPlaylist p = new NamedPlaylist(name, table.getItems());
-                          p.addCategory("Listening to...");
-                          p.serialize();
+            String n = c.getField("Name").getValue();
+            Playlist p = new Playlist(UUID.randomUUID());
+                  p.setAll(l);
+                  p.serializeToFile(new File(App.PLAYLIST_FOLDER(),n + ".xml"));
         });
         PopOver p = new PopOver(sc);
                 p.title.set("Save playlist as...");
@@ -227,17 +237,17 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     }
     
     void saveSelectedAsPlaylist() {
-        if(table.getSelectedItems().isEmpty()) return;
+        List<PlaylistItem> l = table.getSelectedItems();
+        if(l.isEmpty()) return;
         
         MapConfigurable mc = new MapConfigurable(
-                        new ValueConfig("Name", "My Playlist"),
-                        new ValueConfig("Category", "Custom"));
+                        new ValueConfig("Name", "My Playlist")
+        );
         SimpleConfigurator sc = new SimpleConfigurator<String>(mc, c -> {
-            String name = c.getField("Name").getValue();
-            String category = c.getField("Category").getValue();
-            NamedPlaylist p = new NamedPlaylist(name, table.getSelectedItems());
-                          p.addCategory(category);
-                          p.serialize();
+            String n = c.getField("Name").getValue();
+            Playlist p = new Playlist(UUID.randomUUID());
+                  p.setAll(l);
+                  p.serializeToFile(new File(App.PLAYLIST_FOLDER(),n + ".xml"));
         });
         PopOver p = new PopOver(sc);
                 p.title.set("Save selected items as...");
@@ -245,15 +255,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     }
     
     private void setUseFilterForPlayback(boolean v) {
-        if(v) {
-            filter_for_playback.setValue(true);
-            table.itemsPredicate.addListener(predicateL);
-            PlaylistManager.playingItemSelector.setFilter((Predicate)table.itemsPredicate.get());
-        } else {
-            filter_for_playback.setValue(false);
-            table.itemsPredicate.removeListener(predicateL);
-            PlaylistManager.playingItemSelector.setFilter(null);
-        }
+        playlist.setTransformation(v 
+            ? orig -> table.getItems().stream().sorted(table.itemsComparator.get()).collect(toList()) 
+            : orig -> orig
+        );
     }
     
     private void filterToggle() {

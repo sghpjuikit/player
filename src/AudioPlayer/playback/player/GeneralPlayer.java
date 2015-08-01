@@ -6,25 +6,23 @@
 package AudioPlayer.playback.player;
 
 
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
+
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import static AudioPlayer.playback.PLAYBACK.post_activating;
-import static AudioPlayer.playback.PLAYBACK.post_activating_1st;
-import static AudioPlayer.playback.PLAYBACK.state;
 import AudioPlayer.playback.RealTimeProperty;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import javafx.scene.media.MediaPlayer.Status;
-import static javafx.scene.media.MediaPlayer.Status.*;
-import javafx.util.Duration;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-import static util.File.AudioFileFormat.m4a;
-import static util.File.AudioFileFormat.mp3;
-import static util.File.AudioFileFormat.mp4;
-import static util.File.AudioFileFormat.wav;
 import util.async.Async;
+
+import static AudioPlayer.playback.PLAYBACK.*;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
+import static javafx.scene.media.MediaPlayer.Status.STOPPED;
+import static util.File.AudioFileFormat.*;
 
 /**
  *
@@ -62,7 +60,7 @@ public class GeneralPlayer {
         
         // handle unsupported
         if (p==null) { 
-            PlaylistManager.playItem(item); // handle within playlist
+            PlaylistManager.use(p->p.playItem(item)); // handle within playlist
             return;
         }
         
@@ -76,7 +74,6 @@ public class GeneralPlayer {
             realTime.synchroRealTime_onPlayed();
             // throw item change event
             Player.playingtem.itemChanged(item);
-            PlaylistManager.setPlayingItem(item);
             // fire other events (may rely on the above)
             PLAYBACK.playbackStartDistributor.run();
             if(post_activating_1st || !post_activating)
@@ -115,6 +112,8 @@ public class GeneralPlayer {
         
         realTime.synchroRealTime_onStopped();
         PLAYBACK.onTimeHandlers.forEach(t -> t.stop());
+        PlaylistManager.playlists.forEach(p ->p.playing.set(-1));
+        PlaylistManager.active = null;
     }
     
     public void seek(Duration duration) {

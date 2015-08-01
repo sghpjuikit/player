@@ -3,22 +3,22 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package AudioPlayer.playlist;
+package AudioPlayer;
 
 import java.io.File;
-import java.io.Serializable;
 import java.net.URI;
+
 import jdk.nashorn.internal.ir.annotations.Immutable;
 
 /**
- * Simple {@link Item} implementation. 
- * Wraps URI, providing simplest Item implementation. Serializable.
- * <p>
- * @author uranium
+ * Simplest {@link Item} implementation. 
+ * Wraps URI. Immutable.
+
+* @author uranium
  */
 @Immutable
-public class SimpleItem extends Item implements Serializable {
-    private static final long serialVersionUID = 100034L;
+public class SimpleItem extends Item {
+    
     private final URI uri;
     
     public SimpleItem(URI _uri) {

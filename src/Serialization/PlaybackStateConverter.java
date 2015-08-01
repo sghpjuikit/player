@@ -6,13 +6,15 @@
 package Serialization;
 
 import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
+import AudioPlayer.playlist.sequence.PlayingSequence;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
+
 import java.util.UUID;
+
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
@@ -73,7 +75,7 @@ public class PlaybackStateConverter implements Converter {
         s.balance.set(Double.parseDouble(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
-        s.loopMode.set(PlayingItemSelector.LoopMode.valueOf(reader.getValue()));
+        s.loopMode.set(PlayingSequence.LoopMode.valueOf(reader.getValue()));
         reader.moveUp();
         reader.moveDown();
         s.status.set(Status.valueOf(reader.getValue()));

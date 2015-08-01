@@ -1,9 +1,12 @@
 package Serialization.xstream;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
+import com.sun.javafx.collections.ObservableListWrapper;
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.collections.CollectionConverter;
 import com.thoughtworks.xstream.mapper.Mapper;
-import javafx.collections.ObservableList;
 
 /**
  * TODO write documentation<br>
@@ -22,5 +25,13 @@ public class ObservableListConverter extends CollectionConverter implements Conv
     @Override
     public boolean canConvert(Class type) {
         return ObservableList.class.isAssignableFrom(type);
+    }
+    
+    @Override
+    protected Object createCollection(Class type) {
+        if (type == ObservableListWrapper.class) {
+            return FXCollections.observableArrayList();
+        }
+        return super.createCollection(type);
     }
 }

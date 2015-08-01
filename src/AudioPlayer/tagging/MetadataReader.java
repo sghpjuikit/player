@@ -1,21 +1,28 @@
 
 package AudioPlayer.tagging;
 
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.Database.DB;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
+
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
+
 import javax.persistence.EntityManager;
+
 import org.jaudiotagger.audio.AudioFile;
+
 import util.File.AudioFileFormat.Use;
+
 import static util.async.Async.*;
+
 import unused.Log;
 
 /**

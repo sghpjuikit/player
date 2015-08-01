@@ -2,65 +2,69 @@
 package ImageViewer;
 
 
-import AudioPlayer.Player;
-import AudioPlayer.playlist.Item;
-import AudioPlayer.tagging.Metadata;
-import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.OTHER;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.controller.io.Input;
-import Layout.Widgets.feature.ImageDisplayFeature;
-import Layout.Widgets.feature.ImagesDisplayFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
-import gui.InfoNode.ItemInfo;
-import gui.objects.image.Thumbnail;
-import gui.objects.icon.Icon;
 import java.io.File;
 import java.util.ArrayList;
-import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import static java.util.stream.Collectors.toList;
-import static javafx.animation.Animation.INDEFINITE;
+
 import javafx.application.Platform;
-import static javafx.application.Platform.runLater;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
-import static javafx.util.Duration.seconds;
-import static javafx.util.Duration.millis;
-import main.App;
+
 import org.reactfx.Subscription;
-import static util.File.FileUtil.getFilesImage;
+
+import AudioPlayer.Player;
+import AudioPlayer.Item;
+import AudioPlayer.tagging.Metadata;
+import Configuration.IsConfig;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.Widgets.feature.ImagesDisplayFeature;
+import gui.InfoNode.ItemInfo;
+import gui.objects.icon.Icon;
+import gui.objects.image.Thumbnail;
+import main.App;
 import util.Util;
-import static util.Util.setAnchors;
 import util.access.Accessor;
 import util.animation.Anim;
-import static util.async.Async.FX;
 import util.async.executor.FxTimer;
-import static util.async.future.Fut.fut;
 import util.async.runnable.Run;
-import static util.functional.Util.forEachWithI;
 import util.graphics.drag.DragUtil;
+
+import static Layout.Widgets.Widget.Group.OTHER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_LEFT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ARROW_RIGHT;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.stream.Collectors.toList;
+import static javafx.animation.Animation.INDEFINITE;
+import static javafx.application.Platform.runLater;
+import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.geometry.Pos.CENTER;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.util.Duration.millis;
+import static javafx.util.Duration.seconds;
+import static util.File.FileUtil.getFilesImage;
+import static util.Util.setAnchors;
+import static util.async.Async.FX;
+import static util.async.future.Fut.fut;
+import static util.functional.Util.forEachWithI;
 
 /**
  * 

@@ -1,8 +1,17 @@
 
 package AudioPlayer.services.notif;
 
-import action.IsAction;
-import action.IsActionable;
+import java.util.List;
+
+import javafx.beans.value.ChangeListener;
+import javafx.scene.Node;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
+
+import org.reactfx.Subscription;
+
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service.ServiceBase;
@@ -11,28 +20,23 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import Layout.Widgets.feature.SongReader;
+import action.IsAction;
+import action.IsActionable;
 import gui.InfoNode.ItemInfo;
 import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
-import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Bottom_Right;
-import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import gui.objects.Text;
-import java.util.List;
-import static java.util.stream.Collectors.toList;
-import javafx.beans.value.ChangeListener;
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.media.MediaPlayer.Status;
-import static javafx.scene.media.MediaPlayer.Status.*;
-import javafx.util.Duration;
-import static javafx.util.Duration.millis;
 import main.App;
-import org.reactfx.Subscription;
 import util.access.AccessorAction;
 import util.access.AccessorEnum;
+
+import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
+import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Bottom_Right;
+import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
+import static java.util.stream.Collectors.toList;
+import static javafx.scene.media.MediaPlayer.Status.*;
+import static javafx.util.Duration.millis;
 
 /** Provides notification functionality. */
 @IsActionable

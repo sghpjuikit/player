@@ -1,17 +1,31 @@
 
 package gui.objects.Table;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javafx.beans.value.ChangeListener;
+import javafx.collections.ListChangeListener;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.*;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.util.Callback;
+
+import org.reactfx.Subscription;
+
 import AudioPlayer.Player;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
-import static AudioPlayer.playlist.PlaylistItem.Field.LENGTH;
-import static AudioPlayer.playlist.PlaylistItem.Field.NAME;
-import static AudioPlayer.playlist.PlaylistItem.Field.TITLE;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.playlist.Playlist;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
@@ -19,34 +33,24 @@ import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.TableContextMenuInstance;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import javafx.beans.value.ChangeListener;
-import javafx.collections.ListChangeListener;
-import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.*;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.*;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.util.Callback;
 import main.App;
-import org.reactfx.Subscription;
 import util.File.Environment;
 import util.Util;
-import static util.Util.*;
 import util.dev.TODO;
-import static util.dev.TODO.Purpose.READABILITY;
-import static util.functional.Util.by;
-import static util.functional.Util.filterMap;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
 import web.HttpSearchQueryBuilder;
+
+import static AudioPlayer.playlist.PlaylistItem.Field.*;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static util.Util.*;
+import static util.dev.TODO.Purpose.READABILITY;
+import static util.functional.Util.by;
+import static util.functional.Util.filterMap;
 
 /**
  * Playlist table GUI component.
@@ -72,8 +76,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     // dependencies
     private final Subscription d1;
     
-    public PlaylistTable () {
-        super(NAME);
+    public PlaylistTable (Playlist playlist) {
+        super(NAME,playlist);
+        playlist.setTransformation(getItems());
         
         VBox.setVgrow(this, Priority.ALWAYS);
         
@@ -111,7 +116,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                         selectNone();
                 });
                 // left doubleckick -> play
-                onLeftDoubleClick((r,e) -> PlaylistManager.playItem(getSourceIndex(r.getIndex())));
+                onLeftDoubleClick((r,e) -> getPlaylist().playItem(r.getItem()));
                 // right click -> show context menu
                 onRightSingleClick((r,e) -> {
                     // prep selection for context menu
@@ -124,7 +129,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
                 
                 // additional css styleclasses
-                styleRuleAdd("played", PlaylistManager::isItemPlaying);
+                styleRuleAdd("played", p -> getPlaylist().isItemPlaying(p));
                 styleRuleAdd("corrupt", PlaylistItem::markedAsCorrupted);
             }
         });
@@ -188,7 +193,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         addEventHandler(MOUSE_CLICKED, e -> {
             if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
             if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItems().isEmpty())
-                        PlaylistManager.addOrEnqueueFiles(true);
+                        getPlaylist().addOrEnqueueFiles(true);
         });
         
         // move items on drag
@@ -209,12 +214,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         setOnKeyReleased( e -> {
             if (e.getCode() == KeyCode.ENTER) {     // play first of the selected
                 if(!getSelectedItems().isEmpty())
-                    PlaylistManager.playItem(getSelectedItems().get(0));
+                    getPlaylist().playItem(getSelectedItems().get(0));
             } else
             if (e.getCode() == KeyCode.DELETE) {    // delete selected
                 List<PlaylistItem> p = getSelectedItemsCopy();
                 getSelectionModel().clearSelection();
-                PlaylistManager.removeItems(p);
+                getPlaylist().removeAll(p);
             } else
             if (e.getCode() == KeyCode.ESCAPE) {    // deselect
                 getSelectionModel().clearSelection();
@@ -264,6 +269,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         getSelectionModel().getSelectedItems().removeListener(selItemsListener);
     }
     
+    public Playlist getPlaylist() {
+        return (Playlist) getItemsRaw();
+    }
+    
 /************************************* SORT ***********************************/
     
     /**
@@ -281,7 +290,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     @Override
     public void sortBy(PlaylistItem.Field f) {
         getSortOrder().clear();
-        PlaylistManager.getItems().sort(by(p -> (Comparable) p.getField(f)));
+        getPlaylist().sort(by(p -> (Comparable) p.getField(f)));
     }
     
 /********************************** SELECTION *********************************/
@@ -313,7 +322,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         List<Integer> oldS = new ArrayList();
                       oldS.addAll(getSelectionModel().getSelectedIndices());
         // move in playlist
-        List<Integer> newS = PlaylistManager.moveItemsBy(oldS, by);
+        List<Integer> newS = getPlaylist().moveItemsBy(oldS, by);
         // select back
         Util.selectRows(newS, getSelectionModel());
         
@@ -325,7 +334,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     private void dropDrag(DragEvent e, int index) {
         if (DragUtil.hasAudio(e.getDragboard())) {
             List<Item> items = DragUtil.getAudioItems(e);
-            PlaylistManager.addItems(items, index);
+            getPlaylist().addItems(items, index);
             //end drag transfer
             e.setDropCompleted(true);
             e.consume();
@@ -338,10 +347,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {
-                    PlaylistManager.playItem(m.getValue().get(0));
+                    PlaylistManager.use(p -> p.playItem(m.getValue().get(0)));
                 }),
                 menuItem("Remove items", e -> {
-                    PlaylistManager.removeItems(m.getValue());
+                    PlaylistManager.use(p -> p.removeAll(m.getValue()));
                 }),
                 new Menu("Show in",null,
                     menuItems(filterMap(WidgetManager.getFactories(),f->f.hasFeature(SongReader.class),f->f.name()),
@@ -354,13 +363,13 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                             (String f) -> WidgetManager.use(w->w.name().equals(f),NO_LAYOUT,c->((SongWriter)c.getController()).read(m.getValue())))
                 ),
                 menuItem("Crop items", e -> {
-                    PlaylistManager.retainItems(m.getValue());
+                    PlaylistManager.use(p -> p.retainAll(m.getValue()));
                 }),
                 menuItem("Duplicate items as group", e -> {
-                    PlaylistManager.duplicateItemsAsGroup(m.getValue());
+                    PlaylistManager.use(p -> p.duplicateItemsAsGroup(m.getValue()));
                 }),
                 menuItem("Duplicate items individually", e -> {
-                    PlaylistManager.duplicateItemsByOne(m.getValue());
+                    PlaylistManager.use(p -> p.duplicateItemsByOne(m.getValue()));
                 }),
                 menuItem("Explore items's directory", e -> {
                     List<File> files = m.getValue().stream()

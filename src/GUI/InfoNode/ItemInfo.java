@@ -5,19 +5,25 @@
  */
 package gui.InfoNode;
 
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
+
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
+
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.feature.SongReader;
 import gui.objects.image.Thumbnail;
+
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
+
 import static util.Util.setAnchors;
+
 import util.graphics.fxml.ConventionFxmlLoader;
 
 /** Info about song. */

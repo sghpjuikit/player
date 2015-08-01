@@ -1,22 +1,32 @@
 
 package LibraryView;
 
+import java.time.Year;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.geometry.NodeOrientation;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
+import javafx.scene.input.Dragboard;
+import javafx.scene.layout.AnchorPane;
+import javafx.util.Callback;
+
+import org.reactfx.EventStreams;
+
 import AudioPlayer.Player;
-import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.Metadata.Field;
-import static AudioPlayer.tagging.Metadata.Field.ALBUM;
-import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
 import AudioPlayer.tagging.MetadataGroup;
-import static AudioPlayer.tagging.MetadataGroup.Field.*;
 import Configuration.Config;
 import Configuration.IsConfig;
-import static Layout.Widgets.Widget.Group.LIBRARY;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
@@ -32,48 +42,42 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
-import static java.time.Duration.ofMillis;
-import java.time.Year;
-import java.util.*;
-import static java.util.Collections.EMPTY_LIST;
-import java.util.function.Predicate;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import java.util.stream.Stream;
-import static javafx.application.Platform.runLater;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.NodeOrientation;
-import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.CENTER_RIGHT;
-import javafx.scene.control.*;
-import static javafx.scene.control.SelectionMode.MULTIPLE;
-import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
-import javafx.scene.input.Dragboard;
-import static javafx.scene.input.KeyCode.*;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.TransferMode.COPY;
-import javafx.scene.layout.AnchorPane;
-import static javafx.stage.WindowEvent.WINDOW_SHOWN;
-import javafx.util.Callback;
 import main.App;
-import org.reactfx.EventStreams;
 import util.File.Environment;
-import static util.Util.*;
 import util.access.AccessorEnum;
 import util.access.FieldValue.FieldEnum.ColumnField;
 import util.access.OVal;
 import util.async.executor.ExecuteN;
-import static util.async.future.Fut.fut;
 import util.collections.Histogram;
 import util.collections.TupleM6;
-import static util.collections.Tuples.tuple;
-import static util.functional.Util.*;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
-import static util.reactive.Util.maintain;
 import web.HttpSearchQueryBuilder;
+
+import static AudioPlayer.tagging.Metadata.Field.ALBUM;
+import static AudioPlayer.tagging.Metadata.Field.CATEGORY;
+import static AudioPlayer.tagging.MetadataGroup.Field.*;
+import static Layout.Widgets.Widget.Group.LIBRARY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static java.time.Duration.ofMillis;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static javafx.application.Platform.runLater;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY;
+import static javafx.scene.input.KeyCode.ENTER;
+import static javafx.scene.input.KeyCode.ESCAPE;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.TransferMode.COPY;
+import static javafx.stage.WindowEvent.WINDOW_SHOWN;
+import static util.Util.*;
+import static util.async.future.Fut.fut;
+import static util.collections.Tuples.tuple;
+import static util.functional.Util.*;
+import static util.reactive.Util.maintain;
 
 @Info(
     author = "Martin Polakovic",
@@ -433,7 +437,7 @@ public class LibraryViewController extends FXMLController {
                                       q -> Environment.browse(q.apply(m.getValue().get(0).getAlbum())));
             searchMenu = new Menu("Search album cover",null,is);
             m.getItems().addAll(menuItem("Play items", e -> play(m.getValue())),
-                menuItem("Enqueue items", e -> PlaylistManager.addItems(m.getValue())),
+                menuItem("Enqueue items", e -> PlaylistManager.use(p -> p.addItems(m.getValue()))),
                 menuItem("Update from file", e -> App.refreshItemsFromFileJob(m.getValue())),
                 menuItem("Remove from library", e -> DB.removeItems(m.getValue())),
                 new Menu("Show in",null,
@@ -459,11 +463,7 @@ public class LibraryViewController extends FXMLController {
     
     private static void play(List<Metadata> items) {
         if(items.isEmpty()) return;
-        Playlist p = new Playlist();
-        items.stream()
-             .sorted(DB.library_sorter.get())
-             .map(Metadata::toPlaylist).forEach(p::addItem);
-        PlaylistManager.playPlaylist(p);
+        PlaylistManager.use(p -> p.setNplay(items.stream().sorted(DB.library_sorter.get())));
     }
     
 }

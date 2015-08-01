@@ -6,10 +6,12 @@ package AudioPlayer.playback;
 
 import AudioPlayer.playback.state.BalanceProperty;
 import AudioPlayer.playback.state.VolumeProperty;
-import AudioPlayer.playlist.ItemSelection.PlayingItemSelector;
+import AudioPlayer.playlist.sequence.PlayingSequence;
+
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
+
 import javafx.beans.property.*;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
@@ -21,7 +23,7 @@ public final class PlaybackState {
     private UUID id;
     public final VolumeProperty volume;
     public final BalanceProperty balance;
-    public final ObjectProperty<PlayingItemSelector.LoopMode> loopMode;
+    public final ObjectProperty<PlayingSequence.LoopMode> loopMode;
     public final ObjectProperty<MediaPlayer.Status> status;
     public final ObjectProperty<Duration> duration;
     public final ObjectProperty<Duration> currentTime;
@@ -37,7 +39,7 @@ public final class PlaybackState {
         id = _id;
         volume = new VolumeProperty();
         balance = new BalanceProperty();
-        loopMode = new SimpleObjectProperty<>(PlayingItemSelector.LoopMode.PLAYLIST);
+        loopMode = new SimpleObjectProperty<>(PlayingSequence.LoopMode.PLAYLIST);
         status = new SimpleObjectProperty<>(MediaPlayer.Status.UNKNOWN);
         duration = new SimpleObjectProperty<>(Duration.ZERO);
         currentTime = new SimpleObjectProperty<>(Duration.ZERO);

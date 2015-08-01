@@ -6,7 +6,8 @@
 package AudioPlayer.playback.player;
 
 import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
+
 import javafx.util.Duration;
 
 /**

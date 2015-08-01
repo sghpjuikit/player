@@ -1,39 +1,27 @@
 
 package AudioPlayer.tagging;
 
-import AudioPlayer.playlist.Item;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.tagging.Chapters.Chapter;
-import AudioPlayer.tagging.Chapters.MetadataExtended;
-import gui.objects.image.cover.Cover;
-import gui.objects.image.cover.Cover.CoverSource;
-import gui.objects.image.cover.FileCover;
-import gui.objects.image.cover.ImageCover;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import static java.lang.Integer.parseInt;
-import static java.lang.annotation.ElementType.METHOD;
 import java.lang.annotation.Retention;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 import java.lang.annotation.Target;
 import java.net.URI;
 import java.time.DateTimeException;
 import java.time.Year;
 import java.util.ArrayList;
-import static java.util.Collections.EMPTY_LIST;
 import java.util.List;
 import java.util.Objects;
-import static java.util.stream.Collectors.joining;
-import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
-import javafx.util.Duration;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
-import main.App;
+
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.util.Duration;
+
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
@@ -50,25 +38,42 @@ import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.mp4.Mp4FieldKey;
 import org.jaudiotagger.tag.mp4.Mp4Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
+
+import AudioPlayer.Item;
+import AudioPlayer.playlist.PlaylistItem;
+import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.Chapters.Chapter;
+import AudioPlayer.tagging.Chapters.MetadataExtended;
+import gui.objects.image.cover.Cover;
+import gui.objects.image.cover.Cover.CoverSource;
+import gui.objects.image.cover.FileCover;
+import gui.objects.image.cover.ImageCover;
+import main.App;
+import unused.Log;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
-import static util.File.FileUtil.EMPTY_COLOR;
-import static util.File.FileUtil.EMPTY_URI;
 import util.File.ImageFileFormat;
 import util.Util;
-import static util.Util.emptifyString;
-import static util.Util.mapEnumConstant;
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
-import unused.Log;
 import util.dev.TODO;
-import static util.functional.Util.isIn;
-import static util.functional.Util.stream;
 import util.parsing.Parser;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 import util.units.NofX;
+
+import static java.lang.Integer.parseInt;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.stream.Collectors.joining;
+import static util.File.FileUtil.EMPTY_COLOR;
+import static util.File.FileUtil.EMPTY_URI;
+import static util.Util.emptifyString;
+import static util.Util.mapEnumConstant;
+import static util.functional.Util.isIn;
+import static util.functional.Util.stream;
 
 /**
  * Information about audio file.
@@ -886,7 +891,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      * not on playlist.
      */
     public int getPlaylistIndex() {
-        return PlaylistManager.getIndexOf(this)+1;
+        return PlaylistManager.use(p -> p.indexOfSame(this)+1, -1);
     }
     
     /**
@@ -897,7 +902,7 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
      */
     public String getPlaylistIndexInfo() {
         int i = getPlaylistIndex();
-        return i==-1 ? "" : i + "/" + PlaylistManager.getSize();
+        return i==-1 ? "" : i + "/" + PlaylistManager.use(p -> p.size(),0);
     }
     public static final boolean chaptersIncludeXML = true;
     /**

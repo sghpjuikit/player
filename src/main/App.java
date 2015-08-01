@@ -1,8 +1,31 @@
 
 package main;
 
+import java.io.File;
+import java.net.URI;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.property.*;
+import javafx.scene.ImageCursor;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.stage.Stage;
+
+import org.atteo.classindex.ClassIndex;
+import org.reactfx.EventSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import AudioPlayer.Player;
-import AudioPlayer.playlist.Item;
+import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
@@ -29,44 +52,23 @@ import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.PopOver.PopOver;
-import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
 import gui.pane.CellPane;
-import java.io.File;
-import java.net.URI;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.beans.property.*;
-import javafx.scene.ImageCursor;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.stage.Stage;
-import org.atteo.classindex.ClassIndex;
-import org.reactfx.EventSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.ClassName;
-import static util.File.Environment.browse;
 import util.File.FileUtil;
 import util.InstanceName;
 import util.access.AccessorEnum;
-import static util.async.Async.FX;
-import static util.async.Async.run;
-import static util.async.Async.runLater;
 import util.async.future.Fut;
-import static util.functional.Util.map;
 import util.plugin.PluginMap;
+
+import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
+import static util.File.Environment.browse;
+import static util.async.Async.*;
+import static util.functional.Util.map;
 
 
 /**
@@ -298,11 +300,11 @@ public class App extends Application {
             
             e.printStackTrace();
         }
-         //initialize non critical parts
-        Player.loadLast();                      // should load in the end
-        
         // all ready -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
+        
+         //initialize non critical parts
+        Player.loadLast();                      // should load in the end
         
         // handle guide
         guide = new Guide();
@@ -338,6 +340,7 @@ public class App extends Application {
     public void stop() {
         if(initialized) {
             Player.state.serialize();            
+            WindowManager.serialize();
             Configuration.save();
             services.getAllServices()
                     .filter(Service::isRunning)
@@ -375,8 +378,6 @@ public class App extends Application {
      * closes. Therefore this method should not need to be used.
      */
     public static void close() {
-        // close window
-        instance.windowOwner.close();
         // close app
         Platform.exit();
     }

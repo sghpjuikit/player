@@ -1,26 +1,37 @@
 
 package Layout.Widgets;
 
+import java.io.ObjectStreamException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import javafx.scene.Node;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import Configuration.CompositeConfigurable;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
-import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import Layout.Widgets.controller.Controller;
 import Layout.Widgets.controller.io.InOutput;
 import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.IsInput;
 import Layout.Widgets.controller.io.Output;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.io.ObjectStreamException;
-import static java.lang.annotation.ElementType.TYPE;
-import java.lang.annotation.Retention;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import java.lang.annotation.Target;
-import java.util.*;
-import static java.util.Collections.singletonList;
-import java.util.stream.Collectors;
-import javafx.scene.Node;
 import unused.Log;
+
+import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.util.Collections.singletonList;
 import static util.functional.Util.*;
 
 /**
@@ -37,6 +48,8 @@ import static util.functional.Util.*;
  * @author uranium
  */
 public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable<Object> {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
     
     // Name of the widget. Permanent. same as factory input_name
     // it needs to be declared to support deserialization
@@ -105,6 +118,51 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * cycle of the widget and internally.
      */
     protected abstract Node loadInitial();
+    
+    protected void initializeController() throws InstantiationException, IllegalAccessException {
+        // instantiate controller
+        Class cclass = getFactory().getControllerClass();
+        controller = (C) cclass.newInstance();
+
+        // inject this widget into the controller
+        util.Util.setField(controller, "widget", this);
+
+        // generate inputs
+        for(Method m : getFactory().getControllerClass().getDeclaredMethods()) {
+            IsInput a = m.getAnnotation(IsInput.class);
+            if(a!=null) {
+                int params = m.getParameterCount();
+                if(Modifier.isStatic(m.getModifiers()) || params>1) 
+                    throw new RuntimeException("Method " + m + " can not be an input.");
+
+                String i_name = a.value();
+                boolean isvoid = params==0;
+                Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
+                Consumer i_action = isvoid 
+                    ?   value -> {
+                            if(value!=null) 
+                                throw new ClassCastException(cclass + " " + m + ": Can not cast " + value + " into Void.class");
+                            try {
+                                m.setAccessible(true);
+                                m.invoke(controller);
+                                m.setAccessible(false);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                LOGGER.error("Input {} in widget {} failed to process value.",i_name,name,e);
+                            }
+                        }
+                    :   value -> {
+                            try {
+                                m.setAccessible(true);
+                                m.invoke(controller, value);
+                                m.setAccessible(false);
+                            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                                LOGGER.error("Input {} in widget {} failed to process value.",i_name,name,e);
+                            }
+                        };
+                controller.getInputs().create(i_name, i_type, i_action);
+            }
+        }
+    }
     
     /**
      * Returns controller of the widget. It provides access to public behavior

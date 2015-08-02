@@ -4,10 +4,12 @@
  */
 package Layout.Widgets;
 
-import Layout.Widgets.controller.FXMLController;
 import java.io.File;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+
+import Layout.Widgets.controller.FXMLController;
 import unused.Log;
 
 /**
@@ -32,9 +34,7 @@ public final class FXMLWidget extends Widget<FXMLController> {
     public Node loadInitial() {System.out.println("name " + name);      
         try {
             // instantiate controller
-            controller = (FXMLController) getFactory().getControllerClass().newInstance();
-            // inject this widget into the controller
-            util.Util.setField(controller, "widget", this);
+            initializeController();
             
             // load controller graphics
             FXMLLoader loader = new FXMLLoader();

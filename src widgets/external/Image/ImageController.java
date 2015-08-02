@@ -1,21 +1,30 @@
 package Image;
 
 import Configuration.IsConfig;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
+
 import static Layout.Widgets.Widget.Group.OTHER;
+
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.feature.ImageDisplayFeature;
 import gui.objects.image.Thumbnail;
+
 import java.io.File;
+
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+
 import static javafx.geometry.Pos.CENTER;
+
 import javafx.scene.layout.AnchorPane;
+
+import Layout.Widgets.controller.io.IsInput;
 import main.App;
 import util.access.Accessor;
+
 import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
+
 import util.graphics.drag.DragUtil;
 
 /**
@@ -82,6 +91,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     }
 
     @Override
+    @IsInput("To display")
     public void showImage(File img_file) {
         thumb.loadImage(img_file);
         img = img_file==null ? new File("") : img_file;

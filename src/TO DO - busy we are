@@ -3,8 +3,6 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- playlist duration updating + items updating using threadpool fix
-- make time property 
 - seeker on click seek ~busted
 - implement smooth volume on seek
 - flac playback improve seeking + consecutive seeking performance

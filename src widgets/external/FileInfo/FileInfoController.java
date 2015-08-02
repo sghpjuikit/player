@@ -1,78 +1,59 @@
 package FileInfo;
 
 
-import AudioPlayer.Item;
-import gui.objects.image.cover.Cover.CoverSource;
-
-import static gui.objects.image.cover.Cover.CoverSource.ANY;
-
-import AudioPlayer.tagging.Metadata;
-
-import static AudioPlayer.tagging.Metadata.EMPTY;
-import static AudioPlayer.tagging.Metadata.Field.*;
-
-import AudioPlayer.tagging.MetadataWriter;
-import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-
-import static Layout.Widgets.Widget.Group.OTHER;
-
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.controller.io.Input;
-import Layout.Widgets.controller.io.Output;
-import Layout.Widgets.feature.SongReader;
-
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-
-import gui.pane.ActionPane;
-import gui.pane.ActionPane.ActionData;
-import gui.objects.Rater.Rating;
-import gui.objects.image.ChangeableThumbnail;
-import gui.pane.ImageFlowPane;
-
 import java.io.File;
-
-import static java.lang.Double.max;
-import static java.lang.Math.ceil;
-import static java.lang.Math.floor;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javafx.fxml.FXML;
-
-import static javafx.geometry.Orientation.VERTICAL;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.TOP_LEFT;
-
 import javafx.scene.control.*;
-
-import static javafx.scene.control.OverrunStyle.ELLIPSIS;
-
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 
-import main.App;
-
 import org.reactfx.Subscription;
 
+import AudioPlayer.Item;
+import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataWriter;
+import Configuration.IsConfig;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.IsInput;
+import Layout.Widgets.controller.io.Output;
+import Layout.Widgets.feature.SongReader;
+import gui.objects.Rater.Rating;
+import gui.objects.image.ChangeableThumbnail;
+import gui.objects.image.cover.Cover.CoverSource;
+import gui.pane.ActionPane;
+import gui.pane.ActionPane.ActionData;
+import gui.pane.ImageFlowPane;
+import main.App;
+import util.access.Accessor;
+import util.async.executor.EventThrottler;
+import util.graphics.drag.DragUtil;
+
+import static AudioPlayer.tagging.Metadata.EMPTY;
+import static AudioPlayer.tagging.Metadata.Field.*;
+import static Layout.Widgets.Widget.Group.OTHER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE_ALT;
+import static gui.objects.image.cover.Cover.CoverSource.ANY;
+import static java.lang.Double.max;
+import static java.lang.Math.ceil;
+import static java.lang.Math.floor;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.TOP_LEFT;
+import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
 import static util.Util.setAnchors;
-
-import util.access.Accessor;
-
-import static util.async.Async.*;
-
-import util.async.executor.EventThrottler;
-
+import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.list;
-
-import util.graphics.drag.DragUtil;
 
 /**
  * File info widget controller.
@@ -138,7 +119,6 @@ public class FileInfoController extends FXMLController implements SongReader {
         playcount, comment, category, gap3, filesize, length, filename, format, 
         bitrate, encoding, location);
     
-    private Input<Item> data_in;
     private Output<Metadata> data_out;
     private Metadata data;
     private Subscription d;
@@ -206,7 +186,6 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     @Override
     public void init() {
-        data_in = inputs.create("To display", Item.class, this::read);
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
         
         cover.setBackgroundVisible(false);
@@ -289,6 +268,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     /** {@inheritDoc} */
     @Override
+    @IsInput("To display")
     public void read(Item item) {
         reading.push(item);
     }

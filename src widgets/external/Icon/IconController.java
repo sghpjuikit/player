@@ -1,6 +1,13 @@
 
 package Icon;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.fxml.FXML;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+
 import Configuration.Config;
 import Configuration.Config.ListAccessor;
 import Configuration.IsConfig;
@@ -8,16 +15,11 @@ import Configuration.ListConfigurable;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.controller.FXMLController;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import gui.objects.icon.Icon;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.fxml.FXML;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import util.access.AccessorAction;
 import util.access.FunctAccessor;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static util.reactive.Util.maintain;
 
 @Info(
@@ -33,7 +35,6 @@ import static util.reactive.Util.maintain;
     group = Widget.Group.OTHER
 )
 public class IconController extends FXMLController {
-    
     
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
@@ -56,8 +57,6 @@ public class IconController extends FXMLController {
     public void init() {
         root.getChildren().add(new VBox(30,box));
         icons.onInvalid(box.getChildren()::setAll);
-        icon_size.addListener((o,ov,nv) -> System.out.println("1 " + nv));
-        icon_size.addListener((o) -> System.out.println("2 " + icon_size.getValue()));
     }
 
     @Override

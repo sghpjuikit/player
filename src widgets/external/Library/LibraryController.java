@@ -34,7 +34,7 @@ import Configuration.IsConfig;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.IsInput;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.FileExplorerFeature;
 import Layout.Widgets.feature.SongReader;
@@ -141,7 +141,6 @@ public class LibraryController extends FXMLController implements SongReader {
     
     // input/output
     private Output<Metadata> out_sel;
-    private final Input<List<Metadata>> in_items = inputs.create("To display", List.class, table::setItemsRaw);
 
     
     // configurables
@@ -303,6 +302,11 @@ public class LibraryController extends FXMLController implements SongReader {
         
         getFields().stream().filter(c->!c.getName().equals("Library level")&&!c.getName().equals("columnInfo")).forEach(Config::applyValue);
         table.getSelectionModel().clearSelection();
+    }
+    
+    @IsInput("To display")
+    public void setItems(List<? extends Metadata> items) {
+        table.setItemsRaw(items);
     }
     
     @FXML private void addDirectory() {

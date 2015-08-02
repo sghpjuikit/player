@@ -33,7 +33,7 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.IsInput;
 import Layout.Widgets.feature.ImageDisplayFeature;
 import Layout.Widgets.feature.ImagesDisplayFeature;
 import gui.InfoNode.ItemInfo;
@@ -120,8 +120,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Subscription dataMonitoring;
     private Metadata data = Metadata.EMPTY;
-    private Input<Item> in_meta = inputs.create("Location of", Item.class, this::dataChanged);
-    private Input<File> in_dir = inputs.create("Directory", File.class, this::dataChanged);
     
     // cnfigurable
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
@@ -181,7 +179,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     /** {@inheritDoc} */
     @Override
     public void init() {
-        in_meta.bind(Player.playing.o);
+        inputs.getInput("Directory").bind(Player.playing.o);
         
         loadSkin("skin.css",entireArea);
         
@@ -345,6 +343,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
 /****************************** HELPER METHODS ********************************/
     
+    @IsInput("Location of")
     private void dataChanged(Item i) {
         // remember data
         data = i==null ? Metadata.EMPTY : i.getMetadata();
@@ -352,6 +351,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         File new_folder = (data==null || !data.isFileBased()) ? null : data.getLocation();
         dataChanged(new_folder);
     }
+    @IsInput("Directory")
     private void dataChanged(File i) {
         // calculate new location
         File new_folder = i;

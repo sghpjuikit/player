@@ -37,6 +37,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.controller.io.IsInput;
 import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
@@ -338,6 +339,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
      * {@inheritDoc}
      */    
     @Override
+    @IsInput("Edit")
     public void read(List<? extends Item> items) {
         Objects.requireNonNull(items);
         // remove duplicates

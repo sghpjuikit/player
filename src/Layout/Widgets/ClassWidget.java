@@ -4,8 +4,9 @@
  */
 package Layout.Widgets;
 
-import Layout.Widgets.controller.Controller;
 import javafx.scene.Node;
+
+import Layout.Widgets.controller.Controller;
 import unused.Log;
 
 /**
@@ -25,13 +26,11 @@ public class ClassWidget extends Widget<Controller> {
     }
 
     @Override
-    public Node loadInitial() {              System.out.println("name " + name);      
+    public Node loadInitial() {   
         try {
             // instantiate controller
-            Node node = (Node) getFactory().getControllerClass().newInstance();
-            controller = Controller.class.cast(node);
-            // inject this widget into the controller
-            util.Util.setField(controller, "widget", this);
+            initializeController();
+            Node node = (Node) controller;
                 
             restoreConfigs();
             controller.refresh();

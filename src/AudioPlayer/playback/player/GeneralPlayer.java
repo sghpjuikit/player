@@ -9,12 +9,13 @@ package AudioPlayer.playback.player;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
+import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.RealTimeProperty;
-import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.tagging.Metadata;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.async.Async;
@@ -77,7 +78,9 @@ public class GeneralPlayer {
             // fire other events (may rely on the above)
             PLAYBACK.playbackStartDistributor.run();
             if(post_activating_1st || !post_activating)
-                PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
+                // bugfix, unupdated playlist items can get here, but shouldnt!
+                if(item.getTimeMs()>0) 
+                    PLAYBACK.onTimeHandlers.forEach(t -> t.restart(item.getTime()));
             post_activating = false;
             post_activating_1st = false;
         });
@@ -110,10 +113,13 @@ public class GeneralPlayer {
         if(p==null) return;
         p.stop();
         
-        realTime.synchroRealTime_onStopped();
-        PLAYBACK.onTimeHandlers.forEach(t -> t.stop());
-        PlaylistManager.playlists.forEach(p ->p.playing.set(-1));
-        PlaylistManager.active = null;
+        Async.runFX(() -> {
+            Player.playingtem.itemChanged(Metadata.EMPTY);
+            realTime.synchroRealTime_onStopped();
+            PLAYBACK.onTimeHandlers.forEach(t -> t.stop());
+            PlaylistManager.playlists.forEach(p ->p.playingI.set(-1));
+            PlaylistManager.active = null;
+        });
     }
     
     public void seek(Duration duration) {

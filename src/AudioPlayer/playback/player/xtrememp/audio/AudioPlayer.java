@@ -101,7 +101,7 @@ public class AudioPlayer implements Callable<Void> {
     protected long oldPosition = 0;
 
     public AudioPlayer() {
-        execService = Executors.newFixedThreadPool(1, r->{
+        execService = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r);
             // daemon==true is imperative, or it pevents application from
             // ever closing

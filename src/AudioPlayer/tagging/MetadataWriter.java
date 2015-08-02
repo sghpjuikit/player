@@ -33,9 +33,9 @@ import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.Item;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.tagging.Chapters.Chapter;
 import main.App;
@@ -696,7 +696,7 @@ public class MetadataWriter extends MetaItem {
         try {
             audioFile.commit();
         } catch (Exception ex) {
-            if (isPlaying()) {
+            if (isPlayingSame()) {
                 logger.info("File being played, will attempt to suspend playback");
                 PLAYBACK.suspend();
                 for(int i=0; i<=2; i++) {

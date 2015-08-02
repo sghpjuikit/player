@@ -16,7 +16,7 @@ public class Output<T> extends Put<T> {
     public final Id id;
     
         
-    public Output(UUID id, String name, Class<T> c) {// System.out.println(id);
+    public Output(UUID id, String name, Class<? super T> c) {// System.out.println(id);
         super(c, null);
         this.id = new Id(id, name);
     }

@@ -17,12 +17,15 @@ import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Severity.SEVERE;
 
 /**
- * {@link Set} backed by {@link HashMap} using provided key mapper for identity 
- * check instead of equals() and hashCode().
+ * {@link Set} backed by {@link Map} using provided key mapper function for
+ * identity check instead of equals() and hashCode().
  * <p>
- * Similarly to other sets, this can be used to easily filter doubles from
+ * The underlying map hashing the elements by key is {@link HashMap} by default,
+ * but this is not forced. If desired, pass an arbitrary map into a constructor.
+ * <p>
+ * Similarly to other sets, this can be used to easily filter duplicates from
  * collection, but leveraging arbitrary element identity.
- * Use like this: {@code new MapSet<K,E>(e->e.identity(), elements) }
+ * Use like this: {@code new MapSet<K,E>(e -> e.identity(), elements) }
  *
  * @see #keyMapper
  *
@@ -30,26 +33,43 @@ import static util.dev.TODO.Severity.SEVERE;
  */
 public class MapSet<K,E> implements Set<E> {
 
-    /** Function transforming element to its identity. Used for all collection
-    operations, e.g add(), addAll(), remove(), etc. 
-    <p>
-    Note, that just as with bad equals()/hashCode() implementation where two
-    objects with different state are considered equal, two 'different' objects
-    can map to same identity here as well. If the function returned a constant,
-    this set would become singleton set. Using hashCode() would result in
-    standard HashSet implementation.
-    */
+    /** 
+     * Function transforming element to its key. Used for all collection
+     * operations, e.g add(), addAll(), remove(), etc. Two elements are mapped
+     * to the same key if this function produces the same key for them.
+     * <p>
+     * Note, that if the function returned a constant, this set would become 
+     * singleton set. Using hashCode() would result in same mapping strategy
+     * as default maps and collections use.
+     */
     public final Function<E,K> keyMapper;
-    private final Map<K,E> m = new HashMap();
+    private final Map<K,E> m;
 
     public MapSet(Function<E,K> keyMapper) {
+        this(new HashMap<>(),keyMapper);
+    }
+    
+    public MapSet(Function<E,K> keyMapper, Collection<E> c) {
+        this(new HashMap<>(),keyMapper,c);
+    }
+    
+    public MapSet(Function<E,K> keyMapper, E... c) {
+        this(new HashMap<>(),keyMapper,c);
+    }
+    
+    public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper) {
+        this.m = backing_map;
         this.keyMapper = keyMapper;
     }
-    public MapSet(Function<E,K> keyMapper, Collection<E> c) {
+    
+    public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper, Collection<E> c) {
+        this.m = backing_map;
         this.keyMapper = keyMapper;
         addAll(c);
     }
-    public MapSet(Function<E,K> keyMapper, E... c) {
+    
+    public MapSet(Map<K,E> backing_map, Function<E,K> keyMapper, E... c) {
+        this.m = backing_map;
         this.keyMapper = keyMapper;
         addAll(c);
     }

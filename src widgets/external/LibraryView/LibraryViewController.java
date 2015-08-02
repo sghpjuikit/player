@@ -133,8 +133,8 @@ public class LibraryViewController extends FXMLController {
     @Override
     public void init() {
         out_sel = outputs.create(widget.id,"Selected Group", MetadataGroup.class, null);
-        out_sel_met = outputs.create(widget.id,"Selected", (Class)List.class, EMPTY_LIST);
-        in_items = inputs.create("To display", (Class)List.class, EMPTY_LIST, this::setItems);
+        out_sel_met = outputs.create(widget.id,"Selected", List.class, EMPTY_LIST);
+        in_items = inputs.create("To display", List.class, EMPTY_LIST, this::setItems);
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());

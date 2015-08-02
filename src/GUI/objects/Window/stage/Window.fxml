@@ -7,7 +7,6 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-
 <fx:root id="root" prefHeight="400.0" prefWidth="600.0" styleClass="window" type="AnchorPane" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1">
    <children>
         <AnchorPane fx:id="back" mouseTransparent="true" styleClass="bgr-image" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
@@ -40,6 +39,7 @@
                 </HBox>
                 <HBox fx:id="rightHeaderBox" alignment="CENTER_RIGHT" disable="false" fillHeight="false" onMouseDragged="#consumeMouseEvent" onMousePressed="#consumeMouseEvent" pickOnBounds="false" spacing="8.0" visible="true" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
               <AnchorPane id="AnchorPane" fx:id="content" focusTraversable="true" minHeight="0.0" minWidth="0.0" styleClass="content" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="25.0" />
+            <Pane fx:id="header_activator" prefHeight="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                 <Region onMouseDragged="#border_onDragged" onMousePressed="#border_onDragStart" onMouseReleased="#border_onDragEnd" prefHeight="4.0" prefWidth="-1.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="18.0" AnchorPane.rightAnchor="18.0">
                <cursor>
                   <Cursor fx:constant="S_RESIZE" />
@@ -100,7 +100,6 @@
                   <Cursor fx:constant="NE_RESIZE" />
                </cursor>
             </Region>
-            <Pane fx:id="header_activator" prefHeight="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
           </children>
       </AnchorPane>
    </children>

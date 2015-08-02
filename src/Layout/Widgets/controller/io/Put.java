@@ -8,8 +8,10 @@ package Layout.Widgets.controller.io;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+
 import org.reactfx.Subscription;
 
 /**
@@ -18,16 +20,16 @@ import org.reactfx.Subscription;
  */
 public class Put<T> {
     
-    final Class<T> type;
+    final Class<? super T> type;
     final ObjectProperty<T> val = new SimpleObjectProperty();
     protected List<Consumer<? super T>> monitors = new ArrayList();
     
-    public Put(Class<T> type, T init_val) {
+    public Put(Class<? super T> type, T init_val) {
         this.type = type;
         this.val.setValue(init_val);
     }
 
-    public Class<T> getType() {
+    public Class<? super T> getType() {
         return type;
     }
 

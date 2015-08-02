@@ -29,9 +29,11 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.sound.sampled.LineEvent;
 import javax.sound.sampled.LineListener;
 import javax.sound.sampled.SourceDataLine;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,7 +98,7 @@ public class DigitalSignalSynchronizer implements LineListener, Runnable {
         this.blockLength = blockLength;
         this.blockRate = framesPerSecond;
         this.dspList = new CopyOnWriteArrayList<>();
-        this.execService = Executors.newFixedThreadPool(1, r->{
+        this.execService = Executors.newSingleThreadExecutor(r -> {
             Thread t = new Thread(r);
             // daemon==true is imperative, or it pevents application from
             // ever closing

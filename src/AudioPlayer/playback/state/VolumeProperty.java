@@ -5,6 +5,8 @@
 package AudioPlayer.playback.state;
 
 import javafx.beans.property.SimpleDoubleProperty;
+
+import static java.lang.Math.abs;
 import static util.Util.clip;
 
 /** 
@@ -15,8 +17,8 @@ public final class VolumeProperty extends SimpleDoubleProperty {
     
     public static final double MIN = 0;
     public static final double MAX = 1;
-    public static final double AVG = (MAX-MIN)/2;
-    public static final double STEP = (MAX-MIN)/20;
+    public static final double AVG = (MAX+MIN)/2;
+    public static final double STEP = abs(MAX-MIN)/20;
     
     /** Initializes default value: 0.5 */
     public VolumeProperty() {

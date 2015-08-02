@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -52,10 +53,10 @@ import unused.SimpleConfigurator;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
-import util.async.Async;
 import util.collections.map.MapSet;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
 import static util.File.FileUtil.getFilesAudio;
@@ -70,9 +71,17 @@ import static util.functional.Util.toS;
 public class Playlist extends ObservableListWrapper<PlaylistItem> {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
+    private static final ExecutorService UPDATER = newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+                   t.setDaemon(true); // dont prevent application closing
+                   t.setName("non-fx-playback-thread");
+            return t;
+        });
     
-    public final IntegerProperty playing = new SimpleIntegerProperty(-1);
     public final UUID id;
+    public final IntegerProperty playingI = new SimpleIntegerProperty(-1);
+    @XStreamOmitField
+    private PlaylistItem playing = null;
     
     public Playlist(UUID id) {
         super(new ArrayList<>());
@@ -118,11 +127,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * @return true if item is played.
      */
     public boolean isItemPlaying(Item item) {
-        try {
-            return playing.get()>-1 && get(playing.get())==item; // playlistItem equals
-        } catch(IndexOutOfBoundsException e) {
-            return false;
-        }
+        return playing==item;
     }
     
     /**
@@ -141,15 +146,11 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     
     /** @return index of playing item or -1 if no item is playing */
     public int indexOfPlaying() {
-        return playing.get();
+        return playing==null ? -1 : indexOf(playing);
     }
     
     public PlaylistItem getPlaying() {
-        try {
-            return playing.get()==-1 ? null : get(playing.get());
-        } catch(IndexOutOfBoundsException e) {
-            return null;
-        }
+        return playing;
     }
     
     /** @return true when playlist contains items same as the parameter */
@@ -159,7 +160,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     
     /** Returns true iff any item on this playlist is being played played. */
     public boolean containsPlaying() {
-        return playing.get() >= 0 ;
+        return indexOfPlaying() >= 0;
     }
     
     /** Removes all unplayable items from this playlist. */
@@ -327,30 +328,6 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     
 /***************************** PLAYLIST METHODS *******************************/
     
-   /**
-     * Returns true only if all items of this playlist are marked corrupt.
-     * No I/O. Performs O(n).
-     * @return cached corruptness. 
-     */
-    public boolean isMarkedAsCorrupted() {
-        return stream().allMatch(PlaylistItem::markedAsCorrupted);
-    }
-    /**
-     * Checks and returns true only if all items on this playlist are corrupt.
-     * Requires file checks (I/O). Performs O(n).
-     * @return corruptness. 
-     */
-    public boolean isCorrupt() {
-        return stream().allMatch(PlaylistItem::isNotPlayable);
-    }
-    /**
-     * Checks and returns true only if no item on this playlist is corrupt.
-     * Requires file checks (I/O). Performs lineary - O(n).
-     * @return corruptness. 
-     */
-    public boolean isValid() {
-        return stream().noneMatch(PlaylistItem::isNotPlayable);
-    }
     /**
      * Updates item.
      * Updates all instances of the Item that are in the playlist. When application
@@ -362,37 +339,31 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         stream().filter(item::same).forEach(PlaylistItem::update);
         // THIS NEEDS TO FIRE DURATION UPDATE
     }
+    
     /**
-     * Updates all unupdated items. This method doesnt guarantee that all items
-     * will be up to date, it guarantees that no item will have invalid data
-     * resulting from lack of any update on the item during its lifetime.
-     * After this method is invoked, every item will be updated at least once.
-     * It is sufficient to use this method to reupdate all items as it is not
-     * expected for items to change their values externally because all internal
-     * changes of the item by the application and the resulting need for updatets
-     * are expected to be handled on the spot.
+     * Updates all not updated items.
+     * <p>
+     * If some item is not on playlist it will also be updated but it will have 
+     * no effect on this playlist (but will on others, if they contain it).
      * 
-     * Utilizes bgr thread. Its safe to call this method without any performance
-     * impact.
-     * @param items items on playlist. If the item is not on playlist it will also
-     * be updated but it will have no effect on playlist.
-     * @throws NullPointerException when param null.
+     * @param items items to update.
      */
     public void updateItems(List<PlaylistItem> items) {
-        items.removeIf(PlaylistItem::updated);
         if (items.isEmpty()) return;
         
         new ActionTask<Void>("") {
             @Override protected Void call() throws Exception {
-               for (PlaylistItem i: items) {
+                long m = System.currentTimeMillis();
+                for (PlaylistItem i: items) {
                     if (this.isCancelled()) return null;
-                    i.update();
+                    if(!i.isUpdated()) i.update();
                 }
+                System.out.println("ss " + (System.currentTimeMillis()-m));
                 return null;
             }
         }
-//            .setOnDone((ok,none) -> updateDuration())// THIS NEEDS TO FIRE DURATION UPDATE
-            .run(Async.NEW);
+//      .setOnDone((ok,none) -> updateDuration())// THIS NEEDS TO FIRE DURATION UPDATE
+        .run(UPDATER::execute);
     }
     /**
      * Use to completely refresh playlist.
@@ -405,19 +376,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * impact.
      */
     public void updateItems() {
-         if (isEmpty()) return;
-        
-         new ActionTask<Void>("") {
-            @Override protected Void call() throws Exception {
-               for (PlaylistItem i: Playlist.this) {
-                    if (this.isCancelled()) break;
-                    i.update();
-                }
-                return null;
-            }
-        }
-//            .setOnDone((ok,none) -> updateDuration())// THIS NEEDS TO FIRE DURATION UPDATE
-            .run(Async.NEW);
+         updateItems(this);
     }
     
 /******************************************************************************/
@@ -440,19 +399,46 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         playItem(item, p -> PlaylistManager.playingItemSelector.getNext(p, transform()));
     }
     
+    @XStreamOmitField
+    private PlaylistItem unplayable1st = null;
+    
+    /***
+     * 
+     * @param item item to play
+     * @param alt_supplier supplier of next item to play if the item can not be
+     * played. It may for example return next item, or random item, depending
+     * on the selection strategy. If the next item to play again can not be 
+     * played the process repeats until item to play is found or no item is
+     * playable.
+     */
     public void playItem(PlaylistItem item, UnaryOperator<PlaylistItem> alt_supplier) {
         if (item != null && transform().contains(item)) {
+            // we cant play item, we try to play next one and eventually get
+            // here again, we must defend against situation where no item
+            // is playable - we remember 1st unplayable and keep checking
+            // until we check it again (thus checking all items)
             if (item.isNotPlayable()) {
-                // prevent infinite check loop when whole playlist corrupted (checks once per playlsit size)
-                if (indexOf(item)==0 && isMarkedAsCorrupted()) {
-                    PLAYBACK.stop();
-                    return;
+                if (unplayable1st==item) {
+                    PLAYBACK.stop();        // stop playback
+                    unplayable1st = null;   // reset the loop
+                    
+                    // unplayable1st isnt reliable indicator (since items can
+                    // be selected randomly), so if we check same item twice
+                    // check whole playlist
+                    if(stream().allMatch(PlaylistItem::isNotPlayable)) 
+                        return;             // stop the loop
                 }
+                // remember 1st unplayable
+                if(unplayable1st==null) unplayable1st = item;
+                // try to play next item
                 playItem(alt_supplier.apply(item));
             } else {
-                PlaylistManager.playlists.forEach(p -> p.playing.set(-1));
+                unplayable1st = null;
+                PlaylistManager.playlists.forEach(p -> p.playingI.set(-1));
+                PlaylistManager.playlists.forEach(p -> p.playing = null);
                 PlaylistManager.active = this.id;
-                playing.set(indexOf(item));
+                playingI.set(indexOf(item));
+                playing = item;
                 PLAYBACK.play(item);
             }
         }
@@ -851,7 +837,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     protected Object readResolve() throws ObjectStreamException {
         Playlist p = new Playlist(this.id);
               p.setAll(this);
-              p.playing.set(this.playing.get());
+              p.playingI.set(this.playingI.get());
         return p;
     }
     

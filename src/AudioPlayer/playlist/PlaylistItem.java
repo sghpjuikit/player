@@ -5,9 +5,6 @@
  */
 package AudioPlayer.playlist;
 
-import AudioPlayer.Item;
-import AudioPlayer.tagging.Metadata;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.Objects;
@@ -27,20 +24,21 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 
+import AudioPlayer.Item;
+import AudioPlayer.services.Database.DB;
+import AudioPlayer.tagging.Metadata;
+import unused.Log;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
-
-import static util.File.AudioFileFormat.Use.APP;
-
 import util.File.FileUtil;
-
-import static util.Util.capitalizeStrong;
-import static util.Util.mapEnumConstant;
-
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
-import unused.Log;
+import util.async.Async;
 import util.units.FormattedDuration;
+
+import static util.File.AudioFileFormat.Use.APP;
+import static util.Util.capitalizeStrong;
+import static util.Util.mapEnumConstant;
 
 /**
  * Defines item in playlist.
@@ -77,7 +75,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     private final SimpleStringProperty name;
     private String artist;
     private String title;
-    private boolean updated = false;
+    private boolean updated;
     boolean corrupted = false;
     
     /**
@@ -91,6 +89,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         uri = new SimpleObjectProperty<>(_uri);
         name = new SimpleStringProperty(getInitialName());
         time = new SimpleObjectProperty<>(new FormattedDuration(0));
+        updated = false;
     }
     
     /**
@@ -178,7 +177,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
 
     /**
      * Updates this item by reading the tag of the source file.
-     * Involves I/O, so dont use on main thread.
+     * Involves I/O, so dont use on main thread. Safe to call from bgr thread.
      * <p>
      * Calling this method on updated playlist item has no effect. E.g.:
      * <ul>
@@ -186,12 +185,21 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * <li> calling this method on playlist item created from metadata
      * <p>
      * note: {@code this.toMeta().toPlaylist()} effectively
-     * prevents unupdated items from ever updating.
+     * prevents unupdated items from ever updating. Never use toMeta where full
+     * metadata object is required.
      * </ul>
      */
     public void update() {
         if (updated || isCorrupt(APP)) return;
         updated = true;
+        
+        // if library contains the item, use it & avoid I/O
+        // improves performance almost 100-fold when item in library
+        if(DB.items_byId.containsKey(getId())) {
+            update(DB.items_byId.get(getId()));
+            return;
+        }
+        
         if(isFileBased()) {
             // update as file based item
             try {
@@ -204,10 +212,11 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                 double length = 1000 * h.getTrackLength();
                 artist = t.getFirst(FieldKey.ARTIST);
                 title = t.getFirst(FieldKey.TITLE);
-                setATN(artist, title);
-                // set values
-                
-                time.set(new FormattedDuration(length));
+                // set values always on fx thread
+                Async.runFX(() -> {
+                    setATN(artist, title);
+                    time.set(new FormattedDuration(length));
+                });
             } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException ex) {
                 Log.err("Playlist item update failed.\n"+getURI());
             }
@@ -223,10 +232,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         }
     }
     
-    /** 
-     * Updates this playlist item to data from provided metadata. No I/O.
-     * This playlist item will be updated after this method is invoked.
-     */
+    /** Updates this playlist item to data from provided metadata. No I/O. */
     public void update(Metadata m) {
         uri.set(m.getURI());
         setATN(m.getArtist(), m.getTitle());
@@ -258,10 +264,11 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * updated to false. Method update() then must be called manually.
      * @return 
      */
-    public boolean updated() {
+    boolean isUpdated() {
         return updated;
     }
-
+    
+    /** Returns true if this item is corrupted. */
     @Override
     public boolean isCorrupt(AudioFileFormat.Use use) {
         AudioFileFormat f = getFormat();
@@ -278,9 +285,9 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * tables.
      * <p>
      * If the validity of the check is prioritized, use {@link #isCorrupt()}.
-     * @return corrupt
+     * @return cached corrupted value
      */
-    public boolean markedAsCorrupted() {
+    public boolean isCorruptCached() {
         return corrupted;
     }
     
@@ -290,10 +297,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * {@inheritDoc}
      * <p>
      * This implementation returns metadata with artist, length and title fields
-     * set as defined in this item, leaving everything else empty.
+     * set as defined in this item, leaving other fields else empty.
      * <p>
      * This method shouldnt be run before this item is updated. See
-     * {@link #updated}.
+     * {@link #isUpdated()}.
      * @return 
      */
     @Override

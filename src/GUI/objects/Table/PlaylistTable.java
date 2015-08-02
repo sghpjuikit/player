@@ -18,11 +18,11 @@ import javafx.util.Callback;
 
 import org.reactfx.Subscription;
 
-import AudioPlayer.Player;
 import AudioPlayer.Item;
+import AudioPlayer.Player;
+import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.playlist.PlaylistManager;
-import AudioPlayer.playlist.Playlist;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.WidgetManager;
@@ -94,7 +94,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         setColumnFactory( f -> {
             TableColumn<PlaylistItem,?> c = new TableColumn(f.toString());
             c.setCellValueFactory( f==NAME || f==LENGTH
-                    ? new PropertyValueFactory(f.name())
+                    ? new PropertyValueFactory(f.name().toLowerCase())
                     : cf -> cf.getValue()== null ? null : new PojoV(cf.getValue().getField(f))
             );
             c.setCellFactory((Callback)col->buildDefaultCell(f));
@@ -130,7 +130,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 
                 // additional css styleclasses
                 styleRuleAdd("played", p -> getPlaylist().isItemPlaying(p));
-                styleRuleAdd("corrupt", PlaylistItem::markedAsCorrupted);
+                styleRuleAdd("corrupt", PlaylistItem::isCorruptCached);
             }
         });
         // maintain playing item css by refreshing index column

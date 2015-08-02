@@ -22,10 +22,10 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import javafx.util.Callback;
 
-import AudioPlayer.Player;
 import AudioPlayer.Item;
-import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.Player;
 import AudioPlayer.SimpleItem;
+import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
@@ -141,7 +141,7 @@ public class LibraryController extends FXMLController implements SongReader {
     
     // input/output
     private Output<Metadata> out_sel;
-    private final Input<List<Metadata>> in_items = inputs.create("To display", (Class)List.class, table::setItemsRaw);
+    private final Input<List<Metadata>> in_items = inputs.create("To display", List.class, table::setItemsRaw);
 
     
     // configurables

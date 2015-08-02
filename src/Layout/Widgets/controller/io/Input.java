@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import org.reactfx.Subscription;
 
 /**
@@ -19,11 +20,11 @@ public class Input<T> extends Put<T>{
     final String name;
     final Map<Output<? extends T>,Subscription> sources = new HashMap<>();
     
-    public Input(String name, Class<T> c, Consumer<? super T> action) {
+    public Input(String name, Class<? super T> c, Consumer<? super T> action) {
         this(name, c, null, action);
     }
     
-    public Input(String name, Class<T> c, T init_val, Consumer<? super T> action) {
+    public Input(String name, Class<? super T> c, T init_val, Consumer<? super T> action) {
         super(c, init_val);
         this.name = name;
         monitor(action);

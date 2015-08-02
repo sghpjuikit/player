@@ -9,6 +9,7 @@ package AudioPlayer.services.Database;
 import java.io.File;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.persistence.*;
 
@@ -218,9 +219,16 @@ public class DB {
     }
 
     
-    /** In memory item database. Use for library.*/
-    public static MapSet<String,Metadata> items_byId = new MapSet<>(Metadata::getId);
-    public static InOutput<List<Metadata>> items = new InOutput<>(fromString("396d2407-7040-401e-8f85-56bc71288818"),"All library songs", (Class)List.class);
+    /** 
+     * In memory item database. Use for library.
+     * <p>
+     * Items are hashed by {@link Item#getId()}.
+     * <p>
+     * Thread-safe, accessible (write/read) from any thread, uses 
+     * {@link ConcurrentHashMap} underneath.
+     */
+    public static final MapSet<String,Metadata> items_byId = new MapSet<>(new ConcurrentHashMap<>(2000,1,3),Metadata::getId);
+    public static final InOutput<List<Metadata>> items = new InOutput<>(fromString("396d2407-7040-401e-8f85-56bc71288818"),"All library songs", List.class);
     
     
     /** 

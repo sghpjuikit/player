@@ -299,7 +299,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     }
     
     /** @return true iff this item's underlying resource (e.g. file) is being played. */
-    public boolean isPlaying() {
+    public boolean isPlayingSame() {
         return same(Player.playingtem.get());
     }
     

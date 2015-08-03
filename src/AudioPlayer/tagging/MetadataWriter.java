@@ -773,7 +773,7 @@ public class MetadataWriter extends MetaItem {
     }
     
     public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
-        runNew(()-> {
+        Player.IO_THREAD.execute(()-> {
             MetadataWriter w = new MetadataWriter();
             for(I i : items) {
                 w.reset(i);
@@ -791,7 +791,7 @@ public class MetadataWriter extends MetaItem {
     }
     
     public static <I extends Item> void use(I item, Consumer<MetadataWriter> setter, Consumer<Boolean> action) {
-        runNew(()-> {
+        Player.IO_THREAD.execute(()-> {
             MetadataWriter w = new MetadataWriter();
             w.reset(item);
             setter.accept(w);

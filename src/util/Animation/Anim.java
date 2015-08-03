@@ -5,12 +5,10 @@
  */
 package util.animation;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
-import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
 import javafx.animation.SequentialTransition;
@@ -19,10 +17,15 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.util.Duration;
-import static javafx.util.Duration.ZERO;
-import static javafx.util.Duration.millis;
+
 import util.Util;
 import util.collections.Tuple2;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
+import static java.util.Objects.requireNonNull;
+import static javafx.util.Duration.ZERO;
+import static javafx.util.Duration.millis;
 
 /**
  * Features:
@@ -182,16 +185,40 @@ public class Anim extends Transition {
         super.playFrom(getCycleDuration().subtract(getCycleDuration().multiply(position)));
     }
     
-    public void playCloseAnd(Runnable action) {
+    public void playCloseDo(Runnable action) {
         setOnFinished(action==null ? null : a -> action.run());
         playClose();
     }
     
-    public void playOpenAnd(Runnable action) {
+    public void playOpenDo(Runnable action) {
         setOnFinished(action==null ? null : a -> action.run());
         playOpen();
     }
     
+    public void playOpenDoClose(Runnable middle) {
+        playOpenDo(() -> {
+            if(middle!=null) middle.run();
+            playClose();
+        });
+    }
+    public void playCloseDoOpen(Runnable middle) {
+        playCloseDo(() -> {
+            if(middle!=null) middle.run();
+            playOpen();
+        });
+    }
+    public void playOpenDoCloseDo(Runnable middle, Runnable end) {
+        playOpenDo(() -> {
+            if(middle!=null) middle.run();
+            playCloseDo(end);
+        });
+    }
+    public void playCloseDoOpenDo(Runnable middle, Runnable end) {
+        playCloseDo(() -> {
+            if(middle!=null) middle.run();
+            playOpenDo(end);
+        });
+    }
     
     
     

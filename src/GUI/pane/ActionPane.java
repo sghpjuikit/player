@@ -97,7 +97,7 @@ public class ActionPane extends StackPane {
     
     
     public void hide() {
-        animation.playCloseAnd(this::animEnd);
+        animation.playCloseDo(this::animEnd);
     }
     
 /*********************************** HELPER ***********************************/
@@ -139,7 +139,7 @@ public class ActionPane extends StackPane {
         bgr = Window.getActive().content;
         Window.getActive().front.setEffect(blurback);
         Window.getActive().back.setEffect(blurback);
-        animation.playOpenAnd(null);
+        animation.playOpenDo(null);
     }
     
     private void animDo(double x) {

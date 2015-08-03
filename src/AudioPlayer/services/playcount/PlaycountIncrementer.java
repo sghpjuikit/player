@@ -1,22 +1,24 @@
 
-package AudioPlayer.services.playcountincr;
+package AudioPlayer.services.playcount;
+
+import javafx.util.Duration;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlayTimeHandler;
-import static AudioPlayer.services.playcountincr.PlaycountIncrementer.PlaycountIncrStrategy.*;
-import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.Service.ServiceBase;
+import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import static java.awt.TrayIcon.MessageType.INFO;
-import javafx.util.Duration;
-import static javafx.util.Duration.seconds;
 import main.App;
 import util.access.Accessor;
+
+import static AudioPlayer.services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;
+import static java.awt.TrayIcon.MessageType.INFO;
+import static javafx.util.Duration.seconds;
 import static util.functional.Util.max;
 import static util.functional.Util.min;
 

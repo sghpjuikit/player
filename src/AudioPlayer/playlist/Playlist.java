@@ -19,7 +19,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
@@ -37,8 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import AudioPlayer.Item;
+import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.tagging.ActionTask;
 import Configuration.ValueConfig;
 import Serialization.PlaylistItemConverter;
 import com.sun.javafx.collections.ObservableListWrapper;
@@ -56,7 +55,6 @@ import util.File.Environment;
 import util.collections.map.MapSet;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
 import static util.File.FileUtil.getFilesAudio;
@@ -71,12 +69,6 @@ import static util.functional.Util.toS;
 public class Playlist extends ObservableListWrapper<PlaylistItem> {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
-    private static final ExecutorService UPDATER = newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r);
-                   t.setDaemon(true); // dont prevent application closing
-                   t.setName("non-fx-playback-thread");
-            return t;
-        });
     
     public final UUID id;
     public final IntegerProperty playingI = new SimpleIntegerProperty(-1);
@@ -350,20 +342,14 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      */
     public void updateItems(List<PlaylistItem> items) {
         if (items.isEmpty()) return;
-        
-        new ActionTask<Void>("") {
-            @Override protected Void call() throws Exception {
-                long m = System.currentTimeMillis();
-                for (PlaylistItem i: items) {
-                    if (this.isCancelled()) return null;
-                    if(!i.isUpdated()) i.update();
-                }
-                System.out.println("ss " + (System.currentTimeMillis()-m));
-                return null;
+        List<PlaylistItem> l = new ArrayList(items);
+        Player.IO_THREAD.execute(() -> {
+            for (PlaylistItem i: l) {
+                if (Thread.interrupted()) return;
+                if(!i.isUpdated()) i.update();
             }
-        }
-//      .setOnDone((ok,none) -> updateDuration())// THIS NEEDS TO FIRE DURATION UPDATE
-        .run(UPDATER::execute);
+        });
+        // THIS NEEDS TO FIRE DURATION UPDATE
     }
     /**
      * Use to completely refresh playlist.
@@ -838,6 +824,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         Playlist p = new Playlist(this.id);
               p.setAll(this);
               p.playingI.set(this.playingI.get());
+              p.playing = p.get(p.playingI.get());
         return p;
     }
     

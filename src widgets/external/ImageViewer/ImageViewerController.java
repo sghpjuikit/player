@@ -27,8 +27,8 @@ import javafx.util.Duration;
 
 import org.reactfx.Subscription;
 
-import AudioPlayer.Player;
 import AudioPlayer.Item;
+import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Layout.Widgets.Widget;
@@ -179,7 +179,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     /** {@inheritDoc} */
     @Override
     public void init() {
-        inputs.getInput("Directory").bind(Player.playing.o);
+        inputs.getInput("Location of").bind(Player.playing.o);
         
         loadSkin("skin.css",entireArea);
         

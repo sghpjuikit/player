@@ -5,6 +5,19 @@
  */
 package gui.pane;
 
+import java.util.*;
+
+import javafx.collections.ListChangeListener;
+import javafx.css.PseudoClass;
+import javafx.geometry.Point2D;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.*;
+import javafx.scene.shape.LineTo;
+import javafx.scene.shape.MoveTo;
+import javafx.scene.shape.Path;
+
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.controller.Controller;
@@ -14,28 +27,18 @@ import Layout.Widgets.controller.io.Output;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
-import static java.lang.Math.abs;
-import static java.lang.Math.signum;
-import java.util.*;
-import javafx.collections.ListChangeListener;
-import javafx.css.PseudoClass;
-import static javafx.css.PseudoClass.getPseudoClass;
-import javafx.geometry.Point2D;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
-import static javafx.scene.input.DragEvent.*;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.*;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.*;
-import javafx.scene.shape.LineTo;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
-import static javafx.util.Duration.millis;
 import main.App;
 import util.animation.Anim;
-import static util.functional.Util.*;
 import util.graphics.drag.DragUtil;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.signum;
+import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.scene.input.DragEvent.*;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
+import static javafx.util.Duration.millis;
+import static util.functional.Util.*;
 
 /**
  <p>
@@ -103,11 +106,7 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
-            o.monitor(v -> t.setText(
-                    App.className.get(o.getType()) + " : " + 
-                    o.getName() + "\n" + 
-                    App.instanceName.get(o.getValue()))
-            );
+            o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
         }
 
         @Override
@@ -152,7 +151,7 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_ENTERED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, true));
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
-            t.setText(App.className.get(in.getType()) + " : " + in.getName() + "\n");
+            t.setText(iToStr(input));
         }
 
         @Override
@@ -197,11 +196,7 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
             Output<T> o = inout.o;
-            o.monitor(v -> t.setText(
-                    App.className.get(o.getType()) + " : " + 
-                    o.getName() + "\n" + 
-                    App.instanceName.get(o.getValue()))
-            );
+            o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
         }
 
         @Override
@@ -248,7 +243,7 @@ public class IOPane extends StackPane {
             double dx = tox-startx;
             double dy = toy-starty;
             if(dx>0) {
-                double d = 20;
+                double d = 20; //Math.random()*30/10*10+10;
                 // enhance start
                 starty += d*signum(dy);
                 getElements().add(new LineTo(startx,starty));
@@ -285,7 +280,13 @@ public class IOPane extends StackPane {
         }
     }
     
-    
+    public static String oToStr(Output o) {
+        return App.className.get(o.getType()) + " : " + o.getName() + 
+               "\n" + App.instanceName.get(o.getValue());
+    }
+    public static String iToStr(Input i) {
+        return App.className.get(i.getType()) + " : " + i.getName() + "\n";
+    }
     public static void drawWidgetIO() {
         Map<Input,XNode> is = new HashMap();
         Map<Output,XNode> os = new HashMap();
@@ -320,10 +321,10 @@ public class IOPane extends StackPane {
                     double translation_x = widget_io.getTranslateX();
                     double header = widget_io.localToScene(0,0).getY() - 5;
                     Point2D start = ni.localToScene(ni.getLayoutBounds().getMinX(),ni.getLayoutBounds().getMinY());
-                            start = start.subtract(translation_x,header);
+                            start = start.subtract(translation_x-5,header);
 //                            start = new Point2D(start.getX()/scale.getX(), start.getY()/scale.getY());
                     Point2D end = no.localToScene(no.getLayoutBounds().getMinX(),no.getLayoutBounds().getMinY());
-                            end = end.subtract(translation_x,header);
+                            end = end.subtract(translation_x-5,header);
 //                            end = new Point2D(end.getX()-translation_x*scale.getX(), end.getY()/scale.getY());
                     new IOLine(input,output).lay(start.getX(),start.getY(),end.getX(),end.getY());
                 }

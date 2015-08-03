@@ -4,6 +4,9 @@ package AudioPlayer;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 import org.reactfx.EventSource;
@@ -22,6 +25,7 @@ import util.collections.map.MapSet;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static util.async.Async.runLater;
 import static util.dev.Util.forbidNull;
 
@@ -31,6 +35,13 @@ import static util.dev.Util.forbidNull;
  */
 public class Player {
     public static final PlayerState state = new PlayerState();
+    
+    public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(1, 3, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
+            Thread t = new Thread(r);
+                   t.setDaemon(true); // dont prevent application closing
+                   t.setName("tagging-thread");
+            return t;
+        });
     
     public static void initialize() {
         PLAYBACK.initialize();

@@ -16,8 +16,8 @@ import javafx.collections.ObservableListBase;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.playlist.Playlist;
+import AudioPlayer.playlist.PlaylistManager;
 import Serialization.PlaybackStateConverter;
 import Serialization.PlaylistItemConverter;
 import com.sun.javafx.collections.ObservableListWrapper;
@@ -67,7 +67,7 @@ public final class PlayerState {
             playback.realTime.set(PLAYBACK.getRealTime());
             suspendPlayback();
             playback_id = playback.getId();
-            playlist_id = PlaylistManager.active;
+            playlist_id = UUID.fromString(PlaylistManager.active.toString());
             
             playlists.clear();
             playlists.addAll(PlaylistManager.playlists);

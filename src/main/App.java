@@ -33,7 +33,7 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
 import AudioPlayer.services.notif.Notifier;
-import AudioPlayer.services.playcountincr.PlaycountIncrementer;
+import AudioPlayer.services.playcount.PlaycountIncrementer;
 import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;

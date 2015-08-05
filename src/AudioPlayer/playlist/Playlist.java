@@ -35,16 +35,17 @@ import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import AudioPlayer.Item;
-import AudioPlayer.Player;
-import AudioPlayer.playback.PLAYBACK;
-import Configuration.ValueConfig;
-import Serialization.PlaylistItemConverter;
 import com.sun.javafx.collections.ObservableListWrapper;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+
+import AudioPlayer.Item;
+import AudioPlayer.Player;
+import AudioPlayer.playback.PLAYBACK;
+import Configuration.ValueConfig;
+import Serialization.PlaylistItemConverter;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import main.App;

@@ -232,7 +232,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         entireArea.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
                 fut().supply(DragUtil.getSongs(e))
-                     .then(items -> items.findFirst())
+                     .map(items -> items.findFirst())
                      .use(i -> i.ifPresent(this::read),FX)
                      .run();
                 // end drag
@@ -445,7 +445,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         
         fut().supply(f)
             .use(action)
-            .thenR(cover_source::applyValue,FX)         // refresh cover
+            .then(cover_source::applyValue,FX)         // refresh cover
             .showProgress(App.getWindow().taskAdd())
             .run();
     }

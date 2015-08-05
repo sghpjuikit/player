@@ -52,7 +52,6 @@ import static org.jaudiotagger.tag.FieldKey.CUSTOM3;
 import static org.jaudiotagger.tag.FieldKey.RATING;
 import static util.File.AudioFileFormat.*;
 import static util.Util.clip;
-import static util.async.Async.runNew;
 import static util.dev.TODO.Purpose.FUNCTIONALITY;
 
 /**
@@ -781,12 +780,7 @@ public class MetadataWriter extends MetaItem {
                 w.write();
             }
 
-            MetadataReader.readMetadata(items, (ok,metas) -> {
-                if (ok) {
-                    if(action!=null) action.accept(metas);
-                    runNew(() -> Player.refreshItemsWithUpdatedBgr(metas));
-                }
-            });
+            Player.refreshItemsWithUpdated(MetadataReader.readMetadata(items));
         });
     }
     
@@ -798,11 +792,11 @@ public class MetadataWriter extends MetaItem {
             boolean b = w.write();
             runLater(() -> action.accept(b));
             
-            MetadataReader.readMetadata(singletonList(item), (ok,metas) -> {
-                if (ok) runNew(() -> Player.refreshItemsWithUpdatedBgr(metas));
-            });
+            Metadata m = MetadataReader.create(item);
+            if(!m.isEmpty()) Player.refreshItemWithUpdated(m);
         });
     }
+    
     public static <I extends Item> void useNoRefresh(I item, Consumer<MetadataWriter> setter) {
         MetadataWriter w = new MetadataWriter();
         w.reset(item);

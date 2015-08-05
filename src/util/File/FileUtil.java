@@ -15,15 +15,19 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.imageio.ImageIO;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
-import javax.imageio.ImageIO;
+
 import main.App;
+import unused.Log;
 import util.File.AudioFileFormat.Use;
 import util.Util;
+
 import static util.Util.filenamizeString;
-import unused.Log;
 import static util.functional.Util.isNotNULL;
 import static util.functional.Util.listRO;
 
@@ -120,30 +124,16 @@ public final class FileUtil {
     }
 
     /**
-     * Returns true if for provided File all conditions are met:
-     * - exists
-     * - is file
-     * - is readable
-     * 
-     * @param file
-     * @return validity of file for use
-     * @throws NullPointerException if parameter null.
+     * @return true iff file
+     * <ul>
+     * <li> not null
+     * <li> exists
+     * <li> is file
+     * <li> is readable
+     * </ul>
      */
     public static boolean isValidFile(File file) {
-        if (!file.exists()) {
-            Log.err("File " + file.getAbsolutePath() + " doesnt exist");
-            return false;
-        } else 
-        if (!file.isFile()) {
-            Log.err("Path " + file.getAbsolutePath() + " is not directory");
-            return false;
-        } else
-        if (!file.canRead()) {
-            Log.err("File " + file.getAbsolutePath() + " is not readable");
-            return false;            
-        } else {
-            return true;
-        }
+        return file != null && file.isFile() && file.exists() && file.canRead();
     }
     
     /**
@@ -165,19 +155,18 @@ public final class FileUtil {
         String path = App.SKIN_FOLDER().getPath() + File.separator + name +
                       File.separator + name + ".css";
         File test = new File(path);
-        return (f != null && FileUtil.isValidFile(f) &&   // is valid file
-                    f.getPath().endsWith(".css") &&       // is .css file
-                        f.equals(test));                  // is located in skins folder in its rightful folder
+        return (isValidFile(f) &&                   // is valid
+                f.getPath().endsWith(".css") &&     // is .css
+                f.equals(test));                    // is located in skins folder
     }
     
     public static boolean isValidWidgetFile(File f) {
         File p1 = f.getParentFile();
         File p2 = p1==null ? null : p1.getParentFile();
-        return (f != null && FileUtil.isValidFile(f) &&   // is valid file
-                    f.getPath().endsWith(".fxml") &&      // is .css file
-                        App.WIDGET_FOLDER().equals(p2));  // is located in skins folder in its rightful folder
+        return (isValidFile(f) &&                   // is valid file
+                f.getPath().endsWith(".fxml") &&    // is .fxml file
+                App.WIDGET_FOLDER().equals(p2));    // is located in skins folder in its rightful folder
     }
-    
     
     /**
      * Same as {@link File#listFiles() }, but never returns null (instead, empty

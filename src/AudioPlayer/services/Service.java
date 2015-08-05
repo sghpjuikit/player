@@ -17,8 +17,8 @@ public interface Service extends Configurable {
     void start();
     boolean isRunning();
     void stop();
-    boolean isSupported();
-    boolean isDependency();
+    default boolean isSupported() { return true; };
+    default boolean isDependency() { return false; };
     
     public static abstract class ServiceBase implements Service {
         
@@ -29,9 +29,12 @@ public interface Service extends Configurable {
              enabled = new Accessor<>(isEnabled, this::enable);
         }
         
-        private void enable(boolean b) {
-            if(b && !isRunning() && !isDependency() && isSupported()) start();
-            if(!b && isRunning()) stop();
+        private void enable(boolean isToBeRunning) {
+            boolean isRunning = isRunning();
+            if(isRunning==isToBeRunning) return;
+            
+            if(isToBeRunning && !isDependency() && isSupported()) start();
+            if(!isToBeRunning) stop();
         }
     }
     

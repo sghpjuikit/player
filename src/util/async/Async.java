@@ -7,12 +7,15 @@ package util.async;
 
 import java.util.concurrent.Executor;
 import java.util.function.*;
-import static javafx.animation.Animation.INDEFINITE;
+
 import javafx.application.Platform;
 import javafx.util.Duration;
-import static util.Util.setField;
+
 import util.async.executor.FxTimer;
 import util.async.runnable.Run;
+
+import static javafx.animation.Animation.INDEFINITE;
+import static util.Util.setField;
 
 /**
  *
@@ -110,7 +113,8 @@ public final class Async {
      * }</pre>
      */
     public static void runFX(Runnable r) {
-        if(Platform.isFxApplicationThread()) r.run(); else Platform.runLater(r);
+        if(Platform.isFxApplicationThread()) r.run(); 
+        else Platform.runLater(r);
     }
     
     /**

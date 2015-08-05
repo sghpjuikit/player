@@ -20,13 +20,13 @@ import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import Layout.Widgets.controller.io.InOutput;
 import unused.Log;
+import util.async.Async;
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.DAYS;
-import static util.async.Async.runLater;
 import static util.dev.Util.forbidNull;
 
 /**
@@ -96,20 +96,22 @@ public class Player {
     
     public static void refreshItemWithUpdated(Metadata m) {
         forbidNull(m);
-        
-        // update all playlist items referring to this updated metadata
-        PlaylistManager.playlists.forEach(pl -> pl.stream().filter(p->p.same(m)).forEach(p -> p.update(m)));
 
         // update library
         DB.updateItems(singletonList(m));
+        
+        Async.runFX(() -> {
+            // update all playlist items referring to this updated metadata
+            PlaylistManager.playlists.forEach(pl -> pl.stream().filter(p->p.same(m)).forEach(p -> p.update(m)));
+            
+            // refresh playing item data
+            if (playingtem.get().same(m)) playingtem.update(m);
 
-        // rfresh playing item data
-        if (playingtem.get().same(m)) playingtem.update(m);
-
-        // rfresh playing item data
-        if(playing.i.getValue()!=null) if(playing.i.getValue().same(m)) playing.i.setValue(m);
-        if(playlistSelected.i.getValue()!=null) if(playlistSelected.i.getValue().same(m)) playlistSelected.i.setValue(m.toPlaylist());
-        if(librarySelected.i.getValue()!=null) if(librarySelected.i.getValue().same(m)) librarySelected.i.setValue(m);
+            // refresh playing item data
+            if(playing.i.getValue()!=null) if(playing.i.getValue().same(m)) playing.i.setValue(m);
+            if(playlistSelected.i.getValue()!=null) if(playlistSelected.i.getValue().same(m)) playlistSelected.i.setValue(m.toPlaylist());
+            if(librarySelected.i.getValue()!=null) if(librarySelected.i.getValue().same(m)) librarySelected.i.setValue(m);
+        });
     }
     
     public static void refreshItemsWithUpdated(List<Metadata> metas) {
@@ -119,33 +121,14 @@ public class Player {
         // metadata map hashed with resource identity : O(n^2) -> O(n)
         MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,metas);
 
-        // update all playlist items referring to this updated metadata
-        PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
-
         // update library
         DB.updateItems(metas);
-
-        // rfresh playing item data
-        mm.ifHasE(playingtem.get(), playingtem::update);
-
-        if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
-        if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
-        if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
-    }
-    
-    public static void refreshItemsWithUpdatedBgr(List<Metadata> metas) {
-        forbidNull(metas);
-        if(metas.isEmpty()) return;
         
-        // metadata map hashed with resource identity : O(n^2) -> O(n)
-        MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,metas);
-
-        DB.updateItemsBgr(metas);
-        
-        runLater(() -> {
+        Async.runFX(() -> {
             // update all playlist items referring to this updated metadata
             PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
-            // rfresh playing item data
+            
+            // refresh playing item data
             mm.ifHasE(playingtem.get(), playingtem::update);
         
             if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);

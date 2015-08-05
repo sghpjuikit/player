@@ -55,7 +55,6 @@ import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.layout.Priority.ALWAYS;
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
-import static util.async.Async.runNew;
 import static util.functional.Util.*;
 
 @IsWidget
@@ -167,15 +166,13 @@ public class Converter extends ClassController implements SongWriter {
             List<Item> songs = list(source);
             if(songs.isEmpty()) return;
             Fut.fut()
-               .thenR(() -> {
+               .then(() -> {
                     for(int i=0; i<songs.size(); i++) {
                         int j = i;
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field,vals) -> w.setFieldS(Metadata.Field.valueOf(field), vals.get(j))));
                     }
-                    MetadataReader.readMetadata(songs, (ok,metas) -> {
-                        if (ok) runNew(() -> Player.refreshItemsWithUpdatedBgr(metas));
-                    });
-               })
+                    Player.refreshItemsWithUpdated(MetadataReader.readMetadata(songs));
+               },Player.IO_THREAD)
                .showProgress(App.getWindow().taskAdd())
                .run();
         }));

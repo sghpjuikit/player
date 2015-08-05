@@ -6,6 +6,8 @@
 
 package Layout.Widgets.feature;
 
+import AudioPlayer.playlist.Playlist;
+
 /**
  * Stores list of songs to play.
  * 
@@ -18,6 +20,6 @@ package Layout.Widgets.feature;
 )
 public interface PlaylistFeature {
 
-    
-
+    /** @return playlist */
+    Playlist getPlaylist();
 }

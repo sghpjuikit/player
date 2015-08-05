@@ -504,7 +504,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             coverSuperContainer.setDisable(false);
 
             Fut.fut()
-               .thenR(() -> {
+               .then(() -> {
                     // histogram init
                     fields.forEach(TagField::histogramInit);
                         // handle cover separately

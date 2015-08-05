@@ -18,6 +18,7 @@ import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 
+import AudioPlayer.services.ClickEffect;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.controller.Controller;
@@ -81,6 +82,16 @@ public class IOPane extends StackPane {
     
     static interface XNode {
         Icon getIcon();
+        default Point2D getSceneXY() {
+            Icon i = getIcon();
+            AnchorPane widget_io = ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io;
+            double translation_x = widget_io.getTranslateX();
+            double header = widget_io.localToScene(0,0).getY() - 5;
+            Point2D p = i.localToScene(i.getLayoutBounds().getMinX(),i.getLayoutBounds().getMinY());
+                    p = p.subtract(translation_x-5,header);
+                    // start = new Point2D(start.getX()/scale.getX(), start.getY()/scale.getY());
+            return p;
+        }
     }
     static class OutputNode<T> extends HBox implements XNode {
         Text t = new Text();
@@ -107,6 +118,9 @@ public class IOPane extends StackPane {
             i.addEventFilter(DRAG_EXITED, e -> i.pseudoClassStateChanged(DRAGOVER_PSEUDOCLASS, false));
             
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
+            o.monitor(v -> App.use(ClickEffect.class, c -> 
+                c.run(getSceneXY())
+            ));
         }
 
         @Override
@@ -197,6 +211,9 @@ public class IOPane extends StackPane {
             
             Output<T> o = inout.o;
             o.monitor(v -> a.playCloseDoOpen(() -> t.setText(oToStr(o))));
+            o.monitor(v -> App.use(ClickEffect.class, c -> 
+                c.run(getSceneXY())
+            ));
         }
 
         @Override

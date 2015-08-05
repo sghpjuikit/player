@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Contains set of utility methods for development. For example leading to
@@ -79,5 +80,18 @@ public class Util {
         O o = r.apply(in);
         System.out.println((System.currentTimeMillis()-t));
         return o;
+    }
+    
+    /** 
+     * Returns all running threads. Incurrs performance penalty, do not use
+     * besides debugging purposes.
+     */
+    public static Stream<Thread> getActiveThreads() {
+        return Thread.getAllStackTraces().keySet().stream();
+    }
+    
+    /** Prints names of all currently running non daemon threads. */
+    public static void printNonDaemonThreads() {
+         getActiveThreads().filter(t->!t.isDaemon()).forEach(t -> System.out.println(t.getName()));
     }
 }

@@ -342,7 +342,7 @@ public class LibraryController extends FXMLController implements SongReader {
     }
     
     private void addNeditDo(Supplier<Stream<Item>> files, boolean edit) {
-        fut().thenR(() -> {
+        fut().then(() -> {
                  taskInfo.setVisible(true);
                  taskInfo.message.setText("Discovering files...");
                  taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);

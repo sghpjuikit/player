@@ -1,10 +1,6 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.controller.Controller;
-import Layout.LayoutManager;
-import static Layout.Widgets.WidgetManager.WidgetSource.*;
-import gui.objects.Window.stage.ContextManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -15,11 +11,19 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javafx.scene.Node;
-import main.App;
+
 import org.atteo.classindex.ClassIndex;
-import util.File.FileUtil;
+
+import Layout.LayoutManager;
+import Layout.Widgets.controller.Controller;
+import gui.objects.Window.stage.ContextManager;
+import main.App;
 import unused.Log;
+import util.File.FileUtil;
+
+import static Layout.Widgets.WidgetManager.WidgetSource.*;
 
 /**
  * Handles operations with Widgets.
@@ -139,7 +143,7 @@ public final class WidgetManager {
         String preferred = getFactories()
                 .filter(filter::test)
                 .filter(w -> !w.isIgnored())
-                .filter(f->f.isPreferred())
+                .filter(f -> f.isPreferred())
                 .findAny().map(f->f.name).orElse("");
         
         // get viable widgets - widgets of the feature & of preferred type if any

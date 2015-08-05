@@ -6,10 +6,13 @@
 package util.async.future;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 import javafx.scene.control.ProgressIndicator;
+
 import static util.async.Async.eFX;
 
 /**
@@ -40,34 +43,50 @@ public class Fut<T> implements Runnable{
     }
     
     
-    public final <R> Fut<R> then(Function<T,R> action, Consumer<Runnable> executor) {
-        return new Fut<>(f.thenApplyAsync(action, executor::accept));
-    }
-    public final <R> Fut<R> then(Function<T,R> action) {
+    public final <R> Fut<R> map(Function<T,R> action) {
         return new Fut<>(f.thenApplyAsync(action));
     }
-    public final <R> Fut<R> supply(Supplier<R> action, Consumer<Runnable> executor) {
-        return then(r -> action.get(), executor);
+    public final <R> Fut<R> map(Function<T,R> action, Executor executor) {
+        return new Fut<>(f.thenApplyAsync(action, executor));
     }
-    public final <R> Fut<R> supply(Supplier<R> action) {
-        return then(r -> action.get());
+    public final <R> Fut<R> map(Function<T,R> action, Consumer<Runnable> executor) {
+        return new Fut<>(f.thenApplyAsync(action, executor::accept));
     }
+    
     public final <R> Fut<R> supply(R value) {
         return supply(() -> value);
     }
+    public final <R> Fut<R> supply(Supplier<R> action) {
+        return Fut.this.map(r -> action.get());
+    }
+    public final <R> Fut<R> supply(Supplier<R> action, Executor executor) {
+        return Fut.this.map(r -> action.get(), executor);
+    }
+    public final <R> Fut<R> supply(Supplier<R> action, Consumer<Runnable> executor) {
+        return map(r -> action.get(), executor);
+    }
+    
     public final <R> Fut<R> then(CompletableFuture<R> action) {
         return new Fut<>(f.thenComposeAsync(res -> action));
     }
+    
     public final Fut<Void> use(Consumer<T> action) {
         return new Fut<>(f.thenAcceptAsync(action));
+    }
+    public final Fut<Void> use(Consumer<T> action, Executor executor) {
+        return new Fut<>(f.thenAcceptAsync(action, executor));
     }
     public final Fut<Void> use(Consumer<T> action, Consumer<Runnable> executor) {
         return new Fut<>(f.thenAcceptAsync(action, executor::accept));
     }
-    public final Fut<T> thenR(Runnable action) {
+    
+    public final Fut<T> then(Runnable action) {
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
     }
-    public final Fut<T> thenR(Runnable action, Consumer<Runnable> executor) {
+    public final Fut<T> then(Runnable action, Executor executor) {
+        return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor));
+    }
+    public final Fut<T> then(Runnable action, Consumer<Runnable> executor) {
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
     }
     

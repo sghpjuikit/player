@@ -20,12 +20,12 @@ import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.controller.io.InOutput;
 import main.App;
+import util.async.Async;
 import util.async.future.Fut;
 import util.collections.map.MapSet;
 import util.functional.Functors.F2;
 
 import static java.util.UUID.fromString;
-import static javafx.application.Platform.runLater;
 import static util.File.FileUtil.readFileLines;
 import static util.async.Async.FX;
 import static util.functional.Util.stream;
@@ -49,7 +49,7 @@ public class DB {
             // load database
             .supply(DB::getAllItems)
             .use(DB::updateLib, FX)
-            .thenR(() -> {
+            .then(() -> {
              // load string store
                 List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
                 string_pool = sss.isEmpty() ? new StringStore() : sss.get(0);
@@ -197,21 +197,14 @@ public class DB {
         em.getTransaction().begin();
         items.forEach(em::merge);
         em.getTransaction().commit();
-        // update model
-        updateLib();
-    }
-    public static void updateItemsBgr(List<Metadata> items) {
-        // update db
-        em.getTransaction().begin();
-        items.forEach(em::merge);
-        em.getTransaction().commit();
-        // update model
-        runLater(DB::updateLib);
+        // update model on fx thread
+        Async.runFX(DB::updateLib);
     }
 
     public static void updateLib() {
         updateLib(getAllItems());
     }
+    
     private static void updateLib(List<Metadata> l) {
         items_byId.clear();
         items_byId.addAll(l);

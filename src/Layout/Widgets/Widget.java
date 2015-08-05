@@ -128,7 +128,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         util.Util.setField(controller, "widget", this);
 
         // generate inputs
-        for(Method m : getFactory().getControllerClass().getDeclaredMethods()) {
+        for(Method m : cclass.getDeclaredMethods()) {
             IsInput a = m.getAnnotation(IsInput.class);
             if(a!=null) {
                 int params = m.getParameterCount();
@@ -136,7 +136,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                     throw new RuntimeException("Method " + m + " can not be an input.");
 
                 String i_name = a.value();
-                boolean isvoid = params==0;
+                boolean isvoid = params==0; if(isvoid) System.out.println(i_name + " " + cclass);
                 Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
                 Consumer i_action = isvoid 
                     ?   value -> {

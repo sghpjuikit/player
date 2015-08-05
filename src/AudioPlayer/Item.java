@@ -6,9 +6,7 @@ import java.net.URI;
 import java.util.Comparator;
 
 import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataReader;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.units.FileSize;
@@ -217,8 +215,6 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
         return isCorrupt(PLAYBACK);
     }    
     
-
-    
 /******************************************************************************/
     
     /**
@@ -250,6 +246,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     public final boolean same(URI r) {
         return getURI().equals(r);
     }
+    
 /******************************************************************************/
     
     /**
@@ -260,7 +257,7 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
      * required or can not be obtained.
      * 
      * @implSpec
-     * Metadata has private consturctors. The responsibility for creating 
+     * Metadata has private constructors. The responsibility for creating 
      * Metadata from any Item object lies within Metadata's constructor which 
      * uses reflection to inspect the Item type. Subclassing this class should include
      * modifying that constructor to take the subclass into consideration.
@@ -305,40 +302,6 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     
 /******************************************************************************/
     
-    /**
-     * Returns metadata for this item.
-     * <p>
-     * It is first checked if the item is playing. Playing item already has
-     * metadata available. If the metadata is cached, it is returned. Else:
-     * <p>
-     * If there is library available, the metadata item is looked up and returned
-     * if available. Else:
-     * <p>
-     * Item will be read for metadata. This includes I/O operation.
-     * <p>
-     * If the reading fails, the item will be converted using {@link #toMeta()}.
-     * <p>
-     * If the item is corrupt and the previous methods fail (it is possible the 
-     * cache or library still contains the item) EMPRTY metadata will be returned.
-     * <p>
-     * WARNING. This method uses application thread and as such is prone to
-     * cause performance problems if misused.
-     * <p>
-     * Its fine to use this method for single or very few items, played item and
-     * items that are guaranteed to be in a library
-     * 
-     * @return metadata for this item. Never null or EMPTY Metadata.
-     */
-    public final Metadata getMetadata() {
-        // try playing item
-        if (same(Player.playingtem.get())) return Player.playingtem.get();
-        // try library
-        Metadata m = DB.items_byId.get(getId());
-        if (m!=null) return m;
-        // read
-        return MetadataReader.create(this);
-    }
-
     
     /**
      * <pre>

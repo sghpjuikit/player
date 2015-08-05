@@ -25,8 +25,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.util.Duration;
 
-import org.reactfx.Subscription;
-
 import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
@@ -118,7 +116,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private final List<Thumbnail> thumbnails = new ArrayList();
     // eager initialized state
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
-    private Subscription dataMonitoring;
     private Metadata data = Metadata.EMPTY;
     
     // cnfigurable
@@ -244,7 +241,9 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         });
         
         // refresh if source data changed
+        ChangeListener<File> locationChange = (o,ov,nv) -> readThumbnails();
         folder.addListener(locationChange);
+        d(() -> folder.removeListener(locationChange));
         
         // accept drag transfer
         entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
@@ -285,13 +284,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     /** {@inheritDoc} */
     @Override
     public void onClose() {
-        // unbind
-        if (dataMonitoring!=null) dataMonitoring.unsubscribe();
-        folder.removeListener(locationChange);
-        // prevent continued thumbnail creation
-        thumb_reader.stop();
-        //stop slideshow
-        slideshow.stop();
+        thumb_reader.stop();    // prevent continued thumbnail creation
+        slideshow.stop();       // stop slideshow
     }
     
 /********************************* PUBLIC API *********************************/
@@ -345,12 +339,18 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     @IsInput("Location of")
     private void dataChanged(Item i) {
+        if(i==null) dataChanged(Metadata.EMPTY);
+        else App.itemToMeta(i, this::dataChanged);
+    }
+    
+    private void dataChanged(Metadata m) {
         // remember data
-        data = i==null ? Metadata.EMPTY : i.getMetadata();
+        data = m;
         // calculate new location
         File new_folder = (data==null || !data.isFileBased()) ? null : data.getLocation();
         dataChanged(new_folder);
     }
+    
     @IsInput("Directory")
     private void dataChanged(File i) {
         // calculate new location
@@ -361,8 +361,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         folder.set(new_folder);
         if(theater_mode.getValue()) itemPane.setValue("", data);
     }
-    
-    private final ChangeListener<File> locationChange = (o,ov,nv) -> readThumbnails();
     
     class Exec {
         ExecutorService e = Executors.newFixedThreadPool(1, r -> {

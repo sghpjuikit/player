@@ -6,10 +6,11 @@
 
 package Configuration;
 
-import Configuration.Config.ConfigBase;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.util.Objects;
+
+import Configuration.Config.ConfigBase;
 import unused.Log;
 
 /**
@@ -114,26 +115,7 @@ public final class FieldConfig<T> extends ConfigBase<T> {
             if(instance==null) return (T) mh.invoke();
             else return (T) mh.invokeWithArguments(instance);
         } catch (Throwable ex) {
-            throw new RuntimeException("Error during getting value from a config field. " + ex.getClass() + " " + ex.getMessage());
+            throw new RuntimeException("Error during getting value from a config field. " + ex);
         }
     }
 }
-        
-//    // helper method to obtain initial value while enforcing static field check
-//    // use in super() constructor
-//    private static<T> T getValueFromField(Field f, Object instance) {
-//        try {
-//            // make sure the preconditions apply
-//            boolean isStatic = Modifier.isStatic(f.getModifiers());
-//            if(instance==null && !isStatic)
-//                throw new IllegalStateException("Object instance null with instance field config not allowed.");
-//            if(instance!=null && isStatic)
-//                throw new IllegalStateException("Object instance not null when field is static not allowed.");
-//            // make sure field is accessible
-//            f.setAccessible(true);
-//            // get value
-//            return (T) f.get(instance);
-//        } catch (IllegalArgumentException | IllegalAccessException ex) {
-//            throw new RuntimeException("Can not access field: " + f.getName() + " for object: " + instance);
-//        }
-//    }

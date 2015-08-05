@@ -7,6 +7,7 @@
 package Layout.Widgets.feature;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Displays image.
@@ -23,7 +24,18 @@ public interface ImageDisplayFeature {
     /**
      * Displays the image.
      * 
-     * @param img_file 
+     * @param img_file to display
      */
     void showImage(File img_file);
+    
+    /**
+     * Attempts to displays the images. Depends on implementation. By default
+     * 1st image is displayed if available.
+     * 
+     * @param img_files to display
+     */
+    default void showImages(List<File> images) {
+        if(!images.isEmpty())
+            showImage(images.get(0));
+    }
 }

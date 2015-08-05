@@ -214,6 +214,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         });
         filter_for_playback.applyValue();
     }
+
+    @Override
+    public Playlist getPlaylist() {
+        return playlist;
+    }
     
 /***************************** HELPER METHODS *********************************/
     

@@ -5,34 +5,40 @@
  */
 package AudioPlayer.services.tray;
 
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.Region;
+import javafx.stage.Stage;
+
+import org.reactfx.Subscription;
+
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.services.Service.ServiceBase;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.GUI;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
+import main.App;
+import unused.Log;
+import util.access.Accessor;
+
 import static javafx.application.Platform.runLater;
-import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
-import javafx.scene.Scene;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.input.MouseButton;
 import static javafx.scene.input.MouseButton.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import javafx.scene.layout.Region;
-import javafx.stage.Stage;
-import static javafx.stage.StageStyle.*;
-import javax.imageio.ImageIO;
-import main.App;
-import org.reactfx.Subscription;
+import static javafx.stage.StageStyle.TRANSPARENT;
+import static javafx.stage.StageStyle.UTILITY;
 import static util.Util.menuItem;
-import util.access.Accessor;
-import unused.Log;
 
 /**
  * Provides tray facilities, including tray icon, tray tooltip, tray click
@@ -153,10 +159,6 @@ public class TrayService extends ServiceBase {
         return SystemTray.isSupported();
     }
 
-    @Override
-    public boolean isDependency(){
-        return false;
-    }
     
     /**
      * Sets the tooltip string for this tray icon. The tooltip is displayed 

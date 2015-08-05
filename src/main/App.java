@@ -2,7 +2,9 @@
 package main;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -15,8 +17,6 @@ import javafx.beans.property.*;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
 import javafx.stage.Stage;
 
 import org.atteo.classindex.ClassIndex;
@@ -24,11 +24,16 @@ import org.reactfx.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import AudioPlayer.Player;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
+import com.sun.tools.attach.VirtualMachineDescriptor;
+
 import AudioPlayer.Item;
+import AudioPlayer.Player;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
+import AudioPlayer.services.ClickEffect;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.services.Service;
 import AudioPlayer.services.ServiceManager;
@@ -43,6 +48,8 @@ import Layout.Component;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.feature.ConfiguringFeature;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import Layout.Widgets.feature.PlaylistFeature;
 import action.Action;
 import action.IsAction;
 import action.IsActionable;
@@ -51,6 +58,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
@@ -59,17 +67,21 @@ import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
 import gui.pane.CellPane;
 import util.ClassName;
+import util.File.AudioFileFormat;
 import util.File.FileUtil;
+import util.File.ImageFileFormat;
 import util.InstanceName;
 import util.access.AccessorEnum;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
 
+import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
+import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
+import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
 import static util.async.Async.*;
 import static util.functional.Util.map;
-
 
 /**
  * Application. Launches and terminates program.
@@ -87,7 +99,7 @@ public class App extends Application {
         launch(args);
     }
     
-    private final Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
     
 /******************************************************************************/
     
@@ -116,9 +128,9 @@ public class App extends Application {
     private static App instance;
     public static Guide guide;
     private Window windowOwner;
-    
     private boolean initialized = false;
-    
+    public final AppInstanceComm appCommunicator = new AppInstanceComm();
+    public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
     
     public App() {
         instance = this;
@@ -179,13 +191,13 @@ public class App extends Application {
             // override default configuration
             jc.doConfigure(LOG_CONFIG_FILE);
         } catch (JoranException ex) {
-            logger.error(ex.getMessage());
+            LOGGER.error(ex.getMessage());
         }
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
         
         // log uncaught thread termination exceptions
         Thread.setDefaultUncaughtExceptionHandler((Thread t, Throwable e) -> 
-            logger.error(t.getName(), e)
+            LOGGER.error(t.getName(), e)
         );
         
         
@@ -194,6 +206,7 @@ public class App extends Application {
         className.add(PlaylistItem.class, "Playlist Song");
         className.add(Metadata.class, "Library Song");
         className.add(MetadataGroup.class, "Song Group");
+
         // add optional object class -> string converters
         instanceName.add(Item.class, Item::getPath);
         instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
@@ -202,6 +215,25 @@ public class App extends Application {
         instanceName.add(Component.class, o -> o.getName());
         instanceName.add(List.class, o -> String.valueOf(o.size()));
         instanceName.add(File.class, File::getPath);
+        
+        
+        // initialize app parameter processor
+        parameterProcessor.addFileProcessor(
+            f -> AudioFileFormat.isSupported(f, APP),
+            fs -> WidgetManager.use(PlaylistFeature.class, ANY, p -> p.getPlaylist().addFiles(fs))
+        );
+        parameterProcessor.addFileProcessor(
+            FileUtil::isValidSkinFile,
+            fs -> GUI.setSkin(FileUtil.getName(fs.get(0)))
+        );
+        parameterProcessor.addFileProcessor(
+            ImageFileFormat::isSupported,
+            fs -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
+        );
+        parameterProcessor.addFileProcessor(
+            FileUtil::isValidWidgetFile,
+            fs -> WidgetManager.find(w -> w.name().equals(FileUtil.getName(fs.get(0))), NO_LAYOUT)
+        );
     }
     
     /**
@@ -219,6 +251,19 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
+            // forbid multiple application instances, instead
+            // notify the 1st instance of 2nd (this) trying to run and exit
+            if(getInstances()>1) {
+                appCommunicator.fireNewInstanceEvent(fetchParameters());
+                App.close();
+                return;
+            }
+            
+            // listen to other application instance launches
+            // process app parameters of newly started instance
+            appCommunicator.start();
+            appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
+            
             Action.startGlobalListening();
             
             // create hidden main window
@@ -234,6 +279,7 @@ public class App extends Application {
             services.addService(new TrayService());
             services.addService(new Notifier());
             services.addService(new PlaycountIncrementer());
+            services.addService(new ClickEffect());
             
             // gather configs
             Configuration.collectAppConfigs();
@@ -247,7 +293,6 @@ public class App extends Application {
             WindowManager.deserialize();
             
             DB.start();
-            
 //            GUI.setLayoutMode(true);
 //            Transition t = par(
 //                Window.windows.stream().map(w -> 
@@ -292,17 +337,15 @@ public class App extends Application {
         } catch(Exception e) {
             String ex = Stream.of(e.getStackTrace()).map(s->s.toString()).collect(Collectors.joining("\n"));
             System.out.println(ex);
-            // copy exception trace to clipboard
-            final Clipboard clipboard = Clipboard.getSystemClipboard();
-            final ClipboardContent content = new ClipboardContent();
-            content.putString(ex);
-            clipboard.setContent(content);
             
-            e.printStackTrace();
+            LOGGER.error("Application failed to start", e);
         }
-        // all ready -> apply all settings
+        // initialization complete -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
         
+        // app ready
+        
+            
          //initialize non critical parts
         Player.loadLast();                      // should load in the end
         
@@ -318,17 +361,8 @@ public class App extends Application {
         ImageCursor c = new ImageCursor(image,3,3);
         window.getStage().getScene().setCursor(c);
         
-//        List<String> s = new ArrayList<>();
-//        System.out.println("raw");
-//        App.getInstance().getParameters().getRaw().forEach(s::add);
-//        System.out.println("unnamed");
-//        App.getInstance().getParameters().getUnnamed().forEach(s::add);
-//        System.out.println("named");
-//        App.getInstance().getParameters().getNamed().forEach( (t,tt) -> s.add(t+" "+tt) );
-//        
-//        String t = s.stream().collect(Collectors.joining("/n"));
-//        Notifier.showTextNotification(t , "");
-//        System.out.println("GGGGG " + t);
+        // process app parameters passed when app started
+        parameterProcessor.process(fetchParameters());
     }
  
     /**
@@ -348,6 +382,7 @@ public class App extends Application {
         }
         DB.stop();
         Action.stopGlobalListening();
+        appCommunicator.stop();
         // remove temporary files
         FileUtil.removeDirContent(TMP_FOLDER());
     }
@@ -383,6 +418,55 @@ public class App extends Application {
     }
     
 /******************************************************************************/
+    
+    public List<String> fetchParameters() {
+        List<String> params = new ArrayList<>();
+        getParameters().getRaw().forEach(params::add);
+        // getParameters().getUnnamed().forEach(params::add);
+        // getParameters().getNamed().forEach( (t,tt) -> s.add(t+" "+tt) );
+        return params;
+    }
+    
+    /** 
+     * Calculates number of instances of this application running on this 
+     * system at this moment. In this context, application instance is considered
+     * a application running on java virtual machine from user directory equal
+     * to that of this application. This application is included in the count.
+     * 
+     * @return number of running instances 
+     */
+    public static int getInstances() {
+        // try {
+        //     MonitoredHost mh = MonitoredHost.getMonitoredHost("//localhost" );
+        //     for (int id : mh.activeVms() ) {
+        //         VmIdentifier vmid = new VmIdentifier("" + id);
+        //         MonitoredVm vm = mh.getMonitoredVm(vmid, 0 );
+        //         System.out.printf( "%d %s %s %s%n\n", id,MonitoredVmUtil.mainClass( vm, true ),
+        //                            MonitoredVmUtil.jvmArgs( vm ),MonitoredVmUtil.mainArgs( vm ) );
+        //     }
+        // } catch (MonitorException ex) {
+        //     java.util.logging.Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+        // } catch (URISyntaxException ex) {
+        //     java.util.logging.Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+        // }
+        // two occurrences of the result of MonitoredVmUtil.mainClass(), the program is started twice
+        
+        int i=0;
+        String ud = System.getProperty("user.dir");
+
+        for(VirtualMachineDescriptor vmd : VirtualMachine.list()) {
+            try {
+                VirtualMachine vm = VirtualMachine.attach(vmd);
+                String udi = vm.getSystemProperties().getProperty("user.dir");
+                if(ud.equals(udi)) i++;
+                vm.detach();
+            } catch (AttachNotSupportedException | IOException ex) {
+                LOGGER.warn("Unable to inspect virtual machine {}", vmd);
+            }
+        }
+        
+        return i;
+    }
     
     /**
      * The root location of the application. Equivalent to new File("").getAbsoluteFile().
@@ -459,17 +543,23 @@ public class App extends Application {
     
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
         Fut.fut()
-           .thenR(() -> Player.refreshItemsWithUpdatedBgr(MetadataReader.readMetadata(items)))
+           .then(() -> Player.refreshItemsWithUpdated(MetadataReader.readMetadata(items)),Player.IO_THREAD)
            .showProgress(App.getWindow().taskAdd())
            .run(); 
     }
     
     public static void itemToMeta(Item i, Consumer<Metadata> action) {
+       if (i.same(Player.playingtem.get())) {
+           action.accept(Player.playingtem.get());
+           return;
+       } 
+       
        Metadata m = DB.items_byId.get(i.getId());
        if(m!=null) {
            action.accept(m);
        } else {
-            Fut.fut(i).then(MetadataReader::create).use(action, FX).run();
+            Fut.fut(i).map(MetadataReader::create,Player.IO_THREAD)
+                      .use(action, FX).run();
        }
     }
     
@@ -498,7 +588,7 @@ public class App extends Application {
             + "application supported icons. For developers")
     public static void openIconViewer() {
         Fut.fut()
-           .thenR(() -> {
+           .then(() -> {
                 CellPane c = new CellPane(70,80,5);
                 c.getChildren().addAll(map(FontAwesomeIcon.values(),i -> new IconInfo(i,55)));
                 ScrollPane p = c.scrollable();

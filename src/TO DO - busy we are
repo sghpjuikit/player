@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- filesize use undigned long
+- config field add checkbox list config field
 - seeker on click seek ~busted
 - implement smooth volume on seek
 - flac playback improve seeking + consecutive seeking performance

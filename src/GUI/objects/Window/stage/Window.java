@@ -3,6 +3,8 @@ package gui.objects.Window.stage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
@@ -17,20 +19,11 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Screen;
 
 import org.reactfx.Subscription;
 
-import AudioPlayer.Player;
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.services.lasfm.LastFM;
-import AudioPlayer.tagging.Metadata;
-import Configuration.*;
-import Layout.Component;
-import Layout.Layout;
-import Layout.WidgetImpl.LayoutManagerComponent;
-import Serialization.SelfSerializator;
-import action.Action;
 import com.sun.glass.ui.Robot;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.converters.Converter;
@@ -40,6 +33,18 @@ import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+
+import AudioPlayer.Player;
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.services.lasfm.LastFM;
+import AudioPlayer.tagging.Metadata;
+import Configuration.*;
+import Layout.Component;
+import Layout.Layout;
+import Layout.WidgetImpl.LayoutManagerComponent;
+import Layout.Widgets.WidgetManager;
+import Serialization.SelfSerializator;
+import action.Action;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
@@ -48,6 +53,8 @@ import gui.objects.Text;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
+import gui.pane.ActionPane;
+import gui.pane.ActionPane.ActionData;
 import gui.pane.IOPane;
 import main.App;
 import unused.Log;
@@ -377,13 +384,30 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		GUI.setLayoutMode(e.getEventType().equals(KEY_PRESSED));
                 if(e.getEventType().equals(KEY_PRESSED)) IOPane.drawWidgetIO();
 	    }
-	});        
+	});
         
 	Icon gitB = new Icon(GITHUB, 13, Action.getAction("Open github page"));
 	Icon dirB = new Icon(FOLDER, 13, Action.getAction("Open app dir"));
 	Icon cssB = new Icon(CSS3, 13, Action.getAction("Open css guide"));
 	Icon iconsB = new Icon(IMAGE, 13, Action.getAction("Open icon viewer"));
 	Icon propB = new Icon(GEARS, 13, Action.getAction("Open settings"));
+	Icon runB = new Icon(GAVEL, 13, "", () -> ActionPane.PANE.show(Void.class, null, 
+            new ActionData<Void>("Export widget launchers","",UPLOAD, ignored -> {
+                DirectoryChooser dc = new DirectoryChooser();
+                                 dc.setInitialDirectory(App.getLocation());
+                                 dc.setTitle("Export to...");
+                File dir = dc.showDialog(s);
+                if(dir!=null) {
+                    WidgetManager.getFactories().forEach(w -> {
+                        try {
+                            new File(dir,w.getName() + ".fxwl").createNewFile();
+                        } catch (IOException ex) {
+                            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                }
+            })
+        ));
 	// manage layout button - sho layout manager in a popp
 	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
 	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
@@ -439,7 +463,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	
         // left header
 	leftHeaderBox.getChildren().addAll(
-            gitB, cssB, dirB, iconsB, layB, propB, lastFMB, new Icon(BLANK),
+            gitB, cssB, dirB, iconsB, new Icon(BLANK),
+            layB, propB, runB, lastFMB, new Icon(BLANK),
             ltB, lockB, lmB, rtB, new Icon(BLANK), guideB, helpB
         );
         

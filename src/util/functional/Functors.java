@@ -1,5 +1,13 @@
 package util.functional;
 
+import java.io.File;
+import java.time.Year;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataGroup;
@@ -9,35 +17,30 @@ import Configuration.Configurable;
 import gui.itemnode.StringSplitParser;
 import gui.itemnode.StringSplitParser.Split;
 import gui.itemnode.StringSplitParser.SplitData;
-import java.io.File;
-import static java.lang.Integer.min;
-import static java.lang.Math.max;
-import java.time.Year;
-import java.util.*;
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import static org.atteo.evo.inflector.English.plural;
 import util.File.AudioFileFormat;
-import static util.File.AudioFileFormat.Use.APP;
-import static util.File.AudioFileFormat.Use.PLAYBACK;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.Util;
-import static util.Util.*;
 import util.access.Accessor;
 import util.collections.PrefList;
 import util.collections.map.PrefListMap;
-import static util.functional.Functors.StringDirection.FROM_START;
-import static util.functional.Util.*;
 import util.units.Bitrate;
 import util.units.FileSize;
 import util.units.FormattedDuration;
 import util.units.NofX;
+
+import static java.lang.Integer.min;
+import static java.lang.Math.max;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
+import static org.atteo.evo.inflector.English.plural;
+import static util.File.AudioFileFormat.Use.APP;
+import static util.File.AudioFileFormat.Use.PLAYBACK;
+import static util.Util.*;
+import static util.functional.Functors.StringDirection.FROM_START;
+import static util.functional.Util.list;
+import static util.functional.Util.map;
 
 public class Functors {
     
@@ -237,7 +240,7 @@ public class Functors {
         add("Is null",      Object.class, Boolean.class, Objects::isNull);
         add("Is not null",  Object.class, Boolean.class, Objects::nonNull);
         
-        add("As is",        Object.class, Object.class, x->x, true, false, true);
+        add("As is",        Object.class, Object.class, x->x, true, true, true);
         add("As String",    Object.class, String.class, Objects::toString);
         add("As Boolean",   String.class, Boolean.class, Boolean::parseBoolean);
         

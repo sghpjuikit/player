@@ -282,7 +282,9 @@ public final class DragUtil {
             String url = d.getUrl();
             return () -> {
                 try {
-                    return FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                    File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
+                         f.deleteOnExit();
+                    return f;
                 } catch(IOException ex) {
                     return null;
                 }
@@ -321,7 +323,8 @@ public final class DragUtil {
             String url = d.getUrl();
             return () -> {
                 try {
-                    File f = FileUtil.saveFileTo(url, App.TMP_FOLDER());
+                    File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
+                         f.deleteOnExit();
                     return singletonList(f);
                 } catch(IOException ex) {
                     return EMPTY_LIST;

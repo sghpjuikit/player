@@ -45,6 +45,7 @@ import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Component;
+import Layout.Widgets.WidgetFactory;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.feature.ConfiguringFeature;
@@ -62,6 +63,7 @@ import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
+import gui.objects.Window.stage.ContextManager;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
@@ -128,9 +130,10 @@ public class App extends Application {
     private static App instance;
     public static Guide guide;
     private Window windowOwner;
-    private boolean initialized = false;
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
+    private boolean initialized = false;
+    private boolean normalLoad = true;
     
     public App() {
         instance = this;
@@ -187,9 +190,9 @@ public class App extends Application {
             JoranConfigurator jc = new JoranConfigurator();
             jc.setContext(lc);
             lc.reset();
-            lc.putProperty("LOG_DIR", LOG_DIR.getPath());
+            lc.putProperty("LOG_DIR", DIR_LOG.getPath());
             // override default configuration
-            jc.doConfigure(LOG_CONFIG_FILE);
+            jc.doConfigure(FILE_LOG_CONFIG);
         } catch (JoranException ex) {
             LOGGER.error(ex.getMessage());
         }
@@ -230,9 +233,16 @@ public class App extends Application {
             ImageFileFormat::isSupported,
             fs -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
         );
+//        parameterProcessor.addFileProcessor(
+//            FileUtil::isValidWidgetFile,
+//            fs -> WidgetManager.find(w -> w.name().equals(FileUtil.getName(fs.get(0))), NO_LAYOUT)
+//        );
         parameterProcessor.addFileProcessor(
-            FileUtil::isValidWidgetFile,
-            fs -> WidgetManager.find(w -> w.name().equals(FileUtil.getName(fs.get(0))), NO_LAYOUT)
+            f -> f.getPath().endsWith(".fxwl"),
+            fs -> {
+                WidgetFactory wf = WidgetManager.getFactory(FileUtil.getName(fs.get(0)));
+                if(wf!=null) ContextManager.showWindow(wf.create());
+            }
         );
     }
     
@@ -290,7 +300,9 @@ public class App extends Application {
             Player.initialize();
             
             // collectAppConfigs windows from previous session
-            WindowManager.deserialize();
+            List<String> ps = fetchParameters();
+            normalLoad = !ps.stream().anyMatch(s->s.endsWith(".fxwl"));
+            WindowManager.deserialize(normalLoad);
             
             DB.start();
 //            GUI.setLayoutMode(true);
@@ -347,7 +359,7 @@ public class App extends Application {
         
             
          //initialize non critical parts
-        Player.loadLast();                      // should load in the end
+        if(normalLoad) Player.loadLast();                      // should load in the end
         
         // handle guide
         guide = new Guide();
@@ -373,8 +385,8 @@ public class App extends Application {
     @Override
     public void stop() {
         if(initialized) {
-            Player.state.serialize();            
-            WindowManager.serialize();
+            if(normalLoad) Player.state.serialize();            
+            if(normalLoad) WindowManager.serialize();
             Configuration.save();
             services.getAllServices()
                     .filter(Service::isRunning)
@@ -383,8 +395,6 @@ public class App extends Application {
         DB.stop();
         Action.stopGlobalListening();
         appCommunicator.stop();
-        // remove temporary files
-        FileUtil.removeDirContent(TMP_FOLDER());
     }
     
     public static boolean isInitialized() {
@@ -516,15 +526,6 @@ public class App extends Application {
     }
     
     /** 
-     * Use for temporary files & junk. This folder is emptied on app close.
-     * 
-     * @return absolute file of directory for temporary files.
-     */
-    public static File TMP_FOLDER() {
-        return new File(DATA_FOLDER(),"Temp");
-    }
-    
-    /** 
      * @return absolute file of Location of database. */
     public static File LIBRARY_FOLDER() {
         return new File(DATA_FOLDER(), "Library");
@@ -535,8 +536,12 @@ public class App extends Application {
         return new File(DATA_FOLDER(),"Playlists");
     }
     
-    public static File LOG_DIR = new File("log").getAbsoluteFile();
-    public static File LOG_CONFIG_FILE = new File(LOG_DIR,"log_configuration.xml");
+    /** Temporary directory of the os. */
+    public static File DIR_TEMP = new File(System.getProperty("java.io.tmpdir"));
+    /** Directory for application logging. */
+    public static File DIR_LOG = new File("log").getAbsoluteFile();
+    /** File for application logging configuration. */
+    public static File FILE_LOG_CONFIG = new File(DIR_LOG,"log_configuration.xml");
     
     
     // jobs

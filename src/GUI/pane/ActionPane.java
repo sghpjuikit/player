@@ -5,31 +5,32 @@
  */
 package gui.pane;
 
-import de.jensd.fx.glyphs.GlyphIcons;
-import gui.objects.Text;
-import gui.objects.Window.stage.Window;
-import gui.objects.icon.Icon;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import static java.util.stream.Collectors.toList;
-import static javafx.beans.binding.Bindings.min;
-import static javafx.geometry.Pos.BOTTOM_CENTER;
-import static javafx.geometry.Pos.CENTER;
-import static javafx.geometry.Pos.TOP_CENTER;
+
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.TextAlignment;
-import static javafx.util.Duration.millis;
+
+import de.jensd.fx.glyphs.GlyphIcons;
+import gui.objects.Text;
+import gui.objects.Window.stage.Window;
+import gui.objects.icon.Icon;
 import main.App;
-import static util.Util.setAnchors;
 import util.animation.Anim;
+
+import static java.util.stream.Collectors.toList;
+import static javafx.beans.binding.Bindings.min;
+import static javafx.geometry.Pos.*;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.util.Duration.millis;
+import static util.Util.setAnchors;
 import static util.functional.Util.list;
 
 /**
@@ -143,6 +144,7 @@ public class ActionPane extends StackPane {
     }
     
     private void animDo(double x) {
+        bgr.setOpacity(1-x*0.5);
         setOpacity(x);
         // unfocus bgr
         blurback.setHeight(15*x*x);

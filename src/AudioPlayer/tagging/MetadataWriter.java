@@ -686,7 +686,7 @@ public class MetadataWriter extends MetaItem {
      * either because there was nothing to change or writing failed.
      */
     private boolean write() {
-        logger.info("Writing {} fields to tag for: {}",fields_changed,getURI());
+        logger.info("Writing {} tag fields to: {}", fields_changed,file);
         
         // do nothing if nothing to write
         if (!hasFields()) return false;  

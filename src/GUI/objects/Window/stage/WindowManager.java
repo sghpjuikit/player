@@ -6,6 +6,23 @@
 
 package gui.objects.Window.stage;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javafx.animation.Animation;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.Screen;
+import javafx.stage.WindowEvent;
+import javafx.util.Duration;
+
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -14,34 +31,20 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import action.IsAction;
 import action.IsActionable;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javafx.animation.Animation;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
-import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.stage.Screen;
-import javafx.stage.WindowEvent;
-import javafx.util.Duration;
-import static javafx.util.Duration.ZERO;
-import static javafx.util.Duration.millis;
 import main.App;
+import unused.Log;
 import util.File.FileUtil;
-import static util.File.FileUtil.listFiles;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
-import unused.Log;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.util.Duration.ZERO;
+import static javafx.util.Duration.millis;
+import static util.File.FileUtil.listFiles;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
 
@@ -201,6 +204,7 @@ public class WindowManager {
 
     
     public static void serialize() {
+        
         // make sure directory is accessible
         File dir = new File(App.LAYOUT_FOLDER(),"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
@@ -249,77 +253,81 @@ public class WindowManager {
         }
     }
     
-    public static void deserialize() {
-        // make sure directory is accessible
-        File dir = new File(App.LAYOUT_FOLDER(),"Current");
-        if (!FileUtil.isValidatedDirectory(dir)) {
-            Log.err("Deserialization of windows and layouts failed. " + dir.getPath() +
-                    " could not be accessed.");
-            return;
-        }
-        
-        Log.deb("Deserializing application windows from next session.");
-        // discover all window files with 'ws extension
-        File[] fs = dir.listFiles(f->f.getName().endsWith(".ws"));
-        Log.deb("Discovered " + fs.length + " window files to deserialize.");
-        
-        // prepare layout files
-        Map<Integer,Map<Integer,File>> lmap= new HashMap(); // map windowIndex-layoutFiles
-        File[] lfs = dir.listFiles(f->f.getPath().endsWith(".l"));
-        for(File f : lfs) {
-            // parse string and get window index
-            String name = f.getName();
-            int from = name.indexOf("window");
-            int to = name.indexOf('-');
-            String number = name.substring(from+6, to);
-            int wIndex;
-            try{
-                wIndex = new Integer(number);
-            } catch(NumberFormatException e) {
-                // ignore file if damaged name
-                continue;
-            }
-            
-            // parse string and get layout index
-            from = name.indexOf("layout");
-            to = name.indexOf(".");
-            number = name.substring(from+6, to);
-            int lIndex;
-            try{
-                lIndex = new Integer(number);
-            } catch(NumberFormatException e) {
-                // ignore file if damaged name
-                continue;
-            }
-            
-            // put layout to map's list with index of the window it belongs to
-            if(!lmap.containsKey(wIndex)) lmap.put(wIndex, new HashMap());
-            lmap.get(wIndex).put(lIndex,f);
-        }
-        
-        // deserialize windows
+    public static void deserialize(boolean deserializa) {
         List<Window> ws = new ArrayList();
-        for(int i=0; i<fs.length; i++) {
-            File f = fs[i];
-            Window w = Window.deserializeSuppressed(f);
-            
-            // handle next window if this was not successfully deserialized
-            if(w==null) continue;
-            ws.add(w);
-            
-            // avoid null if no layout for this window
-            if(lmap.get(i)==null) lmap.put(i,new HashMap<>());
-            
-            
-            SwitchPane la = new SwitchPane();
-            // otherwise deserialize layout
-            lmap.get(i).forEach( (at,lf) -> {
-                Layout l = new Layout(FileUtil.getName(lf)).deserialize(lf);
-                la.addTab(at,l);
-            });
-            
-            w.setLayoutAggregator(la);
-        }
+        if(deserializa) {
+         
+            // make sure directory is accessible
+            File dir = new File(App.LAYOUT_FOLDER(),"Current");
+            if (!FileUtil.isValidatedDirectory(dir)) {
+                Log.err("Deserialization of windows and layouts failed. " + dir.getPath() +
+                        " could not be accessed.");
+                return;
+            }
+
+            Log.deb("Deserializing application windows from next session.");
+            // discover all window files with 'ws extension
+            File[] fs = dir.listFiles(f->f.getName().endsWith(".ws"));
+            Log.deb("Discovered " + fs.length + " window files to deserialize.");
+
+            // prepare layout files
+            Map<Integer,Map<Integer,File>> lmap= new HashMap(); // map windowIndex-layoutFiles
+            File[] lfs = dir.listFiles(f->f.getPath().endsWith(".l"));
+            for(File f : lfs) {
+                // parse string and get window index
+                String name = f.getName();
+                int from = name.indexOf("window");
+                int to = name.indexOf('-');
+                String number = name.substring(from+6, to);
+                int wIndex;
+                try{
+                    wIndex = new Integer(number);
+                } catch(NumberFormatException e) {
+                    // ignore file if damaged name
+                    continue;
+                }
+
+                // parse string and get layout index
+                from = name.indexOf("layout");
+                to = name.indexOf(".");
+                number = name.substring(from+6, to);
+                int lIndex;
+                try{
+                    lIndex = new Integer(number);
+                } catch(NumberFormatException e) {
+                    // ignore file if damaged name
+                    continue;
+                }
+
+                // put layout to map's list with index of the window it belongs to
+                if(!lmap.containsKey(wIndex)) lmap.put(wIndex, new HashMap());
+                lmap.get(wIndex).put(lIndex,f);
+            }
+
+            // deserialize windows
+            for(int i=0; i<fs.length; i++) {
+                File f = fs[i];
+                Window w = Window.deserializeSuppressed(f);
+
+                // handle next window if this was not successfully deserialized
+                if(w==null) continue;
+                ws.add(w);
+
+                // avoid null if no layout for this window
+                if(lmap.get(i)==null) lmap.put(i,new HashMap<>());
+
+
+                SwitchPane la = new SwitchPane();
+                // otherwise deserialize layout
+                lmap.get(i).forEach( (at,lf) -> {
+                    Layout l = new Layout(FileUtil.getName(lf)).deserialize(lf);
+                    la.addTab(at,l);
+                });
+
+                w.setLayoutAggregator(la);
+            }
+
+         }
         
         // make sure there is at least one window
         if(ws.isEmpty()) {
@@ -329,7 +337,7 @@ public class WindowManager {
             ws.add(w);
         }
         
-        // grab main window and initialize it
+        // set main window
         ws.get(0).setAsMain();
                
         // show

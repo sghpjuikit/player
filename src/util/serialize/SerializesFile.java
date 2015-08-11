@@ -3,15 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Serialization;
+package util.serialize;
 
 /**
- * Marker interface.
- * Defines class that can be serialized and deserialized using XStream into
- * and from XML.
- * 
+ *
  * @author uranium
  */
-public interface Serializes {
+public interface SerializesFile {
     
 }

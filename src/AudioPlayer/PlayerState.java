@@ -18,13 +18,15 @@ import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
-import Serialization.PlaybackStateConverter;
-import Serialization.PlaylistItemConverter;
+import util.serialize.PlaybackStateConverter;
+import util.serialize.PlaylistItemConverter;
+
 import com.sun.javafx.collections.ObservableListWrapper;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+
 import main.App;
 import unused.Log;
 

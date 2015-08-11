@@ -3,8 +3,6 @@ package gui.objects.Window.stage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
@@ -43,7 +41,6 @@ import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
 import Layout.Widgets.WidgetManager;
-import Serialization.SelfSerializator;
 import action.Action;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
@@ -65,6 +62,7 @@ import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 import util.graphics.fxml.ConventionFxmlLoader;
+import util.serialize.SelfSerializator;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static gui.objects.Window.Resize.*;
@@ -246,19 +244,24 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	}
     }
 
-    /**
-     ***************************************************************************
-     */
+/******************************************************************************/
+    
     /**
      @return new window or null if error occurs during initialization.
      */
     public static Window create() {
         Window w = new Window();
-               w.getStage().initOwner(App.getWindowOwner().getStage());
-               // load fxml part
-               new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
+               
+        w.getStage().initOwner(App.getWindowOwner().getStage());
+        // load fxml part
+        new ConventionFxmlLoader(Window.class, w.root, w).loadNoEx();
 
-               w.initialize();
+//        System.out.println(windows.);
+        if(windows.isEmpty()) w.setAsMain();
+        // add to list of active windows
+        windows.add(w);
+             
+        w.initialize();
         return w;
     }
 
@@ -294,7 +297,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
 
     /**
-     Initializes the controller class.
+     * Initializes the controller class.
      */
     private void initialize() {
 	getStage().setScene(new Scene(root));
@@ -330,9 +333,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
 	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 	fullscreen.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
-
-	// add to list of active windows
-	windows.add(this);
 
 	// set local shortcuts
         Action.getActions().stream().filter(a -> !a.isGlobal() && a.hasKeysAssigned())
@@ -398,13 +398,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
                                  dc.setTitle("Export to...");
                 File dir = dc.showDialog(s);
                 if(dir!=null) {
-                    WidgetManager.getFactories().forEach(w -> {
-                        try {
-                            new File(dir,w.getName() + ".fxwl").createNewFile();
-                        } catch (IOException ex) {
-                            Logger.getLogger(Window.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    });
+                    WidgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
                 }
             })
         ));
@@ -463,9 +457,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	
         // left header
 	leftHeaderBox.getChildren().addAll(
-            gitB, cssB, dirB, iconsB, new Icon(BLANK),
-            layB, propB, runB, lastFMB, new Icon(BLANK),
-            ltB, lockB, lmB, rtB, new Icon(BLANK), guideB, helpB
+            gitB, cssB, dirB, iconsB, new Label(" "),
+            layB, propB, runB, lastFMB, new Label(" "),
+            ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB
         );
         
         Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
@@ -486,7 +480,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     }
     
-    public void setAsMain() {
+    public void setAsMain() {System.out.println("setting MAIN");
 	if (App.getWindow() != null)
 	    throw new RuntimeException("Only one window can be main");
 	main = true;

@@ -7,12 +7,13 @@ package util.File;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -361,23 +362,34 @@ public final class FileUtil {
     }
     
      /**
-      * Writes a textual file with specified content, name and location. 
-      * @param filepath Path to the file. The extension is part of the file. Do
-      * not use .txt extension as it can cause problems with newline characters.
-      * In case the file exists, it will be completely overwritten.
+      * Writes a textual file with specified content, name and location.
+      * 
+      * @param filepath file to create. If exists, it will be overwritten.
+      * Do not use .txt extension as it can cause problems with newline characters.
       * @param content Text that will be written to the file.
+      * @return true if no IOException occurs else false
       * @throws RuntimeException when param is directory
       */
-     public static void writeFile(String filepath, String content) {
-        File file = new File(filepath);
+     public static boolean writeFile(String filepath, String content) {
+          return writeFile(new File(filepath), content);
+     }
+     
+     public static boolean writeFile(File file, String content) {
         if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
-        Writer writer;
+        Writer writer = null;
         try {
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(content);
-            writer.close();
+            return true;
         } catch (IOException ex) {
-            Log.err("Couldnt save file: " + filepath);
+            Log.err("Couldnt save file: " + file);
+            return false;
+        } finally {
+            try {
+                if(writer!=null) writer.close();
+            } catch (IOException ex) {
+                Logger.getLogger(FileUtil.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
      }
      
@@ -391,7 +403,7 @@ public final class FileUtil {
      public static List<String> readFileLines(String filepath) {
         File file = new File(filepath);
         try {
-            return Files.readAllLines(Paths.get(filepath), Charset.defaultCharset());
+            return Files.readAllLines(Paths.get(filepath));
         } catch (IOException ex) {
             Log.err("Problems reading file " + file.getPath() + ". File wasnt read.");
             return new ArrayList<>();
@@ -400,7 +412,7 @@ public final class FileUtil {
      
      public static Stream<String> readFileLines(File f) {
         try {
-            return Files.lines(f.toPath(), Charset.defaultCharset());
+            return Files.lines(f.toPath());
         } catch (IOException ex) {
             Log.err("Problems reading file " + f.getPath() + ". File wasnt read." + ex.getMessage());
             return Stream.empty();

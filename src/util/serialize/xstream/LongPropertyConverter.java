@@ -1,30 +1,30 @@
-package Serialization.xstream;
+package util.serialize.xstream;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.mapper.Mapper;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.WritableValue;
 
 /**
- * Created at 17/09/11 11:16.<br>
+ * Created at 17/09/11 11:17.<br>
  *
  * @author Antoine Mischler <antoine@dooapp.com>
  */
-public class IntegerPropertyConverter extends AbstractPropertyConverter<Number> implements Converter {
+public class LongPropertyConverter extends AbstractPropertyConverter<Number> implements Converter {
 
-    public IntegerPropertyConverter(Mapper mapper) {
-        super(IntegerProperty.class, mapper);
+    public LongPropertyConverter(Mapper mapper) {
+        super(LongProperty.class, mapper);
     }
 
     @Override
     protected WritableValue<Number> createProperty() {
-        return new SimpleIntegerProperty();
+        return new SimpleLongProperty();
     }
 
     @Override
     protected Class<? extends Number> readType(HierarchicalStreamReader reader) {
-        return Integer.class;
+        return Long.class;
     }
 }

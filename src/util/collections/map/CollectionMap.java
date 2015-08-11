@@ -52,10 +52,25 @@ public class CollectionMap<E,K,C> extends HashMap<K,C> {
         for(E e : es) accumulate(e);
     }
     
+    public void accumulate(K k, Collection<E> es) {
+        for(E e : es) accumulate(k,e);
+    }
+    
     /** Accumulates given element into this map. */
     public void accumulate(E e) {
         // get key
         K k = keyMapper.apply(e);
+        // get cache storage with key & build new if not yet built 
+        C c = get(k);
+        if(c==null) {
+            c = cacheFactory.get();
+            put(k, c);
+        }
+        // cache element
+        cacheAccumulator.accept(e, c);
+    }
+    
+    public void accumulate(K k, E e) {
         // get cache storage with key & build new if not yet built 
         C c = get(k);
         if(c==null) {

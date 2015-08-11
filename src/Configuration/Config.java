@@ -1,38 +1,40 @@
 
 package Configuration;
 
-import static Configuration.Configuration.configsOf;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import static java.util.stream.Collectors.joining;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
-import static javafx.collections.FXCollections.observableArrayList;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+
 import org.reactfx.Subscription;
+
+import unused.Log;
 import util.Util;
-import static util.Util.isEnum;
-import static util.Util.unPrimitivize;
 import util.access.Accessor;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.OVal;
 import util.access.TypedValue;
-import unused.Log;
 import util.dev.TODO;
-import static util.dev.Util.forbidNull;
 import util.functional.Functors.F1;
-import static util.functional.Util.forEachBoth;
-import static util.functional.Util.list;
-import static util.functional.Util.split;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
+
+import static Configuration.Configuration.configsOf;
+import static java.util.stream.Collectors.joining;
+import static javafx.collections.FXCollections.observableArrayList;
+import static util.Util.isEnum;
+import static util.Util.unPrimitivize;
+import static util.dev.Util.forbidNull;
+import static util.functional.Util.*;
 
 /**
  * Object representation of a configurable value.

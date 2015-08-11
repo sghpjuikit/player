@@ -1,24 +1,38 @@
 
 package Layout;
 
-import Serialization.Serializattion;
-import Serialization.Serializes;
-import Serialization.SerializesFile;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
+
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.AnchorPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import com.thoughtworks.xstream.io.StreamException;
+
 import main.App;
+import util.serialize.Serializes;
+import util.serialize.SerializesFile;
 import util.File.FileUtil;
 
 /**
  * @author uranium
  */
 public final class Layout extends UniContainer implements Serializes, SerializesFile {
+    
+    private static final XStream X = App.INSTANCE.serialization.x;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);
+    
     @XStreamOmitField
     private String name;
     
@@ -93,7 +107,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
         String old = name;
         name = new_name;
         // save new
-        Serializattion.serializeLayout(this);
+        serialize();
         // delete old file
         FileUtil.deleteFile(new File(App.LAYOUT_FOLDER(), old + ".l"));
         // rename thumb
@@ -169,23 +183,39 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      * Serializes layout into file according to application specifications.
      */
     public void serialize() {
-       if(!getChildren().isEmpty())
-           Serializattion.serializeLayout(this);
+        serialize(getFile());
     }
+    
     public void serialize(File f) {
-       if(!getChildren().isEmpty())
-           Serializattion.serialize(this,f);
+        if(getChildren().isEmpty()) return;
+       
+        try {
+            X.toXML(this, new BufferedWriter(new FileWriter(f)));
+        } catch (IOException e) {
+            LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);
+        }
     }
+    
     /**
      * Deserializes layout from file according to application specifications.
      */
     public void deserialize() {
         deserialize(getFile());
     }
+    
     public Layout deserialize(File f) {
-        Layout l = Serializattion.deserializeLayout(f);
-        l.properties.forEach(properties::put);                      // da faq?
+        Layout l = null;
+        try {
+            l = (Layout) X.fromXML(f);
+            l.setName(FileUtil.getName(f)); // hmm
+        } catch (ClassCastException | StreamException e) {
+            LOGGER.error("Unable to deserialize layout from {}. {}", f,e);
+            l = new Layout(FileUtil.getName(f));
+        }
+        
+        l.properties.forEach(properties::put);
         child = l.child;
+        
         return this;
     }
     
@@ -197,7 +227,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      */
     @Deprecated
     public File getFile() {
-        return new File(App.LAYOUT_FOLDER(),name+".l");
+        return new File(App.LAYOUT_FOLDER(),name + ".l");
     }
 
     /**
@@ -212,8 +242,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      /** @return true if and only if two layouts share the same name. */
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true; // this line can make a difference
-        
+        if(this==o) return true;
         return ( o instanceof Layout && name.equals(((Layout)o).name));
     }
 

@@ -5,52 +5,56 @@
  */
 package Layout.Areas;
 
-import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
-import javafx.event.EventHandler;
-import Layout.BiContainer;
-import Layout.Container;
-import Layout.WidgetImpl.Configurator;
-import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import gui.GUI;
-import static gui.GUI.OpenStrategy.INSIDE;
-import static gui.GUI.OpenStrategy.POPUP;
-import static gui.GUI.closeAndDo;
-import static gui.GUI.openAndDo;
-import gui.objects.Pickers.WidgetPicker;
-import gui.objects.PopOver.PopOver;
-import gui.objects.Text;
-import static gui.objects.Window.stage.ContextManager.showSettings;
-import gui.objects.icon.Icon;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.*;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
-import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import main.App;
+
 import org.reactfx.EventSource;
-import util.animation.Anim;
+
+import Layout.BiContainer;
+import Layout.Container;
+import Layout.WidgetImpl.Configurator;
+import Layout.Widgets.Widget;
+import gui.GUI;
+import gui.objects.Pickers.WidgetPicker;
+import gui.objects.PopOver.PopOver;
+import gui.objects.Text;
+import gui.objects.icon.Icon;
+import gui.pane.ActionPane;
+import main.App;
 import util.SingleInstance;
-import static util.Util.setAnchors;
-import static util.functional.Util.mapB;
+import util.animation.Anim;
 import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
+
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.GUI.OpenStrategy.INSIDE;
+import static gui.GUI.OpenStrategy.POPUP;
+import static gui.GUI.closeAndDo;
+import static gui.GUI.openAndDo;
+import static gui.objects.Window.stage.ContextManager.showSettings;
+import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.*;
+import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
+import static util.Util.setAnchors;
+import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
 
 /**
@@ -80,6 +84,10 @@ public final class AreaControls {
         + "on widget.";
     private static final String propbTEXT = "Settings\n\n"
         + "Displays widget properties.";
+    private static final String actbTEXT = "Actions\n\n"
+        + "Opens action chooser for this widget. Action chooser displays and "
+        + "can run an action on some data, in this case this widget. Shows "
+        + "non-layout operations.";
     private static final String detachbTEXT = "Detach widget\n\n"
         + "Moves widget out of the container and puts it to new layout in a new "
         + "window";
@@ -142,7 +150,10 @@ public final class AreaControls {
 	    App.actionStream.push("Close widget");
 	});
 	Icon changeB = new Icon(TH_LARGE, 12, changebTEXT, this::changeWidget);
-	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, detachbTEXT, this::detach);
+	Icon detachB = new Icon(CLONE, 12, detachbTEXT, this::detach);
+	Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> 
+            ActionPane.PANE.show(Widget.class, area.getActiveWidget())
+        );
 	propB = new Icon(COGS, 12, propbTEXT, this::settings);
 	Icon refreshB = new Icon(REFRESH, 12, refbTEXT, this::refreshWidget);
 	Icon lockB = new Icon(null, 12, lockbTEXT, () -> {
@@ -177,7 +188,7 @@ public final class AreaControls {
 	// build header
 	header_buttons.setNodeOrientation(LEFT_TO_RIGHT);
 	header_buttons.setAlignment(Pos.CENTER_RIGHT);
-	header_buttons.getChildren().addAll(infoB, dragB, absB, lockB, refreshB, propB, detachB, changeB, closeB);
+	header_buttons.getChildren().addAll(infoB, dragB, absB, lockB, refreshB, propB, actB, detachB, changeB, closeB);
 
 	// build animations
 	contrAnim = new FadeTransition(GUI.duration_LM, root);

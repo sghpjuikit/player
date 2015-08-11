@@ -3,6 +3,8 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +18,11 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
@@ -27,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.mapper.Mapper;
 
 import AudioPlayer.Item;
 import AudioPlayer.Player;
@@ -45,7 +52,10 @@ import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Component;
-import Layout.Widgets.WidgetFactory;
+import Layout.Layout;
+import Layout.Widgets.ClassWidget;
+import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.feature.ConfiguringFeature;
@@ -67,6 +77,8 @@ import gui.objects.Window.stage.ContextManager;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
+import gui.pane.ActionPane;
+import gui.pane.ActionPane.ActionData;
 import gui.pane.CellPane;
 import util.ClassName;
 import util.File.AudioFileFormat;
@@ -76,9 +88,17 @@ import util.InstanceName;
 import util.access.AccessorEnum;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
+import util.serialize.xstream.BooleanPropertyConverter;
+import util.serialize.xstream.DoublePropertyConverter;
+import util.serialize.xstream.IntegerPropertyConverter;
+import util.serialize.xstream.LongPropertyConverter;
+import util.serialize.xstream.ObjectPropertyConverter;
+import util.serialize.xstream.ObservableListConverter;
+import util.serialize.xstream.StringPropertyConverter;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UPLOAD;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
@@ -102,6 +122,7 @@ public class App extends Application {
     }
     
     private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    public static App INSTANCE;
     
 /******************************************************************************/
     
@@ -127,16 +148,18 @@ public class App extends Application {
     public static Window window;
     public static final ServiceManager services = new ServiceManager();
     public static PluginMap plugins = new PluginMap();
-    private static App instance;
     public static Guide guide;
     private Window windowOwner;
+    
     public final AppInstanceComm appCommunicator = new AppInstanceComm();
     public final AppParameterProcessor parameterProcessor = new AppParameterProcessor();
+    public final AppSerializator serialization = new AppSerializator();
+    
     private boolean initialized = false;
-    private boolean normalLoad = true;
+    public boolean normalLoad = true;
     
     public App() {
-        instance = this;
+        INSTANCE = this;
     }    
     
 /*********************************** CONFIGS **********************************/
@@ -203,6 +226,21 @@ public class App extends Application {
             LOGGER.error(t.getName(), e)
         );
         
+        // configure serialization
+        XStream x = serialization.x;
+        Mapper xm = x.getMapper();
+        x.registerConverter(new StringPropertyConverter(xm));
+        x.registerConverter(new BooleanPropertyConverter(xm));
+        x.registerConverter(new ObjectPropertyConverter(xm));
+        x.registerConverter(new DoublePropertyConverter(xm));
+        x.registerConverter(new LongPropertyConverter(xm));
+        x.registerConverter(new IntegerPropertyConverter(xm));
+        x.registerConverter(new ObservableListConverter(xm));
+        x.autodetectAnnotations(true);
+        x.alias("FxmlWidget", FXMLWidget.class);
+        x.alias("ClassWidget", ClassWidget.class);
+        x.alias("Layout", Layout.class);
+        x.useAttributeFor(Component.class, "id");
         
         // add optional object instance -> string converters
         className.add(Item.class, "Song");
@@ -220,6 +258,35 @@ public class App extends Application {
         instanceName.add(File.class, File::getPath);
         
         
+        ActionPane.register(Widget.class, 
+            new ActionData<Widget>("Create launcher (def)","Creates a launcher "
+                + "for this widget with default (no predefined) settings.\n "
+                + "Opening the launcher with this application will open this "
+                + "widget as if it were a standalone application.",
+                UPLOAD, w -> {
+                    DirectoryChooser dc = new DirectoryChooser();
+                                     dc.setInitialDirectory(App.getLocation());
+                                     dc.setTitle("Export to...");
+                    File dir = dc.showDialog(Window.getActive().getStage());
+                    if(dir!=null) w.exportFxwlDefault(dir);
+            })
+        );
+        ActionPane.register(Component.class, 
+            new ActionData<Component>("Create launcher","Creates a launcher "
+                + "for this component with current settings.\n "
+                + "Opening the launcher with this application will open this "
+                + "component as if it were a standalone application.",
+                UPLOAD, w -> {
+                    DirectoryChooser dc = new DirectoryChooser();
+                                     dc.setInitialDirectory(App.getLocation());
+                                     dc.setTitle("Export to...");
+                    File dir = dc.showDialog(Window.getActive().getStage());
+                    if(dir!=null) w.exportFxwl(dir);
+            })
+        );
+
+        
+        
         // initialize app parameter processor
         parameterProcessor.addFileProcessor(
             f -> AudioFileFormat.isSupported(f, APP),
@@ -233,16 +300,9 @@ public class App extends Application {
             ImageFileFormat::isSupported,
             fs -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
         );
-//        parameterProcessor.addFileProcessor(
-//            FileUtil::isValidWidgetFile,
-//            fs -> WidgetManager.find(w -> w.name().equals(FileUtil.getName(fs.get(0))), NO_LAYOUT)
-//        );
         parameterProcessor.addFileProcessor(
             f -> f.getPath().endsWith(".fxwl"),
-            fs -> {
-                WidgetFactory wf = WidgetManager.getFactory(FileUtil.getName(fs.get(0)));
-                if(wf!=null) ContextManager.showWindow(wf.create());
-            }
+            fs -> fs.forEach(ContextManager::launchComponent)
         );
     }
     
@@ -268,6 +328,9 @@ public class App extends Application {
                 App.close();
                 return;
             }
+            
+            // custom tooltip behavior
+            setupCustomTooltipBehavior(1000, 10000, 200);
             
             // listen to other application instance launches
             // process app parameters of newly started instance
@@ -352,14 +415,12 @@ public class App extends Application {
             
             LOGGER.error("Application failed to start", e);
         }
-        // initialization complete -> apply all settings
+        // complete initialization -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
-        
-        // app ready
         
             
          //initialize non critical parts
-        if(normalLoad) Player.loadLast();                      // should load in the end
+        if(normalLoad) Player.loadLast();
         
         // handle guide
         guide = new Guide();
@@ -398,7 +459,7 @@ public class App extends Application {
     }
     
     public static boolean isInitialized() {
-        return App.instance.initialized;
+        return App.INSTANCE.initialized;
     }
 
     /**
@@ -408,10 +469,10 @@ public class App extends Application {
      * @return window
      */
     public static Window getWindow() {
-        return instance.window;
+        return INSTANCE.window;
     }
     public static Window getWindowOwner() {
-        return instance.windowOwner;
+        return INSTANCE.windowOwner;
     }
     
     public static<S extends Service> void use(Class<S> type, Consumer<S> action) {
@@ -611,5 +672,60 @@ public class App extends Application {
             + "on the settings")
     public static void openSettings() {
         WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
+    }
+    
+    
+    //http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration
+    /**
+     * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior.
+     * All Tooltips share the same TooltipBehavior instance via a static private member BEHAVIOR, which
+     * has default values of 1sec for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
+     *
+     * The hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with
+     * this custom instance.
+     */
+    private void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
+        try {
+             
+            Class TTBehaviourClass = null;
+            Class<?>[] declaredClasses = Tooltip.class.getDeclaredClasses();
+            for (Class c:declaredClasses) {
+                if (c.getCanonicalName().equals("javafx.scene.control.Tooltip.TooltipBehavior")) {
+                    TTBehaviourClass = c;
+                    break;
+                }
+            }
+            if (TTBehaviourClass == null) {
+                // abort
+                return;
+            }
+            Constructor constructor = TTBehaviourClass.getDeclaredConstructor(
+                    Duration.class, Duration.class, Duration.class, boolean.class);
+            if (constructor == null) {
+                // abort
+                return;
+            }
+            constructor.setAccessible(true);
+            Object newTTBehaviour = constructor.newInstance(
+                    new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
+                    new Duration(closeDelayInMillis), false);
+            if (newTTBehaviour == null) {
+                // abort
+                return;
+            }
+            Field ttbehaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
+            if (ttbehaviourField == null) {
+                // abort
+                return;
+            }
+            ttbehaviourField.setAccessible(true);
+             
+            // Cache the default behavior if needed.
+            Object defaultTTBehavior = ttbehaviourField.get(Tooltip.class);
+            ttbehaviourField.set(Tooltip.class, newTTBehaviour);
+             
+        } catch (Exception e) {
+            System.out.println("Aborted setup due to error:" + e.getMessage());
+        }
     }
 }

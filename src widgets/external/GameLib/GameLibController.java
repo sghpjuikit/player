@@ -5,45 +5,48 @@
  */
 package GameLib;
 
-import static GameLib.GameLibController.InfoType.EXPLORER;
-import static GameLib.GameLibController.InfoType.PLAY;
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.gamelib.GameItem;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
-import gui.GUI;
-import gui.objects.image.Thumbnail;
-import gui.objects.icon.Icon;
-import gui.objects.tree.FileTree;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static java.util.stream.Collectors.joining;
+
 import javafx.animation.Interpolator;
-import static javafx.animation.Interpolator.LINEAR;
 import javafx.animation.ParallelTransition;
 import javafx.animation.SequentialTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import static javafx.scene.control.SelectionMode.SINGLE;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-import static javafx.scene.layout.Region.USE_PREF_SIZE;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
-import static javafx.scene.text.TextAlignment.JUSTIFY;
-import static javafx.util.Duration.millis;
+
+import Layout.Widgets.controller.FXMLController;
+import Layout.Widgets.gamelib.GameItem;
+import gui.GUI;
+import gui.objects.icon.Icon;
+import gui.objects.image.Thumbnail;
+import gui.objects.tree.FileTree;
 import unused.hierarchy.FileHierarchy;
 import util.File.Environment;
 import util.File.FileUtil;
-import static util.File.FileUtil.readFileLines;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
+
+import static GameLib.GameLibController.InfoType.EXPLORER;
+import static GameLib.GameLibController.InfoType.PLAY;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FOLDER;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.GAMEPAD;
+import static java.util.stream.Collectors.joining;
+import static javafx.animation.Interpolator.LINEAR;
+import static javafx.scene.control.SelectionMode.SINGLE;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
+import static javafx.scene.layout.Region.USE_PREF_SIZE;
+import static javafx.scene.text.TextAlignment.JUSTIFY;
+import static javafx.util.Duration.millis;
+import static util.File.FileUtil.readFileLines;
 
 /**
 import static javafx.scene.control.SelectionMode.SINGLE;
@@ -145,7 +148,7 @@ public class GameLibController extends FXMLController {
         game_list.getSelectionModel().setSelectionMode(SINGLE);
         game_list.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> openGame(nv));
         loadGames(new File("H:\\games"));
-        fh.setItem(new File("P:\\"));
+        fh.setItem(new File("H:\\"));
         
         cover = new Thumbnail();
         cover.setBackgroundVisible(false);

@@ -22,6 +22,7 @@ import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
 import main.App;
 import util.animation.Anim;
+import util.collections.map.ClassListMap;
 
 import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
@@ -31,7 +32,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static util.Util.setAnchors;
-import static util.functional.Util.list;
+import static util.functional.Util.*;
 
 /**
  *
@@ -43,6 +44,16 @@ public class ActionPane extends StackPane {
     public static String CONTENT_STYLECLASS = "action-pane-content";
     public static String ICON_STYLECLASS = "action-pane-icon";
     public static final ActionPane PANE = new ActionPane();
+    public static final ClassListMap<ActionData> ACTIONS = new ClassListMap<>(null);
+    
+    public static void register(Class c, ActionData action) {
+        ACTIONS.accumulate(c, action);
+    }
+    
+    public static void register(Class c, ActionData... action) {
+        ACTIONS.accumulate(c, listRO(action));
+    }
+    
     
     public ActionPane() {
         setVisible(false);
@@ -104,11 +115,13 @@ public class ActionPane extends StackPane {
 /*********************************** HELPER ***********************************/
 
     private void build() {
+        o_actions.addAll(ACTIONS.getElementsOfSuperV(o_type));
         // set content
         String iname = o instanceof Supplier ? "n/a" : App.instanceName.get(o);
-        dataInfo.setText("Data: " + iname + "\nType: " + App.className.get(o_type));
+        String di = "Data: " + iname + "\nType: " + App.className.get(o_type);
+        dataInfo.setText(o_type.equals(Void.class) ? "" : di);
         description.setText("");
-        icons.getChildren().setAll(o_actions.stream().map(a -> {
+        icons.getChildren().setAll(o_actions.stream().sorted(by(ad -> ad.name)).map(a -> {
             String d = a.name + "\n\n" + a.description;
             Icon i = new Icon().icon(a.icon)
                                .styleclass(ICON_STYLECLASS)

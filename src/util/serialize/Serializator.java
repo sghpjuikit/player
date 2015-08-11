@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package Serialization;
+package util.serialize;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.io.IOException;
  *
  * @author Plutonium_
  */
-public interface Deserializator<I> {
+public interface Serializator<I> {
     
-    public I deserializeFrom(File f) throws IOException ;
+    public void serialize(I item, File f) throws IOException ;
 }

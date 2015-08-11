@@ -83,6 +83,8 @@ public class WindowManager {
     }
     @AppliesConfig("show_windows")
     private static void applyShowWindows() {
+        if(!App.INSTANCE.normalLoad) return;
+        
         if(show_windows)
             Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else
@@ -95,11 +97,15 @@ public class WindowManager {
         setMini(!mini);
     }
     public static void toggleMiniFull() {
+        if(!App.INSTANCE.normalLoad) return;
+        
         if(mini) App.getWindow().show();
         else App.getWindow().hide();
         setMini(!mini);
     }
     public static void toggleShowWindows() {
+        if(!App.INSTANCE.normalLoad) return;
+        
         show_windows = !show_windows;
         applyShowWindows();
     }
@@ -108,6 +114,8 @@ public class WindowManager {
     private static Animation t;
 
     public static void setMini(boolean val) {
+        if(!App.INSTANCE.normalLoad) return;
+        
         mini = val;
         if(val) {
             // avoid pointless operation
@@ -253,9 +261,9 @@ public class WindowManager {
         }
     }
     
-    public static void deserialize(boolean deserializa) {
+    public static void deserialize(boolean load_normally) {
         List<Window> ws = new ArrayList();
-        if(deserializa) {
+        if(load_normally) {
          
             // make sure directory is accessible
             File dir = new File(App.LAYOUT_FOLDER(),"Current");
@@ -337,9 +345,6 @@ public class WindowManager {
             ws.add(w);
         }
         
-        // set main window
-        ws.get(0).setAsMain();
-               
         // show
         ws.forEach(w->{
             w.show();
@@ -357,7 +362,6 @@ public class WindowManager {
                 w.getStage().setOnShown(null);
             }));
         }
-        
         
         
         Widget.deserializeWidgetIO();

@@ -1,18 +1,29 @@
 
 package gui.objects.Window.stage;
 
-import Configuration.Configurable;
-import Configuration.IsConfigurable;
-import Layout.WidgetImpl.Configurator;
-import gui.objects.icon.Icon;
-import gui.objects.PopOver.PopOver;
-import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetManager;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
+import java.io.File;
+
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
+
+import com.thoughtworks.xstream.io.StreamException;
+
+import Configuration.Configurable;
+import Configuration.IsConfigurable;
+import Layout.Component;
+import Layout.WidgetImpl.Configurator;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetFactory;
+import Layout.Widgets.WidgetManager;
+import gui.objects.PopOver.PopOver;
+import gui.objects.icon.Icon;
+import main.App;
+import util.File.FileUtil;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
+import static util.File.FileUtil.getName;
 import static util.dev.Util.forbidNull;
 
 /**
@@ -20,7 +31,7 @@ import static util.dev.Util.forbidNull;
  * @author uranium
  */
 @IsConfigurable
-public final class ContextManager {    
+public final class ContextManager {
     private static double X;
     private static double Y;
     
@@ -43,7 +54,7 @@ public final class ContextManager {
     /** 
      * @param widget widget to open, does nothing when null.
      */
-    public static Window showWindow(Widget widget) {
+    public static Window showWindow(Component widget) {
         Window w = Window.create();
                w.setContent(widget);
                w.show();
@@ -98,6 +109,42 @@ public final class ContextManager {
                 p.show(Window.getActive().getStage(),getX(),getY());
         return p;
     }
+    
+    private static boolean launching1st = !App.INSTANCE.normalLoad;
+    
+    public static void launchComponent(File launcher) {
+        WidgetFactory wf = null;
+        Component w = null;
+        
+        // simple launcher version, contains widget name on 1st line
+        String wn = FileUtil.readFileLines(launcher).limit(1).findAny().orElse("");
+        wf = WidgetManager.getFactory(wn);
+        if(wf!=null) w = wf.create();
+        
+        // try to deserialize normally
+        if(w==null) {
+            try {
+                w = (Component) App.INSTANCE.serialization.x.fromXML(launcher);
+            } catch (ClassCastException | StreamException ignored) {}
+        }
+            
+        // try to build widget using just launcher filename
+        if(w==null) {
+            wf = WidgetManager.getFactory(getName(launcher));
+            if(wf!=null) w = wf.create();
+        }
+        
+        // launch
+        if(w!=null) {
+            if(launching1st) {
+                App.getWindow().setContent(w);
+                launching1st = false;
+            } else {
+                showWindow(w);
+            }
+        }
+    }
+    
     
 /******************************************************************************/   
     

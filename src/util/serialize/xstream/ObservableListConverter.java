@@ -1,4 +1,4 @@
-package Serialization.xstream;
+package util.serialize.xstream;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

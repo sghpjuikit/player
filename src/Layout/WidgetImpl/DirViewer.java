@@ -5,44 +5,46 @@
  */
 package Layout.WidgetImpl;
 
-import Configuration.Config;
-import Configuration.Config.ListAccessor;
-import Configuration.IsConfig;
-import Layout.Widgets.IsWidget;
-import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.OTHER;
-import Layout.Widgets.controller.ClassController;
-import gui.objects.image.Thumbnail;
-import gui.pane.CellPane;
 import java.io.File;
-import static java.lang.Character.isAlphabetic;
 import java.util.ArrayList;
 import java.util.List;
-import static java.util.stream.Collectors.toList;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
-import static javafx.collections.FXCollections.observableArrayList;
-import javafx.collections.ObservableList;
+
 import javafx.event.Event;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
+import javafx.scene.layout.*;
+
+import Configuration.Config;
+import Configuration.Config.ListAccessor;
+import Configuration.IsConfig;
+import Layout.Widgets.IsWidget;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.ClassController;
+import gui.objects.Window.stage.Window;
+import gui.objects.image.Thumbnail;
+import gui.pane.CellPane;
+import util.File.Environment;
+import util.File.FileUtil;
+import util.File.ImageFileFormat;
+import util.async.future.Fut;
+
+import static Layout.Widgets.Widget.Group.OTHER;
+import static java.lang.Character.isAlphabetic;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import javafx.scene.layout.*;
-import util.File.Environment;
-import util.File.FileUtil;
 import static util.File.FileUtil.getName;
 import static util.File.FileUtil.listFiles;
-import util.File.ImageFileFormat;
 import static util.Util.setAnchors;
-import static util.functional.Util.by;
-import static util.functional.Util.filterMap;
-import static util.functional.Util.split;
-import static util.functional.Util.stream;
-import static util.functional.Util.toS;
+import static util.async.Async.FX;
+import static util.async.Async.newSingleDaemonThreadExecutor;
+import static util.functional.Util.*;
 
 /**
  *
@@ -70,6 +72,7 @@ public class DirViewer extends ClassController {
     
     Cell item = null;
     CellPane cells = new CellPane(160,220,5);
+    ExecutorService e = newSingleDaemonThreadExecutor();
     
     public DirViewer() {
         addEventHandler(MOUSE_CLICKED, e -> {
@@ -95,10 +98,15 @@ public class DirViewer extends ClassController {
     public void viewDir(Cell dir) {
         item = dir;
         cells.getChildren().clear();
-        if(item!=null) 
-            cells.getChildren().addAll(filterMap(item.children(),i->
-                !ImageFileFormat.isSupported(i.val) && !i.val.isHidden() && i.val.canRead()
-            ,Cell::load));
+        if(item!=null) {
+            Fut.fut(item)
+               .map(c->c.children(),e)
+               .showProgress(Window.windows.get(0).taskAdd())
+               .use(newcells -> 
+                   cells.getChildren().addAll(filterMap(newcells,i->!ImageFileFormat.isSupported(i.val),Cell::load))
+               ,FX)
+               .run();
+        }
     }
     
     
@@ -110,16 +118,17 @@ public class DirViewer extends ClassController {
         private boolean isLeaf;
         private boolean isFirstTimeLeaf = true;
         private boolean isFirstTimeChildren = true;
-        private final ObservableList<Cell> childr = observableArrayList();
+        private final List<Cell> childr = new ArrayList();
         
         public Cell(Cell parent, File value) {
             this.val = value;
             this.parent = parent;
         }
         
-        public ObservableList<Cell> children() {
+        public List<Cell> children() {
             if (isFirstTimeChildren) {
-                childr.setAll(buildChildren());
+                childr.clear();
+                childr.addAll(buildChildren());
                 isFirstTimeChildren = false;
             }
             return childr;
@@ -152,7 +161,7 @@ public class DirViewer extends ClassController {
             // sorted list
             List<Cell> dirs = new ArrayList<>();
             List<Cell> fils = new ArrayList<>();
-            listFiles(val).forEach(f -> {
+            listFiles(val).stream().filter(f -> !f.isHidden() && f.canRead()).forEach(f -> {
                 if(!f.isDirectory()) dirs.add(new Cell(this,f));
                 else                 fils.add(new Cell(this,f));
             });

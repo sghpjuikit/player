@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package Serialization;
+package util.serialize;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,18 +14,16 @@ import unused.Log;
  *
  * @author Plutonium_
  */
-public interface SelfSerializator<I> extends Serializator<I>{
+public interface SelfDeserializator<I> {
     
-    public default void serialize(File f) throws IOException {
-        serialize((I)this, f);
-    }
-    public default boolean serializeSupressed(File f) {
+    public void deserialize(File f) throws IOException;
+    public default boolean deserializeSupressed(File f) {
         try {
-            serialize((I)this, f);
+            deserialize(f);
             return true;
         } catch(IOException e) {
-            Log.err("Unable to serialize " + getClass().getSimpleName() + 
-                    " into the file: " + f.getPath());
+            Log.err("Unable to deserialize " + getClass().getSimpleName() + 
+                    " from the file: " + f.getPath());
             return false;
         }
     }

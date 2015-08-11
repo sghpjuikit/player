@@ -5,31 +5,35 @@
  */
 package Layout.Areas;
 
-import Layout.*;
-import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
-import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import gui.objects.icon.Icon;
-import gui.objects.Window.stage.ContextManager;
-import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
 import javafx.event.EventHandler;
-import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+
+import Layout.*;
+import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.Window;
+import gui.objects.icon.Icon;
+import gui.pane.ActionPane;
 import main.App;
 import util.animation.Anim;
+import util.graphics.drag.DragUtil;
+
+import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
-import util.graphics.drag.DragUtil;
 import static util.reactive.Util.maintain;
 
 /**
@@ -37,6 +41,13 @@ import static util.reactive.Util.maintain;
  * @author Plutonium_
  */
 public abstract class ContainerNodeBase<C extends Container> implements ContainerNode {
+    
+    private static final String actbTEXT = "Actions\n\n"
+        + "Opens action chooser for this container. Action chooser displays and "
+        + "can run action using some data, in this case this container. Shows "
+            + "non-layout actions for "
+        + "this container.";
+    
     
     protected final C container;
     protected final AnchorPane root = new AnchorPane();
@@ -62,6 +73,9 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	});
 	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", this::detach);
 	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
+        Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> 
+            ActionPane.PANE.show(Container.class, container)
+        );
 	Icon propB = new Icon(COGS, 12, "Settings", ()->{});
 	Icon lockB = new Icon(null, 12, "Lock widget layout", () -> {
 	    container.locked.set(!container.locked.get());
@@ -112,7 +126,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         AnchorPane.setTopAnchor(icons,0d);
         AnchorPane.setRightAnchor(icons,0d);
         AnchorPane.setLeftAnchor(icons,0d);
-        icons.getChildren().addAll(infoB, layB, dragB, absB, lockB, propB, changeB, detachB, closeB);
+        icons.getChildren().addAll(infoB, layB, dragB, absB, lockB, propB, actB, detachB, changeB, closeB);
         
         ctrls.setOpacity(0);
         ctrls.mouseTransparentProperty().bind(ctrls.opacityProperty().isEqualTo(0));

@@ -3,12 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package Serialization;
+
+package util.serialize;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  *
- * @author uranium
+ * @author Plutonium_
  */
-public interface SerializesFile {
+public interface Deserializator<I> {
     
+    public I deserializeFrom(File f) throws IOException ;
 }

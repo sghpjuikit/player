@@ -3,17 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-package Serialization;
-
-import java.io.File;
-import java.io.IOException;
+package util.serialize;
 
 /**
- *
- * @author Plutonium_
+ * Marker interface.
+ * Defines class that can be serialized and deserialized using XStream into
+ * and from XML.
+ * 
+ * @author uranium
  */
-public interface Serializator<I> {
+public interface Serializes {
     
-    public void serialize(I item, File f) throws IOException ;
 }

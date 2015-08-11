@@ -90,6 +90,24 @@ public class Fut<T> implements Runnable{
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
     }
     
+    /** 
+     * Returns new future, which sets progress to 0 on fx thread, then executes
+     * this future and then sets progress to 1, again on fx thread.
+     * <p>
+     * Note that when chaining futures, the position within chain decides when
+     * does the progress reach 1. It will not be at the end of the chain, but
+     * at the position of this method in it. The progress is set to 0 always at
+     * the beginning of the computation, i.e., the chain length or position of
+     * this method within it does not have effect.
+     * <p>
+     * To set the progress to 1 at the end of computation, this method must be
+     * the last element of the chain.
+     * To set the progress to 0 somewhere during the computation, a future for
+     * the progress computation must created, this method called on it and 
+     * passed as Runnable into another future which executes the first one as 
+     * part of its computation. This will cause only that part to be bound to
+     * the progress.
+     */
     public final Fut<T> showProgress(ProgressIndicator p) {
         return new Fut<>(CompletableFuture
             .runAsync(()->p.setProgress(-1),eFX)

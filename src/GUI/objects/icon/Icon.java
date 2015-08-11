@@ -5,16 +5,10 @@
  */
 package gui.objects.icon;
 
-import action.Action;
-import com.sun.javafx.css.ParsedValueImpl;
-import com.sun.javafx.css.parser.CSSParser;
-import de.jensd.fx.glyphs.GlyphIcons;
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
-import gui.objects.Text;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -22,9 +16,19 @@ import javafx.css.*;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Tooltip;
-import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
+
+import com.sun.javafx.css.ParsedValueImpl;
+import com.sun.javafx.css.parser.CSSParser;
+
+import action.Action;
+import de.jensd.fx.glyphs.GlyphIcons;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.objects.Text;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 
 
@@ -320,4 +324,5 @@ public class Icon<I extends Icon> extends Text {
         ParsedValueImpl parsedValueImpl = CSS_PARSER.parseExpr("", sizeString);
         return (Number) parsedValueImpl.convert(getFont());
     }
+    
 }

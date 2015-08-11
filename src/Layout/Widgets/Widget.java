@@ -1,6 +1,7 @@
 
 package Layout.Widgets;
 
+import java.io.File;
 import java.io.ObjectStreamException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -16,6 +17,8 @@ import javafx.scene.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 import Configuration.CompositeConfigurable;
 import Configuration.Configurable;
 import Configuration.IsConfig;
@@ -25,13 +28,11 @@ import Layout.Widgets.controller.io.InOutput;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.IsInput;
 import Layout.Widgets.controller.io.Output;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import unused.Log;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static java.util.Collections.singletonList;
+import static util.File.FileUtil.writeFile;
 import static util.functional.Util.*;
 
 /**
@@ -168,18 +169,16 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * Returns controller of the widget. It provides access to public behavior
      * of the widget.
      * <p>
-     * The controller is instantiated when widget loads. The controller should
-     * not be used (and needed) before that happens.
+     * The controller is instantiated when widget loads. The controller is null
+     * before that and this method should not be invoked. 
      * <p>
      * Do not check the output of this method for null! Receiving null implies
-     * wrong use of this method (with the exception of internal use)
+     * wrong use of this method.
      * 
      * @return controller of the widget or null if widget has not been loaded
      * yet.
      */
     public C getController() {
-        if(controller == null)
-            Log.warn("Possible illegal call. Widget doesnt have a controller yet.");
         return controller;
     }
     
@@ -210,6 +209,13 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return factory;
     }
     
+    /** Creates a launcher for this widget with default (no predefined) settings. */
+    public void exportFxwlDefault(File dir) {
+        File f = new File(dir,name + ".fxwl");
+        boolean ok = writeFile(f, name);
+        if(!ok) LOGGER.error("Unable to export widget launcher for {} into {}", name,f);
+    }
+    
 /******************************************************************************/
 
     
@@ -230,7 +236,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
      */
     @Override
     public Collection<Configurable<Object>> getSubConfigurable() {
-        return singletonList(controller);
+        return controller==null ? listRO() : listRO(controller);
     }    
     
     /** @return input_name of the widget */
@@ -249,26 +255,22 @@ public abstract class Widget<C extends Controller> extends Component implements 
     
 /****************************** SERIALIZATION *********************************/
     
-    public void rememberConfigs() {
-        if(controller != null) {
-            Map<String,String> m = new HashMap();
-            getFields().forEach(c -> m.put(c.getName(), c.getValueS()));
-            properties.put("configs", m);
-        }
-    }
-    
-    // ran just before serialization, assures everything is serialized
-    public void prepareForSerialization() {
-        // serialize input-output bindings
+    /** Invoked just before the serialization. */
+    protected Object writeReplace() throws ObjectStreamException {
+        // prepare input-output bindings
         getController().getInputs().getInputs().forEach(i -> 
             properties.put("io"+i.getName(), toS(i.getSources(), (Output o) -> o.id.toString(), ":"))
         );
-        // serialize configs
-        rememberConfigs();
+        // prepare configs
+        Map<String,String> m = new HashMap();
+        getFields().forEach(c -> m.put(c.getName(), c.getValueS()));
+        properties.put("configs", m);
+        
+        return this;
     }
-
-/***************************** DESERIALIZATION ********************************/
     
+/***************************** DESERIALIZATION ********************************/
+
     public void restoreConfigs() {
         if(properties.containsKey("configs")) {
             Map<String,String> m = (Map) properties.get("configs");
@@ -276,7 +278,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
             properties.remove("configs");
         }
     }
-    
+        
     /**
     * There is one major flaw in XStream. Unfortunately it has no way of
     * telling if a field or attribute should get any default value if not
@@ -305,7 +307,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                   .forEach(ios::add);
         
         // use empty widget when no factory available
-        return factory==null ? Widget.EMPTY().load() : this;
+        return factory==null ? Widget.EMPTY() : this;
     }
     
     

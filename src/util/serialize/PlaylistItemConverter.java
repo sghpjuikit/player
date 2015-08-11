@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package Serialization;
+package util.serialize;
 
 import AudioPlayer.playlist.PlaylistItem;
 import com.thoughtworks.xstream.converters.Converter;

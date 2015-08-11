@@ -1,16 +1,16 @@
 
 package Layout;
 
-import Configuration.Configurable;
-import gui.objects.Window.stage.ContextManager;
-import gui.objects.Window.stage.Window;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+
+import Configuration.Configurable;
+import gui.objects.Window.stage.Window;
 import main.App;
-import util.File.FileUtil;
 import unused.Log;
+import util.File.FileUtil;
 
 /**
  * @author uranium
@@ -86,4 +86,6 @@ public final class LayoutManager implements Configurable {
         // change layout
         if (al!=null) al.setChild(l.getChild());
     }
+    
+    
 }

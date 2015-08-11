@@ -1,10 +1,22 @@
 
 package Layout;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.UUID;
+
+import javafx.scene.Node;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.thoughtworks.xstream.XStream;
+
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
-import java.util.UUID;
-import javafx.scene.Node;
+import main.App;
 import util.collections.map.PropertyMap;
 
 /**
@@ -14,6 +26,9 @@ import util.collections.map.PropertyMap;
  * Basis for wrappers - containers or wrapped widgets.
  */
 public abstract class Component {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(Component.class);
+    private static final XStream X = App.INSTANCE.serialization.x;
     
     /** Unique ID. Permanent. Persists application life cycle. */
     public final UUID id = UUID.randomUUID();
@@ -44,5 +59,19 @@ public abstract class Component {
         
         // top container is always layout
         return c instanceof Layout;
+    }
+    
+    /** 
+     * Creates a launcher for this component in given directory. Launcher is a
+     * file, opening which by this application opens this component with its
+     * current settings.
+     */
+    public void exportFxwl(File dir) {
+        File f = new File(dir,getName() + ".fxwl");
+        try {
+            X.toXML(this, new BufferedWriter(new FileWriter(f)));
+        } catch (IOException ex) {
+            LOGGER.error("Unable to export component launcher for {} into {}", getName(),f);
+        }
     }
 }

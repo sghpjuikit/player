@@ -6,6 +6,9 @@
 package util.async;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.*;
 
 import javafx.application.Platform;
@@ -146,6 +149,26 @@ public final class Async {
      */
     public static void runLater(Runnable r) {
         Platform.runLater(r);
+    }
+    
+    public static ExecutorService newSingleDaemonThreadExecutor() {
+        return Executors.newSingleThreadExecutor(threadFactory(true));
+    }
+   
+    public static ThreadFactory threadFactory(boolean daemon) {
+        return r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(daemon);
+            return t;
+        };
+    }
+    public static ThreadFactory threadFactory(String name, boolean daemon) {
+        return r -> {
+            Thread t = new Thread(r);
+            t.setName(name);
+            t.setDaemon(daemon);
+            return t;
+        };
     }
     
 }

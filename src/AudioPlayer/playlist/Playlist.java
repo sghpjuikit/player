@@ -45,7 +45,7 @@ import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import Configuration.ValueConfig;
-import Serialization.PlaylistItemConverter;
+import util.serialize.PlaylistItemConverter;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import main.App;

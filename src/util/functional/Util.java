@@ -6,20 +6,23 @@
 package util.functional;
 
 import java.util.*;
-import static java.util.Collections.EMPTY_LIST;
-import static java.util.Collections.singletonList;
 import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javafx.util.Callback;
+
+import util.collections.Tuple2;
+import util.functional.Functors.F1E;
+
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.iterate;
-import java.util.stream.Stream;
-import javafx.util.Callback;
-import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
 import static util.dev.Util.require;
-import util.functional.Functors.F1E;
 
 /**
  *
@@ -124,7 +127,7 @@ public class Util {
      * 
      * @param toComparableConverter E to Comparable mapper, derives Comparable from E.
      */
-    public static<E> Comparator<E> by(Callback<E,Comparable> toComparableConverter) {
+    public static<E,C extends Comparable<? super C>> Comparator<E> by(Callback<E,C> toComparableConverter) {
         return (a,b) -> toComparableConverter.call(a).compareTo(toComparableConverter.call(b));
     }
     

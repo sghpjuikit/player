@@ -338,10 +338,10 @@ public class IOPane extends StackPane {
                     double translation_x = widget_io.getTranslateX();
                     double header = widget_io.localToScene(0,0).getY() - 5;
                     Point2D start = ni.localToScene(ni.getLayoutBounds().getMinX(),ni.getLayoutBounds().getMinY());
-                            start = start.subtract(translation_x-5,header);
+                            start = start.subtract(translation_x,header);
 //                            start = new Point2D(start.getX()/scale.getX(), start.getY()/scale.getY());
                     Point2D end = no.localToScene(no.getLayoutBounds().getMinX(),no.getLayoutBounds().getMinY());
-                            end = end.subtract(translation_x-5,header);
+                            end = end.subtract(translation_x,header);
 //                            end = new Point2D(end.getX()-translation_x*scale.getX(), end.getY()/scale.getY());
                     new IOLine(input,output).lay(start.getX(),start.getY(),end.getX(),end.getY());
                 }

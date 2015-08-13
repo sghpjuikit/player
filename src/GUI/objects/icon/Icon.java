@@ -90,7 +90,6 @@ public class Icon<I extends Icon> extends Text {
         if(i!=null) icon(i);
         tooltip(tooltip);
         onClick(onClick);
-        
         setCache(true);
     }
 

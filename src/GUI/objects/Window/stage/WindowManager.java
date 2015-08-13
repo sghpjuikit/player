@@ -175,7 +175,7 @@ public class WindowManager {
             });
             mw_root.addEventFilter(MouseEvent.ANY, e -> {
                 if(!mini_hide_onInactive) return;   // if disabled
-                hider.restart(mini_inactive_delay);
+                hider.start(mini_inactive_delay);
             });
             
             FxTimer shower = new FxTimer(0, 1, () ->{
@@ -190,7 +190,7 @@ public class WindowManager {
             mw_root.addEventFilter(MOUSE_ENTERED, e -> {
                 if(!mini_show_onEnter) return;      // if disabled
                 if(!miniWindow.isShowing()) return; // bugfix
-                shower.restart(mini_hover_delay);   // open after delay
+                shower.start(mini_hover_delay);   // open after delay
             });
             mw_root.addEventFilter(MOUSE_CLICKED, e -> {
                 if(!mini_show_onClick) return;      // if disabled

@@ -3165,6 +3165,69 @@
  *                                                                             *
  ******************************************************************************/
 
+
+//*********************************** ICONS **********************************//
+
+/** 
+ * Icon
+ * Text using glyph to make icon.
+ * inherits: nothing
+ * properties: -glyph-name - String of the glyph
+ *             -glyph-size - size
+ */
+.icon {
+    -fx-fill: -fx-def-font-color;
+    -glyph-name: "CLOSE";
+    -glyph-size: 12;
+}
+
+.icon:hover {
+    -fx-fill: -fx-def-font-color-hover;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
+}
+.icon:disabled {
+    // we want to support disabled state, this should be consistent with other
+    // components' disaled styles
+    -fx-opacity: 0.4;
+}
+
+/**
+ * Icon used as graphics in menu bars, context menus, etc
+ * inherits: .icon
+ */
+.embedded-icon {
+}
+.embedded-icon:disabled {
+   -fx-opacity: 1;  // this is a bugfix to apply disabled state properly
+}
+
+/** 
+ * Toggle icon - checkbox
+ * inherits: .icon
+ * pseudoclases: selected
+ */
+.check-icon {
+   -glyph-name: TOGGLE_OFF;
+}
+.check-icon:selected {
+   -glyph-name: TOGGLE_ON;
+}
+
+/** 
+ * Check icon used to negate filter predicates
+ * inherits: .check-icon
+ */
+.filter-negate-icon {
+   -glyph-name: CIRCLE;
+}
+.filter-negate-icon:selected {
+   -glyph-name: CIRCLE_ALT;
+}
+
+/***********************************************************************
+
 /* Default 'block'. Several elements subclass block but some can use it directly
    too. Use to set default properties for allblocks and block derived classes.
    One can for example make several GUI layout elements appear the same.
@@ -3526,17 +3589,22 @@
 
 // Chapter marker on the seeker. Marks specific time point.
 // inherits: Rectangle (Shape)
+// pseudoclasses: .newly-created - when user creates new chapter until he writes
+//                                 it to tag
 .seeker-marker {
     -fx-background-color: -fx-def-font-color;
     -fx-opacity: 0.5;
     -fx-padding: 4 1 4 1;   // sets height=4, width=2
-    -fx-translate-y: 3;     // verically center align, use if you change height
+}
+.seeker-marker:newly-created {
+    -fx-opacity: 1;
 }
 
 // Add chapter button
 // inherits: .icon
 .seeker-add-chapter-button,
 .seeker-add-chapter-button:hover {
+    -fx-fill: blue;
     -fx-effect: none;
 }
 
@@ -3555,66 +3623,6 @@
 // implementation of that used by a sublass
 .text-shape {
     -fx-fill: -fx-def-font-color;
-}
-
-//*********************************** ICONS **********************************//
-
-/** 
- * Icon
- * Text using glyph to make icon.
- * inherits: nothing
- * properties: -glyph-name - String of the glyph
- *             -glyph-size - size
- */
-.icon {
-    -fx-fill: -fx-def-font-color;
-    -glyph-name: "CLOSE";
-    -glyph-size: 12;
-}
-
-.icon:hover {
-    -fx-fill: -fx-def-font-color-hover;
-    -fx-scale-x: 1.1;
-    -fx-scale-y: 1.1;
-    -fx-effect: dropshadow(gaussian, rgb(130,170,255), 12,0 , 0,0);
-}
-.icon:disabled {
-    // we want to support disabled state, this should be consistent with other
-    // components' disaled styles
-    -fx-opacity: 0.4;
-}
-
-/**
- * Icon used as graphics in menu bars, context menus, etc
- * inherits: .icon
- */
-.embedded-icon {
-}
-.embedded-icon:disabled {
-   -fx-opacity: 1;  // this is a bugfix to apply disabled state properly
-}
-
-/** 
- * Toggle icon - checkbox
- * inherits: .icon
- * pseudoclases: selected
- */
-.check-icon {
-   -glyph-name: TOGGLE_OFF;
-}
-.check-icon:selected {
-   -glyph-name: TOGGLE_ON;
-}
-
-/** 
- * Check icon used to negate filter predicates
- * inherits: .check-icon
- */
-.filter-negate-icon {
-   -glyph-name: CIRCLE;
-}
-.filter-negate-icon:selected {
-   -glyph-name: CIRCLE_ALT;
 }
 
 /********************************** CONFIG ************************************/

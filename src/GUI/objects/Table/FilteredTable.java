@@ -412,7 +412,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     }
     
     private void updateSearchStyles() {
-        if(scrolFautocancel) scrolFautocancelTimer.restart(scrolFautocancelTime);
+        if(scrolFautocancel) scrolFautocancelTimer.start(scrolFautocancelTime);
         updateSearchStyleRowsNoReset();
     }
     

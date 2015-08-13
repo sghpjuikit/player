@@ -3,8 +3,6 @@ package main;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +16,9 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import org.atteo.classindex.ClassIndex;
 import org.reactfx.EventSource;
@@ -102,6 +98,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UPLOAD;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
+import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.functional.Util.map;
 
@@ -222,9 +219,7 @@ public class App extends Application {
         StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
         
         // log uncaught thread termination exceptions
-        Thread.setDefaultUncaughtExceptionHandler((Thread t, Throwable e) -> 
-            LOGGER.error(t.getName(), e)
-        );
+        Thread.setDefaultUncaughtExceptionHandler((thrd,ex) -> LOGGER.error(thrd.getName(), ex));
         
         // configure serialization
         XStream x = serialization.x;
@@ -257,7 +252,7 @@ public class App extends Application {
         instanceName.add(List.class, o -> String.valueOf(o.size()));
         instanceName.add(File.class, File::getPath);
         
-        
+        // register actions
         ActionPane.register(Widget.class, 
             new ActionData<Widget>("Create launcher (def)","Creates a launcher "
                 + "for this widget with default (no predefined) settings.\n "
@@ -284,8 +279,6 @@ public class App extends Application {
                     if(dir!=null) w.exportFxwl(dir);
             })
         );
-
-        
         
         // initialize app parameter processor
         parameterProcessor.addFileProcessor(
@@ -325,7 +318,7 @@ public class App extends Application {
             // notify the 1st instance of 2nd (this) trying to run and exit
             if(getInstances()>1) {
                 appCommunicator.fireNewInstanceEvent(fetchParameters());
-                App.close();
+                close();
                 return;
             }
             
@@ -339,7 +332,7 @@ public class App extends Application {
             
             Action.startGlobalListening();
             
-            // create hidden main window
+            // create window owner - all 'top' windows are owned by it
             windowOwner = Window.createWindowOwner();
             windowOwner.show();
             
@@ -348,7 +341,7 @@ public class App extends Application {
             ClassIndex.getAnnotated(IsPlugin.class).forEach(plugins::registerPlugin);
             WidgetManager.initialize();
             
-            // services must be loaded before Configuration
+            // services must be created before Configuration
             services.addService(new TrayService());
             services.addService(new Notifier());
             services.addService(new PlaycountIncrementer());
@@ -418,7 +411,6 @@ public class App extends Application {
         // complete initialization -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
         
-            
          //initialize non critical parts
         if(normalLoad) Player.loadLast();
         
@@ -673,59 +665,5 @@ public class App extends Application {
     public static void openSettings() {
         WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
     }
-    
-    
-    //http://www.coderanch.com/t/622070/JavaFX/java/control-Tooltip-visible-time-duration
-    /**
-     * Tooltip behavior is controlled by a private class javafx.scene.control.Tooltip$TooltipBehavior.
-     * All Tooltips share the same TooltipBehavior instance via a static private member BEHAVIOR, which
-     * has default values of 1sec for opening, 5secs visible, and 200 ms close delay (if mouse exits from node before 5secs).
-     *
-     * The hack below constructs a custom instance of TooltipBehavior and replaces private member BEHAVIOR with
-     * this custom instance.
-     */
-    private void setupCustomTooltipBehavior(int openDelayInMillis, int visibleDurationInMillis, int closeDelayInMillis) {
-        try {
-             
-            Class TTBehaviourClass = null;
-            Class<?>[] declaredClasses = Tooltip.class.getDeclaredClasses();
-            for (Class c:declaredClasses) {
-                if (c.getCanonicalName().equals("javafx.scene.control.Tooltip.TooltipBehavior")) {
-                    TTBehaviourClass = c;
-                    break;
-                }
-            }
-            if (TTBehaviourClass == null) {
-                // abort
-                return;
-            }
-            Constructor constructor = TTBehaviourClass.getDeclaredConstructor(
-                    Duration.class, Duration.class, Duration.class, boolean.class);
-            if (constructor == null) {
-                // abort
-                return;
-            }
-            constructor.setAccessible(true);
-            Object newTTBehaviour = constructor.newInstance(
-                    new Duration(openDelayInMillis), new Duration(visibleDurationInMillis),
-                    new Duration(closeDelayInMillis), false);
-            if (newTTBehaviour == null) {
-                // abort
-                return;
-            }
-            Field ttbehaviourField = Tooltip.class.getDeclaredField("BEHAVIOR");
-            if (ttbehaviourField == null) {
-                // abort
-                return;
-            }
-            ttbehaviourField.setAccessible(true);
-             
-            // Cache the default behavior if needed.
-            Object defaultTTBehavior = ttbehaviourField.get(Tooltip.class);
-            ttbehaviourField.set(Tooltip.class, newTTBehaviour);
-             
-        } catch (Exception e) {
-            System.out.println("Aborted setup due to error:" + e.getMessage());
-        }
-    }
+
 }

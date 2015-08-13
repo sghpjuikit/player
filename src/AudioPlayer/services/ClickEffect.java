@@ -96,24 +96,6 @@ public class ClickEffect extends ServiceBase {
     
     
 /******************************************************************************/
-    
-//    void moveTo(MouseEvent e) {
-//        lastx = (int) e.getSceneX();
-//        lasty = (int) e.getSceneY();
-//        if(!t.isRunning() && e1.root.getLayoutY()!=lasty) t.restart();
-//    }
-//    void move() {
-//        e1.root.relocate(50, e1.root.getLayoutY()+(lasty-e1.root.getLayoutY())/7 - e1.root.getBoundsInParent().getHeight()/2);
-//        e2.root.relocate(e2.root.getLayoutX()+(lastx-e2.root.getLayoutX())/7 - e2.root.getBoundsInParent().getWidth()/2,50);
-//        if(lasty==(int)e1.root.getLayoutY()) {
-//            t.stop();System.out.println("stoping");
-//        }
-//    }
-//        
-//    Effect e1,e2;
-//    int lastx=0,lasty=0;
-//    util.async.executor.FxTimer t = new FxTimer(20,-1, this::move);
-    
 
     AnchorPane screen;
     boolean isRunning = false;
@@ -134,16 +116,6 @@ public class ClickEffect extends ServiceBase {
         AnchorPane p = (AnchorPane) App.getWindow().getStage().getScene().getRoot();
         p.getChildren().add(screen);
         setAnchors(screen,0);
-    
-    
-//        e1 = new Effect();
-//        e1.apply();
-//        e1.root.setVisible(true);
-//        e2 = new Effect();
-//        e2.apply();
-//        e2.root.setVisible(true);
-//
-//        Window.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_MOVED, this::moveTo));
     }
 
     @Override

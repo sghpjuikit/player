@@ -136,7 +136,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
         AnchorPane.setRightAnchor(seeker, 0.0);
-        d(maintain(GUI.snapDistance, d->d ,seeker.chapterSnapDistance));
+        d(maintain(GUI.snapDistance, d->d ,seeker.chapSnapDist));
         
         // create play buttons
         p1.setOnMouseClicked(e->rewind());

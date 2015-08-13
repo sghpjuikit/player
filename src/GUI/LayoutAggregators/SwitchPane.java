@@ -1,36 +1,39 @@
 
 package gui.LayoutAggregators;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javafx.animation.*;
+import javafx.beans.property.DoubleProperty;
+import javafx.event.Event;
+import javafx.scene.Parent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.util.Duration;
+
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Component;
 import Layout.Layout;
 import gui.objects.Window.stage.Window;
-import static java.lang.Double.*;
-import static java.lang.Math.signum;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import javafx.animation.*;
-import static javafx.animation.Animation.INDEFINITE;
-import javafx.beans.property.DoubleProperty;
-import javafx.event.Event;
-import javafx.scene.Parent;
-import static javafx.scene.input.MouseButton.SECONDARY;
-import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.*;
-import static javafx.scene.input.ScrollEvent.SCROLL;
-import javafx.scene.layout.AnchorPane;
-import javafx.util.Duration;
 import main.App;
-import static util.Util.clip;
-import static util.Util.setAnchors;
 import util.animation.interpolator.CircularInterpolator;
-import static util.animation.interpolator.EasingMode.EASE_IN;
-import static util.animation.interpolator.EasingMode.EASE_OUT;
 import util.async.Async;
 import util.async.executor.FxTimer;
+
+import static java.lang.Double.*;
+import static java.lang.Math.signum;
+import static javafx.animation.Animation.INDEFINITE;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.input.ScrollEvent.SCROLL;
+import static util.Util.clip;
+import static util.Util.setAnchors;
+import static util.animation.interpolator.EasingMode.EASE_IN;
+import static util.animation.interpolator.EasingMode.EASE_OUT;
 
 /**
  * Pane with switchable content.
@@ -296,7 +299,7 @@ public class SwitchPane implements LayoutAggregator {
         uiStartX = e.getSceneX();
         uiTransX = ui.getTranslateX();
         uiDragActive = true;
-        measurePulser.restart();
+        measurePulser.start();
         e.consume();
     }
     private void dragUiEnd(MouseEvent e) {

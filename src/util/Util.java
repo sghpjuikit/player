@@ -7,7 +7,6 @@ package util;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import static java.lang.Math.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,12 +14,16 @@ import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
+
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import static javafx.geometry.Pos.CENTER_LEFT;
-import static javafx.geometry.Pos.CENTER_RIGHT;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.TableView.TableViewSelectionModel;
@@ -32,15 +35,17 @@ import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.util.Callback;
 import javafx.util.Duration;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
-import javax.imageio.stream.ImageInputStream;
+
 import org.jaudiotagger.tag.images.Artwork;
-import util.File.FileUtil;
+
 import unused.Log;
-import static util.functional.Util.list;
+import util.File.FileUtil;
 import util.functional.functor.FunctionC;
+
+import static java.lang.Math.*;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.geometry.Pos.CENTER_RIGHT;
+import static util.functional.Util.list;
 import static util.functional.functor.FunctionC.composable;
 
 /** 
@@ -397,6 +402,19 @@ public class Util {
     /** @return {@code max(min,min(i,max))} */
     public static double clip(double min, double i, double max) {
         return max(min,min(i,max));
+    }
+    
+    /** Returns sum of squares of all numbers. */
+    public static double sumsqr(double... numbers) {
+        double sum = 0;
+        for(double x : numbers)
+            sum += x*x;
+        return sum;
+    }
+    
+    /** Returns {@code sqrt(a^2 + b^2)} */
+    public static double pyth(double a, double b) {
+        return Math.sqrt(a*a+b*b);
     }
     
     

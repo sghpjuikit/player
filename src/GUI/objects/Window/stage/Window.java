@@ -156,7 +156,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         mouse_y = y;
     });
     
-    static { mouse_pulse.restart();}
+    static { mouse_pulse.start();}
 
 /******************************** Configs *************************************/
 

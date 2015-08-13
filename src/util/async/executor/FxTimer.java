@@ -6,7 +6,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
-import org.reactfx.util.Timer;
+
 import util.dev.Dependency;
 
 /**
@@ -15,7 +15,7 @@ import util.dev.Dependency;
 * <p>
 * @author Tomas Mikula
 */
-public class FxTimer implements Timer {
+public class FxTimer {
     
     private final Timeline timeline;
     @Dependency(value = "name - field is accessed with reflection")
@@ -47,17 +47,16 @@ public class FxTimer implements Timer {
         this(Duration.millis(delay), cycles, action);
     }
 
-    @Override
-    public void restart() {
-        FxTimer.this.restart(period);
+    public void start() {
+        FxTimer.this.start(period);
     }
     
     /**
-     * Equivalent to calling {@link #setTimeout()} and {@link #restart()}
+     * Equivalent to calling {@link #setTimeout()} and {@link #start()}
      * subsequently.
      * @param period 
      */
-    public void restart(Duration period) {
+    public void start(Duration period) {
         stop();
         long expected = seq;
         this.period = period;
@@ -74,8 +73,8 @@ public class FxTimer implements Timer {
         }
     }
 
-    public void restart(double periodInMs) {
-        FxTimer.this.restart(Duration.millis(periodInMs));
+    public void start(double periodInMs) {
+        FxTimer.this.start(Duration.millis(periodInMs));
     }
     
     public void runNow() {
@@ -90,7 +89,6 @@ public class FxTimer implements Timer {
         timeline.play();
     }
     
-    @Override
     public void stop() {
         timeline.stop();
         seq++;
@@ -121,21 +119,21 @@ public class FxTimer implements Timer {
     }
     
     /**
-     * If timer running, executes {@link #restart(javafx.util.Duration)}, else
+     * If timer running, executes {@link #start(javafx.util.Duration)}, else
      * executes {@link #setPeriod(javafx.util.Duration)}
      * <p>
-     * Basically same as {@link #restart(javafx.util.Duration)}, but restarts
+     * Basically same as {@link #start(javafx.util.Duration)}, but restarts
      * only if needed (when running).
      * 
      * @param timeout 
      */
     public void setTimeoutAndRestart(Duration timeout) {
-        if (isRunning()) FxTimer.this.restart(timeout);
+        if (isRunning()) FxTimer.this.start(timeout);
         else FxTimer.this.setPeriod(timeout);
     }
     
     public void setTimeoutAndRestart(double timeautInMillis) {
-        if (isRunning()) FxTimer.this.restart(Duration.millis(timeautInMillis));
+        if (isRunning()) FxTimer.this.start(Duration.millis(timeautInMillis));
         else FxTimer.this.setPeriod(Duration.millis(timeautInMillis));
     }
 }

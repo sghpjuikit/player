@@ -130,7 +130,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     public final Accessor<Duration> slideshow_dur = new Accessor<>(seconds(15), slideshow::setTimeoutAndRestart);
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
     public final Accessor<Boolean> slideshow_on = new Accessor<>(true, v -> {
-        if (v) slideshow.restart(); else slideshow.stop();
+        if (v) slideshow.start(); else slideshow.stop();
     });
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
     public final Accessor<Boolean> showImage = new Accessor<>(true, mainImage.getPane()::setVisible);
@@ -319,7 +319,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             // this resets the slideshow counter
             // notice that we query whether slideshow is running, not whether it is
             // supposed to run, which might not always be the same
-            if(slideshow.isRunning()) slideshow.restart();
+            if(slideshow.isRunning()) slideshow.start();
             active_image = -1;
             mainImage.loadImage(img_file);
         }
@@ -485,7 +485,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             int index = (active_image >= images.size()-1) ? 0 : active_image+1;
             setImage(index);
         }
-        if(slideshow.isRunning()) slideshow.restart();
+        if(slideshow.isRunning()) slideshow.start();
     }
     
     public void prevImage() {
@@ -496,7 +496,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             int index = (active_image < 1) ? images.size()-1 : active_image-1;
             setImage(index);
         }
-        if(slideshow.isRunning()) slideshow.restart();
+        if(slideshow.isRunning()) slideshow.start();
     }
     
     private void thumbAnimPlay(boolean v) {

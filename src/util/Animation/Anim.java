@@ -221,21 +221,24 @@ public class Anim extends Transition {
     }
     
     
-    
+/********************************** UTILITIES *********************************/
     
     public static Transition seq(Transition... ts) {
         return seq(ZERO, ts);
     }
+    
     public static Transition seq(Duration delay, Transition... ts) {
         Transition t = new SequentialTransition(ts);
         t.setDelay(delay);
         return t;
     }
+    
     public static Transition seq(Duration delay, Stream<Transition> ts) {
         Transition t = new SequentialTransition(ts.toArray(Transition[]::new));
         t.setDelay(delay);
         return t;
     }
+    
     public static Transition seq(Stream<Transition> ts) {
         Transition t = new SequentialTransition(ts.toArray(Transition[]::new));
         return t;
@@ -244,24 +247,34 @@ public class Anim extends Transition {
     public static Transition par(Transition... ts) {
         return par(ZERO, ts);
     }
+    
     public static Transition par(Stream<Transition> ts) {
         return par(ZERO, ts);
     }
+    
     public static Transition par(Duration delay, Stream<Transition> ts) {
         return par(delay, ts.toArray(Transition[]::new));
     }
+    
     public static Transition par(Duration delay, Interpolator i, Stream<Transition> ts) {
         Transition t =  par(delay, ts.toArray(Transition[]::new));
         t.setInterpolator(i);
         return t;
     }
+    
     public static Transition par(Duration delay, Transition... ts) {
         Transition t = new ParallelTransition(ts);
         t.setDelay(delay);
         return t;
     }
     
-
+    
+    public static double mapTo01(double x, double from, double to) {
+        if(x<=from) return 0;
+        if(x>=to) return 1;
+        return (x-from)/(to-from); 
+    }
+    
     
     /**
      * Animation appliers.

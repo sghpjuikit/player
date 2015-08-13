@@ -37,7 +37,7 @@ public class PlayTimeHandler {
     }
     
     public void restart(Duration total_time) {
-        timer.restart(cal.apply(total_time));
+        timer.start(cal.apply(total_time));
     }
     
     

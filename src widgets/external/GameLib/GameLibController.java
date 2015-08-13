@@ -171,7 +171,7 @@ public class GameLibController extends FXMLController {
                 else {
                     String s = game.play();
                     infoL.setText(s);
-                    infoLHider.restart();
+                    infoLHider.start();
                 }
             }
         });

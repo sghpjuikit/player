@@ -352,7 +352,7 @@ public class LibraryController extends FXMLController implements SongReader {
                  Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
                      if(ok && edit && !added.isEmpty())
                          WidgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
-                     hideInfo.restart();
+                     hideInfo.start();
                  },false);
                  taskInfo.bind(t);
              },FX)
@@ -362,7 +362,7 @@ public class LibraryController extends FXMLController implements SongReader {
     
     private void removeInvalid() {
         Task t = MetadataReader.removeMissingFromLibrary((success,result) -> {
-            hideInfo.restart();
+            hideInfo.start();
         });
         taskInfo.showNbind(t);
     }

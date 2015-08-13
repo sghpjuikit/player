@@ -47,7 +47,7 @@ public class Notification extends PopOver {
     @Override
     public void show(ScreenCentricPos pos) {
         super.show(pos);
-        closer.restart();
+        closer.start();
     }
     
     /**

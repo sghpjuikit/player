@@ -60,7 +60,7 @@ public final class Async {
      * @param delay delay
      */
     public static void run(Duration delay, Runnable action) {
-        new FxTimer(delay, 1, action).restart();
+        new FxTimer(delay, 1, action).start();
     }
     
     /**
@@ -69,7 +69,7 @@ public final class Async {
      * @param delay delay in milliseconds
      */
     public static void run(double delay, Runnable action) {
-        new FxTimer(delay, 1, action).restart();
+        new FxTimer(delay, 1, action).start();
     }
     
     /**
@@ -83,7 +83,7 @@ public final class Async {
         FxTimer t = new FxTimer(period, INDEFINITE, ()->{}); // use dummy action
         Run r = () -> action.accept(t);                      // make action
         setField(t,"action",r);                              // set action
-        t.restart();                                         // start
+        t.start();                                         // start
     }
     
     /**
@@ -125,7 +125,7 @@ public final class Async {
      * @param delay delay in milliseconds
      */
     public static void runFX(double delay, Runnable r) {
-        new FxTimer(delay, 1, () -> Async.runFX(r)).restart();
+        new FxTimer(delay, 1, () -> Async.runFX(r)).start();
     }
     
     /**
@@ -133,7 +133,7 @@ public final class Async {
      * @param delay delay
      */
     public static void runFX(Duration delay, Runnable r) {
-        new FxTimer(delay, 1, () -> Async.runFX(r)).restart();
+        new FxTimer(delay, 1, () -> Async.runFX(r)).start();
     }
     
     /**

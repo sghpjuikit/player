@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import javafx.util.Callback;
 
 import util.collections.Tuple2;
+import util.functional.Functors.F1;
 import util.functional.Functors.F1E;
 
 import static java.util.Collections.EMPTY_LIST;
@@ -376,6 +377,73 @@ public class Util {
     
     public static <C extends Comparable> C max(C a, C b) {
         return a.compareTo(b)>0 ? a : b;
+    }
+    
+    /** 
+     * Specialization of {@link #minBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
+     * with atMost parameter null - maximum value.
+     * 
+     * @return optional with the minimum element or empty optional if collection contains no
+     * element smaller than required.
+     */
+    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, F1<V,C> by) {
+        return minBy(c, null, by);
+    }
+    
+    /** 
+     * Returns minimal element from collection by given criteria. If multiple elements compare
+     * equal, the 1st is considered minimal.
+     * 
+     * @param c collection to find minimal element of
+     * @param atMost the maximal value minimal element must have to be considered minimal, null
+     * represents maximul value - any element is smaller than null
+     * @return optional with the minimum element or empty optional if collection contains no
+     * element smaller than required.
+     */
+    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, C atMost, F1<V,C> by) {
+        V minv = null;
+        C minc = atMost;
+        for(V v : c) {
+            C vc = by.apply(v);
+            if(minc==null || vc.compareTo(minc)<0) {
+                minv = v;
+                minc = vc;
+            }
+        }
+        return Optional.ofNullable(minv);
+    }
+    /** 
+     * Specialization of {@link #maxBy(java.util.Collection, java.lang.Comparable, util.functional.Functors.F1)}
+     * with atLeast parameter null - maximum value.
+     * 
+     * @return optional with the maximal element or empty optional if collection contains no
+     * element bigger than required.
+     */
+    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, F1<V,C> by) {
+        return maxBy(c, null, by);
+    }
+    
+    /** 
+     * Returns maximal element from collection by given criteria. If multiple elements compare
+     * equal, the 1st is considered minimal.
+     * 
+     * @param c collection to find minimal element of
+     * @param atleast the minimal value maximal element must have to be considered maximal, null
+     * represents minimal value - any element is more than null
+     * @return optional with the maximal element or empty optional if collection contains no
+     * element bigger than required.
+     */
+    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, C atleast, F1<V,C> by) {
+        V maxv = null;
+        C maxc = atleast;
+        for(V v : c) {
+            C vc = by.apply(v);
+            if(maxc==null || vc.compareTo(maxc)>0) {
+                maxv = v;
+                maxc = vc;
+            }
+        }
+        return Optional.ofNullable(maxv);
     }
     
     /** 

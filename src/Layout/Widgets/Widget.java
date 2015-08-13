@@ -265,36 +265,18 @@ public abstract class Widget<C extends Controller> extends Component implements 
         Map<String,String> m = new HashMap();
         getFields().forEach(c -> m.put(c.getName(), c.getValueS()));
         properties.put("configs", m);
-        
+
         return this;
     }
-    
-/***************************** DESERIALIZATION ********************************/
 
-    public void restoreConfigs() {
-        if(properties.containsKey("configs")) {
-            Map<String,String> m = (Map) properties.get("configs");
-            m.forEach(this::setField);
-            properties.remove("configs");
-        }
-    }
         
     /**
-    * There is one major flaw in XStream. Unfortunately it has no way of
-    * telling if a field or attribute should get any default value if not
-    * present in the xml file. Because constructor is not being invoked we
-    * cannot set the value there. Neither setting the value in field definition
-    * will work. The resulting instance will always have zero or null values in
-    * the fields.
-    *
-    * The only way of setting the desired default value is using the following
-    * method. It is called during deserialization process and here we can check
-    * if the field value is null. If yes it means that it's tag is not present
-    * and we can set the default value if needed.
-    *
-    * @return this
-    * @throws ObjectStreamException
-    */
+     * Invoked just after deserialization.
+     * 
+     * @implSpec
+     * Resolve object by initializing non-deserializable fields or providing an
+     * alternative instance (e.g. to adhere to singleton pattern).
+     */
     // must not be private or it wont get inherited
     protected Object readResolve() throws ObjectStreamException {
         // assign factory
@@ -310,6 +292,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
         return factory==null ? Widget.EMPTY() : this;
     }
     
+    // normally we would do this in readResolve, but controller ready only after
+    // widget loads
+    protected void restoreConfigs() {
+        if(properties.containsKey("configs")) {
+            Map<String,String> m = (Map) properties.get("configs");
+            m.forEach(this::setField);
+            properties.remove("configs");
+        }
+    }
     
 /******************************************************************************/
     

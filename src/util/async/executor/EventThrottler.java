@@ -24,6 +24,6 @@ public class EventThrottler<E> {
     
     public void push(E event) {
         e = event;
-        t.restart();
+        t.start();
     }
 }

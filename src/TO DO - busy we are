@@ -5,7 +5,6 @@
 
 - filesize use undigned long
 - config field add checkbox list config field
-- seeker on click seek ~busted
 - implement smooth volume on seek
 - flac playback improve seeking + consecutive seeking performance
 - custom Log -> logback
@@ -14,7 +13,6 @@
 - improve app start+stop speed
 - converter add input area & display type of object
 - all tables sel + all sel outputs
-- dirviewer use thread pool for icons
 - make sure OVal  setDefault & deserilization works
 - icon any Glyph support
 - LastFM -> service

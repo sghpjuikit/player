@@ -192,7 +192,7 @@ public final class Action extends Config<Action> implements Runnable {
         if(!continuous) {
             lock = id;
 //            System.out.println(System.currentTimeMillis());System.out.println("locking");
-            locker.restart();
+            locker.start();
         }
         
         // run on appFX thread
@@ -600,7 +600,7 @@ public final class Action extends Config<Action> implements Runnable {
     private static final HotkeyListener global_listener = id -> {
         Log.deb("Global shortcut " + actions.get(id).getName() + " captured.");
         actions.get(id).run();
-        locker.restart();
+        locker.start();
     };
     private static final IntellitypeListener media_listener = i -> {
         // run on appFX thread

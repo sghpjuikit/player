@@ -242,7 +242,7 @@ public class Player {
             }
             
             // wait 400ms, preload metadata for next item
-            nextCachePreloader.restart();
+            nextCachePreloader.start();
         }
         
         // load metadata, type indicates UPDATE vs CHANGE

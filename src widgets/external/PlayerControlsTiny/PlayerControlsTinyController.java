@@ -7,15 +7,14 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
+import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistManager;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
@@ -30,6 +29,7 @@ import util.access.Accessor;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.scene.layout.Priority.ALWAYS;
 import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.scene.media.MediaPlayer.Status.UNKNOWN;
 import static util.reactive.Util.maintain;
@@ -51,15 +51,11 @@ import static util.reactive.Util.maintain;
 public class PlayerControlsTinyController extends FXMLController implements PlaybackFeature {
     
     @FXML AnchorPane root;
-    @FXML BorderPane seekerPane;
-    @FXML HBox controlBox;
-    @FXML HBox volBox;
+    @FXML HBox layout, controlBox, volBox;
     @FXML Slider volume;
-    @FXML Label currTime;
-    @FXML Label titleL;
-    @FXML Label artistL;
-    Seeker seeker = new Seeker();
-    Icon prevB, playB, stopB, nextB, volB;
+    @FXML Label currTime, titleL, artistL;
+    private Seeker seeker = new Seeker();
+    private Icon prevB, playB, stopB, nextB, volB;
     
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
     public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
@@ -89,8 +85,9 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         // make seeker
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
         d(seeker::unbindTime);
-        d(maintain(GUI.snapDistance, d->d, seeker.chapterSnapDistance));
-        seekerPane.setCenter(seeker);
+        d(maintain(GUI.snapDistance, d->d, seeker.chapSnapDist));
+        layout.getChildren().add(2,seeker);
+        HBox.setHgrow(seeker, ALWAYS);
         
         // make icons
         prevB = new Icon(STEP_BACKWARD, 14, null, PlaylistManager::playPreviousItem);

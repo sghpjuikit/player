@@ -40,11 +40,13 @@ import org.jaudiotagger.tag.images.Artwork;
 
 import unused.Log;
 import util.File.FileUtil;
+import util.dev.TODO;
 import util.functional.functor.FunctionC;
 
 import static java.lang.Math.*;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.list;
 import static util.functional.functor.FunctionC.composable;
 
@@ -270,8 +272,14 @@ public class Util {
         }
     }
     
-    // thx: http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
+    /** 
+     * Returns image size in pixels or null if unable to find out. Does not read whole image into
+     * memory. It still involves i/o.
+     */
+    @TODO(purpose = BUG)
     public static Dimension getImageDim(File f) {
+        // see more at:
+        // http://stackoverflow.com/questions/672916/how-to-get-image-height-and-width-using-java
         Dimension result = null;
         String suffix = FileUtil.getSuffix(f.toURI());
         Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix(suffix);
@@ -283,13 +291,27 @@ public class Util {
                 int width = reader.getWidth(reader.getMinIndex());
                 int height = reader.getHeight(reader.getMinIndex());
                 result = new Dimension(width, height);
-            } catch (IOException e) {
+            } catch (IOException | NullPointerException e) {
                 Log.warn("Problem finding out image size" + e.getMessage());
+                // we need to catch nullpointer as well, seems to be a bug, stacktrace below:
+                // java.lang.NullPointerException: null
+                //	at java.awt.color.ICC_Profile.activateDeferredProfile(ICC_Profile.java:1092) ~[na:na]
+                //	at java.awt.color.ICC_Profile$1.activate(ICC_Profile.java:745) ~[na:na]
+                //	at sun.java2d.cmm.ProfileDeferralMgr.activateProfiles(ProfileDeferralMgr.java:95) ~[na:na]
+                //	at java.awt.color.ICC_Profile.getInstance(ICC_Profile.java:778) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.setImageData(JPEGImageReader.java:658) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.readImageHeader(Native Method) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.readNativeHeader(JPEGImageReader.java:610) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.checkTablesOnly(JPEGImageReader.java:347) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.gotoImage(JPEGImageReader.java:482) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.readHeader(JPEGImageReader.java:603) ~[na:na]
+                //	at com.sun.imageio.plugins.jpeg.JPEGImageReader.getWidth(JPEGImageReader.java:717) ~[na:na]
             } finally {
                 reader.dispose();
             }
-        } else
-            throw new RuntimeException("No reader found for given file: " + f.getPath());
+        } else {
+            Log.warn("No reader found for given file: " + f);
+        }
 
         return result;
     }
@@ -442,47 +464,7 @@ public class Util {
         }
     }
     
-/******************************** GRAPHICS ************************************/
-    
-    /** Shortcut for:
-        <pre>{@code
-        AnchorPane.setTopAnchor(n, a);
-        AnchorPane.setRightAnchor(n, a);
-        AnchorPane.setBottomAnchor(n, a);
-        AnchorPane.setLeftAnchor(n, a);
-        }</pre>
-    */
-    public static void setAnchors(Node n, double a) {
-        AnchorPane.setTopAnchor(n, a);
-        AnchorPane.setRightAnchor(n, a);
-        AnchorPane.setBottomAnchor(n, a);
-        AnchorPane.setLeftAnchor(n, a);
-    }
-    
-    /** Shortcut for:
-        <pre>{@code
-            AnchorPane.setTopAnchor(n, top);
-            AnchorPane.setRightAnchor(n, right);
-            AnchorPane.setBottomAnchor(n, bottom);
-            AnchorPane.setLeftAnchor(n, left);
-        }</pre>
-    */
-    public static void setAnchors(Node n, double top, double right, double bottom, double left) {
-        AnchorPane.setTopAnchor(n, top);
-        AnchorPane.setRightAnchor(n, right);
-        AnchorPane.setBottomAnchor(n, bottom);
-        AnchorPane.setLeftAnchor(n, left);
-    }
-    
-    public static void setScaleXY(Node n, double s) {
-        n.setScaleX(s);
-        n.setScaleY(s);
-    }
-    
-    public static void setScaleXY(Node n, double x, double y) {
-        n.setScaleX(x);
-        n.setScaleY(y);
-    }
+ /******************************** GRAPHICS ************************************/
     
     /**
      * Creates column that indexes rows from 1 and is right aligned. The column 

@@ -285,7 +285,7 @@ public class Anim extends Transition {
         
         /** Affector that scales node's x and y. */
         public static Consumer<Double> scaleXY(Node n) {
-            return x -> Util.setScaleXY(n,x);
+            return x -> util.graphics.Util.setScaleXY(n,x);
         }
     }
     

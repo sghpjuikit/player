@@ -30,8 +30,8 @@ import gui.pane.ActionPane;
 import gui.pane.ActionPane.ActionData;
 import gui.pane.ImageFlowPane;
 import main.App;
-import util.access.Accessor;
-import util.async.executor.EventThrottler;
+import util.access.Var;
+import util.async.executor.EventReducer;
 import util.graphics.drag.DragUtil;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
@@ -50,10 +50,11 @@ import static javafx.geometry.Pos.TOP_LEFT;
 import static javafx.scene.control.OverrunStyle.ELLIPSIS;
 import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
-import static util.Util.setAnchors;
 import static util.async.Async.FX;
+import static util.async.executor.EventReducer.toLast;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.list;
+import static util.graphics.Util.setAnchors;
 
 /**
  * File info widget controller.
@@ -87,31 +88,31 @@ public class FileInfoController extends FXMLController implements SongReader {
     private final TilePane tiles = new FieldsPane();
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
     
-    private final Label title = new Label(); 
-    private final Label track = new Label();
-    private final Label disc = new Label(); 
-    private final Label gap1 = new Label(); 
-    private final Label artist = new Label(); 
-    private final Label album = new Label();    
-    private final Label album_artist = new Label(); 
-    private final Label year = new Label(); 
-    private final Label genre = new Label(); 
-    private final Label composer = new Label(); 
-    private final Label publisher = new Label(); 
-    private final Label gap2 = new Label(); 
-    private final Label rating = new Label(); 
-    private final Label playcount = new Label(); 
-    private final Label comment = new Label(); 
-    private final Label category = new Label(); 
-    private final Label gap3 = new Label(); 
-    private final Label filesize = new Label();
-    private final Label length = new Label();
-    private final Label filename = new Label();
-    private final Label format = new Label();
-    private final Label bitrate = new Label(); 
-    private final Label encoding = new Label(); 
-    private final Label location = new Label(); 
     private final Rating rater = new Rating();
+    private final Label title = new Label(), 
+                        track = new Label(),
+                        disc = new Label(), 
+                        gap1 = new Label(), 
+                        artist = new Label(), 
+                        album = new Label(),    
+                        album_artist = new Label(), 
+                        year = new Label(), 
+                        genre = new Label(), 
+                        composer = new Label(), 
+                        publisher = new Label(), 
+                        gap2 = new Label(), 
+                        rating = new Label(), 
+                        playcount = new Label(), 
+                        comment = new Label(), 
+                        category = new Label(), 
+                        gap3 = new Label(), 
+                        filesize = new Label(),
+                        length = new Label(),
+                        filename = new Label(),
+                        format = new Label(),
+                        bitrate = new Label(), 
+                        encoding = new Label(), 
+                        location = new Label();
     
     private final List<Label> visible_labels = new ArrayList();
     private final List<Label> labels = list(title, track, disc, gap1, artist, 
@@ -125,61 +126,61 @@ public class FileInfoController extends FXMLController implements SongReader {
 
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final Accessor<Double> minColumnWidth = new Accessor<>(150.0, tiles::layout);
+    public final Var<Double> minColumnWidth = new Var<>(150.0, tiles::layout);
     @IsConfig(name = "Cover source", info = "Source for cover image.")
-    public final Accessor<CoverSource> cover_source = new Accessor<>(ANY, this::setCover);
+    public final Var<CoverSource> cover_source = new Var<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
-    public final Accessor<OverrunStyle> overrun_style = new Accessor<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
+    public final Var<OverrunStyle> overrun_style = new Var<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
     @IsConfig(name = "Show cover", info = "Show cover.")
-    public final Accessor<Boolean> showCover = new Accessor<>(true, layout::setImageVisible);
+    public final Var<Boolean> showCover = new Var<>(true, layout::setImageVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
-    public final Accessor<Boolean> showFields = new Accessor<>(true, layout::setContentVisible);
+    public final Var<Boolean> showFields = new Var<>(true, layout::setContentVisible);
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final Accessor<Boolean> showEmptyFields = new Accessor<>(true, v -> update());
+    public final Var<Boolean> showEmptyFields = new Var<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final Accessor<Boolean> groupFields = new Accessor<>(true, this::update);
+    public final Var<Boolean> groupFields = new Var<>(true, this::update);
     @IsConfig(name = "Show title", info = "Show this field.")
-    public final Accessor<Boolean> showTitle = new Accessor<>(true, this::update);
+    public final Var<Boolean> showTitle = new Var<>(true, this::update);
     @IsConfig(name = "Show track", info = "Show this field.")
-    public final Accessor<Boolean> showtrack = new Accessor<>(true, this::update);
+    public final Var<Boolean> showtrack = new Var<>(true, this::update);
     @IsConfig(name = "Show disc", info = "Show this field.")
-    public final Accessor<Boolean> showdisc = new Accessor<>(true, this::update);
+    public final Var<Boolean> showdisc = new Var<>(true, this::update);
     @IsConfig(name = "Show artist", info = "Show this field.")
-    public final Accessor<Boolean> showartist = new Accessor<>(true, this::update);
+    public final Var<Boolean> showartist = new Var<>(true, this::update);
     @IsConfig(name = "Show album artist", info = "Show this field.")
-    public final Accessor<Boolean> showalbum_artist = new Accessor<>(true, this::update);
+    public final Var<Boolean> showalbum_artist = new Var<>(true, this::update);
     @IsConfig(name = "Show album", info = "Show this field.")
-    public final Accessor<Boolean> showalbum = new Accessor<>(true, this::update);
+    public final Var<Boolean> showalbum = new Var<>(true, this::update);
     @IsConfig(name = "Show year", info = "Show this field.")
-    public final Accessor<Boolean> showyear = new Accessor<>(true, this::update);
+    public final Var<Boolean> showyear = new Var<>(true, this::update);
     @IsConfig(name = "Show genre", info = "Show this field.")
-    public final Accessor<Boolean> showgenre = new Accessor<>(true, this::update);
+    public final Var<Boolean> showgenre = new Var<>(true, this::update);
     @IsConfig(name = "Show composer", info = "Show this field.")
-    public final Accessor<Boolean> showcomposer = new Accessor<>(true, this::update);
+    public final Var<Boolean> showcomposer = new Var<>(true, this::update);
     @IsConfig(name = "Show publisher", info = "Show this field.")
-    public final Accessor<Boolean> showpublisher = new Accessor<>(true, this::update);
+    public final Var<Boolean> showpublisher = new Var<>(true, this::update);
     @IsConfig(name = "Show rating", info = "Show this field.")
-    public final Accessor<Boolean> showrating = new Accessor<>(true, this::update);
+    public final Var<Boolean> showrating = new Var<>(true, this::update);
     @IsConfig(name = "Show playcount", info = "Show this field.")
-    public final Accessor<Boolean> showplaycount = new Accessor<>(true, this::update);
+    public final Var<Boolean> showplaycount = new Var<>(true, this::update);
     @IsConfig(name = "Show comment", info = "Show this field.")
-    public final Accessor<Boolean> showcomment = new Accessor<>(true, this::update);
+    public final Var<Boolean> showcomment = new Var<>(true, this::update);
     @IsConfig(name = "Show category", info = "Show this field.")
-    public final Accessor<Boolean> showcategory = new Accessor<>(true, this::update);
+    public final Var<Boolean> showcategory = new Var<>(true, this::update);
     @IsConfig(name = "Show filesize", info = "Show this field.")
-    public final Accessor<Boolean> showfilesize = new Accessor<>(true, this::update);
+    public final Var<Boolean> showfilesize = new Var<>(true, this::update);
     @IsConfig(name = "Show length", info = "Show this field.")
-    public final Accessor<Boolean> showlength = new Accessor<>(true, this::update);
+    public final Var<Boolean> showlength = new Var<>(true, this::update);
     @IsConfig(name = "Show filename", info = "Show this field.")
-    public final Accessor<Boolean> showfilename = new Accessor<>(true, this::update);
+    public final Var<Boolean> showfilename = new Var<>(true, this::update);
     @IsConfig(name = "Show format", info = "Show this field.")
-    public final Accessor<Boolean> showformat = new Accessor<>(true, this::update);
+    public final Var<Boolean> showformat = new Var<>(true, this::update);
     @IsConfig(name = "Show bitrate", info = "Show this field.")
-    public final Accessor<Boolean> showbitrate = new Accessor<>(true, this::update);
+    public final Var<Boolean> showbitrate = new Var<>(true, this::update);
     @IsConfig(name = "Show encoding", info = "Show this field.")
-    public final Accessor<Boolean> showencoding = new Accessor<>(true, this::update);
+    public final Var<Boolean> showencoding = new Var<>(true, this::update);
     @IsConfig(name = "Show location", info = "Show this field.")
-    public final Accessor<Boolean> showlocation = new Accessor<>(true, this::update);
+    public final Var<Boolean> showlocation = new Var<>(true, this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
 
@@ -206,7 +207,7 @@ public class FileInfoController extends FXMLController implements SongReader {
             );
                   
         entireArea.getChildren().add(layout);
-        setAnchors(layout,0);
+        setAnchors(layout,0d);
         layout.setMinContentSize(200,120);
         layout.setGap(8);
         
@@ -281,7 +282,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     
 /********************************* PRIVATE API ********************************/
     
-    private final EventThrottler<Item> reading = new EventThrottler<>(200,this::setValue);
+    private final EventReducer<Item> reading = toLast(200,this::setValue);
     
     // item -> metadata
     private void setValue(Item i) {

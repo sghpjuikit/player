@@ -9,16 +9,21 @@ import Configuration.AccessorConfig;
 import Configuration.Config;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.combobox.ImprovedComboBox;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
+
 import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
+
 import static javafx.scene.layout.Priority.ALWAYS;
-import util.access.Accessor;
+
+import util.access.Var;
 import util.collections.PrefList;
 import util.functional.Functors.F1;
 import util.functional.Functors.PF;
+
 import static util.functional.Util.*;
 
 /**
@@ -43,7 +48,7 @@ public class FunctionItemNode<IN,OUT> extends ValueNode<F1<IN,OUT>> {
             configs.clear();
             paramB.getChildren().clear();
             nv.getParameters().forEach(p -> {
-                Accessor a = new Accessor(p.defaultValue, v -> generateValue());
+                Var a = new Var(p.defaultValue, v -> generateValue());
                 Config cg = new AccessorConfig("",a::setNapplyValue,a::getValue);
                 ConfigField cf = ConfigField.create(cg);
                 configs.add(cf);

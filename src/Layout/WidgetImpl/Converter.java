@@ -39,8 +39,8 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import main.App;
 import util.File.FileUtil;
-import util.access.Accessor;
-import util.access.AccessorEnum;
+import util.access.Var;
+import util.access.VarEnum;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
@@ -56,6 +56,7 @@ import static javafx.scene.layout.Priority.ALWAYS;
 import static util.File.FileUtil.writeFile;
 import static util.Util.*;
 import static util.functional.Util.*;
+import static util.graphics.Util.setAnchors;
 
 @IsWidget
 @Widget.Info(
@@ -117,7 +118,7 @@ public class Converter extends ClassController implements SongWriter {
         HBox ll = new HBox(5, ta_in.getNode(),layout);
         HBox.setHgrow(ta_in.getNode(), ALWAYS);
         getChildren().add(ll);
-        setAnchors(ll,0);
+        setAnchors(ll,0d);
         
         // behavior
         addEventHandler(DRAG_OVER,DragUtil.anyDragAccepthandler);
@@ -322,9 +323,9 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class WriteFileAct extends Act<Void> {
-        Accessor<String> nam = new Accessor("new_file");
-        Accessor<String> ext = new Accessor("txt");
-        Accessor<File> loc = new Accessor(App.getLocation());
+        Var<String> nam = new Var("new_file");
+        Var<String> ext = new Var("txt");
+        Var<File> loc = new Var(App.getLocation());
             
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer)null);
@@ -352,15 +353,15 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class InPane extends ValueNode<In> {
-        Accessor<String> name;
-        Accessor<Ta> input;
+        Var<String> name;
+        Var<Ta> input;
         ConfigField<String> configfieldA;
         ConfigField<Ta> configfieldB;
         HBox root;
         
         public InPane(Supplier<Collection<String>> actions) {
-            name = new AccessorEnum<>(actions.get().stream().findFirst().get(),actions);
-            input = new AccessorEnum<>(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+            name = new VarEnum<>(actions.get().stream().findFirst().get(),actions);
+            input = new VarEnum<>(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
             configfieldA = ConfigField.create(Config.forProperty("", name));
             configfieldB = ConfigField.create(Config.forProperty("", input));
             root = new HBox(5, configfieldA.getNode(),configfieldB.getNode());
@@ -384,7 +385,7 @@ public class Converter extends ClassController implements SongWriter {
         ConfigPane<Ta> ins;
         public InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
-                Accessor<Ta> input = new AccessorEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+                Var<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
                 return Config.forProperty(name, input);
             }));
         }

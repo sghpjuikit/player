@@ -4,19 +4,19 @@
  * and open the template in the editor.
  */
 
-package Layout.WidgetImpl;
+package unused;
 
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.IsWidget;
-import Layout.Widgets.controller.ClassController;
 import javafx.scene.web.HTMLEditor;
-import static util.Util.setAnchors;
+
+import Layout.Widgets.controller.ClassController;
+
+import static util.graphics.Util.setAnchors;
 
 /**
  *
  * @author Plutonium_
  */
-@IsWidget
+//@IsWidget // enable to make into widget
 public class HtmlEditor extends ClassController  {
     private HTMLEditor editor = new HTMLEditor();
     
@@ -29,7 +29,7 @@ public class HtmlEditor extends ClassController  {
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         
         this.getChildren().add(editor);
-        setAnchors(editor, 0);
+        setAnchors(editor, 0d);
     }
     
 }

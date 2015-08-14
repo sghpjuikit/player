@@ -31,9 +31,9 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.input.ScrollEvent.SCROLL;
 import static util.Util.clip;
-import static util.Util.setAnchors;
 import static util.animation.interpolator.EasingMode.EASE_IN;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+import static util.graphics.Util.setAnchors;
 
 /**
  * Pane with switchable content.
@@ -105,11 +105,11 @@ public class SwitchPane implements LayoutAggregator {
     public SwitchPane() {
         // set ui
         root.getChildren().add(zoom);
-        setAnchors(zoom, 0);
+        setAnchors(zoom, 0d);
         zoom.getChildren().add(ui);
-        setAnchors(ui, 0);
+        setAnchors(ui, 0d);
         zoom.getChildren().add(widget_io);
-        setAnchors(widget_io, 0);
+        setAnchors(widget_io, 0d);
 //        widget_io.setMouseTransparent(true);
         widget_io.setPickOnBounds(false);
         widget_io.translateXProperty().bind(ui.translateXProperty());

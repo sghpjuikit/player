@@ -55,8 +55,7 @@ import gui.pane.ActionPane.ActionData;
 import gui.pane.IOPane;
 import main.App;
 import unused.Log;
-import util.Util;
-import util.access.Accessor;
+import util.access.Var;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
@@ -74,11 +73,11 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
-import static util.Util.setAnchors;
-import static util.Util.setScaleXY;
 import static util.animation.Anim.par;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.*;
+import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.setScaleXY;
 import static util.reactive.Util.maintain;
 
 /**
@@ -161,7 +160,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 /******************************** Configs *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final Accessor<Double> windowOpacity = new Accessor<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
+    public static final Var<Double> windowOpacity = new Var<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
 
     @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
     public static boolean gui_overlay = false;
@@ -170,7 +169,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static boolean gui_overlay_use_song = false;
 
     @IsConfig(name = "Overlay effect color", info = "Set color for color overlay effect.")
-    public static final Accessor<Color> gui_overlay_color = new Accessor<>(BLACK, v -> {
+    public static final Var<Color> gui_overlay_color = new Var<>(BLACK, v -> {
 	if (!gui_overlay_use_song) applyColorEffect(v);
     });
 
@@ -181,10 +180,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static double overlay_norm_factor = 0.5;
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final Accessor<Boolean> window_borderless = new Accessor<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
+    public static final Var<Boolean> window_borderless = new Var<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
     
     @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final Accessor<Boolean> window_headerless = new Accessor<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
+    public static final Var<Boolean> window_headerless = new Var<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
 
     @AppliesConfig("overlay_norm_factor")
     @AppliesConfig("gui_overlay_use_song")
@@ -497,7 +496,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public void setContent(Node n) {
 	content.getChildren().clear();
 	content.getChildren().add(n);
-	Util.setAnchors(n, 0);
+	setAnchors(n, 0d);
     }
 
     public void setContent(Component c) {
@@ -747,7 +746,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     private void applyBorderless(boolean v) {
         double tp = isHeaderVisibleApplied() ? 25 : v ? 0 : 5;
         double p = v ? 0 : 5;
-        setAnchors(content, tp,p,p,p);
+        util.graphics.Util.setAnchors(content, tp,p,p,p);
         header.setPrefHeight(tp);
 	borders.setVisible(!v);
     }

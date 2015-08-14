@@ -6,10 +6,13 @@ import AudioPlayer.playlist.PlaylistManager;
 import Configuration.Config;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
+
 import com.melloware.jintellitype.HotkeyListener;
 import com.melloware.jintellitype.IntellitypeListener;
 import com.melloware.jintellitype.JIntellitype;
+
 import gui.objects.Window.stage.Window;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -17,22 +20,32 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.regex.Matcher;
+
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
+
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+
 import static javafx.scene.input.KeyCombination.NO_MATCH;
+
 import main.App;
+
 import org.atteo.classindex.ClassIndex;
-import util.access.Accessor;
+
+import util.access.Var;
 import util.async.Async;
+
 import static util.async.Async.runLater;
+
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
 import util.dev.Dependency;
 import unused.Log;
+
 import static util.functional.Util.do_NOTHING;
 
 /**
@@ -620,7 +633,7 @@ public final class Action extends Config<Action> implements Runnable {
     
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
             + " application is not focused. Not all platforms supported.", group = "Shortcuts")
-    public static final Accessor<Boolean> global_shortcuts = new Accessor<>(true, v -> {
+    public static final Var<Boolean> global_shortcuts = new Var<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
             if(v){
                 // make sure we dont add the listener twice
@@ -643,7 +656,7 @@ public final class Action extends Config<Action> implements Runnable {
     });
     
     @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
-    public static final Accessor<Boolean> global_media_shortcuts = new Accessor<>(true, v -> {
+    public static final Var<Boolean> global_media_shortcuts = new Var<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
             if(v) {
                 // make sure we dont add the listener twice

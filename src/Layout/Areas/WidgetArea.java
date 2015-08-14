@@ -1,23 +1,27 @@
 
 package Layout.Areas;
 
-import gui.GUI;
-import static gui.GUI.openAndDo;
-import Layout.Component;
-import Layout.Container;
-import Layout.Widgets.Widget;
-import gui.pane.IOPane;
 import java.io.IOException;
-import static java.util.Collections.singletonList;
 import java.util.List;
-import static java.util.Objects.requireNonNull;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
-import static util.Util.setAnchors;
+
+import Layout.Component;
+import Layout.Container;
+import Layout.Widgets.Widget;
+import gui.GUI;
+import gui.pane.IOPane;
+import util.graphics.Util;
 import util.graphics.drag.DragUtil;
+
+import static gui.GUI.openAndDo;
+import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
+import static util.graphics.Util.setAnchors;
 
 /**
  * Implementation of Area for UniContainer.
@@ -48,7 +52,7 @@ public final class WidgetArea extends Area<Container> {
         // load controls
         controls = new AreaControls(this);
         content_padding.getChildren().addAll(controls.root);
-        setAnchors(controls.root, 0d);
+        Util.setAnchors(controls.root, 0d);
         
         // support css styling - 
 //        content.getStyleClass().setAll(Area.bgr_STYLECLASS);
@@ -100,7 +104,7 @@ public final class WidgetArea extends Area<Container> {
         Node wNode = w.load();
         content.getChildren().clear();
         content.getChildren().add(wNode);
-        setAnchors(wNode,0);
+        setAnchors(wNode,0d);
         openAndDo(content_root, null);
         
         // put controls to new widget

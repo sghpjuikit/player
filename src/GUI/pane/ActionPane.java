@@ -31,8 +31,8 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
-import static util.Util.setAnchors;
 import static util.functional.Util.*;
+import static util.graphics.Util.setAnchors;
 
 /**
  *
@@ -145,7 +145,7 @@ public class ActionPane extends StackPane {
         AnchorPane root = Window.getActive().root;
         if(!root.getChildren().contains(this)) {
             root.getChildren().add(this);
-            setAnchors(this,0);
+            setAnchors(this,0d);
             toFront();
         }
         // show

@@ -1,24 +1,27 @@
 
 package Layout.Areas;
 
-import Layout.Component;
-import Layout.Container;
-import Layout.Layout;
-import Layout.Widgets.Widget;
-import gui.pane.IOPane;
-import gui.objects.Window.stage.ContextManager;
-import gui.objects.Window.stage.Window;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import javafx.css.PseudoClass;
-import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import static util.Util.setAnchors;
+
+import Layout.Component;
+import Layout.Container;
+import Layout.Layout;
+import Layout.Widgets.Widget;
+import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.Window;
+import gui.pane.IOPane;
+import util.graphics.Util;
+
+import static javafx.css.PseudoClass.getPseudoClass;
 import static util.functional.Util.list;
 
 /**
@@ -64,7 +67,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         index = i;
         
         root.getChildren().addAll(content_root);
-        setAnchors(content_root, 0d);
+        Util.setAnchors(content_root, 0d);
         
         // init properties
         c.properties.initProperty(Double.class, "padding", 0d);
@@ -73,7 +76,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         activityPane = new StackPane();
         activityPane.setPickOnBounds(false);
         content_root.getChildren().add(activityPane);
-        setAnchors(activityPane, 0d);
+        Util.setAnchors(activityPane, 0d);
         activityPane.toFront();
     }
     

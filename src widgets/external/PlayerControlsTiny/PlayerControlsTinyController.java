@@ -25,7 +25,7 @@ import gui.GUI;
 import gui.objects.Seeker;
 import gui.objects.icon.Icon;
 import util.Util;
-import util.access.Accessor;
+import util.access.Var;
 import util.graphics.drag.DragUtil;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -58,13 +58,13 @@ public class PlayerControlsTinyController extends FXMLController implements Play
     private Icon prevB, playB, stopB, nextB, volB;
     
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
-    public final Accessor<Boolean> showChapters = new Accessor<>(true, seeker::setChaptersVisible);
+    public final Var<Boolean> showChapters = new Var<>(true, seeker::setChaptersVisible);
     @IsConfig(name = "Show info for chapters", info = "Display pop up information for chapter marks on seeker.")
-    public final Accessor<Boolean> popupChapters = new Accessor<>(true, seeker::setChaptersShowPopUp);
+    public final Var<Boolean> popupChapters = new Var<>(true, seeker::setChaptersShowPopUp);
     @IsConfig(name = "Snap seeker to chapters on drag", info = "Enable snapping to chapters during dragging.")
-    public final Accessor<Boolean> snapToChap = new Accessor<>(true, seeker::setSnapToChapters);
+    public final Var<Boolean> snapToChap = new Var<>(true, seeker::setSnapToChapters);
     @IsConfig(name = "Show max 1 chapter", info = "Allows only one chapter popup to be visible at any time. Opening new chapter closes all open chapters.")
-    public final Accessor<Boolean> singleChapMode = new Accessor<>(true, seeker::setSinglePopupMode);
+    public final Var<Boolean> singleChapMode = new Var<>(true, seeker::setSinglePopupMode);
     @IsConfig(name = "Show elapsed time", info = "Show elapsed time instead of remaining.")
     public boolean elapsedTime = true;
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")

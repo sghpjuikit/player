@@ -4,20 +4,12 @@
  */
 package gui.objects.image;
 
-import gui.objects.image.cover.Cover;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetManager;
-import Layout.Widgets.feature.ImageDisplayFeature;
-import gui.objects.ContextMenu.ImprovedContextMenu;
-import gui.objects.Window.stage.WindowBase;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import static java.util.Collections.singletonList;
 import java.util.HashMap;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.*;
 import javafx.beans.value.ChangeListener;
@@ -31,33 +23,41 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
-import static javafx.scene.input.DataFormat.FILES;
-import static javafx.scene.input.MouseButton.*;
-import static javafx.scene.input.MouseEvent.DRAG_DETECTED;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.layout.*;
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static javafx.scene.paint.Color.BLACK;
 import javafx.stage.*;
 import javafx.util.Duration;
-import static javafx.util.Duration.millis;
+
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetManager;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.Window.stage.WindowBase;
+import gui.objects.image.cover.Cover;
 import main.App;
+import unused.Log;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.SingleInstance;
 import util.Util;
-import static util.Util.menuItem;
-import static util.Util.setAnchors;
-import static util.Util.setScaleXY;
 import util.animation.Anim;
 import util.dev.Dependency;
-import unused.Log;
 import util.dev.TODO;
-import static util.dev.TODO.Purpose.FUNCTIONALITY;
 import util.graphics.fxml.ConventionFxmlLoader;
+
+import static java.util.Collections.singletonList;
+import static javafx.scene.input.DataFormat.FILES;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
+import static javafx.scene.paint.Color.BLACK;
+import static javafx.util.Duration.millis;
+import static util.Util.menuItem;
+import static util.dev.TODO.Purpose.FUNCTIONALITY;
+import static util.graphics.Util.setAnchors;
 
 /**
  * Thumbnail.
@@ -459,7 +459,7 @@ public class Thumbnail extends ImageNode {
     
     /** Duration of the scaling animation effect when transitioning to gover state. */
     public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", millis(animDur));
-    private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> setScaleXY(root,1+0.05*at));
+    private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> util.graphics.Util.setScaleXY(root,1+0.05*at));
     private final EventHandler<MouseEvent> hoverHandler = e -> {
             hoverAnimation.dur(durationOnHover.get());
             if(isH())
@@ -528,7 +528,7 @@ public class Thumbnail extends ImageNode {
             }
         } else {
             if(!root.getChildren().contains(img_border)) root.getChildren().add(img_border);
-            setAnchors(img_border,0);
+            setAnchors(img_border,0d);
         }
     };
     
@@ -586,7 +586,7 @@ public class Thumbnail extends ImageNode {
                     p.setConsumeAutoHidingEvents(true);
                     Node cn = c.load();
                     n.getChildren().add(cn);
-                    Util.setAnchors(cn, 0);
+                    setAnchors(cn, 0d);
                     p.getContent().setAll(n);
                     p.show(m.getValue().getPane().getScene().getWindow(), s.getBounds().getMinX(), s.getBounds().getMinY());
                     ((ImageDisplayFeature)c.getController()).showImage(m.getValue().getFile());

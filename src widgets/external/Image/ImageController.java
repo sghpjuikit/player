@@ -20,7 +20,7 @@ import javafx.scene.layout.AnchorPane;
 
 import Layout.Widgets.controller.io.IsInput;
 import main.App;
-import util.access.Accessor;
+import util.access.Var;
 
 import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
@@ -50,7 +50,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     private final Thumbnail thumb = new Thumbnail();
     
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Accessor<Pos> align = new Accessor<>(CENTER, thumb::applyAlignment);   
+    public final Var<Pos> align = new Var<>(CENTER, thumb::applyAlignment);   
     @IsConfig(name = "Custom image", info = "Image file to display.")
     private File img = new File("");
 

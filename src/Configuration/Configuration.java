@@ -1,11 +1,12 @@
 
 package Configuration;
 
-import Configuration.Config.ListAccessor;
+import Configuration.Config.VarList;
 import Configuration.Config.ListConfig;
 import Configuration.Config.PropertyConfig;
 import Configuration.Config.ReadOnlyPropertyConfig;
 import action.Action;
+
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -17,14 +18,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
+
 import main.App;
+
 import org.atteo.classindex.ClassIndex;
+
 import util.File.FileUtil;
+
 import static util.Util.getAllFields;
+
 import util.collections.map.MapSet;
 import unused.Log;
+
 import static util.dev.Util.forbidFinal;
 import static util.dev.Util.requireFinal;
 
@@ -213,8 +221,8 @@ public class Configuration {
         try {
             requireFinal(f);            // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
-            if(ListAccessor.class.isAssignableFrom(f.getType()))
-                return new ListConfig(name, anotation, (ListAccessor)f.get(instance), group);
+            if(VarList.class.isAssignableFrom(f.getType()))
+                return new ListConfig(name, anotation, (VarList)f.get(instance), group);
             if(WritableValue.class.isAssignableFrom(f.getType()))
                 return new PropertyConfig(name, anotation, (WritableValue)f.get(instance), group);
             if(ReadOnlyProperty.class.isAssignableFrom(f.getType()))

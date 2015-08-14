@@ -20,7 +20,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 
 import Configuration.Config;
-import Configuration.Config.ListAccessor;
+import Configuration.Config.VarList;
 import Configuration.IsConfig;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
@@ -41,10 +41,10 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static util.File.FileUtil.getName;
 import static util.File.FileUtil.listFiles;
-import static util.Util.setAnchors;
 import static util.async.Async.FX;
 import static util.async.Async.newSingleDaemonThreadExecutor;
 import static util.functional.Util.*;
+import static util.graphics.Util.setAnchors;
 
 /**
  *
@@ -68,7 +68,7 @@ public class DirViewer extends ClassController {
     @IsConfig(name = "Location", info = "Root directory the contents of to display "
             + "This is not a file system browser, and it is not possible to "
             + "visit parent of this directory.")
-    final ListAccessor<File> files = new ListAccessor<>(() -> new File("C:\\"),f -> Config.forValue("File",f));
+    final VarList<File> files = new VarList<>(() -> new File("C:\\"),f -> Config.forValue("File",f));
     
     Cell item = null;
     CellPane cells = new CellPane(160,220,5);
@@ -85,7 +85,7 @@ public class DirViewer extends ClassController {
         
         ScrollPane layout = cells.scrollable();
         getChildren().add(layout);
-        setAnchors(layout,0);
+        setAnchors(layout,0d);
         
         setOnScroll(Event::consume);
     }

@@ -18,6 +18,7 @@
  */
 package AudioPlayer.playback.player.xtrememp.audio;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -25,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +38,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
@@ -59,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import org.tritonus.share.sampled.TAudioFormat;
 import org.tritonus.share.sampled.file.TAudioFileFormat;
 
+import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.player.xtrememp.dsp.DigitalSignalSynchronizer;
 import javazoom.spi.PropertiesContainer;
 import util.dev.TODO;
@@ -71,7 +73,7 @@ import static util.dev.TODO.Purpose.BUG;
  */
 public class AudioPlayer implements Callable<Void> {
 
-    private static final Logger logger = LoggerFactory.getLogger(AudioPlayer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AudioPlayer.class);
     
     protected final int READ_BUFFER_SIZE = 4 * 1024;
     protected final Lock lock = new ReentrantLock();
@@ -82,7 +84,7 @@ public class AudioPlayer implements Callable<Void> {
     protected AudioInputStream audioInputStream;
     protected SourceDataLine sourceDataLine;
     protected String mixerName;
-    protected List<PlaybackListener> listeners;
+    protected Set<PlaybackListener> listeners;
     protected ExecutorService execService;
     protected Future<Void> future;
     protected Map<String, Object> properties;
@@ -110,12 +112,12 @@ public class AudioPlayer implements Callable<Void> {
             return t;
         });
         dss = new DigitalSignalSynchronizer();
-        listeners = new ArrayList<>();
+        listeners = new HashSet<>();
         reset();
     }
 
     public void addPlaybackListener(PlaybackListener listener) {
-        if (listener != null && !listeners.contains(listener)) {
+        if (listener != null) {
             listeners.add(listener);
         }
     }
@@ -126,7 +128,7 @@ public class AudioPlayer implements Callable<Void> {
         }
     }
 
-    public List<PlaybackListener> getPlaybackListeners() {
+    public Set<PlaybackListener> getPlaybackListeners() {
         return listeners;
     }
 
@@ -140,7 +142,7 @@ public class AudioPlayer implements Callable<Void> {
                     state, getPosition() - oldPosition, properties, listener);
             launcher.start();
         }
-        logger.info("{}", state);
+        LOGGER.info("{}", state);
     }
 
     private void reset() {
@@ -215,29 +217,29 @@ public class AudioPlayer implements Callable<Void> {
         closeStream();
         if (audioInputStream == null) {
             try {
-                logger.info("Data source: {}", audioSource);
+                LOGGER.info("Data source: {}", audioSource);
                 if (audioSource instanceof File) {
                     initAudioInputStream((File) audioSource);
                 } else if (audioSource instanceof URL) {
                     initAudioInputStream((URL) audioSource);
                 }
-                AudioFormat sourceAudioFormat = audioInputStream.getFormat();
-                logger.info("Source format: {}", sourceAudioFormat);
-                int nSampleSizeInBits = sourceAudioFormat.getSampleSizeInBits();
+                AudioFormat sourceFormat = audioInputStream.getFormat();
+                LOGGER.info("Source format: {}", sourceFormat);
+                int nSampleSizeInBits = sourceFormat.getSampleSizeInBits();
                 if (nSampleSizeInBits <= 0) {
                     nSampleSizeInBits = 16;
                 }
-                if ((sourceAudioFormat.getEncoding() == AudioFormat.Encoding.ULAW) || (sourceAudioFormat.getEncoding() == AudioFormat.Encoding.ALAW)) {
+                if ((sourceFormat.getEncoding() == AudioFormat.Encoding.ULAW) || (sourceFormat.getEncoding() == AudioFormat.Encoding.ALAW)) {
                     nSampleSizeInBits = 16;
                 }
                 if (nSampleSizeInBits != 8) {
                     nSampleSizeInBits = 16;
                 }
                 // this fails for variable bitrate, needs a fix
-                AudioFormat targetAudioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceAudioFormat.getSampleRate(), nSampleSizeInBits, sourceAudioFormat.getChannels(), sourceAudioFormat.getChannels() * (nSampleSizeInBits / 8), sourceAudioFormat.getSampleRate(), false);
-                logger.info("Target format: {}", targetAudioFormat);
+                AudioFormat targetFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), nSampleSizeInBits, sourceFormat.getChannels(), sourceFormat.getChannels() * (nSampleSizeInBits / 8), sourceFormat.getSampleRate(), false);
+                LOGGER.info("Target format: {}", targetFormat);
                 // Create decoded stream.
-                audioInputStream = AudioSystem.getAudioInputStream(targetAudioFormat, audioInputStream);
+                audioInputStream = AudioSystem.getAudioInputStream(targetFormat, audioInputStream);
                 if (audioFileFormat instanceof TAudioFileFormat) {
                     // Tritonus SPI compliant audio file format.
                     properties = ((TAudioFileFormat) audioFileFormat).properties();
@@ -278,7 +280,7 @@ public class AudioPlayer implements Callable<Void> {
                     properties.putAll(((TAudioFormat) audioFormat).properties());
                 }
                 for (String key : properties.keySet()) {
-                    logger.info("Audio Format Properties: {} = {}", key, properties.get(key));
+                    LOGGER.info("Audio Format Properties: {} = {}", key, properties.get(key));
                 }
             } catch (UnsupportedAudioFileException ex) {
                 throw new PlayerException(ex);
@@ -287,7 +289,6 @@ public class AudioPlayer implements Callable<Void> {
             }
         }
     }
-
     /**
      * Inits Audio resources from file.
      * @param file
@@ -296,6 +297,12 @@ public class AudioPlayer implements Callable<Void> {
      */
     protected void initAudioInputStream(File file) throws UnsupportedAudioFileException, IOException {
         audioInputStream = AudioSystem.getAudioInputStream(file);
+        // wrap in buffer to support mark()
+        BufferedInputStream bs = new BufferedInputStream(audioInputStream);
+        audioInputStream = new AudioInputStream(bs, audioInputStream.getFormat(), audioInputStream.getFrameLength());
+        // audioInputStream = AudioSystem.getAudioInputStream(bs);
+        // audioInputStream = AudioSystem.getAudioInputStream(file);
+        audioInputStream.mark(Integer.MAX_VALUE);   // allows us to seek backwards if mark supported
         audioFileFormat = AudioSystem.getAudioFileFormat(file);
     }
 
@@ -307,6 +314,9 @@ public class AudioPlayer implements Callable<Void> {
      */
     protected void initAudioInputStream(URL url) throws UnsupportedAudioFileException, IOException {
         audioInputStream = AudioSystem.getAudioInputStream(url);
+        BufferedInputStream bs = new BufferedInputStream(audioInputStream);
+        audioInputStream = new AudioInputStream(bs, audioInputStream.getFormat(), audioInputStream.getFrameLength());
+        audioInputStream.mark(Integer.MAX_VALUE);
         audioFileFormat = AudioSystem.getAudioFileFormat(url);
     }
 
@@ -317,7 +327,7 @@ public class AudioPlayer implements Callable<Void> {
     protected void initSourceDataLine() throws PlayerException {
         if (sourceDataLine == null) {
             try {
-                logger.info("Create Source Data Line");
+                LOGGER.info("Create Source Data Line");
                 AudioFormat audioFormat = audioInputStream.getFormat();
                 DataLine.Info lineInfo = new DataLine.Info(SourceDataLine.class, audioFormat, AudioSystem.NOT_SPECIFIED);
                 if (!AudioSystem.isLineSupported(lineInfo)) {
@@ -330,7 +340,7 @@ public class AudioPlayer implements Callable<Void> {
                 }
                 Mixer mixer = getMixer(mixerName);
                 if (mixer != null) {
-                    logger.info("Mixer: {}", mixer.getMixerInfo().toString());
+                    LOGGER.info("Mixer: {}", mixer.getMixerInfo().toString());
                     sourceDataLine = (SourceDataLine) mixer.getLine(lineInfo);
                 } else {
                     sourceDataLine = (SourceDataLine) AudioSystem.getLine(lineInfo);
@@ -339,17 +349,17 @@ public class AudioPlayer implements Callable<Void> {
 
                 sourceDataLine.addLineListener(dss);
 
-                logger.info("Line Info: {}", sourceDataLine.getLineInfo().toString());
-                logger.info("Line AudioFormat: {}", sourceDataLine.getFormat().toString());
+                LOGGER.info("Line Info: {}", sourceDataLine.getLineInfo().toString());
+                LOGGER.info("Line AudioFormat: {}", sourceDataLine.getFormat().toString());
 
                 if (bufferSize <= 0) {
                     bufferSize = sourceDataLine.getBufferSize();
                 }
                 sourceDataLine.open(audioFormat, bufferSize);
 
-                logger.info("Line BufferSize: {}", sourceDataLine.getBufferSize());
+                LOGGER.info("Line BufferSize: {}", sourceDataLine.getBufferSize());
                 for (Control c : sourceDataLine.getControls()) {
-                    logger.info("Line Controls: {}", c);
+                    LOGGER.info("Line Controls: {}", c);
                 }
 
                 if (sourceDataLine.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
@@ -549,7 +559,7 @@ public class AudioPlayer implements Callable<Void> {
             double cste = Math.log(10.0) / 20;
             double value = minGain + (1 / cste) * Math.log(1 + (Math.exp(cste * ampGain) - 1) * gain);
             gainControl.setValue((float) value);
-            logger.info("{}", gainControl.toString());
+            LOGGER.info("{}", gainControl.toString());
         } else {
 //            throw new PlayerException("Gain control not supported");
         }
@@ -570,7 +580,7 @@ public class AudioPlayer implements Callable<Void> {
     public void setPan(float pan) {
         if (panControl != null) {
             panControl.setValue(pan);
-            logger.info("{}", panControl.toString());
+            LOGGER.info("{}", panControl.toString());
         } else {
 //            throw new PlayerException("Pan control not supported");
         }
@@ -583,7 +593,7 @@ public class AudioPlayer implements Callable<Void> {
     public void setMute(boolean mute) {
         if (muteControl != null) {
             muteControl.setValue(mute);
-            logger.info("{}", muteControl.toString());
+            LOGGER.info("{}", muteControl.toString());
         } else {
 //            throw new PlayerException("Mute control not supported");
         }
@@ -608,7 +618,7 @@ public class AudioPlayer implements Callable<Void> {
 
     @Override
     public Void call() throws PlayerException {
-        logger.info("Decoding thread started");
+        LOGGER.info("Decoding thread started");
         int nBytesRead = 0;
         int audioDataLength = READ_BUFFER_SIZE;
         ByteBuffer audioDataBuffer = ByteBuffer.allocate(audioDataLength);
@@ -649,7 +659,7 @@ public class AudioPlayer implements Callable<Void> {
                         pauseCondition.awaitUninterruptibly();
                     }
                 } catch (IOException ex) {
-                    logger.error("Decoder Exception: ", ex);
+                    LOGGER.error("Decoder Exception: ", ex);
                     state = STOP;
                     notifyEvent(Playback.STOPPED);
                     throw new PlayerException(ex);
@@ -668,7 +678,7 @@ public class AudioPlayer implements Callable<Void> {
         } finally {
             lock.unlock();
         }
-        logger.info("Decoding thread completed");
+        LOGGER.info("Decoding thread completed");
         return null;
     }
 
@@ -677,9 +687,9 @@ public class AudioPlayer implements Callable<Void> {
             try {
                 future.get();
             } catch (InterruptedException ex) {
-                logger.error(ex.getMessage(), ex);
+                LOGGER.error(ex.getMessage(), ex);
             } catch (ExecutionException ex) {
-                logger.error(ex.getMessage(), ex);
+                LOGGER.error(ex.getMessage(), ex);
             } finally {
                 // Harmless if task already completed
                 future.cancel(true); // interrupt if running
@@ -735,24 +745,29 @@ public class AudioPlayer implements Callable<Void> {
     }
     
     public void seek(Duration d) {
-        double total = getDuration()/1000;
-        double p = d.toMillis()/total;
+        int bytelen = getByteLength();
+        double total = getDuration();
+        double tobe = d.toMillis()*1000/total;
+        double is = (getPosition())/total;
+               is = PLAYBACK.state.currentTime.get().toMillis()/PLAYBACK.state.duration.get().toMillis();
+                                                                            System.out.println(tobe + " " + is + " " + (tobe-is));
         try {
-            seek((long) (getByteLength()*p));
+            seek((long)(tobe*bytelen),(long)((tobe-is)*bytelen));
         } catch (PlayerException ex) {
-            java.util.logging.Logger.getLogger(AudioPlayer.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.error("",ex);
         }
     }
 
-    public long seek(long bytes) throws PlayerException {
-        long totalSkipped = 0;
+    private long seek(long to, long by) throws PlayerException {long pos = getPosition();
+        long skipped = 0;
         if (audioSource instanceof File) {
             int bytesLength = getByteLength();
-            if ((bytesLength <= 0) || (bytes >= bytesLength)) {
+                                                                                    System.out.println(bytesLength + " " + to + " " + by);
+            if ((bytesLength <= 0) || (to >= bytesLength)) {
                 notifyEvent(Playback.EOM);
-                return totalSkipped;
+                return skipped;
             }
-            logger.info("Bytes to skip: {}", bytes);
+            LOGGER.info("Bytes to skip: {}", to);
             oldPosition = getPosition();
             int oldState = state;
             if (state == PLAY) {
@@ -761,23 +776,10 @@ public class AudioPlayer implements Callable<Void> {
             lock.lock();
             try {
                 notifyEvent(Playback.SEEKING);
-                initAudioInputStream();
-                if (audioInputStream != null) {
-//                    long skipped = 0;
-//                    while (totalSkipped < bytes) {
-//                        skipped = audioInputStream.skip(bytes - totalSkipped);
-//                        totalSkipped += skipped;
-//                        if (skipped == 0) {
-//                            break;
-//                        }
-//                    }
-                    totalSkipped = audioInputStream.skip(bytes);
-                    logger.info("Skipped bytes: {}/{}", totalSkipped, bytes);
-                    if (totalSkipped == -1) {
-                        throw new PlayerException("Seek not supported");
-                    }
-                    initSourceDataLine();
-                }
+                skipped = doSeek(to,by);
+                oldPosition = getPosition();
+                if (skipped == -1) throw new PlayerException("Seek not supported");
+                LOGGER.info("Skipped bytes: {}/{}", skipped, to);
             } catch (IOException ex) {
                 throw new PlayerException(ex);
             } finally {
@@ -786,8 +788,27 @@ public class AudioPlayer implements Callable<Void> {
             if (oldState == PLAY) {
                 play();
             }
+        }System.out.println("POS CHANGED BY " + ((getPosition()-pos)/1000) + "ms");
+        return skipped;
+    }
+    
+    private long doSeek(long to, long by) throws IOException, PlayerException {
+        if(audioInputStream==null)
+            return 0;
+        
+        if(by>0) {
+            return audioInputStream.skip(by);
+        } else {
+            if(audioInputStream.markSupported()) {
+                audioInputStream.reset();
+                return audioInputStream.skip(to);
+            } else {
+                initAudioInputStream();
+                long skipped = audioInputStream.skip(to);
+                initSourceDataLine();
+                return skipped;
+            }
         }
-        return totalSkipped;
     }
 
     @TODO(purpose = BUG)
@@ -796,9 +817,9 @@ public class AudioPlayer implements Callable<Void> {
             try {
                 audioInputStream.close(); // bugged, see below
                 audioInputStream = null;
-                logger.info("Stream closed");
+                LOGGER.info("Stream closed");
             } catch (IOException ex) {
-                logger.error("Cannot close stream", ex);
+                LOGGER.error("Cannot close stream", ex);
             }
             // bug fix, close() wont release file sometimes, this would prevent
             // this app and whole OS from accessing the file until this app

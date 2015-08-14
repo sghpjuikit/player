@@ -31,7 +31,7 @@ import Configuration.IsConfigurable;
 import gui.GUI;
 import main.App;
 import unused.Log;
-import util.access.Accessor;
+import util.access.Var;
 
 import static javafx.application.Platform.runLater;
 import static javafx.scene.input.MouseButton.*;
@@ -52,9 +52,9 @@ public class TrayService extends ServiceBase {
     
     private String tooltip_text = null;
     @IsConfig(name = "Show tooltip", info = "Enables tooltip displayed when mouse hovers tray icon.")
-    public final Accessor<Boolean> showTooltip = new Accessor<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
+    public final Var<Boolean> showTooltip = new Var<>(true,v -> { if(isRunning()) setTooltipText(tooltip_text);});
     @IsConfig(name = "Show playing in tooltip", info = "Shows playing song title in tray tooltip.")
-    public final Accessor<Boolean> showplaying_inTooltip = new Accessor<>(true);
+    public final Var<Boolean> showplaying_inTooltip = new Var<>(true);
 
     private boolean running = false;
     private ObservableList<javafx.scene.control.MenuItem> menuItems;

@@ -5,18 +5,20 @@
  */
 package gui.pane;
 
+import java.util.List;
+
+import javafx.scene.Node;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Pane;
+
 import static java.lang.Integer.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
-import java.util.List;
-import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
-import javafx.scene.layout.Pane;
-import static util.Util.setAnchors;
 import static util.async.Async.runLater;
 import static util.functional.Util.forEachWithI;
+import static util.graphics.Util.setAnchors;
 
 /**
  * Pane displaying a grid of cells - nodes of same size. Similar to 
@@ -77,7 +79,7 @@ public class CellPane extends Pane {
         s.setHbarPolicy(NEVER);
         s.setVbarPolicy(AS_NEEDED);
         getChildren().add(s);
-        setAnchors(s,0);
+        setAnchors(s,0d);
         return s;
     }
 

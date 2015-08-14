@@ -5,16 +5,19 @@
  */
 package Layout.Widgets.controller;
 
-import Layout.Widgets.FXMLWidget;
-import Layout.Widgets.controller.io.Input;
-import Layout.Widgets.controller.io.Inputs;
-import Layout.Widgets.controller.io.Outputs;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javafx.scene.layout.Pane;
+
 import org.reactfx.Subscription;
+
+import Layout.Widgets.FXMLWidget;
+import Layout.Widgets.controller.io.Input;
+import Layout.Widgets.controller.io.Inputs;
+import Layout.Widgets.controller.io.Outputs;
 
 /**
  * Controller for {@link FXMLWidget}
@@ -60,10 +63,8 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     
     public void loadSkin(String filename, Pane root) {
         try {
-            root.getStylesheets().add(getResource(filename).toURI().toURL().toString());
-        } catch (MalformedURLException ex) {
-        
-        }
+            root.getStylesheets().add(getResource(filename).toURI().toURL().toExternalForm());
+        } catch (MalformedURLException ex) {}
     }
 
     /** {@inheritDoc} */

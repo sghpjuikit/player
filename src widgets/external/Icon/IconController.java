@@ -9,14 +9,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import Configuration.Config;
-import Configuration.Config.ListAccessor;
+import Configuration.Config.VarList;
 import Configuration.IsConfig;
 import Configuration.ListConfigurable;
 import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.controller.FXMLController;
 import gui.objects.icon.Icon;
-import util.access.AccessorAction;
+import util.access.VarAction;
 import util.access.FunctAccessor;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
@@ -39,14 +39,14 @@ public class IconController extends FXMLController {
     @IsConfig(name = "Icon size", info = "Size of each icon")
     private final DoubleProperty icon_size = new SimpleDoubleProperty(13);
     @IsConfig(name = "Icons", info = "List of icons to show")
-    private final ListAccessor<Icon> icons = new ListAccessor<>(() -> {
+    private final VarList<Icon> icons = new VarList<>(() -> {
             Icon i = new Icon(BUS);
             maintain(icon_size,v -> i.size(v.doubleValue()));
             return i;
         }, i ->
         new ListConfigurable(
             Config.forProperty("Icon", new FunctAccessor<>(i::icon,i::getIco)),
-            Config.forProperty("Action",new AccessorAction(i.getOnClickAction(),i::onClick))
+            Config.forProperty("Action",new VarAction(i.getOnClickAction(),i::onClick))
         )
     );
     @FXML private StackPane root;

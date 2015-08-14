@@ -6,7 +6,6 @@
 - filesize use undigned long
 - config field add checkbox list config field
 - implement smooth volume on seek
-- flac playback improve seeking + consecutive seeking performance
 - custom Log -> logback
 - implement flac playback volume consistently with others
   add linear vs logarithmic option
@@ -146,7 +145,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
   a bit here. It is questionable whether it is worth the effort
 - finish nextPlayingItem() & LoopMode thing. Better support with GUI
 - Accessors and all... maybe make Val/Var class
-- Serializator and serialization
 - window manager
 - window color overlay effect
 - window layout aggregators

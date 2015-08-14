@@ -30,6 +30,7 @@ import gui.objects.Text;
 import gui.objects.icon.Icon;
 import main.App;
 import util.animation.Anim;
+import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 
 import static java.lang.Math.abs;
@@ -106,7 +107,7 @@ public class IOPane extends StackPane {
             setAlignment(Pos.CENTER_RIGHT);
             i.styleclass(ONODE_STYLECLASS);
             
-            Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
+            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
             
@@ -141,7 +142,7 @@ public class IOPane extends StackPane {
             setAlignment(Pos.CENTER_LEFT);
             i.styleclass(INODE_STYLECLASS);
             
-            Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
+            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
             
@@ -186,7 +187,7 @@ public class IOPane extends StackPane {
             setAlignment(Pos.CENTER_LEFT);
             i.styleclass(IONODE_STYLECLASS);
             
-            Anim a = new Anim(millis(250), at -> util.Util.setScaleXY(t, at));
+            Anim a = new Anim(millis(250), at -> Util.setScaleXY(t, at));
             i.setOnMouseEntered(e -> a.playOpen());
             t.setOnMouseExited(e -> a.playClose());
             

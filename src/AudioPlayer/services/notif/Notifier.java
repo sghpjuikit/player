@@ -28,8 +28,8 @@ import gui.objects.PopOver.Notification;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import main.App;
-import util.access.AccessorAction;
-import util.access.AccessorEnum;
+import util.access.VarAction;
+import util.access.VarEnum;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Bottom_Right;
@@ -79,12 +79,12 @@ public final class Notifier extends ServiceBase {
     @IsConfig(name = "Screen", info = "Decides which screen to use for positioning. Main screen, application window screen or all screens as one")
     public PopOver.ScreenUse notifScr = APP_WINDOW;
     @IsConfig(name = "On click left")
-    public final AccessorAction onClickL = new AccessorAction("Show application", null);
+    public final VarAction onClickL = new VarAction("Show application", null);
     @IsConfig(name = "On click right")
-    public final AccessorAction onClickR = new AccessorAction("Notification hide", null);
+    public final VarAction onClickR = new VarAction("Notification hide", null);
     
     @IsConfig(name = "Playback change graphics")
-    public final AccessorEnum<String> graphics = new AccessorEnum<>("Normal", 
+    public final VarEnum<String> graphics = new VarEnum<>("Normal", 
         v -> {
             if("Normal".equals(v)) {
                 ItemInfo ii = new ItemInfo(true);

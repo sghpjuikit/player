@@ -118,6 +118,7 @@ public final class Seeker extends AnchorPane {
         seeker.setOnMouseReleased(e -> {
             if(user_drag && e.getButton()==PRIMARY && !addB.isVisible() && !addB.isSelected()) {
                 double p = e.getX()/getWidth();
+                       p = clip(0,p,1);
                 PLAYBACK.seek(p);
                 run(100, () -> user_drag = false);
             }
@@ -180,10 +181,10 @@ public final class Seeker extends AnchorPane {
         double w = getWidth();
         double h = getHeight();
         
-        for(Node n : getChildren()) {
-            if(n instanceof Chap) {
-                Chap c = (Chap) n;
-                c.relocate(w * c.position, h/2 - c.getHeight()/2);
+        if(!chapters.isEmpty()) {
+            double fix = 1+chapters.get(0).getLayoutBounds().getWidth()/2; // bugfix
+            for(Chap c : chapters) {
+                c.relocate(clip(fix,w * c.position,getWidth()-fix), h/2 - c.getHeight()/2);
             }
         }
         
@@ -210,21 +211,24 @@ public final class Seeker extends AnchorPane {
     double matox = 0;
     double macurx = 0;
     double maspeed = 0;
-    double madir = 1;
     
     private void ma_do() {
-        macurx += madir * maspeed;
+        // calculate new x
+        double diff = matox-macurx;
+        if(diff==0) return;                     // perf optim. & bug fix
+        double dir = signum(diff);
+        double dist = abs(diff);
+        maspeed = max(1,dist/10d);              // prevents animation from never finishing
+        macurx += dir * maspeed;
+        if(abs(macurx-matox)<1) macurx=matox;   // finish anim in next cycle
+
+        // apply
         double x = macurx;
-               //x = clip(0,getWidth(),1);   // fixes outside of area bugs
+               x = clip(0,x,getWidth());        // fixes outside of area bugs
         r1.setX(x - MA_WIDTH2);
         r2.setX(x - MA_WIDTH2);
         // we can also move add chapter button here (for different behavior), i did not
         // addB.root.setLayoutX(macurx-addB.root.getWidth()/2);
-        double diff = matox-macurx;
-        madir = signum(diff);
-        double dist = abs(diff);
-        maspeed = max(1,dist/10d);
-        if(abs(macurx-matox)<1) maspeed = 0;
     }
     
     private void ma_init() {
@@ -389,7 +393,7 @@ public final class Seeker extends AnchorPane {
         
         void show() {
             i.setDisable(!Player.playingtem.get().isFileBased());
-            fade.delay(i.getScaleY()==0 ? 350 : 0)
+            fade.delay(i.getScaleY()==0 ? 500 : 0)
                 .playOpenDo(() -> visible=true);
         }
         
@@ -467,6 +471,7 @@ public final class Seeker extends AnchorPane {
             setOnMouseEntered(e -> addB.select(this));
             setOnMouseClicked(e -> seekTo());
             setMouseTransparent(true);
+//            setManaged(false);
         }
         
         public void showPopup() {

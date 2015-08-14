@@ -1,17 +1,21 @@
 
 package Layout;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+
+import javafx.scene.Node;
+import javafx.scene.layout.AnchorPane;
+
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 import Layout.Areas.ContainerNode;
 import Layout.Areas.Layouter;
 import Layout.Areas.WidgetArea;
 import Layout.Widgets.Widget;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-import javafx.scene.Node;
-import javafx.scene.layout.AnchorPane;
-import static util.Util.setAnchors;
+
+import static util.graphics.Util.setAnchors;
 
 
 /**
@@ -61,7 +65,7 @@ public class UniContainer extends Container {
         }
         
         root.getChildren().setAll(out);
-        setAnchors(out,0);
+        setAnchors(out,0d);
         
         return out;
     }

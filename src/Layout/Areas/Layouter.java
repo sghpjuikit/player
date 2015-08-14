@@ -1,32 +1,35 @@
 
 package Layout.Areas;
 
+import java.util.Objects;
+
+import javafx.animation.*;
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
+
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.FreeFormContainer;
 import Layout.PolyContainer;
 import gui.GUI;
-import static gui.GUI.*;
 import gui.objects.Pickers.Picker;
 import gui.objects.Pickers.WidgetPicker;
-import java.util.Objects;
-import javafx.animation.*;
+import main.App;
+import util.animation.interpolator.CircularInterpolator;
+import util.graphics.drag.DragUtil;
+
+import static gui.GUI.*;
 import static javafx.animation.Interpolator.LINEAR;
-import javafx.event.EventHandler;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import javafx.scene.input.MouseEvent;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-import main.App;
-import util.animation.interpolator.CircularInterpolator;
 import static util.animation.interpolator.EasingMode.EASE_OUT;
-import static util.Util.setAnchors;
 import static util.functional.Util.stream;
-import util.graphics.drag.DragUtil;
+import static util.graphics.Util.setAnchors;
 
 /**
  * @author uranium
@@ -74,7 +77,7 @@ public final class Layouter implements ContainerNode {
                                         "Widget", "FreeForm"); // , "Tabs"
         cp.buildContent();
         
-        setAnchors(cp.root, 0);
+        setAnchors(cp.root, 0d);
         
         Interpolator i = new CircularInterpolator(EASE_OUT);
         a1 = new FadeTransition(ANIM_DUR, cp.root);
@@ -215,7 +218,7 @@ public final class Layouter implements ContainerNode {
         });
         w.buildContent();
         root.getChildren().add(w.root);
-        setAnchors(w.root, 0);
+        setAnchors(w.root, 0d);
         openAndDo(w.root, null);
     }
     private void showSplitV() {

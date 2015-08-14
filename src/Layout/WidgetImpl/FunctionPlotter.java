@@ -7,26 +7,28 @@
 
 package Layout.WidgetImpl;
 
-import Configuration.Config;
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.IsWidget;
-import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.DEVELOPMENT;
-import Layout.Widgets.controller.ClassController;
-import gui.itemnode.ConfigField;
-import static java.lang.Math.max;
 import java.util.function.Function;
+
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.layout.*;
-import static javafx.scene.layout.Priority.ALWAYS;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
-import util.Util;
-import util.access.Accessor;
+
+import Configuration.Config;
+import Layout.Widgets.IsWidget;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.ClassController;
+import gui.itemnode.ConfigField;
+import util.access.Var;
 import util.functional.SDF;
+
+import static Layout.Widgets.Widget.Group.DEVELOPMENT;
+import static java.lang.Math.max;
+import static javafx.scene.layout.Priority.ALWAYS;
+import static util.graphics.Util.setAnchors;
 
 @IsWidget
 @Widget.Info(
@@ -49,7 +51,7 @@ public class FunctionPlotter extends ClassController  {
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         
-        Accessor<SDF> sdf = new Accessor<>(new SDF("x"),this::plot);
+        Var<SDF> sdf = new Var<>(new SDF("x"),this::plot);
         ConfigField c = ConfigField.create(Config.forProperty("Function", sdf));
 
         
@@ -59,7 +61,7 @@ public class FunctionPlotter extends ClassController  {
              l.setPadding(new Insets(20));
         VBox.setVgrow(lb, ALWAYS);
         this.getChildren().add(l);
-        Util.setAnchors(l, 0);
+        setAnchors(l, 0d);
     }
     
     public void plot(Function<Double,Double> f) {        

@@ -32,8 +32,8 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
@@ -63,7 +63,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         this.container = container;
 
         root.getChildren().add(ctrls);
-        setAnchors(ctrls, 0);
+        setAnchors(ctrls, 0d);
         ctrls.getStyleClass().addAll(CONTAINER_AREA_CONTROLS_STYLECLASS);
 
 	// build header buttons

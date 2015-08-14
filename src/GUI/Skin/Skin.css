@@ -3604,7 +3604,7 @@
 // inherits: .icon
 .seeker-add-chapter-button,
 .seeker-add-chapter-button:hover {
-    -fx-fill: blue;
+    //-fx-fill: blue;
     -fx-effect: none;
 }
 

@@ -9,10 +9,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -23,6 +21,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
+import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 import AudioPlayer.Item;
@@ -38,11 +37,10 @@ import gui.InfoNode.ItemInfo;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;
 import main.App;
-import util.Util;
-import util.access.Accessor;
+import util.access.Var;
 import util.animation.Anim;
+import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
-import util.async.runnable.Run;
 import util.graphics.drag.DragUtil;
 
 import static Layout.Widgets.Widget.Group.OTHER;
@@ -52,17 +50,22 @@ import static java.util.Collections.EMPTY_LIST;
 import static java.util.stream.Collectors.toList;
 import static javafx.animation.Animation.INDEFINITE;
 import static javafx.application.Platform.runLater;
+import static javafx.collections.FXCollections.observableArrayList;
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static util.File.FileUtil.getFilesImage;
-import static util.Util.setAnchors;
 import static util.async.Async.FX;
+import static util.async.executor.EventReducer.toFirstDelayed;
+import static util.async.executor.EventReducer.toLast;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.forEachWithI;
+import static util.graphics.Util.bgr;
+import static util.graphics.Util.setAnchors;
 
 /**
  * 
@@ -103,7 +106,7 @@ import static util.functional.Util.forEachWithI;
 public class ImageViewerController extends FXMLController implements ImageDisplayFeature, ImagesDisplayFeature {
     
     // gui
-    @FXML private AnchorPane entireArea;
+    @FXML private AnchorPane root;
     @FXML private ScrollPane thumb_root;
     @FXML private TilePane thumb_pane;
     private final Thumbnail mainImage = new Thumbnail();
@@ -111,56 +114,53 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private ItemInfo itemPane;
     
     // state
-    private final SimpleObjectProperty<File> folder = new SimpleObjectProperty(null); // current location source (derived from metadata source)
-    private final ObservableList<File> images = FXCollections.observableArrayList();
-    private final List<Thumbnail> thumbnails = new ArrayList();
-    // eager initialized state
+    private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
+    private final ObservableList<File> images = observableArrayList();
+    private final List<Thumbnail> thumbnails = new ArrayList<>();
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Metadata data = Metadata.EMPTY;
     
     // cnfigurable
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
-    public final Accessor<Double> thumbSize = new Accessor<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
+    public final Var<Double> thumbSize = new Var<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
-    public final Accessor<Double> thumbGap = new Accessor<>(2d, v -> {
+    public final Var<Double> thumbGap = new Var<>(2d, v -> {
         thumb_pane.setHgap(v);
         thumb_pane.setVgap(v);
     });
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public final Accessor<Duration> slideshow_dur = new Accessor<>(seconds(15), slideshow::setTimeoutAndRestart);
+    public final Var<Duration> slideshow_dur = new Var<>(seconds(15), slideshow::setTimeoutAndRestart);
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
-    public final Accessor<Boolean> slideshow_on = new Accessor<>(true, v -> {
-        if (v) slideshow.start(); else slideshow.stop();
-    });
+    public final Var<Boolean> slideshow_on = new Var<>(true, slideshow::setRunning);
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
-    public final Accessor<Boolean> showImage = new Accessor<>(true, mainImage.getPane()::setVisible);
+    public final Var<Boolean> showImage = new Var<>(true, mainImage.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final Accessor<Boolean> showThumbnails = new Accessor<>(true, this::thumbAnimPlay);
+    public final Var<Boolean> showThumbnails = new Var<>(true, this::thumbAnimPlay);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
-    public final Accessor<Boolean> hideThumbEager = new Accessor<>(true, v -> {
-        if (v) entireArea.setOnMouseExited(e -> {
+    public final Var<Boolean> hideThumbEager = new Var<>(true, v -> {
+        if (v) root.setOnMouseExited(e -> {
                    // ensure that mouse really exited, as mouse exit event also
                    // happens when mouse enters context menu or app ui drag sets
                    // ui to mouse transparent
-                   if(!entireArea.contains(e.getX(), e.getY()))
+                   if(!root.contains(e.getX(), e.getY()))
                        showThumbnails.setNapplyValue(false);
                });
-        else entireArea.setOnMouseExited(null);
+        else root.setOnMouseExited(null);
     });
     @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
-    public final Accessor<Boolean> showThumbEager = new Accessor<>(false, v -> {
-        if (v) entireArea.setOnMouseEntered(e -> showThumbnails.setNapplyValue(true));
-        else entireArea.setOnMouseEntered(null);
+    public final Var<Boolean> showThumbEager = new Var<>(false, v -> {
+        if (v) root.setOnMouseEntered(e -> showThumbnails.setNapplyValue(true));
+        else root.setOnMouseEntered(null);
     });
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
-    public final Accessor<Boolean> thums_rect = new Accessor<>(false, v -> thumbnails.forEach(t -> {
+    public final Var<Boolean> thums_rect = new Var<>(false, v -> thumbnails.forEach(t -> {
         t.setBorderToImage(!v);
         t.setBackgroundVisible(v);
     }));
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Accessor<Pos> align = new Accessor<>(CENTER, mainImage::applyAlignment);
+    public final Var<Pos> align = new Var<>(CENTER, mainImage::applyAlignment);
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
-    public final Accessor<Boolean> theater_mode = new Accessor<>(false, this::applyTheaterMode);
+    public final Var<Boolean> theater_mode = new Var<>(false, this::applyTheaterMode);
     
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;
@@ -172,19 +172,18 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private int active_image = -1;
     
     
-    
     /** {@inheritDoc} */
     @Override
     public void init() {
         inputs.getInput("Location of").bind(Player.playing.o);
-        
-        loadSkin("skin.css",entireArea);
+
+        loadSkin("skin.css",root);
         
         // main image
         mainImage.setBorderVisible(true);
         mainImage.setBorderToImage(true);
-        entireArea.getChildren().add(mainImage.getPane());
-        setAnchors(mainImage.getPane(),0);
+        root.getChildren().add(mainImage.getPane());root.getStyleClass().setAll("nav");
+        setAnchors(mainImage.getPane(),0d);
         
         // thumb anim
         thumbAnim = new Anim(millis(500), thumb_root::setOpacity);
@@ -192,39 +191,55 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         thumb_root.toFront();
         
         // image navigation
-        Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image");
+        Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image", this::nextImage);
+             nextB.setMouseTransparent(true);
         Pane nextP = new StackPane(nextB);
-             nextP.setOnMouseClicked(Run.of(this::nextImage).toHandlerConsumed());
-             nextP.getStyleClass().add("nav-pane");
-             nextP.prefWidthProperty().bind(entireArea.widthProperty().divide(10));
+             nextP.setOnMouseClicked(nextB.getOnMouseClicked());
+             nextP.getStyleClass().setAll("nav-pane");
+             nextP.prefWidthProperty().bind(root.widthProperty().divide(10));
              nextP.setMinWidth(20);
-             nextP.opacityProperty().bind(Bindings.subtract(1, thumb_root.opacityProperty()));
              nextP.visibleProperty().bind(nextP.opacityProperty().isNotEqualTo(0));
-             nextB.visibleProperty().bind(nextP.hoverProperty());
-        Icon prevB = new Icon(ARROW_LEFT, 18, "Previous image");
+             nextP.setBackground(bgr(Color.color(0,0,0, 0.2)));
+        Icon prevB = new Icon(ARROW_LEFT, 18, "Previous image", this::prevImage);
+             prevB.setMouseTransparent(true);
         Pane prevP = new StackPane(prevB);
-             prevP.setOnMouseClicked(Run.of(this::prevImage).toHandlerConsumed());
-             prevP.getStyleClass().add("nav-pane");
-             prevP.prefWidthProperty().bind(entireArea.widthProperty().divide(10));
+             prevP.setOnMouseClicked(prevB.getOnMouseClicked());
+             prevP.getStyleClass().setAll("nav-pane");
+             prevP.prefWidthProperty().bind(root.widthProperty().divide(10));
              prevP.setMinWidth(20);
-             prevP.opacityProperty().bind(Bindings.subtract(1, thumb_root.opacityProperty()));
              prevP.visibleProperty().bind(prevP.opacityProperty().isNotEqualTo(0));
-             prevB.visibleProperty().bind(prevP.hoverProperty());
-        entireArea.getChildren().addAll(prevP,nextP);
-        AnchorPane.setBottomAnchor(nextP, 0d);
-        AnchorPane.setTopAnchor(nextP, 0d);
-        AnchorPane.setRightAnchor(nextP, 0d);
-        AnchorPane.setBottomAnchor(prevP, 0d);
-        AnchorPane.setTopAnchor(prevP, 0d);
-        AnchorPane.setLeftAnchor(prevP, 0d);
+             prevP.setBackground(bgr(Color.color(0,0,0, 0.2)));
+
+        root.getChildren().addAll(prevP,nextP);
+        setAnchors(prevP, 0d,null,0d,0d);
+        setAnchors(nextP, 0d,0d,0d,null);
+        
+        Anim navanim = new Anim(millis(500), p -> {
+            prevP.setOpacity(p);
+            nextP.setOpacity(p);
+            prevB.setTranslateX(+40*(p-1));
+            nextB.setTranslateX(-40*(p-1));
+        });
+        navanim.affector.accept(0d);
+        
+        EventReducer inactive = toLast(1500, navanim::playClose);
+        EventReducer active = toFirstDelayed(500, navanim::playOpen);
+        root.addEventFilter(MOUSE_MOVED, e -> {
+            if(thumb_root.getOpacity()==0) {
+                if(prevP.getOpacity()!=1) 
+                    active.push(e);
+                else
+                    inactive.push(e);
+            } 
+        });
         
         // thumbnails & make sure it doesnt cover whole area
-        Util.setAnchors(thumb_root, 0);
-        entireArea.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
+        setAnchors(thumb_root, 0d);
+        root.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         
-        entireArea.setOnMouseClicked( e -> {
+        root.setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
-                if(e.getY()>0.8*entireArea.getHeight() && e.getX()>0.7*entireArea.getWidth()) {
+                if(e.getY()>0.8*root.getHeight() && e.getX()>0.7*root.getWidth()) {
                     theater_mode.setCycledNapplyValue();
                 } else {
                     showThumbnails.setCycledNapplyValue();
@@ -246,11 +261,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         d(() -> folder.removeListener(locationChange));
         
         // accept drag transfer
-        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
-        entireArea.setOnDragOver(DragUtil.imageFileDragAccepthandler);
-        entireArea.setOnDragOver(DragUtil.fileDragAccepthandler);
+        root.setOnDragOver(DragUtil.audioDragAccepthandler);
+        root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
+        root.setOnDragOver(DragUtil.fileDragAccepthandler);
         // handle drag transfers
-        entireArea.setOnDragDropped(e -> {
+        root.setOnDragDropped(e -> {
             if(e.getDragboard().hasFiles()) {
                 dataChanged(e.getDragboard().getFiles().get(0));
                 e.setDropCompleted(true);
@@ -278,7 +293,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         });
         
         // consume scroll event to prevent app scroll behavior // optional
-        entireArea.setOnScroll(Event::consume);
+        root.setOnScroll(Event::consume);
     }
     
     /** {@inheritDoc} */
@@ -477,7 +492,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         }
     }
     
-    public void nextImage() {
+    public void nextImage() {System.out.println("NEXT");
         if (images.size()==1) return;
         if (images.isEmpty()) {
             setImage(-1);
@@ -506,12 +521,12 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private void applyTheaterMode(boolean v) {
         if(v && itemPane==null) {
             itemPane = new ItemInfo(false);
-            entireArea.getChildren().add(itemPane);
+            root.getChildren().add(itemPane);
             itemPane.toFront();
             AnchorPane.setBottomAnchor(itemPane, 20d);
             AnchorPane.setRightAnchor(itemPane, 20d);
             itemPane.setValue("", data);
-            entireArea.pseudoClassStateChanged(getPseudoClass("theater"), v);
+            root.pseudoClassStateChanged(getPseudoClass("theater"), v);
 
             itemPane.setOnMouseClicked(ee -> {
                 if(ee.getButton()==SECONDARY) {

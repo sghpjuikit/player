@@ -1,36 +1,39 @@
 package Layout.WidgetImpl;
 
+import java.util.*;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.Event;
+import javafx.fxml.FXML;
+import javafx.geometry.HPos;
+import javafx.geometry.Pos;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.*;
+
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.Configuration;
 import Configuration.IsConfig;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.APP;
 import Layout.Widgets.controller.ClassController;
 import Layout.Widgets.feature.ConfiguringFeature;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import gui.itemnode.ConfigField;
 import gui.objects.icon.Icon;
-import java.util.*;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.Event;
-import javafx.fxml.FXML;
-import javafx.geometry.HPos;
+import util.access.Var;
+import util.graphics.fxml.ConventionFxmlLoader;
+
+import static Layout.Widgets.Widget.Group.APP;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.geometry.HPos.LEFT;
 import static javafx.geometry.HPos.RIGHT;
-import javafx.geometry.Pos;
 import static javafx.geometry.Pos.CENTER;
-import javafx.scene.control.Accordion;
-import javafx.scene.control.TitledPane;
-import javafx.scene.layout.*;
 import static javafx.scene.layout.Priority.ALWAYS;
-import static util.Util.setAnchors;
-import util.access.Accessor;
 import static util.functional.Util.byNC;
 import static util.functional.Util.list;
-import util.graphics.fxml.ConventionFxmlLoader;
+import static util.graphics.Util.setAnchors;
 @IsWidget
 @Widget.Info(
     author = "Martin Polakovic",
@@ -59,11 +62,11 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
     // auto applied configurables
     @IsConfig(name = "Field names alignment", info = "Alignment of field names.")
-    public final Accessor<HPos> alignemnt = new Accessor<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
+    public final Var<HPos> alignemnt = new Var<>(RIGHT, v -> groups.forEach((n, g) -> g.grid.getColumnConstraints().get(0).setHalignment(v)));
     @IsConfig(name = "Group titles alignment", info = "Alignment of group names.")
     public final ObjectProperty<Pos> title_align = new SimpleObjectProperty<>(CENTER);
     @IsConfig(editable = false)
-    public final Accessor<String> expanded = new Accessor<>("", v -> {
+    public final Var<String> expanded = new Var<>("", v -> {
         if (groups.containsKey(v))
             accordion.setExpandedPane(groups.get(v).pane);
     });
@@ -78,6 +81,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         // and we need widget to be in non-simple mode, hence param==false
         this(false);
     }
+    
     /**
      * @param simple simple mode==true hides home button and categories
      */
@@ -147,7 +151,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         if(single) {
             Pane t = list(groups.values()).get(0).grid;
             ((AnchorPane)accordion.getParent()).getChildren().add(t);
-            setAnchors(t,0);
+            setAnchors(t,0d);
         } else {
             groups.values().stream()
                 .sorted(byNC(ConfigGroup::name))

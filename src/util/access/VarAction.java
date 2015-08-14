@@ -16,14 +16,14 @@ import static util.functional.Util.map;
  */
 @TODO(purpose = TODO.Purpose.UNIMPLEMENTED, note = "Action.class should be implemented so "
         + "this class is unneeded. It involves separating toS and toString methods. Research.")
-public class AccessorAction extends AccessorEnum<String> {
+public class VarAction extends VarEnum<String> {
     
     
-    public AccessorAction(Action a, Consumer<Action> applier) {
+    public VarAction(Action a, Consumer<Action> applier) {
         super(a.getName(), applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> map(Action.getActions(), Action::getName));
     }
     
-    public AccessorAction(String action_name, Consumer<Action> applier) {
+    public VarAction(String action_name, Consumer<Action> applier) {
         super(action_name, applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> map(Action.getActions(), Action::getName));
     }
     

@@ -53,8 +53,8 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.stage.WindowEvent.WINDOW_HIDDEN;
-import static util.Util.setAnchors;
 import static util.functional.Util.mapB;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
@@ -283,7 +283,7 @@ public final class AreaControls {
                 sc.getStyleClass().addAll("block", "area", "widget-area");// imitate area looks
                 sc.setOnMouseClicked(me->{ if(me.getButton()==SECONDARY) closeAndDo(sc, () -> openAndDo(area.content_root, null)); });
                 area.root.getChildren().add(sc);
-                setAnchors(sc, 0);
+                setAnchors(sc, 0d);
                 openAndDo(sc, null);
             });
         }
@@ -317,7 +317,7 @@ public final class AreaControls {
                         area.root.getChildren().remove(w.root);
                         Layouter l = new Layouter(area.container, area.index);
                         area.root.getChildren().add(l.root);
-                        setAnchors(l.root, 0);
+                        setAnchors(l.root, 0d);
 //                        openAndDo(l.getRoot(), null);
                         l.show();
                         l.cp.onCancel = () -> {
@@ -339,7 +339,7 @@ public final class AreaControls {
                     });
                 };
                 area.root.getChildren().add(w.getNode());
-                setAnchors(w.getNode(), 0);
+                setAnchors(w.getNode(), 0d);
 
                 openAndDo(w.getNode(), null);
             });
@@ -364,7 +364,7 @@ public final class AreaControls {
                         closeAndDo(s, () -> openAndDo(area.content_root, null));
                 });
                 area.root.getChildren().add(s);
-                setAnchors(s, 0);
+                setAnchors(s, 0d);
                 openAndDo(s, null);
             });
         }
@@ -407,7 +407,7 @@ public final class AreaControls {
         Node n = area.getActiveWidget().getController().getActivityNode();
         if(n!=null && !root.getChildren().contains(n)) {
             root.getChildren().add(n);
-            setAnchors(n, 0);
+            setAnchors(n, 0d);
             n.toBack();
         }
         //set state

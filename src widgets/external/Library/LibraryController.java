@@ -61,6 +61,7 @@ import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.ExecuteN;
 import util.async.executor.FxTimer;
+import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
 import util.units.FormattedDuration;
@@ -79,12 +80,14 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static util.File.FileUtil.getCommonRoot;
 import static util.File.FileUtil.getFilesAudio;
-import static util.Util.*;
+import static util.Util.menuItem;
+import static util.Util.menuItems;
 import static util.animation.Anim.Interpolators.reverse;
 import static util.async.Async.FX;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.map;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 
@@ -118,7 +121,7 @@ public class LibraryController extends FXMLController implements SongReader {
     private final InfoTask taskInfo = new InfoTask(null, new Label(), new Spinner()){
         Anim a;
         {
-            a = new Anim(at->setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
+            a = new Anim(at->Util.setScaleXY(progressIndicator,at*at)).dur(500).intpl(new ElasticInterpolator());
         }
         @Override
         public void setVisible(boolean v) {
@@ -134,7 +137,7 @@ public class LibraryController extends FXMLController implements SongReader {
         }
     };
     private final FxTimer hideInfo = new FxTimer(5000, 1, 
-        new Anim(at->setScaleXY(taskInfo.progressIndicator,at*at)).dur(500)
+        new Anim(at->Util.setScaleXY(taskInfo.progressIndicator,at*at)).dur(500)
                 .intpl(reverse(new ElasticInterpolator())).then(taskInfo::hideNunbind)::play);
     private final FilteredTable<Metadata,Metadata.Field> table = new FilteredTable<>(Metadata.EMPTY.getMainField());
     private final SelectionMenuItem editOnAdd_menuItem = new SelectionMenuItem("Edit added items",false);
@@ -169,7 +172,7 @@ public class LibraryController extends FXMLController implements SongReader {
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
-        setAnchors(table.getRoot(),0);
+        setAnchors(table.getRoot(),0d);
         
         // table properties
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);

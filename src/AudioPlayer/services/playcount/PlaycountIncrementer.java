@@ -14,7 +14,7 @@ import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import main.App;
-import util.access.Accessor;
+import util.access.Var;
 
 import static AudioPlayer.services.playcount.PlaycountIncrementer.PlaycountIncrStrategy.*;
 import static java.awt.TrayIcon.MessageType.INFO;
@@ -27,15 +27,15 @@ import static util.functional.Util.min;
 public class PlaycountIncrementer extends ServiceBase {
     
     @IsConfig(name="Incrementing strategy", info = "Playcount strategy for incrementing playback.")
-    public final Accessor<PlaycountIncrStrategy> when = new Accessor<>(ON_PERCENT,this::apply);
+    public final Var<PlaycountIncrStrategy> when = new Var<>(ON_PERCENT,this::apply);
     @IsConfig(name="Increment at percent", info = "Percent at which playcount is incremented.")
-    public final Accessor<Double> when_percent = new Accessor<>(0.4,this::apply);
+    public final Var<Double> when_percent = new Var<>(0.4,this::apply);
     @IsConfig(name="Increment at time", info = "Time at which playcount is incremented.")
-    public final Accessor<Duration> when_time = new Accessor<>(seconds(5),this::apply);
+    public final Var<Duration> when_time = new Var<>(seconds(5),this::apply);
     @IsConfig(name="Show notification", info = "Shows notification when playcount is incremented.")
-    public final Accessor<Boolean> show_notif = new Accessor<>(false);
+    public final Var<Boolean> show_notif = new Var<>(false);
     @IsConfig(name="Show tray bubble", info = "Shows tray bubble notification when playcount is incremented.")
-    public final Accessor<Boolean> show_bubble = new Accessor<>(false);
+    public final Var<Boolean> show_bubble = new Var<>(false);
 
     private final Runnable incr = this::increment;
     private PlayTimeHandler incrHand;

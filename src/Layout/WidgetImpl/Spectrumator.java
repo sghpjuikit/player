@@ -6,13 +6,13 @@
 
 package Layout.WidgetImpl;
 
-import Layout.Widgets.ClassWidget;
 import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.ClassController;
 import gui.objects.Spectrum;
+
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-import static util.Util.setAnchors;
+import static util.graphics.Util.setAnchors;
 
 /**
  *
@@ -43,7 +43,7 @@ public class Spectrumator extends ClassController  {
         
         
         this.getChildren().add(spectr);
-        setAnchors(spectr, 0);
+        setAnchors(spectr, 0d);
         
         // we only need to start listening once, so do it here rather than in
         // refresh(). In fact that would have an effect of multiplying the

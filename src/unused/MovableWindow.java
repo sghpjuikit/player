@@ -8,6 +8,7 @@ package unused;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -15,7 +16,8 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
-import util.Util;
+
+import static util.graphics.Util.setAnchors;
 
 /**
  * @author uranium
@@ -96,7 +98,7 @@ public class MovableWindow extends Movable {
     public void setContent(Node c) {
         content.getChildren().clear();
         content.getChildren().add(c);
-        Util.setAnchors(c, 0);
+        setAnchors(c, 0d);
         content.setEffect(null);
     }
     

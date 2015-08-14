@@ -1,4 +1,19 @@
 
+
+.pane {
+    -fx-backgroud-color: white;
+}
+
+
+.nav-pane {}
+.nav-pane:hover {
+    -fx-backgroud-color: red;//rgba(0,0,0,0.2);
+}
+
+.nav {
+    -fx-backgroud-color: white;
+}
+
 // root of the widget
 .img-viewer-root {}
 // theater mode
@@ -16,10 +31,4 @@
 	-fx-background-color: rgba(20,20,20,0.7);
 	-fx-background-radius: 5;
 	-fx-text-fill: white;
-}
-
-
-.nav-pane {}
-.nav-pane:hover {
-    -fx-backgroud-color: rgba(0,0,0,0.2);
 }

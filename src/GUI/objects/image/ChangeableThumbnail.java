@@ -5,25 +5,28 @@
  */
 package gui.objects.image;
 
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
 import java.io.File;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import javafx.css.PseudoClass;
-import static javafx.css.PseudoClass.getPseudoClass;
-import static javafx.scene.input.DragEvent.DRAG_EXITED;
-import static javafx.scene.input.DragEvent.DRAG_OVER;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
+
 import util.File.Environment;
-import static util.Util.setAnchors;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
+import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.scene.input.DragEvent.DRAG_EXITED;
+import static javafx.scene.input.DragEvent.DRAG_OVER;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static util.graphics.Util.setAnchors;
 
 /**
  * Thumbnail which can accept a file. A custom action invoked afterwards can be 
@@ -56,7 +59,7 @@ public class ChangeableThumbnail extends Thumbnail {
         super();
         
         root.getChildren().add(rt);
-        setAnchors(rt,0);
+        setAnchors(rt,0d);
         
         // cover add icon
         icon = Icons.createIcon(PLUS, 40);

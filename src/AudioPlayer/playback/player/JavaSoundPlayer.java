@@ -1,24 +1,21 @@
 package AudioPlayer.playback.player;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javafx.scene.media.MediaPlayer.Status;
+import javafx.util.Duration;
+
+import AudioPlayer.Item;
+import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playback.player.xtrememp.audio.AudioPlayer;
 import AudioPlayer.playback.player.xtrememp.audio.PlaybackEvent;
 import AudioPlayer.playback.player.xtrememp.audio.PlaybackListener;
 import AudioPlayer.playback.player.xtrememp.audio.PlayerException;
-import AudioPlayer.Item;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javafx.scene.media.MediaPlayer.Status;
-
-import static javafx.scene.media.MediaPlayer.Status.PAUSED;
-import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.scene.media.MediaPlayer.Status.STOPPED;
-
-import javafx.util.Duration;
-
+import static javafx.scene.media.MediaPlayer.Status.*;
 import static javafx.util.Duration.millis;
 import static util.async.Async.runLater;
 
@@ -28,14 +25,13 @@ import static util.async.Async.runLater;
  */
 public class JavaSoundPlayer implements Play {
     
-    public final AudioPlayer p = new AudioPlayer();
+    private final AudioPlayer p = new AudioPlayer();
     private double seeked = 0;
     
     public JavaSoundPlayer() {
         p.addPlaybackListener(new PlaybackListener() {
 
-            @Override public void playbackBuffering(PlaybackEvent pe) {
-            }
+            @Override public void playbackBuffering(PlaybackEvent pe) {}
 
             @Override public void playbackOpened(PlaybackEvent pe) {
                 Duration d = millis(p.getDuration()/1000);
@@ -77,8 +73,7 @@ public class JavaSoundPlayer implements Play {
                     }
             }
 
-            @Override public void playbackStopped(PlaybackEvent pe) {
-            }
+            @Override public void playbackStopped(PlaybackEvent pe) {}
         });
     }
     
@@ -130,18 +125,20 @@ public class JavaSoundPlayer implements Play {
 
     @Override
     public void resume() {
-        try {
-            p.play();
-        } catch (PlayerException ex) {
-            ex.printStackTrace();
-            Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        Player.IO_THREAD.execute( () -> {
+            try {
+                p.play();
+            } catch (PlayerException ex) {
+                ex.printStackTrace();
+                Logger.getLogger(JavaSoundPlayer.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
         PLAYBACK.state.status.set(PLAYING);
     }
 
     @Override
     public void seek(Duration duration) {
-        // this player's seeking is requires us to know the new
+        // this player's seeking requires us to know the new
         // starting position to calculate new current position (see the listener
         // in constructor)
         seeked = duration.toMillis();

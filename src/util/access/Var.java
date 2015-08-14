@@ -18,20 +18,20 @@ import javafx.beans.property.SimpleObjectProperty;
  * 
  * @author Plutonium_
  */
-public class Accessor<V> extends SimpleObjectProperty<V> implements ApplicableValue<V> {
+public class Var<V> extends SimpleObjectProperty<V> implements ApplicableValue<V> {
     
     private Consumer<V> applier;
     
-    public Accessor(V val) {
+    public Var(V val) {
         setValue(val);
     }
     
-    public Accessor(V val, Consumer<V> applier) {
+    public Var(V val, Consumer<V> applier) {
         this(val);
         setApplier(applier);
     }
     
-    public Accessor(V val, Runnable applier) {
+    public Var(V val, Runnable applier) {
         this(val,v -> applier.run());
     }
     

@@ -22,34 +22,32 @@ import AudioPlayer.services.Service.ServiceBase;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.objects.Window.stage.Window;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import main.App;
-import util.access.Accessor;
+import util.access.Var;
 
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import static util.Util.setAnchors;
+import static util.graphics.Util.setAnchors;
 
 /**
  * 
  * @author uranium
  */
-@Immutable
 @IsConfigurable
 public class ClickEffect extends ServiceBase {
     
     // configuration
     @IsConfig(name = "Show click effect", info = "Show effect on click.")
-    public final Accessor<Boolean> show_clickEffect = new Accessor<>(true,this::applyC);
+    public final Var<Boolean> show_clickEffect = new Var<>(true,this::applyC);
     @IsConfig(name = "Click effect duration", info = "Duration of the click effect in milliseconds.")
-    public final Accessor<Double> DURATION = new Accessor<>(350d,this::apply);
+    public final Var<Double> DURATION = new Var<>(350d,this::apply);
     @IsConfig(name = "Click effect min", info = "Starting scale value of cursor click effect animation.")
-    public final Accessor<Double> MIN_SCALE = new Accessor<>(0.2d,this::apply);
+    public final Var<Double> MIN_SCALE = new Var<>(0.2d,this::apply);
     @IsConfig(name = "Click effect max", info = "Ending scale value of cursor click effect animation.")
-    public final Accessor<Double> MAX_SCALE = new Accessor<>(0.7d,this::apply);
+    public final Var<Double> MAX_SCALE = new Var<>(0.7d,this::apply);
     @IsConfig(name="Click effect delay", info = "Delay of the click effect in milliseconds.")
-    public final Accessor<Double> DELAY = new Accessor<>(0d,this::apply);
+    public final Var<Double> DELAY = new Var<>(0d,this::apply);
     @IsConfig(name="Blend Mode", info = "Blending mode for the effect.")
-    public final Accessor<BlendMode> blend_mode = new Accessor<>(BlendMode.SRC_OVER,this::apply);
+    public final Var<BlendMode> blend_mode = new Var<>(BlendMode.SRC_OVER,this::apply);
     
     private void applyC() {
         if(show_clickEffect.get()) Window.windows.forEach(w -> w.getStage().getScene().getRoot().addEventFilter(MOUSE_PRESSED, clickHandler));
@@ -115,7 +113,7 @@ public class ClickEffect extends ServiceBase {
 
         AnchorPane p = (AnchorPane) App.getWindow().getStage().getScene().getRoot();
         p.getChildren().add(screen);
-        setAnchors(screen,0);
+        setAnchors(screen,0d);
     }
 
     @Override

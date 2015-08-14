@@ -1,17 +1,8 @@
 
 package Layout.Areas;
 
-import util.graphics.drag.DragUtil;
-import gui.GUI;
-import static gui.GUI.closeAndDo;
-import gui.objects.icon.Icon;
-import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
-import Layout.BiContainer;
-import Layout.Component;
-import Layout.Container;
-import Layout.Widgets.Widget;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import java.io.IOException;
+
 import javafx.animation.FadeTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
@@ -19,30 +10,42 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import static javafx.geometry.Orientation.HORIZONTAL;
-import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
-import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.TilePane;
+
+import Layout.BiContainer;
+import Layout.Component;
+import Layout.Container;
+import Layout.Widgets.Widget;
+import gui.GUI;
+import gui.objects.icon.Icon;
 import unused.SimplePositionable;
-import static util.Util.setAnchors;
+import util.collections.map.PropertyMap;
+import util.dev.TODO;
+import util.graphics.drag.DragUtil;
+
+import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.GUI.closeAndDo;
+import static javafx.geometry.Orientation.HORIZONTAL;
+import static javafx.geometry.Orientation.VERTICAL;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static util.access.SequentialValue.next;
 import static util.async.Async.run;
 import static util.async.Async.runFX;
-import util.collections.map.PropertyMap;
-import util.dev.TODO;
 import static util.dev.TODO.Purpose.UNIMPLEMENTED;
 import static util.dev.TODO.Severity.MEDIUM;
 import static util.functional.Util.mapB;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
@@ -262,7 +265,7 @@ public final class Splitter implements ContainerNode {
             
             
         r.getChildren().setAll(content);
-        setAnchors(content,0);
+        setAnchors(content,0d);
     }
     
     public void setChild1(Component w) {

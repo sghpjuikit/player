@@ -44,9 +44,9 @@ import gui.objects.TableCell.NumberRatingCellFactory;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
-import util.access.AccessorEnum;
 import util.access.FieldValue.FieldEnum.ColumnField;
 import util.access.OVal;
+import util.access.VarEnum;
 import util.async.executor.ExecuteN;
 import util.collections.Histogram;
 import util.collections.TupleM6;
@@ -73,10 +73,12 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.TransferMode.COPY;
 import static javafx.stage.WindowEvent.WINDOW_SHOWN;
-import static util.Util.*;
+import static util.Util.menuItem;
+import static util.Util.menuItems;
 import static util.async.future.Fut.fut;
 import static util.collections.Tuples.tuple;
 import static util.functional.Util.*;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 @Info(
@@ -124,7 +126,7 @@ public class LibraryViewController extends FXMLController {
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
     @IsConfig(name = "Field")
-    public final AccessorEnum<Metadata.Field> fieldFilter = new AccessorEnum<>(CATEGORY, this::applyData,
+    public final VarEnum<Metadata.Field> fieldFilter = new VarEnum<>(CATEGORY, this::applyData,
         ()->filter(Metadata.Field.values(), Field::isTypeStringRepresentable)
     );
     
@@ -138,7 +140,7 @@ public class LibraryViewController extends FXMLController {
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
-        setAnchors(table.getRoot(),0);
+        setAnchors(table.getRoot(),0d);
         
         // table properties
         table.setFixedCellSize(GUI.font.getValue().getSize() + 5);

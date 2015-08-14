@@ -5,26 +5,21 @@
  */
 package gui.InfoNode;
 
-import AudioPlayer.Item;
-
-import static gui.objects.image.cover.Cover.CoverSource.ANY;
-
-import AudioPlayer.tagging.Metadata;
-import Layout.Widgets.feature.SongReader;
-import gui.objects.image.Thumbnail;
-
-import java.net.URL;
 import java.util.List;
 import java.util.Objects;
-import java.util.ResourceBundle;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 
-import static util.Util.setAnchors;
-
+import AudioPlayer.Item;
+import AudioPlayer.tagging.Metadata;
+import Layout.Widgets.feature.SongReader;
+import gui.objects.image.Thumbnail;
 import util.graphics.fxml.ConventionFxmlLoader;
+
+import static gui.objects.image.cover.Cover.CoverSource.ANY;
+import static util.graphics.Util.setAnchors;
 
 /** Info about song. */
 public class ItemInfo extends AnchorPane implements SongReader {
@@ -50,7 +45,7 @@ public class ItemInfo extends AnchorPane implements SongReader {
             // create
             thumb = new Thumbnail();
             coverContainer.getChildren().add(thumb.getPane());
-            setAnchors(thumb.getPane(),0);
+            setAnchors(thumb.getPane(),0d);
         } else {
             thumb = null;
             // remove cover

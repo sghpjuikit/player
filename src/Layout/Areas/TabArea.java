@@ -1,20 +1,11 @@
 
 package Layout.Areas;
 
-import Configuration.Configurable;
-import gui.objects.Window.stage.ContextManager;
-import util.graphics.drag.DragUtil;
-import gui.GUI;
-import gui.objects.Window.stage.Window;
-import Layout.Component;
-import Layout.Container;
-import Layout.PolyContainer;
-import Layout.Widgets.Widget;
 import java.io.IOException;
 import java.util.Collection;
-import static java.util.Collections.*;
 import java.util.List;
 import java.util.Objects;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -22,12 +13,24 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.Dragboard;
-import static javafx.scene.input.MouseButton.PRIMARY;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+
+import Configuration.Configurable;
+import Layout.Component;
+import Layout.Container;
+import Layout.PolyContainer;
+import Layout.Widgets.Widget;
+import gui.GUI;
+import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.Window;
 import unused.Log;
-import static util.Util.setAnchors;
+import util.graphics.drag.DragUtil;
+
+import static java.util.Collections.*;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.functional.Util.isNotNULL;
+import static util.graphics.Util.setAnchors;
 
 /**
  * Implementation of PolyArea.
@@ -61,7 +64,7 @@ public final class TabArea extends PolyArea {
         // load controls
         controls = new AreaControls(this);
         content_root.getChildren().add(controls.root);
-        setAnchors(controls.root, 0);
+        setAnchors(controls.root, 0d);
         
         // support drag from
         root.setOnDragDetected( e -> {

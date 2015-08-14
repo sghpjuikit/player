@@ -18,7 +18,7 @@ import org.reactfx.Subscription;
 
 import unused.Log;
 import util.Util;
-import util.access.Accessor;
+import util.access.Var;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.OVal;
@@ -290,12 +290,12 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     public static <T> Config<T> forValue(String name, Object value) {
         forbidNull(value, "Config can not be created for null");
         if(value instanceof Config ||
-           value instanceof ListAccessor ||
+           value instanceof VarList ||
            value instanceof WritableValue ||
            value instanceof ReadOnlyProperty)
             throw new RuntimeException("Value " + value + "is a property and can"
                     + "not be turned into Config as value.");
-        return forProperty(name, new Accessor<>(value));
+        return forProperty(name, new Var<>(value));
     }
     
     /**
@@ -310,7 +310,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * The property must be instance of any of:
      * <ul>
      * <li> {@link Config}
-     * <li> {@link ListAccessor}
+     * <li> {@link VarList}
      * <li> {@link WritableValue}
      * <li> {@link ReadOnlyProperty}
      * </ul>
@@ -320,8 +320,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     public static <T> Config<T> forProperty(String name, Object property) {
         if(property instanceof Config)
             return (Config<T>)property;
-        if(property instanceof ListAccessor)
-            return new ListConfig(name,(ListAccessor)property);
+        if(property instanceof VarList)
+            return new ListConfig(name,(VarList)property);
         if(property instanceof WritableValue)
             return new PropertyConfig<>(name,(WritableValue<T>)property);
         if(property instanceof ReadOnlyProperty)
@@ -657,17 +657,17 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     }
     public static final class ListConfig<T> extends ConfigBase<ObservableList<T>> {
         
-        public final ListAccessor<T> a;
+        public final VarList<T> a;
         
-        public ListConfig(String name, IsConfig c, ListAccessor<T> val, String category) {
+        public ListConfig(String name, IsConfig c, VarList<T> val, String category) {
             super(name, c, val.getValue(), category);
             a = val;
         }
-        public ListConfig(String name, String gui_name, ListAccessor<T> val, String category, String info, boolean editable, double min, double max) {
+        public ListConfig(String name, String gui_name, VarList<T> val, String category, String info, boolean editable, double min, double max) {
             super(name, gui_name, val.getValue(), category, info, editable, min, max);
             a = val;
         }
-        public ListConfig(String name, ListAccessor<T> val) {
+        public ListConfig(String name, VarList<T> val) {
             this(name, name, val, "", "", true, Double.NaN, Double.NaN);
         }
 
@@ -751,12 +751,12 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         
     }
     
-    public static class ListAccessor<T> extends Accessor<ObservableList<T>> {
+    public static class VarList<T> extends Var<ObservableList<T>> {
         public final ObservableList<T> list;
         public final Supplier<T> factory;
         public final F1<T,Configurable<?>> toConfigurable;
         
-        public ListAccessor(Supplier<T> factory, F1<T,Configurable<?>> toConfigurable) {
+        public VarList(Supplier<T> factory, F1<T,Configurable<?>> toConfigurable) {
             // construct the list and inject it as value (by calling setValue)
             super(observableArrayList());
             // remember the reference
@@ -779,12 +779,12 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
          * Clears list and adds items to it. Fires 1 event.
          * Fluent API - returns this object. This is to avoid multiple constructors.
          */
-        public ListAccessor<T> setItems(Collection<? extends T> items) {
+        public VarList<T> setItems(Collection<? extends T> items) {
             list.setAll(items);
             return this;
         }
         /** Array version of {@link #setItems(java.util.Collection)}*/
-        public ListAccessor<T> setItems(T... items) {
+        public VarList<T> setItems(T... items) {
             list.setAll(items);
             return this;
         }

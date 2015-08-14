@@ -159,12 +159,24 @@ public class Icon<I extends Icon> extends Text {
         return styleclass("embedded-icon");
     } 
     
-    
+    /** Equivalent to {@code setOnMouseClicked(action);}. Returns this icon (fluent API). */
     public final I onClick(EventHandler<MouseEvent> action) {
-        if(action!=null) setOnMouseClicked(action);
+        setOnMouseClicked(action);
         return (I)this;
     }
     
+    /** 
+     * Creates and sets onMouseClick handler. Can also set tooltip. Returns this icon (fluent API).
+     * <p>
+     * The handler executes the action only on left button click
+     * THe handler can be retrieved or removed using {@link #getOnMouseClicked()} and 
+     * {@link #setOnMouseClicked(javafx.event.EventHandler)}.
+     * 
+     * @param action Action to execute on left mouse click. If instance of {@link Action} tooltip is
+     * set, with text set to {@link Action#getInfo()}. Null removes mouse click handler (but not the
+     * tooltip).
+     * @return this.
+     */
     public final I onClick(Runnable action) {
         if(action instanceof Action) tooltip(((Action)action).getInfo());
         click_runnable = action;

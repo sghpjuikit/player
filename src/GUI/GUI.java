@@ -7,23 +7,37 @@ import Layout.Layout;
 import Layout.LayoutManager;
 import action.IsAction;
 import action.IsActionable;
+
 import com.sun.javafx.css.StyleManager;
+
 import static gui.GUI.OpenStrategy.INSIDE;
+
 import gui.LayoutAggregators.LayoutAggregator;
 import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Window.stage.Window;
+
 import java.io.File;
+
 import static java.io.File.separator;
+
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+
 import static java.util.Collections.EMPTY_LIST;
+
 import java.util.List;
+
 import static java.util.stream.Collectors.toList;
+
 import javafx.animation.*;
+
 import static javafx.animation.Interpolator.LINEAR;
+
 import javafx.application.Application;
+
 import static javafx.application.Application.STYLESHEET_CASPIAN;
 import static javafx.application.Application.STYLESHEET_MODENA;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -32,22 +46,33 @@ import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
+
 import static javafx.scene.text.FontPosture.ITALIC;
 import static javafx.scene.text.FontPosture.REGULAR;
+
 import javafx.scene.text.FontWeight;
+
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
+
 import javafx.util.Duration;
+
 import static javafx.util.Duration.millis;
+
 import main.App;
 import util.File.FileUtil;
+
 import static util.Util.capitalizeStrong;
-import util.access.Accessor;
-import util.access.AccessorEnum;
+
+import util.access.Var;
+import util.access.VarEnum;
 import util.animation.interpolator.CircularInterpolator;
+
 import static util.animation.interpolator.EasingMode.EASE_OUT;
+
 import unused.Log;
 import util.dev.TODO;
+
 import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 
 /**
@@ -64,7 +89,7 @@ public class GUI {
         
     // applied configs
     @IsConfig(name = "Skin", info = "Application skin.")
-    public static final AccessorEnum<String> skin = new AccessorEnum<>("Default", GUI::setSkin, GUI::getSkins);
+    public static final VarEnum<String> skin = new VarEnum<>("Default", GUI::setSkin, GUI::getSkins);
     /**
      * Font of the application. Overrides font defined by skin. The font can be 
      * overridden programmatically or stylesheet.
@@ -73,7 +98,7 @@ public class GUI {
      * nothing.
      */
     @IsConfig(name = "Font", info = "Application font.")
-    public static final Accessor<Font> font = new Accessor<>(Font.getDefault(), GUI::applyFont);
+    public static final Var<Font> font = new Var<>(Font.getDefault(), GUI::applyFont);
     
     // non applied configs
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
@@ -87,9 +112,9 @@ public class GUI {
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static Duration duration_LM = millis(250);
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
-    public static final Accessor<Boolean> snapping = new Accessor(true);
+    public static final Var<Boolean> snapping = new Var(true);
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-    public static final Accessor<Double> snapDistance = new Accessor(6d);
+    public static final Var<Double> snapDistance = new Var(6d);
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {

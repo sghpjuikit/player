@@ -1,15 +1,19 @@
 
 package Layout;
 
-import Layout.Areas.TabArea;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javafx.scene.Node;
+
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import Layout.Areas.TabArea;
 import util.dev.TODO;
-import static util.Util.setAnchors;
+
+import static util.graphics.Util.setAnchors;
 
 /**
  * Implementation of {@link Container Container} containing multiple components.
@@ -37,7 +41,7 @@ public final class PolyContainer extends Container {
         
         // load gui
         root.getChildren().setAll(gui.root);
-        setAnchors(gui.root,0);
+        setAnchors(gui.root,0d);
         
         // we need to initialize the tabs
         // no need to take car eof selection, since we do not change it

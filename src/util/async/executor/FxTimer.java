@@ -77,6 +77,11 @@ public class FxTimer {
         FxTimer.this.start(Duration.millis(periodInMs));
     }
     
+    /** Equivalent to {@link #start()} or {@link #start()} when using true, respectively false. */
+    public void setRunning(boolean b) {
+        if(b) start(); else stop();
+    }
+    
     public void runNow() {
         if(action!=null) action.run();
     }

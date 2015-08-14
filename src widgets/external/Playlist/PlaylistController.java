@@ -35,8 +35,8 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.icon.Icon;
 import main.App;
 import unused.SimpleConfigurator;
-import util.access.Accessor;
 import util.access.OVal;
+import util.access.Var;
 import util.async.executor.ExecuteN;
 import util.units.FormattedDuration;
 
@@ -47,8 +47,8 @@ import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static util.Util.menuItem;
-import static util.Util.setAnchors;
 import static util.functional.Util.isNotNULL;
+import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
 /**
@@ -103,7 +103,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
-    public final Accessor<Boolean> filter_for_playback = new Accessor<>(false, v -> {
+    public final Var<Boolean> filter_for_playback = new Var<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
                   + "to play only displayed items.";
         String on = "Disable filter for playback. Causes the playback "
@@ -140,7 +140,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         
         // add table to scene graph
         root.getChildren().add(table.getRoot());
-        setAnchors(table.getRoot(),0);
+        setAnchors(table.getRoot(),0d);
         
         // table properties
         table.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);

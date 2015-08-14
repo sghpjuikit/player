@@ -5,27 +5,29 @@
  */
 package Layout.WidgetImpl;
 
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.IsWidget;
-import Layout.Widgets.Widget;
-import static Layout.Widgets.Widget.Group.APP;
-import Layout.Widgets.controller.ClassController;
-import Layout.Widgets.feature.FileExplorerFeature;
-import gui.objects.tree.TreeItems;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.Optional;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
-import static javafx.css.PseudoClass.getPseudoClass;
 import javafx.event.Event;
 import javafx.scene.Node;
-import static javafx.scene.control.SelectionMode.MULTIPLE;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
-import static util.Util.setAnchors;
+
+import Layout.Widgets.IsWidget;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.ClassController;
+import Layout.Widgets.feature.FileExplorerFeature;
+import gui.objects.tree.TreeItems;
 import util.graphics.drag.DragUtil;
+
+import static Layout.Widgets.Widget.Group.APP;
+import static javafx.css.PseudoClass.getPseudoClass;
+import static javafx.scene.control.SelectionMode.MULTIPLE;
+import static util.graphics.Util.setAnchors;
 
 @IsWidget
 @Widget.Info(
@@ -54,7 +56,7 @@ public class Inspector extends ClassController implements FileExplorerFeature {
     
     public Inspector() {        
         getChildren().add(tree);
-        setAnchors(tree,0);
+        setAnchors(tree,0d);
         tree.getSelectionModel().setSelectionMode(MULTIPLE);
         tree.setCellFactory(TreeItems::buildTreeCell);
         tree.setRoot(TreeItems.treeApp());

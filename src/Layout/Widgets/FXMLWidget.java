@@ -31,7 +31,7 @@ public final class FXMLWidget extends Widget<FXMLController> {
     }
 
     @Override
-    public Node loadInitial() {System.out.println("name " + name);      
+    public Node loadInitial() {
         try {
             // instantiate controller
             initializeController();

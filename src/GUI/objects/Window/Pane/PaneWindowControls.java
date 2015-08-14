@@ -5,15 +5,9 @@
  */
 package gui.objects.Window.Pane;
 
-import gui.LayoutAggregators.SwitchPane;
-import gui.objects.Window.Resize;
-import static gui.objects.Window.Resize.*;
-import Layout.Component;
-import Layout.Layout;
-import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import java.io.*;
 import java.net.URL;
+
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -21,14 +15,23 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
-import static javafx.scene.paint.Color.BLACK;
 import javafx.scene.shape.Rectangle;
-import static util.Util.setAnchors;
+
+import Layout.Component;
+import Layout.Layout;
+import gui.LayoutAggregators.SwitchPane;
+import gui.objects.Window.Resize;
 import unused.Log;
+
+import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.objects.Window.Resize.*;
+import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
+import static javafx.scene.paint.Color.BLACK;
+import static util.graphics.Util.setAnchors;
 
 /**
  */
@@ -104,7 +107,7 @@ public class PaneWindowControls extends WindowPane {
     public void setContent(Node n) {
 	content.getChildren().clear();
 	content.getChildren().add(n);
-	setAnchors(n, 0);
+	setAnchors(n, 0d);
     }
 
     public void setContent(Component c) {
@@ -190,8 +193,8 @@ public class PaneWindowControls extends WindowPane {
     }
 
     public void setBorderless(boolean v) {
-	if (v) setAnchors(content, 0);
-	else setAnchors(content, 25, 5, 5, 5);
+	if (v) setAnchors(content, 0d);
+	else setAnchors(content, 25d,5d,5d,5d);
 	borders.setVisible(!v);
     }
 

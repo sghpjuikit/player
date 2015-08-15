@@ -15,6 +15,7 @@ import AudioPlayer.services.Service.ServiceBase;
 import AudioPlayer.services.notif.Notifier;
 import AudioPlayer.services.tray.TrayService;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataReader;
 import AudioPlayer.tagging.MetadataWriter;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
@@ -43,7 +44,8 @@ public class PlaycountIncrementer extends ServiceBase {
     public final Var<Boolean> show_bubble = new Var<>(false);
     @IsConfig(name="Delay writing", info = "Delays writing playcount to tag for more seamless "
             + "playback experience. In addition, reduces multiple consecutive increments in a row "
-            + "to a single operation. The writing happens when different song starts playing.")
+            + "to a single operation. The writing happens when different song starts playing "
+            + "(but the data in the application may update visually even later).")
     public final Var<Boolean> delay = new Var<>(true);
 
     private final Runnable incr = this::increment;
@@ -99,7 +101,7 @@ public class PlaycountIncrementer extends ServiceBase {
         Metadata m = Player.playingtem.get();
         if (!m.isEmpty() && m.isFileBased() ) {
             if(delay.get()) {
-                incQueue.add(m);
+                queue.add(m);
                 if(show_notif.get()) App.use(Notifier.class, n -> n.showTextNotification("Song playcount incrementing scheduled", "Playcount"));
                 if(show_bubble.get()) App.use(TrayService.class, t -> t.showNotification("Tagger", "Playcount incrememted scheduled", INFO));
             } else {
@@ -144,13 +146,17 @@ public class PlaycountIncrementer extends ServiceBase {
     }
     
     
-    private final List<Metadata> incQueue = new ArrayList<>();
+    private final List<Metadata> queue = new ArrayList<>();
+    
     private void incrementQueued(Metadata m) {
-        int x = (int) incQueue.stream().filter(i -> i.same(m)).count();
+        int x = (int) queue.stream().filter(i -> i.same(m)).count();
         if(x>0) {
-            incQueue.removeIf(i -> i.same(m));
+            queue.removeIf(i -> i.same(m));
             int pc = x + m.getPlaycount();
-            MetadataWriter.use(m, w -> w.setPlaycount(pc));
+            Player.IO_THREAD.execute(() -> {
+                MetadataWriter.useNoRefresh(m, w -> w.setPlaycount(pc));
+                Player.refreshItemWith(MetadataReader.create(m), true);
+            });
         }
     }
     

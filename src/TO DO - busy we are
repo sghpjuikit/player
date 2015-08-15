@@ -3,8 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- rich tooltips
-- seeker left vs right click, simplify behavior
+- seeker jerky position animation for short songs, use loop + prediction
 - file info animate labels
 - filesize use unsigned long
 - config field add checkbox list config field, implement for fileInfo

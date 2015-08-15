@@ -1067,11 +1067,11 @@ public final class Metadata extends MetaItem<Metadata> implements FieldedValue<M
         if (!(o instanceof Metadata)) return false;
         return Objects.equals(uri, ((Metadata)o).uri);
     }
-    
+
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (uri != null ? uri.hashCode() : 0);
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.uri);
         return hash;
     }
 

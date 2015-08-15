@@ -302,7 +302,6 @@ public abstract class Item<CT extends Item> implements Comparable<CT> {
     
 /******************************************************************************/
     
-    
     /**
      * <pre>
      * Natural sort order. Compares URI. Equivalent to:

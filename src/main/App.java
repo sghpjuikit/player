@@ -600,7 +600,7 @@ public class App extends Application {
     
     public static void refreshItemsFromFileJob(List<? extends Item> items) {
         Fut.fut()
-           .then(() -> Player.refreshItemsWithUpdated(MetadataReader.readMetadata(items)),Player.IO_THREAD)
+           .then(() -> Player.refreshItemsWith(MetadataReader.readMetadata(items)),Player.IO_THREAD)
            .showProgress(App.getWindow().taskAdd())
            .run(); 
     }
@@ -666,8 +666,8 @@ public class App extends Application {
             new ActionData<Void>(
                 "Export widget launchers",
                 "Creates launcher file in the destination directory for every widget.\n"
-                + "Launcher file is a file that when opened by this application the widget is "
-                + "opened. If application was not running before, it will not load normally, "
+                + "Launcher file is a file that when opened by this application opens the widget. "
+                + "If application was not running before, it will not load normally, "
                 + "but will only open the widget.\n"
                 + "Essentially, this exports the widgets as 'standalone' applications",
                 UPLOAD, 

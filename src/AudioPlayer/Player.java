@@ -22,13 +22,15 @@ import AudioPlayer.tagging.MetadataReader;
 import Layout.Widgets.controller.io.InOutput;
 import unused.Log;
 import util.async.Async;
+import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
-import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.DAYS;
+import static util.async.executor.EventReducer.toLast;
 import static util.dev.Util.forbidNull;
+import static util.functional.Util.list;
 
 /**
  *
@@ -72,69 +74,98 @@ public class Player {
         playingtem.onUpdate(playing.i::setValue);
     }
     
+/**************************************** ITEM REFRESHING *****************************************/
     
-    /** 
-     * Refreshes the given item for the whole application. Use when metadata of
-     * the item changed.
+    /** Singleton variant of {@link #refreshItems(java.util.List)}. */
+    public static void refreshItem(Item i) {
+        forbidNull(i);
+        refreshItems(list(i));
+    }
+    
+    /**
+     * Read metadata from tag of all items and invoke {@link #refreshItemsWith(java.util.List)}.
+     * <p>
+     * Safe to call from any thread.
+     * <p>
+     * Use when metadata of the items changed.
      */
-    public static void refreshItem(Item item) {
-        forbidNull(item);
+    public static void refreshItems(List<? extends Item> is) {
+        forbidNull(is);
+        if(is.isEmpty()) return;
         
-        MetadataReader.create(item, (ok,m) -> {
-            if (ok) refreshItemWithUpdated(m);
+        MetadataReader.readMetadata(is, (ok,m) -> {
+            if (ok) refreshItemsWith(m);
         });
     }
     
-    public static void refreshItems(List<? extends Item> items) {
-        forbidNull(items);
-        if(items.isEmpty()) return;
-        
-        MetadataReader.readMetadata(items, (ok,m) -> {
-            if (ok) refreshItemsWithUpdated(m);
-        });
-    }
-
-    
-    public static void refreshItemWithUpdated(Metadata m) {
+    /** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
+    public static void refreshItemWith(Metadata m) {
         forbidNull(m);
-
-        // update library
-        DB.updateItems(singletonList(m));
-        
-        Async.runFX(() -> {
-            // update all playlist items referring to this updated metadata
-            PlaylistManager.playlists.forEach(pl -> pl.stream().filter(p->p.same(m)).forEach(p -> p.update(m)));
-            
-            // refresh playing item data
-            if (playingtem.get().same(m)) playingtem.update(m);
-
-            // refresh playing item data
-            if(playing.i.getValue()!=null) if(playing.i.getValue().same(m)) playing.i.setValue(m);
-            if(playlistSelected.i.getValue()!=null) if(playlistSelected.i.getValue().same(m)) playlistSelected.i.setValue(m.toPlaylist());
-            if(librarySelected.i.getValue()!=null) if(librarySelected.i.getValue().same(m)) librarySelected.i.setValue(m);
-        });
+        refreshItemsWith(list(m));
+    }
+    /** Singleton variant of {@link #refreshItemsWith(java.util.List, boolean)}. */
+    public static void refreshItemWith(Metadata m, boolean allowDelay) {
+        forbidNull(m);
+        refreshItemsWith(list(m),allowDelay);
     }
     
-    public static void refreshItemsWithUpdated(List<Metadata> metas) {
-        forbidNull(metas);
-        if(metas.isEmpty()) return;
+    /** Simple version of {@link #refreshItemsWith(java.util.List, boolean) } with false argument. */
+    public static void refreshItemsWith(List<Metadata> ms) {
+        refreshItemsWith(ms, false);
+    }
+    
+    /**
+     * Updates application (playlist, library, etc.) with latest metadata. Refreshes the given 
+     * data for the whole application.
+     * <p>
+     * Safe to call from any thread.
+     * 
+     * @param ms metadata to refresh
+     * @param allowDelay flag for using delayed refresh to reduce refresh successions to single
+     * refresh. Normally false is used.
+     * <p>
+     * Use false to refresh immediatelly and true to queue the refresh for future 
+     * execution (will wait few seconds for next refresh request and if it comes, will wait again
+     * and so on until none will come, which is when all queued refreshes execute all at once).
+     */
+    public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
+        forbidNull(ms);
+        if(allowDelay) Async.runFX(() -> red.push(ms));
+        else refreshItemsWithNow(ms);
+    }
+    
+    // processes delayed refreshes - queues them up and invokes refresh after some time
+    // use only on fx thread
+    private static EventReducer<List<Metadata>> red = toLast(3000, (o,n) -> {
+        n.addAll(o);
+        return n;
+    }, Player::refreshItemsWithNow);
+    
+    // runs refresh on bgr thread, thread safe
+    private static void refreshItemsWithNow(List<Metadata> ms) {
+        forbidNull(ms);
+        if(ms.isEmpty()) return;
         
-        // metadata map hashed with resource identity : O(n^2) -> O(n)
-        MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,metas);
+        // always on br thread
+        IO_THREAD.execute(() -> {
+            // metadata map hashed with resource identity : O(n^2) -> O(n)
+            MapSet<URI,Metadata> mm = new MapSet<>(Metadata::getURI,ms);
 
-        // update library
-        DB.updateItems(metas);
-        
-        Async.runFX(() -> {
-            // update all playlist items referring to this updated metadata
-            PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
-            
-            // refresh playing item data
-            mm.ifHasE(playingtem.get(), playingtem::update);
-        
-            if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
-            if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
-            if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
+            // update library
+            DB.updatePer(ms);
+            DB.updateMemFromPer();
+
+            Async.runFX(() -> {
+                // update all playlist items referring to this updated metadata
+                PlaylistManager.playlists.forEach(pl -> pl.forEach(p -> mm.ifHasK(p.getURI(), p::update)));
+
+                // refresh playing item data
+                mm.ifHasE(playingtem.get(), playingtem::update);
+
+                if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
+                if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
+                if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
+            });
         });
     }
     

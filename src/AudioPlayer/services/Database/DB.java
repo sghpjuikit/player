@@ -20,7 +20,6 @@ import AudioPlayer.Item;
 import AudioPlayer.tagging.Metadata;
 import Layout.Widgets.controller.io.InOutput;
 import main.App;
-import util.async.Async;
 import util.async.future.Fut;
 import util.collections.map.MapSet;
 import util.functional.Functors.F2;
@@ -48,7 +47,7 @@ public class DB {
         new Fut<>()
             // load database
             .supply(DB::getAllItems)
-            .use(DB::updateLib, FX)
+            .use(DB::updateMem, FX)
             .then(() -> {
              // load string store
                 List<StringStore> sss = em.createQuery("SELECT p FROM StringStore p", StringStore.class).getResultList();
@@ -164,7 +163,7 @@ public class DB {
 //        return result;
 //    }
     
-    public static void addItems(List<Metadata> items) {
+    public static void addItems(Collection<? extends Metadata> items) {
         if (items.isEmpty()) return;
         // add to db
         em.getTransaction().begin();
@@ -173,10 +172,10 @@ public class DB {
         });
         em.getTransaction().commit();
        // update model
-        updateLib();
+        updateMemFromPer();
     }
     
-    public static void removeItems(List<Metadata> items) {
+    public static void removeItems(Collection<? extends Metadata> items) {
         // remove in db
         em.getTransaction().begin();
         items.forEach( m -> {
@@ -185,30 +184,28 @@ public class DB {
         });
         em.getTransaction().commit();
        // update model
-        updateLib();
+        updateMemFromPer();
     }
     
     public static void removeAllItems() {
         removeItems(items.i.getValue());
     }
     
-    public static void updateItems(List<Metadata> items) {
+    public static void updatePer(Collection<? extends Metadata> items) {
         // update db
         em.getTransaction().begin();
         items.forEach(em::merge);
         em.getTransaction().commit();
-        // update model on fx thread
-        Async.runFX(DB::updateLib);
-    }
-
-    public static void updateLib() {
-        updateLib(getAllItems());
     }
     
-    private static void updateLib(List<Metadata> l) {
+    private static void updateMem(List<Metadata> l) {
         items_byId.clear();
         items_byId.addAll(l);
         items.i.setValue(l);
+    }
+
+    public static void updateMemFromPer() {
+        updateMem(getAllItems());
     }
 
     

@@ -780,7 +780,7 @@ public class MetadataWriter extends MetaItem {
                 w.write();
             }
 
-            Player.refreshItemsWithUpdated(MetadataReader.readMetadata(items));
+            Player.refreshItemsWith(MetadataReader.readMetadata(items));
         });
     }
     
@@ -793,7 +793,7 @@ public class MetadataWriter extends MetaItem {
             runLater(() -> action.accept(b));
             
             Metadata m = MetadataReader.create(item);
-            if(!m.isEmpty()) Player.refreshItemWithUpdated(m);
+            if(!m.isEmpty()) Player.refreshItemWith(m);
         });
     }
     

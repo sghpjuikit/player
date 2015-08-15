@@ -14,6 +14,7 @@ import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
 
 import de.jensd.fx.glyphs.GlyphIcons;
@@ -32,6 +33,7 @@ import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
 import static util.functional.Util.*;
+import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchors;
 
 /**
@@ -65,18 +67,18 @@ public class ActionPane extends StackPane {
                 hide();
         });
         
-        
-        StackPane layout = new StackPane(dataInfo,icons,description);
+        StackPane layout = new StackPane(dataInfo,icons,desc);
                   layout.setMaxSize(600,400);
                   layout.getStyleClass().add(CONTENT_STYLECLASS);
         getChildren().addAll(layout);
         StackPane.setAlignment(dataInfo, TOP_CENTER);
         StackPane.setAlignment(icons, CENTER);
-        StackPane.setAlignment(description, BOTTOM_CENTER);
+        StackPane.setAlignment(desc, BOTTOM_CENTER);
         
-        
-        description.setTextAlignment(TextAlignment.CENTER);
-        description.wrappingWidthProperty().bind(min(350, layout.widthProperty()));
+        desc.setMouseTransparent(true);
+        desctitl.setTextAlignment(TextAlignment.CENTER);
+        descfull.setTextAlignment(TextAlignment.JUSTIFY);
+        descfull.wrappingWidthProperty().bind(min(350, layout.widthProperty()));
         icons.setAlignment(CENTER);
     }
     
@@ -104,7 +106,9 @@ public class ActionPane extends StackPane {
 /********************************** GRAPHICS **********************************/
 
     private final Label dataInfo = new Label();
-    private final Text description = new Text();
+    private final Label desctitl = new Label();
+    private final Text descfull = new Text();
+    private final VBox desc = layVertically(8, BOTTOM_CENTER, desctitl,descfull);
     private final HBox icons = new HBox(15);
     
     
@@ -120,18 +124,24 @@ public class ActionPane extends StackPane {
         String iname = o instanceof Supplier ? "n/a" : App.instanceName.get(o);
         String di = "Data: " + iname + "\nType: " + App.className.get(o_type);
         dataInfo.setText(o_type.equals(Void.class) ? "" : di);
-        description.setText("");
+        setDesc(null);
         icons.getChildren().setAll(o_actions.stream().sorted(by(ad -> ad.name)).map(a -> {
-            String d = a.name + "\n\n" + a.description;
-            Icon i = new Icon().icon(a.icon)
-                               .styleclass(ICON_STYLECLASS)
-                               .onClick(() -> a.action.accept(o));
-                 i.addEventHandler(MOUSE_ENTERED, e -> description.setText(d));
-                 i.addEventHandler(MOUSE_EXITED, e -> description.setText(""));
+            
+            Icon i = new Icon()
+                  .icon(a.icon)
+                  .styleclass(ICON_STYLECLASS)
+                  .onClick(() -> a.action.accept(o));
+                 i.addEventHandler(MOUSE_ENTERED, e -> setDesc(a));
+                 i.addEventHandler(MOUSE_EXITED, e -> setDesc(null));
             return i;
         }).collect(toList()));
         
         animStart();
+    }
+    
+    private void setDesc(ActionData a) {
+        desctitl.setText(a==null ? "" : a.name);
+        descfull.setText(a==null ? "" : a.description);
     }
     
     BoxBlur blurback = new BoxBlur(0,0,3);

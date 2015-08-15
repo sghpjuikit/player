@@ -105,7 +105,7 @@ public final class Seeker extends AnchorPane {
                 
                 // snap to chapter
                 Chap ch = minBy(chapters, chapSnapDist.get(), c -> abs(x-c.position*w)).orElse(null);
-                seeker.setValue(ch==null ? ch.position : v);
+                seeker.setValue(ch==null ? v : ch.position);
             }
             e.consume();
         });

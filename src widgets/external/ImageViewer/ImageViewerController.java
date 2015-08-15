@@ -482,7 +482,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         }
     }
     
-    public void nextImage() {System.out.println("NEXT");
+    public void nextImage() {
         if (images.size()==1) return;
         if (images.isEmpty()) {
             setImage(-1);

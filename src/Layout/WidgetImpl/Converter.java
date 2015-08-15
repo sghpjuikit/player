@@ -172,7 +172,7 @@ public class Converter extends ClassController implements SongWriter {
                         int j = i;
                         MetadataWriter.useNoRefresh(songs.get(i), w -> data.forEach((field,vals) -> w.setFieldS(Metadata.Field.valueOf(field), vals.get(j))));
                     }
-                    Player.refreshItemsWithUpdated(MetadataReader.readMetadata(songs));
+                    Player.refreshItemsWith(MetadataReader.readMetadata(songs));
                },Player.IO_THREAD)
                .showProgress(App.getWindow().taskAdd())
                .run();

@@ -47,7 +47,7 @@ public final class Notifier extends ServiceBase {
     public static void notifHide() {
         App.use(Notifier.class, Notifier::hideNotification);
     }
-    @IsAction(name = "Notify now playing", descr = "Shows notification about currently playing song.", global = true, shortcut = "ALT + N")
+    @IsAction(name = "Notify now playing", desc = "Shows notification about currently playing song.", global = true, keys = "ALT + N")
     public static void notifNowPlaying() {
         App.use(Notifier.class, nm -> nm.songChange(Player.playingtem.get()));
     }
@@ -133,7 +133,7 @@ public final class Notifier extends ServiceBase {
         d2 = () -> PLAYBACK.statusProperty().removeListener(statusListener);
         
         // show notification on song change
-        d1 = Player.playingtem.subscribeToChanges(this::songChange);
+        d1 = Player.playingtem.onChange(this::songChange);
     }
     
     /** {@inheritDoc} */

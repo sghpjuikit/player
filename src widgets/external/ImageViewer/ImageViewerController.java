@@ -56,6 +56,7 @@ import static javafx.geometry.Pos.CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
+import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
 import static javafx.util.Duration.seconds;
 import static util.File.FileUtil.getFilesImage;
@@ -64,8 +65,7 @@ import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.forEachWithI;
-import static util.graphics.Util.bgr;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.*;
 
 /**
  * 
@@ -110,8 +110,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @FXML private ScrollPane thumb_root;
     @FXML private TilePane thumb_pane;
     private final Thumbnail mainImage = new Thumbnail();
-    private Anim thumbAnim;
     private ItemInfo itemPane;
+    private Anim thumbAnim;
     
     // state
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
@@ -120,7 +120,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private FxTimer slideshow = new FxTimer(Duration.ZERO,INDEFINITE,this::nextImage);
     private Metadata data = Metadata.EMPTY;
     
-    // cnfigurable
+    // config
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
     public final Var<Double> thumbSize = new Var<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
@@ -137,21 +137,16 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
     public final Var<Boolean> showThumbnails = new Var<>(true, this::thumbAnimPlay);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
-    public final Var<Boolean> hideThumbEager = new Var<>(true, v -> {
-        if (v) root.setOnMouseExited(e -> {
-                   // ensure that mouse really exited, as mouse exit event also
-                   // happens when mouse enters context menu or app ui drag sets
-                   // ui to mouse transparent
-                   if(!root.contains(e.getX(), e.getY()))
-                       showThumbnails.setNapplyValue(false);
-               });
-        else root.setOnMouseExited(null);
-    });
+    public final Var<Boolean> hideThumbEager = new Var<>(true, v ->
+       root.setOnMouseExited(!v ? null : e -> {
+           if(!root.contains(e.getX(), e.getY())) // make sur emouse really is out
+               showThumbnails.setNapplyValue(false);
+       })
+    );
     @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
-    public final Var<Boolean> showThumbEager = new Var<>(false, v -> {
-        if (v) root.setOnMouseEntered(e -> showThumbnails.setNapplyValue(true));
-        else root.setOnMouseEntered(null);
-    });
+    public final Var<Boolean> showThumbEager = new Var<>(false, v ->
+        root.setOnMouseEntered(!v ? null : e -> showThumbnails.setNapplyValue(true))
+    );
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
     public final Var<Boolean> thums_rect = new Var<>(false, v -> thumbnails.forEach(t -> {
         t.setBorderToImage(!v);
@@ -182,8 +177,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         // main image
         mainImage.setBorderVisible(true);
         mainImage.setBorderToImage(true);
-        root.getChildren().add(mainImage.getPane());root.getStyleClass().setAll("nav");
-        setAnchors(mainImage.getPane(),0d);
+        layAnchor(root,mainImage.getPane(),0d);
         
         // thumb anim
         thumbAnim = new Anim(millis(500), thumb_root::setOpacity);
@@ -209,11 +203,9 @@ public class ImageViewerController extends FXMLController implements ImageDispla
              prevP.setMinWidth(20);
              prevP.visibleProperty().bind(prevP.opacityProperty().isNotEqualTo(0));
              prevP.setBackground(bgr(Color.color(0,0,0, 0.2)));
+        layAnchor(root, prevP, 0d,null,0d,0d);
+        layAnchor(root, nextP, 0d,0d,0d,null);
 
-        root.getChildren().addAll(prevP,nextP);
-        setAnchors(prevP, 0d,null,0d,0d);
-        setAnchors(nextP, 0d,0d,0d,null);
-        
         Anim navanim = new Anim(millis(500), p -> {
             prevP.setOpacity(p);
             nextP.setOpacity(p);
@@ -235,7 +227,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         // thumbnails & make sure it doesnt cover whole area
         setAnchors(thumb_root, 0d);
-        root.heightProperty().addListener((o,ov,nv) -> AnchorPane.setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
+        root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
         
         root.setOnMouseClicked( e -> {
             if(e.getButton()==PRIMARY) {
@@ -292,8 +284,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
             }
         });
         
-        // consume scroll event to prevent app scroll behavior // optional
-        root.setOnScroll(Event::consume);
+        // forbid app scrolling when thumbnails are visible 
+        thumb_root.setOnScroll(Event::consume);
     }
     
     /** {@inheritDoc} */
@@ -302,8 +294,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         thumb_reader.stop();    // prevent continued thumbnail creation
         slideshow.stop();       // stop slideshow
     }
-    
-/********************************* PUBLIC API *********************************/
  
     /** {@inheritDoc} */
     @Override

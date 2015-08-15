@@ -22,7 +22,7 @@ import Layout.Container;
 import Layout.PolyContainer;
 import Layout.Widgets.Widget;
 import gui.GUI;
-import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import unused.Log;
 import util.graphics.drag.DragUtil;
@@ -203,7 +203,7 @@ public final class TabArea extends PolyArea {
     @Override
     public void detach() {
         // create new window with no content (not even empty widget)
-        Window w = ContextManager.showWindow(null);
+        Window w = UiContext.showWindow(null);
                // put size to that of a source (also add header & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
@@ -223,7 +223,7 @@ public final class TabArea extends PolyArea {
         // but the tab remains and we need to clean it too
         tabPane.getTabs().remove(i);
         // create new window with the component as its content
-        Window w = ContextManager.showWindow((Widget)c);
+        Window w = UiContext.showWindow((Widget)c);
                // put size to that of a source (also add header & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
     }

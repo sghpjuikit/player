@@ -84,7 +84,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         
         // make seeker
         seeker.bindTime(PLAYBACK.totalTimeProperty(), PLAYBACK.currentTimeProperty());
-        d(seeker::unbindTime);
+        d(seeker::dispose);
         d(maintain(GUI.snapDistance, d->d, seeker.chapSnapDist));
         layout.getChildren().add(2,seeker);
         HBox.setHgrow(seeker, ALWAYS);
@@ -103,7 +103,7 @@ public class PlayerControlsTinyController extends FXMLController implements Play
         d(maintain(ps.mute, m -> muteChanged(m, ps.volume.get())));
         d(maintain(ps.status, this::statusChanged));
         d(maintain(ps.currentTime,t->currentTimeChanged()));
-        d(Player.playingtem.subscribeToUpdates(this::playbackItemChanged));   
+        d(Player.playingtem.onUpdate(this::playbackItemChanged));   
         
         // drag & drop
         root.setOnDragOver(DragUtil.audioDragAccepthandler);

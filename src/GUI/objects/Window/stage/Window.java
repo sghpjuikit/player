@@ -17,7 +17,6 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Screen;
 
 import org.reactfx.Subscription;
@@ -40,7 +39,6 @@ import Configuration.*;
 import Layout.Component;
 import Layout.Layout;
 import Layout.WidgetImpl.LayoutManagerComponent;
-import Layout.Widgets.WidgetManager;
 import action.Action;
 import gui.GUI;
 import gui.LayoutAggregators.LayoutAggregator;
@@ -50,8 +48,6 @@ import gui.objects.Text;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
-import gui.pane.ActionPane;
-import gui.pane.ActionPane.ActionData;
 import gui.pane.IOPane;
 import main.App;
 import unused.Log;
@@ -228,7 +224,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		    Color c = nv.getColor();
 		    applyColorEffect(c == null ? gui_overlay_color.getValue() : c);
 		};
-		playingItemMonitoring = Player.playingtem.subscribeToUpdates(item -> colorListener.changed(null, null, item));
+		playingItemMonitoring = Player.playingtem.onUpdate(item -> colorListener.changed(null, null, item));
 		// fire upon binding to create immediate response
 		colorListener.changed(null, null, Player.playingtem.get());
 	    } else
@@ -328,20 +324,18 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	});
 
 	// maintain custom pseudoclasses for .window styleclass
-	focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
-	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
-	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
-	fullscreen.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
+	focused.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcFocused, nv));
+	resizing.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));
+	moving.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcMoved, nv));
+	fullscreen.addListener((o,ov,nv) -> root.pseudoClassStateChanged(pcFullscreen, nv));
 
 	// set local shortcuts
         Action.getActions().stream().filter(a -> !a.isGlobal() && a.hasKeysAssigned())
               .forEach(a -> a.registerInScene(s.getScene()));
 
-	// update coordinates for context manager
-	root.addEventFilter(MOUSE_PRESSED, e -> {
-	    ContextManager.setX(e.getSceneX());
-	    ContextManager.setY(e.getSceneY());
-	});
+	// update context manager
+	root.addEventFilter(MOUSE_PRESSED, e -> UiContext.setPressedXY(e.getSceneX(),e.getSceneY()));
+	root.addEventFilter(MOUSE_CLICKED, e -> UiContext.fireAppMouseClickEvent(this, e));
 
 	// app dragging
 	header.addEventHandler(DRAG_DETECTED, this::moveStart);
@@ -385,57 +379,45 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    }
 	});
         
-	Icon gitB = new Icon(GITHUB, 13, Action.getAction("Open github page"));
-	Icon dirB = new Icon(FOLDER, 13, Action.getAction("Open app dir"));
-	Icon cssB = new Icon(CSS3, 13, Action.getAction("Open css guide"));
-	Icon iconsB = new Icon(IMAGE, 13, Action.getAction("Open icon viewer"));
-	Icon propB = new Icon(GEARS, 13, Action.getAction("Open settings"));
-	Icon runB = new Icon(GAVEL, 13, "", () -> ActionPane.PANE.show(Void.class, null, 
-            new ActionData<Void>("Export widget launchers","",UPLOAD, ignored -> {
-                DirectoryChooser dc = new DirectoryChooser();
-                                 dc.setInitialDirectory(App.getLocation());
-                                 dc.setTitle("Export to...");
-                File dir = dc.showDialog(s);
-                if(dir!=null) {
-                    WidgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
-                }
-            })
-        ));
-	// manage layout button - sho layout manager in a popp
+	Icon gitB = new Icon(GITHUB, 13, Action.get("Open on github"));
+	Icon cssB = new Icon(CSS3, 13, Action.get("Open css guide"));
+	Icon iconsB = new Icon(IMAGE, 13, Action.get("Open icon viewer"));
+	Icon dirB = new Icon(FOLDER, 13, Action.get("Open app directory"));
+	Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
+	Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
 	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
-	    e -> ContextManager.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
-        // lasFm button - show basic lastFm settings and toggle scrobbling
-	Icon lastFMB = new Icon(null, 13, "LastFM");
+	    e -> UiContext.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
+	Icon lastFMB = new Icon<>(null, 13, "LastFM\n\nEnable/configure last fm with left/right "
+                + "click. Currently, lastFM support is disabled.", e -> {
+                    Node b = (Node) e.getSource();
+                    if (e.getButton() == PRIMARY)
+                        if (LastFM.getScrobblingEnabled())
+                            LastFM.toggleScrobbling();
+                        else
+                            if (LastFM.isLoginSuccess())
+                                LastFM.toggleScrobbling();
+                            else
+                                new PopOver("LastFM login", LastFM.getLastFMconfig()).show(b);
+                    else if (e.getButton() == SECONDARY)
+                        new PopOver("LastFM login", LastFM.getLastFMconfig()).show(b);
+        });
         maintain(LastFM.scrobblingEnabledProperty(), mapB(LASTFM_SQUARE,LASTFM), lastFMB::icon);
-	lastFMB.setOnMouseClicked(e -> {
-	    if (e.getButton() == MouseButton.PRIMARY)
-		if (LastFM.getScrobblingEnabled())
-		    LastFM.toggleScrobbling();
-		else
-		    if (LastFM.isLoginSuccess())
-			LastFM.toggleScrobbling();
-		    else
-			new PopOver("LastFM login", LastFM.getLastFMconfig()).show(lastFMB);
-	    else if (e.getButton() == MouseButton.SECONDARY)
-		new PopOver("LastFM login", LastFM.getLastFMconfig()).show(lastFMB);
-	});
-	// lock layout button
-	Icon lockB = new Icon(null, 13, "Lock layout", GUI::toggleLayoutLocked);
+        lastFMB.setDisable(true);
+	Icon lockB = new Icon(null, 13, "Lock layout\n\nRestricts certain layout operations to "
+                + "prevent accidents and configuration getting in the way. Widgets, containers and "
+                + "layouts can also be locked individually.", GUI::toggleLayoutLocked);
         maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
-	// layout mode button
-	Icon lmB = new Icon(null, 13, "Layout mode", GUI::toggleLayoutNzoom);
-	// layout tab buttons
-	Icon ltB = new Icon(CARET_LEFT, 13, "Previous tab", () -> ((SwitchPane)getLayoutAggregator()).alignLeftTab());
-	Icon rtB = new Icon(CARET_RIGHT, 13, "Next tab", () -> ((SwitchPane)getLayoutAggregator()).alignRightTab());
+	Icon lmB = new Icon(null, 13, Action.get("Manage Layout & Zoom"));
+	Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout", 
+                () -> ((SwitchPane)getLayoutAggregator()).alignLeftTab());
+	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout", 
+                () -> ((SwitchPane)getLayoutAggregator()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
-	// guide button - sho layout manager in a popp
-	Icon guideB = new Icon(GRADUATION_CAP, 13, "Resume or start the guide", e -> {
+	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", e -> {
 	    App.guide.resume();
 	    App.actionStream.push("Guide resumed");
 	});
-	// help button - show help information
-	Icon helpB = new Icon(INFO, 13, "Help");
-	helpB.setOnMouseClicked(e -> {
+	Icon helpB = new Icon(INFO, 13, "Help", e -> {
 	    PopOver<Text> helpP = PopOver.createHelpPopOver(
 		"Available actions:\n"
 		+ "    Header icons : Providing custom functionalities. See tooltips.\n"
@@ -449,7 +431,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 		+ "    Press ALT : Activate layout mode.\n"
 		+ "    Content right drag : drag tabs."
 	    );
-	    helpP.show(helpB);
+	    helpP.show((Node) e.getSource());
 	    helpP.getContentNode().setWrappingWidth(400);
 	    App.actionStream.push("Layout info popup");
 	});
@@ -461,17 +443,21 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             ltB, lockB, lmB, rtB, new Label(" "), guideB, helpB
         );
         
-        Icon miniB = new Icon(null, 13, "Docked mode", WindowManager::toggleMiniFull);
+	Icon miniB = new Icon(null, 13, Action.get("Mini mode"));
         maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
-        Icon ontopB = new Icon(null, 13, "Always on top", this::toggleAlwaysOnTOp);
+        Icon ontopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
+                + "application windows", this::toggleAlwaysOnTOp);
         maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB::icon);
-        Icon fullscrB = new Icon(null, 13, "Fullscreen mode", this::toggleFullscreen);
+        Icon fullscrB = new Icon(null, 13, "Fullscreen\n\nExpand window to span whole screen and "
+                + "put it on top", this::toggleFullscreen);
         maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB::icon);
         Icon minimB = new Icon(MINUS_SQUARE_ALT, 13, "Minimize application", this::toggleMinimize);
         maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB::icon);
-        Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize window", this::toggleMaximize);
+        Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize\n\nExpand window to span whole screen",
+                this::toggleMaximize);
         maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
-        Icon closeB = new Icon(CLOSE, 13, "Close window", this::close);
+        Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window and application if no other "
+                + "windows remain open", this::close);
         maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
         
         // right header
@@ -479,7 +465,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     }
     
-    public void setAsMain() {System.out.println("setting MAIN");
+    public void setAsMain() {
 	if (App.getWindow() != null)
 	    throw new RuntimeException("Only one window can be main");
 	main = true;

@@ -54,7 +54,7 @@ import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toLast;
 import static util.async.future.Fut.fut;
 import static util.functional.Util.list;
-import static util.graphics.Util.setAnchors;
+import static util.graphics.Util.layAnchor;
 
 /**
  * File info widget controller.
@@ -83,7 +83,7 @@ import static util.graphics.Util.setAnchors;
 )
 public class FileInfoController extends FXMLController implements SongReader {
     
-    @FXML AnchorPane entireArea;
+    private @FXML AnchorPane root;
     private final ChangeableThumbnail cover = new ChangeableThumbnail();
     private final TilePane tiles = new FieldsPane();
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
@@ -206,8 +206,7 @@ public class FileInfoController extends FXMLController implements SongReader {
                         fs -> setCover(fs, false))
             );
                   
-        entireArea.getChildren().add(layout);
-        setAnchors(layout,0d);
+        layAnchor(root,layout,0d);
         layout.setMinContentSize(200,120);
         layout.setGap(8);
         
@@ -228,9 +227,9 @@ public class FileInfoController extends FXMLController implements SongReader {
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
         
         // accept audio drag transfer
-        entireArea.setOnDragOver(DragUtil.audioDragAccepthandler);
+        root.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle audio drag transfers
-        entireArea.setOnDragDropped( e -> {
+        root.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
                 fut().supply(DragUtil.getSongs(e))
                      .map(items -> items.findFirst())
@@ -252,7 +251,6 @@ public class FileInfoController extends FXMLController implements SongReader {
  
     @Override
     public void refresh() {
-        // apply configurables
         minColumnWidth.applyValue();
         cover_source.applyValue();
         overrun_style.applyValue();

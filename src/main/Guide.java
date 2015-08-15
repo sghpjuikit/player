@@ -120,14 +120,14 @@ public final class Guide {
         addGuide("Layout mode", "When widget header is visible, the widget is in layout mode. Layout mode is used " +
                 "for advanced manipulation with the widget. In order to quickly make changes to the layout, layout " +
                 "mode can be activated by shortcut." +
-                "\n\nPress '" + Action.getAction("Manage Layout").getKeys() + "' to enter/leave layout mode");
+                "\n\nPress '" + Action.get("Manage Layout").getKeys() + "' to enter/leave layout mode");
         addGuide("Layout mode", "For layout mode, there is also fast-shortcut reacting on key press and release." +
                 "\n\nPress '" + Action.Shortcut_ALTERNATE + "' to temporarily enter layout mode. (If the shortcut " +
                 "is empty (disabled) go to next hint manually).");
         addGuide("Layout lock", "Because automatic layout mode for widgets and containers can be intrusive, " +
                 "the layout can be locked. Locked layout will enter full layout mode with shortcuts, but not " +
                 "individual widgets. You may want to lock the layout after configuring it to your needs." +
-                "\n\nClick on the lock button in the window header or press '" + Action.getAction("Toggle layout lock.").getKeys() + 
+                "\n\nClick on the lock button in the window header or press '" + Action.get("Toggle layout lock.").getKeys() + 
                 "' to temporarily enter layout mode.");
         addGuide("Widget layout lock", "Note that individual widgets and containers can be locked as well to " +
                 "achieve semi-locked layout effect. You may lock individual widgets or containers if layout mode " +

@@ -18,7 +18,7 @@ import org.atteo.classindex.ClassIndex;
 
 import Layout.LayoutManager;
 import Layout.Widgets.controller.Controller;
-import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.UiContext;
 import main.App;
 import unused.Log;
 import util.File.FileUtil;
@@ -176,7 +176,7 @@ public final class WidgetManager {
                 out = f.create();
                 if(!ignore) {
                     standaloneWidgets.add(out);
-                    ContextManager.showFloating(out);
+                    UiContext.showFloating(out);
                 }
             }
         }

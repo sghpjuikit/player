@@ -139,25 +139,25 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Resumes player, if file is being played. Otherwise does nothing. */
-    @IsAction(name = "Resume", descr = "Resumes playback, if file is being played.", shortcut = "", global = true)
+    @IsAction(name = "Resume", desc = "Resumes playback, if file is being played.", keys = "", global = true)
     public static void resume() {
         player.resume();
     }
     
     /** Pauses player, if already paused, does nothing. */
-    @IsAction(name = "Pause", descr = "Pauses playback, if file is being played.", shortcut = "", global = true)
+    @IsAction(name = "Pause", desc = "Pauses playback, if file is being played.", keys = "", global = true)
     public static void pause() {
         player.pause();
     }
     
     /** Pauses/resumes player, if file is being played. Otherwise does nothing. */
-    @IsAction(name = "Pause/resume", descr = "Pauses/resumes playback, if file is being played.", shortcut = "ALT+S", global = true)
+    @IsAction(name = "Pause/resume", desc = "Pauses/resumes playback, if file is being played.", keys = "ALT+S", global = true)
     public static void pause_resume() {
         player.pause_resume();
     }
     
     /** Stops player. */
-    @IsAction(name = "Stop", descr = "Stops playback.", shortcut = "ALT+F", global = true)
+    @IsAction(name = "Stop", desc = "Stops playback.", keys = "ALT+F", global = true)
     public static void stop() {
         player.stop();
     }
@@ -175,13 +175,13 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Seek forward by specified duration */
-    @IsAction(name = "Seek to beginning", descr = "Seek playback to beginning.", shortcut = "ALT+R", global = true)
+    @IsAction(name = "Seek to beginning", desc = "Seek playback to beginning.", keys = "ALT+R", global = true)
     public static void seekZero() {
         seek(0);
     }
     
     /** Seek forward by specified duration */
-    @IsAction(name = "Seek forward", descr = "Seek forward playback.", shortcut = "ALT+D", continuous = true, global = true)
+    @IsAction(name = "Seek forward", desc = "Seek forward playback.", keys = "ALT+D", repeat = true, global = true)
     public static void seekForward() {
         if(seekPercent) {
             double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()+seekUnitP;
@@ -191,7 +191,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Seek backward by specified duration */
-    @IsAction(name = "Seek backward", descr = "Seek backward playback.", shortcut = "ALT+A", continuous = true, global = true)
+    @IsAction(name = "Seek backward", desc = "Seek backward playback.", keys = "ALT+A", repeat = true, global = true)
     public static void seekBackward() {
         if(seekPercent) {
             double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()-seekUnitP;
@@ -201,7 +201,7 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Seek forward by specified duration */
-    @IsAction(name = "Seek to end", descr = "Seek playback to end.", shortcut = "", global = true)
+    @IsAction(name = "Seek to end", desc = "Seek playback to end.", keys = "", global = true)
     public static void seekEnd() {
         seek(1);
     }
@@ -209,30 +209,30 @@ public final class PLAYBACK implements Configurable {
 /******************************************************************************/
     
     /** Increment volume by elementary unit. */
-    @IsAction(name = "Volume up", descr = "Increment volume by elementary unit.", shortcut = "CTRL+SHIFT+2", continuous = true, global = true)
+    @IsAction(name = "Volume up", desc = "Increment volume by elementary unit.", keys = "CTRL+SHIFT+2", repeat = true, global = true)
     public static void volumeInc() {
         state.volume.inc();
     }
 
     /** Decrement volume by elementary unit. */
-    @IsAction(name = "Volume down", descr = "Decrement volume by elementary unit.", shortcut = "CTRL+SHIFT+1", continuous = true, global = true)
+    @IsAction(name = "Volume down", desc = "Decrement volume by elementary unit.", keys = "CTRL+SHIFT+1", repeat = true, global = true)
     public static void volumeDec() {
         state.volume.dec();
     }
     /** Increment balance by elementary unit. */
-    @IsAction(name = "Balance right", descr = "Shift balance to right by elementary unit.", continuous = true)
+    @IsAction(name = "Balance right", desc = "Shift balance to right by elementary unit.", repeat = true)
     public static void balanceRight() {
         state.balance.left();
     }
 
     /** Decrement balance by elementary unit. */
-    @IsAction(name = "Balance left", descr = "Shift balance to left by elementary unit.", continuous = true)
+    @IsAction(name = "Balance left", desc = "Shift balance to left by elementary unit.", repeat = true)
     public static void balanceLeft() {
         state.balance.right();
     }
     
     /** Rises the number of times the song has been played by one and updates tag. */
-    @IsAction(name = "Increment playcount", descr = "Rises the number of times the song has been played by one and updates tag.")
+    @IsAction(name = "Increment playcount", desc = "Rises the number of times the song has been played by one and updates tag.")
     private static void incrementPlayback() {
         App.use(PlaycountIncrementer.class, PlaycountIncrementer::increment);
     };
@@ -241,7 +241,7 @@ public final class PLAYBACK implements Configurable {
         return state.loopMode.get();
     }
     
-    @IsAction(name = "Toggle looping", descr = "Switch between playlist looping mode.", shortcut = "ALT+L")
+    @IsAction(name = "Toggle looping", desc = "Switch between playlist looping mode.", keys = "ALT+L")
     public static void toggleLoopMode() {
         setLoopMode(getLoopMode().next());
     }
@@ -312,7 +312,7 @@ public final class PLAYBACK implements Configurable {
     }   
     
     /** Switches between on/off state for mute property. */
-    @IsAction(name = "Toggle mute", descr = "Switch mute on/off.", shortcut = "ALT+M")
+    @IsAction(name = "Toggle mute", desc = "Switch mute on/off.", keys = "ALT+M")
     public static void toggleMute() {
         state.mute.set(!state.mute.get());
     }
@@ -328,37 +328,37 @@ public final class PLAYBACK implements Configurable {
     }
     
     /** Rate playing item 0/5. */
-    @IsAction(name = "Rate playing 0/5", descr = "Rate currently playing item 0/5.", shortcut = "ALT+BACK_QUOTE", global = true)
+    @IsAction(name = "Rate playing 0/5", desc = "Rate currently playing item 0/5.", keys = "ALT+BACK_QUOTE", global = true)
     public static void rate0() {
         rate(0);
     }
     /** Rate playing item 1/5. */
-    @IsAction(name = "Rate playing 1/5", descr = "Rate currently playing item 1/5.", shortcut = "ALT+1", global = true)
+    @IsAction(name = "Rate playing 1/5", desc = "Rate currently playing item 1/5.", keys = "ALT+1", global = true)
     public static void rate1() {
         rate(0.2);
     }
     /** Rate playing item 2/5. */
-    @IsAction(name = "Rate playing 2/5", descr = "Rate currently playing item 2/5.", shortcut = "ALT+2", global = true)
+    @IsAction(name = "Rate playing 2/5", desc = "Rate currently playing item 2/5.", keys = "ALT+2", global = true)
     public static void rate2() {
         rate(0.4);
     }
     /** Rate playing item 3/5. */
-    @IsAction(name = "Rate playing 3/5", descr = "Rate currently playing item 3/5.", shortcut = "ALT+3", global = true)
+    @IsAction(name = "Rate playing 3/5", desc = "Rate currently playing item 3/5.", keys = "ALT+3", global = true)
     public static void rate3() {
         rate(0.6);
     }
     /** Rate playing item 4/5. */
-    @IsAction(name = "Rate playing 4/5", descr = "Rate currently playing item 4/5.", shortcut = "ALT+4", global = true)
+    @IsAction(name = "Rate playing 4/5", desc = "Rate currently playing item 4/5.", keys = "ALT+4", global = true)
     public static void rate4() {
         rate(0.8);
     }
     /** Rate playing item 5/5. */
-    @IsAction(name = "Rate playing 5/5", descr = "Rate currently playing item 5/5.", shortcut = "ALT+5", global = true)
+    @IsAction(name = "Rate playing 5/5", desc = "Rate currently playing item 5/5.", keys = "ALT+5", global = true)
     public static void rate5() {
         rate(1);
     }
     /** Explore current item directory - opens file browser for its location. */
-    @IsAction(name = "Explore current item directory", descr = "Explore current item directory.", shortcut = "ALT+V", global = true)
+    @IsAction(name = "Explore current item directory", desc = "Explore current item directory.", keys = "ALT+V", global = true)
     public static void openPlayedLocation() {
         if (PlaylistManager.active==null) return;
         Item i = PlaylistManager.use(p -> p.getPlaying(),null);

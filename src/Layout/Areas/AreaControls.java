@@ -47,7 +47,7 @@ import static gui.GUI.OpenStrategy.INSIDE;
 import static gui.GUI.OpenStrategy.POPUP;
 import static gui.GUI.closeAndDo;
 import static gui.GUI.openAndDo;
-import static gui.objects.Window.stage.ContextManager.showSettings;
+import static gui.objects.Window.stage.UiContext.showSettings;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -76,7 +76,7 @@ public final class AreaControls {
         + "Prevents widget from resizing proportionally to parent container's "
         + "size. Instead, the widget will keep the same size, if possible.";
     private static final String lockbTEXT = "Lock widget\n\n"
-        + "Disallows layout mode when mouse enters top corner of the widget.\n\n"
+        + "Disallows layout mode when mouse enters top corner of the widget.\n "
         + "This can be applie separately on widgets, but also containers or "
         + "whole layout.";
     private static final String refbTEXT = "Refresh widget\n\n"

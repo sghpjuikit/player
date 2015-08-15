@@ -69,7 +69,7 @@ import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
 import gui.objects.TableCell.TextStarRatingCellFactory;
-import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
@@ -293,9 +293,8 @@ public class App extends Application {
             ImageFileFormat::isSupported,
             fs -> WidgetManager.use(ImageDisplayFeature.class, NO_LAYOUT, w->w.showImages(fs))
         );
-        parameterProcessor.addFileProcessor(
-            f -> f.getPath().endsWith(".fxwl"),
-            fs -> fs.forEach(ContextManager::launchComponent)
+        parameterProcessor.addFileProcessor(f -> f.getPath().endsWith(".fxwl"),
+            fs -> fs.forEach(UiContext::launchComponent)
         );
     }
     
@@ -625,25 +624,23 @@ public class App extends Application {
     
 /************************************ actions *********************************/
     
-    @IsAction(name = "Open github page", descr = "Open github project "
-            + "website of this application in default browser. For developers.")
+    @IsAction(name = "Open on github", desc = "Opens github page for this application. For developers.")
     public static void openAppGithubPage() {
         browse(GITHUB_URI);
     }
     
-    @IsAction(name = "Open app dir", descr = "Open application location.")
+    @IsAction(name = "Open app directory", desc = "Opens directory from which this application is "
+            + "running from.")
     public static void openAppLocation() {
         browse(getLocation());
     }
     
-    @IsAction(name = "Open css guide", descr = "Open official oracle css "
-            + "reference guide. Helps with skinning. For developers.")
+    @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
     public static void openCssGuide() {
         browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html");
     }
     
-    @IsAction(name = "Open icon viewer", descr = "Open viewer to browse "
-            + "application supported icons. For developers")
+    @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
         Fut.fut()
            .then(() -> {
@@ -658,12 +655,34 @@ public class App extends Application {
            .run();
     }
     
-    @IsAction(name = "Open settings", descr = "Open preferred "
-            + "settings widget to show applciation settings. Widget is open in "
-            + "a popup or layout, or already open widget is reused, depending "
-            + "on the settings")
+    @IsAction(name = "Open settings", desc = "Opens application settings.")
     public static void openSettings() {
         WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
+    }
+    
+    @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
+    public static void openActions() {
+        ActionPane.PANE.show(Void.class, null, 
+            new ActionData<Void>(
+                "Export widget launchers",
+                "Creates launcher file in the destination directory for every widget.\n"
+                + "Launcher file is a file that when opened by this application the widget is "
+                + "opened. If application was not running before, it will not load normally, "
+                + "but will only open the widget.\n"
+                + "Essentially, this exports the widgets as 'standalone' applications",
+                UPLOAD, 
+                ignored -> {
+                    DirectoryChooser dc = new DirectoryChooser();
+                                     dc.setInitialDirectory(App.getLocation());
+                                     dc.setTitle("Export to...");
+                    Window aw = Window.getActive();
+                    File dir = dc.showDialog(aw.getStage());
+                    if(dir!=null) {
+                        WidgetManager.getFactories().forEach(w -> w.create().exportFxwlDefault(dir));
+                    }
+                }
+            )
+        );
     }
 
 }

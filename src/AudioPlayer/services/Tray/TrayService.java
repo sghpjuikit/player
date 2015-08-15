@@ -132,7 +132,7 @@ public class TrayService extends ServiceBase {
             }
         });
         
-        d1 = Player.playingtem.subscribeToUpdates(m ->
+        d1 = Player.playingtem.onUpdate(m ->
            setTooltipText(!showplaying_inTooltip.get() || m.getTitle().isEmpty() ? "PlayerFX" : "PlayerFX - " + m.getTitle()));
         
         running = true;

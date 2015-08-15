@@ -15,9 +15,12 @@ import javafx.beans.property.StringProperty;
 import javafx.css.*;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 import com.sun.javafx.css.ParsedValueImpl;
 import com.sun.javafx.css.parser.CSSParser;
@@ -25,11 +28,16 @@ import com.sun.javafx.css.parser.CSSParser;
 import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.objects.Text;
+import util.animation.Anim;
+import util.graphics.Icons;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
+import static javafx.util.Duration.millis;
+import static util.Util.getFieldValue;
+import static util.graphics.Util.setScaleXY;
 
 
 
@@ -85,12 +93,15 @@ public class Icon<I extends Icon> extends Text {
         
         getStyleClass().clear();
         styleclass("icon");
-//        ((Text)getGraphic()).setBoundsType(TextBoundsType.VISUAL);
         if(size!=-1) size(size);
         if(i!=null) icon(i);
         tooltip(tooltip);
         onClick(onClick);
         setCache(true);
+
+        // install click animation
+        Anim a = new Anim(millis(400), p -> setScaleXY(this,1-0.3*p*p*p));
+        addEventFilter(MOUSE_CLICKED, e -> a.playOpenDoClose(null));
     }
 
     
@@ -139,8 +150,37 @@ public class Icon<I extends Icon> extends Text {
     public final I tooltip(Tooltip t) {
         if(t!=null) {
             t.setWrapText(true);
-            t.setMaxWidth(300);
+            t.setMaxWidth(330);
             t.setTextAlignment(JUSTIFY);
+            t.setOnShowing(e -> {
+                // we can not set graphics normally, because some icons may not have the glyph ready
+                // at this point, we do that when tooltip is being called on, this also avoids creating
+                // useless objects
+                GlyphIcons g = null;
+                try {
+                    g = ((GlyphIcons) Enum.valueOf(typeOfT, getGlyphName()));
+                } catch (Exception x) {}
+                if(g!=null) {
+                    t.setGraphic(Icons.createIcon(g, 30));
+                    t.setGraphicTextGap(15);
+                }
+                
+            });
+            t.setOnShown(e -> {
+                // animate
+                Label s = getFieldValue(t.getSkin(), Label.class, "tipLabel");
+                Text txt = s==null ? null : getFieldValue(s.getSkin(), Text.class, "text");
+                Node ico = s==null ? null : getFieldValue(s.getSkin(), Node.class, "graphic");
+                if(ico!=null && txt!=null) {
+                    
+                    new Anim(millis(400), p -> {
+                        double p1 = Anim.mapTo01(p, 0, 0.7);
+                        double p2 = Anim.mapTo01(p, 0.4, 1);
+                        txt.setTranslateX(20*p1*p1-20);
+                        setScaleXY(ico, p2);
+                    }).play();
+                }
+            });
             Tooltip.install(this, t);
         }
         return (I)this;
@@ -178,7 +218,10 @@ public class Icon<I extends Icon> extends Text {
      * @return this.
      */
     public final I onClick(Runnable action) {
-        if(action instanceof Action) tooltip(((Action)action).getInfo());
+        if(action instanceof Action) {
+            Action a = (Action)action;
+            tooltip(a.getName()+"\n\n" + a.getInfo());
+        }
         click_runnable = action;
         return onClick(action==null ? null : e -> { 
             if(e.getButton()==PRIMARY) {

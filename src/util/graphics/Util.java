@@ -37,10 +37,16 @@ public class Util {
         return l;
     }
     
-    /** Creates most simple bacground with solid bgr color as specified.*/
-    public static Background bgr(Color c) {
-        return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
+    public static void layAnchor(AnchorPane pane, Node n, Double a) {
+        pane.getChildren().add(n);
+        setAnchors(n, a);
     }
+    
+    public static void layAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
+        pane.getChildren().add(n);
+        setAnchors(n, top, right, bottom, left);
+    }
+
 
     /** Sets {@link AnchorPane} anchors to the same value. Null clears all anchors. */
     public static void setAnchors(Node n, Double a) {
@@ -61,6 +67,11 @@ public class Util {
         if (right != null) AnchorPane.setRightAnchor(n, right);
         if (bottom != null) AnchorPane.setBottomAnchor(n, bottom);
         if (left != null) AnchorPane.setLeftAnchor(n, left);
+    }
+    
+    /** Creates most simple bacground with solid bgr color as specified.*/
+    public static Background bgr(Color c) {
+        return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
     }
 
     public static void setScaleXY(Node n, double s) {

@@ -766,6 +766,23 @@ public class Util {
     }
     
     /**
+     * Gets value of a field of an object using reflection or null on error. Consumes all 
+     * exceptions.
+     * @return value of a field of given object or null if value null or not possible
+     */
+    public static <T> T getFieldValue(Object o, Class<T> type, String fieldname) {
+        try {
+            Field f = getField(o.getClass(), fieldname);
+            f.setAccessible(true);
+            T t = (T) f.get(o);
+            f.setAccessible(true);
+            return t;
+        } catch(Exception e) {e.printStackTrace();
+            return null;
+        } 
+    }
+    
+    /**
      * Set field named f of the object o to value v.
      * 
      * @implSpec the field can be declared in the class or any of its supoerclasses

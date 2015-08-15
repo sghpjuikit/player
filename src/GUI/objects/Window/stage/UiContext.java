@@ -2,10 +2,16 @@
 package gui.objects.Window.stage;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
+
+import org.reactfx.Subscription;
 
 import com.thoughtworks.xstream.io.StreamException;
 
@@ -31,25 +37,49 @@ import static util.dev.Util.forbidNull;
  * @author uranium
  */
 @IsConfigurable
-public final class ContextManager {
-    private static double X;
-    private static double Y;
+public final class UiContext {
     
+/********************************************** CLICK *********************************************/
+    
+    private static double x;
+    private static double y;
+    private static final Set<ClickHandler> onClicks = new HashSet<>();
+    
+    /** 
+     * Handles mouse click anywhere in the application. Receives event source window 
+     * as additional parameters next to the event.
+     */
+    public static Subscription onClick(ClickHandler h) {
+        onClicks.add(h);
+        return () -> onClicks.remove(h); 
+    }
+    
+    /** Simple version of {@link #onClick(ClickHandler)} with no extra parameter. */
+    public static Subscription onClick(EventHandler<MouseEvent> h) {
+        return onClick((w,e) -> h.handle(e));
+    }
+    
+    /** Fires an even for {@link #onClick(ClickHandler)}*/
+    public static void fireAppMouseClickEvent(Window w, MouseEvent e) {
+        onClicks.forEach(h -> h.handle(w,e));
+    }
 
-    /** Set last mouse click x coordinate. */
-    static void setX(double screenX) { X = screenX; }
+    /** Set last mouse press screen coordinatea. */
+    static void setPressedXY(double screenX, double screenY) { 
+        x = screenX;
+        y = screenY;
+    }
     
-    /** Set last mouse click y coordinate. */
-    static void setY(double screenY) { Y = screenY; }
-    
-    /** Get last mouse click x coordinate. */
+    /** Get last mouse press screen x coordinate. */
     public static double getX() {
-        return Window.getActive().getX()+X;
+        return Window.getActive().getX()+x;
     }
-    /** Get last mouse click y coordinate. */
+    
+    /** Get last mouse press screen y coordinate. */
     public static double getY() {
-        return Window.getActive().getY()+Y;
+        return Window.getActive().getY()+y;
     }
+    
     
     /** 
      * @param widget widget to open, does nothing when null.
@@ -150,6 +180,11 @@ public final class ContextManager {
     
     public static WritableImage makeSnapshot(Node n) {
         return n.snapshot(new SnapshotParameters(), null);
+    }
+    
+    
+    public static interface ClickHandler {
+        void handle(Window w, MouseEvent e);
     }
     
 }

@@ -92,7 +92,8 @@ public class WindowManager {
     }
     
     
-    @IsAction(name = "Toggle mini mode", descr = "Toggle minimal layout docked mode", global = true, shortcut = "F9")    
+    @IsAction(name = "Mini mode", global = true, keys = "F9",
+              desc = "Dock auxiliary window with playback control to the screen edge")
     public static void toggleMini() {
         setMini(!mini);
     }

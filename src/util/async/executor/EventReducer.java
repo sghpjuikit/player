@@ -34,12 +34,12 @@ import util.functional.Functors.F2;
  */
 public abstract class EventReducer<E> {
     protected Consumer<E> action;
-    protected double time;
+    protected double inter_period;
     protected final F2<E,E,E> r;
     protected E e;
     
     private EventReducer(double inter_period, F2<E,E,E> reduction, Consumer<E> handler) {
-        time = inter_period;
+        this.inter_period = inter_period;
         action = handler;
         r = reduction;
     }
@@ -85,6 +85,14 @@ public abstract class EventReducer<E> {
         return new HandlerLast<>(inter_period, reduction, e -> handler.run());
     }
     
+    public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atleast, Consumer<E> handler) {
+        return new HandlerFirstOfAtLeast<>(inter_period, atleast, handler);
+    }
+    
+    public static <E> EventReducer<E> toFirstOfAtLeast(double inter_period, double atleast, Runnable handler) {
+        return new HandlerFirstOfAtLeast<>(inter_period, atleast, e -> handler.run());
+    }
+    
     
     
     private static class HandlerLast<E> extends EventReducer<E> {
@@ -93,12 +101,12 @@ public abstract class EventReducer<E> {
 
         public HandlerLast(double inter_period, F2<E, E, E> reduction, Consumer<E> handler) {
             super(inter_period, reduction, handler);
-            t = new FxTimer(time, 1, () -> action.accept(e));
+            t = new FxTimer(inter_period, 1, () -> action.accept(e));
         }
         
         @Override
         public void handle() {
-            t.start(time);
+            t.start(inter_period);
         }
         
     }
@@ -115,7 +123,7 @@ public abstract class EventReducer<E> {
             long now = System.currentTimeMillis();
             long diff = now-last;
             last = now;
-            if(diff > time) action.accept(e);
+            if(diff > inter_period) action.accept(e);
         }
         
     }
@@ -126,15 +134,50 @@ public abstract class EventReducer<E> {
 
         public HandlerFirstDel(double inter_period, Consumer<E> handler) {
             super(inter_period, null, handler);
-            t = new FxTimer(time, 1, () -> action.accept(e));
+            t = new FxTimer(inter_period, 1, () -> action.accept(e));
         }
         
         @Override
         public void handle() {
             long now = System.currentTimeMillis();
             long diff = now-last;
+            boolean isFirst = diff >= inter_period;
+            if(isFirst && !t.isRunning()) t.start();
+            
             last = now;
-            if(diff > time) if(!t.isRunning()) t.start();
+        }
+        
+    }
+    private static class HandlerFirstOfAtLeast<E> extends EventReducer<E> {
+        
+        private long first = 0;
+        private long last = 0;
+        private final double atleast;
+        private boolean ran = false;
+        
+        public HandlerFirstOfAtLeast(double inter_period, double atleast, Consumer<E> handler) {
+            super(inter_period, null, handler);
+            this.atleast = atleast;
+        }
+        
+        @Override
+        public void handle() {
+            long now = System.currentTimeMillis();
+            long diff = now-last;
+            boolean isFirst = diff >= inter_period;
+            
+            if(isFirst) {
+                first = now;
+                ran = false;
+            }
+            
+            boolean islongenough = now-first>=atleast;
+            if(islongenough && !ran) {
+                action.accept(e);
+                ran = true;
+            }
+            
+            last = now;
         }
         
     }

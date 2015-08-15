@@ -96,7 +96,7 @@ public class LastFM {
     public LastFM() { }
 
     public static void start() {
-        playingItemMonitoring = Player.playingtem.subscribeToChanges(itemChangeHandler);
+        playingItemMonitoring = Player.playingtem.onChange(itemChangeHandler);
 
 //        PLAYBACK.realTimeProperty().setOnTimeAt(timeEvent);
 //        PLAYBACK.realTimeProperty().setOnTimeAt(percentEvent);

@@ -43,13 +43,13 @@ public @interface IsAction {
      * toolips.
      * @return description of the action
      */
-    String descr() default "";
+    String desc() default "";
     
     /** 
      * Key combination for shortcut of the action. Default is "".
      * For example: CTRL+SHIFT+A, A, F7, 9, ALT+T
      * @return shortcut */
-    String shortcut() default "";
+    String keys() default "";
     
     /**
      * Global action has broader activation limit. For example global shortcut
@@ -63,8 +63,7 @@ public @interface IsAction {
     /** 
      * Denotes attribute of action for its activation process.
      * @return whether this action is called once or constantly on stimulus such
-     * as key press.
-     * Default false;
+     * as key press. Default false.
      */
-    boolean continuous() default false;
+    boolean repeat() default false;
 }

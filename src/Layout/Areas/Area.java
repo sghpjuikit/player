@@ -16,7 +16,7 @@ import Layout.Component;
 import Layout.Container;
 import Layout.Layout;
 import Layout.Widgets.Widget;
-import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.pane.IOPane;
 import util.graphics.Util;
@@ -133,7 +133,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         
         // detach into new window
         // create new window with no content (not even empty widget)
-        Window w = ContextManager.showWindow(null);
+        Window w = UiContext.showWindow(null);
                // put size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content

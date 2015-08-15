@@ -131,7 +131,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         d(volume.valueProperty()::unbind);
         
         seeker.bindTime(ps.duration, ps.currentTime);
-        d(seeker::unbindTime);
+        d(seeker::dispose);
         entireArea.getChildren().add(seeker);
         AnchorPane.setBottomAnchor(seeker, 0.0);
         AnchorPane.setLeftAnchor(seeker, 0.0);
@@ -169,7 +169,7 @@ public class PlayerControlsController extends FXMLController implements Playback
         soundGrid.add(muteB, 0, 0);
      
         // set gui updating
-        d(Player.playingtem.subscribeToUpdates(this::playingItemChanged));  // add listener
+        d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
         playingItemChanged(Player.playingtem.get());                    // init value
         d(maintain(ps.duration, t -> totTime.setText(formatDuration(t))));
         d(maintain(ps.currentTime, t -> timeChanged()));

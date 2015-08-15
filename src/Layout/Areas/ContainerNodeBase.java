@@ -18,7 +18,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
 
 import Layout.*;
-import gui.objects.Window.stage.ContextManager;
+import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
 import gui.pane.ActionPane;
@@ -228,7 +228,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         
         // detach into new window
         // create new window with no content (not even empty widget)
-        Window w = ContextManager.showWindow(null);
+        Window w = UiContext.showWindow(null);
                // put size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content

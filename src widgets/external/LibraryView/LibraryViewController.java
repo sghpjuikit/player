@@ -191,7 +191,7 @@ public class LibraryViewController extends FXMLController {
                 })
         );
         // maintain playing item css by refreshing column
-        d(Player.playingtem.subscribeToChanges(o -> table.updateStyleRules()));
+        d(Player.playingtem.onChange(o -> table.updateStyleRules()));
        
         
         // column context menu - add change field submenus

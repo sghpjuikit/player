@@ -20,14 +20,14 @@ public class VarAction extends VarEnum<String> {
     
     
     public VarAction(Action a, Consumer<Action> applier) {
-        super(a.getName(), applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> map(Action.getActions(), Action::getName));
+        super(a.getName(), applier==null ? null : name -> applier.accept(Action.get(name)), () -> map(Action.getActions(), Action::getName));
     }
     
     public VarAction(String action_name, Consumer<Action> applier) {
-        super(action_name, applier==null ? null : name -> applier.accept(Action.getAction(name)), () -> map(Action.getActions(), Action::getName));
+        super(action_name, applier==null ? null : name -> applier.accept(Action.get(name)), () -> map(Action.getActions(), Action::getName));
     }
     
     public Action getValueAction() {
-        return Action.getAction(getValue());
+        return Action.get(getValue());
     }
 }

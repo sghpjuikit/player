@@ -248,7 +248,7 @@ public class LibraryController extends FXMLController implements SongReader {
                 .styleRuleAdd("played", m -> Player.playingtem.get().same(m))
         );
         // maintain playing item css by refreshing column
-        d(Player.playingtem.subscribeToChanges(o -> table.updateStyleRules()));
+        d(Player.playingtem.onChange(o -> table.updateStyleRules()));
         
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));

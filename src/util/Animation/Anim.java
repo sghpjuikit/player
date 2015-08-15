@@ -18,7 +18,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.util.Duration;
 
-import util.Util;
 import util.collections.Tuple2;
 
 import static java.lang.Math.abs;
@@ -158,6 +157,7 @@ public class Anim extends Transition {
      */
     public void playOpen() {
         double p = getCurrentTime().toMillis()/getCycleDuration().toMillis();
+//               p = p==0 ? 1 : p; // should be or not?
         stop();
         playOpenFrom(p);
     }
@@ -171,6 +171,7 @@ public class Anim extends Transition {
      */
     public void playClose() {
         double p = getCurrentTime().toMillis()/getCycleDuration().toMillis();
+//               p = p==0 ? 1 : p; // should be or not?
         stop();
         playCloseFrom(1-p);
     }
@@ -273,6 +274,10 @@ public class Anim extends Transition {
         if(x<=from) return 0;
         if(x>=to) return 1;
         return (x-from)/(to-from); 
+    }
+    
+    public static double mapConcave(double x) {
+        return 1-abs(2*(x*x-0.5));
     }
     
     

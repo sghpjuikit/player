@@ -2,14 +2,15 @@
 package AudioPlayer;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import org.reactfx.EventSource;
 import org.reactfx.Subscription;
 
 import AudioPlayer.playback.PLAYBACK;
@@ -68,7 +69,7 @@ public class Player {
     static {
         anySelected.i.bind(playlistSelected.o);
         anySelected.i.bind(librarySelected.o);
-        playingtem.itemUpdatedES.subscribe(playing.i::setValue);
+        playingtem.onUpdate(playing.i::setValue);
     }
     
     
@@ -154,8 +155,8 @@ public class Player {
     public static class CurrentItem {
         Metadata val = EMPTY;
         Metadata nextMetadataCache = EMPTY;
-        EventSource<Metadata> itemPlayedES = new EventSource<>();
-        EventSource<Metadata> itemUpdatedES = new EventSource<>();
+        List<BiConsumer<Metadata,Metadata>> itemPlayedES = new ArrayList<>();
+        List<BiConsumer<Metadata,Metadata>> itemUpdatedES = new ArrayList<>();
         private final FxTimer nextCachePreloader = new FxTimer(400, 1, () -> preloadNext());
         
         /**
@@ -169,9 +170,14 @@ public class Player {
         }
 
         void set(boolean change, Metadata m) {
+            if(change) itemPlayedES.forEach(h -> h.accept(val,m));
+            itemUpdatedES.forEach(h -> h.accept(val,m));
             val = m;
-            if(change) itemPlayedES.push(m);
-            itemUpdatedES.push(m);
+        }
+        
+        public Subscription onChange(BiConsumer<Metadata,Metadata> bc) {
+            itemPlayedES.add(bc);
+            return () -> itemPlayedES.remove(bc);
         }
         
         /** 
@@ -186,8 +192,8 @@ public class Player {
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
          */
-        public Subscription subscribeToChanges(Consumer<Metadata> bc) {
-            return itemPlayedES.subscribe(bc);
+        public Subscription onChange(Consumer<Metadata> bc) {
+            return onChange((o,n) -> bc.accept(n));
         }
         
         /** 
@@ -210,8 +216,13 @@ public class Player {
          * Note: It is safe to call {@link #get()} method when this even fires.
          * It has already been updated.
          */
-        public Subscription subscribeToUpdates(Consumer<Metadata> bc) {
-            return itemUpdatedES.subscribe(bc);
+        public Subscription onUpdate(Consumer<Metadata> bc) {
+            return onUpdate((o,n) -> bc.accept(n));
+        }
+
+        public Subscription onUpdate(BiConsumer<Metadata,Metadata> bc) {
+            itemUpdatedES.add(bc);
+            return () -> itemUpdatedES.remove(bc);
         }
         
         public void update() {

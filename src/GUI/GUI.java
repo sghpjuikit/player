@@ -176,14 +176,14 @@ public class GUI {
         return locked_layout.get();
     }
     
-    @IsAction(name = "Toggle layout lock.", descr = "Lock/unlock layout.", shortcut = "F4")
+    @IsAction(name = "Toggle layout lock.", desc = "Lock/unlock layout.", keys = "F4")
     /** Toggles lock to prevent layouting. */
     public static void toggleLayoutLocked() {
         locked_layout.set(!locked_layout.get());
     }
     
     /** Loads/refreshes whole gui. */
-    @IsAction(name = "Reload GUI.", descr = "Reload application GUI. Includes skin, font, layout.", shortcut = "F5")
+    @IsAction(name = "Reload GUI.", desc = "Reload application GUI. Includes skin, font, layout.", keys = "F5")
     public static void refresh() {
         if (App.isInitialized()) {
             skin.applyValue();
@@ -193,13 +193,13 @@ public class GUI {
     }
     
     /** Loads/refreshes active layout. */
-    @IsAction(name = "Reload layout", descr = "Reload layout.", shortcut = "F6")
+    @IsAction(name = "Reload layout", desc = "Reload layout.", keys = "F6")
     public static void loadLayout() {
         LayoutManager.getLayouts().forEach(Layout::load);
     }
     
     /** Toggles layout controlling mode. */
-    @IsAction(name = "Reload skin", descr = "Reloads skin.", shortcut = "F7")
+    @IsAction(name = "Reload skin", desc = "Reloads skin.", keys = "F7")
     public static void loadSkin() {
         skin.applyValue();
     }
@@ -235,13 +235,13 @@ public class GUI {
     }
     
     /** Toggles layout mode. */
-    @IsAction(name = "Manage Layout", descr = "Toggles layout mode on/off.")
+    @IsAction(name = "Manage Layout", desc = "Toggles layout mode on/off.")
     public static void toggleLayoutMode() {
         setLayoutMode(!layout_mode.get());
     }
     
     /** Toggles zoom mode. */
-    @IsAction(name = "Zoom Layout", descr = "Toggles layout zoom in/out.")
+    @IsAction(name = "Zoom Layout", desc = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
         Window w = Window.getFocused();
         if(w!=null)
@@ -253,14 +253,14 @@ public class GUI {
         setZoomMode(v);
     }
     
-    @IsAction(name = "Manage Layout & Zoom", descr = "Enables layout managment mode and zooms.", shortcut = "F8")
+    @IsAction(name = "Manage Layout & Zoom", desc = "Enables layout managment mode and zooms.", keys = "F8")
     public static void toggleLayoutNzoom() {
         toggleLayoutMode();
         toggleZoomMode();
     }
     
-    @IsAction(name = "Show/Hide application", descr = "Equal to switching minimized mode.", shortcut = "CTRL+ALT+W", global = true)
-    @IsAction(name = "Minimize", descr = "Switch minimized mode.", shortcut = "F10")
+    @IsAction(name = "Show/Hide application", desc = "Equal to switching minimized mode.", keys = "CTRL+ALT+W", global = true)
+    @IsAction(name = "Minimize", desc = "Switch minimized mode.", keys = "F10")
     public static void toggleMinimizeFocus() {
         if(!App.getWindowOwner().isMinimized() && Window.getFocused()==null)
             Window.getActive().focus();
@@ -268,7 +268,7 @@ public class GUI {
             Window.getActive().toggleMinimize();
     }
     
-    @IsAction(name = "Show application", descr = "Shows application.", global = true)
+    @IsAction(name = "Show application", desc = "Shows application.", global = true)
     public static void showApp() {
         if(App.getWindowOwner().isMinimized()) 
             Window.getActive().setMinimized(false);
@@ -278,7 +278,7 @@ public class GUI {
         }
     }
     
-    @IsAction(name = "Hide application", descr = "Hides application.", global = true)
+    @IsAction(name = "Hide application", desc = "Hides application.", global = true)
     public static void hideApp() {
         Window.getActive().minimize();
     }
@@ -287,35 +287,35 @@ public class GUI {
         Window.getActive().toggleMinimize();
     }
     
-    @IsAction(name = "Maximize", descr = "Switch maximized mode.", shortcut = "F11")
+    @IsAction(name = "Maximize", desc = "Switch maximized mode.", keys = "F11")
     public static void toggleMaximize() {
         Window.getActive().toggleMaximize();
     }
     
-    @IsAction(name = "Loop maximized state", descr = "Switch to different maximized window states.", shortcut = "F3")
+    @IsAction(name = "Loop maximized state", desc = "Switch to different maximized window states.", keys = "F3")
     public static void toggleMaximizedState() {
         Window w = Window.getActive();
         w.setMaximized(w.isMaximized().next());
     }
     
-    @IsAction(name = "Fullscreen", descr = "Switch fullscreen mode.", shortcut = "F12")
+    @IsAction(name = "Fullscreen", desc = "Switch fullscreen mode.", keys = "F12")
     public static void toggleFullscreen() {
         Window.getActive().toggleFullscreen();
     }
 
-    @IsAction(name = "Align tabs", descr = "Aligns tabs to the window", shortcut = "SHIFT+UP")
+    @IsAction(name = "Align tabs", desc = "Aligns tabs to the window", keys = "SHIFT+UP")
     public static void tabAlign() {
         LayoutAggregator la = Window.getActive().getLayoutAggregator();
         if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignTabs();
     }
 
-    @IsAction(name = "Align to next tab", descr = "Goes to next tab and aligns tabs to the window", shortcut = "SHIFT+RIGHT")
+    @IsAction(name = "Align to next tab", desc = "Goes to next tab and aligns tabs to the window", keys = "SHIFT+RIGHT")
     public static void tabNext() {
         LayoutAggregator la = Window.getActive().getLayoutAggregator();
         if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignRightTab();
     }
 
-    @IsAction(name = "Align to previous tab", descr = "Goes to previous tab and aligns tabs to the window", shortcut = "SHIFT+LEFT")
+    @IsAction(name = "Align to previous tab", desc = "Goes to previous tab and aligns tabs to the window", keys = "SHIFT+LEFT")
     public static void tabPrevious() {
         LayoutAggregator la = Window.getActive().getLayoutAggregator();
         if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignLeftTab();

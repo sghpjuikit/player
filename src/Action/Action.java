@@ -1,18 +1,6 @@
 
 package action;
 
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playlist.PlaylistManager;
-import Configuration.Config;
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-
-import com.melloware.jintellitype.HotkeyListener;
-import com.melloware.jintellitype.IntellitypeListener;
-import com.melloware.jintellitype.JIntellitype;
-
-import gui.objects.Window.stage.Window;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -24,28 +12,32 @@ import java.util.regex.Matcher;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-
-import static javafx.scene.input.KeyCode.ALT_GRAPH;
-
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 
-import static javafx.scene.input.KeyCombination.NO_MATCH;
-
-import main.App;
-
 import org.atteo.classindex.ClassIndex;
 
+import com.melloware.jintellitype.HotkeyListener;
+import com.melloware.jintellitype.IntellitypeListener;
+import com.melloware.jintellitype.JIntellitype;
+
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playlist.PlaylistManager;
+import Configuration.Config;
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import gui.objects.Window.stage.Window;
+import main.App;
+import unused.Log;
 import util.access.Var;
 import util.async.Async;
-
-import static util.async.Async.runLater;
-
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
 import util.dev.Dependency;
-import unused.Log;
 
+import static javafx.scene.input.KeyCode.ALT_GRAPH;
+import static javafx.scene.input.KeyCombination.NO_MATCH;
+import static util.async.Async.runLater;
 import static util.functional.Util.do_NOTHING;
 
 /**
@@ -75,7 +67,7 @@ public final class Action extends Config<Action> implements Runnable {
     private final boolean defaultGlobal;
     
     private Action(IsAction a, Runnable action) {
-        this(a.name(),action,a.descr(),a.shortcut(),a.global(),a.continuous());
+        this(a.name(),action,a.desc(),a.keys(),a.global(),a.repeat());
     }
     
     /**
@@ -531,21 +523,22 @@ public final class Action extends Config<Action> implements Runnable {
     }
     
     /**
-     Returns the action with specified name.
-     
-     @param name
-     @return action. Never null.
-     @throws IllegalArgumentException if no such action 
+     * Returns the action with specified name.
+     * 
+     * @param name
+     * @return action. Never null.
+     * @throws IllegalArgumentException if no such action 
      */
     @Dependency("must use the same implementation as Action.getId()")
-    public static Action getAction(String name) {
+    public static Action get(String name) {
         Action a = actions.get(name.hashCode());
         if(a==null) throw new IllegalArgumentException("No such action: " + name);
         return a;
     }
+    
     /** Do not use. Private API. Subject to change. */
     @Deprecated
-    public static Action getActionOrNull(String name) {
+    public static Action getOrNull(String name) {
         return actions.get(name.hashCode());
     }
     

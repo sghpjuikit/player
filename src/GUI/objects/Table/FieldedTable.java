@@ -26,7 +26,9 @@ import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 
 import com.sun.javafx.scene.control.skin.TableHeaderRow;
+import com.sun.javafx.scene.control.skin.TableViewSkin;
 import com.sun.javafx.scene.control.skin.TableViewSkinBase;
+
 import gui.objects.ContextMenu.SelectionMenuItem;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import util.access.FieldValue.FieldEnum;
@@ -37,7 +39,6 @@ import util.functional.functor.FunctionC;
 import util.parsing.Parser;
 
 import static java.util.Objects.requireNonNull;
-import static javafx.application.Platform.runLater;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static javafx.geometry.Side.BOTTOM;
@@ -233,29 +234,29 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                             .forEach(i -> ((SelectionMenuItem)i).selected.set(isColumnVisible(nameToCF(i.getText())))));
             
             // link table column button to our menu instead of an old one
-            // we need to delay this because the graphics is not yet ready
-            runLater(()->{
-                TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
-                try {
-                    // cornerRegion is the context menu button, use reflection
-                    Field f = TableHeaderRow.class.getDeclaredField("cornerRegion");
-                    // they just wont let us...
-                    f.setAccessible(true);
-                    // link to our custom menu
-                    Pane columnB = (Pane) f.get(h);
-                         columnB.setOnMousePressed(e -> columnVisibleMenu.show(columnB, BOTTOM, 0, 0));
-                    f.setAccessible(false);
-                } catch (Exception ex) {
-                    Logger.getLogger(FieldedTable.class.getName()).log(Level.SEVERE, null, ex);
-                }
+            
+            if(getSkin()==null) setSkin(new TableViewSkin<>(this));     // make sure skin exists
+            TableHeaderRow h = ((TableViewSkinBase)getSkin()).getTableHeaderRow();
 
-                // install comparator updating part II
-                // we need this because sort order list changes dont reflect
-                // every sort change (when only ASCENDING-DESCENDING is changed
-                // theres no list change event. 
-                h.setOnMouseReleased(this::updateComparator);
-                h.setOnMouseClicked(this::updateComparator);
-            });
+            try {
+                // cornerRegion is the context menu button, use reflection
+                Field f = TableHeaderRow.class.getDeclaredField("cornerRegion");
+                // they just wont let us...
+                f.setAccessible(true);
+                // link to our custom menu
+                Pane columnB = (Pane) f.get(h);
+                     columnB.setOnMousePressed(e -> columnVisibleMenu.show(columnB, BOTTOM, 0, 0));
+                f.setAccessible(false);
+            } catch (Exception ex) {
+                Logger.getLogger(FieldedTable.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            // install comparator updating part II
+            // we need this because sort order list changes dont reflect
+            // every sort change (when only ASCENDING-DESCENDING is changed
+            // theres no list change event. 
+            h.setOnMouseReleased(this::updateComparator);
+            h.setOnMouseClicked(this::updateComparator);
             
         }
         return defColInfo;

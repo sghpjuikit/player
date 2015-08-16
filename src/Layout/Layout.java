@@ -21,9 +21,9 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import com.thoughtworks.xstream.io.StreamException;
 
 import main.App;
+import util.File.FileUtil;
 import util.serialize.Serializes;
 import util.serialize.SerializesFile;
-import util.File.FileUtil;
 
 /**
  * @author uranium
@@ -120,10 +120,13 @@ public final class Layout extends UniContainer implements Serializes, Serializes
      * Similar to {@link #isActive()} but this method returns true only if this
      * layout is active layout within layout aggregator of the main application
      * application window.
-     * @return true if and only if layout is displayed on the screen as main tab */
+     * @return true if and only if layout is displayed on the screen as main tab
+     */
+    @Deprecated // remove this 
     public boolean isMain() {
-        return this == App.getWindow().getLayoutAggregator().getActive();
+        return this == App.getWindow().getLayout();
     }
+    
     /** 
      * Returns whether this layout is active. Layout is active if its root is not
      * null and is attached to the scene graph - if the layout is loaded.
@@ -187,9 +190,10 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     }
     
     public void serialize(File f) {
-        if(getChildren().isEmpty()) return;
+        if(getChild() == null) return;
        
         try {
+            
             X.toXML(this, new BufferedWriter(new FileWriter(f)));
         } catch (IOException e) {
             LOGGER.error("Unable to save gui layout '{}' into the file {}. {}", name,f,e);

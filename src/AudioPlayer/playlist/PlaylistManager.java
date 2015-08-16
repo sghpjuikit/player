@@ -14,7 +14,7 @@ import action.IsAction;
 import action.IsActionable;
 import main.App;
 import util.collections.map.MapSet;
-import util.functional.Functors.F1;
+import util.functional.Functors.Ƒ1;
 import util.reactive.ValueEventSource;
 
 import static java.util.Collections.EMPTY_LIST;
@@ -41,7 +41,7 @@ public class PlaylistManager implements Configurable {
         if(p==null) p = playlists.stream().findAny().orElse(null);
         if(p!=null) action.accept(p);
     }
-    public static <T> T use(F1<Playlist,T> action, T or) {
+    public static <T> T use(Ƒ1<Playlist,T> action, T or) {
         Playlist p = null;
         if(active!=null) p = playlists.get(active);
         if(p==null) p = playlists.stream().findAny().orElse(null);

@@ -86,6 +86,7 @@ public final class UiContext {
      */
     public static Window showWindow(Component widget) {
         Window w = Window.create();
+               w.initLayout();
                w.setContent(widget);
                w.show();
                w.setScreen(Window.getActive().getScreen());

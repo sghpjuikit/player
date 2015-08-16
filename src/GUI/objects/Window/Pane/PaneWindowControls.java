@@ -20,9 +20,6 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 
-import Layout.Component;
-import Layout.Layout;
-import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Window.Resize;
 import unused.Log;
 
@@ -110,14 +107,6 @@ public class PaneWindowControls extends WindowPane {
 	setAnchors(n, 0d);
     }
 
-    public void setContent(Component c) {
-	Layout l = new Layout();
-	SwitchPane la = new SwitchPane();
-	la.addTab(0, l);
-	la.setAlwaysAlignTabs(SwitchPane.align_tabs);
-	l.setChild(c);
-    }
-    
     /**
      Blocks input to content, but not to root.
      <p>

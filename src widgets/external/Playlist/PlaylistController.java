@@ -42,12 +42,14 @@ import util.units.FormattedDuration;
 
 import static Layout.Widgets.Widget.Group.PLAYLIST;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static Layout.Widgets.WidgetManager.WidgetSource.OPEN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static util.Util.menuItem;
 import static util.functional.Util.isNotNULL;
+import static util.functional.Util.list;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
 
@@ -89,7 +91,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private PlaylistTable table;
     private final ExecuteN columnInitializer = new ExecuteN(1);
     
-    private Output<PlaylistItem> out_sel;
+    private Output<PlaylistItem> outSelected, outPlaying;
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
@@ -120,21 +122,24 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         setUseFilterForPlayback(v);
     });
     
-    
     @Override
     public void init() {        
-        out_sel = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
-        d(Player.playlistSelected.i.bind(out_sel));
         
         // obtain playlist by id, we will use this widget's id
         UUID id = getWidget().id;
-        playlist = PlaylistManager.playlists.getOr(id, new Playlist(id));
+        playlist = PlaylistManager.playlists.getOr(id, getUnusedPlaylist(id));
         // maybe this widget was created & no playlist exists, add it to list
         PlaylistManager.playlists.add(playlist); // if exists, nothing happens
         // when widget closes we must remove the playlist or it would get saved
         // and playlist list would infinitely grow, when widgets close naturally
         // on app close, the playlist will get removed after it was saved => no problem
         d(() -> PlaylistManager.playlists.remove(playlist));
+        
+        // widget input/output
+        outSelected = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
+        outPlaying = outputs.create(widget.id,"Playing", PlaylistItem.class, null);
+        d(Player.playlistSelected.i.bind(outSelected));
+        d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
         
         table = new PlaylistTable(playlist);
         
@@ -153,8 +158,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
-            double d = list.stream().filter(isNotNULL).mapToDouble(PlaylistItem::getTimeMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
+            double Σms = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(Σms);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(
@@ -192,7 +197,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         root.setOnScroll(Event::consume);
         
         // maintain outputs
-        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> outSelected.setValue(nv));
         
         d(table::dispose);
     }
@@ -268,5 +273,25 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     private void filterToggle() {
         filter_for_playback.setCycledNapplyValue();
+    }
+    
+    private static Playlist getUnusedPlaylist(UUID id) {
+        List<Playlist> pall = list(PlaylistManager.playlists);
+        WidgetManager.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
+                     .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
+                     .filter(isNotNULL)
+                     .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));
+        
+        Playlist leaf = pall.isEmpty() ? null : pall.get(0);
+        for(Playlist p : pall)
+            if(p.id.equals(PlaylistManager.active))
+                leaf = p;
+        if(leaf!=null) PlaylistManager.playlists.remove(leaf);
+        if(leaf!=null) {
+            if(leaf.id.equals(PlaylistManager.active))
+                PlaylistManager.active = id;
+            util.Util.setField(Playlist.class, leaf, "id", id);
+        }
+        return leaf==null ? new Playlist(id) : leaf;
     }
 }

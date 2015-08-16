@@ -7,11 +7,14 @@ package util.async.runnable;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import static javafx.application.Platform.isFxApplicationThread;
-import static javafx.application.Platform.runLater;
+
 import javafx.event.EventHandler;
 import javafx.scene.control.ProgressIndicator;
+
 import util.functional.functor.FunctionC;
+
+import static javafx.application.Platform.isFxApplicationThread;
+import static javafx.application.Platform.runLater;
 
 /** Runnable with additional methods for composition and transformations.
  <p>
@@ -76,7 +79,7 @@ public interface Run extends Runnable {
      * 
      * @see LimitedRunnable
      */
-    public default Run limit(long times) {
+    public default Run limited(long times) {
         return new LimitedRunnable(times,this);
     }
     
@@ -135,4 +138,27 @@ public interface Run extends Runnable {
         return r::run;
     }
     
+    
+    class LimitedRunnable implements Run {
+
+        private long executed = 0;
+        private final long max;
+        private final Runnable x;
+
+        /** 
+         * @param limit maximum number of times the runnable can execute
+         * @param action action that will execute when this runnable executes
+         */
+        LimitedRunnable(long limit, Runnable action) {
+            max = limit;
+            x = action;
+        }
+
+        @Override
+        public void run() {
+            if(executed<max) x.run();
+            executed++;
+        }
+
+    }
 }

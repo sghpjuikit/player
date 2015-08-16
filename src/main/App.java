@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.*;
+import javafx.collections.ObservableListBase;
 import javafx.scene.ImageCursor;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
@@ -25,6 +26,7 @@ import org.reactfx.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.javafx.collections.ObservableListWrapper;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
@@ -33,6 +35,7 @@ import com.thoughtworks.xstream.mapper.Mapper;
 
 import AudioPlayer.Item;
 import AudioPlayer.Player;
+import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.plugin.IsPlugin;
 import AudioPlayer.plugin.IsPluginType;
@@ -48,9 +51,6 @@ import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Component;
-import Layout.Layout;
-import Layout.Widgets.ClassWidget;
-import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
@@ -84,12 +84,13 @@ import util.InstanceName;
 import util.access.VarEnum;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
+import util.serialize.PlaybackStateConverter;
+import util.serialize.PlaylistItemConverter;
 import util.serialize.xstream.BooleanPropertyConverter;
 import util.serialize.xstream.DoublePropertyConverter;
 import util.serialize.xstream.IntegerPropertyConverter;
 import util.serialize.xstream.LongPropertyConverter;
 import util.serialize.xstream.ObjectPropertyConverter;
-import util.serialize.xstream.ObservableListConverter;
 import util.serialize.xstream.StringPropertyConverter;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
@@ -224,18 +225,29 @@ public class App extends Application {
         // configure serialization
         XStream x = serialization.x;
         Mapper xm = x.getMapper();
+        x.autodetectAnnotations(true);
         x.registerConverter(new StringPropertyConverter(xm));
         x.registerConverter(new BooleanPropertyConverter(xm));
         x.registerConverter(new ObjectPropertyConverter(xm));
         x.registerConverter(new DoublePropertyConverter(xm));
         x.registerConverter(new LongPropertyConverter(xm));
         x.registerConverter(new IntegerPropertyConverter(xm));
-        x.registerConverter(new ObservableListConverter(xm));
-        x.autodetectAnnotations(true);
-        x.alias("FxmlWidget", FXMLWidget.class);
-        x.alias("ClassWidget", ClassWidget.class);
-        x.alias("Layout", Layout.class);
+//        x.registerConverter(new ObservableListConverter(xm));
+        x.registerConverter(new Window.WindowConverter());
+        x.registerConverter(new PlaybackStateConverter());
+        x.registerConverter(new PlaylistItemConverter());
+        x.omitField(ObservableListBase.class, "listenerHelper");
+        x.omitField(ObservableListBase.class, "changeBuilder");
+        x.omitField(ObservableListWrapper.class, "elementObserver");
+        x.alias("Component", Component.class);
+        x.alias("Playlist", Playlist.class);
+        x.alias("item", PlaylistItem.class);
+        ClassIndex.getSubclasses(Component.class).forEach(c -> 
+            x.alias(c.getSimpleName(), c)
+        );
         x.useAttributeFor(Component.class, "id");
+        x.useAttributeFor(Widget.class, "name");
+        x.useAttributeFor(Playlist.class, "id");
         
         // add optional object instance -> string converters
         className.add(Item.class, "Song");
@@ -255,7 +267,7 @@ public class App extends Application {
         // register actions
         ActionPane.register(Widget.class, 
             new ActionData<Widget>("Create launcher (def)","Creates a launcher "
-                + "for this widget with default (no predefined) settings.\n "
+                + "for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "widget as if it were a standalone application.",
                 UPLOAD, w -> {
@@ -268,7 +280,7 @@ public class App extends Application {
         );
         ActionPane.register(Component.class, 
             new ActionData<Component>("Create launcher","Creates a launcher "
-                + "for this component with current settings.\n "
+                + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "component as if it were a standalone application.",
                 UPLOAD, w -> {
@@ -364,7 +376,7 @@ public class App extends Application {
 //            Transition t = par(
 //                Window.windows.stream().map(w -> 
 //                    seq(
-//                        new Anim(at -> ((SwitchPane)w.getLayoutAggregator()).zoomProperty().set(1-0.6*at))
+//                        new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(1-0.6*at))
 //                                .dur(500).intpl(new CircularInterpolator()),
 //                        par(
 //                            par(
@@ -376,7 +388,7 @@ public class App extends Application {
 //                                    new Anim(at->setScaleXY(icon,at*at)).dur(500).intpl(new ElasticInterpolator()).delay(i*200))
 //                            ),
 //                            par(
-//                                w.getLayoutAggregator().getLayouts().values().stream()
+//                                w.getSwitchPane().getLayouts().values().stream()
 //                                 .flatMap(l -> l.getAllWidgets())
 //                                 .map(wi -> (Area)wi.load().getUserData())
 //                                 .map(a -> 
@@ -388,7 +400,7 @@ public class App extends Application {
 //                            )
 //                        ),
 //                        par(
-//                            new Anim(at -> ((SwitchPane)w.getLayoutAggregator()).zoomProperty().set(0.4+0.7*at))
+//                            new Anim(at -> ((SwitchPane)w.getSwitchPane()).zoomProperty().set(0.4+0.7*at))
 //                                    .dur(500).intpl(new CircularInterpolator())
 //                        )
 //                    )

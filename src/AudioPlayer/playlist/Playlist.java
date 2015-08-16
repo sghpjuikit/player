@@ -45,7 +45,6 @@ import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import Configuration.ValueConfig;
-import util.serialize.PlaylistItemConverter;
 import gui.objects.PopOver.PopOver;
 import gui.objects.icon.Icon;
 import main.App;
@@ -54,6 +53,7 @@ import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
 import util.collections.map.MapSet;
+import util.serialize.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
@@ -75,6 +75,10 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     public final IntegerProperty playingI = new SimpleIntegerProperty(-1);
     @XStreamOmitField
     private PlaylistItem playing = null;
+    
+    public Playlist() {
+        this(UUID.randomUUID());
+    }
     
     public Playlist(UUID id) {
         super(new ArrayList<>());
@@ -102,12 +106,12 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
     
     /** Returns total playlist duration - a sum of all playlist item lengths. */
     public Duration getLength() {
-        double td = stream()
+        double Σ = stream()
                 .map(PlaylistItem::getTime)
                 .filter(d->!d.isIndefinite()&&!d.isUnknown())
                 .mapToDouble(d->d.toMillis())
                 .reduce(0d, Double::sum);
-        return millis(td);
+        return millis(Σ);
     }
     
     
@@ -421,11 +425,10 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
                 playItem(alt_supplier.apply(item));
             } else {
                 unplayable1st = null;
-                PlaylistManager.playlists.forEach(p -> p.playingI.set(-1));
-                PlaylistManager.playlists.forEach(p -> p.playing = null);
                 PlaylistManager.active = this.id;
-                playingI.set(indexOf(item));
-                playing = item;
+                PlaylistManager.playlists.forEach(p -> p.playing = p==this ? item : null);
+                // each playlist fires 1 event and after all data is ready
+                PlaylistManager.playlists.forEach(p -> p.playingI.set(p==this ? indexOf(item) : -1));
                 PLAYBACK.play(item);
             }
         }
@@ -803,29 +806,19 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         }
     }
     
-    
     /**
-    * There is one major flaw in XStream. Unfortunately it has no way of
-    * telling if a field or attribute should get any default value if not
-    * present in the xml file. Because constructor is not being invoked we
-    * cannot set the value there. Neither setting the value in field definition
-    * will work. The resulting instance will always have zero or null values in
-    * the fields.
-    *
-    * The only way of setting the desired default value is using the following
-    * method. It is called during deserialization process and here we can check
-    * if the field value is null. If yes it means that it's tag is not present
-    * and we can set the default value if needed.
-    *
-    * @return this
-    * @throws ObjectStreamException
-    */
-    // must not be private or it wont get inherited
+     * Invoked just after deserialization.
+     * 
+     * @implSpec
+     * Resolve object by initializing non-deserializable fields or providing an
+     * alternative instance (e.g. to adhere to singleton pattern).
+     */
     protected Object readResolve() throws ObjectStreamException {
         Playlist p = new Playlist(this.id);
-              p.setAll(this);
-              p.playingI.set(this.playingI.get());
-              p.playing = p.get(p.playingI.get());
+        int i = this.playingI.get();
+        p.setAll(this);
+        p.playingI.set(i);
+        p.playing = i<0 ? null : p.get(i);
         return p;
     }
     

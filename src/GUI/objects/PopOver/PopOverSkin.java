@@ -26,15 +26,11 @@
  */
 package gui.objects.PopOver;
 
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import gui.objects.PopOver.PopOver.ArrowLocation;
-import gui.objects.icon.Icon;
 import java.util.ArrayList;
 import java.util.List;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
-import static javafx.beans.binding.Bindings.add;
-import static javafx.beans.binding.Bindings.multiply;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ListChangeListener;
@@ -51,6 +47,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.*;
 import javafx.stage.Window;
+
+import gui.objects.PopOver.PopOver.ArrowLocation;
+import gui.objects.icon.Icon;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.THUMB_TACK;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TIMES_CIRCLE;
+import static javafx.beans.binding.Bindings.add;
+import static javafx.beans.binding.Bindings.multiply;
 import static util.async.Async.run;
 import static util.functional.Util.mapB;
 import static util.reactive.Util.maintain;
@@ -105,16 +109,16 @@ public class PopOverSkin implements Skin<PopOver> {
         title.textProperty().bind(popOver.title);
         title.getStyleClass().add(TITLE_STYLECLASS);
 
-        closeB = new Icon(TIMES_CIRCLE, 11, "Close", popOver::hideStrong);
+        String closeBt = "Close\n\nClose this popup and its content.";
+        closeB = new Icon(TIMES_CIRCLE, 11, closeBt, popOver::hideStrong);
         // causes slight bug where popup changes position by 1px
         // maintain(closeB.hoverProperty(), mapB(TIMES_CIRCLE,TIMES_CIRCLE_ALT), closeB.icon);
-        closeB.getStyleClass().add("popover-closebutton");
+        closeB.styleclass("popover-closebutton");
         
-        pinB = new Icon(THUMB_TACK, 11, "Autohide", e -> {
-            popOver.setAutoHide(!popOver.isAutoHide());
-            e.consume();
-        });
-        pinB.getStyleClass().add("popover-closebutton");
+        String pinBt = "Pin\n\nWhen disabled, this popup will close on mouse "
+                + "click outside of this popup.";
+        pinB = new Icon(THUMB_TACK, 11, pinBt,() -> popOver.setAutoHide(!popOver.isAutoHide()));
+        pinB.styleclass("popover-closebutton");
         maintain(popOver.autoHideProperty(), mapB(0.4,1), pinB.opacityProperty());
         
         headerControls = new HBox(closeB);

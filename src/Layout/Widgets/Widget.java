@@ -277,10 +277,11 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * Resolve object by initializing non-deserializable fields or providing an
      * alternative instance (e.g. to adhere to singleton pattern).
      */
-    // must not be private or it wont get inherited
     protected Object readResolve() throws ObjectStreamException {
-        // assign factory
+        // try to assign factory
         if (factory==null) factory = WidgetManager.getFactory(name);
+        // use empty widget when no factory available
+        if (factory==null) return Widget.EMPTY();
         
         // accumulate serialized inputs for later deserialiation when all widgets are ready
         properties.entrySet().stream()
@@ -288,8 +289,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                   .map(e -> new IO(this,e.getKey().substring(2), (String)e.getValue()))
                   .forEach(ios::add);
         
-        // use empty widget when no factory available
-        return factory==null ? Widget.EMPTY() : this;
+        return this;
     }
     
     // normally we would do this in readResolve, but controller ready only after

@@ -68,7 +68,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 
 	// build header buttons
 	Icon infoB = new Icon(INFO, 12, "Help", ()->{});
-	Icon layB = new Icon(ANCHOR, 12, "Close container", () -> {
+	Icon layB = new Icon(ANCHOR, 12, "Resize content", () -> {
 	    ((FreeFormArea)this).bestLayout();
 	});
 	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", this::detach);
@@ -82,11 +82,11 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	    App.actionStream.push("Widget layout lock");
 	});
         maintain(container.locked, mapB(LOCK,UNLOCK),lockB::icon);
-	absB = new Icon(LINK, 12, "Resize widget proportionally", e -> {
+	absB = new Icon(LINK, 12, "Resize widget proportionally", () -> {
 	    toggleAbsSize();
 	    updateAbsB();
 	});
-	Icon closeB = new Icon(TIMES, 12, "Close widget", e -> {
+	Icon closeB = new Icon(TIMES, 12, "Close widget", () -> {
 	    container.close();
 	    App.actionStream.push("Close widget");
 	});
@@ -232,9 +232,9 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                // put size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
-        Layout c2 = w.getLayoutAggregator().getActive();
-        Component w2 = c2.getChild();
-            // watch out indexOf returns null if param null, but that will not happen here
+        Container c2 = w.getTopContainer();
+        Component w2 = null;
+        // indexOf returns null if param null, but that will not happen here
         int i1 = p.indexOf(c);
         p.swapChildren(c2,i1,w2);
     }

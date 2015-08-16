@@ -8,27 +8,25 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javafx.collections.ObservableListBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+import com.thoughtworks.xstream.io.StreamException;
 
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistManager;
-import util.serialize.PlaybackStateConverter;
-import util.serialize.PlaylistItemConverter;
-
-import com.sun.javafx.collections.ObservableListWrapper;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import com.thoughtworks.xstream.io.StreamException;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-
 import main.App;
-import unused.Log;
+
+import static util.functional.Util.find;
 
 /**
  * @author uranium
@@ -38,23 +36,68 @@ import unused.Log;
  * Immutable.
  */
 public final class PlayerState {
+    
+    private static final XStream X = App.INSTANCE.serialization.x;
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayerState.class);
+    
     @XStreamOmitField
-    public final PlaybackState playback;
+    public PlaybackState playback = PlaybackState.getDefault();
     public final List<PlaybackState> playbacks = new ArrayList<>();
     public final List<Playlist> playlists = new ArrayList<>();
     private UUID playlist_id;
     private UUID playback_id;
 
-    /**
-     * Creates default state.
-     */
     public PlayerState() {
-        playback = PlaybackState.getDefault();
         playbacks.add(playback);
     }
     
-    public void suspendPlayback() {
-        PlaybackState p = getPb(playback.getId());
+    public static PlayerState deserialize() {
+        try {
+            return (PlayerState) X.fromXML(new File(App.PLAYER_STATE_FILE()));
+        } catch (ClassCastException | StreamException ex) {
+            LOGGER.error("Unable to load player state from the file {}. "
+                    + "Loading default state.", App.PLAYER_STATE_FILE());
+            return new PlayerState();
+        }
+    }
+    
+    public void serialize() {
+        try {
+            X.toXML(this, new BufferedWriter(new FileWriter(App.PLAYER_STATE_FILE())));
+        } catch (IOException ex) {
+            LOGGER.error("Unable to save player state into the file {}",App.PLAYER_STATE_FILE());
+        }
+    }
+    
+    /** Invoked just before the serialization. */
+    protected Object writeReplace() throws ObjectStreamException {
+        playback.realTime.set(PLAYBACK.getRealTime());
+        suspendPlayback();
+        
+        playback_id = playback.getId();
+        playlist_id = PlaylistManager.active;
+        
+        playlists.clear();
+        playlists.addAll(PlaylistManager.playlists);
+        return this;
+    }
+        
+    /**
+     * Invoked just after deserialization.
+     * 
+     * @implSpec
+     * Resolve object by initializing non-deserializable fields or providing an
+     * alternative instance (e.g. to adhere to singleton pattern).
+     */
+    protected Object readResolve() throws ObjectStreamException {System.out.println("fffff");
+        playback = find(playbacks, pb -> pb.getId().equals(playback_id)).orElseGet(PlaybackState::getDefault);
+        PlaylistManager.playlists.addAll(playlists);
+        PlaylistManager.active = playlist_id;
+        return this;
+    }
+    
+    private void suspendPlayback() {
+        PlaybackState p = find(playbacks, pb -> pb.getId().equals(playback_id)).orElse(null);
         if (p != null)
             p.change(playback);
         else {
@@ -62,60 +105,5 @@ public final class PlayerState {
                           s.change(playback);
             playbacks.add(s);
         }
-    }
-    
-    public void serialize() {
-        try {
-            playback.realTime.set(PLAYBACK.getRealTime());
-            suspendPlayback();
-            playback_id = playback.getId();
-            playlist_id = UUID.fromString(PlaylistManager.active.toString());
-            
-            playlists.clear();
-            playlists.addAll(PlaylistManager.playlists);
-            
-            XStream x = new XStream(new DomDriver());
-            x.autodetectAnnotations(true);
-            x.registerConverter(new PlaybackStateConverter());
-            x.registerConverter(new PlaylistItemConverter());
-            x.omitField(ObservableListBase.class, "listenerHelper");
-            x.omitField(ObservableListBase.class, "changeBuilder");
-            x.omitField(ObservableListWrapper.class, "elementObserver");
-            x.toXML(this, new BufferedWriter(new FileWriter(App.PLAYER_STATE_FILE())));
-        } catch (IOException ex) {
-            Log.err("Unable to save player state into the file: "+ App.PLAYER_STATE_FILE());
-        }
-    }
-    
-    public void deserialize() {
-        try {
-            XStream x = new XStream(new DomDriver());
-            x.autodetectAnnotations(true);
-            x.registerConverter(new PlaybackStateConverter());
-            x.registerConverter(new PlaylistItemConverter());
-            PlayerState ps = (PlayerState) x.fromXML(new File(App.PLAYER_STATE_FILE()));
-            
-            playbacks.clear();
-            playbacks.addAll(ps.playbacks);
-            playback.change(getPb(ps.playback_id));
-            
-            playlists.clear();
-            playlists.addAll(ps.playlists);
-            PlaylistManager.playlists.addAll(playlists);
-            PlaylistManager.active = ps.playlist_id;
-            
-        } catch (ClassCastException | StreamException ex) {
-            Log.err("Unable to load player state from the file: "+ App.PLAYER_STATE_FILE() + 
-                    ". The file not found or content corrupted. Loading default state. ");
-        }
-    }
-    
-    
-    private PlaybackState getPb(UUID id) {
-        for (PlaybackState s: playbacks) {
-            if (s.getId().equals(id))
-                return s;
-        }
-        return null;
     }
 }

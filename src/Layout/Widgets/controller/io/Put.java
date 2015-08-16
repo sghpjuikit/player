@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.WritableValue;
 
 import org.reactfx.Subscription;
 
@@ -18,7 +19,7 @@ import org.reactfx.Subscription;
  *
  * @author Plutonium_
  */
-public class Put<T> {
+public class Put<T> implements WritableValue<T> {
     
     final Class<? super T> type;
     final ObjectProperty<T> val = new SimpleObjectProperty();
@@ -33,10 +34,12 @@ public class Put<T> {
         return type;
     }
 
+    @Override
     public T getValue() {
         return val.get();
     }
     
+    @Override
     public void setValue(T v) {
         val.setValue(v);
         monitors.forEach(m -> m.accept(v));

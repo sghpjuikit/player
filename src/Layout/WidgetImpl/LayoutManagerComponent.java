@@ -1,24 +1,29 @@
 
 package Layout.WidgetImpl;
 
-import Layout.Layout;
-import Layout.LayoutManager;
-import Layout.UniContainer;
-import gui.objects.Text;
-import gui.objects.image.Thumbnail;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+
+import Layout.Component;
+import Layout.Layout;
+import Layout.LayoutManager;
+import Layout.SwitchContainer;
+import gui.objects.Text;
+import gui.objects.Window.stage.Window;
+import gui.objects.image.Thumbnail;
 import main.App;
-import util.File.Environment;
 import unused.Log;
+import util.File.Environment;
+
+import static java.util.stream.Collectors.toList;
 import static util.functional.Util.toCSList;
 
 /**
@@ -84,7 +89,7 @@ public final class LayoutManagerComponent {
      * Completely refreshes layouts - rereads them from files, etc...
      */
     public void refresh() {
-        layoutsCB.getItems().setAll(LayoutManager.getAllLayoutsNames().collect(Collectors.toList()));
+        layoutsCB.getItems().setAll(LayoutManager.getAllLayoutsNames().collect(toList()));
         layoutsCB.getSelectionModel().select(LayoutManager.getActive().getName());
     }
     
@@ -92,7 +97,11 @@ public final class LayoutManagerComponent {
     public void loadSelectedLayout() {
         if (!isSelected()) return;
         
-        LayoutManager.changeActiveLayout(getSelectedLayout());
+        SwitchContainer c = Window.getActive().getTopContainer();
+        Component toLoad = getSelectedLayout().getChild();
+        int i = c.getEmptySpot(); // this can normally return null, but not SwitchContainer
+        c.addChild(i, toLoad);
+        c.getGraphics().alignTab(i);
     }
     
     public void saveSelectedLayout() {
@@ -148,10 +157,9 @@ public final class LayoutManagerComponent {
         // get children counts by counting leaf Components
             // all widgets (and fetch names while at it to avoid reiterating
         long ws = l.getAllWidgets().peek(w->w_names.add(w.getName())).count();
-            // all leaf containers - cs that contain only widgets
-        long chs = l.getAllContainers().filter(UniContainer.class::isInstance).count();
+        long chs = l.getAllContainers(true).filter(c -> c.getChildren().isEmpty()).count();
             // all empty leaf containers
-        long cs = chs-ws;
+        long cs = ws-chs;
         
         // show info
         String s;

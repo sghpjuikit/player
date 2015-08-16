@@ -7,8 +7,9 @@ package util.functional;
 
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
-import util.functional.Functors.F1;
+import util.functional.Functors.Ƒ1;
 import util.parsing.StringParseStrategy;
+
 import static util.parsing.StringParseStrategy.From.CONSTRUCTOR_STR;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
@@ -17,7 +18,7 @@ import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
  * @author Plutonium_
  */
 @StringParseStrategy(from = CONSTRUCTOR_STR, to = TO_STRING_METHOD, ex = {IllegalStateException.class,java.lang.IllegalArgumentException.class})
-public class SDF implements F1<Double,Double> {
+public class SDF implements Ƒ1<Double,Double> {
     
     private final String ex;
     private final Expression e;

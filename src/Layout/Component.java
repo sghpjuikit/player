@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import javafx.scene.Node;
 
+import org.atteo.classindex.IndexSubclasses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ import util.collections.map.PropertyMap;
  * Defines wrapper of loadable graphical component.
  * Basis for wrappers - containers or wrapped widgets.
  */
+@IndexSubclasses()
 public abstract class Component {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Component.class);

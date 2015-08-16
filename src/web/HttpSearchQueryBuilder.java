@@ -5,15 +5,15 @@
  */
 package web;
 
-import AudioPlayer.plugin.IsPluginType;
 import java.net.URI;
-import util.functional.functor.FunctionC;
 
-/**
- <p>
- @author Plutonium_
+import AudioPlayer.plugin.IsPluginType;
+import util.functional.Functors.Ƒ1;
+
+/** 
+ * Transforms text into a search query. 
  */
 @IsPluginType
-public interface HttpSearchQueryBuilder extends FunctionC<String,URI> {
+public interface HttpSearchQueryBuilder extends Ƒ1<String,URI> {
     
 }

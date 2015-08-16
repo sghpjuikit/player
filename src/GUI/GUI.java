@@ -1,43 +1,13 @@
 
 package gui;
 
-import Configuration.IsConfig;
-import Configuration.IsConfigurable;
-import Layout.Layout;
-import Layout.LayoutManager;
-import action.IsAction;
-import action.IsActionable;
-
-import com.sun.javafx.css.StyleManager;
-
-import static gui.GUI.OpenStrategy.INSIDE;
-
-import gui.LayoutAggregators.LayoutAggregator;
-import gui.LayoutAggregators.SwitchPane;
-import gui.objects.Window.stage.Window;
-
 import java.io.File;
-
-import static java.io.File.separator;
-
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-
-import static java.util.Collections.EMPTY_LIST;
-
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
 import javafx.animation.*;
-
-import static javafx.animation.Interpolator.LINEAR;
-
 import javafx.application.Application;
-
-import static javafx.application.Application.STYLESHEET_CASPIAN;
-import static javafx.application.Application.STYLESHEET_MODENA;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -46,33 +16,40 @@ import javafx.geometry.NodeOrientation;
 import javafx.scene.Node;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
-
-import static javafx.scene.text.FontPosture.ITALIC;
-import static javafx.scene.text.FontPosture.REGULAR;
-
 import javafx.scene.text.FontWeight;
-
-import static javafx.scene.text.FontWeight.BOLD;
-import static javafx.scene.text.FontWeight.NORMAL;
-
 import javafx.util.Duration;
 
-import static javafx.util.Duration.millis;
+import com.sun.javafx.css.StyleManager;
 
+import Configuration.IsConfig;
+import Configuration.IsConfigurable;
+import Layout.Layout;
+import Layout.LayoutManager;
+import action.IsAction;
+import action.IsActionable;
+import gui.objects.Window.stage.Window;
 import main.App;
+import unused.Log;
 import util.File.FileUtil;
-
-import static util.Util.capitalizeStrong;
-
 import util.access.Var;
 import util.access.VarEnum;
 import util.animation.interpolator.CircularInterpolator;
-
-import static util.animation.interpolator.EasingMode.EASE_OUT;
-
-import unused.Log;
 import util.dev.TODO;
 
+import static gui.GUI.OpenStrategy.INSIDE;
+import static java.io.File.separator;
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.stream.Collectors.toList;
+import static javafx.animation.Interpolator.LINEAR;
+import static javafx.application.Application.STYLESHEET_CASPIAN;
+import static javafx.application.Application.STYLESHEET_MODENA;
+import static javafx.scene.text.FontPosture.ITALIC;
+import static javafx.scene.text.FontPosture.REGULAR;
+import static javafx.scene.text.FontWeight.BOLD;
+import static javafx.scene.text.FontWeight.NORMAL;
+import static javafx.util.Duration.millis;
+import static util.Util.capitalizeStrong;
+import static util.animation.interpolator.EasingMode.EASE_OUT;
 import static util.dev.TODO.Purpose.PERFORMANCE_OPTIMIZATION;
 
 /**
@@ -230,8 +207,7 @@ public class GUI {
     
     public static void setZoomMode(boolean val) {
         Window w = Window.getFocused();
-        if(w!=null)
-            SwitchPane.class.cast(w.getLayoutAggregator()).zoom(val);
+        if(w!=null) w.getSwitchPane().zoom(val);
     }
     
     /** Toggles layout mode. */
@@ -244,8 +220,7 @@ public class GUI {
     @IsAction(name = "Zoom Layout", desc = "Toggles layout zoom in/out.")
     public static void toggleZoomMode() {
         Window w = Window.getFocused();
-        if(w!=null)
-            SwitchPane.class.cast(w.getLayoutAggregator()).toggleZoom();
+        if(w!=null) w.getSwitchPane().toggleZoom();
     }
     
     public static void setLayoutNzoom(boolean v) {
@@ -305,20 +280,17 @@ public class GUI {
 
     @IsAction(name = "Align tabs", desc = "Aligns tabs to the window", keys = "SHIFT+UP")
     public static void tabAlign() {
-        LayoutAggregator la = Window.getActive().getLayoutAggregator();
-        if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignTabs();
+        Window.getActive().getSwitchPane().alignTabs();
     }
 
     @IsAction(name = "Align to next tab", desc = "Goes to next tab and aligns tabs to the window", keys = "SHIFT+RIGHT")
     public static void tabNext() {
-        LayoutAggregator la = Window.getActive().getLayoutAggregator();
-        if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignRightTab();
+        Window.getActive().getSwitchPane().alignRightTab();
     }
 
     @IsAction(name = "Align to previous tab", desc = "Goes to previous tab and aligns tabs to the window", keys = "SHIFT+LEFT")
     public static void tabPrevious() {
-        LayoutAggregator la = Window.getActive().getLayoutAggregator();
-        if(la instanceof SwitchPane) SwitchPane.class.cast(la).alignLeftTab();
+        Window.getActive().getSwitchPane().alignLeftTab();
     }
     
     

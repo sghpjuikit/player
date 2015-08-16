@@ -5,27 +5,22 @@
  */
 package AudioPlayer.playback.player;
 
-import AudioPlayer.playback.PLAYBACK;
-import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.Item;
-
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
-
-import static javafx.scene.media.MediaPlayer.Status.PAUSED;
-import static javafx.scene.media.MediaPlayer.Status.PLAYING;
-import static javafx.scene.media.MediaPlayer.Status.STOPPED;
-
 import javafx.util.Duration;
 
 import org.reactfx.Subscription;
 
+import AudioPlayer.Item;
+import AudioPlayer.playback.PLAYBACK;
+import AudioPlayer.playback.PlaybackState;
 import unused.Log;
 
+import static javafx.scene.media.MediaPlayer.Status.*;
 import static util.reactive.Util.maintain;
 
 /**
@@ -97,7 +92,9 @@ public class JavaFxPlayer implements Play {
                 if (newV == PLAYING || newV == PAUSED || newV == STOPPED) {
                     // bind (read only) values: new player -> global (manual initialization)
                     d5 = maintain(player.currentTimeProperty(),state.currentTime);
-                    d6 = maintain(player.cycleDurationProperty(),state.duration);
+                    // we completely ignore javafx readings here, instead rely on jaudiotagger
+                    // d6 = maintain(player.cycleDurationProperty(),state.duration);
+                    // state.duration.set(player.cycleDurationProperty().get());
                     d7 = maintain(player.statusProperty(),state.status);
                     // make one time only
                     player.statusProperty().removeListener(this);

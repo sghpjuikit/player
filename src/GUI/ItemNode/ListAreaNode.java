@@ -54,7 +54,7 @@ public class ListAreaNode extends ValueNode<List<String>> {
     
     private final VBox root = new VBox();
     private final TextArea area = new TextArea();
-    private final FunctionChainItemNode transforms = new FunctionChainItemNode(Functors::getI);
+    private final ƑChainItemNode transforms = new ƑChainItemNode(Functors::getI);
     private List input;
     /** 
      * Output list. List of objects after applying the transformation on input

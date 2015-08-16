@@ -22,7 +22,7 @@ import Layout.Widgets.controller.io.InOutput;
 import main.App;
 import util.async.future.Fut;
 import util.collections.map.MapSet;
-import util.functional.Functors.F2;
+import util.functional.Functors.Ƒ2;
 
 import static java.util.UUID.fromString;
 import static util.File.FileUtil.readFileLines;
@@ -238,7 +238,7 @@ public class DB {
     public static StringStore string_pool;
     
     public static boolean autocompltn_contains = true;
-    public static final F2<String,String,Boolean> autocmplt_filter = (text,phrase) -> autocompltn_contains
+    public static final Ƒ2<String,String,Boolean> autocmplt_filter = (text,phrase) -> autocompltn_contains
                                         ? text.contains(phrase) : text.startsWith(phrase);
 
 /******************************************************************************/

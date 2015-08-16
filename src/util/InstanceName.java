@@ -6,8 +6,9 @@
 package util;
 
 import java.util.Objects;
+
 import util.collections.map.ClassMap;
-import util.functional.Functors.F1;
+import util.functional.Functors.Ƒ1;
 
 /**
  *
@@ -15,8 +16,8 @@ import util.functional.Functors.F1;
  */
 public class InstanceName {
 
-    private static final F1<? extends Object,String> def = Objects::toString;
-    private final ClassMap<F1<?,String>> m = new ClassMap<>();
+    private static final Ƒ1<? extends Object,String> def = Objects::toString;
+    private final ClassMap<Ƒ1<?,String>> m = new ClassMap<>();
 
 
     /**
@@ -27,7 +28,7 @@ public class InstanceName {
      * @param c
      * @param parser 
      */
-    public <T> void add(Class<T> c, F1<? super T,String> parser) {
+    public <T> void add(Class<T> c, Ƒ1<? super T,String> parser) {
         m.put(c, parser);
     }
 
@@ -42,12 +43,12 @@ public class InstanceName {
     public String get(Object instance) {
         // we handle null as void so user can register his own function
         Class c = instance==null ? Void.class : instance.getClass();
-        F1<?,String> f = m.getElementOfSuper(c);
+        Ƒ1<?,String> f = m.getElementOfSuper(c);
         // fall back to general implementation
         // note that it must be able to handle null (which it does)
         if(f==null) f = def;
 
-        return ((F1<Object,String>) f).apply(instance);
+        return ((Ƒ1<Object,String>) f).apply(instance);
     }
 
 }

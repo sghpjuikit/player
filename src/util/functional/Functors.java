@@ -44,22 +44,26 @@ import static util.functional.Util.map;
 
 public class Functors {
     
-    public static interface F0<O> {
+    public interface Λ {}
+    public static interface Ƒ extends Λ {
+        void apply();
+    }
+    public static interface Ƒ0<O> extends Λ {
         O apply();
         
         default Runnable toF() {
             return () -> apply();
         }
     }
-    public static interface F1<I,O> extends Function<I,O> {
+    public static interface Ƒ1<I,O> extends Λ, Function<I,O> {
         @Override
         O apply(I i);
         
-        default F0<O> toF0(I i) {
+        default Ƒ0<O> toF0(I i) {
             return () -> apply(i);
         }
         
-        default F1<I,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ1<I,O> onEx(O or, Class<?>... ecs) {
             return i -> {
                 try {
                     return apply(i);
@@ -71,37 +75,37 @@ public class Functors {
         }
 
         @Override
-        default <V> F1<I, V> andThen(Function<? super O, ? extends V> after) {
+        default <V> Ƒ1<I, V> andThen(Function<? super O, ? extends V> after) {
             requireNonNull(after);
             return (I t) -> after.apply(apply(t));
         }
         
         @Override
-        default <V> F1<V,O> compose(Function<? super V, ? extends I> before) {
+        default <V> Ƒ1<V,O> compose(Function<? super V, ? extends I> before) {
             requireNonNull(before);
             return (V v) -> apply(before.apply(v));
         }
         
-        default F1<I,I> nonNull() {
+        default Ƒ1<I,I> nonNull() {
             return in -> {
                 I out = (I)apply(in);
                 return out==null ? in : out;
             };
         }
         
-        default F1<I,O> nonNull(O or) {
+        default Ƒ1<I,O> nonNull(O or) {
             return andThen(o -> o==null ? or : o);
         }
         
-        default F1<I,O> passNull() {
+        default Ƒ1<I,O> passNull() {
             return in -> in==null ? null : apply(in);
         }
         
-        default F1<I,Object> wrap(NullIn i, NullOut o) {
+        default Ƒ1<I,Object> wrap(NullIn i, NullOut o) {
             if(i==NullIn.NULL && o==NullOut.NULL) 
                 return in -> in==null ? null : apply(in);
             if(i==NullIn.APPLY && o==NullOut.NULL) 
-                return (F1) this;
+                return (Ƒ1) this;
             if(i==NullIn.APPLY && o==NullOut.INPUT) 
                 return in -> {
                     O out = apply(in);
@@ -117,10 +121,10 @@ public class Functors {
             throw new AssertionError("Illegal switch case");
         }
     }
-    public static interface F1E<I,O> {
+    public static interface Ƒ1E<I,O> extends Λ {
         O apply(I i) throws Exception;
         
-        default F1E<I,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ1E<I,O> onEx(O or, Class<?>... ecs) {
             return i -> {
                 try {
                     return apply(i);
@@ -131,15 +135,15 @@ public class Functors {
             };
         }
     }
-    public static interface F2<I,I2,O> extends BiFunction<I,I2,O> {
+    public static interface Ƒ2<I,I2,O> extends Λ, BiFunction<I,I2,O> {
         @Override
         O apply(I i, I2 i2);
         
-        default F1<I,O> toF2(I2 i2) {
+        default Ƒ1<I,O> toF2(I2 i2) {
             return (i) -> apply(i, i2);
         }
         
-        default F2<I,I2,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ2<I,I2,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2) -> {
                 try {
                     return apply(i1,i2);
@@ -150,14 +154,14 @@ public class Functors {
             };
         }
     }
-    public static interface F3<I,I2,I3,O> {
+    public static interface Ƒ3<I,I2,I3,O> extends Λ {
         O apply(I i, I2 i2, I3 i3);
         
-        default F2<I,I2,O> toF2(I3 i3) {
+        default Ƒ2<I,I2,O> toF2(I3 i3) {
             return (i,i2) -> apply(i, i2, i3);
         }
         
-        default F3<I,I2,I3,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ3<I,I2,I3,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3) -> {
                 try {
                     return apply(i1,i2,i3);
@@ -168,14 +172,14 @@ public class Functors {
             };
         }
     }
-    public static interface F4<I,I2,I3,I4,O> {
+    public static interface Ƒ4<I,I2,I3,I4,O> extends Λ {
         O apply(I i, I2 i2, I3 i3, I4 i4);
         
-        default F3<I,I2,I3,O> toF3(I4 i4) {
+        default Ƒ3<I,I2,I3,O> toF3(I4 i4) {
             return (i,i2,i3) -> apply(i, i2, i3, i4);
         }
         
-        default F4<I,I2,I3,I4,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ4<I,I2,I3,I4,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3,i4) -> {
                 try {
                     return apply(i1,i2,i3,i4);
@@ -186,14 +190,14 @@ public class Functors {
             };
         }
     }
-    public static interface F5<I,I2,I3,I4,I5,O> {
+    public static interface Ƒ5<I,I2,I3,I4,I5,O> extends Λ {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5);
         
-        default F4<I,I2,I3,I4,O> toF4(I5 i5) {
+        default Ƒ4<I,I2,I3,I4,O> toF4(I5 i5) {
             return (i,i2,i3,i4) -> apply(i, i2, i3, i4, i5);
         }
         
-        default F5<I,I2,I3,I4,I5,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ5<I,I2,I3,I4,I5,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3,i4,i5) -> {
                 try {
                     return apply(i1,i2,i3,i4,i5);
@@ -204,14 +208,14 @@ public class Functors {
             };
         }
     }
-    public static interface F6<I,I2,I3,I4,I5,I6,O> {
+    public static interface Ƒ6<I,I2,I3,I4,I5,I6,O> extends Λ {
         O apply(I i, I2 i2, I3 i3, I4 i4, I5 i5, I6 i6);
         
-        default F5<I,I2,I3,I4,I5,O> toF5(I6 i6) {
+        default Ƒ5<I,I2,I3,I4,I5,O> toF5(I6 i6) {
             return (i,i2,i3,i4,i5) -> apply(i, i2, i3, i4, i5, i6);
         }
         
-        default F6<I,I2,I3,I4,I5,I6,O> onEx(O or, Class<?>... ecs) {
+        default Ƒ6<I,I2,I3,I4,I5,I6,O> onEx(O or, Class<?>... ecs) {
             return (i1,i2,i3,i4,i5,i6) -> {
                 try {
                     return apply(i1,i2,i3,i4,i5,i6);
@@ -232,9 +236,9 @@ public class Functors {
         INPUT;
     }
     
-    private static final PrefListMap<PF,Class> fsI = new PrefListMap<>(pf -> pf.in);
-    private static final PrefListMap<PF,Class> fsO = new PrefListMap<>(pf -> pf.out);
-    private static final PrefListMap<PF,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
+    private static final PrefListMap<PƑ,Class> fsI = new PrefListMap<>(pf -> pf.in);
+    private static final PrefListMap<PƑ,Class> fsO = new PrefListMap<>(pf -> pf.out);
+    private static final PrefListMap<PƑ,Integer> fsIO = new PrefListMap<>(pf -> Objects.hash(pf.in,pf.out));
     
     static {
         add("Is null",      Object.class, Boolean.class, Objects::isNull);
@@ -410,30 +414,30 @@ public class Functors {
         addPredicatesComparable(Float.class, 0f);
     }
     
-    public static<I,O> void add(String name, Class<I> i ,Class<O> o, F1<I,O> f) {
-        addF(new PF0(name,i,o,f));
+    public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f) {
+        addF(new PƑ0(name,i,o,f));
     }
-    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def) {
-        addF(new PF1(name,i,o,p1,p1def,f));
+    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def) {
+        addF(new PƑ1(name,i,o,p1,p1def,f));
     }
-    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
-        addF(new PF2(name,i,o,p1,p2,p1def,p2def,f));
+    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def) {
+        addF(new PƑ2(name,i,o,p1,p2,p1def,p2def,f));
     }
-    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
-        addF(new PF3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f));
+    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def) {
+        addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f));
     }
     
-    public static<I,O> void add(String name, Class<I> i ,Class<O> o, F1<I,O> f, boolean pi, boolean po, boolean pio) {
-        addF(new PF0(name,i,o,f),pi,po,pio);
+    public static<I,O> void add(String name, Class<I> i ,Class<O> o, Ƒ1<I,O> f, boolean pi, boolean po, boolean pio) {
+        addF(new PƑ0(name,i,o,f),pi,po,pio);
     }
-    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, F2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
-        addF(new PF1(name,i,o,p1,p1def,f),pi,po,pio);
+    public static<I,P1,O> void add(String name, Class<I> i, Class<O> o, Ƒ2<I,P1,O> f, Class<P1> p1, P1 p1def, boolean pi, boolean po, boolean pio) {
+        addF(new PƑ1(name,i,o,p1,p1def,f),pi,po,pio);
     }
-    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, F3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
-        addF(new PF2(name,i,o,p1,p2,p1def,p2def,f),pi,po,pio);
+    public static<I,P1,P2,O> void add(String name, Class<I> i,Class<O> o, Ƒ3<I,P1,P2,O> f, Class<P1> p1, Class<P2> p2, P1 p1def, P2 p2def, boolean pi, boolean po, boolean pio) {
+        addF(new PƑ2(name,i,o,p1,p2,p1def,p2def,f),pi,po,pio);
     }
-    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, F4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
-        addF(new PF3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f),pi,po,pio);
+    public static<I,P1,P2,P3,O> void add(String name, Class<I> i,Class<O> o, Ƒ4<I,P1,P2,P3,O> f, Class<P1> p1, Class<P2> p2, Class<P3> p3, P1 p1def, P2 p2def, P3 p3def, boolean pi, boolean po, boolean pio) {
+        addF(new PƑ3(name,i,o,p1,p2,p3,p1def,p2def,p3def,f),pi,po,pio);
     }
     
     public static <E extends Enum> void addPredicatesOf(Class<E> c) {
@@ -449,26 +453,26 @@ public class Functors {
     }
     
     /** Add function to the pool. */
-    public static void addF(PF f) {
+    public static void addF(PƑ f) {
         fsI.accumulate(f);
         fsO.accumulate(f);
         fsIO.accumulate(f);
     }
     /** Add function to the pool and sets as preferred according to parameters. */
-    public static void addF(PF f, boolean i, boolean o, boolean io) {
+    public static void addF(PƑ f, boolean i, boolean o, boolean io) {
         fsI.accumulate(f, i);
         fsO.accumulate(f, o);
         fsIO.accumulate(f, io);
     }
     /** Remove function from the pool. */
-    public static void remF(PF f) {
+    public static void remF(PƑ f) {
         fsI.deaccumulate(f);
         fsO.deaccumulate(f);
         fsIO.deaccumulate(f);
     }
     
     /** Returns all functions taking input I. */
-    public static <I> PrefList<PF<I,?>> getI(Class<I> i) {
+    public static <I> PrefList<PƑ<I,?>> getI(Class<I> i) {
         PrefList l = (PrefList) fsI.getElementsOf(getSuperClassesInc(unPrimitivize(i)));
         return l;
         
@@ -476,17 +480,17 @@ public class Functors {
 //        return l==null ? new PrefList() : l;
     }
     /** Returns all functions producing output O. */
-    public static <O> PrefList<PF<?,O>> getO(Class<O> o) {
+    public static <O> PrefList<PƑ<?,O>> getO(Class<O> o) {
         PrefList l = (PrefList) fsO.get(unPrimitivize(o));
         return l==null ? new PrefList() : l;
     }
     /** Returns all functions taking input I and producing output O. */
-    public static <I,O> PrefList<PF<I,O>> getIO(Class<I> i, Class<O> o) {
+    public static <I,O> PrefList<PƑ<I,O>> getIO(Class<I> i, Class<O> o) {
         PrefList l = (PrefList) fsIO.get(Objects.hash(unPrimitivize(i),unPrimitivize(o)));
         return l==null ? new PrefList() : l;
     }
     /** Returns all functions taking input IO and producing output IO. */
-    public static <IO> PrefList<PF<IO,IO>> getIO(Class<IO> io) {
+    public static <IO> PrefList<PƑ<IO,IO>> getIO(Class<IO> io) {
         return getIO(io, io);
     }
     /** 
@@ -498,20 +502,20 @@ public class Functors {
                           .findFirst().map(f->f.toFunction()).orElseGet(null);
     }
     
-    public static <I> PF<I,?> getPrefI(Class<I> i) {
-        PrefList<PF> l = (PrefList<PF>)fsI.get(i);
+    public static <I> PƑ<I,?> getPrefI(Class<I> i) {
+        PrefList<PƑ> l = (PrefList<PƑ>)fsI.get(i);
         return l==null ? null : l.getPrefered();
     }
-    public static <O> PF<?,O> getPrefO(Class<O> o) {
-        PrefList<PF> l = (PrefList<PF>)fsI.get(o);
+    public static <O> PƑ<?,O> getPrefO(Class<O> o) {
+        PrefList<PƑ> l = (PrefList<PƑ>)fsI.get(o);
         return l==null ? null : l.getPrefered();
     }
-    public static <I,O> PF<I,O> getPrefIO(Class<I> i, Class<O> o) {
-        PrefList<PF> l = (PrefList<PF>)fsIO.get(Objects.hash(i,o));
+    public static <I,O> PƑ<I,O> getPrefIO(Class<I> i, Class<O> o) {
+        PrefList<PƑ> l = (PrefList<PƑ>)fsIO.get(Objects.hash(i,o));
         return l==null ? null : l.getPrefered();
     }
-    public static <IO> PF<IO,IO> getPrefIO(Class<IO> io) {
-        PrefList<PF> l = (PrefList<PF>)fsIO.get(Objects.hash(io,io));
+    public static <IO> PƑ<IO,IO> getPrefIO(Class<IO> io) {
+        PrefList<PƑ> l = (PrefList<PƑ>)fsIO.get(Objects.hash(io,io));
         return l==null ? null : l.getPrefered();
     }
     
@@ -529,18 +533,18 @@ public class Functors {
     public static interface Parameterized<P> {
         public List<Parameter<P>> getParameters();
     }
-    public static abstract class PF<I,O> implements F2<I,Object[],O>, Parameterized<Object> {
+    public static abstract class PƑ<I,O> implements Ƒ2<I,Object[],O>, Parameterized<Object> {
         public final String name;
         public final Class<I> in;
         public final Class<O> out;
 
-        public PF(String name, Class<I> in, Class<O> out) {
+        public PƑ(String name, Class<I> in, Class<O> out) {
             this.name = name;
             this.in = unPrimitivize(in);
             this.out = unPrimitivize(out);
         }
         
-        public Function<I,O> toFunction() {
+        public Ƒ1<I,O> toFunction() {
             return i -> apply(i, new Object[]{});
         }
 
@@ -548,15 +552,15 @@ public class Functors {
         public abstract O apply(I t, Object... u);
         
         
-//        public CF<I,O> toConfigurable() {
-//            return new CF<>(this);
+//        public CƑ<I,O> toConfigurable() {
+//            return new CƑ<>(this);
 //        }
         
     }
-    public static class PF0<I,O> extends PF<I,O> {
-        private F1<I,O> f;
+    public static class PƑ0<I,O> extends PƑ<I,O> {
+        private Ƒ1<I,O> f;
 
-        public PF0(String _name, Class<I> i, Class<O> o, F1<I,O> f) {
+        public PƑ0(String _name, Class<I> i, Class<O> o, Ƒ1<I,O> f) {
             super(_name,i,o);
             this.f = f;
         }
@@ -571,12 +575,12 @@ public class Functors {
              return f.apply(t);
         }
     }
-    public static class PF1<I,P1,O> extends PF<I,O> {
+    public static class PƑ1<I,P1,O> extends PƑ<I,O> {
         private Class<P1> p1;
         private P1 p1def;
-        private F2<I,P1,O> f;
+        private Ƒ2<I,P1,O> f;
 
-        public PF1(String _name, Class<I> i, Class<O> o, Class<P1> p1type, P1 p1def, F2<I,P1,O> f) {
+        public PƑ1(String _name, Class<I> i, Class<O> o, Class<P1> p1type, P1 p1def, Ƒ2<I,P1,O> f) {
             super(_name,i,o);
             this.p1 = unPrimitivize(p1type);
             this.p1def = p1def;
@@ -593,14 +597,14 @@ public class Functors {
              return f.apply(t, (P1)ps[0]);
         }
     }
-    public static class PF2<I,P1,P2,O> extends PF<I,O> {
+    public static class PƑ2<I,P1,P2,O> extends PƑ<I,O> {
         private Class<P1> p1;
         private Class<P2> p2;
         private P1 p1def;
         private P2 p2def;
-        private F3<I,P1,P2,O> f;
+        private Ƒ3<I,P1,P2,O> f;
         
-        public PF2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, F3<I,P1,P2,O> f) {
+        public PƑ2(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, P1 p1def, P2 p2def, Ƒ3<I,P1,P2,O> f) {
             super(_name,i,o);
             this.p1 = unPrimitivize(p1type);
             this.p2 = unPrimitivize(p2type);
@@ -619,16 +623,16 @@ public class Functors {
              return f.apply(t, (P1)ps[0], (P2)ps[1]);
         }
     }
-    public static class PF3<I,P1,P2,P3,O> extends PF<I,O> {
+    public static class PƑ3<I,P1,P2,P3,O> extends PƑ<I,O> {
         private Class<P1> p1;
         private Class<P2> p2;
         private Class<P2> p3;
         private P1 p1def;
         private P2 p2def;
         private P3 p3def;
-        private F4<I,P1,P2,P3,O> f;
+        private Ƒ4<I,P1,P2,P3,O> f;
         
-        public PF3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, F4<I,P1,P2,P3,O> f) {
+        public PƑ3(String _name, Class<I> i, Class<O> o, Class<P1> p1type, Class<P2> p2type, Class<P3> p3type, P1 p1def, P2 p2def, P3 p3def, Ƒ4<I,P1,P2,P3,O> f) {
             super(_name,i,o);
             this.p1 = unPrimitivize(p1type);
             this.p2 = unPrimitivize(p2type);
@@ -653,12 +657,12 @@ public class Functors {
         FROM_START,
         FROM_END;
     }
-    public static class CF<I,O> implements F1<I,O>, Configurable<Object> {
+    public static class CƑ<I,O> implements Ƒ1<I,O>, Configurable<Object> {
         
-        public final PF<I,O> pf;
+        public final PƑ<I,O> pf;
         private final List<Config<Object>> cs = new ArrayList();
         
-        public CF(PF<I, O> pf) {
+        public CƑ(PƑ<I, O> pf) {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(),p->{
                 Var a = new Var(p.defaultValue);

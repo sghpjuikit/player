@@ -248,10 +248,10 @@ public final class Seeker extends AnchorPane {
     
     private final Anim selectChapAnim = new Anim(millis(500), p -> {
         double h = getHeight();
-        double q = max(0,h-20-10)/3;
-        double dy = q * p*p*p;
-        r1.setTranslateY(dy);
-        r2.setTranslateY(-dy);
+        double κ = max(0,h-20-10)/3;
+        double Δy = κ * p*p*p;
+        r1.setTranslateY(Δy);
+        r2.setTranslateY(-Δy);
     } );
     
 //********************************** chapters *********************************/

@@ -189,8 +189,8 @@ public class LibraryController extends FXMLController implements SongReader {
         taskInfo.setVisible(false);
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
-            double d = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
-            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(d);
+            double Σms = list.stream().mapToDouble(Metadata::getLengthInMs).sum();
+            return DEFAULT_TEXT_FACTORY.apply(all, list) + " - " + new FormattedDuration(Σms);
         };
         // add more menu items
         table.menuAdd.getItems().addAll(

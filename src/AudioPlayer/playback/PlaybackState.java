@@ -4,10 +4,6 @@
  */
 package AudioPlayer.playback;
 
-import AudioPlayer.playback.state.BalanceProperty;
-import AudioPlayer.playback.state.VolumeProperty;
-import AudioPlayer.playlist.sequence.PlayingSequence;
-
 import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
@@ -16,11 +12,15 @@ import javafx.beans.property.*;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 
+import AudioPlayer.playback.state.BalanceProperty;
+import AudioPlayer.playback.state.VolumeProperty;
+import AudioPlayer.playlist.sequence.PlayingSequence;
+
 /**
  * Captures state of playback.
  */
 public final class PlaybackState {
-    private UUID id;
+    UUID id;
     public final VolumeProperty volume;
     public final BalanceProperty balance;
     public final ObjectProperty<PlayingSequence.LoopMode> loopMode;
@@ -63,7 +63,7 @@ public final class PlaybackState {
      */
     public void change(PlaybackState to) {
         if (to == null) return;
-        id = to.getId();
+        id = to.id;
         volume.set(to.volume.get());
         balance.set(to.balance.get());
         loopMode.set(to.loopMode.get());

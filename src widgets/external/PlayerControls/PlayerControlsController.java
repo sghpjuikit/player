@@ -16,12 +16,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
+import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
-import AudioPlayer.Item;
-import AudioPlayer.playlist.sequence.PlayingSequence.LoopMode;
 import AudioPlayer.playlist.PlaylistManager;
+import AudioPlayer.playlist.sequence.PlayingSequence.LoopMode;
 import AudioPlayer.tagging.Metadata;
 import Configuration.IsConfig;
 import Layout.Widgets.Widget;
@@ -72,28 +72,18 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML Slider volume;
     @FXML Balancer balance;
     Seeker seeker = new Seeker();
-    @FXML Label currTime;
-    @FXML Label totTime;
-    @FXML Label realTime;
-    @FXML Label status;
-    
-    @FXML Label titleL;
-    @FXML Label artistL;
-    @FXML Label bitrateL;
-    @FXML Label sampleRateL;
-    @FXML Label channelsL;
-    
+    @FXML Label currTime, totTime, realTime, status;
+    @FXML Label titleL, artistL, bitrateL, sampleRateL, channelsL;
     @FXML HBox infoBox;
-    
     @FXML HBox playButtons;
-    Icon p1 = new GlowIcon(ANGLE_DOUBLE_LEFT,25);
-    Icon f2 = new GlowIcon(FAST_BACKWARD,25);
-    Icon f3 = new GlowIcon(PLAY,25);
-    Icon f4 = new GlowIcon(FAST_FORWARD,25);
-    Icon f5 = new GlowIcon(ANGLE_DOUBLE_RIGHT,25);
-    Icon f6 = new GlowIcon(STOP,25);
+    Icon p1    = new GlowIcon(ANGLE_DOUBLE_LEFT,25);
+    Icon f2    = new GlowIcon(FAST_BACKWARD,25);
+    Icon f3    = new GlowIcon(PLAY,25);
+    Icon f4    = new GlowIcon(FAST_FORWARD,25);
+    Icon f5    = new GlowIcon(ANGLE_DOUBLE_RIGHT,25);
+    Icon f6    = new GlowIcon(STOP,25);
     Icon muteB = new GlowIcon(VOLUME_UP,15);
-    Icon addB = new GlowIcon(PLUS_SQUARE_ALT,10);
+    Icon addB  = new GlowIcon(PLUS_SQUARE_ALT,10);
     Icon loopB = new GlowIcon(RANDOM,14);
     
     @IsConfig(name = "Show chapters", info = "Display chapter marks on seeker.")
@@ -109,7 +99,6 @@ public class PlayerControlsController extends FXMLController implements Playback
     @IsConfig(name = "Play files on drop", info = "Plays the drag and dropped files instead of enqueuing them in playlist.")
     public boolean playDropped = false;
     
-
     @Override
     public void init() {
         PlaybackState ps = PLAYBACK.state;
@@ -170,8 +159,8 @@ public class PlayerControlsController extends FXMLController implements Playback
      
         // set gui updating
         d(Player.playingtem.onUpdate(this::playingItemChanged));  // add listener
-        playingItemChanged(Player.playingtem.get());                    // init value
-        d(maintain(ps.duration, t -> totTime.setText(formatDuration(t))));
+        playingItemChanged(Player.playingtem.get());              // init value
+        d(maintain(ps.duration, t -> formatDuration(t), totTime.textProperty()));
         d(maintain(ps.currentTime, t -> timeChanged()));
         d(maintain(ps.status, this::statusChanged));
         d(maintain(ps.loopMode, this::loopModeChanged));
@@ -250,8 +239,6 @@ public class PlayerControlsController extends FXMLController implements Playback
     @FXML private void consumeMouseEvent(MouseEvent event) {
         event.consume();
     }
-    
-/******************************************************************************/
     
     private void playingItemChanged(Metadata nv) {
         titleL.setText(nv.getTitle());

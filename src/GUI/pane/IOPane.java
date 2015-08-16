@@ -25,7 +25,6 @@ import Layout.Widgets.controller.Controller;
 import Layout.Widgets.controller.io.InOutput;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Output;
-import gui.LayoutAggregators.SwitchPane;
 import gui.objects.Text;
 import gui.objects.icon.Icon;
 import main.App;
@@ -85,7 +84,7 @@ public class IOPane extends StackPane {
         Icon getIcon();
         default Point2D getSceneXY() {
             Icon i = getIcon();
-            AnchorPane widget_io = ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io;
+            AnchorPane widget_io = App.getWindow().getSwitchPane().widget_io;
             double translation_x = widget_io.getTranslateX();
             double header = widget_io.localToScene(0,0).getY() - 5;
             Point2D p = i.localToScene(i.getLayoutBounds().getMinX(),i.getLayoutBounds().getMinY());
@@ -233,7 +232,7 @@ public class IOPane extends StackPane {
             output = o;
             
             getStyleClass().add("input-output-line");
-            ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io.getChildren().add(this);
+            App.getWindow().getSwitchPane().widget_io.getChildren().add(this);
             
             setOnMouseClicked(e -> {
                 if(e.getButton()==SECONDARY) {
@@ -250,7 +249,7 @@ public class IOPane extends StackPane {
         
         public void lay(double startx, double starty, double tox, double toy) { // System.out.println(startx + " " + starty + " " + tox + " " + toy);
             setLayoutX(0);
-            double h = ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io.getHeight();
+            double h = App.getWindow().getSwitchPane().widget_io.getHeight();
             minHeight(h);
             prefHeight(h);
             maxHeight(h);
@@ -311,7 +310,6 @@ public class IOPane extends StackPane {
         
         WidgetManager.findAll(WidgetSource.ANY).map(w->w.getController().getActivityNode())
             .filter(isNotNULL)
-            .map(IOPane.class::cast)
             .forEach(c -> {
                 c.in_nodes.forEach(i -> is.put(((InputNode)i).input, ((XNode)i)));
                 c.out_nodes.forEach(o -> os.put(((OutputNode)o).output, ((XNode)o)));
@@ -321,7 +319,7 @@ public class IOPane extends StackPane {
             os.put(((InOutputNode)n).inoutput.o, (XNode)n);
         });
         
-        AnchorPane widget_io = ((SwitchPane)App.getWindow().getLayoutAggregator()).widget_io;
+        AnchorPane widget_io = App.getWindow().getSwitchPane().widget_io;
         widget_io.getChildren().retainAll(ionodes);
         if(!widget_io.getChildren().contains(ionodes)) {
             widget_io.getChildren().add(ionodes);

@@ -14,8 +14,8 @@ import java.util.stream.Stream;
 import javafx.util.Callback;
 
 import util.collections.Tuple2;
-import util.functional.Functors.F1;
-import util.functional.Functors.F1E;
+import util.functional.Functors.Ƒ1;
+import util.functional.Functors.Ƒ1E;
 
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
@@ -42,6 +42,7 @@ public class Util {
     
     /** Predicate returning false.*/
     public static final Predicate isFALSE = o -> false;
+    
     /**  */
     public static <E> boolean isIn(E o, E... es) {
         for(E e : es)
@@ -126,10 +127,10 @@ public class Util {
      * This method is generic Comparator factory producing comparators comparing
      * the obtained result of the comparable supplier.
      * 
-     * @param toComparableConverter E to Comparable mapper, derives Comparable from E.
+     * @param toStr E to Comparable mapper, derives Comparable from E.
      */
-    public static<E,C extends Comparable<? super C>> Comparator<E> by(Callback<E,C> toComparableConverter) {
-        return (a,b) -> toComparableConverter.call(a).compareTo(toComparableConverter.call(b));
+    public static<E,C extends Comparable<? super C>> Comparator<E> by(Callback<E,C> toStr) {
+        return (a,b) -> toStr.call(a).compareTo(toStr.call(b));
     }
     
     /** 
@@ -141,8 +142,8 @@ public class Util {
      * @param cmpGetter E to String mapper, derives String from E.
      * the object.
      */
-    public static<E> Comparator<E> byNC(Callback<E,String> toStringConverter) {
-        return (a,b) -> toStringConverter.call(a).compareToIgnoreCase(toStringConverter.call(b));
+    public static<E> Comparator<E> byNC(Callback<E,String> toStr) {
+        return (a,b) -> toStr.call(a).compareToIgnoreCase(toStr.call(b));
     }
     
     /** @return set of elements of provided collection with no duplicates. Order undefined. */
@@ -226,11 +227,11 @@ public class Util {
     }
 
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noExE(F1E<I,O> f, Class<?>... ecs) {
+    public static <I,O> Function<I,O> noExE(Ƒ1E<I,O> f, Class<?>... ecs) {
         return noExE(null, f, ecs);
     }
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noExE(F1E<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Function<I,O> noExE(Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
         return noExE(null, f, ecs);
     }
     /** 
@@ -246,12 +247,12 @@ public class Util {
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
      */
-    public static <I,O> Function<I,O> noExE(O or, F1E<I,O> f, Class<?>... ecs) {
+    public static <I,O> Function<I,O> noExE(O or, Ƒ1E<I,O> f, Class<?>... ecs) {
         return noExE(or, f, list(ecs));
     }
 
     /** Equivalent to {@link #noExE(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
-    public static <I,O> Function<I,O> noExE(O or, F1E<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Function<I,O> noExE(O or, Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
                 return f.apply(i);
@@ -386,7 +387,7 @@ public class Util {
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, F1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, Ƒ1<V,C> by) {
         return minBy(c, null, by);
     }
     
@@ -400,7 +401,7 @@ public class Util {
      * @return optional with the minimum element or empty optional if collection contains no
      * element smaller than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, C atMost, F1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> minBy(Collection<V> c, C atMost, Ƒ1<V,C> by) {
         V minv = null;
         C minc = atMost;
         for(V v : c) {
@@ -419,7 +420,7 @@ public class Util {
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, F1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, Ƒ1<V,C> by) {
         return maxBy(c, null, by);
     }
     
@@ -433,7 +434,7 @@ public class Util {
      * @return optional with the maximal element or empty optional if collection contains no
      * element bigger than required.
      */
-    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, C atleast, F1<V,C> by) {
+    public static <V,C extends Comparable<C>> Optional<V> maxBy(Collection<V> c, C atleast, Ƒ1<V,C> by) {
         V maxv = null;
         C maxc = atleast;
         for(V v : c) {

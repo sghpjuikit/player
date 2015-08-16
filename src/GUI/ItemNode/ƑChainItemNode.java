@@ -7,10 +7,12 @@ package gui.itemnode;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
+
 import javafx.collections.ListChangeListener;
+
 import util.collections.PrefList;
 import util.functional.Functors;
-import util.functional.Functors.F1;
+import util.functional.Functors.Ƒ1;
 import util.functional.Functors.NullIn;
 import util.functional.Functors.NullOut;
 
@@ -45,28 +47,28 @@ import util.functional.Functors.NullOut;
  *
  * @author Plutonium_
  */
-public class FunctionChainItemNode extends ChainValueNode<F1<Object,Object>,FunctionItemNode<Object,Object>> {
+public class ƑChainItemNode extends ChainValueNode<Ƒ1<Object,Object>,ƑItemNode<Object,Object>> {
     
-    private final Function<Class,PrefList<Functors.PF<Object,Object>>> fp;
+    private final Function<Class,PrefList<Functors.PƑ<Object,Object>>> fp;
     private Class type_in = Void.class;
     private NullIn handleNullIn = NullIn.NULL;
     private NullOut handleNullOut = NullOut.NULL;
     
     /** Creates unlimited chain starting with Void.class. */
-    public FunctionChainItemNode(Function<Class,PrefList<Functors.PF<Object,Object>>> functionPool) {
+    public ƑChainItemNode(Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
         this(Void.class, Integer.MAX_VALUE, functionPool);
     }
     /** Creates unlimited chain starting with specified type. */
-    public FunctionChainItemNode(Class in, Function<Class,PrefList<Functors.PF<Object,Object>>> functionPool) {
+    public ƑChainItemNode(Class in, Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
         this(in, Integer.MAX_VALUE, functionPool);
     }
     
     /** Creates limited chain starting with specified type. */
-    public FunctionChainItemNode(Class in, int max_len, Function<Class,PrefList<Functors.PF<Object,Object>>> functionPool) {
-//        super(len, max_len, () -> new FunctionItemNode(functionPool));
+    public ƑChainItemNode(Class in, int max_len, Function<Class,PrefList<Functors.PƑ<Object,Object>>> functionPool) {
+//        super(len, max_len, () -> new ƑItemNode(functionPool));
 //        homogeneous = false;
         fp = functionPool;
-        chainedFactory = () -> new FunctionItemNode<>(() -> fp.apply(getTypeOut()));
+        chainedFactory = () -> new ƑItemNode<>(() -> fp.apply(getTypeOut()));
         homogeneous = false;
         setTypeIn(in);  // initializes value, dont fire update yet
         
@@ -131,9 +133,9 @@ public class FunctionChainItemNode extends ChainValueNode<F1<Object,Object>,Func
     }
     
     @Override
-    protected F1<Object,Object> reduce(Stream<Functors.F1<Object,Object>> values) {
-        return values.map(f -> f.wrap(handleNullIn, handleNullOut))
-                     .reduce(Functors.F1::andThen).orElse(x->x);
+    protected Ƒ1<Object,Object> reduce(Stream<Ƒ1<Object,Object>> ƒs) {
+        return ƒs.map(ƒ -> ƒ.wrap(handleNullIn, handleNullOut))
+                     .reduce(Functors.Ƒ1::andThen).orElse(x->x);
     }
     
 }

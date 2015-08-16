@@ -5,21 +5,6 @@
  */
 package gui.objects.tree;
 
-import Configuration.Config;
-import Configuration.Configurable;
-import Configuration.ListConfigurable;
-import Layout.Component;
-import Layout.Container;
-import Layout.LayoutManager;
-import Layout.Widgets.Widget;
-import Layout.Widgets.WidgetFactory;
-import Layout.Widgets.WidgetManager;
-import Layout.Widgets.WidgetManager.WidgetSource;
-import static Layout.Widgets.WidgetManager.WidgetSource.*;
-import Layout.Widgets.feature.ConfiguringFeature;
-import gui.objects.ContextMenu.ImprovedContextMenu;
-import gui.objects.Window.stage.Window;
-import static gui.objects.tree.FileTree.createTreeItem;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -27,8 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WritableValue;
@@ -41,13 +26,31 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
-import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseButton.SECONDARY;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
+
+import Configuration.Config;
+import Configuration.Configurable;
+import Configuration.ListConfigurable;
+import Layout.Component;
+import Layout.Container;
+import Layout.LayoutManager;
+import Layout.Widgets.Widget;
+import Layout.Widgets.WidgetFactory;
+import Layout.Widgets.WidgetManager;
+import Layout.Widgets.WidgetManager.WidgetSource;
+import Layout.Widgets.feature.ConfiguringFeature;
+import gui.objects.ContextMenu.ImprovedContextMenu;
+import gui.objects.Window.stage.Window;
 import main.App;
 import util.File.Environment;
 import util.File.FileUtil;
+
+import static Layout.Widgets.WidgetManager.WidgetSource.*;
+import static gui.objects.tree.FileTree.createTreeItem;
+import static java.util.stream.Collectors.toList;
+import static javafx.scene.input.MouseButton.PRIMARY;
+import static javafx.scene.input.MouseButton.SECONDARY;
 import static util.File.FileUtil.listFiles;
 import static util.Util.*;
 import static util.functional.Util.*;
@@ -96,7 +99,7 @@ public class TreeItems {
         if(o instanceof Container)      return new LayoutItem((Component)o);
         if(o instanceof File)           return (TreeItem) new FileTreeItem((File)o);
         if(o instanceof Node)           return (TreeItem) new NodeTreeItem((Node)o);
-        if(o instanceof Window)         return new STreeItem(o,()->strm(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayoutAggregator().getLayouts().values().stream()));
+        if(o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
         return new TreeItem<>(o);
     }
     public static TreeCell<Object> buildTreeCell(TreeView<Object> t) {

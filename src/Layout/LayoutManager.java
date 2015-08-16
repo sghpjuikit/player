@@ -22,24 +22,19 @@ public final class LayoutManager implements Configurable {
     
     
     public static Layout getActive() {
-        // get focused window (not active - that is an illegal state in this
-        // context. User should always be able to determine which layout is
-        // active by seeing the focused window. If none is focused no layout
+        // If no window is focused no layout
         // should be active as application is either not focused or in an
         // illegal state itself.
-        Window aw = Window.getFocused();
+        Window w = Window.getFocused();
         // get active layout from focused window
-        return aw==null ? null : aw.getLayoutAggregator().getActive();
+        return w==null ? null : w.getLayout();
     }
     
     /**
-     * @return all active Layouts in the application.
+     * @return all Layouts in the application.
      */
     public static Stream<Layout> getLayouts() {
-        // get all windows and fetch their layouts
-        return Window.windows.stream()
-                    .map(w->w.getLayoutAggregator())
-                    .flatMap(la->la.getLayouts().values().stream());
+        return Window.windows.stream().map(w->w.getLayout());
     }
     
     /**
@@ -78,14 +73,5 @@ public final class LayoutManager implements Configurable {
             layouts.add(FileUtil.getName(f));
         }
     }
-    
-    /** Loads specified layout as active. */
-    public static void changeActiveLayout(Layout l) {
-        // get active layouot
-        Layout al = getActive();
-        // change layout
-        if (al!=null) al.setChild(l.getChild());
-    }
-    
     
 }

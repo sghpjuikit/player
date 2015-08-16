@@ -2,7 +2,6 @@ package gui.objects.Window.stage;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Objects;
 
 import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
@@ -29,7 +28,6 @@ import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.io.StreamException;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 
 import AudioPlayer.Player;
 import AudioPlayer.playback.PLAYBACK;
@@ -38,11 +36,11 @@ import AudioPlayer.tagging.Metadata;
 import Configuration.*;
 import Layout.Component;
 import Layout.Layout;
+import Layout.SwitchContainer;
+import Layout.SwitchPane;
 import Layout.WidgetImpl.LayoutManagerComponent;
 import action.Action;
 import gui.GUI;
-import gui.LayoutAggregators.LayoutAggregator;
-import gui.LayoutAggregators.SwitchPane;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.Resize;
@@ -275,8 +273,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     /**
      ***************************************************************************
      */
-//    private LayoutAggregator layout_aggregator = new EmptyLayoutAggregator();
-    private LayoutAggregator layout_aggregator = new SwitchPane();
+
     boolean main = false;
     
     // root is assigned '.window' styleclass
@@ -409,9 +406,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         maintain(GUI.layoutLockedProperty(), mapB(LOCK,UNLOCK), lockB::icon);
 	Icon lmB = new Icon(null, 13, Action.get("Manage Layout & Zoom"));
 	Icon ltB = new Icon(CARET_LEFT, 13, "Previous layout\n\nSwitch to next layout", 
-                () -> ((SwitchPane)getLayoutAggregator()).alignLeftTab());
+                () -> ((SwitchPane)getSwitchPane()).alignLeftTab());
 	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout", 
-                () -> ((SwitchPane)getLayoutAggregator()).alignRightTab());
+                () -> ((SwitchPane)getSwitchPane()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
 	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", e -> {
 	    App.guide.resume();
@@ -476,9 +473,16 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	App.window = this;
     }
 
-    /**
-     ***************************** CONTENT *************************************
-     */
+/******************************* CONTENT **************************************/
+    
+    private Layout layout;
+    private SwitchContainer topContainer;
+//    private SwitchPane switchPane;
+    
+    public Layout getLayout() {
+        return layout;
+    }
+    
     public void setContent(Node n) {
 	content.getChildren().clear();
 	content.getChildren().add(n);
@@ -486,48 +490,47 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     }
 
     public void setContent(Component c) {
-	Layout l = new Layout();
-	SwitchPane la = new SwitchPane();
-	la.addTab(0, l);
-	la.setAlwaysAlignTabs(SwitchPane.align_tabs);
-	l.setChild(c);
-	setLayoutAggregator(la);
+	topContainer.addChild(topContainer.getEmptySpot(), c);
     }
 
-    public void setLayoutAggregator(LayoutAggregator la) {
-	Objects.requireNonNull(la);
-
-	// clear previous content
-	layout_aggregator.getLayouts().values().forEach(Layout::close);
-	// set new content
-	layout_aggregator = la;
-	setContent(layout_aggregator.getRoot());
-	// load new content
-	layout_aggregator.getLayouts().values().forEach(Layout::load);
-
-	if (la instanceof SwitchPane) {
-	    double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
-	    back.translateXProperty().unbind();
-	    back.setTranslateX(0);
-	    back.setScaleX(scaleFactor);
-	    back.setScaleY(scaleFactor);
-            // scroll bgr along with the tabs
-	    // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
-	    // -try at: http://www.mathe-fa.de
-	    ((SwitchPane) la).translateProperty().addListener((o, oldx, newV) -> {
-		double x = newV.doubleValue();
-		double space = back.getWidth() * ((scaleFactor - 1) / 2d);
-		double dir = signum(x);
-		x = abs(x);
-		back.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
-	    });
-	    ((SwitchPane) la).zoomProperty().addListener((o, oldx, newV) -> {
-		double x = newV.doubleValue();
-		x = 1 - (1 - x) / 5;
-		back.setScaleX(scaleFactor * pow(x, 0.25));
-		back.setScaleY(scaleFactor * pow(x, 0.25));
-	    });
-	}
+    public void initLayout() {
+        topContainer = new SwitchContainer();
+        Layout l = new Layout();
+	content.getChildren().clear();
+               l.load(content);
+        l.setChild(topContainer);
+        initLayout(l);
+    }
+    
+    public void initLayout(Layout l) {
+        layout = l;
+	content.getChildren().clear();
+        layout.load(content);
+        topContainer = (SwitchContainer) l.getChild();
+        topContainer.load();    // if loaded no-op, otherwise initializes 
+//        switchPane = new SwitchPane();
+        
+        double scaleFactor = 1.25; // to prevent running out of bgr when isMoving gui
+        back.translateXProperty().unbind();
+        back.setTranslateX(0);
+        back.setScaleX(scaleFactor);
+        back.setScaleY(scaleFactor);
+        // scroll bgr along with the tabs
+        // using: (|x|/x)*AMPLITUDE*(1-1/(1+SCALE*|x|))  
+        // -try at: http://www.mathe-fa.de
+        topContainer.getGraphics().translateProperty().addListener((o, oldx, newV) -> {
+            double x = newV.doubleValue();
+            double space = back.getWidth() * ((scaleFactor - 1) / 2d);
+            double dir = signum(x);
+            x = abs(x);
+            back.setTranslateX(dir * space * (1 - (1 / (1 + 0.0005 * x))));
+        });
+        topContainer.getGraphics().zoomProperty().addListener((o, oldx, newV) -> {
+            double x = newV.doubleValue();
+            x = 1 - (1 - x) / 5;
+            back.setScaleX(scaleFactor * pow(x, 0.25));
+            back.setScaleY(scaleFactor * pow(x, 0.25));
+        });
     }
 
     /**
@@ -535,8 +538,12 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
      <p>
      @return layout aggregator, never null.
      */
-    public LayoutAggregator getLayoutAggregator() {
-	return layout_aggregator;
+    public SwitchPane getSwitchPane() {
+	return topContainer.getGraphics();
+    }
+    
+    public SwitchContainer getTopContainer() {
+        return (SwitchContainer) layout.getChild();
     }
 
     /**
@@ -682,9 +689,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     boolean a(){
         return true;
     }
-    /**
-     ************************** WINDOW MECHANICS *******************************
-     */
+    
+/**************************** WINDOW MECHANICS ********************************/
+    
     @Override
     public void close() {
 	// close app if last window
@@ -695,10 +702,9 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             return;
         }
         
-        // after serialisation, close content it could prevent app closing
-	// normally if it runs bgr threads + we want to sae it
-	layout_aggregator.getLayouts().values().forEach(Layout::close);
-	// remove from window list as life time of this ends
+        // close content to release resources
+	layout.close();
+	// remove from window list
 	windows.remove(this);
 	if (main) {
             // javaFX bug fix - close all pop overs first
@@ -878,22 +884,19 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	e.consume();
     }
 
-    /**
-     ************************** SERIALIZATION **********************************
-     */
+/**************************** SERIALIZATION ***********************************/
+    
+    private static final XStream X = App.INSTANCE.serialization.x;
+    
     @Override
     public void serialize(Window w, File f) throws IOException {
-	XStream xstream = new XStream(new DomDriver());
-	xstream.autodetectAnnotations(true);
-	xstream.registerConverter(new Window.WindowConverter());
-	xstream.toXML(w, new BufferedWriter(new FileWriter(f)));
+	X.registerConverter(new Window.WindowConverter());
+	X.toXML(w, new BufferedWriter(new FileWriter(f)));
     }
 
     public static Window deserialize(File f) throws IOException {
 	try {
-	    XStream xstream = new XStream(new DomDriver());
-	    xstream.registerConverter(new Window.WindowConverter());
-	    return (Window) xstream.fromXML(f);
+	    return (Window) X.fromXML(f);
 	} catch (ClassCastException | StreamException ex) {
 	    Log.err("Unable to load window from the file: " + f.getPath()
 		+ ". The file not found or content corrupted. ");
@@ -903,9 +906,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 
     public static Window deserializeSuppressed(File f) {
 	try {
-	    XStream xstream = new XStream(new DomDriver());
-	    xstream.registerConverter(new Window.WindowConverter());
-	    return (Window) xstream.fromXML(f);
+	    return (Window) X.fromXML(f);
 	} catch (ClassCastException | StreamException ex) {
 	    Log.err("Unable to load window from the file: " + f.getPath()
 		+ ". The file not found or content corrupted. ");
@@ -952,9 +953,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    writer.startNode("alwaysOnTop");
 	    writer.setValue(w.s.alwaysOnTopProperty().getValue().toString());
 	    writer.endNode();
-	    writer.startNode("layout-aggregator-type");
-	    writer.setValue(w.layout_aggregator.getClass().getName());
-	    writer.endNode();
 	}
 
 	@Override
@@ -988,9 +986,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    reader.moveUp();
 	    reader.moveDown();
 	    w.setAlwaysOnTop(Boolean.parseBoolean(reader.getValue()));
-	    reader.moveUp();
-	    reader.moveDown();
-	    reader.getValue(); // ignore layout aggregator
 	    reader.moveUp();
 	    return w;
 	}

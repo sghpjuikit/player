@@ -428,10 +428,10 @@ public class Util {
     
     /** Returns sum of squares of all numbers. */
     public static double sumsqr(double... numbers) {
-        double sum = 0;
+        double Σ = 0;
         for(double x : numbers)
-            sum += x*x;
-        return sum;
+            Σ += x*x;
+        return Σ;
     }
     
     /** Returns {@code sqrt(a^2 + b^2)} */

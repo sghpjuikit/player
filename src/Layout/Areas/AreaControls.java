@@ -5,6 +5,8 @@
  */
 package Layout.Areas;
 
+import java.util.function.Consumer;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
@@ -76,7 +78,7 @@ public final class AreaControls {
         + "Prevents widget from resizing proportionally to parent container's "
         + "size. Instead, the widget will keep the same size, if possible.";
     private static final String lockbTEXT = "Lock widget\n\n"
-        + "Disallows layout mode when mouse enters top corner of the widget.\n "
+        + "Disallows layout mode when mouse enters top corner of the widget. \n"
         + "This can be applie separately on widgets, but also containers or "
         + "whole layout.";
     private static final String refbTEXT = "Refresh widget\n\n"
@@ -215,7 +217,7 @@ public final class AreaControls {
 	// ignore when already showing, under lock or in strong mode
 	showS.filter(e -> !isShowingWeak && !area.isUnderLock() && !isShowingStrong)
 	    // transform into IN/OUT boolean
-	    .map(e -> root.getWidth() - activatorW < e.getX() && activatorH > e.getY())
+	    .map(e -> p.getWidth() - activatorW < e.getX() && activatorH > e.getY())
 	    // ignore when no change
 	    .filter(in -> in != inside.get())
 	    // or store new state on change
@@ -226,23 +228,25 @@ public final class AreaControls {
 	    .subscribe(activating -> showWeak());
 
 	// weak hide - deactivator behavior
-	EventSource<MouseEvent> hideS = new EventSource();
-	deactivator.addEventFilter(MOUSE_EXITED, hideS::push);
-	deactivator2.addEventFilter(MOUSE_EXITED, hideS::push);
-	p.addEventFilter(MOUSE_EXITED, hideS::push);
-
-        // hide when no longer hovered and in weak mode
-	// ignore when alreadt not showing, under lock or in strong mode
-	hideS.filter(e -> isShowingWeak && !area.isUnderLock() && !isShowingStrong)
-	    // but not when helpPoOver is visible
-	    // mouse entering the popup qualifies as root.mouseExited which we need
-	    // to avoid (now we need to handle hiding when popup closes)
-	    .filter(e -> helpP.isNull() || !helpP.get().isShowing())
-	    // only when the deactivators are !'hovered' 
-	    // (Node.isHover() !work here) & we need to transform coords into scene-relative
-	    .filter(e -> !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
-		&& !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()))
-	    .subscribe(e -> hideWeak());
+        Consumer<MouseEvent> hideWeakTry = e -> {
+            if(
+                // ignore when already not showing or in strong mode
+                isShowingWeak && !isShowingStrong &&
+                // mouse entering the popup qualifies as root.mouseExited which we need
+                // to avoid (now we need to handle hiding when popup closes)
+                (helpP.isNull() || !helpP.get().isShowing()) &&
+                // only when the deactivators are !'hovered' 
+                // (Node.isHover() !work here) & we need to transform coords into scene-relative
+                !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
+                !deactivator2.localToScene(deactivator2.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY())
+            ) {
+                hideWeak();
+            }
+        };
+	deactivator.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+	deactivator2.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+	header_buttons.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
+	p.addEventFilter(MOUSE_EXITED, hideWeakTry::accept);
 
         // hide on mouse exit from area
 	// sometimes mouse exited deactivator does not fire in fast movement

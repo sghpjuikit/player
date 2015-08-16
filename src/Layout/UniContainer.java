@@ -3,7 +3,6 @@ package Layout;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
@@ -73,7 +72,6 @@ public class UniContainer extends Container {
     
     @Override
     public Map<Integer, Component> getChildren() {
-        // override with more effective implementation
         return Collections.singletonMap(1, child);
     }
     
@@ -113,8 +111,7 @@ public class UniContainer extends Container {
     
     @Override
     public Integer indexOf(Component c) {
-        if (Objects.equals(c, child)) return 1;
-        else return null;
+        return c==child ? 1 : null;
     }    
 
     @Override

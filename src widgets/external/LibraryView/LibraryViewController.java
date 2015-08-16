@@ -238,10 +238,10 @@ public class LibraryViewController extends FXMLController {
             t.getColumn(ColumnField.INDEX).ifPresent(i->i.setPrefWidth(t.calculateIndexColumnWidth()));
             // resize main column to span remaining space
             t.getColumn(VALUE).ifPresent(c->{
-                double w = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
+                double Σw = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
                 double itemsHeight = (t.getItems().size()+1)*t.getFixedCellSize();
                 double scrollbar = itemsHeight < t.getHeight() ? 0 : 15;
-                c.setPrefWidth(t.getWidth()-(scrollbar+w-c.getWidth()));
+                c.setPrefWidth(t.getWidth()-(scrollbar+Σw-c.getWidth()));
             });
             return b;
         });

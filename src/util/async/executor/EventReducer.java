@@ -7,7 +7,7 @@ package util.async.executor;
 
 import java.util.function.Consumer;
 
-import util.functional.Functors.F2;
+import util.functional.Functors.Ƒ2;
 
 /**
  * Event frequency reducer. Consumes events and reduces close temporal successions into (exactly) 
@@ -35,10 +35,10 @@ import util.functional.Functors.F2;
 public abstract class EventReducer<E> {
     protected Consumer<E> action;
     protected double inter_period;
-    protected final F2<E,E,E> r;
+    protected final Ƒ2<E,E,E> r;
     protected E e;
     
-    private EventReducer(double inter_period, F2<E,E,E> reduction, Consumer<E> handler) {
+    private EventReducer(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
         this.inter_period = inter_period;
         action = handler;
         r = reduction;
@@ -77,11 +77,11 @@ public abstract class EventReducer<E> {
         return new HandlerLast<>(inter_period, null, e -> handler.run());
     }
     
-    public static <E> EventReducer<E> toLast(double inter_period, F2<E,E,E> reduction, Consumer<E> handler) {
+    public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Consumer<E> handler) {
         return new HandlerLast<>(inter_period, reduction, handler);
     }
     
-    public static <E> EventReducer<E> toLast(double inter_period, F2<E,E,E> reduction, Runnable handler) {
+    public static <E> EventReducer<E> toLast(double inter_period, Ƒ2<E,E,E> reduction, Runnable handler) {
         return new HandlerLast<>(inter_period, reduction, e -> handler.run());
     }
     
@@ -99,7 +99,7 @@ public abstract class EventReducer<E> {
         
         private final FxTimer t;
 
-        public HandlerLast(double inter_period, F2<E, E, E> reduction, Consumer<E> handler) {
+        public HandlerLast(double inter_period, Ƒ2<E, E, E> reduction, Consumer<E> handler) {
             super(inter_period, reduction, handler);
             t = new FxTimer(inter_period, 1, () -> action.accept(e));
         }

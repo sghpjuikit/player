@@ -174,9 +174,8 @@ public class Icon<I extends Icon> extends Text {
                 if(ico!=null && txt!=null) {
                     
                     new Anim(millis(400), p -> {
-                        double p1 = Anim.mapTo01(p, 0, 0.7);
                         double p2 = Anim.mapTo01(p, 0.4, 1);
-                        txt.setTranslateX(20*p1*p1-20);
+                        txt.setTranslateX(20*p*p-20);
                         setScaleXY(ico, p2);
                     }).play();
                 }

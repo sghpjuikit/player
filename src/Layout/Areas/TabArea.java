@@ -202,15 +202,15 @@ public final class TabArea extends PolyArea {
     
     @Override
     public void detach() {
-        // create new window with no content (not even empty widget)
-        Window w = UiContext.showWindow(null);
-               // put size to that of a source (also add header & border space)
-               w.setSize(root.getWidth()+10, root.getHeight()+30);
-        // change content
-        Container c2 = w.getLayoutAggregator().getActive();
-        Component w2 = w.getLayoutAggregator().getActive().getChild();
-        int i1 = container.getParent().indexOf(container);
-        container.getParent().swapChildren(c2,i1,w2);
+//        // create new window with no content (not even empty widget)
+//        Window w = UiContext.showWindow(null);
+//               // put size to that of a source (also add header & border space)
+//               w.setSize(root.getWidth()+10, root.getHeight()+30);
+//        // change content
+//        Container c2 = w.getSwitchPane().getActive();
+//        Component w2 = w.getSwitchPane().getActive().getChild();
+//        int i1 = container.getParent().indexOf(container);
+//        container.getParent().swapChildren(c2,i1,w2);
     }
 
     public void detachComponent(int i) {

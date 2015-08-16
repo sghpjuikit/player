@@ -1,23 +1,27 @@
 
 package Layout;
 
-import util.graphics.drag.DragUtil.WidgetTransfer;
-import gui.GUI;
-import Layout.Areas.ContainerNode;
-import Layout.Widgets.Widget;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.layout.AnchorPane;
+
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import Layout.Areas.ContainerNode;
+import Layout.Widgets.Widget;
+import gui.GUI;
 import unused.Log;
-import static util.functional.Util.isNotNULL;
+import util.graphics.drag.DragUtil.WidgetTransfer;
+
+import static java.util.stream.Collectors.toList;
+import static util.functional.Util.*;
 
 /**
  * @author uranium
@@ -210,7 +214,7 @@ public abstract class Container extends Component implements AltState {
         for (Component w: getChildren().values()) {
             if(w!=null) out.add(w);
             if (w instanceof Container)
-                out.addAll(((Container)w).getAllChildren().collect(Collectors.toList()));
+                out.addAll(((Container)w).getAllChildren().collect(toList()));
         }
         return out.stream();
     }
@@ -223,7 +227,7 @@ public abstract class Container extends Component implements AltState {
         List<Widget> out = new ArrayList<>();
         for (Component w: getChildren().values()) {
             if (w instanceof Container)
-                out.addAll(((Container)w).getAllWidgets().collect(Collectors.toList()));
+                out.addAll(((Container)w).getAllWidgets().collect(toList()));
             else
             if (w instanceof Widget)
                 out.add((Widget)w);
@@ -235,12 +239,12 @@ public abstract class Container extends Component implements AltState {
      * all container children recursively. The root (this) is included in the list.
      * @return 
      */
-    public Stream<Container> getAllContainers() {
-        Stream<Container> outs = Stream.of(this);
-        Stream<Container> subs = getChildren().values().stream()
-                .filter(c -> c instanceof Container)
-                .flatMap(c -> ((Container)c).getAllContainers());
-        return Stream.concat(outs,subs);
+    public Stream<Container> getAllContainers(boolean include_self) {
+        Stream<Container> s1 = include_self ? stream(this) : stream();
+        Stream<Container> s2 = getChildren().values().stream()
+                                            .filter(c -> c instanceof Container)
+                                            .flatMap(c -> ((Container)c).getAllContainers(true));
+        return stream(s1,s2);
     }
     
     /**
@@ -299,13 +303,12 @@ public abstract class Container extends Component implements AltState {
             removeGraphicsFromSceneGraph();
         } else {
             // remove all children 
-            getChildren().keySet().forEach(this::removeChild);
+            list(getChildren().keySet()).forEach(this::removeChild);
         }
         // free resources of all guis, we need to do this because we do not
         // close the sub containers, they cant even override this method to
         // implement their own implementation because it will not be invoked
-//        getAllContainers().forEachBoth(Container::closeGraphics);
-        // BUG throws stackoverflow of some kind
+        getAllContainers(false).forEach(Container::closeGraphics);
     }
     
     protected void removeGraphicsFromSceneGraph() {

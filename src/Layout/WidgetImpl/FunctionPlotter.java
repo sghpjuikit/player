@@ -64,8 +64,8 @@ public class FunctionPlotter extends ClassController  {
         setAnchors(l, 0d);
     }
     
-    public void plot(Function<Double,Double> f) {        
-        plot.plot(f);
+    public void plot(Function<Double,Double> ƒ) {        
+        plot.plot(ƒ);
     }
     
     @Override public void refresh() {
@@ -125,7 +125,7 @@ public class FunctionPlotter extends ClassController  {
             setMaxSize(Pane.USE_PREF_SIZE, Pane.USE_PREF_SIZE);
         }
         
-        public void plot(Function<Double,Double> f) {
+        public void plot(Function<Double,Double> ƒ) {
             Path path = new Path();
             path.setStroke(Color.ORANGE);
             path.setStrokeWidth(2);
@@ -136,7 +136,7 @@ public class FunctionPlotter extends ClassController  {
             double x = xmin+inc;
             while (x < xmax) {
                 try {
-                    double y = f.apply(x);
+                    double y = ƒ.apply(x);
                     pe = pe==null ? new MoveTo(mapX(x),mapY(y)) : new LineTo(mapX(x),mapY(y));
                     path.getElements().add(pe);
                     x += inc;

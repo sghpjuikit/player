@@ -15,7 +15,6 @@ import javafx.application.Platform;
 import javafx.util.Duration;
 
 import util.async.executor.FxTimer;
-import util.async.runnable.Run;
 
 import static javafx.animation.Animation.INDEFINITE;
 import static util.Util.setField;
@@ -81,9 +80,9 @@ public final class Async {
      */
     public static void runPeriodic(Duration period, Consumer<FxTimer> action) {
         FxTimer t = new FxTimer(period, INDEFINITE, ()->{}); // use dummy action
-        Run r = () -> action.accept(t);                      // make action
-        setField(t,"action",r);                              // set action
-        t.start();                                         // start
+        Runnable r = () -> action.accept(t);
+        setField(t,"action",r);
+        t.start();
     }
     
     /**

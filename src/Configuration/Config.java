@@ -24,7 +24,7 @@ import util.access.FieldValue.EnumerableValue;
 import util.access.OVal;
 import util.access.TypedValue;
 import util.dev.TODO;
-import util.functional.Functors.F1;
+import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 import util.parsing.StringConverter;
 
@@ -754,9 +754,9 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     public static class VarList<T> extends Var<ObservableList<T>> {
         public final ObservableList<T> list;
         public final Supplier<T> factory;
-        public final F1<T,Configurable<?>> toConfigurable;
+        public final Ƒ1<T,Configurable<?>> toConfigurable;
         
-        public VarList(Supplier<T> factory, F1<T,Configurable<?>> toConfigurable) {
+        public VarList(Supplier<T> factory, Ƒ1<T,Configurable<?>> toConfigurable) {
             // construct the list and inject it as value (by calling setValue)
             super(observableArrayList());
             // remember the reference

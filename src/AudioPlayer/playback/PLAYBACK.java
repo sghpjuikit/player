@@ -59,7 +59,7 @@ public final class PLAYBACK implements Configurable {
     public static double seekUnitP = 0.05;
     
     public static final PlaybackState state = Player.state.playback;
-    private static GeneralPlayer player = new GeneralPlayer();
+    private static final GeneralPlayer player = new GeneralPlayer();
     
     /** Initializes the Playback. */
     public static void initialize() {
@@ -184,7 +184,7 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Seek forward", desc = "Seek forward playback.", keys = "ALT+D", repeat = true, global = true)
     public static void seekForward() {
         if(seekPercent) {
-            double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()+seekUnitP;
+            double d = getCurrentTime().toMillis()/getTotalTime().toMillis() + seekUnitP;
             seek(min(d, 1));
         } else
             seek(getCurrentTime().add(seekUnitT));
@@ -194,7 +194,7 @@ public final class PLAYBACK implements Configurable {
     @IsAction(name = "Seek backward", desc = "Seek backward playback.", keys = "ALT+A", repeat = true, global = true)
     public static void seekBackward() {
         if(seekPercent) {
-            double d = getCurrentTime().divide(getTotalTime().toMillis()).toMillis()-seekUnitP;
+            double d = getCurrentTime().toMillis()/getTotalTime().toMillis() - seekUnitP;
             seek(max(d, 0));
         } else
             seek(getCurrentTime().subtract(seekUnitT));

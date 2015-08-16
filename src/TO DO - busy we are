@@ -3,8 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- library tables playing row style updates no longer refresh on song change sometimes
+- remove Layout & LayoutManager cass
+- make LayoutMan into widget
+- tagger spinner likes spinning forever, teach him
 - seeker jerky position animation for short songs, use loop + prediction
-- file info animate labels
+- layout mode zoom animation use loop to increase smoothness
+- file info animate labels + disable cover adding when empty
 - filesize use unsigned long
 - config field add checkbox list config field, implement for fileInfo
 - implement smooth volume on seek
@@ -40,7 +45,7 @@
 - variable bitrate oggs not playing
 
 --------------------------------------------------------------------------------
------------------------- BUGS - what i dont want to hear about ------------------
+------------------------ BUGS - what i dont want to hear about -----------------
 --------------------------------------------------------------------------------
 
 GENERAL
@@ -145,7 +150,6 @@ UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
 - clean up classes in Var class hierarchy
 - window manager
 - window color overlay effect
-- window layout aggregators
 - tab area
 - generic FileType class, particularly need separation on 'groups' like
   audio, video, image, etc...

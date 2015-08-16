@@ -6,27 +6,31 @@
 
 package main;
 
-import action.Action;
+import java.util.ArrayList;
+import java.util.List;
+
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
+
+import org.reactfx.Subscription;
+
 import Layout.BiContainer;
 import Layout.BiContainerPure;
 import Layout.Container;
 import Layout.Layout;
+import Layout.SwitchPane;
 import Layout.Widgets.WidgetManager;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
-import gui.LayoutAggregators.SwitchPane;
-import gui.objects.icon.Icon;
+import action.Action;
 import gui.objects.PopOver.PopOver;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
-import java.util.ArrayList;
-import java.util.List;
-import javafx.geometry.Insets;
-import static javafx.geometry.Orientation.VERTICAL;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import gui.objects.icon.Icon;
 import main.Guide.Hint;
-import org.reactfx.Subscription;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static javafx.geometry.Orientation.VERTICAL;
 import static util.async.Async.run;
 
 /**
@@ -64,9 +68,9 @@ public final class Guide {
         addGuide("Intro", "Hi, this is automatic guide for this application. It will show you around. " +
                 "\n\nBut first some music, right?", new Icon(MUSIC, 33, null, e->{
                     // find spot
-                    SwitchPane la = (SwitchPane)Window.getFocused().getLayoutAggregator();
-                    Container con = la.getActive().getAllContainers().filter(c->c.getEmptySpot()!=null).findAny()
-                                    .orElse(la.getLayouts().values().stream().filter(c->c.getEmptySpot()!=null).findAny()
+                    SwitchPane la = Window.getFocused().getSwitchPane();
+                    Container con = la.getActive().getAllContainers(true).filter(c->c.getEmptySpot()!=null).findFirst()
+                                    .orElse(la.getComponents().values().stream().filter(c->c.getEmptySpot()!=null).findFirst()
                                     .orElse(null));
                     if(con==null) {
                         Layout l = new Layout();

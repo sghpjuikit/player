@@ -21,26 +21,26 @@ import static javafx.scene.layout.Priority.ALWAYS;
 
 import util.access.Var;
 import util.collections.PrefList;
-import util.functional.Functors.F1;
-import util.functional.Functors.PF;
+import util.functional.Functors.Ƒ1;
+import util.functional.Functors.PƑ;
 
 import static util.functional.Util.*;
 
 /**
- * Value node containing function of one parameter {@link F1}.
+ * Value node containing function of one parameter {@link Ƒ1}.
  * 
  * @param <IN> type of function input
  * @param <OUT> type of function output
  * 
  * @author Plutonium_
  */
-public class FunctionItemNode<IN,OUT> extends ValueNode<F1<IN,OUT>> {
+public class ƑItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
     private final HBox root = new HBox(5);
     private final HBox paramB = new HBox(5);
     private final List<ConfigField> configs = new ArrayList();
-    private final ComboBox<PF<IN,OUT>> fCB;
+    private final ComboBox<PƑ<IN,OUT>> fCB;
     
-    public FunctionItemNode(Supplier<PrefList<PF<IN,OUT>>> functionPool) {
+    public ƑItemNode(Supplier<PrefList<PƑ<IN,OUT>>> functionPool) {
         fCB = new ImprovedComboBox<>(f->f.name);
         fCB.getItems().setAll(functionPool.get());
         fCB.getItems().sort(byNC(f->f.name));
@@ -79,17 +79,17 @@ public class FunctionItemNode<IN,OUT> extends ValueNode<F1<IN,OUT>> {
     }
     
     private void generateValue() {
-        PF<IN,OUT> f = fCB.getValue();
+        PƑ<IN,OUT> f = fCB.getValue();
         changeValue(in -> f.apply(in,configs.stream().map(ConfigField::getValue).toArray()));
     }
     
     public Class getTypeIn() {
-        PF<IN,OUT> f = fCB.getValue();
+        PƑ<IN,OUT> f = fCB.getValue();
         return f==null ? Void.class : f.in;
     }
     
     public Class getTypeOut() {
-        PF<IN,OUT> f = fCB.getValue();
+        PƑ<IN,OUT> f = fCB.getValue();
         return f==null ? Void.class : f.out;
     }
 

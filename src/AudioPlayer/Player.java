@@ -37,7 +37,11 @@ import static util.functional.Util.list;
  * @author uranium
  */
 public class Player {
-    public static final PlayerState state = new PlayerState();
+    
+
+/********************************************* STATE **********************************************/
+    
+    public static final PlayerState state = PlayerState.deserialize();
     
     public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(1, 3, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
             Thread t = new Thread(r);
@@ -48,7 +52,6 @@ public class Player {
     
     public static void initialize() {
         PLAYBACK.initialize();
-        state.deserialize();
     }
     
     public static void loadLast() {
@@ -72,6 +75,9 @@ public class Player {
         anySelected.i.bind(playlistSelected.o);
         anySelected.i.bind(librarySelected.o);
         playingtem.onUpdate(playing.i::setValue);
+        
+        // use jaudiotagger for total time value
+        playingtem.onChange(m -> state.playback.duration.set(m.getLength()));
     }
     
 /**************************************** ITEM REFRESHING *****************************************/
@@ -168,17 +174,6 @@ public class Player {
             });
         });
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
     

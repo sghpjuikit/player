@@ -8,9 +8,7 @@ package gui.objects.Window.stage;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javafx.animation.Animation;
 import javafx.geometry.Insets;
@@ -31,7 +29,6 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import action.IsAction;
 import action.IsActionable;
-import gui.LayoutAggregators.SwitchPane;
 import gui.objects.icon.Icon;
 import main.App;
 import unused.Log;
@@ -135,6 +132,7 @@ public class WindowManager {
             Widget w = WidgetManager.getFactory("PlayerControlsTiny").create();
             BorderPane content = new BorderPane();
             content.setCenter(w.load());
+            miniWindow.initLayout();
             miniWindow.setContent(content);
                 // menu
             Icon closeB = new Icon(CLOSE, 13, "Close window", App::close);
@@ -233,24 +231,19 @@ public class WindowManager {
         
         // serialize - for now each window to its own file with .ws extension
         int count = 0;
-        for(int wi=0; wi<src.size(); wi++) {
+        for(int ι=0; ι<src.size(); ι++) {
             // ret resources
-            Window w = src.get(wi);
-            String name = "window" + wi;
+            Window w = src.get(ι);
+            String name = "window" + ι;
             File f = new File(dir, name + ".ws");
             // serialize
             boolean success = w.serializeSupressed(f);
             if (success) count++;
-            // serialize contained layouts
-            for(Map.Entry<Integer,Layout> e : w.getLayoutAggregator().getLayouts().entrySet()) {
-                int li = e.getKey();
-                Layout l = e.getValue();
-                // dont continue if layout empty
-                if(l.getChild() == null) continue;
-                // associate the layout with the window by name & save
-                l.setName("window" + wi + "-layout" + li);
-                l.serialize(new File(dir,l.getName()+".l"));
-            }
+            // serialize layout
+            Layout l = w.getLayout();
+            // associate the layout with the window by name & save
+            l.setName("layout" + ι);
+            l.serialize(new File(dir,l.getName()+".l"));
         }
         
         Log.deb("Serialized " + count + " windows.");
@@ -279,40 +272,6 @@ public class WindowManager {
             File[] fs = dir.listFiles(f->f.getName().endsWith(".ws"));
             Log.deb("Discovered " + fs.length + " window files to deserialize.");
 
-            // prepare layout files
-            Map<Integer,Map<Integer,File>> lmap= new HashMap(); // map windowIndex-layoutFiles
-            File[] lfs = dir.listFiles(f->f.getPath().endsWith(".l"));
-            for(File f : lfs) {
-                // parse string and get window index
-                String name = f.getName();
-                int from = name.indexOf("window");
-                int to = name.indexOf('-');
-                String number = name.substring(from+6, to);
-                int wIndex;
-                try{
-                    wIndex = new Integer(number);
-                } catch(NumberFormatException e) {
-                    // ignore file if damaged name
-                    continue;
-                }
-
-                // parse string and get layout index
-                from = name.indexOf("layout");
-                to = name.indexOf(".");
-                number = name.substring(from+6, to);
-                int lIndex;
-                try{
-                    lIndex = new Integer(number);
-                } catch(NumberFormatException e) {
-                    // ignore file if damaged name
-                    continue;
-                }
-
-                // put layout to map's list with index of the window it belongs to
-                if(!lmap.containsKey(wIndex)) lmap.put(wIndex, new HashMap());
-                lmap.get(wIndex).put(lIndex,f);
-            }
-
             // deserialize windows
             for(int i=0; i<fs.length; i++) {
                 File f = fs[i];
@@ -322,27 +281,19 @@ public class WindowManager {
                 if(w==null) continue;
                 ws.add(w);
 
-                // avoid null if no layout for this window
-                if(lmap.get(i)==null) lmap.put(i,new HashMap<>());
-
-
-                SwitchPane la = new SwitchPane();
-                // otherwise deserialize layout
-                lmap.get(i).forEach( (at,lf) -> {
-                    Layout l = new Layout(FileUtil.getName(lf)).deserialize(lf);
-                    la.addTab(at,l);
-                });
-
-                w.setLayoutAggregator(la);
+                // deserialize layout
+                File lf = new File(dir,"layout"+i+".l"); 
+                Layout l = lf.exists() ? new Layout("layout"+i).deserialize(lf) : null;
+                if(l==null) w.initLayout();
+                else w.initLayout(l);
             }
-
          }
         
         // make sure there is at least one window
         if(ws.isEmpty()) {
             Window w = Window.create();
                    w.setXyNsizeToInitial();
-                   w.setLayoutAggregator(new SwitchPane());
+                   w.initLayout();
             ws.add(w);
         }
         

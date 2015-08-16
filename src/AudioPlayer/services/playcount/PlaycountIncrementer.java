@@ -149,12 +149,12 @@ public class PlaycountIncrementer extends ServiceBase {
     private final List<Metadata> queue = new ArrayList<>();
     
     private void incrementQueued(Metadata m) {
-        int x = (int) queue.stream().filter(i -> i.same(m)).count();
-        if(x>0) {
+        int δ = (int) queue.stream().filter(i -> i.same(m)).count();
+        if(δ>0) {
             queue.removeIf(i -> i.same(m));
-            int pc = x + m.getPlaycount();
+            int p = δ + m.getPlaycount();
             Player.IO_THREAD.execute(() -> {
-                MetadataWriter.useNoRefresh(m, w -> w.setPlaycount(pc));
+                MetadataWriter.useNoRefresh(m, w -> w.setPlaycount(p));
                 Player.refreshItemWith(MetadataReader.create(m), true);
             });
         }

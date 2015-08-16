@@ -1,5 +1,5 @@
 
-package gui.LayoutAggregators;
+package Layout;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,16 +8,15 @@ import java.util.Map.Entry;
 import javafx.animation.*;
 import javafx.beans.property.DoubleProperty;
 import javafx.event.Event;
-import javafx.scene.Parent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
 import Configuration.AppliesConfig;
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
-import Layout.Component;
-import Layout.Layout;
+import Layout.Areas.ContainerNode;
 import gui.objects.Window.stage.Window;
 import main.App;
 import util.animation.interpolator.CircularInterpolator;
@@ -48,7 +47,7 @@ import static util.graphics.Util.setAnchors;
  * @author plutonium_
  */
 @IsConfigurable("Tabs")
-public class SwitchPane implements LayoutAggregator {
+public class SwitchPane implements ContainerNode {
     
     @IsConfig(name = "Discrete mode (D)", info = "Use discrete (D) and forbid seamless (S) tab switching."
             + " Tabs are always aligned. Seamless mode alows any tab position.")
@@ -80,19 +79,15 @@ public class SwitchPane implements LayoutAggregator {
     @AppliesConfig( "align_tabs")
     private static void applyAlignTabs() {
         Window.windows.stream()
-                .map(Window::getLayoutAggregator)
-                .filter(SwitchPane.class::isInstance)
-                .map(SwitchPane.class::cast)
-                .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
+               .map(Window::getSwitchPane)
+               .forEach(sp -> sp.setAlwaysAlignTabs(align_tabs));
     }
     
     @AppliesConfig( "snap_tabs")
     private static void applySnapTabs() {
         Window.windows.stream()
-                .map(Window::getLayoutAggregator)
-                .filter(SwitchPane.class::isInstance)
-                .map(SwitchPane.class::cast)
-                .forEach(sp -> sp.snapTabs());
+              .map(Window::getSwitchPane)
+              .forEach(sp -> sp.snapTabs());
     }
     
 /******************************************************************************/
@@ -102,7 +97,14 @@ public class SwitchPane implements LayoutAggregator {
     private final AnchorPane ui = new AnchorPane();
     public final AnchorPane widget_io = new AnchorPane();
     
+    // use when outside of container
     public SwitchPane() {
+        this(null);
+    }
+    
+    public SwitchPane(SwitchContainer container) {
+        this.container = container;
+        
         // set ui
         root.getChildren().add(zoom);
         setAnchors(zoom, 0d);
@@ -208,29 +210,43 @@ public class SwitchPane implements LayoutAggregator {
 /********************************    TABS   ***********************************/
     
     public final Map<Integer,AnchorPane> tabs = new HashMap();
+    boolean changed = false;
+    int at = Integer.MAX_VALUE;
     
     /** 
      * Adds specified layout as new tab on the first empty tab from 0 to right 
      * 
      * @return tab index
      */
-    public int addTabToRight(Layout layout) {
+    public int addTabToRight(Container layout) {
         int i = 0;
         while(!layouts.containsKey(i)) i+=1;
         addTab(i, layout);
         return i;
     }
     
-    public void addTab(int i, Layout layout) {
+    public void addTab(int i, Container layout) {
+        if(layouts.get(i)==layout) return;
         // remove first
-        removeTab(i);
-        // add layout, if we dont an empty one will be provided
-        layouts.put(i, layout);
-        // reload tab
-        addTab(i);
-        // initialize layouts to left & right
-        addTab(i+1);
-        addTab(i-1);
+        if(layout==null) {
+            removeTab(i);
+        } else {
+            // add layout, if we dont an empty one will be provided
+            layouts.put(i, layout);
+            changed = true;
+            // reload tab
+            addTab(i);
+            // initialize layouts to left & right
+//            addTab(i+1);
+//            addTab(i-1);
+            
+            if(at==Integer.MAX_VALUE) {
+                at = i;
+                if(!container.getChildren().containsKey(i+1)) container.addChild(i+1, new UniContainer());
+                if(!container.getChildren().containsKey(i-1)) container.addChild(i-1, new UniContainer());
+                at = Integer.MAX_VALUE;
+            }
+        }
     }
     
     /**
@@ -239,14 +255,13 @@ public class SwitchPane implements LayoutAggregator {
      * @param i 
      */
     public void addTab(int i) {
-        if (tabs.containsKey(i)) return;
-        
-        double width = uiWidth();
-        double pos = getTabX(i);
-        
-        AnchorPane t = new AnchorPane();
-        ui.getChildren().add(t);
-        tabs.put(i,t);
+        if (!tabs.containsKey(i)) {
+            double width = uiWidth();
+            double pos = getTabX(i);
+
+            AnchorPane t = new AnchorPane();
+            ui.getChildren().add(t);
+            tabs.put(i,t);
             t.setMinSize(0,0);
             t.setPrefWidth(width);      // standard width
             t.setLayoutX(pos);
@@ -256,17 +271,23 @@ public class SwitchPane implements LayoutAggregator {
 //            t.layoutXProperty().bind(ui.widthProperty().add(5).multiply(i));
             AnchorPane.setTopAnchor(t, 0.0);
             AnchorPane.setBottomAnchor(t, 0.0);
+        }
         
-        layouts.putIfAbsent(i, new Layout());
-        layouts.get(i).load(t);
+        AnchorPane t = tabs.get(i);
+        
+        if(!layouts.containsKey(i)) {
+            Container c =  new UniContainer();
+            if(container!=null) c.parent = container;
+            if(container!=null) container.getChildren().put(i,c);
+            layouts.put(i,c);
+            changed = true;
+        }
+        
+        if(changed) layouts.get(i).load(t);
+        changed = false;
     }
     
-    /**
-     * Removes the tab at specified position and frees the resources. If the tab
-     * at the position does not exist the method is a no-op.
-     * @param i 
-     */
-    public void removeTab(int i) {
+    void removeTab(int i) {
         if(tabs.containsKey(i)) {
             // detach from scene graph
             ui.getChildren().remove(tabs.get(i));
@@ -276,6 +297,10 @@ public class SwitchPane implements LayoutAggregator {
             // remove from tabs
             tabs.remove(i);
         }
+    }
+    
+    void removeAllTabs() {
+        layouts.keySet().forEach(this::removeTab);
     }
 
     
@@ -409,9 +434,9 @@ public class SwitchPane implements LayoutAggregator {
      * @param l layout
      * @return index of current tab after aligning
      */
-    public int alignTab(Layout l) {
+    public int alignTab(Container l) {
         int i = -1;
-        for(Entry<Integer,Layout> e : layouts.entrySet()) {
+        for(Entry<Integer,Container> e : layouts.entrySet()) {
             if(e.getValue().equals(l)) {
                 i = e.getKey();
                 alignTab(i);
@@ -429,7 +454,7 @@ public class SwitchPane implements LayoutAggregator {
      */
     public int alignTab(Component c) {
         int i = -1;
-        for(Entry<Integer,Layout> e : layouts.entrySet()) {
+        for(Entry<Integer,Container> e : layouts.entrySet()) {
             boolean has = e.getValue().getAllChildren().anyMatch(ch -> ch==c);
             if(has) {
                 i = e.getKey();
@@ -574,29 +599,33 @@ public class SwitchPane implements LayoutAggregator {
     
 /******************************************************************************/
     
-    private final Map<Integer,Layout> layouts = new HashMap<>();
+    private final SwitchContainer container;
+    private final Map<Integer,Container> layouts = new HashMap<>();
     
-    /** {@inheritDoc} */
-    @Override
-    public Map<Integer,Layout> getLayouts() {
+    public Map<Integer,Container> getComponents() {
         return layouts;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public Parent getRoot() {
-        return root;
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public long getCapacity() {
         return Long.MAX_VALUE;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public Layout getActive() {
+    public Container getActive() {
         return layouts.get(currTab());
+    }
+
+    @Override
+    public Pane getRoot() {
+        return root;
+    }
+
+    @Override
+    public void show() {
+        layouts.values().forEach(Container::show);
+    }
+
+    @Override
+    public void hide() {
+        layouts.values().forEach(Container::hide);
     }
 }

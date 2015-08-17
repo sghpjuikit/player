@@ -140,6 +140,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         outPlaying = outputs.create(widget.id,"Playing", PlaylistItem.class, null);
         d(Player.playlistSelected.i.bind(outSelected));
         d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
+        d(Player.onItemRefresh(refreshed -> {
+            refreshed.ifHasK(outPlaying.getValue().getURI(), m -> outPlaying.setValue(m.toPlaylist()));
+            refreshed.ifHasK(outSelected.getValue().getURI(), m -> outSelected.setValue(m.toPlaylist()));
+        }));
         
         table = new PlaylistTable(playlist);
         

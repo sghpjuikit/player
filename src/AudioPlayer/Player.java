@@ -83,6 +83,31 @@ public class Player {
     
 /**************************************** ITEM REFRESHING *****************************************/
     
+    /** 
+     * Adds songs refreshed event handler. When application updates song metadata it will fire this
+     * event. For example widget displaying song information may update that information, if the
+     * event contains the song.
+     * <p>
+     * Say, there is a widget with an input, displaying its value and sending it to its output, for
+     * others to listen. And both are of {@link Item} type and updating the contents may be heavy
+     * operation we want to avoid unless necessary.
+     * Always update the output. It will update all inputs (of other widgets) bound to it. However, 
+     * there may be widgets whose inputs are not bound, but set manually. In order to not update the
+     * input multiple times (by us and because it is bound) it should be checked whether input is 
+     * bound and then handled accordingly.
+     * <p>
+     * But because the input can be bound to multiple outputs, we must check whether the input is
+     * bound to the particular output it is displaying value of (and would be auto-updated from).
+     * This is potentially complex or impossible (with unfortunate 
+     * {@link Object#equals(java.lang.Object) } implementation). 
+     * It is possible to use an {@link EventReducer} which will
+     * reduce multiple events into one, in such case always updating input is recommended.
+     */
+    public static Subscription onItemRefresh(Consumer<MapSet<URI,Metadata>> handler) {
+        refreshHandlers.add(handler);
+        return () -> refreshHandlers.remove(handler);
+    }
+    
     /** Singleton variant of {@link #refreshItems(java.util.List)}. */
     public static void refreshItem(Item i) {
         noNull(i);
@@ -148,6 +173,8 @@ public class Player {
         return n;
     }, Player::refreshItemsWithNow);
     
+    private static final List<Consumer<MapSet<URI,Metadata>>> refreshHandlers = new ArrayList<>();
+    
     // runs refresh on bgr thread, thread safe
     private static void refreshItemsWithNow(List<Metadata> ms) {
         noNull(ms);
@@ -172,6 +199,9 @@ public class Player {
                 if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
                 if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
                 if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
+                
+                // refresh rest
+                refreshHandlers.forEach(h -> h.accept(mm));
             });
         });
     }

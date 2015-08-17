@@ -4,8 +4,6 @@
 --------------------------------------------------------------------------------
 
 - Metadata cover caching causes outdated data if cover is set to tag
-- use Fut instead of Supplier to be able to query whether data ready in Action
-  Pane
 - library tables playing row style updates no longer refresh on song change sometimes
 - tagger spinner likes spinning forever, teach him
 - seeker jerky position animation for short songs, use loop + prediction

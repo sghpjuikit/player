@@ -154,6 +154,9 @@ public class FileInfoController extends FXMLController implements SongReader {
     public void init() {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, EMPTY);
         
+        // keep updated contents, we do this directly instead of lookuing up the Input, same effect
+        d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::read)));
+        
         cover.getPane().setDisable(true); // shoud be handled differently, either init all or none
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
@@ -329,10 +332,10 @@ public class FileInfoController extends FXMLController implements SongReader {
           .run();
     }
     
-    private void tagAsCover(Fut<File> ff, boolean album) {
+    private void tagAsCover(Fut<File> ff, boolean includeAlbum) {
         if(ff==null) return;
 
-        Collection<Metadata> items = album 
+        Collection<Metadata> items = includeAlbum 
             // get all known songs from album
             ? DB.items.o.getValue().stream()
                 // we must not write when album is empty! that could have disastrous consequences!
@@ -387,7 +390,7 @@ public class FileInfoController extends FXMLController implements SongReader {
                      content.equalsIgnoreCase("?/?") ||
                        content.equalsIgnoreCase("n/a") || 
                          content.equalsIgnoreCase("unknown");
-                    e |= field==RATING;
+                    e &= field!=RATING;
             setDisable(e);
             if (!visibleConfig.getValue() || (!showEmptyFields.getValue() && e))
                 labels.remove(this);

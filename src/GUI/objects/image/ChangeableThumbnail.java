@@ -7,7 +7,6 @@ package gui.objects.image;
 
 import java.io.File;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javafx.css.PseudoClass;
 import javafx.scene.input.Dragboard;
@@ -16,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
 import util.File.Environment;
+import util.async.future.Fut;
 import util.graphics.Icons;
 import util.graphics.drag.DragUtil;
 
@@ -26,6 +26,7 @@ import static javafx.scene.input.DragEvent.DRAG_OVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
+import static util.async.future.Fut.fut;
 import static util.graphics.Util.setAnchors;
 
 /**
@@ -48,7 +49,7 @@ public class ChangeableThumbnail extends Thumbnail {
      * is obtained by executing the provided supplier. That must be done 
      * manually and should be done on bgr thread.
      */
-    public Consumer<Supplier<File>> onFileDropped = null;
+    public Consumer<Fut<File>> onFileDropped = null;
     /** 
      * Action for when image is highlighted. 
      * Default does nothing. Must not be null.
@@ -78,7 +79,7 @@ public class ChangeableThumbnail extends Thumbnail {
         rt.setOnMouseClicked(e -> {
             if (e.getButton()==PRIMARY) {
                 File f = Environment.chooseFile("Select image to add to tag",false, new File(""), root.getScene().getWindow());
-                if (f!= null && onFileDropped!=null) onFileDropped.accept(() -> f);
+                if (f!= null && onFileDropped!=null) onFileDropped.accept(fut(f));
             }
         });
         

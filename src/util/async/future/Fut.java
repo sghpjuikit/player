@@ -6,10 +6,13 @@
 package util.async.future;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javafx.scene.control.ProgressIndicator;
 
@@ -41,7 +44,30 @@ public class Fut<T> implements Runnable{
     public static <T> Fut<T> fut(T t) { 
         return new Fut<>(t);
     }
+    public static <T> Fut<T> fut(Supplier<T> t) { 
+        return new Fut<>().supply(t);
+    }
     
+    
+    public boolean isDone() {
+        return f.isDone();
+    }
+    
+    public T getDone() {
+        if(f.isDone()) {
+            try {
+                return f.get();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Fut.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            } catch (ExecutionException ex) {
+                Logger.getLogger(Fut.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
     
     public final <R> Fut<R> map(Function<T,R> action) {
         return new Fut<>(f.thenApplyAsync(action));
@@ -58,6 +84,11 @@ public class Fut<T> implements Runnable{
     }
     public final <R> Fut<R> supply(Supplier<R> action) {
         return Fut.this.map(r -> action.get());
+    }
+    public final <R> Fut<R> supply(Fut<R> action) {
+        return new Fut(CompletableFuture.completedFuture(null)
+                .thenCompose(res -> f)
+                .thenCompose(res -> action.f));
     }
     public final <R> Fut<R> supply(Supplier<R> action, Executor executor) {
         return Fut.this.map(r -> action.get(), executor);

@@ -1,29 +1,29 @@
 
 package AudioPlayer.tagging;
 
-import AudioPlayer.Item;
-import AudioPlayer.playlist.PlaylistItem;
-import AudioPlayer.services.Database.DB;
-
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 
+import javax.persistence.EntityManager;
+
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.Media;
 
-import javax.persistence.EntityManager;
-
 import org.jaudiotagger.audio.AudioFile;
 
+import AudioPlayer.Item;
+import AudioPlayer.playlist.PlaylistItem;
+import AudioPlayer.services.Database.DB;
+import unused.Log;
 import util.File.AudioFileFormat.Use;
 
-import static util.async.Async.*;
-
-import unused.Log;
+import static util.async.Async.runFX;
+import static util.async.Async.runNew;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -38,7 +38,7 @@ import unused.Log;
  */
 public class MetadataReader{
 
-    private static Task<List<Metadata>> buildReadMetadata(List<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
+    private static Task<List<Metadata>> buildReadMetadata(Collection<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
         // perform check
         Objects.requireNonNull(items);
         Objects.requireNonNull(onEnd);
@@ -106,7 +106,7 @@ public class MetadataReader{
      *
      * @throws NullPointerException if any parameter null
      */
-    public static Task<List<Metadata>> readMetadata(List<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
+    public static Task<List<Metadata>> readMetadata(Collection<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
         // create task
         final Task task = buildReadMetadata(items, onEnd);
         
@@ -120,7 +120,7 @@ public class MetadataReader{
      * For asynchronouse use only.
      * Items for which reading fails are ignored.
      */
-    public static List<Metadata> readMetadata(List<? extends Item> items){    
+    public static List<Metadata> readMetadata(Collection<? extends Item> items){    
         List<Metadata> metadatas = new ArrayList();
 
         for (Item item: items){

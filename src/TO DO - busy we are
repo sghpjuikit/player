@@ -3,13 +3,13 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- Metadata cover caching causes outdated data if cover is set to tag
+- use Fut instead of Supplier to be able to query whether data ready in Action
+  Pane
 - library tables playing row style updates no longer refresh on song change sometimes
-- remove Run, FunctionC, Layout, LayoutManager cass
-- make LayoutMan into widget
 - tagger spinner likes spinning forever, teach him
 - seeker jerky position animation for short songs, use loop + prediction
 - layout mode zoom animation use loop to increase smoothness
-- file info animate labels + disable cover adding when empty
 - filesize use unsigned long
 - config field add checkbox list config field, implement for fileInfo
 - implement smooth volume on seek

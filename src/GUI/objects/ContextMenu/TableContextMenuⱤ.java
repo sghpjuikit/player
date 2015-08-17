@@ -8,6 +8,7 @@ package gui.objects.ContextMenu;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+
 import javafx.scene.control.TableView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.MouseEvent;
@@ -16,12 +17,12 @@ import javafx.scene.input.MouseEvent;
  *
  * @author Plutonium_
  */
-public class TableContextMenuInstance<E> extends TableContextMenuRInstance<E,TableView<E>> {
+public class TableContextMenuⱤ<E> extends TableContextMenuMⱤ<E,TableView<E>> {
     
-    public TableContextMenuInstance(Supplier<ImprovedContextMenu<List<E>>> builder) {
+    public TableContextMenuⱤ(Supplier<ImprovedContextMenu<List<E>>> builder) {
         super(builder);
     }
-    public TableContextMenuInstance(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TableView<E>> mutator) {
+    public TableContextMenuⱤ(Supplier<ImprovedContextMenu<List<E>>> builder, BiConsumer<ImprovedContextMenu<List<E>>, TableView<E>> mutator) {
         super(builder, mutator);
     }
     

@@ -4,7 +4,6 @@ package Library;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.beans.property.BooleanProperty;
@@ -43,7 +42,7 @@ import gui.GUI;
 import gui.InfoNode.InfoTask;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.ContextMenu.TableContextMenuInstance;
+import gui.objects.ContextMenu.TableContextMenuⱤ;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable;
 import gui.objects.Table.ImprovedTable.PojoV;
@@ -61,6 +60,7 @@ import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.ExecuteN;
 import util.async.executor.FxTimer;
+import util.async.future.Fut;
 import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -325,34 +325,34 @@ public class LibraryController extends FXMLController implements SongReader {
         if(dir) {
             File f = Environment.chooseFile("Add folder to library", true, last_file, w, ef);
             if(f!=null) {
-                addNeditDo(() -> {
+                addNeditDo(fut(() -> {
                     last_file = f.getParentFile()==null ? f : f.getParentFile();
                     Stream<File> files = getFilesAudio(f,Use.APP,Integer.MAX_VALUE);
                     return files.map(SimpleItem::new);
-                }, edit);
+                }), edit);
             }
         } else {
             List<File> fs = Environment.chooseFiles("Add files to library", last_file, w, ef);
             if(fs!=null) {
-                addNeditDo(() -> {
+                addNeditDo(fut(() -> {
                     File fr = getCommonRoot(fs);
                     if(fr!=null) last_file=fr;
                     Stream<File> files = fs.stream();
                     return files.map(SimpleItem::new);
-                }, edit);
+                }), edit);
             }
         }
     }
     
-    private void addNeditDo(Supplier<Stream<Item>> files, boolean edit) {
+    private void addNeditDo(Fut<Stream<Item>> files, boolean edit) {
         fut().then(() -> {
                  taskInfo.setVisible(true);
                  taskInfo.message.setText("Discovering files...");
                  taskInfo.progressIndicator.setProgress(INDETERMINATE_PROGRESS);
              }, FX)
-             .supply(() -> files.get().collect(toList()))
+             .supply(files)
              .use(items -> {
-                 Task t = MetadataReader.readAaddMetadata(items,(ok,added) -> {
+                 Task t = MetadataReader.readAaddMetadata(items.collect(toList()),(ok,added) -> {
                      if(ok && edit && !added.isEmpty())
                          WidgetManager.use(SongWriter.class, NO_LAYOUT, w -> w.read(added));
                      hideInfo.start();
@@ -395,7 +395,7 @@ public class LibraryController extends FXMLController implements SongReader {
     
 /****************************** CONTEXT MENU **********************************/
     
-    private static final TableContextMenuInstance<Metadata> contxt_menu = new TableContextMenuInstance<>(
+    private static final TableContextMenuⱤ<Metadata> contxt_menu = new TableContextMenuⱤ<> (
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e ->                    

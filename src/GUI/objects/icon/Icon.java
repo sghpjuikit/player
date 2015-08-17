@@ -29,11 +29,14 @@ import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import util.animation.Anim;
+import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
+import util.Ɽ;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
+import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
 import static util.Util.getFieldValue;
@@ -51,7 +54,9 @@ import static util.graphics.Util.setScaleXY;
 
 public class Icon<I extends Icon> extends Text {
     
-        public final static String TTF_PATH = "/de/jensd/fx/glyphs/fontawesome/fontawesome-webfont.ttf";
+    public final static String TTF_PATH = "/de/jensd/fx/glyphs/fontawesome/fontawesome-webfont.ttf";
+    // animation builder, & reusable supplier
+    private static final Ƒ1<Icon,Anim> A = i -> new Anim(millis(400), p -> setScaleXY(i,1-0.3*p*p*p));
 
     static {
         Font.loadFont(Icon.class.getResource(TTF_PATH).toExternalForm(), 10.0);
@@ -100,10 +105,10 @@ public class Icon<I extends Icon> extends Text {
         setCache(true);
 
         // install click animation
-        Anim a = new Anim(millis(400), p -> setScaleXY(this,1-0.3*p*p*p));
-        addEventFilter(MOUSE_CLICKED, e -> a.playOpenDoClose(null));
+        Ɽ<Anim> ra = new Ɽ<>(); // lazy singleton
+        addEventFilter(MOUSE_PRESSED, e -> ra.get(this,A).playOpenDo(null));
+        addEventFilter(MOUSE_RELEASED, e -> ra.get(this,A).playOpenDoClose(null));
     }
-
     
     public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
         this(ico, size, tooltip);
@@ -112,7 +117,6 @@ public class Icon<I extends Icon> extends Text {
     public Icon(GlyphIcons ico, double size, Action action) {
         this(ico, size, action.getInfo(), (Runnable)action);
     }
-    
 
     @FXML
     public void init() {

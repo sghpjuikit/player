@@ -37,22 +37,6 @@ public class SwitchContainer extends Container {
     public void addChild(Integer index, Component c) {
         if(index==null) return;
         
-//        if(c==null) {
-//            children.remove(index);
-//            load();
-//        } else  {
-//            if(c instanceof UniContainer) {
-//                children.put(index, c);
-//                Container.class.cast(c).parent = this;
-//                load();
-//            } else {
-//                UniContainer wrap = new UniContainer();
-//                addChild(index, wrap);
-//                wrap.setChild(c);
-//            }
-//        }
-        
-        
         if(c==null) {
             children.remove(index);
             load();
@@ -71,13 +55,11 @@ public class SwitchContainer extends Container {
 
     @Override
     public Integer getEmptySpot() {
-        int i = -1;
-        while(true) {
-            i++;
-            if(!children.keySet().contains(i)) {
-                return i;
-            }
+        int i = 0;
+        while(!children.keySet().contains(i)) {
+            i = i==0 ? 1 : i>0 ? -i : -i-1;  // 0,1,-1,2,-2,3,-3, ...
         }
+        return i;
     }
 
     @Override
@@ -94,6 +76,7 @@ public class SwitchContainer extends Container {
     
     /** Invoked just before the serialization. */
     protected Object writeReplace() throws ObjectStreamException {
+        // both an optimization & bugfix
         // close empty children containers
         list(getChildren().values()).forEach(c -> {
             if(c instanceof Container && ((Container)c).getAllWidgets().count()==0)

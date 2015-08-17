@@ -3,26 +3,32 @@ package FileInfo;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
 
-import org.reactfx.Subscription;
-
 import AudioPlayer.Item;
+import AudioPlayer.Player;
+import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.Metadata.Field;
 import AudioPlayer.tagging.MetadataWriter;
+import Configuration.Config;
+import Configuration.Config.PropertyConfig;
 import Configuration.IsConfig;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.IsInput;
 import Layout.Widgets.controller.io.Output;
 import Layout.Widgets.feature.SongReader;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.objects.Rater.Rating;
 import gui.objects.image.ChangeableThumbnail;
 import gui.objects.image.cover.Cover.CoverSource;
@@ -32,18 +38,20 @@ import gui.pane.ImageFlowPane;
 import main.App;
 import util.access.Var;
 import util.async.executor.EventReducer;
+import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import static Layout.Widgets.Widget.Group.OTHER;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS_SQUARE_ALT;
 import static gui.objects.image.cover.Cover.CoverSource.ANY;
+import static java.lang.Double.NaN;
 import static java.lang.Double.max;
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.TOP_LEFT;
@@ -52,7 +60,7 @@ import static util.File.FileUtil.copyFileSafe;
 import static util.File.FileUtil.copyFiles;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toLast;
-import static util.async.future.Fut.fut;
+import static util.functional.Util.by;
 import static util.functional.Util.list;
 import static util.graphics.Util.layAnchor;
 
@@ -65,20 +73,19 @@ import static util.graphics.Util.layAnchor;
     author = "Martin Polakovic",
     programmer = "Martin Polakovic",
     name = "File Info",
-    description = "Displays song information and cover. Supports rating change.",
+    description = "Displays song metadata. Supports rating change.",
     howto = ""
-        + "    User can set a song to this widget to display its information. "
-        + "This can be done manually, e.g., by drag & drop, or the widget can "
-        + "follow the playing or table selections (playlist, etc.).\n"
+        + "    Displays metadata of a particular song. Song can be set manually, e.g., by drag & "
+         + "drop, or the widget can follow the playing or table selections (playlist, etc.).\n"
         + "\n"
         + "Available actions:\n"
         + "    Cover left click : Browse file system & set cover\n"
         + "    Cover right click : Opens context menu\n"
         + "    Rater left click : Rates displayed song\n"
         + "    Drag&Drop songs : Displays information for the first song\n"
-        + "    Drag&Drop image on cover: Copies images into current item's locaton\n",
+        + "    Drag&Drop image on cover: Sets images as cover\n",
     version = "1.0",
-    year = "2014",
+    year = "2015",
     group = OTHER
 )
 public class FileInfoController extends FXMLController implements SongReader {
@@ -87,50 +94,46 @@ public class FileInfoController extends FXMLController implements SongReader {
     private final ChangeableThumbnail cover = new ChangeableThumbnail();
     private final TilePane tiles = new FieldsPane();
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
-    
     private final Rating rater = new Rating();
-    private final Label title = new Label(), 
-                        track = new Label(),
-                        disc = new Label(), 
-                        gap1 = new Label(), 
-                        artist = new Label(), 
-                        album = new Label(),    
-                        album_artist = new Label(), 
-                        year = new Label(), 
-                        genre = new Label(), 
-                        composer = new Label(), 
-                        publisher = new Label(), 
-                        gap2 = new Label(), 
-                        rating = new Label(), 
-                        playcount = new Label(), 
-                        comment = new Label(), 
-                        category = new Label(), 
-                        gap3 = new Label(), 
-                        filesize = new Label(),
-                        length = new Label(),
-                        filename = new Label(),
-                        format = new Label(),
-                        bitrate = new Label(), 
-                        encoding = new Label(), 
-                        location = new Label();
-    
-    private final List<Label> visible_labels = new ArrayList();
-    private final List<Label> labels = list(title, track, disc, gap1, artist, 
-        album, album_artist, year, genre, composer, publisher, gap2, rating, 
-        playcount, comment, category, gap3, filesize, length, filename, format, 
-        bitrate, encoding, location);
+    private final Label gap1 = new Label(" "), 
+                        gap2 = new Label(" "), 
+                        gap3 = new Label(" ");
+    private final List<Label> labels = new ArrayList<>();
+    private final List<Lfield> fields = list(
+        new Lfield(TITLE,0), 
+        new Lfield(TRACK_INFO,1),
+        new Lfield(DISCS_INFO,2), 
+        new Lfield(LENGTH,3),
+        new Lfield(ARTIST,4), 
+        new Lfield(ALBUM,5),    
+        new Lfield(ALBUM_ARTIST,6), 
+        new Lfield(YEAR,7), 
+        new Lfield(GENRE,8), 
+        new Lfield(COMPOSER,9), 
+        new Lfield(PUBLISHER,10), 
+        new Lfield(CATEGORY,11), 
+        new Lfield(RATING,12), 
+        new Lfield(PLAYCOUNT,13), 
+        new Lfield(COMMENT,14), 
+        new Lfield(FILESIZE,15),
+        new Lfield(FILENAME,16),
+        new Lfield(FORMAT,17),
+        new Lfield(BITRATE,18), 
+        new Lfield(ENCODING,19), 
+        new Lfield(PATH,20)
+    );
+    private final Lfield rating = fields.get(12);
     
     private Output<Metadata> data_out;
-    private Metadata data;
-    private Subscription d;
-
+    private Metadata data = EMPTY;
+    
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final Var<Double> minColumnWidth = new Var<>(150.0, tiles::layout);
     @IsConfig(name = "Cover source", info = "Source for cover image.")
     public final Var<CoverSource> cover_source = new Var<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
-    public final Var<OverrunStyle> overrun_style = new Var<>(ELLIPSIS, v -> labels.forEach(l->l.setTextOverrun(v)));
+    public final Var<OverrunStyle> overrun_style = new Var<>(ELLIPSIS, this::setOverrun);
     @IsConfig(name = "Show cover", info = "Show cover.")
     public final Var<Boolean> showCover = new Var<>(true, layout::setImageVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
@@ -138,72 +141,46 @@ public class FileInfoController extends FXMLController implements SongReader {
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
     public final Var<Boolean> showEmptyFields = new Var<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final Var<Boolean> groupFields = new Var<>(true, this::update);
-    @IsConfig(name = "Show title", info = "Show this field.")
-    public final Var<Boolean> showTitle = new Var<>(true, this::update);
-    @IsConfig(name = "Show track", info = "Show this field.")
-    public final Var<Boolean> showtrack = new Var<>(true, this::update);
-    @IsConfig(name = "Show disc", info = "Show this field.")
-    public final Var<Boolean> showdisc = new Var<>(true, this::update);
-    @IsConfig(name = "Show artist", info = "Show this field.")
-    public final Var<Boolean> showartist = new Var<>(true, this::update);
-    @IsConfig(name = "Show album artist", info = "Show this field.")
-    public final Var<Boolean> showalbum_artist = new Var<>(true, this::update);
-    @IsConfig(name = "Show album", info = "Show this field.")
-    public final Var<Boolean> showalbum = new Var<>(true, this::update);
-    @IsConfig(name = "Show year", info = "Show this field.")
-    public final Var<Boolean> showyear = new Var<>(true, this::update);
-    @IsConfig(name = "Show genre", info = "Show this field.")
-    public final Var<Boolean> showgenre = new Var<>(true, this::update);
-    @IsConfig(name = "Show composer", info = "Show this field.")
-    public final Var<Boolean> showcomposer = new Var<>(true, this::update);
-    @IsConfig(name = "Show publisher", info = "Show this field.")
-    public final Var<Boolean> showpublisher = new Var<>(true, this::update);
-    @IsConfig(name = "Show rating", info = "Show this field.")
-    public final Var<Boolean> showrating = new Var<>(true, this::update);
-    @IsConfig(name = "Show playcount", info = "Show this field.")
-    public final Var<Boolean> showplaycount = new Var<>(true, this::update);
-    @IsConfig(name = "Show comment", info = "Show this field.")
-    public final Var<Boolean> showcomment = new Var<>(true, this::update);
-    @IsConfig(name = "Show category", info = "Show this field.")
-    public final Var<Boolean> showcategory = new Var<>(true, this::update);
-    @IsConfig(name = "Show filesize", info = "Show this field.")
-    public final Var<Boolean> showfilesize = new Var<>(true, this::update);
-    @IsConfig(name = "Show length", info = "Show this field.")
-    public final Var<Boolean> showlength = new Var<>(true, this::update);
-    @IsConfig(name = "Show filename", info = "Show this field.")
-    public final Var<Boolean> showfilename = new Var<>(true, this::update);
-    @IsConfig(name = "Show format", info = "Show this field.")
-    public final Var<Boolean> showformat = new Var<>(true, this::update);
-    @IsConfig(name = "Show bitrate", info = "Show this field.")
-    public final Var<Boolean> showbitrate = new Var<>(true, this::update);
-    @IsConfig(name = "Show encoding", info = "Show this field.")
-    public final Var<Boolean> showencoding = new Var<>(true, this::update);
-    @IsConfig(name = "Show location", info = "Show this field.")
-    public final Var<Boolean> showlocation = new Var<>(true, this::update);
+    public final Var<Sort> groupFields = new Var<>(Sort.SEMANTIC,this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
-
+    // generate show {field} configs
+    private final Map<String,Config> fieldconfigs = fields.stream()
+            .map(f -> new PropertyConfig<>("show_"+f.name, "Show " + f.name, f.visibleConfig,
+                    "FileInfoController","Show this field",true,NaN,NaN))
+            .collect(toMap(c -> c.getName(), c -> c));
     
     @Override
     public void init() {
-        data_out = outputs.create(widget.id, "Displayed", Metadata.class, Metadata.EMPTY);
+        data_out = outputs.create(widget.id, "Displayed", Metadata.class, EMPTY);
         
+        cover.getPane().setDisable(true); // shoud be handled differently, either init all or none
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
-        cover.onFileDropped = f -> 
-            ActionPane.PANE.show(File.class, f, 
-                new ActionData<>("Copy and set as cover", 
+        cover.onFileDropped = fut_file -> 
+            ActionPane.PANE.show(File.class, fut_file, 
+                new ActionData<>("Copy and set as album cover", 
                         "Sets image as cover. Copies file to "
                       + data.getLocation().getPath() + " and renames it to 'cover'. "
                       + "Previous cover file (if exists) will be preserved and renamed.",
-                        PLUS_SQUARE,
-                        fs -> setCover(fs, true)),
-                new ActionData<>("Copy", 
-                        "Copies file to " + data.getLocation().getPath() + ". Any "
+                        FontAwesomeIcon.PASTE,
+                        f -> setAsCover(f, true)),
+                new ActionData<>("Copy to location", 
+                        "Copies image to " + data.getLocation().getPath() + ". Any "
                       + "existing file is overwritten.",
-                        PLUS_SQUARE_ALT,
-                        fs -> setCover(fs, false))
+                        FontAwesomeIcon.COPY,
+                        f -> setAsCover(f, false)),
+                new ActionData<>("Write to tag (single)", 
+                        "Writes image as cover to song tag. Other songs of the song's album remain "
+                      + "untouched.",
+                        FontAwesomeIcon.TAG,
+                        f -> tagAsCover(f,false)),
+                new ActionData<>("Write to tag (album)", 
+                        "Writes image as cover to all songs in this song's album. Only songs in the "
+                      + "library are considered. Songs with no album are ignored. At minimum the "
+                      + "displayed song will be updated (even if not in library or has no album).",
+                        FontAwesomeIcon.TAGS,
+                        f -> tagAsCover(f,true))
             );
                   
         layAnchor(root,layout,0d);
@@ -231,10 +208,9 @@ public class FileInfoController extends FXMLController implements SongReader {
         // handle audio drag transfers
         root.setOnDragDropped( e -> {
             if(DragUtil.hasAudio(e.getDragboard())) {
-                fut().supply(DragUtil.getSongs(e))
-                     .map(items -> items.findFirst())
-                     .use(i -> i.ifPresent(this::read),FX)
-                     .run();
+                DragUtil.getSongs(e)
+                        .use(items -> items.findFirst().ifPresent(this::read),FX)
+                        .run();
                 // end drag
                 e.setDropCompleted(true);
                 e.consume();
@@ -242,13 +218,6 @@ public class FileInfoController extends FXMLController implements SongReader {
         });
     }
     
-    @Override
-    public void onClose() {
-        if (d != null) d.unsubscribe();
-    }
-    
-/********************************* PUBLIC API *********************************/
- 
     @Override
     public void refresh() {
         minColumnWidth.applyValue();
@@ -260,7 +229,20 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     @Override
     public boolean isEmpty() {
-        return data == null;
+        return data==null || data == EMPTY;
+    }
+
+    @Override
+    public Collection<Config<Object>> getFields() {
+        Collection<Config<Object>> c = list(super.getFields());
+        c.addAll((Collection)fieldconfigs.values());
+        return c;
+    }
+    
+    @Override
+    public Config<Object> getField(String n) {
+        return Optional.ofNullable((Config)fieldconfigs.get(n))
+                       .orElseGet(() -> super.getField(n));
     }
     
 /********************************** FEATURES **********************************/
@@ -290,166 +272,127 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     
     private void setValue(Metadata m) {
-        // prevent refreshing location if shouldnt
+        // no empty content if desired
         if(!allowNoContent && m==EMPTY) return;
         
         // remember data
         data = m;
         data_out.setValue(m);
+        
         // gui (fill out data)
-        if (m == null) {
-            clear();
-        } else {
-            // set image
-            setCover(cover_source.getValue());
-
-            // set rating
-            rater.rating.set(m.getRatingPercent());
-
-            // set other fields
-            title.setText("title: "               + m.getFieldS(TITLE,""));
-            track.setText("track: "               + m.getFieldS(TRACK_INFO,""));
-            disc.setText("disc: "                 + m.getFieldS(DISCS_INFO,""));
-            gap1.setText(" ");      
-            artist.setText("artist: "             + m.getFieldS(ARTIST,""));
-            album.setText("album: "               + m.getFieldS(ALBUM,""));
-            album_artist.setText("album artist: " + m.getFieldS(ALBUM_ARTIST,""));
-            year.setText("year: "                 + m.getFieldS(YEAR,""));
-            genre.setText("genre: "               + m.getFieldS(GENRE,""));
-            composer.setText("composer: "         + m.getFieldS(COMPOSER,""));
-            publisher.setText("publisher: "       + m.getFieldS(PUBLISHER,""));
-            gap2.setText(" ");      
-            rating.setText("rating: "             + m.getFieldS(RATING,""));
-            playcount.setText("playcount: "       + m.getFieldS(PLAYCOUNT,""));
-            comment.setText("comment: "           + "");
-            category.setText("category: "         + m.getFieldS(CATEGORY,""));
-            gap3.setText(" ");      
-            filename.setText("filename: "         + m.getFieldS(FILENAME,""));
-            length.setText("length: "             + m.getFieldS(LENGTH,""));
-            filesize.setText("filesize: "         + m.getFieldS(FILESIZE,""));
-            format.setText("format: "             + m.getFieldS(FORMAT,""));
-            bitrate.setText("bitrate: "           + m.getFieldS(BITRATE,""));
-            encoding.setText("encoding: "         + m.getFieldS(ENCODING,""));
-            location.setText("location: "         + m.getFieldS(PATH,""));
-        } 
+        fields.forEach(l -> l.setVal(m));
+        rater.rating.set(m==EMPTY ? 0d : m.getRatingPercent());
+        setCover(cover_source.getValue());
 
         update();
     }
     
-    private void clear() {
-        rater.rating.set(0d);
-        title.setText("title: ");
-        track.setText("track: ");
-        disc.setText("disc: ");
-        gap1.setText(" ");
-        artist.setText("artist: ");
-        album.setText("album: ");
-        album_artist.setText("album artist: ");
-        year.setText("year: ");
-        genre.setText("genre: " );
-        composer.setText("composer: ");
-        publisher.setText("publisher: ");
-        gap2.setText(" ");
-        rating.setText("rating: ");
-        playcount.setText("playcount: ");
-        comment.setText("comment: " );
-        category.setText("category: ");
-        gap3.setText(" ");
-        filename.setText("filename: ");
-        length.setText("length: ");
-        filesize.setText("filesize: ");
-        format.setText("format: ");
-        bitrate.setText("bitrate: ");
-        encoding.setText("encoding: ");
-        location.setText("location: ");
-    }
-    
     private void update() {
         // initialize
-        visible_labels.clear();
-        visible_labels.addAll(labels);
-        tiles.getChildren().clear();
-        visible_labels.forEach(l -> l.setDisable(false));
+        labels.clear();
+        cover.getPane().setDisable(isEmpty());
 
-        // disable empty fields
-        if (showEmptyFields.getValue()) {
-            visible_labels.stream().filter(l->{
-                    // filter out nonempty
-                    String content = l.getText().substring(l.getText().indexOf(": ")+2).trim();
-                    return content.isEmpty() ||
-                             content.equalsIgnoreCase("?/?") ||
-                               content.equalsIgnoreCase("n/a") || 
-                                 content.equalsIgnoreCase("unknown");
-                })
-                .forEach(l->l.setDisable(true));
+        // sort
+        if (groupFields.getValue()==Sort.SEMANTIC) {
+        labels.clear();
+            fields.sort(by(l -> l.semantic_index));
+            labels.addAll(fields);
+            labels.add(4,gap1);
+            labels.add(10,gap2);
+            labels.add(17,gap3);
         } else {
-            labels.stream()
-                .filter(ll -> ll.getText().substring(ll.getText().indexOf(": ")+1).equals(" "))
-                .forEach(visible_labels::remove);
-        }
-        // never disable rating, we want to be able to set the value
-        rating.setDisable(false);
-        
-        // hide individual fields
-        if (!showTitle.getValue())         visible_labels.remove(title);
-        if (!showtrack.getValue())         visible_labels.remove(track);
-        if (!showdisc.getValue())          visible_labels.remove(disc);
-        if (!showartist.getValue())        visible_labels.remove(artist);
-        if (!showalbum_artist.getValue())  visible_labels.remove(album_artist);
-        if (!showalbum.getValue())         visible_labels.remove(album);
-        if (!showyear.getValue())          visible_labels.remove(year);
-        if (!showgenre.getValue())         visible_labels.remove(genre);
-        if (!showcomposer.getValue())      visible_labels.remove(composer);
-        if (!showpublisher.getValue())     visible_labels.remove(publisher);
-        if (!showrating.getValue())        visible_labels.remove(rating);
-        if (!showplaycount.getValue())     visible_labels.remove(playcount);
-        if (!showcomment.getValue())       visible_labels.remove(comment);
-        if (!showcategory.getValue())      visible_labels.remove(category);
-        if (!showfilesize.getValue())      visible_labels.remove(filesize);
-        if (!showlength.getValue())        visible_labels.remove(length);
-        if (!showformat.getValue())        visible_labels.remove(format);
-        if (!showfilename.getValue())      visible_labels.remove(filename);
-        if (!showbitrate.getValue())       visible_labels.remove(bitrate);
-        if (!showencoding.getValue())      visible_labels.remove(encoding);
-        if (!showlocation.getValue())      visible_labels.remove(location);
-        
-        // hide separators
-        if (!groupFields.getValue()) {
-            visible_labels.remove(gap1);
-            visible_labels.remove(gap2);
-            visible_labels.remove(gap3);
+        labels.clear();
+            fields.sort(by(l -> l.name));
+            labels.addAll(fields);
         }
         
-        // show remaining
-        tiles.getChildren().addAll(visible_labels);
-        
-        // fix rating value (we have to set text anyway to be able to tell, if
-        // rating is empty (same way the other labels)
-        // in the end we must remove the text because we use stars instead
-        rating.setText("rating: ");
-        
+        // show visible
+        fields.forEach(Lfield::setHide);
+        tiles.getChildren().setAll(labels);
         tiles.layout();
     }
     
     private void setCover(CoverSource source) {
-        cover.loadImage(data==null ? null : data.getCover(source));
+        cover.loadImage(isEmpty() ? null : data.getCover(source));
     }
     
-    private void setCover(Supplier<File> f, boolean setAsCover) {
-        if(f==null) return;
+    private void setAsCover(Fut<File> ff, boolean setAsCover) {
+        if(ff==null) return;
         
         Consumer<File> action = setAsCover
             ? file -> copyFileSafe(file, data.getLocation(), "cover")
             : file -> copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
         
-        fut().supply(f)
-            .use(action)
-            .then(cover_source::applyValue,FX)         // refresh cover
-            .showProgress(App.getWindow().taskAdd())
-            .run();
+        ff.use(action)
+          .then(cover_source::applyValue,FX)         // refresh cover
+          .showProgress(App.getWindow().taskAdd())
+          .run();
     }
     
+    private void tagAsCover(Fut<File> ff, boolean album) {
+        if(ff==null) return;
+
+        Collection<Metadata> items = album 
+            // get all known songs from album
+            ? DB.items.o.getValue().stream()
+                // we must not write when album is empty! that could have disastrous consequences!
+                .filter(m -> !m.getAlbum().isEmpty() && m.getAlbum().equals(data.getAlbum()))
+                .distinct()
+                .collect(toSet())
+            // or only original
+            : list();
+        items.add(data); // make sure the original is included (we use set to avoid duplicates)
+        
+        ff.use(f -> {
+              MetadataWriter.useNoRefresh(items, w -> w.setCover(f));
+              Player.refreshItems(items);
+           })
+          .showProgress(App.getWindow().taskAdd())
+          .run();
+    }
     
+    private void setOverrun(OverrunStyle os) {
+        fields.forEach(l -> l.setTextOverrun(os));
+    }
+    
+    private static enum Sort {
+        SEMANTIC,
+        ALPHANUMERIC;
+    }
+    private class Lfield extends Label {
+        final Field field;
+        final Var<Boolean> visibleConfig;
+        final String name;
+        final int semantic_index;
+
+        public Lfield(Field field, int i) {
+            this.field = field;
+            this.visibleConfig = new Var<>(true,FileInfoController.this::update);
+            this.semantic_index = i;
+            
+            if(field==DISCS_TOTAL) name = "disc";
+            else if(field==TRACKS_TOTAL) name = "track";
+            else if(field==PATH) name = "location";
+            else name = field.toStringEnum().toLowerCase();
+        }
+        
+        void setVal(Metadata m) {
+            String v = m==EMPTY || field==RATING ? "" : m.getFieldS(field,""); 
+            setText(name + ": " + v);
+        }
+        
+        void setHide() {
+            String content = getText().substring(getText().indexOf(": ")+2).trim();
+            boolean e = content.isEmpty() ||
+                     content.equalsIgnoreCase("?/?") ||
+                       content.equalsIgnoreCase("n/a") || 
+                         content.equalsIgnoreCase("unknown");
+                    e |= field==RATING;
+            setDisable(e);
+            if (!visibleConfig.getValue() || (!showEmptyFields.getValue() && e))
+                labels.remove(this);
+        }
+    }
     private class FieldsPane extends TilePane {
 
         public FieldsPane() {
@@ -464,7 +407,7 @@ public class FileInfoController extends FXMLController implements SongReader {
             double cellH = 15+tiles.getVgap();
             int rows = (int)floor(max(height, 5)/cellH);
             if(rows==0) rows=1;
-            int columns = 1+(int) ceil(visible_labels.size()/rows);
+            int columns = 1+(int) ceil(labels.size()/rows);
             double cellW = columns==1 || columns==0 
                 // dont allow 0 columns & set whole width if 1 column
                 // handle 1 column manually - the below caused some problems
@@ -478,10 +421,9 @@ public class FileInfoController extends FXMLController implements SongReader {
 
             double w = cellW;
             tiles.setPrefTileWidth(w);
-            visible_labels.forEach(l -> l.setMaxWidth(w));
+            labels.forEach(l -> l.setMaxWidth(w));
 
             super.layoutChildren();
         }
-        
     }
 }

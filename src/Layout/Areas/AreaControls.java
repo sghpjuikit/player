@@ -38,7 +38,7 @@ import gui.objects.Text;
 import gui.objects.icon.Icon;
 import gui.pane.ActionPane;
 import main.App;
-import util.SingleInstance;
+import util.SingleⱤ;
 import util.animation.Anim;
 import util.graphics.drag.DragUtil;
 import util.graphics.fxml.ConventionFxmlLoader;
@@ -98,7 +98,7 @@ public final class AreaControls {
         + "closed.";
     private static final String closebTEXT = "Close widget\n\n"
         + "Closes widget and creates empty place in the container.";
-    private static SingleInstance<PopOver<Text>, AreaControls> helpP = new SingleInstance<>(
+    private static SingleⱤ<PopOver<Text>, AreaControls> helpP = new SingleⱤ<>(
 	() -> PopOver.createHelpPopOver(""),
 	(p, ac) -> {
             // set text
@@ -234,7 +234,7 @@ public final class AreaControls {
                 isShowingWeak && !isShowingStrong &&
                 // mouse entering the popup qualifies as root.mouseExited which we need
                 // to avoid (now we need to handle hiding when popup closes)
-                (helpP.isNull() || !helpP.get().isShowing()) &&
+                (helpP.isEmpty() || !helpP.get().isShowing()) &&
                 // only when the deactivators are !'hovered' 
                 // (Node.isHover() !work here) & we need to transform coords into scene-relative
                 !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
@@ -252,7 +252,7 @@ public final class AreaControls {
 	// sometimes mouse exited deactivator does not fire in fast movement
 	// same thing as above - need to take care of popup...
 	p.addEventFilter(MOUSE_EXITED, e -> {
-	    if (isShowingWeak && !isShowingStrong && (helpP.isNull() || !helpP.get().isShowing()))
+	    if (isShowingWeak && !isShowingStrong && (helpP.isEmpty() || !helpP.get().isShowing()))
 		hide();
 	});
 
@@ -299,7 +299,7 @@ public final class AreaControls {
             PopOver p = new PopOver(w.getNode());
                     p.title.set("Change widget");
                     p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
-                    p.setAutoFix(true); // we need autofix here, because the popup can get rather big
+                    p.setAutoFix(true); // we need autofix here, because the popup can getM rather big
                     p.setAutoHide(true);
                     p.show(propB);
             w.onCancel = p::hide;
@@ -352,7 +352,7 @@ public final class AreaControls {
     
     void showInfo() {
         if(GUI.open_strategy==POPUP) {
-            helpP.get(this).show(infoB);
+            helpP.getM(this).show(infoB);
         } else 
         if (GUI.open_strategy==INSIDE) {
             closeAndDo(area.content_root, ()->{
@@ -380,10 +380,10 @@ public final class AreaControls {
     }
 
     void close() {
-        // if area belongs to the container, close container
+        // if area belongs to the container, empty container
         if (area.index==null) 
             closeAndDo(area.container.getGraphics().getRoot(), area.container::close);
-        // if area belongs to the child, close child only
+        // if area belongs to the child, empty child only
         else 
             closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
     }
@@ -450,7 +450,7 @@ public final class AreaControls {
 	area.getContent().setMouseTransparent(false);
 	root.setMouseTransparent(true);
 	// hide help popup if open
-	if (!helpP.isNull() && helpP.get().isShowing()) helpP.get().hide();
+	if (!helpP.isEmpty() && helpP.get().isShowing()) helpP.get().hide();
     }
 
     public void show() {

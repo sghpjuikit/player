@@ -5,12 +5,15 @@
  */
 package util.access;
 
-import static java.util.Arrays.asList;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+
 import javafx.collections.ObservableList;
+
 import util.access.FieldValue.EnumerableValue;
+
+import static java.util.Arrays.asList;
 
 /**
  * Accessor which can list all its possible values.
@@ -28,14 +31,17 @@ public class VarEnum<T> extends Var<T> implements EnumerableValue<T> {
         super(val);
         valueEnumerator = enumerator;
     }
+    
     public VarEnum(T val, Consumer<T> applier, Supplier<Collection<T>> enumerator) {
         super(val, applier);
         valueEnumerator = enumerator;
     }
+    
     public VarEnum(T val, ObservableList<T> enumerated) {
         super(val);
         valueEnumerator = () -> enumerated;
     }
+    
     public VarEnum(Supplier<T[]> enumerator, T val) {
         super(val);
         valueEnumerator = () -> asList(enumerator.get());

@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.event.EventHandler;
@@ -23,12 +22,14 @@ import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
+import util.async.future.Fut;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.*;
 import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
+import static util.async.future.Fut.fut;
 
 /**
  *
@@ -275,12 +276,12 @@ public final class DragUtil {
      * 
      * @return supplier, never null
      */
-    public static Supplier<File> getImage(DragEvent e) {
+    public static Fut<File> getImage(DragEvent e) {
         Dragboard d = e.getDragboard();
 
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
-            return () -> {
+            return fut(() -> {
                 try {
                     File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
                          f.deleteOnExit();
@@ -288,16 +289,16 @@ public final class DragUtil {
                 } catch(IOException ex) {
                     return null;
                 }
-            };
+            });
         }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return () -> {
+            return fut(() -> {
                 List<File> fs = FileUtil.getImageFiles(files);
                 return fs.isEmpty() ? null : fs.get(0);
-            };
+            });
         }
-        return () -> null;
+        return fut(null);
     }
     
     /**
@@ -316,12 +317,12 @@ public final class DragUtil {
      * 
      * @return supplier, never null
      */
-    public static Supplier<List<File>> getImages(DragEvent e) {
+    public static Fut<List<File>> getImages(DragEvent e) {
         Dragboard d = e.getDragboard();
 
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
-            return () -> {
+            return fut(() -> {
                 try {
                     File f = FileUtil.saveFileTo(url, App.DIR_TEMP);
                          f.deleteOnExit();
@@ -329,13 +330,13 @@ public final class DragUtil {
                 } catch(IOException ex) {
                     return EMPTY_LIST;
                 }
-            };
+            });
         }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return () -> FileUtil.getImageFiles(files);
+            return fut(FileUtil.getImageFiles(files));
         }
-        return () -> EMPTY_LIST;
+        return fut(EMPTY_LIST);
     }
     
     /**
@@ -353,23 +354,23 @@ public final class DragUtil {
      * 
      * @return supplier, never null
      */
-    public static Supplier<Stream<Item>> getSongs(DragEvent e) {
+    public static Fut<Stream<Item>> getSongs(DragEvent e) {
         Dragboard d = e.getDragboard();
         
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return () -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new);
+            return fut(() -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
         }
         if (d.hasUrl()) {
             String url = d.getUrl();
             return AudioFileFormat.isSupported(url,APP)
-                                ? () -> Stream.of(new SimpleItem(URI.create(url)))
-                                : () -> Stream.empty();
+                        ? fut(Stream.of(new SimpleItem(URI.create(url))))
+                        : fut(Stream.empty());
         } 
         if (hasItemList()) {
-            return () -> getItemsList().stream();
+            return fut(getItemsList().stream());
         }
-        return () -> Stream.empty();
+        return fut(Stream.empty());
     }
     
     

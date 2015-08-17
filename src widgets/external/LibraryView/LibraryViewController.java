@@ -35,7 +35,7 @@ import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.ContextMenu.SelectionMenuItem;
-import gui.objects.ContextMenu.TableContextMenuRInstance;
+import gui.objects.ContextMenu.TableContextMenuMⱤ;
 import gui.objects.Table.FilteredTable;
 import gui.objects.Table.ImprovedTable.PojoV;
 import gui.objects.Table.TableColumnInfo;
@@ -431,7 +431,7 @@ public class LibraryViewController extends FXMLController {
 /******************************** CONTEXT MENU ********************************/
     
     private static Menu searchMenu;
-    private static final TableContextMenuRInstance<Metadata, LibraryViewController> contxt_menu = new TableContextMenuRInstance<>(
+    private static final TableContextMenuMⱤ<Metadata, LibraryViewController> contxt_menu = new TableContextMenuMⱤ<>(
         () -> {
             ImprovedContextMenu<List<Metadata>> m = new ImprovedContextMenu();
             MenuItem[] is = menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 

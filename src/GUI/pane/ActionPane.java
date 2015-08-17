@@ -7,7 +7,6 @@ package gui.pane;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javafx.scene.control.Label;
 import javafx.scene.effect.BoxBlur;
@@ -23,6 +22,7 @@ import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
 import main.App;
 import util.animation.Anim;
+import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 
 import static java.util.stream.Collectors.toList;
@@ -96,7 +96,7 @@ public class ActionPane extends StackPane {
         build();
     }
     
-    public <T> void show(Class<T> type, Supplier<T> value, ActionData<Supplier<T>>... actions) {
+    public <T> void show(Class<T> type, Fut<T> value, ActionData<Fut<T>>... actions) {
         o = value;
         o_type = type;
         o_actions = list(actions);
@@ -121,7 +121,9 @@ public class ActionPane extends StackPane {
     private void build() {
         o_actions.addAll(ACTIONS.getElementsOfSuperV(o_type));
         // set content
-        String iname = o instanceof Supplier ? "n/a" : App.instanceName.get(o);
+        boolean dataready = !(o instanceof Fut && ((Fut)o).isDone());
+        Object data = dataready ? o instanceof Fut ? ((Fut)o).getDone() : o : null;
+        String iname = dataready ? App.instanceName.get(data) : "n/a";
         String di = "Data: " + iname + "\nType: " + App.className.get(o_type);
         dataInfo.setText(o_type.equals(Void.class) ? "" : di);
         setDesc(null);

@@ -4,6 +4,7 @@ package AudioPlayer.tagging;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -767,11 +768,11 @@ public class MetadataWriter extends MetaItem {
         use(singletonList(item), setter);
     }
     
-    public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter) {
+    public static <I extends Item> void use(Collection<I> items, Consumer<MetadataWriter> setter) {
         use(items, setter, null);
     }
     
-    public static <I extends Item> void use(List<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
+    public static <I extends Item> void use(Collection<I> items, Consumer<MetadataWriter> setter, Consumer<List<Metadata>> action) {
         Player.IO_THREAD.execute(()-> {
             MetadataWriter w = new MetadataWriter();
             for(I i : items) {
@@ -802,6 +803,15 @@ public class MetadataWriter extends MetaItem {
         w.reset(item);
         setter.accept(w);
         w.write();
+    }
+    
+    public static <I extends Item> void useNoRefresh(Collection<I> items, Consumer<MetadataWriter> setter) {
+        MetadataWriter w = new MetadataWriter();
+        for(I i : items) {
+            w.reset(i);
+            setter.accept(w);
+            w.write();
+        }
     }
     
     /**

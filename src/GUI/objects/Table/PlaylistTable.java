@@ -30,7 +30,7 @@ import Layout.Widgets.feature.SongReader;
 import Layout.Widgets.feature.SongWriter;
 import gui.GUI;
 import gui.objects.ContextMenu.ImprovedContextMenu;
-import gui.objects.ContextMenu.TableContextMenuInstance;
+import gui.objects.ContextMenu.TableContextMenuⱤ;
 import gui.objects.Table.TableColumnInfo.ColumnInfo;
 import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
@@ -343,7 +343,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     
 /****************************** CONTEXT MENU **********************************/
     
-    private static final TableContextMenuInstance<PlaylistItem> contxt_menu = new TableContextMenuInstance<> (
+    private static final TableContextMenuⱤ<PlaylistItem> contxt_menu = new TableContextMenuⱤ<> (
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu();
             m.getItems().addAll(menuItem("Play items", e -> {

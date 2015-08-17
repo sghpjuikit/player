@@ -19,21 +19,20 @@ import java.util.function.Supplier;
  * the object across different objects that use it.  
  * 
  * @param <T> type of instance
- * @param <R> type of object the instance relies on
+ * @param <M> type of object the instance relies on
  *
  * @author Plutonium_
  */
-public class SingleInstance<T,R> {
+public class SingleⱤ<T,M> extends Ɽ<T> {
     
-    private T instance;
     private final Supplier<T> builder;
-    private final BiConsumer<T,R> mutator;
+    private final BiConsumer<T,M> mutator;
     
     /**
      * 
      * @param builder produces the instance when it is requested.
      */
-    public SingleInstance(Supplier<T> builder) {
+    public SingleⱤ(Supplier<T> builder) {
         this(builder, null);
     }
     
@@ -43,7 +42,7 @@ public class SingleInstance<T,R> {
      * @param mutator mutates instance's state for certain dependency object. use
      * null if no mutation is desired.
      */
-    public SingleInstance(Supplier<T> builder, BiConsumer<T,R> mutator) {
+    public SingleⱤ(Supplier<T> builder, BiConsumer<T,M> mutator) {
         Objects.requireNonNull(builder);
         
         this.builder = builder;
@@ -54,38 +53,29 @@ public class SingleInstance<T,R> {
      * Use when the state of the instance does not matter
      * @return instance as is, but never null..
      */
+    @Override
     public T get() {
         // initialize instance
-        if (instance == null) instance = builder.get();
+        if (t == null) t = builder.get();
         
-        assert instance!=null;
+        assert t!=null;
         
-        return instance;
+        return t;
     }
     
     /**
      * @param mutation_source, use null when type Void
      * @return the instance after applying mutation, ever null
      */
-    public T get(R mutation_source) {
+    public T getM(M mutation_source) {
         // initialize instance
-        if (instance == null) instance = builder.get();
+        if (t == null) t = builder.get();
         
-        assert instance!=null;
+        assert t!=null;
         
         // prepare instance
-        if (mutator != null) mutator.accept(instance, mutation_source);
+        if (mutator != null) mutator.accept(t, mutation_source);
         
-        return instance;
+        return t;
     }
-    
-    public boolean isNull() {
-        return instance == null;
-    }
-    
-    /** Sets instance to null*/
-    public void close() {
-        instance = null;
-    }
-    
 }

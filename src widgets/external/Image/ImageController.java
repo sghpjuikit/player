@@ -1,31 +1,24 @@
 package Image;
 
-import Configuration.IsConfig;
-import Layout.Widgets.Widget;
-
-import static Layout.Widgets.Widget.Group.OTHER;
-
-import Layout.Widgets.controller.FXMLController;
-import Layout.Widgets.feature.ImageDisplayFeature;
-import gui.objects.image.Thumbnail;
-
 import java.io.File;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-
-import static javafx.geometry.Pos.CENTER;
-
 import javafx.scene.layout.AnchorPane;
 
+import Configuration.IsConfig;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.FXMLController;
 import Layout.Widgets.controller.io.IsInput;
+import Layout.Widgets.feature.ImageDisplayFeature;
+import gui.objects.image.Thumbnail;
 import main.App;
 import util.access.Var;
-
-import static util.async.Async.FX;
-import static util.async.future.Fut.fut;
-
 import util.graphics.drag.DragUtil;
+
+import static Layout.Widgets.Widget.Group.OTHER;
+import static javafx.geometry.Pos.CENTER;
+import static util.async.Async.FX;
 
 /**
  * FXML Controller class
@@ -72,7 +65,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
-                fut().supply(DragUtil.getImages(e))
+                DragUtil.getImages(e)
                      .use(imgs -> {
                         if(!imgs.isEmpty()) showImage(imgs.get(0));
                      },FX)

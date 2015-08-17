@@ -63,7 +63,6 @@ import static util.File.FileUtil.getFilesImage;
 import static util.async.Async.FX;
 import static util.async.executor.EventReducer.toFirstDelayed;
 import static util.async.executor.EventReducer.toLast;
-import static util.async.future.Fut.fut;
 import static util.functional.Util.forEachWithI;
 import static util.graphics.Util.*;
 
@@ -274,7 +273,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                 e.consume();
             } else 
             if(DragUtil.hasImage(e.getDragboard())) {
-                fut().supply(DragUtil.getImages(e))
+                DragUtil.getImages(e)
                      .use(this::showImages,FX)
                      .showProgress(App.getWindow().taskAdd())
                      .run();

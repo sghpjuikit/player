@@ -3,6 +3,7 @@ package AudioPlayer;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -95,7 +96,7 @@ public class Player {
      * <p>
      * Use when metadata of the items changed.
      */
-    public static void refreshItems(List<? extends Item> is) {
+    public static void refreshItems(Collection<? extends Item> is) {
         noNull(is);
         if(is.isEmpty()) return;
         

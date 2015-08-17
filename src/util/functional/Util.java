@@ -648,8 +648,10 @@ public class Util {
     }
     
     /** Returns modifiable list containing specified elements. */
-    public static<T> List<T> list(T... a) {
-        return new ArrayList(Arrays.asList(a));
+    public static<T> List<T> list(T... ts) {
+        List<T> l = new ArrayList<>(ts.length);
+        for(T t : ts) l.add(t);
+        return l;
     }
     /** 
      * Returns unmodifiable list containing specified elements. Optimized:
@@ -659,11 +661,11 @@ public class Util {
      * <li> else parameters - {@link Arrays#asList(java.lang.Object...)}
      * </ul>
      */
-    public static<T> List<T> listRO(T... a) {
-        int l = a.length;
+    public static<T> List<T> listRO(T... ts) {
+        int l = ts.length;
         if(l==0) return EMPTY_LIST;
-        if(l==1) return singletonList(a[0]);
-        else return Arrays.asList(a);
+        if(l==1) return singletonList(ts[0]);
+        else return Arrays.asList(ts);
     }
     /** Returns modifiable list containing elements in the specified collection. */
     public static<T> List<T> list(Collection<T> a) {

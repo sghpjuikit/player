@@ -40,7 +40,7 @@ import unused.Log;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
-import util.SingleInstance;
+import util.SingleⱤ;
 import util.Util;
 import util.animation.Anim;
 import util.dev.Dependency;
@@ -136,11 +136,11 @@ public class Thumbnail extends ImageNode {
     File img_file;
     /** 
      * Displayed image. Editable, but it is recommended to use one of the load 
-     * methods instead. Note, that those load the image on bgr thread and setting
-     * this property is delayed until the image fully loads. Until then this
-     * thumbnail will keep showing the previous image and this property will
-     * reflect that. Thus calling get() on this property may not provide the
-     * expected result.
+ methods instead. Note, that those load the image on bgr thread and setting
+ this property is delayed until the image fully loads. Until then this
+ thumbnail will keep showing the previous image and this property will
+ reflect that. Thus calling getM() on this property may not provide the
+ expected result.
      */
     public final ObjectProperty<Image> image;
     
@@ -163,7 +163,7 @@ public class Thumbnail extends ImageNode {
         loadImage(img);
     }
     
-    /** Use to create more specific thumbnail object from the get go. */
+    /** Use to create more specific thumbnail object from the getM go. */
     public Thumbnail (Image img, double size) {
         this(size,size);
         loadImage(img);
@@ -535,7 +535,7 @@ public class Thumbnail extends ImageNode {
 
 /******************************************************************************/
     
-    private static final SingleInstance<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleInstance<>(
+    private static final SingleⱤ<ImprovedContextMenu<Image>,Thumbnail> img_context_menu = new SingleⱤ<>(
         () -> {
             ImprovedContextMenu<Image> m = new ImprovedContextMenu<>();
             m.getItems().addAll(
@@ -565,7 +565,7 @@ public class Thumbnail extends ImageNode {
         }
     );
     
-    private static final SingleInstance<ImprovedContextMenu<Thumbnail>,Thumbnail> file_context_menu = new SingleInstance<>(
+    private static final SingleⱤ<ImprovedContextMenu<Thumbnail>,Thumbnail> file_context_menu = new SingleⱤ<>(
         () -> {
             ImprovedContextMenu<Thumbnail> m = new ImprovedContextMenu<>();
             m.getItems().addAll(menuItem("Browse location", e ->
@@ -628,9 +628,9 @@ public class Thumbnail extends ImageNode {
         if(e.getButton()==SECONDARY) {
             // decide mode (image vs file), build lazily & show where requested
             if (img_file != null)
-                file_context_menu.get(this).show(root,e);
+                file_context_menu.getM(this).show(root,e);
             else if (getImage() !=null)
-                img_context_menu.get(this).show(root,e);
+                img_context_menu.getM(this).show(root,e);
             
             e.consume();
         }

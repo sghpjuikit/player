@@ -90,6 +90,7 @@ public final class Configurator extends ClassController implements ConfiguringFe
         
         // load fxml part
         new ConventionFxmlLoader(this).loadNoEx();
+        
         controls.getChildren().addAll(appI,new Region(),reI,defI);
         if(simple) controls.getChildren().remove(appI);
         

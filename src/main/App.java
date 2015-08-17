@@ -51,6 +51,7 @@ import AudioPlayer.tagging.MetadataGroup;
 import AudioPlayer.tagging.MetadataReader;
 import Configuration.*;
 import Layout.Component;
+import Layout.WidgetImpl.Layouts;
 import Layout.Widgets.Widget;
 import Layout.Widgets.WidgetManager;
 import Layout.Widgets.WidgetManager.WidgetSource;
@@ -670,6 +671,11 @@ public class App extends Application {
     @IsAction(name = "Open settings", desc = "Opens application settings.")
     public static void openSettings() {
         WidgetManager.find(ConfiguringFeature.class, WidgetSource.NO_LAYOUT);
+    }
+    
+    @IsAction(name = "Open layout manager", desc = "Opens layout management widget.")
+    public static void openLayoutManager() {
+        WidgetManager.findExact(Layouts.class, WidgetSource.NO_LAYOUT);
     }
     
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")

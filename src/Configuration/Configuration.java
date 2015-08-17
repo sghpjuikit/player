@@ -33,8 +33,8 @@ import static util.Util.getAllFields;
 import util.collections.map.MapSet;
 import unused.Log;
 
-import static util.dev.Util.forbidFinal;
-import static util.dev.Util.requireFinal;
+import static util.dev.Util.noFinal;
+import static util.dev.Util.yesFinal;
 
 /**
  * Provides methods to access configs of the application.
@@ -204,7 +204,7 @@ public class Configuration {
             return newFromProperty(f, instance, name, anotation, group);
         else {
             try {
-                forbidFinal(f);            // make sure the field is not final
+                noFinal(f);            // make sure the field is not final
                 f.setAccessible(true);     // make sure the field is accessible
                 MethodHandle getter = methodLookup.unreflectGetter(f);
                 MethodHandle setter = methodLookup.unreflectSetter(f);
@@ -219,7 +219,7 @@ public class Configuration {
     
     private static Config newFromProperty(Field f, Object instance, String name, IsConfig anotation, String group) {
         try {
-            requireFinal(f);            // make sure the field is final
+            yesFinal(f);            // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
             if(VarList.class.isAssignableFrom(f.getType()))
                 return new ListConfig(name, anotation, (VarList)f.get(instance), group);
@@ -235,7 +235,7 @@ public class Configuration {
     
     private static Config newFromConfig(Field f, Object instance) {
         try {
-            requireFinal(f);            // make sure the field is final
+            yesFinal(f);            // make sure the field is final
             f.setAccessible(true);      // make sure the field is accessible
             return (Config)f.get(instance);
         } catch (IllegalAccessException | SecurityException ex) {

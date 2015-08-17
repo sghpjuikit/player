@@ -1,31 +1,34 @@
 
 package gui.objects.Pickers;
 
-import static java.lang.Math.*;
-import static java.util.Arrays.asList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
 import javafx.animation.Transition;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+
+import util.animation.Anim;
+import util.functional.Functors.Ƒ1;
+import util.parsing.ToStringConverter;
+
+import static java.lang.Math.*;
+import static java.util.Arrays.asList;
 import static javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_DRAGGED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import util.animation.Anim;
 import static util.animation.Anim.Interpolators.isAroundMin1;
 import static util.animation.Anim.par;
 import static util.animation.Anim.seq;
 import static util.functional.Util.*;
-import util.functional.functor.FunctionC;
-import util.parsing.ToStringConverter;
 
 /**
  * Generic item picker.
@@ -88,7 +91,7 @@ public class Picker<E> {
      * Also might define minimum and maximum item size.
      * Must not be null;
      */
-    public FunctionC<E,Region> cellFactory = item -> {
+    public Ƒ1<E,Region> cellFactory = item -> {
         String text = textCoverter.toS(item);
         Label l = new Label(text);
         StackPane b = new StackPane(l);

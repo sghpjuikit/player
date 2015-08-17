@@ -38,7 +38,6 @@ import Layout.Component;
 import Layout.Layout;
 import Layout.SwitchContainer;
 import Layout.SwitchPane;
-import Layout.WidgetImpl.LayoutManagerComponent;
 import action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
@@ -382,8 +381,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	Icon dirB = new Icon(FOLDER, 13, Action.get("Open app directory"));
 	Icon propB = new Icon(GEARS, 13, Action.get("Open settings"));
 	Icon runB = new Icon(GAVEL, 13, Action.get("Open app actions"));
-	Icon layB = new Icon(COLUMNS, 13, "Manage layouts",
-	    e -> UiContext.showFloating(new LayoutManagerComponent().getPane(), "Layout Manager"));
+	Icon layB = new Icon(COLUMNS, 13, Action.get("Open layout manager"));
 	Icon lastFMB = new Icon<>(null, 13, "LastFM\n\nEnable/configure last fm with left/right "
                 + "click. Currently, lastFM support is disabled.", e -> {
                     Node b = (Node) e.getSource();

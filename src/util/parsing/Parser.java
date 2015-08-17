@@ -1,14 +1,10 @@
 package util.parsing;
 
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
-import gui.itemnode.StringSplitParser;
 import java.io.File;
-import static java.lang.Double.parseDouble;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import static java.lang.reflect.Modifier.isStatic;
 import java.net.URI;
 import java.time.Year;
 import java.time.format.DateTimeParseException;
@@ -20,19 +16,25 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
+
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import gui.itemnode.StringSplitParser;
+import util.parsing.StringParseStrategy.From;
+import util.parsing.StringParseStrategy.To;
+
+import static java.lang.Double.parseDouble;
+import static java.lang.reflect.Modifier.isStatic;
 import static javafx.scene.text.FontPosture.ITALIC;
 import static javafx.scene.text.FontPosture.REGULAR;
-import javafx.scene.text.FontWeight;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import static util.Util.getMethodAnnotated;
-import static util.dev.Util.forbidNull;
 import static util.functional.Util.*;
-import util.parsing.StringParseStrategy.From;
 import static util.parsing.StringParseStrategy.From.*;
-import util.parsing.StringParseStrategy.To;
 
 /**
  * Utility class - parser converting Objects to String and back. It stores
@@ -87,8 +89,8 @@ public class Parser {
     
     private static final Map<Class,Function<?,String>> parsersToS = new HashMap<>();
     private static final Map<Class,Function<String,?>> parsersFromS = new HashMap<>();
-    private static final Function<String,Object> errFP = o -> null;
-    private static final Function<Object,String> errTP = toString;
+    private static final Function<String,Object> errFromP = o -> null;
+    private static final Function<Object,String> errToP = toString;
     
     static {
         registerConverter(Font.class,
@@ -160,8 +162,8 @@ public class Parser {
      * @throws NullPointerException if any parameter null
      */
     public static <T> T fromS(Class<T> c, String s) {
-        forbidNull(c,"Parsing type must be specified!");
-        forbidNull(s,"Parsing null not allowed!");
+        noNull(c,"Parsing type must be specified!");
+        noNull(s,"Parsing null not allowed!");
         return getParserFromS(c).apply(s);
     }
     
@@ -175,7 +177,7 @@ public class Parser {
      * @throws NullPointerException if parameter null
      */
     public static <T> String toS(T o) {
-        forbidNull(o,"Parsing null not allowed!");
+        noNull(o,"Parsing null not allowed!");
         return getParserToS((Class<T>)o.getClass()).apply(o);
     }
     
@@ -199,14 +201,14 @@ public class Parser {
     /** @return parser or null if none available */
     private static <T> Function<T,String> getParserToS(Class<T> c) {
         if(!parsersToS.containsKey(c))
-            registerConverterToS(c, noNull(buildTosParser(c), errTP));
+            registerConverterToS(c, noNull(buildTosParser(c), errToP));
         return (Function) parsersToS.get(c);
     }
     
     /** @return parser or null if none available */
     private static <T> Function<String,T> getParserFromS(Class<T> c) {
         if(!parsersFromS.containsKey(c))
-            registerConverterFromS(c, noNull(buildFromsParser(c), errFP));
+            registerConverterFromS(c, noNull(buildFromsParser(c), errFromP));
         return (Function) parsersFromS.get(c);
     }
     

@@ -6,8 +6,10 @@
 
 package Layout.Widgets;
 
-import Layout.Widgets.feature.Feature;
 import java.util.List;
+
+import Layout.Widgets.feature.Feature;
+
 import static util.functional.Util.stream;
 import static util.functional.Util.toS;
 
@@ -80,6 +82,9 @@ public interface WidgetInfo {
 
     /** @return widget group. Default {@link Widget.Group.UNKNOWN} */
     Widget.Group group();
+    
+    /** Exact type of the widget. Denotes widget's controller type. */
+    Class type();
     
     /** @return all implemented features */
     List<Feature> getFeatures();

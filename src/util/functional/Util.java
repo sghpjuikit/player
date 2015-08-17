@@ -23,7 +23,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.iterate;
 import static util.collections.Tuples.tuple;
-import static util.dev.Util.require;
+import static util.dev.Util.yes;
 
 /**
  *
@@ -558,7 +558,7 @@ public class Util {
     
     /** Loops over both lists simultaneously. Must be of the same size. */
     public static<A,B> void forEachBoth(List<A> a, List<B> b, BiConsumer<A,B> action) {
-        require(a.size()==b.size());
+        yes(a.size()==b.size());
         for(int i=0; i<a.size(); i++)
             action.accept(a.get(i), b.get(i));
     }

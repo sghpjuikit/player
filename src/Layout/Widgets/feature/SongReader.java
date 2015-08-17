@@ -12,7 +12,7 @@ import static java.util.Collections.singletonList;
 
 import java.util.List;
 
-import static util.dev.Util.forbidNull;
+import static util.dev.Util.noNull;
 
 /**
  * Capable of reading data to song tags
@@ -33,7 +33,7 @@ public interface SongReader {
      * @see #read(java.util.List)  
      */    
     public default void read(Item item) {
-        forbidNull(item);
+        noNull(item);
         read(item==null ? EMPTY_LIST : singletonList(item));
     };
     

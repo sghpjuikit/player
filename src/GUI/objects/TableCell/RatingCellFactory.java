@@ -5,15 +5,15 @@
  */
 package gui.objects.TableCell;
 
-import AudioPlayer.plugin.IsPluginType;
-import AudioPlayer.tagging.Metadata;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import util.functional.functor.FunctionC;
 
-/**
- */
+import AudioPlayer.plugin.IsPluginType;
+import AudioPlayer.tagging.Metadata;
+import util.functional.Functors.Ƒ1;
+
+/** Factory producing rating table cells - cells displaying metadata rating. */
 @IsPluginType
-public interface RatingCellFactory extends FunctionC<TableColumn<Metadata,Double>,TableCell<Metadata,Double>> {
+public interface RatingCellFactory extends Ƒ1<TableColumn<Metadata,Double>,TableCell<Metadata,Double>> {
     
 }

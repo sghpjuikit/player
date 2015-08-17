@@ -5,25 +5,25 @@
  */
 package gui.objects.Table;
 
-import static java.lang.Boolean.parseBoolean;
-import static java.lang.Double.parseDouble;
-import static java.lang.Integer.parseInt;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.UnaryOperator;
+
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.SortType;
 import javafx.scene.control.TableView;
+
 import org.reactfx.util.Tuple2;
 import org.reactfx.util.Tuples;
-import util.dev.TODO;
-import static util.dev.TODO.Purpose.DOCUMENTATION;
+
 import util.collections.map.MapSet;
-import static util.functional.Util.find;
-import static util.functional.Util.map;
-import static util.functional.Util.split;
-import static util.functional.Util.toIndexedStream;
-import static util.functional.Util.toS;
+import util.dev.TODO;
+import util.functional.Functors.Ƒ1;
+
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+import static util.dev.TODO.Purpose.DOCUMENTATION;
+import static util.functional.Util.*;
 
 /**
  *
@@ -38,7 +38,7 @@ public final class TableColumnInfo {
     
     public final MapSet<String,ColumnInfo> columns;
     public final ColumnSortInfo sortOrder;
-    public UnaryOperator<String> nameKeyMapper = name -> name;
+    public Ƒ1<String,String> nameKeyMapper = name -> name;
         
     public TableColumnInfo() {
         columns = new MapSet<>(c->nameKeyMapper.apply(c.name));

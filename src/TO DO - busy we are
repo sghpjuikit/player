@@ -4,7 +4,7 @@
 --------------------------------------------------------------------------------
 
 - library tables playing row style updates no longer refresh on song change sometimes
-- remove Layout & LayoutManager cass
+- remove Run, FunctionC, Layout, LayoutManager cass
 - make LayoutMan into widget
 - tagger spinner likes spinning forever, teach him
 - seeker jerky position animation for short songs, use loop + prediction

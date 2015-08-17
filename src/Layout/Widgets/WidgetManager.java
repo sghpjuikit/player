@@ -194,6 +194,9 @@ public final class WidgetManager {
     public static<F> Optional<F> find(Class<F> feature, WidgetSource source) {
         return find(w->w.hasFeature(feature), source).map(w->(F)w.getController());
     }
+    public static<F> Optional<F> findExact(Class<? extends Controller> type, WidgetSource source) {
+        return find(w->w.type().equals(type), source).map(w->(F)w.getController());
+    }
     
     /** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */
     public static<F> void use(Class<F> type, WidgetSource source, Consumer<F> action) {

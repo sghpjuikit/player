@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +34,7 @@ import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldEnum.ColumnField;
 import util.access.FieldValue.FieldedValue;
 import util.dev.TODO;
-import util.functional.functor.FunctionC;
+import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
 
 import static java.util.Objects.requireNonNull;
@@ -79,9 +78,9 @@ import static util.functional.Util.*;
  */
 public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> extends ImprovedTable<T> {
     
-    private Function<F,ColumnInfo> colStateFact;
-    private FunctionC<F,TableColumn<T,?>> colFact;
-    private UnaryOperator<String> keyNameColMapper = name -> name;
+    private Ƒ1<F,ColumnInfo> colStateFact;
+    private Ƒ1<F,TableColumn<T,?>> colFact;
+    private Ƒ1<String,String> keyNameColMapper = name -> name;
     
     private TableColumnInfo columnState;
     private final Class<F> type;
@@ -126,7 +125,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         return l;
     }
     
-    public void setColumnFactory(FunctionC<F,TableColumn<T,?>> columnFactory) {
+    public void setColumnFactory(Ƒ1<F,TableColumn<T,?>> columnFactory) {
         colFact = f -> {
             TableColumn<T,?> c = f==null ? columnIndex : columnFactory.call(f);
             c.setUserData(f==null ? ColumnField.INDEX : f);
@@ -139,7 +138,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         return colFact;
     }
     
-    public void setColumnStateFacory(Function<F,ColumnInfo> columnStateFactory) {
+    public void setColumnStateFacory(Ƒ1<F,ColumnInfo> columnStateFactory) {
         colStateFact = columnStateFactory;
     }
     
@@ -147,7 +146,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
         return colStateFact;
     }
     
-    public void setkeyNameColMapper(UnaryOperator<String> columnNametoKeyMapper) {
+    public void setkeyNameColMapper(Ƒ1<String,String> columnNametoKeyMapper) {
         keyNameColMapper = columnNametoKeyMapper;
     }
     

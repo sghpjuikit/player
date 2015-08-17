@@ -12,31 +12,38 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+
 import static javafx.geometry.Pos.CENTER_LEFT;
+
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+
 import static javafx.scene.layout.Priority.ALWAYS;
+
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
-import util.async.runnable.Run;
-import static util.dev.Util.require;
+
+import static util.dev.Util.yes;
 import static util.functional.Util.*;
 
 /**
@@ -125,8 +132,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      * If the chain is already at least as long as n, no elements are added.
      */
     public void growTo(int n) {
-        require(n>=0,"Chain length must not be negative");
-        require(n<=maxChainLength.get(),"Chain length must not be larger than max length");
+        yes(n>=0,"Chain length must not be negative");
+        yes(n<=maxChainLength.get(),"Chain length must not be larger than max length");
         repeat(n-chain.size(),(Runnable)this::addChained);
         generateValue();
     }
@@ -168,11 +175,11 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
      * @param t tooltip
      * @param action on click action
      */
-    public void setButton(GlyphIcons icon, Tooltip t, Run action) {
+    public void setButton(GlyphIcons icon, Tooltip t, Runnable action) {
         Link c = chain.get(0);
         Icon i = c.rem;
              i.icon(icon==null ? MINUS : icon);
-             i.setOnMouseClicked(icon==null ? c::onRem : action.toHandlerConsumed());
+             i.setOnMouseClicked(icon==null ? c::onRem : e -> { action.run(); e.consume(); });
              i.tooltip(icon==null ? addTooltip : t);
         c.rem_alt = true;
         c.updateIcons();

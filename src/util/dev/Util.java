@@ -16,46 +16,47 @@ import java.util.stream.Stream;
 /**
  * Contains set of utility methods for development. For example leading to
  * easier bug discovery or stronger runtime checking.
+ * 
  * @author Plutonium_
  */
 public class Util {
     
-    public static void forbid(boolean v) {
-        if(v) throw new IllegalStateException("Requirement condition not met.");
+    public static void no(boolean v) {
+        if(v) throw new IllegalStateException("Requirement condition not met");
     }
     
-    public static void forbid(boolean v, String s) {
+    public static void no(boolean v, String s) {
         if(v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
     
-    public static void require(boolean v) {
-        if(!v) throw new IllegalStateException("Requirement condition not met.");
+    public static void yes(boolean v) {
+        if(!v) throw new IllegalStateException("Requirement condition not met");
     }
     
-    public static void require(boolean v, String s) {
+    public static void yes(boolean v, String s) {
         if(!v) throw new IllegalStateException("Requirement condition not met: " + s);
     }
     
-    public static void forbidNull(Object o) {
-        if(o==null) throw new IllegalStateException("Null forbidden");
-    }
-    public static void forbidNull(Object o, String message) {
-        if(o==null) throw new IllegalStateException("Null forbidden. " + message);
+    public static <T> void yes(T t, Predicate<T> cond) {
+        if(!cond.test(t)) throw new IllegalStateException("Requirement condition not met");
     }
     
-    public static void forbidFinal(Field f) {
+    public static void noNull(Object o) {
+        if(o==null) throw new IllegalStateException("Null forbidden");
+    }
+    
+    public static void noNull(Object o, String message) {
+        if(o==null) throw new IllegalStateException("Null forbidden: " + message);
+    }
+    
+    public static void noFinal(Field f) {
         if(Modifier.isFinal(f.getModifiers())) 
             throw new IllegalStateException("Final field forbidden.");
     }
     
-    public static void requireFinal(Field f) {
+    public static void yesFinal(Field f) {
         if(!Modifier.isFinal(f.getModifiers())) 
             throw new IllegalStateException("Non final field forbidden.");
-    }
-    
-    public static <T> void require(T t, Predicate<T> cond) {
-        if(!cond.test(t))
-            throw new IllegalStateException("Requirement condition not met.");
     }
     
     
@@ -64,23 +65,27 @@ public class Util {
         r.run();
         System.out.println((System.currentTimeMillis()-t));
     }
+    
     public static <T> T measureTime(Supplier<T> r) {
         long t = System.currentTimeMillis();
         T o = r.get();
         System.out.println((System.currentTimeMillis()-t));
         return o;
     }
+    
     public static <T> void measureTime(T val, Consumer<T> r) {
         long t = System.currentTimeMillis();
         r.accept(val);
         System.out.println((System.currentTimeMillis()-t));
     }
+    
     public static <I,O> O measureTime(I in, Function<I,O> r) {
         long t = System.currentTimeMillis();
         O o = r.apply(in);
         System.out.println((System.currentTimeMillis()-t));
         return o;
     }
+    
     
     /** 
      * Returns all running threads. Incurrs performance penalty, do not use

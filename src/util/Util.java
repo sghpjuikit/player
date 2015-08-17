@@ -41,14 +41,13 @@ import org.jaudiotagger.tag.images.Artwork;
 import unused.Log;
 import util.File.FileUtil;
 import util.dev.TODO;
-import util.functional.functor.FunctionC;
+import util.functional.Functors.Ƒ1;
 
 import static java.lang.Math.*;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.list;
-import static util.functional.functor.FunctionC.composable;
 
 /** 
  * Provides static utility methods for various purposes. 
@@ -535,7 +534,7 @@ public class Util {
      * 
      * @param type for cell content.
      */
-    public static<T,O> FunctionC<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
+    public static<T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Class<O> type, String no_val_text) {
         Pos a = type.equals(String.class) ? CENTER_LEFT : CENTER_RIGHT;
         return cellFactoryAligned(a, no_val_text);
     }
@@ -548,9 +547,9 @@ public class Util {
      * @param a cell alignment
      * @return 
      */
-    public static<T,O> FunctionC<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
-        return (FunctionC) composable(EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text))
-                           .andApply(cell -> cell.setAlignment(a));
+    public static<T,O> Ƒ1<TableColumn<T,O>,TableCell<T,O>> cellFactoryAligned(Pos a, String no_val_text) {
+        Ƒ1<TableColumn<?,?>, TableCell<?,?>> f = EMPTY_TEXT_DEFAULT_CELL_FACTORY(no_val_text)::call;
+        return (Ƒ1) f.andApply(cell -> cell.setAlignment(a));
     }
     
     /**

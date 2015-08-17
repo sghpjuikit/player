@@ -3,10 +3,15 @@ package util.functional;
 import java.io.File;
 import java.time.Year;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javafx.util.Callback;
 
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.tagging.Metadata;
@@ -33,11 +38,11 @@ import static java.lang.Integer.min;
 import static java.lang.Math.max;
 import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static org.atteo.evo.inflector.English.plural;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
 import static util.Util.*;
+import static util.dev.Util.noNull;
 import static util.functional.Functors.StringDirection.FROM_START;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
@@ -45,30 +50,83 @@ import static util.functional.Util.map;
 public class Functors {
     
     public interface Λ {}
-    public static interface Ƒ extends Λ {
+    public static interface Ƒ extends Λ, Runnable {
         void apply();
+        
+        /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
+        default void run() { 
+            apply();
+        }
     }
-    public static interface Ƒ0<O> extends Λ {
+    public static interface Ƒ0<O> extends Λ, Supplier<O> {
         O apply();
         
-        default Runnable toF() {
+        /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
+        default O get() {
+            return apply(); 
+        }
+        
+        /** 
+         * Returns ewuivalent function to this returning no output. The computation will still 
+         * take place as normal, so this function should have side effects. If it does not, a
+         * function that does nothing should be used instead of this method.
+         */
+        default Ƒ toƑ() {
             return () -> apply();
         }
     }
-    public static interface Ƒ1<I,O> extends Λ, Function<I,O> {
-        @Override
+    public static interface Ƒ1<I,O> extends Λ, Function<I,O>, Callback<I,O> {
         O apply(I i);
         
+        /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Callback}. */
+        default O call(I i) {
+            return apply(i);
+        }
+        
+        /** Partially applies this function with 1st parameter. */
         default Ƒ0<O> toF0(I i) {
             return () -> apply(i);
         }
         
+        /** 
+         * Returns function equivalent to this, except for when certain exception types are thrown.
+         * These will be caught and alternative output returned.
+         */
         default Ƒ1<I,O> onEx(O or, Class<?>... ecs) {
             return i -> {
                 try {
                     return apply(i);
                 } catch(Exception e) {
-                    for(Class<?> ec : ecs) if(ec.isAssignableFrom(ec.getClass())) return or;
+                    for(Class<?> ec : ecs) 
+                        if(ec.isAssignableFrom(ec.getClass())) 
+                            return or;
+                    throw e;
+                }
+            };
+        }
+        
+        /** Lazy version of {@link #onEx(java.lang.Object, java.lang.Class...) } */
+        default Ƒ1<I,O> onEx(Supplier<O> or, Class<?>... ecs) {
+            return i -> {
+                try {
+                    return apply(i);
+                } catch(Exception e) {
+                    for(Class<?> ec : ecs) 
+                        if(ec.isAssignableFrom(ec.getClass())) 
+                            return or.get();
+                    throw e;
+                }
+            };
+        }
+        /** Function version of {@link #onEx(java.lang.Object, java.lang.Class...) }. */
+        default Ƒ1<I,O> onEx(Ƒ1<I,O> or, Class<?>... ecs) {
+            return i -> {
+                try {
+                    return apply(i);
+                } catch(Exception e) {
+                    for(Class<?> ec : ecs) 
+                        if(ec.isAssignableFrom(ec.getClass())) 
+                            return or.apply(i);
                     throw e;
                 }
             };
@@ -76,20 +134,72 @@ public class Functors {
 
         @Override
         default <V> Ƒ1<I, V> andThen(Function<? super O, ? extends V> after) {
-            requireNonNull(after);
+            noNull(after);
             return (I t) -> after.apply(apply(t));
         }
         
         @Override
         default <V> Ƒ1<V,O> compose(Function<? super V, ? extends I> before) {
-            requireNonNull(before);
+            noNull(before);
             return (V v) -> apply(before.apply(v));
         }
         
-        default Ƒ1<I,I> nonNull() {
+        /**
+         * @param mutator consumer that takes the input of this function and applies it
+         * on output of this function after this function finishes
+         * @return composed function that applies this function to its input and then
+         * mutates the output before returning it.
+         */
+        public default Ƒ1<I,O> andApply(Consumer<O> mutator) {
             return in -> {
-                I out = (I)apply(in);
-                return out==null ? in : out;
+                O o = apply(in);
+                mutator.accept(o);
+                return o;
+            };
+        }
+
+        /**
+         * Similar to {@link #andApply(java.util.function.Consumer)} but the mutator takes
+         * additional parameter - initial input of this function.
+         * 
+         * @param mutator consumer that takes the input of this function and applies it
+         * on output of this function after this function finishes
+         * @return composed function that applies this function to its input and then
+         * mutates the output before returning it.
+         */
+        public default Ƒ1<I,O> andApply(BiConsumer<I,O> mutator) {
+            return in -> {
+                O o = apply(in);
+                mutator.accept(in,o);
+                return o;
+            };
+        }
+
+        /**
+         * Similar to {@link #andThen(java.util.function.Function)} but the mutator
+         * takes additional parameter - the original input to this function.
+         * 
+         * @param mutator consumer that takes the input of this function and applies it
+         * on output of this function after this function finishes
+         * @return composed function that applies this function to its input and then
+         * applies the mutator before returning it.
+         */
+        public  default <O2> Ƒ1<I,O2> andThen(Ƒ2<I,O,O2> mutator) {
+            return in -> {
+                O o = apply(in);
+                return mutator.apply(in,o);
+            };
+        }
+        
+        /** 
+         * Returns nullless version of this f, which returns its input instead of null. The input
+         * type must conform to output type! This mostly makes sense when input and output type
+         * match.
+         */
+        default Ƒ1<I,O> nonNull() {
+            return in -> {
+                O out = apply(in);
+                return out==null ? (O)in : out;
             };
         }
         

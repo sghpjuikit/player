@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
-import static util.dev.Util.forbidNull;
+import static util.dev.Util.noNull;
 import static util.functional.Util.*;
 
 /**
@@ -288,7 +288,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * or is null, runtime exception is thrown.
      */
     public static <T> Config<T> forValue(String name, Object value) {
-        forbidNull(value, "Config can not be created for null");
+        noNull(value, "Config can not be created for null");
         if(value instanceof Config ||
            value instanceof VarList ||
            value instanceof WritableValue ||
@@ -771,7 +771,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         @Override
         public void setValue(ObservableList<T> v) {
              // guarantees that the list will be permanent value since it is
-             // only null before initialization. thus we forbid overwriting it
+             // only null before initialization. thus we no overwriting it
             if(list==null) super.setValue(v);
         }
         

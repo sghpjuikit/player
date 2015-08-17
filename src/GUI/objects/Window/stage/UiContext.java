@@ -30,7 +30,7 @@ import util.File.FileUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static util.File.FileUtil.getName;
-import static util.dev.Util.forbidNull;
+import static util.dev.Util.noNull;
 
 /**
  *
@@ -95,7 +95,7 @@ public final class UiContext {
     }
     
     public static PopOver showFloating(Widget w) {
-        forbidNull(w);
+        noNull(w);
         
         // build popup content
         Icon propB = new Icon(COGS,12,"Settings", e -> {
@@ -131,8 +131,8 @@ public final class UiContext {
     }
     
     public static PopOver showFloating(Node content, String title) {
-        forbidNull(content);
-        forbidNull(title);  // we could use null, but disallow
+        noNull(content);
+        noNull(title);  // we could use null, but disallow
         
         PopOver p = new PopOver(content);
                 p.title.set(title);

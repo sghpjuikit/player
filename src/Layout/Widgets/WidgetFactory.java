@@ -5,9 +5,10 @@
  */
 package Layout.Widgets;
 
-import Layout.Widgets.feature.Feature;
 import java.util.ArrayList;
 import java.util.List;
+
+import Layout.Widgets.feature.Feature;
 
 /**
  * Factory that creates widgets.
@@ -174,6 +175,9 @@ public abstract class WidgetFactory<W extends Widget> implements WidgetInfo {
     /** {@inheritDoc} */
     @Override
     public Widget.Group group() { return group; }
+
+    @Override
+    public Class type() { return controller_class; }
 
     /** {@inheritDoc} */
     @Override

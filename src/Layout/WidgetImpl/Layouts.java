@@ -1,14 +1,11 @@
 
 package Layout.WidgetImpl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -16,13 +13,17 @@ import Layout.Component;
 import Layout.Layout;
 import Layout.LayoutManager;
 import Layout.SwitchContainer;
+import Layout.Widgets.IsWidget;
+import Layout.Widgets.Widget;
+import Layout.Widgets.controller.ClassController;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.image.Thumbnail;
 import main.App;
-import unused.Log;
 import util.File.Environment;
+import util.graphics.fxml.ConventionFxmlLoader;
 
+import static Layout.Widgets.Widget.Group.APP;
 import static java.util.stream.Collectors.toList;
 import static util.functional.Util.toCSList;
 
@@ -30,9 +31,20 @@ import static util.functional.Util.toCSList;
  *
  * @author uranium
  */
-public final class LayoutManagerComponent {
+@IsWidget
+@Widget.Info(
+    author = "Martin Polakovic",
+    programmer = "Martin Polakovic",
+    name = "Spectrumator",
+    description = "PDisplays real time audio spectrum of playback",
+    howto = "",
+    notes = "",
+    version = "0.4",
+    year = "2014",
+    group = APP
+)
+public final class Layouts extends ClassController {
     
-    AnchorPane root = new AnchorPane();
     Text infoT = new Text();
     @FXML ComboBox<String> layoutsCB;
     @FXML CheckBox lockedChB;
@@ -40,18 +52,12 @@ public final class LayoutManagerComponent {
     @FXML TextField nameF;
     @FXML StackPane imgContainer;
     @FXML VBox box;
-    private Thumbnail thumb = new Thumbnail(250,250);
+    Thumbnail thumb = new Thumbnail(250,250);
     
-    public LayoutManagerComponent() {
+    public Layouts() {
         
-        FXMLLoader fxmlLoader = new FXMLLoader(LayoutManagerComponent.class.getResource("LayoutManager.fxml"));
-        fxmlLoader.setRoot(root);
-        fxmlLoader.setController(this);
-        try {
-            fxmlLoader.load();
-        } catch (IOException e) {
-            Log.err("LayoutManager source data coudlnt be read." + e.getMessage());
-        }
+        // load fxml part
+        new ConventionFxmlLoader(this).loadNoEx();
         
         infoT.setWrappingWidth(200);
         box.getChildren().add(3, infoT);
@@ -79,10 +85,6 @@ public final class LayoutManagerComponent {
         
         imgContainer.getChildren().add(thumb.getPane());
         refresh();
-    }
-    
-    public AnchorPane getPane() {
-        return root;
     }
     
     /**

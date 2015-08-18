@@ -951,9 +951,9 @@
 }
 .slider .thumb:hover,
 .slider .thumb:pressed {
-    -fx-background-color: -fx-def-font-color;
+    -fx-background-color: white;
     -fx-padding: 2;
-    -fx-background-radius:1;
+    -fx-background-radius:0;
 }
 .slider:focused .thumb {
     // i say lets stay rectangular

@@ -234,7 +234,7 @@ public final class AreaControls {
                 isShowingWeak && !isShowingStrong &&
                 // mouse entering the popup qualifies as root.mouseExited which we need
                 // to avoid (now we need to handle hiding when popup closes)
-                (helpP.isEmpty() || !helpP.get().isShowing()) &&
+                (helpP.isØ() || !helpP.get().isShowing()) &&
                 // only when the deactivators are !'hovered' 
                 // (Node.isHover() !work here) & we need to transform coords into scene-relative
                 !deactivator.localToScene(deactivator.getBoundsInLocal()).contains(e.getSceneX(), e.getSceneY()) &&
@@ -252,7 +252,7 @@ public final class AreaControls {
 	// sometimes mouse exited deactivator does not fire in fast movement
 	// same thing as above - need to take care of popup...
 	p.addEventFilter(MOUSE_EXITED, e -> {
-	    if (isShowingWeak && !isShowingStrong && (helpP.isEmpty() || !helpP.get().isShowing()))
+	    if (isShowingWeak && !isShowingStrong && (helpP.isØ() || !helpP.get().isShowing()))
 		hide();
 	});
 
@@ -380,10 +380,10 @@ public final class AreaControls {
     }
 
     void close() {
-        // if area belongs to the container, empty container
+        // if area belongs to the container, setØ container
         if (area.index==null) 
             closeAndDo(area.container.getGraphics().getRoot(), area.container::close);
-        // if area belongs to the child, empty child only
+        // if area belongs to the child, setØ child only
         else 
             closeAndDo(area.content_root, () -> area.container.removeChild(area.index));
     }
@@ -450,7 +450,7 @@ public final class AreaControls {
 	area.getContent().setMouseTransparent(false);
 	root.setMouseTransparent(true);
 	// hide help popup if open
-	if (!helpP.isEmpty() && helpP.get().isShowing()) helpP.get().hide();
+	if (!helpP.isØ() && helpP.get().isShowing()) helpP.get().hide();
     }
 
     public void show() {

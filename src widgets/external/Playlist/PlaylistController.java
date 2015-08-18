@@ -13,6 +13,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.AnchorPane;
 
+import AudioPlayer.Item;
 import AudioPlayer.Player;
 import AudioPlayer.playlist.Playlist;
 import AudioPlayer.playlist.PlaylistItem;
@@ -136,13 +137,15 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         d(() -> PlaylistManager.playlists.remove(playlist));
         
         // widget input/output
-        outSelected = outputs.create(widget.id,"Selected", PlaylistItem.class, null);
-        outPlaying = outputs.create(widget.id,"Playing", PlaylistItem.class, null);
+        outSelected = outputs.create(widget.id,"Selected", Item.class, null);
+        outPlaying = outputs.create(widget.id,"Playing", Item.class, null);
         d(Player.playlistSelected.i.bind(outSelected));
         d(maintain(playlist.playingI, ι -> playlist.getPlaying(), outPlaying));
-        d(Player.onItemRefresh(refreshed -> {
-            refreshed.ifHasK(outPlaying.getValue().getURI(), m -> outPlaying.setValue(m.toPlaylist()));
-            refreshed.ifHasK(outSelected.getValue().getURI(), m -> outSelected.setValue(m.toPlaylist()));
+        d(Player.onItemRefresh(ms -> {
+            if(outPlaying.getValue()!=null)
+                ms.ifHasK(outPlaying.getValue().getURI(), m -> outPlaying.setValue(m.toPlaylist()));
+            if(outSelected.getValue()!=null)
+                ms.ifHasK(outSelected.getValue().getURI(), m -> outSelected.setValue(m.toPlaylist()));
         }));
         
         table = new PlaylistTable(playlist);

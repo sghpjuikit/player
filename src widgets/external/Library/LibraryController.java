@@ -284,7 +284,7 @@ public class LibraryController extends FXMLController implements SongReader {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
-                DragUtil.setItemList(table.getSelectedItemsCopy(),db);
+                DragUtil.setItemList(table.getSelectedItemsCopy(),db,true);
             }
             e.consume();
         });

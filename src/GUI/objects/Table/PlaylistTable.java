@@ -244,7 +244,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                         && isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
                 
                 Dragboard db = startDragAndDrop(TransferMode.COPY);
-                DragUtil.setItemList(getSelectedItemsCopy(),db);
+                DragUtil.setItemList(getSelectedItemsCopy(),db,true);
             }
             e.consume();
         });

@@ -225,7 +225,7 @@ public class LibraryViewController extends FXMLController {
             if (e.getButton() == PRIMARY && !table.getSelectedItems().isEmpty() 
                     && table.isRowFull(table.getRowS(e.getSceneX(), e.getSceneY()))) {
                 Dragboard db = table.startDragAndDrop(COPY);
-                DragUtil.setItemList(filerListToSelectedNsort(),db);
+                DragUtil.setItemList(filerListToSelectedNsort(),db,true);
             }
             e.consume();
         });

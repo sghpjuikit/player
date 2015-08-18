@@ -149,6 +149,13 @@ public class Fut<T> implements Runnable{
             },eFX)
         );
     }
+    public final Fut<T> showProgress(boolean condition, Supplier<ProgressIndicator> sp) {
+        if(condition) {
+            ProgressIndicator p = sp.get();
+            return showProgress(p);
+        } else
+            return this;
+    }
     
     @Override
     public void run() {

@@ -36,12 +36,12 @@ public class Ɽ<T> {
         return t;
     }
     
-    public boolean isEmpty() {
+    public boolean isØ() {
         return t == null;
     }
     
     /** Sets instance to null*/
-    public void empty() {
+    public void setØ() {
         t = null;
     }
 }

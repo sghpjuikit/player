@@ -14,11 +14,13 @@ import Layout.Widgets.feature.ImageDisplayFeature;
 import gui.objects.image.Thumbnail;
 import main.App;
 import util.access.Var;
+import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
 
 import static Layout.Widgets.Widget.Group.OTHER;
 import static javafx.geometry.Pos.CENTER;
 import static util.async.Async.FX;
+import static util.graphics.Util.layAnchor;
 
 /**
  * FXML Controller class
@@ -52,25 +54,16 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
     public void init() {
         thumb.setBackgroundVisible(false);
         thumb.setBorderVisible(false);
-        thumb.setDragEnabled(false);
-        root.getChildren().add(thumb.getPane());
-        // this currenttly causes thumbnail image not to rezie properly because
-        // it is bound to prefSize which is not changed by anchors
-        // Util.setAPAnchors(thumb.getPane(), 0);
-        // bind manually for now so image resizes properly
-        thumb.getPane().prefWidthProperty().bind(root.widthProperty());
-        thumb.getPane().prefHeightProperty().bind(root.heightProperty());
+        thumb.setDragEnabled(true);
+        layAnchor(root,thumb.getPane(),0d);
         
-        
-        root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
+        root.setOnDragOver(DragUtil.imageFileDragAccepthandlerNo(() -> img));
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
-                DragUtil.getImages(e)
-                     .use(imgs -> {
-                        if(!imgs.isEmpty()) showImage(imgs.get(0));
-                     },FX)
-                     .showProgress(App.getWindow().taskAdd())
-                     .run();
+                Fut<File> future = DragUtil.getImage(e);
+                future.use(img -> showImage(img),FX)
+                      .showProgress(!future.isDone(),App.getWindow()::taskAdd)
+                      .run();
                 e.setDropCompleted(true);
                 e.consume();
             }

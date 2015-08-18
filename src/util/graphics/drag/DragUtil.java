@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.event.EventHandler;
@@ -14,6 +15,7 @@ import javafx.scene.input.Dragboard;
 
 import AudioPlayer.Item;
 import AudioPlayer.SimpleItem;
+import AudioPlayer.playlist.Playlist;
 import Layout.Component;
 import Layout.Container;
 import Layout.Widgets.controller.io.Output;
@@ -26,10 +28,12 @@ import util.async.future.Fut;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.util.Collections.*;
+import static javafx.scene.input.DataFormat.FILES;
 import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
+import static util.functional.Util.filterMap;
 
 /**
  *
@@ -84,9 +88,11 @@ public final class DragUtil {
     };
     
     /**
-     * Accepts and consumes drag over event if contains files
-     * @see #hasFiles(javafx.scene.input.DragEvent) 
-     * @see #getFiles(javafx.scene.input.DragEvent) 
+     * Accepts and consumes drag over event if contains images
+     * 
+     * @see #hasImage(javafx.scene.input.Dragboard) 
+     * @see #getImage(javafx.scene.input.DragEvent) 
+     * @see #getImages(javafx.scene.input.DragEvent)
      */
     public static final EventHandler<DragEvent> imageFileDragAccepthandler = e -> {
         if (hasImage(e.getDragboard())) {
@@ -94,6 +100,31 @@ public final class DragUtil {
             e.consume();
         }
     };
+    
+    /**
+     * Similar to {@link #imageFileDragAccepthandler}, but does nothing when the dragged image
+     * (if more then the first) is the same as the one supplied.
+     * <p>
+     * Useful if we want to accept image drag only if the dragged image is not the same as some 
+     * image we already have. This should only be used when we request 1 dropped image.
+     * 
+     * @see #hasImage(javafx.scene.input.Dragboard) 
+     * @see #getImage(javafx.scene.input.DragEvent) 
+     * @see #getImages(javafx.scene.input.DragEvent)
+     */
+    public static EventHandler<DragEvent> imageFileDragAccepthandlerNo(Supplier<File> except) {
+        return e -> {
+            if(DragUtil.hasImage(e.getDragboard())) {
+                Fut<File> fi = getImage(e);
+                File i = fi.isDone() ? fi.getDone() : null;
+                boolean same = i!=null && i.equals(except.get());
+                if(!same) {
+                    e.acceptTransferModes(ANY);
+                    e.consume();
+                }
+            }
+        };
+    }
     
     /** Always accepts and consumes drag over event. */
     public static final EventHandler<DragEvent> anyDragAccepthandler = e -> { 
@@ -104,6 +135,9 @@ public final class DragUtil {
     
     public static Object getAny(DragEvent e) {
         Dragboard d = e.getDragboard();
+        // as we return immediately with the result, the order matters
+        // first inapp objects, then general object (text, files, etc.)
+        if(hasItemList()) return getItemsList();
         if(d.hasFiles()) return d.getFiles();
         if(d.hasImage()) return d.getImage();
         if(d.hasString()) return d.getString();
@@ -159,6 +193,7 @@ public final class DragUtil {
     public static boolean hasText(DragEvent e) {
         return e.getDragboard().hasString() || e.getDragboard().hasRtf();
     }
+    
 /******************************* WIDGET OUTPUT ********************************/
     
     /** Accepts and consumes drag over event if contains text. */
@@ -189,16 +224,24 @@ public final class DragUtil {
     
 /*********************************** SONGS ************************************/
     
-    public static void setItemList(List<? extends Item> itemList, Dragboard db) {
+    public static void setItemList(List<? extends Item> items, Dragboard db, boolean includeFiles) {
         // put fake data into dragboard
         db.setContent(singletonMap(itemsDF, ""));
-        data = itemList;
+        data = items;
         dataFormat = itemsDF;
+        
+        if(includeFiles) {
+            HashMap<DataFormat,Object> c = new HashMap();
+            c.put(FILES, filterMap(items,Item::isFileBased,Item::getFile));
+            db.setContent(c);
+        }
     }
+    
     public static List<Item> getItemsList() {
         if(dataFormat != itemsDF) throw new RuntimeException("No item list in data available.");
         return (List<Item>) data;
     }
+    
     public static boolean hasItemList() {
         return dataFormat == itemsDF;
     }
@@ -211,10 +254,12 @@ public final class DragUtil {
         data = new WidgetTransfer(parent, child);
         dataFormat = componentDF;
     }
+    
     public static WidgetTransfer getComponent() {
         if(dataFormat != componentDF) throw new RuntimeException("No component in data available.");
         return (WidgetTransfer) data;
     }
+    
     public static boolean hasComponent() {
         return dataFormat == componentDF;
     }
@@ -232,6 +277,9 @@ public final class DragUtil {
         Dragboard d = e.getDragboard();
         ArrayList<Item> o = new ArrayList();
         
+        if (hasItemList()) {
+            o.addAll(getItemsList());
+        } else
         if (d.hasFiles()) {
             getFilesAudio(d.getFiles(),Use.APP,Integer.MAX_VALUE).map(SimpleItem::new).forEach(o::add);
         } else
@@ -243,9 +291,6 @@ public final class DragUtil {
                 Optional.of(new SimpleItem(URI.create(url)))  // isnt this dangerous?
                         .filter(i->!i.isCorrupt(Use.APP)) // isnt this pointless?
                         .ifPresent(o::add);
-        } else
-        if (hasItemList()) {
-            o.addAll(getItemsList());
         }
         return o;
     }
@@ -278,7 +323,13 @@ public final class DragUtil {
      */
     public static Fut<File> getImage(DragEvent e) {
         Dragboard d = e.getDragboard();
-
+        
+        if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            List<File> fs = FileUtil.getImageFiles(files);
+            if(!fs.isEmpty())
+                return fut(fs.get(0));
+        }
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
             return fut(() -> {
@@ -289,13 +340,6 @@ public final class DragUtil {
                 } catch(IOException ex) {
                     return null;
                 }
-            });
-        }
-        if (d.hasFiles()) {
-            List<File> files = d.getFiles();
-            return fut(() -> {
-                List<File> fs = FileUtil.getImageFiles(files);
-                return fs.isEmpty() ? null : fs.get(0);
             });
         }
         return fut(null);
@@ -320,6 +364,12 @@ public final class DragUtil {
     public static Fut<List<File>> getImages(DragEvent e) {
         Dragboard d = e.getDragboard();
 
+        if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            List<File> images = FileUtil.getImageFiles(files);
+            if(!images.isEmpty())
+                return fut(images);
+        }
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
             return fut(() -> {
@@ -331,10 +381,6 @@ public final class DragUtil {
                     return EMPTY_LIST;
                 }
             });
-        }
-        if (d.hasFiles()) {
-            List<File> files = d.getFiles();
-            return fut(FileUtil.getImageFiles(files));
         }
         return fut(EMPTY_LIST);
     }
@@ -357,9 +403,12 @@ public final class DragUtil {
     public static Fut<Stream<Item>> getSongs(DragEvent e) {
         Dragboard d = e.getDragboard();
         
+        if (hasItemList()) {
+            return fut(getItemsList().stream());
+        }
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
-            return fut(() -> getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
+            return fut(getFilesAudio(files,APP,MAX_VALUE).map(SimpleItem::new));
         }
         if (d.hasUrl()) {
             String url = d.getUrl();
@@ -367,9 +416,6 @@ public final class DragUtil {
                         ? fut(Stream.of(new SimpleItem(URI.create(url))))
                         : fut(Stream.empty());
         } 
-        if (hasItemList()) {
-            return fut(getItemsList().stream());
-        }
         return fut(Stream.empty());
     }
     

@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 
 import javafx.css.PseudoClass;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
@@ -84,19 +83,11 @@ public class ChangeableThumbnail extends Thumbnail {
         });
         
         // add image on drag & drop image file
-        getPane().setOnDragOver( e  -> {
-            Dragboard d = e.getDragboard();
-            // accept if has at least one image file, note: we dont want url
-            // ignore self -> self drag
-            if (e.getGestureSource()!=getPane() && DragUtil.hasImage(d))
-                e.acceptTransferModes(TransferMode.ANY);
-        });
+        getPane().setOnDragOver(DragUtil.imageFileDragAccepthandlerNo(this::getFile));
         getPane().setOnDragDropped( e -> {
             Dragboard d = e.getDragboard();
-            // consume only if has image to let othe types propagate
             if (onFileDropped!=null && DragUtil.hasImage(d)) {
                 onFileDropped.accept(DragUtil.getImage(e));
-
                 e.setDropCompleted(true);
                 e.consume();
             }

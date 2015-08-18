@@ -11,6 +11,7 @@ import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Skin;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyEvent;
@@ -48,6 +49,7 @@ import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
+import static javafx.scene.media.MediaPlayer.Status.PLAYING;
 import static javafx.util.Duration.*;
 import static util.Util.clip;
 import static util.animation.Anim.mapConcave;
@@ -72,7 +74,14 @@ public final class Seeker extends AnchorPane {
     private static final String STYLECLASS_CHAP_ADD_BUTTON = "seeker-add-chapter-button";
     private static final PseudoClass STYLE_CHAP_NEW = getPseudoClass("newly-created");
     
-    private final Slider seeker = new Slider(0,1,0);
+    private final Slider seeker = new Slider(0,1,0){
+
+        @Override
+        protected Skin<?> createDefaultSkin() {
+            return new SeekerSkin(this);
+        }
+        
+    };
     private final AddChapButton addB = new AddChapButton();
     private final List<Chap> chapters = new ArrayList<>();
     private final DoubleProperty seekerScaleY = seeker.scaleYProperty();
@@ -81,7 +90,6 @@ public final class Seeker extends AnchorPane {
     private Chap selectedChap = null;
     
     public Seeker() {
-        
         seeker.getStyleClass().add(STYLECLASS);
         layAnchor(this,seeker,null,0d,null,0d);
         
@@ -326,7 +334,12 @@ public final class Seeker extends AnchorPane {
     
     private ObjectProperty<Duration> timeTot = null;
     private ObjectProperty<Duration> timeCur = null;
-    private final ChangeListener<Duration> timeUpdater = (o,ov,nv) -> timeUpdate();
+    private final ChangeListener timeUpdater = (o,ov,nv) -> timeUpdate();
+    private final Loop timeLoop = new Loop(this::timeUpdateDo);
+    private double posLast = 0;
+    private long posLastFrame = 0;
+    private double posUpdateInterval = 20;
+    private long polastUpdate = 0;
     
     /**
      * Binds to total and current duration value.
@@ -338,18 +351,39 @@ public final class Seeker extends AnchorPane {
         // atomical binding to avoid illegal seeker value
         if(timeTot!=null) timeTot.removeListener(timeUpdater);
         if(timeCur!=null) timeCur.removeListener(timeUpdater);
+        widthProperty().removeListener(timeUpdater);
         timeTot = totalTime;
         timeCur = currentTime;
         timeTot.addListener(timeUpdater);
         timeCur.addListener(timeUpdater);
+        widthProperty().addListener(timeUpdater);
         timeUpdater.changed(null,ZERO, ZERO);
+        timeLoop.start();
     }
 
     private void timeUpdate() {
-        if(user_drag) return;
         if(timeTot.get()==null) return; // bugfix
-        double newPos = timeCur.get().toMillis()/timeTot.get().toMillis();
-        seeker.setValue(newPos);
+        posLast = timeCur.get().toMillis()/timeTot.get().toMillis();
+        posLastFrame = 0;   // when we seek Δt must be 0
+        posUpdateInterval = clip(0,timeTot.get().toMillis()/getWidth(),60);
+    }
+    
+    private void timeUpdateDo(long frame) {
+        if(!user_drag && PLAYBACK.state.status.get()==PLAYING) {
+            long Δt = posLastFrame==0 ? 0 : (frame-posLastFrame)/1000000;
+            double Δp = Δt/timeTot.get().toMillis();
+
+            double p = posLast+Δp;
+            posLast = p;
+            
+            
+            long now = System.currentTimeMillis();
+            if(now-polastUpdate>posUpdateInterval) {
+                polastUpdate = now;
+                seeker.setValue(p);
+            }
+        }
+        posLastFrame = frame;
     }
     
     /** Frees resources. */
@@ -358,8 +392,9 @@ public final class Seeker extends AnchorPane {
         timeCur.unbind();
         timeTot.set(ZERO);
         timeCur.set(ONE);
-        timeUpdater.changed(null,ZERO, ZERO);
+        timeUpdater.changed(null,null,null);
         ma.stop();
+        timeLoop.stop();
     }
     
 /**************************************************************************************************/

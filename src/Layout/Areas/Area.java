@@ -136,8 +136,8 @@ public abstract class Area<T extends Container> implements ContainerNode {
                // put size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
-        Container c2 = w.getTopContainer();
-        Component w2 = null;
+        Container c2 = w.getLayout();
+        Component w2 = w.getLayout().getChild();
             // watch out indexOf returns null if param null, but that will not happen here
         int i1 = container.indexOf(c);
         container.swapChildren(c2,i1,w2);

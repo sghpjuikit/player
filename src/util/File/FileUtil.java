@@ -29,7 +29,7 @@ import util.File.AudioFileFormat.Use;
 import util.Util;
 
 import static util.Util.filenamizeString;
-import static util.functional.Util.isNotNULL;
+import static util.functional.Util.ISNTØ;
 import static util.functional.Util.listRO;
 
 /**
@@ -274,7 +274,7 @@ public final class FileUtil {
     }
     
     public static List<File> getImageFiles(List<File> files) {
-        return files.stream().filter(isNotNULL)
+        return files.stream().filter(ISNTØ)
                 .filter(ImageFileFormat::isSupported)
                 .collect(Collectors.toList());
     }

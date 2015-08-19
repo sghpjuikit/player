@@ -372,15 +372,12 @@ public final class Seeker extends AnchorPane {
         if(!user_drag && PLAYBACK.state.status.get()==PLAYING) {
             long Δt = posLastFrame==0 ? 0 : (frame-posLastFrame)/1000000;
             double Δp = Δt/timeTot.get().toMillis();
-
-            double p = posLast+Δp;
-            posLast = p;
-            
+            posLast += Δp;
             
             long now = System.currentTimeMillis();
             if(now-polastUpdate>posUpdateInterval) {
                 polastUpdate = now;
-                seeker.setValue(p);
+                seeker.setValue(posLast);
             }
         }
         posLastFrame = frame;

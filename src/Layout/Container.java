@@ -293,7 +293,7 @@ public abstract class Container extends Component implements AltState {
         //    We want to avoid recursively closing every container by one
         getAllWidgets().map(Widget::getController)
                 // there might be passive widgets that avoided being loaded
-                .filter(isNotNULL)
+                .filter(ISNTØ)
                 .forEach(c->c.close());
         
         if (parent!=null) {

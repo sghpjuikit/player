@@ -71,7 +71,7 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
 	Icon layB = new Icon(ANCHOR, 12, "Resize content", () -> {
 	    ((FreeFormArea)this).bestLayout();
 	});
-	Icon detachB = new Icon(EXTERNAL_LINK_SQUARE, 12, "Detach widget to own window", this::detach);
+	Icon detachB = new Icon(CLONE, 12, "Detach widget to own window", this::detach);
 	Icon changeB = new Icon(TH_LARGE, 12, "Change widget", ()->{});
         Icon actB = new Icon(GAVEL, 12, actbTEXT, () -> 
             ActionPane.PANE.show(Container.class, container)
@@ -232,8 +232,8 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
                // put size to that of a source (also add jeader & border space)
                w.setSize(root.getWidth()+10, root.getHeight()+30);
         // change content
-        Container c2 = w.getTopContainer();
-        Component w2 = null;
+        Container c2 = w.getLayout();
+        Component w2 = w.getLayout().getChild();
         // indexOf returns null if param null, but that will not happen here
         int i1 = p.indexOf(c);
         p.swapChildren(c2,i1,w2);

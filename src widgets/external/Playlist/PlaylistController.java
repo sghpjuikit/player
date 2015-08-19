@@ -49,7 +49,7 @@ import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
 import static util.Util.menuItem;
-import static util.functional.Util.isNotNULL;
+import static util.functional.Util.ISNTØ;
 import static util.functional.Util.list;
 import static util.graphics.Util.setAnchors;
 import static util.reactive.Util.maintain;
@@ -286,7 +286,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         List<Playlist> pall = list(PlaylistManager.playlists);
         WidgetManager.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
                      .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
-                     .filter(isNotNULL)
+                     .filter(ISNTØ)
                      .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));
         
         Playlist leaf = pall.isEmpty() ? null : pall.get(0);

@@ -4,8 +4,6 @@
 --------------------------------------------------------------------------------
 
 - actionpane try animate icons loading
-- make sure Fut sisDone() get() works in Actionpane
-- image refuse drag&drop same image file
 - Metadata cover caching causes outdated data if cover is set to tag
 - library tables playing row style updates no longer refresh on song change sometimes
 - tagger spinner likes spinning forever, teach him
@@ -41,7 +39,7 @@
   minimode popups should prevent from autohiding, but how?
 - investigate how to properly remove image scaling artifacts
 
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------- 
 ------------------------ BUGS - what i dont want to hear about -----------------
 --------------------------------------------------------------------------------
 
@@ -142,6 +140,8 @@ SOLVED (but the underlying cause still deserves attention)
 --------------------------------------------------------------------------------
 
 UNIFICATIONS, OVERHAULS, REDESIGN, CLEANUP
+- i think time has come to say goodbye to PlaylistItem, use Metadata instead
+  this is a big thing though, maybe impossible (playlist serialization for instance)
 - item->metadata
 - popover investigate default NodeOwner and windowOwner and default move with   
   functionality provided in house by javaFX. I might have reinvented the wheel

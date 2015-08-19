@@ -57,7 +57,7 @@ public class ImageController extends FXMLController implements ImageDisplayFeatu
         thumb.setDragEnabled(true);
         layAnchor(root,thumb.getPane(),0d);
         
-        root.setOnDragOver(DragUtil.imageFileDragAccepthandlerNo(() -> img));
+        root.setOnDragOver(DragUtil.imgFileDragAccepthandlerNo(() -> img));
         root.setOnDragDropped( e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
                 Fut<File> future = DragUtil.getImage(e);

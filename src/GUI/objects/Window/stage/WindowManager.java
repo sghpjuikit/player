@@ -208,10 +208,8 @@ public class WindowManager {
             t=null;
         }
     }
-
     
     public static void serialize() {
-        
         // make sure directory is accessible
         File dir = new File(App.LAYOUT_FOLDER(),"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
@@ -314,7 +312,6 @@ public class WindowManager {
                 w.getStage().setOnShown(null);
             }));
         }
-        
         
         Widget.deserializeWidgetIO();
     }

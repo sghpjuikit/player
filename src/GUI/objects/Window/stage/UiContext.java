@@ -12,6 +12,8 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 
 import org.reactfx.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.io.StreamException;
 
@@ -40,7 +42,9 @@ import static util.dev.Util.noNull;
 public final class UiContext {
     
 /********************************************** CLICK *********************************************/
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UiContext.class);
+    private static boolean launching1st = !App.INSTANCE.normalLoad;
     private static double x;
     private static double y;
     private static final Set<ClickHandler> onClicks = new HashSet<>();
@@ -80,7 +84,6 @@ public final class UiContext {
         return Window.getActive().getY()+y;
     }
     
-    
     /** 
      * @param widget widget to open, does nothing when null.
      */
@@ -90,7 +93,7 @@ public final class UiContext {
                w.setContent(widget);
                w.show();
                w.setScreen(Window.getActive().getScreen());
-               w.setXyCenter();
+               w.centerOnScreen();
         return w;
     }
     
@@ -99,7 +102,7 @@ public final class UiContext {
         
         // build popup content
         Icon propB = new Icon(COGS,12,"Settings", e -> {
-                  showSettings(w.getName(), w, (Node)e.getSource());
+                  showSettings(w, (Node)e.getSource());
                   e.consume();
               });
         // build popup
@@ -112,22 +115,17 @@ public final class UiContext {
                 p.addEventFilter(WINDOW_HIDING, we -> WidgetManager.standaloneWidgets.remove(w));
         return p;
     }
-    
-    public static void showSettings(Widget w, Node n) {
-        showSettings(w.getName(), w, n);
-    }
+
     public static void showSettings(Configurable c, Node n) {
-        showSettings(null, c, n);
-    }
-    public static void showSettings(String name, Configurable c, Node n) {
-            Configurator sc = new Configurator(true);
-                         sc.configure(c);
-            PopOver p = new PopOver(sc);
-                    p.title.set((name==null ? "" : name+" ") + " Settings");
-                    p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
-                    p.setAutoFix(true); // we need autofix here, because the popup can get rather big
-                    p.setAutoHide(true);
-                    p.show(n);
+        String name = c instanceof Widget ? ((Widget)c).getName() : "";
+        Configurator sc = new Configurator(true);
+                     sc.configure(c);
+        PopOver p = new PopOver(sc);
+                p.title.set((name==null ? "" : name+" ") + " Settings");
+                p.setArrowSize(0); // autofix breaks the arrow position, turn off - sux
+                p.setAutoFix(true); // we need autofix here, because the popup can get rather big
+                p.setAutoHide(true);
+                p.show(n);
     }
     
     public static PopOver showFloating(Node content, String title) {
@@ -141,41 +139,42 @@ public final class UiContext {
         return p;
     }
     
-    private static boolean launching1st = !App.INSTANCE.normalLoad;
-    
     public static void launchComponent(File launcher) {
-        WidgetFactory wf = null;
-        Component w = null;
-        
-        // simple launcher version, contains widget name on 1st line
-        String wn = FileUtil.readFileLines(launcher).limit(1).findAny().orElse("");
-        wf = WidgetManager.getFactory(wn);
-        if(wf!=null) w = wf.create();
-        
-        // try to deserialize normally
-        if(w==null) {
-            try {
-                w = (Component) App.INSTANCE.serialization.x.fromXML(launcher);
-            } catch (ClassCastException | StreamException ignored) {}
-        }
+        try {
+            WidgetFactory wf = null;
+            Component w = null;
             
-        // try to build widget using just launcher filename
-        if(w==null) {
-            wf = WidgetManager.getFactory(getName(launcher));
+            // simple launcher version, contains widget name on 1st line
+            String wn = FileUtil.readFileLines(launcher).limit(1).findAny().orElse("");
+            wf = WidgetManager.getFactory(wn);
             if(wf!=null) w = wf.create();
-        }
-        
-        // launch
-        if(w!=null) {
-            if(launching1st) {
-                App.getWindow().setContent(w);
-                launching1st = false;
-            } else {
-                showWindow(w);
+
+            // try to deserialize normally
+            if(w==null) {
+                try {
+                    w = (Component) App.INSTANCE.serialization.x.fromXML(launcher);
+                } catch (ClassCastException | StreamException ignored) {
+                    LOGGER.error("Could onot load .fxwl {}", launcher);
+                }
             }
-        }
+
+            // try to build widget using just launcher filename
+            if(w==null) {
+                wf = WidgetManager.getFactory(getName(launcher));
+                if(wf!=null) w = wf.create();
+            }
+
+            // launch
+            if(w!=null) {
+                if(launching1st) {
+                    App.getWindow().setContent(w);
+                    launching1st = false;
+                } else {
+                    showWindow(w);
+                }
+            }
+        }catch(Exception x) { LOGGER.error("Could not load {}",x);}
     }
-    
     
 /******************************************************************************/   
     

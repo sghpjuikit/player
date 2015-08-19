@@ -83,7 +83,7 @@ public class ChangeableThumbnail extends Thumbnail {
         });
         
         // add image on drag & drop image file
-        getPane().setOnDragOver(DragUtil.imageFileDragAccepthandlerNo(this::getFile));
+        getPane().setOnDragOver(DragUtil.imgFileDragAccepthandlerNo(this::getFile));
         getPane().setOnDragDropped( e -> {
             Dragboard d = e.getDragboard();
             if (onFileDropped!=null && DragUtil.hasImage(d)) {

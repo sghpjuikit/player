@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
-import static util.functional.Util.isNotNULL;
+import static util.functional.Util.ISNTØ;
 
 /**
  * Processes application parameters.
@@ -85,7 +85,7 @@ public class AppParameterProcessor {
                        return null;
                    }
                })
-               .filter(isNotNULL)
+               .filter(ISNTØ)
                .filter(isProcessible)
                .collect(toList());
             if(!uris.isEmpty()) processor.accept(uris);
@@ -112,7 +112,7 @@ public class AppParameterProcessor {
                        return null;
                    }
                })
-               .filter(isNotNULL)
+               .filter(ISNTØ)
                .map(u -> {
                    try {
                        return new File(u);
@@ -120,7 +120,7 @@ public class AppParameterProcessor {
                        return null;
                    }
                })
-               .filter(isNotNULL)
+               .filter(ISNTØ)
                .filter(isProcessible)
                .collect(toList());
             if(!files.isEmpty()) processor.accept(files);

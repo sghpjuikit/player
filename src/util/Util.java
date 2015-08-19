@@ -159,7 +159,7 @@ public class Util {
      * Broader check for emptiness of String object.
      * Checks for: 
         - null
-        - "null", "isNULL" and other combinations
+        - "null", "ISØ" and other combinations
         - ""
         - whitespaceOnly.
      * 

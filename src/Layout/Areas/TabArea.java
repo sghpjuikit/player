@@ -29,7 +29,7 @@ import util.graphics.drag.DragUtil;
 
 import static java.util.Collections.*;
 import static javafx.scene.input.MouseButton.PRIMARY;
-import static util.functional.Util.isNotNULL;
+import static util.functional.Util.ISNTØ;
 import static util.graphics.Util.setAnchors;
 
 /**
@@ -122,7 +122,7 @@ public final class TabArea extends PolyArea {
         int i = container.properties.getI("selected");
         // process components -> turn into tab, put behavior, load lazily
             // somehow null get through here, investigate, fix, document
-        cs.stream().filter(isNotNULL).forEach(c -> {
+        cs.stream().filter(ISNTØ).forEach(c -> {
             Tab t = buildTab(c,tabPane.getTabs().size());
             container.getChildren().put(container.getChildren().size(), c);
             tabPane.getTabs().add(t);

@@ -164,7 +164,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     public Stream<V> getValues() {
         return chain.stream().filter(g -> g.on.get())
                              .map(g -> g.chained.getValue())
-                             .filter(isNotNULL);
+                             .filter(ISNTØ);
     }
 
     /** 

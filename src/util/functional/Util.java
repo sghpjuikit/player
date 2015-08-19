@@ -32,10 +32,10 @@ import static util.dev.Util.yes;
 public class Util {
     
     /** Predicate returning true if object is not null. */
-    public static final Predicate<Object> isNotNULL = Objects::nonNull;
+    public static final Predicate<Object> ISNTØ = Objects::nonNull;
     
     /** Predicate returning true if object is null. */
-    public static final Predicate<Object> isNULL = Objects::isNull;
+    public static final Predicate<Object> ISØ = Objects::isNull;
     
     /** Predicate returning true.*/
     public static final Predicate isTRUE = o -> true;

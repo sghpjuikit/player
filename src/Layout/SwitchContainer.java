@@ -56,7 +56,7 @@ public class SwitchContainer extends Container {
     @Override
     public Integer getEmptySpot() {
         int i = 0;
-        while(!children.keySet().contains(i)) {
+        while(children.get(i)!=null) {
             i = i==0 ? 1 : i>0 ? -i : -i-1;  // 0,1,-1,2,-2,3,-3, ...
         }
         return i;

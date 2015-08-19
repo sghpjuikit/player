@@ -329,7 +329,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
         ios.forEach(io -> {
             Input i = io.widget.getController().getInputs().getInput(io.input_name);
             if(i!=null)
-                io.outputs_ids.stream().map(os::get).filter(isNotNULL).forEach(i::bind);
+                io.outputs_ids.stream().map(os::get).filter(ISNTØ).forEach(i::bind);
         });
     }
     

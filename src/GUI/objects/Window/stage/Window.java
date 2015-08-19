@@ -68,6 +68,7 @@ import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
 import static util.animation.Anim.par;
 import static util.dev.TODO.Purpose.BUG;
+import static util.dev.Util.no;
 import static util.functional.Util.*;
 import static util.graphics.Util.setAnchors;
 import static util.graphics.Util.setScaleXY;
@@ -358,6 +359,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
             if(!headerVisible && !moving.get() && resizing.get()==NONE && e.getSceneY()>20)
                 applyHeaderVisible(false);
         });
+        
+        titleL.setMinWidth(0);
 
         // change volume on scroll
 	// if some component has its own onScroll behavior, it should consume
@@ -457,18 +460,25 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         
         // right header
 	rightHeaderBox.getChildren().addAll(miniB, ontopB, fullscrB, minimB, maximB, closeB);
-
     }
     
-    public void setAsMain() {
-	if (App.getWindow() != null)
-	    throw new RuntimeException("Only one window can be main");
-	main = true;
-
-	setIcon(App.getIcon());
-	// setTitle(App.getAppName());
-	setTitlePosition(Pos.CENTER_LEFT);
+    private void setAsMain() {
+        no(App.getWindow()!=null, "Only one window can be main");
+        
 	App.window = this;
+	main = true;
+        
+        // move the window owner to screen of this window, which
+        // moves taskbar icon to respective screen's taskbar
+        App.getWindowOwner().setX(getCenterX());
+        moving.addListener((o,ov,nv) -> {
+            if(ov && !nv)
+                App.getWindowOwner().setX(getCenterX());
+        });
+        
+	 setIcon(App.getIcon());
+	 setTitle(null);
+	// setTitlePosition(Pos.CENTER_LEFT);
     }
 
 /******************************* CONTENT **************************************/
@@ -627,16 +637,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	return AnchorPane.getTopAnchor(content)==25;
     }
     
-    /**
-     Set title for this window shown in the header.
+    /** 
+     * Set title for this window shown in the header.
      */
     public void setTitle(String text) {
 	titleL.setText(text);
     }
 
-    /**
-     Set title alignment.
-     */
+    /** Set title alignment. */
     public void setTitlePosition(Pos align) {
 	BorderPane.setAlignment(titleL, align);
     }

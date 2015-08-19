@@ -233,10 +233,10 @@ public class App extends Application {
         x.registerConverter(new DoublePropertyConverter(xm));
         x.registerConverter(new LongPropertyConverter(xm));
         x.registerConverter(new IntegerPropertyConverter(xm));
-//        x.registerConverter(new ObservableListConverter(xm));
         x.registerConverter(new Window.WindowConverter());
         x.registerConverter(new PlaybackStateConverter());
         x.registerConverter(new PlaylistItemConverter());
+        // x.registerConverter(new ObservableListConverter(xm)); // interferes with Playlist.class
         x.omitField(ObservableListBase.class, "listenerHelper");
         x.omitField(ObservableListBase.class, "changeBuilder");
         x.omitField(ObservableListWrapper.class, "elementObserver");
@@ -334,15 +334,15 @@ public class App extends Application {
                 return;
             }
             
-            // custom tooltip behavior
-            setupCustomTooltipBehavior(1000, 10000, 200);
-            
             // listen to other application instance launches
             // process app parameters of newly started instance
             appCommunicator.start();
             appCommunicator.onNewInstanceHandlers.add(parameterProcessor::process);
             
             Action.startGlobalListening();
+
+            // custom tooltip behavior
+            setupCustomTooltipBehavior(1000, 10000, 200);
             
             // create window owner - all 'top' windows are owned by it
             windowOwner = Window.createWindowOwner();
@@ -539,7 +539,6 @@ public class App extends Application {
                 LOGGER.warn("Unable to inspect virtual machine {}", vmd);
             }
         }
-        
         return i;
     }
     

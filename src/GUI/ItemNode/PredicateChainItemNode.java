@@ -78,7 +78,7 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
     protected void generateValue() {
         if(inconsistent_state || converter==null) return;
         conjuction = chain.stream().filter(g->g.on.get())
-                                    .map(g->g.chained.getValue()).filter(isNotNULL)
+                                    .map(g->g.chained.getValue()).filter(ISNTØ)
                                     .map(g->converter.apply(g._2,g._1))
                                     .reduce(Predicate::and).orElse(isTRUE);
         if(onFilterChange!=null) onFilterChange.accept(conjuction);

@@ -93,7 +93,6 @@ public class AppInstanceComm {
     }
     class AppMediator extends UnicastRemoteObject implements Mediator {
 
-
         public AppMediator() throws RemoteException {
             super();
         }
@@ -104,7 +103,5 @@ public class AppInstanceComm {
             // run handlers on fx thread (we are on rmi thread)
             Async.runFX(() -> onNewInstanceHandlers.forEach(c -> c.accept(params)));
         }
-
-
     }
 }

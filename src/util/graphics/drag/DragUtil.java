@@ -94,7 +94,7 @@ public final class DragUtil {
      * @see #getImage(javafx.scene.input.DragEvent) 
      * @see #getImages(javafx.scene.input.DragEvent)
      */
-    public static final EventHandler<DragEvent> imageFileDragAccepthandler = e -> {
+    public static final EventHandler<DragEvent> imgFileDragAccepthandler = e -> {
         if (hasImage(e.getDragboard())) {
             e.acceptTransferModes(ANY);
             e.consume();
@@ -102,7 +102,7 @@ public final class DragUtil {
     };
     
     /**
-     * Similar to {@link #imageFileDragAccepthandler}, but does nothing when the dragged image
+     * Similar to {@link #imgFileDragAccepthandler}, but does nothing when the dragged image
      * (if more then the first) is the same as the one supplied.
      * <p>
      * Useful if we want to accept image drag only if the dragged image is not the same as some 
@@ -112,7 +112,7 @@ public final class DragUtil {
      * @see #getImage(javafx.scene.input.DragEvent) 
      * @see #getImages(javafx.scene.input.DragEvent)
      */
-    public static EventHandler<DragEvent> imageFileDragAccepthandlerNo(Supplier<File> except) {
+    public static EventHandler<DragEvent> imgFileDragAccepthandlerNo(Supplier<File> except) {
         return e -> {
             if(DragUtil.hasImage(e.getDragboard())) {
                 Fut<File> fi = getImage(e);

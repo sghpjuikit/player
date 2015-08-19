@@ -197,6 +197,7 @@ public class LibraryViewController extends FXMLController {
         // column context menu - add change field submenus
         Menu m = (Menu)table.columnVisibleMenu.getItems().stream().filter(i->i.getText().equals("Value")).findFirst().get();
         Stream.of(Field.values())
+              .sorted(by(f -> f.name()))
               .map(f -> new SelectionMenuItem(f.toStringEnum(), false){{
                   this.setOnMouseClicked(() -> {
                         if(!selected.get()) {

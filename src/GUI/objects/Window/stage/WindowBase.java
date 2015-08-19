@@ -1,19 +1,21 @@
 
 package gui.objects.Window.stage;
 
-import gui.GUI;
-import gui.objects.Window.Resize;
-import static gui.objects.Window.stage.WindowBase.Maximized.ALL;
-import static gui.objects.Window.stage.WindowBase.Maximized.NONE;
-import static java.lang.Math.abs;
 import javafx.beans.property.*;
 import javafx.geometry.Point2D;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import gui.GUI;
+import gui.objects.Window.Resize;
 import main.App;
-import static util.async.Async.run;
 import util.dev.Dependency;
+
+import static gui.objects.Window.stage.WindowBase.Maximized.ALL;
+import static gui.objects.Window.stage.WindowBase.Maximized.NONE;
+import static java.lang.Math.abs;
+import static util.async.Async.run;
 
 /**
  * Customized Stage, window of the application.
@@ -112,6 +114,12 @@ public class WindowBase {
     }
     public double getY() {
         return s.getY();
+    }
+    public double getCenterX() {
+        return s.getX()+getWidth()/2;
+    }
+    public double getCenterY() {
+        return s.getY()+getHeight()/2;
     }
     
 /********************************** SCREEN ************************************/
@@ -304,6 +312,7 @@ public class WindowBase {
     public boolean isFullscreen() {
         return s.isFullScreen();
     } 
+    
     /**
      * Sets setFullscreen mode on (true) and off (false)
      * @param val - true to go setFullscreen, - false to go out of setFullscreen
@@ -312,10 +321,12 @@ public class WindowBase {
         FullProp.set(val);
         s.setFullScreen(val);
     }
+    
     /** Change between on/off setFullscreen state */
     public void toggleFullscreen() {
         setFullscreen(!isFullscreen());
     }
+    
     /**
      * Specifies the text to show when a user enters full screen mode, usually
      * used to indicate the way a user should go about exiting out of setFullscreen
@@ -333,14 +344,17 @@ public class WindowBase {
     public void snapUp() {
         s.setY(screen.getBounds().getMinY());
     }
+    
     /** Snaps this window to the bottom edge of this window's screen. */
     private void snapDown() {
         s.setY(screen.getBounds().getMaxY() - s.getHeight());
     }
+    
     /** Snaps this window to the left edge of this window's screen. */
     private void snapLeft() {
         s.setX(screen.getBounds().getMinX());
     }    
+    
     /** Snaps this window to the right edge of this window's screen. */
     private void snapRight() {
         s.setX(screen.getBounds().getMaxX() - s.getWidth());
@@ -350,14 +364,17 @@ public class WindowBase {
     public void setX(double x) {
         setXY(x, getY(), true);
     }
+    
     /** @see #setX(double, double, boolean)  */
     public void setX(double x, boolean snap) {
         setXY(x, getY(), snap);
     }
+    
     /** @see #setX(double, boolean)  */
     public void setY(double y) {
         setXY(getX(), y, true);
     }
+    
     /** @see #setX(double, double, boolean)  */
     public void setY(double y, boolean snap) {
         setXY(getX(), y, snap);
@@ -394,21 +411,21 @@ public class WindowBase {
         s.setX(x);
         s.setY(y);
         
-        screen = getScreen(getCenter()); // update screen
+        screen = getScreen(getCenterXY()); // update screen
         
         if(snap) snap();
     }
     
+    /** Returns screen x,y of the center of this window. */
+    public Point2D getCenterXY() {
+        return new Point2D(getCenterX(), getCenterY());
+    }
+    
     /** Centers this window on ita screen. */
-    public void setXyCenter() {
+    public void centerOnScreen() {
         double x = screen.getBounds().getWidth()/2 - getWidth()/2;
         double y = screen.getBounds().getHeight()/2 - getHeight()/2;
         setXY(x, y);
-    }
-    
-    /** Returns screen x,y of the center of this window. */
-    public Point2D getCenter() {
-        return new Point2D(getX()+getWidth()/2, getY()+getHeight()/2);
     }
     
     /**
@@ -488,7 +505,7 @@ public class WindowBase {
         s.setHeight(height);
         WProp.set(s.getWidth());
         HProp.set(s.getHeight());
-        screen = getScreen(getCenter()); // update screen
+        screen = getScreen(getCenterXY()); // update screen
     }
     
     /**

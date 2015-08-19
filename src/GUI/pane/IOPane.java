@@ -309,7 +309,7 @@ public class IOPane extends StackPane {
         Map<Output,XNode> os = new HashMap();
         
         WidgetManager.findAll(WidgetSource.ANY).map(w->w.getController().getActivityNode())
-            .filter(isNotNULL)
+            .filter(ISNTØ)
             .forEach(c -> {
                 c.in_nodes.forEach(i -> is.put(((InputNode)i).input, ((XNode)i)));
                 c.out_nodes.forEach(o -> os.put(((OutputNode)o).output, ((XNode)o)));

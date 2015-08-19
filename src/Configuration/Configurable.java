@@ -1,14 +1,17 @@
 
 package Configuration;
 
-import static Configuration.Configuration.configsOf;
 import java.lang.reflect.Field;
 import java.util.Collection;
-import static java.util.stream.Collectors.toList;
+
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
+
 import util.Util;
+
+import static Configuration.Configuration.configsOf;
+import static java.util.stream.Collectors.toList;
 import static util.functional.Util.forEachIStream;
 import static util.functional.Util.map;
 

@@ -42,16 +42,6 @@ import static javafx.util.Duration.millis;
 import static util.Util.getFieldValue;
 import static util.graphics.Util.setScaleXY;
 
-
-
-
-
-
-
-
-
-
-
 public class Icon<I extends Icon> extends Text {
     
     public final static String TTF_PATH = "/de/jensd/fx/glyphs/fontawesome/fontawesome-webfont.ttf";

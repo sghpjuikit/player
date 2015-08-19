@@ -4,9 +4,6 @@
  */
 package util.File;
 
-import AudioPlayer.Item;
-import AudioPlayer.tagging.Metadata;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,6 +13,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javafx.stage.FileChooser;
+
+import AudioPlayer.Item;
+import AudioPlayer.tagging.Metadata;
 
 /**
  * All audio file formats known and supported by application except for UNKNOWN that

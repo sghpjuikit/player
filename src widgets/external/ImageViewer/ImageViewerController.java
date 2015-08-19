@@ -111,6 +111,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     private final Thumbnail mainImage = new Thumbnail();
     private ItemInfo itemPane;
     private Anim thumbAnim;
+    private Anim navigAnim;
     
     // state
     private final SimpleObjectProperty<File> folder = new SimpleObjectProperty<>(null);
@@ -134,7 +135,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
     public final Var<Boolean> showImage = new Var<>(true, mainImage.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final Var<Boolean> showThumbnails = new Var<>(true, this::thumbAnimPlay);
+    public final Var<Boolean> showThumbnails = new Var<>(true, this::applyShowThumbs);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
     public final Var<Boolean> hideThumbEager = new Var<>(true, v ->
        root.setOnMouseExited(!v ? null : e -> {
@@ -178,11 +179,6 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         mainImage.setBorderToImage(true);
         layAnchor(root,mainImage.getPane(),0d);
         
-        // thumb anim
-        thumbAnim = new Anim(millis(500), thumb_root::setOpacity);
-        thumb_root.visibleProperty().bind(thumb_root.opacityProperty().isNotEqualTo(0));
-        thumb_root.toFront();
-        
         // image navigation
         Icon nextB = new Icon(ARROW_RIGHT, 18, "Next image", this::nextImage);
              nextB.setMouseTransparent(true);
@@ -205,16 +201,16 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         layAnchor(root, prevP, 0d,null,0d,0d);
         layAnchor(root, nextP, 0d,0d,0d,null);
 
-        Anim navanim = new Anim(millis(500), p -> {
+        navigAnim = new Anim(millis(500), p -> {
             prevP.setOpacity(p);
             nextP.setOpacity(p);
             prevB.setTranslateX(+40*(p-1));
             nextB.setTranslateX(-40*(p-1));
         });
-        navanim.affector.accept(0d);
+        navigAnim.affector.accept(0d);
         
-        EventReducer inactive = toLast(1500, navanim::playClose);
-        EventReducer active = toFirstDelayed(500, navanim::playOpen);
+        EventReducer inactive = toLast(1500, navigAnim::playClose);
+        EventReducer active = toFirstDelayed(500, navigAnim::playOpen);
         root.addEventFilter(MOUSE_MOVED, e -> {
             if(thumb_root.getOpacity()==0) {
                 if(prevP.getOpacity()!=1) 
@@ -223,6 +219,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
                     inactive.push(e);
             } 
         });
+        
+        // thumb anim
+        thumbAnim = new Anim(millis(500), thumb_root::setOpacity);
+        thumb_root.visibleProperty().bind(thumb_root.opacityProperty().isNotEqualTo(0));
+        thumb_root.toFront();
         
         // thumbnails & make sure it doesnt cover whole area
         setAnchors(thumb_root, 0d);
@@ -253,7 +254,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         
         // accept drag transfer
         root.setOnDragOver(DragUtil.audioDragAccepthandler);
-        root.setOnDragOver(DragUtil.imageFileDragAccepthandler);
+        root.setOnDragOver(DragUtil.imgFileDragAccepthandler);
         root.setOnDragOver(DragUtil.fileDragAccepthandler);
         // handle drag transfers
         root.setOnDragDropped(e -> {
@@ -503,8 +504,9 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         if(slideshow.isRunning()) slideshow.start();
     }
     
-    private void thumbAnimPlay(boolean v) {
+    private void applyShowThumbs(boolean v) {
         thumbAnim.playFromDir(v);
+        if(v) navigAnim.playClose();
     }
     
     private void applyTheaterMode(boolean v) {

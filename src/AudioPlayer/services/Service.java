@@ -7,7 +7,7 @@ package AudioPlayer.services;
 
 import Configuration.Configurable;
 import Configuration.IsConfig;
-import util.access.Var;
+import util.access.Ѵ;
 
 /**
  *
@@ -23,10 +23,10 @@ public interface Service extends Configurable {
     public static abstract class ServiceBase implements Service {
         
         @IsConfig(name = "Enabled", info = "Starts or stops the service")
-        private final Var<Boolean> enabled;
+        private final Ѵ<Boolean> enabled;
         
         public ServiceBase(boolean isEnabled) {
-             enabled = new Var<>(isEnabled, this::enable);
+             enabled = new Ѵ<>(isEnabled, this::enable);
         }
         
         private void enable(boolean isToBeRunning) {

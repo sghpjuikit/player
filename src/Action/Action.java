@@ -29,7 +29,7 @@ import Configuration.IsConfigurable;
 import gui.objects.Window.stage.Window;
 import main.App;
 import unused.Log;
-import util.access.Var;
+import util.access.Ѵ;
 import util.async.Async;
 import util.async.executor.FxTimer;
 import util.collections.map.MapSet;
@@ -626,7 +626,7 @@ public final class Action extends Config<Action> implements Runnable {
     
     @IsConfig(name = "Allow global shortcuts", info = "Allows using the shortcuts even if"
             + " application is not focused. Not all platforms supported.", group = "Shortcuts")
-    public static final Var<Boolean> global_shortcuts = new Var<>(true, v -> {
+    public static final Ѵ<Boolean> global_shortcuts = new Ѵ<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
             if(v){
                 // make sure we dont add the listener twice
@@ -649,7 +649,7 @@ public final class Action extends Config<Action> implements Runnable {
     });
     
     @IsConfig(name = "Allow media shortcuts", info = "Allows using shortcuts for media keys on the keyboard.", group = "Shortcuts")
-    public static final Var<Boolean> global_media_shortcuts = new Var<>(true, v -> {
+    public static final Ѵ<Boolean> global_media_shortcuts = new Ѵ<>(true, v -> {
         if(isGlobalShortcutsSupported()) {
             if(v) {
                 // make sure we dont add the listener twice

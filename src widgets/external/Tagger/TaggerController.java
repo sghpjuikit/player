@@ -50,12 +50,11 @@ import gui.objects.icon.Icon;
 import gui.objects.image.ChangeableThumbnail;
 import gui.objects.image.cover.Cover;
 import main.App;
-import unused.Log;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.ImageFileFormat;
 import util.InputConstraints;
-import util.access.Var;
+import util.access.Ѵ;
 import util.async.future.Fut;
 import util.collections.map.MapSet;
 import util.graphics.Icons;
@@ -160,11 +159,11 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     
     // properties
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
-    public final Var<Pos> field_text_alignment = new Var<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
+    public final Ѵ<Pos> field_text_alignment = new Ѵ<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final Var<NodeCentricPos> popupPos = new Var<>(DownCenter, MoodF::setPos);
+    public final Ѵ<NodeCentricPos> popupPos = new Ѵ<>(DownCenter, MoodF::setPos);
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
-    public final Var<Boolean> allow_playcount_change = new Var<>(false, v -> {
+    public final Ѵ<Boolean> allow_playcount_change = new Ѵ<>(false, v -> {
         if(!isEmpty()) PlaycountF.setDisable(!v);
     });
 
@@ -374,8 +373,8 @@ public class TaggerController extends FXMLController implements SongWriter, Song
             });
 
         // read metadata for items
-        MetadataReader.readMetadata(needs_read, (success,result) -> {
-            if(success) {
+        MetadataReader.readMetadata(needs_read, (ok,result) -> {
+            if(ok) {
                 // remove duplicates
                 MapSet<URI, Metadata> unique = new MapSet<>(Metadata::getURI);
                                       unique.addAll(metas);
@@ -385,9 +384,6 @@ public class TaggerController extends FXMLController implements SongWriter, Song
                 metas.clear();
                 metas.addAll(unique);
                 populate(metas);
-                Log.info("Tagger: Metadata reading succeeded.");
-            } else {
-                Log.info("Tagger: Metadata reading failed.");
             }
         });
     } 

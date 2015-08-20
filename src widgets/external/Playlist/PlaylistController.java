@@ -37,7 +37,7 @@ import gui.objects.icon.Icon;
 import main.App;
 import unused.SimpleConfigurator;
 import util.access.OVal;
-import util.access.Var;
+import util.access.Ѵ;
 import util.async.executor.ExecuteN;
 import util.units.FormattedDuration;
 
@@ -106,7 +106,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
-    public final Var<Boolean> filter_for_playback = new Var<>(false, v -> {
+    public final Ѵ<Boolean> filter_for_playback = new Ѵ<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
                   + "to play only displayed items.";
         String on = "Disable filter for playback. Causes the playback "

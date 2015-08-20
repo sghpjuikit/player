@@ -36,7 +36,7 @@ import gui.pane.ActionPane;
 import gui.pane.ActionPane.ActionData;
 import gui.pane.ImageFlowPane;
 import main.App;
-import util.access.Var;
+import util.access.Ѵ;
 import util.async.executor.EventReducer;
 import util.async.future.Fut;
 import util.graphics.drag.DragUtil;
@@ -129,19 +129,19 @@ public class FileInfoController extends FXMLController implements SongReader {
     
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
-    public final Var<Double> minColumnWidth = new Var<>(150.0, tiles::layout);
+    public final Ѵ<Double> minColumnWidth = new Ѵ<>(150.0, tiles::layout);
     @IsConfig(name = "Cover source", info = "Source for cover image.")
-    public final Var<CoverSource> cover_source = new Var<>(ANY, this::setCover);
+    public final Ѵ<CoverSource> cover_source = new Ѵ<>(ANY, this::setCover);
     @IsConfig(name = "Text clipping method", info = "Style of clipping text when too long.")
-    public final Var<OverrunStyle> overrun_style = new Var<>(ELLIPSIS, this::setOverrun);
+    public final Ѵ<OverrunStyle> overrun_style = new Ѵ<>(ELLIPSIS, this::setOverrun);
     @IsConfig(name = "Show cover", info = "Show cover.")
-    public final Var<Boolean> showCover = new Var<>(true, layout::setImageVisible);
+    public final Ѵ<Boolean> showCover = new Ѵ<>(true, layout::setImageVisible);
     @IsConfig(name = "Show fields", info = "Show fields.")
-    public final Var<Boolean> showFields = new Var<>(true, layout::setContentVisible);
+    public final Ѵ<Boolean> showFields = new Ѵ<>(true, layout::setContentVisible);
     @IsConfig(name = "Show empty fields", info = "Show empty fields.")
-    public final Var<Boolean> showEmptyFields = new Var<>(true, v -> update());
+    public final Ѵ<Boolean> showEmptyFields = new Ѵ<>(true, v -> update());
     @IsConfig(name = "Group fields", info = "Use gaps to separate fields into group.")
-    public final Var<Sort> groupFields = new Var<>(Sort.SEMANTIC,this::update);
+    public final Ѵ<Sort> groupFields = new Ѵ<>(Sort.SEMANTIC,this::update);
     @IsConfig(name = "Allow no content", info = "Otherwise shows previous content when the new content is empty.")
     public boolean allowNoContent = false;
     // generate show {field} configs
@@ -154,7 +154,7 @@ public class FileInfoController extends FXMLController implements SongReader {
     public void init() {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, EMPTY);
         
-        // keep updated contents, we do this directly instead of lookuing up the Input, same effect
+        // keep updated contents, we do this directly instead of looking up the Input, same effect
         d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::read)));
         
         cover.getPane().setDisable(true); // shoud be handled differently, either init all or none
@@ -364,13 +364,13 @@ public class FileInfoController extends FXMLController implements SongReader {
     }
     private class Lfield extends Label {
         final Field field;
-        final Var<Boolean> visibleConfig;
+        final Ѵ<Boolean> visibleConfig;
         final String name;
         final int semantic_index;
 
         public Lfield(Field field, int i) {
             this.field = field;
-            this.visibleConfig = new Var<>(true,FileInfoController.this::update);
+            this.visibleConfig = new Ѵ<>(true,FileInfoController.this::update);
             this.semantic_index = i;
             
             if(field==DISCS_TOTAL) name = "disc";

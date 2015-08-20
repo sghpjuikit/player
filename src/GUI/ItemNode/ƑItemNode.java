@@ -19,7 +19,7 @@ import javafx.scene.layout.HBox;
 
 import static javafx.scene.layout.Priority.ALWAYS;
 
-import util.access.Var;
+import util.access.Ѵ;
 import util.collections.PrefList;
 import util.functional.Functors.Ƒ1;
 import util.functional.Functors.PƑ;
@@ -48,7 +48,7 @@ public class ƑItemNode<IN,OUT> extends ValueNode<Ƒ1<IN,OUT>> {
             configs.clear();
             paramB.getChildren().clear();
             nv.getParameters().forEach(p -> {
-                Var a = new Var(p.defaultValue, v -> generateValue());
+                Ѵ a = new Ѵ(p.defaultValue, v -> generateValue());
                 Config cg = new AccessorConfig("",a::setNapplyValue,a::getValue);
                 ConfigField cf = ConfigField.create(cg);
                 configs.add(cf);

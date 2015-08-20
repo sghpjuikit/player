@@ -91,25 +91,36 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * is called.
      * Any subsequent call of this method will simply return the content.
      * <p>
+     * Details:
+     * <ul>
+     * <li> graphics and controller is created only once when needed and reused
+     * <li> attaching the graphics to the scenegraph will remove it from its old location
+     * <li> reattaching to scenegraph has no effect on widget state
+     * <li> serialisation is the only time when widget state (configs) need to be taken care of 
+     * manually
+     * </ul>
      * {@inheritDoc}
      * @return graphical content of this widget
      */
     @Override
     public final Node load() {
-        // - loads only once
-        // - attaching root to the scenegraph will automatically remove it
-        //   from its old location
-        // - this guarantees that widget loads only once, which means:
-        //   - graphics will be constructed only once
-        //   - -||- controller, controller will always be in control of
-        //     the correct graphics - normally we would have to load both
-        //     graphics and controller multiple times because we can not
-        //     assign new graphics to old controller
-        // - entire state of the widget is intact with the exception of
-        //   initial load at deserialisation.
-        //   This also makes deserialisation the only time when configs
-        //   need to be taken care of manually
-        if(root==null) root = loadInitial();
+        if(root==null) {
+            controller = instantiateController();
+            if(controller==null) {
+                root = Widget.EMPTY().load();
+            } else {
+                Exception ex = null;
+                try {
+                    root = loadInitial();
+                } catch(Exception e) {
+                    ex = e;
+                }
+                if(root==null) {
+                    root = Widget.EMPTY().load();
+                    LOGGER.error("Widget graphics creation failed. Using empty widget instead.", ex);
+                }
+            }
+        }
         return root;
     }
     
@@ -118,18 +129,24 @@ public abstract class Widget<C extends Controller> extends Component implements 
      * before the loaded content is cached. Should be called only once per life
      * cycle of the widget and internally.
      */
-    protected abstract Node loadInitial();
+    protected abstract Node loadInitial() throws Exception;
     
-    protected void initializeController() throws InstantiationException, IllegalAccessException {
+    private C instantiateController() {
         // instantiate controller
-        Class cclass = getFactory().getControllerClass();
-        controller = (C) cclass.newInstance();
-
+        Class cc = getFactory().getControllerClass();
+        C c;
+        try {
+            c = (C) cc.newInstance();
+        } catch(IllegalAccessException | InstantiationException e) {
+            LOGGER.error("Widget controller creation failed {}",cc,e);
+            return null;
+        }
+        System.out.println("BLABLABLA " + c + " " + cc);
         // inject this widget into the controller
-        util.Util.setField(controller, "widget", this);
+        util.Util.setField(c, "widget", this);
 
         // generate inputs
-        for(Method m : cclass.getDeclaredMethods()) {
+        for(Method m : cc.getDeclaredMethods()) {
             IsInput a = m.getAnnotation(IsInput.class);
             if(a!=null) {
                 int params = m.getParameterCount();
@@ -137,15 +154,15 @@ public abstract class Widget<C extends Controller> extends Component implements 
                     throw new RuntimeException("Method " + m + " can not be an input.");
 
                 String i_name = a.value();
-                boolean isvoid = params==0; if(isvoid) System.out.println(i_name + " " + cclass);
+                boolean isvoid = params==0;
                 Class i_type = isvoid ? Void.class : m.getParameterTypes()[0];
                 Consumer i_action = isvoid 
                     ?   value -> {
                             if(value!=null) 
-                                throw new ClassCastException(cclass + " " + m + ": Can not cast " + value + " into Void.class");
+                                throw new ClassCastException(cc + " " + m + ": Can not cast " + value + " into Void.class");
                             try {
                                 m.setAccessible(true);
-                                m.invoke(controller);
+                                m.invoke(c);
                                 m.setAccessible(false);
                             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                                 LOGGER.error("Input {} in widget {} failed to process value.",i_name,name,e);
@@ -154,15 +171,17 @@ public abstract class Widget<C extends Controller> extends Component implements 
                     :   value -> {
                             try {
                                 m.setAccessible(true);
-                                m.invoke(controller, value);
+                                m.invoke(c, value);
                                 m.setAccessible(false);
                             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                                 LOGGER.error("Input {} in widget {} failed to process value.",i_name,name,e);
                             }
                         };
-                controller.getInputs().create(i_name, i_type, i_action);
+                c.getInputs().create(i_name, i_type, i_action);
             }
         }
+        
+        return c;
     }
     
     /**

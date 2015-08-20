@@ -39,10 +39,12 @@ import util.async.executor.FxTimer;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static util.File.FileUtil.listFiles;
 import static util.functional.Util.mapB;
+import static util.graphics.Util.add1timeEventHandler;
 import static util.reactive.Util.maintain;
 
 /**
@@ -296,27 +298,13 @@ public class WindowManager {
         }
         
         // show
-        ws.forEach(w->{
-            w.show();
-            w.update();
-        });
+        ws.forEach(w -> add1timeEventHandler(w.s,WINDOW_SHOWING, e -> w.update()));
+        
+        
         Log.deb("Deserialized " + ws.size() + " windows.");
-        
-        // when deserializating in minimode make sure the windows state gets
-        // updated
-        if(mini) {
-            ws.forEach( w -> w.getStage().setOnShown(e -> {
-                // update window state when it is shown
-                w.update();
-                // remove handler, make this one time only
-                w.getStage().setOnShown(null);
-            }));
-        }
-        
         Widget.deserializeWidgetIO();
     }
 
-    
 /******************************** NO TASKBAR MODE *****************************/
     
     @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")

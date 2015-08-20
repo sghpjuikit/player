@@ -22,7 +22,7 @@ import Layout.Widgets.IsWidget;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.ClassController;
 import gui.itemnode.ConfigField;
-import util.access.Var;
+import util.access.Ѵ;
 import util.functional.StrExƑ;
 
 import static Layout.Widgets.Widget.Group.DEVELOPMENT;
@@ -51,7 +51,7 @@ public class FunctionPlotter extends ClassController  {
         this.setMaxSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         this.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
         
-        Var<StrExƑ> sdf = new Var<>(new StrExƑ("x"),this::plot);
+        Ѵ<StrExƑ> sdf = new Ѵ<>(new StrExƑ("x"),this::plot);
         ConfigField c = ConfigField.create(Config.forProperty("Function", sdf));
 
         

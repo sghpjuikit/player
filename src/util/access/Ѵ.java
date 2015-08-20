@@ -6,32 +6,34 @@
 
 package util.access;
 
-import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
+
 import javafx.beans.property.SimpleObjectProperty;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * Simple object wrapper similar to {@link javafx.beans.property.Property}, but
+ * Var/variable - simple object wrapper similar to {@link javafx.beans.property.Property}, but
  * simpler (no binding) and with the ability to apply value change.
  * <p>
  * Does not permit null values.
  * 
  * @author Plutonium_
  */
-public class Var<V> extends SimpleObjectProperty<V> implements ApplicableValue<V> {
+public class Ѵ<V> extends SimpleObjectProperty<V> implements ApplicableValue<V> {
     
     private Consumer<V> applier;
     
-    public Var(V val) {
+    public Ѵ(V val) {
         setValue(val);
     }
     
-    public Var(V val, Consumer<V> applier) {
+    public Ѵ(V val, Consumer<V> applier) {
         this(val);
         setApplier(applier);
     }
     
-    public Var(V val, Runnable applier) {
+    public Ѵ(V val, Runnable applier) {
         this(val,v -> applier.run());
     }
     

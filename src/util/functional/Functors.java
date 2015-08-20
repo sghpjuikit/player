@@ -26,7 +26,7 @@ import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
 import util.Util;
-import util.access.Var;
+import util.access.Ѵ;
 import util.collections.PrefList;
 import util.collections.map.PrefListMap;
 import util.units.Bitrate;
@@ -775,7 +775,7 @@ public class Functors {
         public CƑ(PƑ<I, O> pf) {
             this.pf = pf;
             cs.addAll(map(pf.getParameters(),p->{
-                Var a = new Var(p.defaultValue);
+                Ѵ a = new Ѵ(p.defaultValue);
                 return new AccessorConfig("",a::setValue,a::getValue);
             }));
         }

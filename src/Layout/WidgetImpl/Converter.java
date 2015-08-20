@@ -39,7 +39,7 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import main.App;
 import util.File.FileUtil;
-import util.access.Var;
+import util.access.Ѵ;
 import util.access.VarEnum;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
@@ -323,9 +323,9 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class WriteFileAct extends Act<Void> {
-        Var<String> nam = new Var("new_file");
-        Var<String> ext = new Var("txt");
-        Var<File> loc = new Var(App.getLocation());
+        Ѵ<String> nam = new Ѵ("new_file");
+        Ѵ<String> ext = new Ѵ("txt");
+        Ѵ<File> loc = new Ѵ(App.getLocation());
             
         public WriteFileAct() {
             super("Write file", Void.class, 1, list("Contents"), (Consumer)null);
@@ -353,8 +353,8 @@ public class Converter extends ClassController implements SongWriter {
         }
     }
     class InPane extends ValueNode<In> {
-        Var<String> name;
-        Var<Ta> input;
+        Ѵ<String> name;
+        Ѵ<Ta> input;
         ConfigField<String> configfieldA;
         ConfigField<Ta> configfieldB;
         HBox root;
@@ -385,7 +385,7 @@ public class Converter extends ClassController implements SongWriter {
         ConfigPane<Ta> ins;
         public InsSimple(Act<?> a) {
             ins = new ConfigPane(map(a.names.get(), name -> {
-                Var<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
+                Ѵ<Ta> input = new VarEnum(find(tas,ta->ta.name.get().equalsIgnoreCase("out")).orElse(ta_in),tas);
                 return Config.forProperty(name, input);
             }));
         }

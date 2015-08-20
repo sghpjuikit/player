@@ -5,23 +5,19 @@
 package Layout.Widgets;
 
 import java.io.File;
+import java.io.IOException;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 
 import Layout.Widgets.controller.FXMLController;
-import unused.Log;
 
 /**
- * Widget based on .fxml file. Uses {@link FXMLController}.
+ * Widget based on .fxml file and {@link FXMLController}.
  * <p>
- * This class wraps any desired .fxml file denoted by its location into widget
- * so it can be recognized by the application as a component for layout.
- * <p>
- * Widget is loaded dynamically from its location. It adopts the standard fxml +
- * controller pattern.
- * More on the creation process of this widget: {@link FXMLWidgetFactory}
+ * Widget is loaded from its location. It adopts the .fxml + controller pattern.
  * 
+ * @see FXMLWidgetFactory
  * @author uranium
  */
 public final class FXMLWidget extends Widget<FXMLController> {
@@ -31,28 +27,18 @@ public final class FXMLWidget extends Widget<FXMLController> {
     }
 
     @Override
-    public Node loadInitial() {
-        try {
-            // instantiate controller
-            initializeController();
-            
-            // load controller graphics
-            FXMLLoader loader = new FXMLLoader();
-                       loader.setLocation(getFactory().url);
-                       loader.setController(controller);
-            Node n = loader.load();
-            
-            controller.init();
-            restoreConfigs();
-            controller.refresh();
-            
-            return n;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            Log.err("Widget " + name + " failed to load. " + ex.getMessage() );
-            // inject empty content
-            return Widget.EMPTY().load();
-        }
+    protected Node loadInitial() throws IOException {
+        // load controller graphics
+        FXMLLoader loader = new FXMLLoader();
+                   loader.setLocation(getFactory().url);
+                   loader.setController(controller);
+        Node n = loader.load();
+
+        controller.init();
+        restoreConfigs();
+        controller.refresh();
+
+        return n;
     }
 
     @Override
@@ -66,5 +52,4 @@ public final class FXMLWidget extends Widget<FXMLController> {
         String s = getFactory().url.getPath().replace("%20"," ");
         return new File(s).getParentFile();
     }
-
 }

@@ -14,11 +14,11 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.util.Duration;
 
 import org.reactfx.Subscription;
+import org.slf4j.LoggerFactory;
 
 import AudioPlayer.Item;
 import AudioPlayer.playback.PLAYBACK;
 import AudioPlayer.playback.PlaybackState;
-import unused.Log;
 
 import static javafx.scene.media.MediaPlayer.Status.*;
 import static util.reactive.Util.maintain;
@@ -63,8 +63,7 @@ public class JavaFxPlayer implements Play {
         try {
             media = new Media(item.getURI().toString());
         } catch (MediaException e) {
-            Log.err(e.getLocalizedMessage());
-            // this should be actually handled
+            LoggerFactory.getLogger(JavaFxPlayer.class).error("Media creation failed",e);
             return;
         }
 

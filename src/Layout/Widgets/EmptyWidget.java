@@ -8,10 +8,13 @@ import Configuration.Config;
 import Layout.Widgets.controller.Controller;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
+
 import java.util.Collection;
-import java.util.Collections;
+
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
+
+import static com.sun.org.apache.xerces.internal.impl.xs.util.ShortListImpl.EMPTY_LIST;
 
 /**
  * Empty widget.
@@ -31,15 +34,19 @@ import javafx.scene.layout.Region;
 )
 class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> {
 
+    private final Widget widget = null;
+    private final Outputs o = new Outputs();
+    private final Inputs i = new Inputs();
+    
     public EmptyWidget() {
         super("Empty", new EmptyWidgetFactory());
     }
 
     @Override
     public Collection<Config<Object>> getFields() {
-    // cant use default implementation. it calls getFields on the controller
-    // since this=this.controller -> StackOverflow
-        return Collections.EMPTY_LIST;
+        // cant use default implementation. it calls getFields on the controller
+        // since this=this.controller -> StackOverflow
+        return EMPTY_LIST;
     }
     
     @Override public Node loadInitial() {
@@ -58,9 +65,6 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
         return this;
     }
 
-    
-    private final Outputs o = new Outputs();
-    private final Inputs i = new Inputs();
     @Override
     public Outputs getOutputs() {
         return o;

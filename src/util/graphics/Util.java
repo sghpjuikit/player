@@ -5,6 +5,10 @@
  */
 package util.graphics;
 
+import java.util.function.Consumer;
+
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -15,6 +19,8 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  * Graphic utility methods.
@@ -82,5 +88,15 @@ public class Util {
     public static void setScaleXY(Node n, double x, double y) {
         n.setScaleX(x);
         n.setScaleY(y);
+    }
+    
+    public static void add1timeEventHandler(Stage etarget, EventType<WindowEvent> etype, Consumer<WindowEvent> ehandler) {
+        etarget.addEventHandler(etype, new EventHandler<WindowEvent>() {
+            @Override
+            public void handle(WindowEvent e) {
+                ehandler.accept(e);
+                etarget.removeEventHandler(etype, this);
+            }
+        });
     }
 }

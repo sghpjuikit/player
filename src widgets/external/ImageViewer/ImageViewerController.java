@@ -37,7 +37,7 @@ import gui.InfoNode.ItemInfo;
 import gui.objects.icon.Icon;
 import gui.objects.image.Thumbnail;
 import main.App;
-import util.access.Var;
+import util.access.Ѵ;
 import util.animation.Anim;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -122,40 +122,40 @@ public class ImageViewerController extends FXMLController implements ImageDispla
     
     // config
     @IsConfig(name = "Thumbnail size", info = "Size of the thumbnails.")
-    public final Var<Double> thumbSize = new Var<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
+    public final Ѵ<Double> thumbSize = new Ѵ<>(70d, v -> thumbnails.forEach(t->t.getPane().setPrefSize(v,v)));
     @IsConfig(name = "Thumbnail gap", info = "Spacing between thumbnails")
-    public final Var<Double> thumbGap = new Var<>(2d, v -> {
+    public final Ѵ<Double> thumbGap = new Ѵ<>(2d, v -> {
         thumb_pane.setHgap(v);
         thumb_pane.setVgap(v);
     });
     @IsConfig(name = "Slideshow reload time", info = "Time between picture change.")
-    public final Var<Duration> slideshow_dur = new Var<>(seconds(15), slideshow::setTimeoutAndRestart);
+    public final Ѵ<Duration> slideshow_dur = new Ѵ<>(seconds(15), slideshow::setTimeoutAndRestart);
     @IsConfig(name = "Slideshow", info = "Turn sldideshow on/off.")
-    public final Var<Boolean> slideshow_on = new Var<>(true, slideshow::setRunning);
+    public final Ѵ<Boolean> slideshow_on = new Ѵ<>(true, slideshow::setRunning);
     @IsConfig(name = "Show big image", info = "Show thumbnails.")
-    public final Var<Boolean> showImage = new Var<>(true, mainImage.getPane()::setVisible);
+    public final Ѵ<Boolean> showImage = new Ѵ<>(true, mainImage.getPane()::setVisible);
     @IsConfig(name = "Show thumbnails", info = "Show thumbnails.")
-    public final Var<Boolean> showThumbnails = new Var<>(true, this::applyShowThumbs);
+    public final Ѵ<Boolean> showThumbnails = new Ѵ<>(true, this::applyShowThumbs);
     @IsConfig(name = "Hide thumbnails on mouse exit", info = "Hide thumbnails when mouse leaves the widget area.")
-    public final Var<Boolean> hideThumbEager = new Var<>(true, v ->
+    public final Ѵ<Boolean> hideThumbEager = new Ѵ<>(true, v ->
        root.setOnMouseExited(!v ? null : e -> {
            if(!root.contains(e.getX(), e.getY())) // make sur emouse really is out
                showThumbnails.setNapplyValue(false);
        })
     );
     @IsConfig(name = "Show thumbnails on mouse enter", info = "Show thumbnails when mouse enters the widget area.")
-    public final Var<Boolean> showThumbEager = new Var<>(false, v ->
+    public final Ѵ<Boolean> showThumbEager = new Ѵ<>(false, v ->
         root.setOnMouseEntered(!v ? null : e -> showThumbnails.setNapplyValue(true))
     );
     @IsConfig(name = "Show thumbnails rectangular", info = "Always frame thumbnails into squares.")
-    public final Var<Boolean> thums_rect = new Var<>(false, v -> thumbnails.forEach(t -> {
+    public final Ѵ<Boolean> thums_rect = new Ѵ<>(false, v -> thumbnails.forEach(t -> {
         t.setBorderToImage(!v);
         t.setBackgroundVisible(v);
     }));
     @IsConfig(name = "Alignment", info = "Preferred image alignment.")
-    public final Var<Pos> align = new Var<>(CENTER, mainImage::applyAlignment);
+    public final Ѵ<Pos> align = new Ѵ<>(CENTER, mainImage::applyAlignment);
     @IsConfig(name = "Theater mode", info = "Turns off slideshow, shows image background to fill the screen, disables image border and displays information about the song.")
-    public final Var<Boolean> theater_mode = new Var<>(false, this::applyTheaterMode);
+    public final Ѵ<Boolean> theater_mode = new Ѵ<>(false, this::applyTheaterMode);
     
     @IsConfig(name = "Forbid no content", info = "Ignores empty directories and doesnt change displayed images if there is nothing to show.")
     public boolean keepContentOnEmpty = true;

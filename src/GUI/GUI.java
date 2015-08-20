@@ -31,7 +31,7 @@ import gui.objects.Window.stage.Window;
 import main.App;
 import unused.Log;
 import util.File.FileUtil;
-import util.access.Var;
+import util.access.Ѵ;
 import util.access.VarEnum;
 import util.animation.interpolator.CircularInterpolator;
 import util.dev.TODO;
@@ -75,7 +75,7 @@ public class GUI {
      * nothing.
      */
     @IsConfig(name = "Font", info = "Application font.")
-    public static final Var<Font> font = new Var<>(Font.getDefault(), GUI::applyFont);
+    public static final Ѵ<Font> font = new Ѵ<>(Font.getDefault(), GUI::applyFont);
     
     // non applied configs
     @IsConfig(name = "Layout mode blur bgr", info = "Layout mode use blur effect.")
@@ -89,9 +89,9 @@ public class GUI {
     @IsConfig(name = "Layout mode anim length", info = "Duration of layout mode transition effects.")
     public static Duration duration_LM = millis(250);
     @IsConfig(name = "Snap", info = "Allows snapping feature for windows and controls.")
-    public static final Var<Boolean> snapping = new Var(true);
+    public static final Ѵ<Boolean> snapping = new Ѵ(true);
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
-    public static final Var<Double> snapDistance = new Var(6d);
+    public static final Ѵ<Double> snapDistance = new Ѵ(6d);
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
     private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {

@@ -18,7 +18,7 @@ import org.reactfx.Subscription;
 
 import unused.Log;
 import util.Util;
-import util.access.Var;
+import util.access.Ѵ;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
 import util.access.OVal;
@@ -295,7 +295,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
            value instanceof ReadOnlyProperty)
             throw new RuntimeException("Value " + value + "is a property and can"
                     + "not be turned into Config as value.");
-        return forProperty(name, new Var<>(value));
+        return forProperty(name, new Ѵ<>(value));
     }
     
     /**
@@ -751,7 +751,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         
     }
     
-    public static class VarList<T> extends Var<ObservableList<T>> {
+    public static class VarList<T> extends Ѵ<ObservableList<T>> {
         public final ObservableList<T> list;
         public final Supplier<T> factory;
         public final Ƒ1<T,Configurable<?>> toConfigurable;

@@ -19,6 +19,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 
 import org.reactfx.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.glass.ui.Robot;
 import com.thoughtworks.xstream.XStream;
@@ -47,8 +49,7 @@ import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
 import gui.pane.IOPane;
 import main.App;
-import unused.Log;
-import util.access.Var;
+import util.access.Ѵ;
 import util.animation.Anim;
 import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
@@ -66,12 +67,12 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.*;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.stage.StageStyle.UNDECORATED;
+import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static util.animation.Anim.par;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.no;
 import static util.functional.Util.*;
-import static util.graphics.Util.setAnchors;
-import static util.graphics.Util.setScaleXY;
+import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 
 /**
@@ -95,6 +96,7 @@ import static util.reactive.Util.maintain;
 @IsConfigurable
 public class Window extends WindowBase implements SelfSerializator<Window> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
     /** Psududoclass active when this window is focused. Applied on root as '.window'. */
     public static final PseudoClass pcFocused = PseudoClass.getPseudoClass("focused");
     /** Psududoclass active when this window is resized. Applied on root as '.window'. */
@@ -154,7 +156,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 /******************************** Configs *************************************/
 
     @IsConfig(name = "Opacity", info = "Window opacity.", min = 0, max = 1)
-    public static final Var<Double> windowOpacity = new Var<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
+    public static final Ѵ<Double> windowOpacity = new Ѵ<>(1d, v -> windows.forEach(w -> w.getStage().setOpacity(v)));
 
     @IsConfig(name = "Overlay effect", info = "Use color overlay effect.")
     public static boolean gui_overlay = false;
@@ -163,7 +165,7 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static boolean gui_overlay_use_song = false;
 
     @IsConfig(name = "Overlay effect color", info = "Set color for color overlay effect.")
-    public static final Var<Color> gui_overlay_color = new Var<>(BLACK, v -> {
+    public static final Ѵ<Color> gui_overlay_color = new Ѵ<>(BLACK, v -> {
 	if (!gui_overlay_use_song) applyColorEffect(v);
     });
 
@@ -174,10 +176,10 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static double overlay_norm_factor = 0.5;
 
     @IsConfig(name = "Borderless", info = "Hides borders.")
-    public static final Var<Boolean> window_borderless = new Var<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
+    public static final Ѵ<Boolean> window_borderless = new Ѵ<>(false, v -> windows.forEach(w -> w.setBorderless(v)));
     
     @IsConfig(name = "Headerless", info = "Hides header.")
-    public static final Var<Boolean> window_headerless = new Var<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
+    public static final Ѵ<Boolean> window_headerless = new Ѵ<>(false, v -> windows.forEach(w -> w.setHeaderVisible(!v)));
 
     @AppliesConfig("overlay_norm_factor")
     @AppliesConfig("gui_overlay_use_song")
@@ -470,14 +472,14 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         
         // move the window owner to screen of this window, which
         // moves taskbar icon to respective screen's taskbar
-        App.getWindowOwner().setX(getCenterX());
         moving.addListener((o,ov,nv) -> {
             if(ov && !nv)
                 App.getWindowOwner().setX(getCenterX());
         });
+        add1timeEventHandler(s, WINDOW_SHOWN, e -> App.getWindowOwner().setX(getCenterX()));
         
-	 setIcon(App.getIcon());
-	 setTitle(null);
+	setIcon(App.getIcon());
+	setTitle(null);
 	// setTitlePosition(Pos.CENTER_LEFT);
     }
 
@@ -903,9 +905,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static Window deserialize(File f) throws IOException {
 	try {
 	    return (Window) X.fromXML(f);
-	} catch (ClassCastException | StreamException ex) {
-	    Log.err("Unable to load window from the file: " + f.getPath()
-		+ ". The file not found or content corrupted. ");
+	} catch (ClassCastException | StreamException e) {
+            LOGGER.error("Unable to load window from the file {}",e);
 	    throw new IOException();
 	}
     }
@@ -913,9 +914,8 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static Window deserializeSuppressed(File f) {
 	try {
 	    return (Window) X.fromXML(f);
-	} catch (ClassCastException | StreamException ex) {
-	    Log.err("Unable to load window from the file: " + f.getPath()
-		+ ". The file not found or content corrupted. ");
+	} catch (ClassCastException | StreamException e) {
+            LOGGER.error("Unable to load window from the file {}",e);
 	    return null;
 	}
     }

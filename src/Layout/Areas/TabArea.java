@@ -24,7 +24,6 @@ import Layout.Widgets.Widget;
 import gui.GUI;
 import gui.objects.Window.stage.UiContext;
 import gui.objects.Window.stage.Window;
-import unused.Log;
 import util.graphics.drag.DragUtil;
 
 import static java.util.Collections.*;
@@ -229,8 +228,6 @@ public final class TabArea extends PolyArea {
     }
     
     public void moveTab(int from, int to) {
-        Log.deb("Moving component tab " + from + " " + to);
-        
         // prevent selection change
         selectComponentPreventLoad(true);
         

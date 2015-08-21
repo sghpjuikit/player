@@ -5,6 +5,7 @@
  */
 package gui.objects.icon;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,12 +23,21 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
+import org.slf4j.LoggerFactory;
+
 import com.sun.javafx.css.ParsedValueImpl;
 import com.sun.javafx.css.parser.CSSParser;
 
 import action.Action;
 import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
+import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import de.jensd.fx.glyphs.materialicons.MaterialIconView;
+import de.jensd.fx.glyphs.weathericons.WeatherIcon;
+import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
@@ -39,41 +49,55 @@ import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
 import static javafx.scene.text.TextAlignment.JUSTIFY;
 import static javafx.util.Duration.millis;
+import static util.Util.getEnumConstants;
 import static util.Util.getFieldValue;
+import static util.functional.Util.stream;
 import static util.graphics.Util.setScaleXY;
 
 public class Icon<I extends Icon> extends Text {
     
-    public final static String TTF_PATH = "/de/jensd/fx/glyphs/fontawesome/fontawesome-webfont.ttf";
     // animation builder, & reusable supplier
     private static final Ƒ1<Icon,Anim> A = i -> new Anim(millis(400), p -> setScaleXY(i,1-0.3*p*p*p));
-
+    private static final Double DEFAULT_ICON_SIZE = 12.0;
+    private static final String DEFAULT_FONT_SIZE = "1em";
+    
     static {
-        Font.loadFont(Icon.class.getResource(TTF_PATH).toExternalForm(), 10.0);
+        try {
+            Font.loadFont(Icon.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(Icon.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(Icon.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(Icon.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
+        } catch (IOException e) {
+            LoggerFactory.getLogger(Icon.class).error("Couldnt load font",e);
+        }
     }
 
-    public final static Double DEFAULT_ICON_SIZE = 12.0;
-    public final static String DEFAULT_FONT_SIZE = "1em";
-
+    
     private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text 
     private final ObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
     private final ObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", 12);
-    private final Class typeOfT = FontAwesomeIcon.class;
+    private Class iconType = FontAwesomeIcon.class;
 
-
+    
     public Icon() {
         this(null,-1);
     }
+    
     public Icon(GlyphIcons i) {
         this(i, -1);
     }
+    
     public Icon(GlyphIcons i, double size) {
         this(i, size, null, (EventHandler)null);
     }
+    
     public Icon(GlyphIcons i, double size, String tooltip) {
         this(i, size, tooltip, (EventHandler)null);
     }
+    
     public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
+        if(i!=null) iconType = i.getClass();
+        
         glyphSizeProperty().addListener((o,ov,nv) -> {
             updateSize();
         });
@@ -104,13 +128,13 @@ public class Icon<I extends Icon> extends Text {
         this(ico, size, tooltip);
         onClick(onClick);
     }
+    
     public Icon(GlyphIcons ico, double size, Action action) {
         this(ico, size, action.getInfo(), (Runnable)action);
     }
 
     @FXML
-    public void init() {
-    }
+    public void init() {}
 
 /******************************************************************************/
     
@@ -152,7 +176,7 @@ public class Icon<I extends Icon> extends Text {
                 // useless objects
                 GlyphIcons g = null;
                 try {
-                    g = ((GlyphIcons) Enum.valueOf(typeOfT, getGlyphName()));
+                    g = ((GlyphIcons) Enum.valueOf(iconType, getGlyphName()));
                 } catch (Exception x) {}
                 if(g!=null) {
                     t.setGraphic(Icons.createIcon(g, 30));
@@ -228,8 +252,14 @@ public class Icon<I extends Icon> extends Text {
 
     
     
-    public FontAwesomeIcon getIco() {
-        return FontAwesomeIcon.valueOf(getGlyphName());
+    public GlyphIcons getIco() {
+        String n = getGlyphName();
+        return (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class)
+                .flatMap(c -> stream(getEnumConstants(c)))
+                .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))
+                .findFirst().orElseGet(this::getDefaultGlyph);
+//        
+//        return FontAwesomeIcon.valueOf(getGlyphName());
     }
     
     
@@ -282,8 +312,9 @@ public class Icon<I extends Icon> extends Text {
         setGlyphSize(s);
     }
 
-    public final void setIcon(GlyphIcons glyph) {
-        setGlyphName(glyph.name());
+    public final void setIcon(GlyphIcons i) {
+        if(i!=null) iconType = i.getClass();
+        setGlyphName(i.name());
     }
 
     public FontAwesomeIcon getDefaultGlyph(){ return ADJUST; };
@@ -296,8 +327,10 @@ public class Icon<I extends Icon> extends Text {
     private void updateIcon() {
         GlyphIcons i = getDefaultGlyph();
         try {
-            i = ((GlyphIcons) Enum.valueOf(typeOfT, getGlyphName()));
-        } catch (Exception e) {}
+            i = ((GlyphIcons) Enum.valueOf(iconType, getGlyphName()));
+        } catch (Exception e) {
+//            e.printStackTrace();
+        }
         
         Font f = new Font(i.getFontFamily(), getFont().getSize());
         setFont(f);

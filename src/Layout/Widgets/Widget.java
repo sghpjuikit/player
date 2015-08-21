@@ -141,7 +141,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
             LOGGER.error("Widget controller creation failed {}",cc,e);
             return null;
         }
-        System.out.println("BLABLABLA " + c + " " + cc);
+
         // inject this widget into the controller
         util.Util.setField(c, "widget", this);
 

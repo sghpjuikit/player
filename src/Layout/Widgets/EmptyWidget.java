@@ -4,17 +4,16 @@
  */
 package Layout.Widgets;
 
-import Configuration.Config;
-import Layout.Widgets.controller.Controller;
-import Layout.Widgets.controller.io.Inputs;
-import Layout.Widgets.controller.io.Outputs;
-
 import java.util.Collection;
+import java.util.Collections;
 
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
 
-import static com.sun.org.apache.xerces.internal.impl.xs.util.ShortListImpl.EMPTY_LIST;
+import Configuration.Config;
+import Layout.Widgets.controller.Controller;
+import Layout.Widgets.controller.io.Inputs;
+import Layout.Widgets.controller.io.Outputs;
 
 /**
  * Empty widget.
@@ -46,7 +45,7 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     public Collection<Config<Object>> getFields() {
         // cant use default implementation. it calls getFields on the controller
         // since this=this.controller -> StackOverflow
-        return EMPTY_LIST;
+        return Collections.EMPTY_LIST;
     }
     
     @Override public Node loadInitial() {

@@ -15,7 +15,7 @@ Aims:
 ###Playback 
 
 Filetypes:
-- mp3,mp4, m4a, wav, ogg, flac
+- mp3, mp4, m4a, wav, ogg, flac
 - possibly more to come
 
 Protocols:
@@ -96,16 +96,16 @@ Song tables:
 - requires no software (e.g. java) preinstalled
 - runs from anywhere
 - does not require internet access
-- does not write to registry or create any file outside its directory (as long as java itself does not require it, e.g., cached data by WebView (in-app web browser)
+- does not write to registry or create files outside its directory (except for some cache & temporary files)
 
 ### GUI
 
+  UI is minimalistic but powerful and fully modular. Modules (widgets) are part of layout hierarchy, which can be manipulated, saved or even loaded as standalone application. 
+
 - minimalistic - shows only whats important, no endless headers and borders taking up important space. With headerless and borderless window mode 100% of the space is given to the widgets.
-- powerful - infinite space, horizontally scrollable, zoomable
+- powerful - infinite virtual space, horizontally scrollable, zoomable
 - layout mode - powerful mode displaying 2nd ui layer allowing user to edit and configure the layout, widgets and more, alleviating normal user interface from all this
-- skinnable completely by css
-- skin discovery + change + refresh without requiring application restart
-- custom skins supported
+- completely skinnable (css)(skin discovery + change + refresh does not require application restart)
 
 Widgets:
 - can provide input and output (e.g. playlist table has selected song as output)

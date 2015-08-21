@@ -3,6 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- animate seeker track on press/release
 - actionpane try animate icons loading
 - Metadata cover caching causes outdated data if cover is set to tag
 - library tables playing row style updates no longer refresh on song change sometimes

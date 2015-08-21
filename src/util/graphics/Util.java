@@ -5,6 +5,7 @@
  */
 package util.graphics;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.event.EventHandler;
@@ -36,10 +37,24 @@ public class Util {
         return l;
     }
     
+    public static HBox layHorizontally(double gap, Pos align, List<? extends Node> nodes) {
+        HBox l = new HBox(gap);
+             l.setAlignment(align);
+             l.getChildren().addAll(nodes);
+        return l;
+    }
+    
     /** Constructs ordinary {@link VBox)}. */
     public static VBox layVertically(double gap, Pos align, Node... nodes) {
         VBox l = new VBox(gap, nodes);
              l.setAlignment(align);
+        return l;
+    }
+    
+    public static VBox layVertically(double gap, Pos align, List<? extends Node> nodes) {
+        VBox l = new VBox(gap);
+             l.setAlignment(align);
+             l.getChildren().addAll(nodes);
         return l;
     }
     

@@ -72,7 +72,7 @@ public class DirViewer extends ClassController {
     
     Cell item = null;
     CellPane cells = new CellPane(160,220,5);
-    ExecutorService e = newSingleDaemonThreadExecutor();
+    ExecutorService executor = newSingleDaemonThreadExecutor();
     
     public DirViewer() {
         addEventHandler(MOUSE_CLICKED, e -> {
@@ -100,15 +100,16 @@ public class DirViewer extends ClassController {
         cells.getChildren().clear();
         if(item!=null) {
             Fut.fut(item)
-               .map(c->c.children(),e)
+               .map(Cell::children,executor)
                .showProgress(Window.windows.get(0).taskAdd())
-               .use(newcells -> 
-                   cells.getChildren().addAll(filterMap(newcells,i->!ImageFileFormat.isSupported(i.val),Cell::load))
-               ,FX)
+               .use(newcells ->  cells.getChildren().addAll(map(newcells,Cell::load)),FX)
                .run();
         }
     }
     
+    private static boolean filter(File f) {
+        return !f.isHidden() && f.canRead() && !ImageFileFormat.isSupported(f);
+    }
     
     public class Cell {
         
@@ -161,7 +162,7 @@ public class DirViewer extends ClassController {
             // sorted list
             List<Cell> dirs = new ArrayList<>();
             List<Cell> fils = new ArrayList<>();
-            listFiles(val).stream().filter(f -> !f.isHidden() && f.canRead()).forEach(f -> {
+            listFiles(val).stream().filter(DirViewer::filter).forEach(f -> {
                 if(!f.isDirectory()) dirs.add(new Cell(this,f));
                 else                 fils.add(new Cell(this,f));
             });
@@ -193,13 +194,17 @@ public class DirViewer extends ClassController {
                     }
                 });
 
-                String m = getName(f);
-                       m = m.replaceAll("\\[.*\\]", "");
-                       m = m.replaceAll("\\(.*\\)", "");
-                       m = m.trim();
-                String n = f.isDirectory() ? m : toS(split(m," ",x->x),
-                    s -> s.length()<=1 || !isAlphabetic(s.charAt(0)) ? s : s.substring(0,1),""
-                );
+                String n = getName(f);
+                if(n.length()>25) {
+                   n = n.replaceAll("\\[.*\\]", "");
+                   n = n.replaceAll("\\(.*\\)", "");
+                   n = n.trim();
+                }
+                if(n.length()>25) {
+                   n = f.isDirectory() ? n : toS(split(n," "),
+                       s -> s.length()<=1 || !isAlphabetic(s.charAt(0)) ? s : s.substring(0,1),""
+                   );
+                }
                 Label l = new Label(n);
                 root.getChildren().addAll(t.getPane(),l);
 
@@ -211,13 +216,14 @@ public class DirViewer extends ClassController {
     public class TopCell extends Cell {
 
         public TopCell() {
-            super(null,null);System.out.println("new");
+            super(null,null);
         }
 
         @Override
         protected List<Cell> buildChildren() {
             return files.list.stream()
                       .flatMap(f->f.isDirectory() ? stream(listFiles(f)) : Stream.empty())
+                      .filter(DirViewer::filter)
                       .sorted(by(File::getName))
                       .map(f -> new Cell(this,f))
                       .collect(toList());

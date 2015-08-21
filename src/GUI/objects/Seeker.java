@@ -75,12 +75,10 @@ public final class Seeker extends AnchorPane {
     private static final PseudoClass STYLE_CHAP_NEW = getPseudoClass("newly-created");
     
     private final Slider seeker = new Slider(0,1,0){
-
         @Override
         protected Skin<?> createDefaultSkin() {
             return new SeekerSkin(this);
         }
-        
     };
     private final AddChapButton addB = new AddChapButton();
     private final List<Chap> chapters = new ArrayList<>();

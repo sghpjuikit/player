@@ -2,12 +2,13 @@
 
 package util.async.executor;
 
+import java.util.function.Consumer;
+
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.util.Duration;
 
-import util.dev.Dependency;
 
 /**
 * Provides factory methods for timers that are manipulated from and execute
@@ -18,9 +19,7 @@ import util.dev.Dependency;
 public class FxTimer {
     
     private final Timeline timeline;
-    @Dependency(value = "name - field is accessed with reflection")
-    private final Runnable action;
-    
+    private final Consumer<FxTimer> action;
     private Duration period;
     private long seq = 0;
     
@@ -36,7 +35,7 @@ public class FxTimer {
     public FxTimer(Duration delay, int cycles, Runnable action) {
         this.period = Duration.millis(delay.toMillis());
         this.timeline = new Timeline();
-        this.action = action;
+        this.action = t -> action.run();
 
         timeline.setCycleCount(cycles);
     }
@@ -44,6 +43,19 @@ public class FxTimer {
     * Equivalent to {@code new FxTimer(Duration.millis(delay), action, cycles);}
     */
     public FxTimer(double delay, int cycles, Runnable action) {
+        this(Duration.millis(delay), cycles, action);
+    }
+    public FxTimer(Duration delay, int cycles, Consumer<FxTimer> action) {
+        this.period = Duration.millis(delay.toMillis());
+        this.timeline = new Timeline();
+        this.action = action;
+
+        timeline.setCycleCount(cycles);
+    }
+    /**
+    * Equivalent to {@code new FxTimer(Duration.millis(delay), action, cycles);}
+    */
+    public FxTimer(double delay, int cycles, Consumer<FxTimer> action) {
         this(Duration.millis(delay), cycles, action);
     }
 
@@ -66,7 +78,7 @@ public class FxTimer {
         else {
             timeline.getKeyFrames().setAll(new KeyFrame(period, ae -> {
                 if(seq == expected) {
-                    action.run();
+                    action.accept(this);
                 }
             }));
             timeline.play();
@@ -83,7 +95,7 @@ public class FxTimer {
     }
     
     public void runNow() {
-        if(action!=null) action.run();
+        if(action!=null) action.accept(this);
     }
     
     public void pause() {

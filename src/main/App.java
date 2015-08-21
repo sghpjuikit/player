@@ -16,8 +16,11 @@ import javafx.application.Platform;
 import javafx.beans.property.*;
 import javafx.collections.ObservableListBase;
 import javafx.scene.ImageCursor;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -65,7 +68,15 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+import de.jensd.fx.glyphs.GlyphIcons;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
+import de.jensd.fx.glyphs.materialicons.MaterialIcon;
+import de.jensd.fx.glyphs.materialicons.MaterialIconView;
+import de.jensd.fx.glyphs.weathericons.WeatherIcon;
+import de.jensd.fx.glyphs.weathericons.WeatherIconView;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
 import gui.objects.TableCell.RatingCellFactory;
@@ -98,11 +109,19 @@ import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UPLOAD;
 import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
+import static java.util.stream.Collectors.toList;
+import static javafx.geometry.Pos.CENTER;
+import static javafx.geometry.Pos.TOP_CENTER;
+import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
+import static util.Util.getEnumConstants;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.functional.Util.map;
+import static util.functional.Util.stream;
+import static util.graphics.Util.layHorizontally;
+import static util.graphics.Util.layVertically;
 
 /**
  * Application. Launches and terminates program.
@@ -654,17 +673,56 @@ public class App extends Application {
     
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")
     public static void openIconViewer() {
-        Fut.fut()
-           .then(() -> {
-                CellPane c = new CellPane(70,80,5);
-                c.getChildren().addAll(map(FontAwesomeIcon.values(),i -> new IconInfo(i,55)));
-                ScrollPane p = c.scrollable();
-                p.setPrefSize(500, 720);
-                PopOver o = new PopOver(p);
-                runLater(() -> o.show(App_Center));
-           })
-           .showProgress(Window.getActive().taskAdd())
-           .run();
+        
+        try {
+            Font.loadFont(App.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(App.class.getResource(WeatherIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(App.class.getResource(MaterialDesignIconView.TTF_PATH).openStream(), 10.0);
+            Font.loadFont(App.class.getResource(MaterialIconView.TTF_PATH).openStream(), 10.0);
+        } catch (IOException e) {
+            LOGGER.error("Couldnt load font",e);
+        }
+        
+        StackPane root = new StackPane();
+                  root.setPrefSize(600, 720);
+        List<Button> typeicons = stream(FontAwesomeIcon.class,WeatherIcon.class,
+                                      MaterialDesignIcon.class,MaterialIcon.class)
+                .map((Class c) -> {
+                    Button b = new Button(c.getSimpleName());
+                    b.setOnMouseClicked(e -> {
+                        if(e.getButton()==PRIMARY) {
+                            if(b.getUserData()!=null) {
+                                root.getChildren().setAll((ScrollPane)b.getUserData());
+                            } else {
+                                Fut.fut()
+                                   .then(() -> {
+                                        CellPane cp = new CellPane(70,80,5);
+                                        cp.getChildren().addAll(map(getEnumConstants(c),i -> new IconInfo((GlyphIcons)i,55)));
+                                        ScrollPane sp = cp.scrollable();
+                                        b.setUserData(sp);
+                                        runLater(() -> root.getChildren().setAll(sp));
+                                   })
+                                   .showProgress(Window.getActive().taskAdd())
+                                   .run();
+                            }
+                            e.consume();
+                        }
+                    });
+                    return b;
+                }).collect(toList());
+        PopOver o = new PopOver(layVertically(20,TOP_CENTER,layHorizontally(8,CENTER,typeicons), root));
+                o.show(App_Center);
+//        Fut.fut()
+//           .then(() -> {
+//                CellPane c = new CellPane(70,80,5);
+//                c.getChildren().addAll(map(FontAwesomeIcon.values(),i -> new IconInfo(i,55)));
+//                ScrollPane p = c.scrollable();
+//                p.setPrefSize(500, 720);
+//                PopOver o = new PopOver(p);
+//                runLater(() -> o.show(App_Center));
+//           })
+//           .showProgress(Window.getActive().taskAdd())
+//           .run();
     }
     
     @IsAction(name = "Open settings", desc = "Opens application settings.")

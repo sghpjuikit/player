@@ -58,6 +58,10 @@ import util.graphics.fxml.ConventionFxmlLoader;
 import util.serialize.SelfSerializator;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN_EXIT;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MINIMIZE;
 import static gui.objects.Window.Resize.*;
 import static java.lang.Math.*;
 import static javafx.scene.input.KeyCode.ESCAPE;
@@ -448,17 +452,17 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
         Icon ontopB = new Icon(null, 13, "Always on top\n\nForbid hiding this window behind other "
                 + "application windows", this::toggleAlwaysOnTOp);
         maintain(alwaysOnTop, mapB(SQUARE,SQUARE_ALT), ontopB::icon);
-        Icon fullscrB = new Icon(null, 13, "Fullscreen\n\nExpand window to span whole screen and "
+        Icon fullscrB = new Icon(null, 17, "Fullscreen\n\nExpand window to span whole screen and "
                 + "put it on top", this::toggleFullscreen);
-        maintain(fullscreen, mapB(COMPRESS,EXPAND), fullscrB::icon);
-        Icon minimB = new Icon(MINUS_SQUARE_ALT, 13, "Minimize application", this::toggleMinimize);
-        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB::icon);
-        Icon maximB = new Icon(PLUS_SQUARE_ALT, 13, "Maximize\n\nExpand window to span whole screen",
+        maintain(fullscreen, mapB(FULLSCREEN_EXIT,FULLSCREEN), fullscrB::icon);
+        Icon minimB = new Icon(WINDOW_MINIMIZE, 13, "Minimize application", this::toggleMinimize);
+//        maintain(minimB.hoverProperty(), mapB(MINUS_SQUARE,MINUS_SQUARE_ALT), minimB::icon);
+        Icon maximB = new Icon(WINDOW_MAXIMIZE, 13, "Maximize\n\nExpand window to span whole screen",
                 this::toggleMaximize);
-        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
+//        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
         Icon closeB = new Icon(CLOSE, 13, "Close\n\nCloses window and application if no other "
                 + "windows remain open", this::close);
-        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
+//        maintain(maximB.hoverProperty(), mapB(PLUS_SQUARE,PLUS_SQUARE_ALT), maximB::icon);
         
         // right header
 	rightHeaderBox.getChildren().addAll(miniB, ontopB, fullscrB, minimB, maximB, closeB);

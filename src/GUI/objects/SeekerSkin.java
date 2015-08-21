@@ -17,6 +17,8 @@ import javafx.util.StringConverter;
 
 import com.sun.javafx.scene.control.behavior.SliderBehavior;
 import com.sun.javafx.scene.control.skin.BehaviorSkinBase;
+import com.sun.javafx.scene.control.skin.SliderSkin;
+
 
 /**
  * Stripped and customized version of {@link SliderSkin} for {@link Seeker}.

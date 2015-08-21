@@ -770,6 +770,15 @@ public class Util {
         if(txt.isEmpty()) return EMPTY_LIST;
         return Stream.of(txt.split(regex, -1)).map(m).collect(toList());
     }
+    public static List<String> split(String txt, String regex, int i) {
+        if(txt.isEmpty()) return EMPTY_LIST;
+        return Stream.of(txt.split(regex, i)).collect(toList());
+    }
+    
+    public static List<String> split(String txt, String regex) {
+        if(txt.isEmpty()) return EMPTY_LIST;
+        return Stream.of(txt.split(regex, -1)).collect(toList());
+    }
     
     
     

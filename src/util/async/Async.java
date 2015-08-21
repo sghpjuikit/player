@@ -17,7 +17,6 @@ import javafx.util.Duration;
 import util.async.executor.FxTimer;
 
 import static javafx.animation.Animation.INDEFINITE;
-import static util.Util.setField;
 
 /**
  *
@@ -79,10 +78,7 @@ public final class Async {
      * periodic execution. Otherwise it will never stop !
      */
     public static void runPeriodic(Duration period, Consumer<FxTimer> action) {
-        FxTimer t = new FxTimer(period, INDEFINITE, ()->{}); // use dummy action
-        Runnable r = () -> action.accept(t);
-        setField(t,"action",r);
-        t.start();
+        new FxTimer(period, INDEFINITE, action).start();
     }
     
     /**

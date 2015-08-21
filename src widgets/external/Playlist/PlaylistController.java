@@ -45,6 +45,7 @@ import static Layout.Widgets.Widget.Group.PLAYLIST;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
 import static Layout.Widgets.WidgetManager.WidgetSource.OPEN;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.FILTER;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FILTER_OUTLINE;
 import static gui.InfoNode.InfoTable.DEFAULT_TEXT_FACTORY;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.control.SelectionMode.MULTIPLE;
@@ -115,11 +116,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 t.setWrapText(true);
                 t.setMaxWidth(200);
         Icon i = table.filterPane.getButton();
-             i.icon(FILTER);
+             i.icon(v ? FILTER : FILTER_OUTLINE);
              i.onClick(this::filterToggle);
-             i.setOpacity(v ? 1 : 0.4);
              i.tooltip(v ? on : of);
-             i.setDisable(false);
+             i.setDisable(false); // needed
         setUseFilterForPlayback(v);
     });
     

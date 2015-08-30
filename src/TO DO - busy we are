@@ -3,10 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- animate seeker track on press/release
 - actionpane try animate icons loading
 - Metadata cover caching causes outdated data if cover is set to tag
-- library tables playing row style updates no longer refresh on song change sometimes
 - tagger spinner likes spinning forever, teach him
 - layout mode zoom animation use loop to increase smoothness
 - filesize use unsigned long
@@ -19,7 +17,6 @@
 - converter add input area & display type of object
 - all tables sel + all sel outputs
 - make sure OVal  setDefault & deserilization works
-- icon any Glyph support
 - LastFM -> service
 - DB -> service
 - global shourtcuts -> service + make sure jintellitype dependency !cause errors
@@ -37,7 +34,6 @@
 - popover position jumps on app drag start
 - support 'infos' - custom tagged extended comments like chapters - figure out
   a good delimiter character - '|' is too common i think
-  minimode popups should prevent from autohiding, but how?
 - investigate how to properly remove image scaling artifacts
 
 -------------------------------------------------------------------------------- 

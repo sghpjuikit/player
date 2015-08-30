@@ -167,8 +167,8 @@ public final class Layout extends UniContainer implements Serializes, Serializes
     
     /**
      * Loads or reloads layout. Its effectively equivalent to loading the root
-     * Container of this layout and assigning it to the parent node of this layout.
-     * Use to initialize layout or to update up to date.
+ Container of this layout and assigning it to the parent node of this layout.
+ Use to setParentRec layout or to update up to date.
      * @param rootPane root node to load the layout into.
      * @return root node of the this layout
      */
@@ -178,7 +178,7 @@ public final class Layout extends UniContainer implements Serializes, Serializes
         
         // load
         Node n = super.load(rootPane);
-        initialize();        
+        setParentRec();        
         return n;
     }    
 

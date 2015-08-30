@@ -123,7 +123,7 @@ public final class AreaControls {
     public @FXML TilePane header_buttons;
     Icon infoB, absB;
 
-    // animations // dont initialize here or make final
+    // animations // dont setParentRec here or make final
     private final FadeTransition contrAnim;
     private final FadeTransition contAnim;
     private final Transition blurAnim;

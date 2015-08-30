@@ -55,6 +55,8 @@ import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
+import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.scene.input.MouseEvent.MOUSE_MOVED;
 import static javafx.scene.layout.AnchorPane.setBottomAnchor;
 import static javafx.util.Duration.millis;
@@ -201,7 +203,7 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         layAnchor(root, prevP, 0d,null,0d,0d);
         layAnchor(root, nextP, 0d,0d,0d,null);
 
-        navigAnim = new Anim(millis(500), p -> {
+        navigAnim = new Anim(millis(300), p -> {
             prevP.setOpacity(p);
             nextP.setOpacity(p);
             prevB.setTranslateX(+40*(p-1));
@@ -209,8 +211,8 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         });
         navigAnim.affector.accept(0d);
         
-        EventReducer inactive = toLast(1500, navigAnim::playClose);
-        EventReducer active = toFirstDelayed(500, navigAnim::playOpen);
+        EventReducer inactive = toLast(1000, () -> { if(!nextP.isHover() && !prevP.isHover()) navigAnim.playClose(); });
+        EventReducer active = toFirstDelayed(400, navigAnim::playOpen);
         root.addEventFilter(MOUSE_MOVED, e -> {
             if(thumb_root.getOpacity()==0) {
                 if(prevP.getOpacity()!=1) 
@@ -228,8 +230,11 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         // thumbnails & make sure it doesnt cover whole area
         setAnchors(thumb_root, 0d);
         root.heightProperty().addListener((o,ov,nv) -> setBottomAnchor(thumb_root, nv.doubleValue()*0.3));
-        
         root.setOnMouseClicked( e -> {
+            if(e.getButton()==SECONDARY && showThumbnails.getValue()) {
+                showThumbnails.setCycledNapplyValue();
+                e.consume();
+            }
             if(e.getButton()==PRIMARY) {
                 if(e.getY()>0.8*root.getHeight() && e.getX()>0.7*root.getWidth()) {
                     theater_mode.setCycledNapplyValue();
@@ -241,10 +246,18 @@ public class ImageViewerController extends FXMLController implements ImageDispla
         });
         // prevent scrollpane from preventing show thumbnails change
         thumb_root.setOnMouseClicked(e -> {
-            if (e.getButton()==PRIMARY) {
+            //if (e.getButton()==PRIMARY) {
                 showThumbnails.setCycledNapplyValue();
                 e.consume();
-            }
+            //}
+        });
+        
+        // slideshow on hold during user activity
+        root.addEventFilter(MOUSE_ENTERED, e -> {
+            if(slideshow_on.getValue()) slideshow.pause();
+        });
+        root.addEventFilter(MOUSE_EXITED, e -> {
+            if(slideshow_on.getValue()) slideshow.unpause();
         });
         
         // refresh if source data changed

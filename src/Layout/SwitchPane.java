@@ -236,7 +236,7 @@ public class SwitchPane implements ContainerNode {
             changed = true;
             // reload tab
             addTab(i);
-            // initialize layouts to left & right
+            // setParentRec layouts to left & right
 //            addTab(i+1);
 //            addTab(i-1);
             
@@ -277,7 +277,7 @@ public class SwitchPane implements ContainerNode {
         
         if(!layouts.containsKey(i)) {
             Container c =  new UniContainer();
-            if(container!=null) c.parent = container;
+            if(container!=null) c.setParent(container);
             if(container!=null) container.getChildren().put(i,c);
             layouts.put(i,c);
             changed = true;
@@ -351,7 +351,7 @@ public class SwitchPane implements ContainerNode {
             // snap at the end of animation 
             uiDrag.setOnFinished( a -> {
                 int i = snapTabs();
-                // initialize layouts to left & right
+                // setParentRec layouts to left & right
                 // otherwise the layouds are added only if we activate the snapping
                 // which for non-discrete mode is a problem
                 addTab(i-1);

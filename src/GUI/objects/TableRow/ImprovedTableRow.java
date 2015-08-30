@@ -9,13 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+
 import javafx.css.PseudoClass;
 import javafx.scene.control.TableRow;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+
+import util.collections.Tuple2;
+
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
-import javafx.scene.input.MouseEvent;
-import util.collections.Tuple2;
 import static util.collections.Tuples.tuple;
 
 /**
@@ -134,7 +137,7 @@ public class ImprovedTableRow<T> extends TableRow<T>{
             pseudoClassStateChanged(rule._1, v);
             // since the content is within cells themselves - the pseudoclass has to be passed down
             // if we want the content (like text, not just the cell) to be styled correctly
-            getChildrenUnmodifiable().forEach(c->c.pseudoClassStateChanged(rule._1, v));
+            getChildrenUnmodifiable().forEach(c -> c.pseudoClassStateChanged(rule._1, v));
         });
     }
 }

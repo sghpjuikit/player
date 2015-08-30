@@ -105,7 +105,7 @@ public final class Layouter implements ContainerNode {
             if(e.getButton()==PRIMARY) {
                 if(cp.root.getOpacity()!=0) return;
                 // avoid when under lock
-                if(container.isUnderLock()) return;
+                if(container.lockedUnder.get()) return;
                 // rely on the public show() implementation, not internal one
                 show();
                 e.consume();
@@ -119,9 +119,9 @@ public final class Layouter implements ContainerNode {
 //            e.consume();
 //        };
         
-        // initialize mode
+        // setParentRec mode
         setWeakMode(true); // this needs to be called in constructor
-        // initialize show
+        // setParentRec show
         setShow(GUI.isLayoutMode());
     }
 
@@ -179,7 +179,7 @@ public final class Layouter implements ContainerNode {
     public void setWeakMode(boolean val) {
         clickMode = val;
         
-        // always hide on mouse exit, initialize
+        // always hide on mouse exit, setParentRec
         if (root.getOnMouseExited()==null)
             root.setOnMouseExited(exitHider);
         // swap handlers

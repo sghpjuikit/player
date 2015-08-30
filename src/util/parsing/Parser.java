@@ -20,6 +20,7 @@ import java.util.regex.PatternSyntaxException;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
@@ -93,6 +94,11 @@ public class Parser {
     private static final Function<Object,String> errToP = toString;
     
     static {
+        Function<Object,String> sv = String::valueOf;
+        Class<? extends Throwable> nfe = NumberFormatException.class;
+        Class<? extends Throwable> iae = IllegalArgumentException.class;
+        Class<? extends Throwable> obe = IndexOutOfBoundsException.class;
+        
         registerConverter(Font.class,
             f -> String.format("%s, %s", f.getName(), f.getSize()), 
             noEx(Font.getDefault(), s -> {
@@ -102,33 +108,31 @@ public class Parser {
                 FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
                 double size = parseDouble(s.substring(i+2));
                 return Font.font(name, weight, style, size);
-            }, NumberFormatException.class, IndexOutOfBoundsException.class)
+            }, nfe,obe)
         );
-        Function<Object,String> sv = String::valueOf;
-        
         registerConverter(File.class,toString,File::new);
         registerConverter(Boolean.class,toString,Boolean::valueOf);
         registerConverter(boolean.class,sv,Boolean::valueOf);
-        registerConverter(Integer.class,toString,noEx(Integer::valueOf,NumberFormatException.class));
-        registerConverter(int.class,sv,noEx(Integer::valueOf,NumberFormatException.class));
-        registerConverter(Double.class,toString,noEx(Double::valueOf,NumberFormatException.class));
-        registerConverter(double.class,sv,noEx(Double::valueOf,NumberFormatException.class));
-        registerConverter(Short.class,toString,noEx(Short::valueOf,NumberFormatException.class));
-        registerConverter(short.class,sv,noEx(Short::valueOf,NumberFormatException.class));
-        registerConverter(Long.class,toString,noEx(Long::valueOf,NumberFormatException.class));
-        registerConverter(long.class,sv,noEx(Long::valueOf,NumberFormatException.class));
-        registerConverter(Float.class,toString,noEx(Float::valueOf,NumberFormatException.class));
-        registerConverter(float.class,sv,noEx(Float::valueOf,NumberFormatException.class));
-        registerConverter(Character.class,toString,noEx(s -> s.charAt(0),IndexOutOfBoundsException.class));
-        registerConverter(char.class,sv,noEx(s -> s.charAt(0),IndexOutOfBoundsException.class));
-        registerConverter(Byte.class,toString,noEx(Byte::valueOf,NumberFormatException.class));
-        registerConverter(byte.class,sv,noEx(Byte::valueOf,NumberFormatException.class));
+        registerConverter(Integer.class,toString,noEx(Integer::valueOf,nfe));
+        registerConverter(int.class,sv,noEx(Integer::valueOf,nfe));
+        registerConverter(Double.class,toString,noEx(Double::valueOf,nfe));
+        registerConverter(double.class,sv,noEx(Double::valueOf,nfe));
+        registerConverter(Short.class,toString,noEx(Short::valueOf,nfe));
+        registerConverter(short.class,sv,noEx(Short::valueOf,nfe));
+        registerConverter(Long.class,toString,noEx(Long::valueOf,nfe));
+        registerConverter(long.class,sv,noEx(Long::valueOf,nfe));
+        registerConverter(Float.class,toString,noEx(Float::valueOf,nfe));
+        registerConverter(float.class,sv,noEx(Float::valueOf,nfe));
+        registerConverter(Character.class,toString,noEx(s -> s.charAt(0),obe));
+        registerConverter(char.class,sv,noEx(s -> s.charAt(0),obe));
+        registerConverter(Byte.class,toString,noEx(Byte::valueOf,nfe));
+        registerConverter(byte.class,sv,noEx(Byte::valueOf,nfe));
         registerConverter(String.class, s->s, s->s);
-        registerConverter(StringSplitParser.class,toString, noEx(StringSplitParser::new, IllegalArgumentException.class));
+        registerConverter(StringSplitParser.class,toString, noEx(StringSplitParser::new, iae));
         registerConverter(Year.class,toString, noEx(Year::parse, DateTimeParseException.class));
-        registerConverter(URI.class,toString, noEx(URI::create, IllegalArgumentException.class));
+        registerConverter(URI.class,toString, noEx(URI::create, iae));
         registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
-        registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
+        registerConverterFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
     }
     

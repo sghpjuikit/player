@@ -5,13 +5,16 @@
  */
 package Layout;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javafx.scene.Node;
+
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 import Layout.Areas.Area;
 import Layout.Areas.ContainerNode;
 import Layout.Areas.FreeFormArea;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
-import java.util.HashMap;
-import java.util.Map;
-import javafx.scene.Node;
 
 /**
  */
@@ -35,13 +38,13 @@ public class FreeFormContainer extends Container {
             
         } else {
             if(c instanceof Container) {
-                Container.class.cast(c).parent = this;
+                Container.class.cast(c).setParent(this);
             }
         }
         
         children.put(index, c);
         gui.loadWindow(index, c);
-        initialize();
+        setParentRec();
     }
 
     @Override
@@ -59,9 +62,7 @@ public class FreeFormContainer extends Container {
     @Override
     public Node load() {
         if(gui==null) gui = new FreeFormArea(this);
-        
         gui.load();
-        
         return gui.getRoot();
     }
 

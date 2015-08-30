@@ -173,7 +173,7 @@ public abstract class Area<T extends Container> implements ContainerNode {
         return container.locked.get();
     }
     public final boolean isUnderLock() {
-        return container.isUnderLock();
+        return container.lockedUnder.get();
     }
     @FXML
     public void toggleLocked() {

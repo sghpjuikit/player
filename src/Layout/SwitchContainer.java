@@ -40,11 +40,11 @@ public class SwitchContainer extends Container {
         if(c==null) {
             children.remove(index);
             load();
-            initialize();
+            setParentRec();
         } else if(c instanceof Container) {
             children.put(index, c);
-            Container.class.cast(c).parent = this;
-            initialize();
+            Container.class.cast(c).setParent(this);
+            setParentRec();
             load();
         } else if (c instanceof Widget) {
             UniContainer wrap = new UniContainer();

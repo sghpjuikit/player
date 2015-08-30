@@ -31,8 +31,8 @@ import gui.objects.Window.stage.Window;
 import main.App;
 import unused.Log;
 import util.File.FileUtil;
-import util.access.Ѵ;
 import util.access.VarEnum;
+import util.access.Ѵ;
 import util.animation.interpolator.CircularInterpolator;
 import util.dev.TODO;
 
@@ -93,7 +93,7 @@ public class GUI {
     @IsConfig(name = "Snap activation distance", info = "Distance at which snap feature gets activated")
     public static final Ѵ<Double> snapDistance = new Ѵ(6d);
     @IsConfig(name = "Lock layout", info = "Locked layout will not enter layout mode.")
-    private final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
+    public final static BooleanProperty locked_layout = new SimpleBooleanProperty(false){
         @Override public void set(boolean v) {
             super.set(v);
             App.actionStream.push("Layout lock");

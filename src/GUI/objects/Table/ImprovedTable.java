@@ -5,11 +5,9 @@
  */
 package gui.objects.Table;
 
-import gui.GUI;
-import gui.objects.TableRow.ImprovedTableRow;
-import static java.lang.Math.floor;
 import java.util.ArrayList;
 import java.util.List;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -29,8 +27,13 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+
+import gui.GUI;
+import gui.objects.TableRow.ImprovedTableRow;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
+
+import static java.lang.Math.floor;
 
 /**
  *

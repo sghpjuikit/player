@@ -1,15 +1,19 @@
 
 package Layout;
 
-import Layout.Areas.Splitter;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import java.util.HashMap;
 import java.util.Map;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
-import static javafx.geometry.Orientation.VERTICAL;
 import javafx.scene.Node;
+
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
+import Layout.Areas.Splitter;
+
+import static javafx.geometry.Orientation.VERTICAL;
 
 /**
  * Implementation of {@link Container Container} containing two children.
@@ -82,11 +86,11 @@ public class BiContainer extends Container {
             throw new IndexOutOfBoundsException("Index " + index + " not supported. Only null,1,2 values supported.");
 
         if(c instanceof Container) 
-            Container.class.cast(c).parent = this;
+            Container.class.cast(c).setParent(this);
 
         children.put(index, c);
         load();
-        initialize();
+        setParentRec();
     }
     
     public void switchCildren() {

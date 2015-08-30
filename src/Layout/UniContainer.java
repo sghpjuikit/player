@@ -94,11 +94,11 @@ public class UniContainer extends Container {
         if(index==null) return;
         
         if (c instanceof Container)
-            Container.class.cast(c).parent = this;
+            Container.class.cast(c).setParent(this);
         
         child = c;
         load();
-        initialize();
+        setParentRec();
     }
     
     /**

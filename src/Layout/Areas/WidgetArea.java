@@ -15,7 +15,6 @@ import Layout.Container;
 import Layout.Widgets.Widget;
 import gui.GUI;
 import gui.pane.IOPane;
-import util.graphics.Util;
 import util.graphics.drag.DragUtil;
 
 import static gui.GUI.openAndDo;
@@ -52,7 +51,6 @@ public final class WidgetArea extends Area<Container> {
         // load controls
         controls = new AreaControls(this);
         content_padding.getChildren().addAll(controls.root);
-        Util.setAnchors(controls.root, 0d);
         
         // support css styling - 
 //        content.getStyleClass().setAll(Area.bgr_STYLECLASS);

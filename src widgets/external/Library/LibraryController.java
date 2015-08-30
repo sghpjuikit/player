@@ -245,10 +245,10 @@ public class LibraryController extends FXMLController implements SongReader {
                     contxt_menu.show(table, e);
                 })                
                 // additional css styleclasses
-                .styleRuleAdd("played", m -> Player.playingtem.get().same(m))
+                .styleRuleAdd("played", Player.playingtem.get()::same)
         );
         // maintain playing item css by refreshing column
-        d(Player.playingtem.onChange(o -> table.updateStyleRules()));
+        d(Player.playingtem.onUpdate(o -> table.updateStyleRules()));
         
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> out_sel.setValue(nv));

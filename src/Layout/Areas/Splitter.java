@@ -91,7 +91,7 @@ public final class Splitter implements ContainerNode {
             throw new RuntimeException(e);
         }
         
-        // initialize properties
+        // setParentRec properties
         prop.initProperty(Double.class, "pos", 0.5d);
         prop.initProperty(Integer.class, "abs_size", 0); // 0 none, 1 child1, 2 child2
         prop.initProperty(Integer.class, "col", 0);

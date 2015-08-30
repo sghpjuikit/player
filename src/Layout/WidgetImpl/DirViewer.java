@@ -196,9 +196,9 @@ public class DirViewer extends ClassController {
 
                 String n = getName(f);
                 if(n.length()>25) {
-                   n = n.replaceAll("\\[.*\\]", "");
-                   n = n.replaceAll("\\(.*\\)", "");
-                   n = n.trim();
+                   n = n.replaceAll("\\[.*\\]", "")
+                        .replaceAll("\\(.*\\)", "")
+                        .trim();
                 }
                 if(n.length()>25) {
                    n = f.isDirectory() ? n : toS(split(n," "),

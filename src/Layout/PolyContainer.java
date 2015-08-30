@@ -43,7 +43,7 @@ public final class PolyContainer extends Container {
         root.getChildren().setAll(gui.root);
         setAnchors(gui.root,0d);
         
-        // we need to initialize the tabs
+        // we need to setParentRec the tabs
         // no need to take car eof selection, since we do not change it
         // it is restored in gui.addComponents()
             // grab a copy og the children
@@ -80,7 +80,7 @@ public final class PolyContainer extends Container {
             gui.removeComponent(rem);
         // add child at new at index
         } else {
-            if (c instanceof Container) Container.class.cast(c).parent = this;
+            if (c instanceof Container) Container.class.cast(c).setParent(this);
             children.put(index, c);
             gui.add(c);
         }

@@ -1,6 +1,7 @@
 
 package Layout;
 
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 import Layout.Areas.ContainerNode;
 import Layout.Widgets.Widget;
+import Layout.Widgets.controller.Controller;
 import gui.GUI;
 import unused.Log;
 import util.graphics.drag.DragUtil.WidgetTransfer;
@@ -64,8 +66,9 @@ public abstract class Container extends Component implements AltState {
     
     @XStreamOmitField
     AnchorPane root;
+    
     @XStreamOmitField
-    Container parent;
+    private Container parent;
     
     /**
      * Whether the container is locked. The effect of lock is not implicit and
@@ -78,7 +81,13 @@ public abstract class Container extends Component implements AltState {
      * @return true if this container is locked.
      */
     public final BooleanProperty locked = new SimpleBooleanProperty(false);
-    
+    @XStreamOmitField
+    public final BooleanProperty lockedUnder = new SimpleBooleanProperty(false){
+        {
+            bind(locked.or(GUI.locked_layout));
+        }
+    };
+
     /** {@inheritDoc} */
     @Override
     public String getName() {
@@ -105,6 +114,29 @@ public abstract class Container extends Component implements AltState {
         return parent;
     }
     
+    protected void setParent(Container c) {
+        parent = c;
+        lockedUnder.unbind();
+        lockedUnder.bind(c.lockedUnder.or(locked).or(GUI.locked_layout));
+    }
+    
+    /**
+     * Properly links up this container with its children and propagates this
+     * call down on the children and so on.
+     * This method is required to fully setParentRec the layout after deserialization
+ because some field values can not be serialized and need to be manually
+ initialized.
+ Use on layout reload, immediately after the container.load() method.
+     */
+    public void setParentRec() {
+        for (Component c: getChildren().values()) {
+            if (c instanceof Container) {
+                ((Container)c).setParent(this);
+                ((Container)c).setParentRec();
+            }
+        }
+    }
+    
     /** @return the children */
     public abstract Map<Integer, Component> getChildren();
     boolean b = false;
@@ -123,7 +155,8 @@ public abstract class Container extends Component implements AltState {
      * @param c component to remove
      */
     public void removeChild(Component c) {
-        removeChild(indexOf(c)); 
+        addChild(indexOf(c), null); 
+        closeComponent(c);
     }
     
     /**
@@ -133,7 +166,19 @@ public abstract class Container extends Component implements AltState {
      * @param index of the child to remove. Null is ignored.
      */
     public void removeChild(Integer index) {
-        addChild(index, null);
+        Component c = getChildren().get(index); // capture before reload
+        addChild(index, null);  // reload
+        closeComponent(c);
+    }
+    
+    private static void closeComponent(Component c) {
+        if(c instanceof Container) {
+//            ((Container)c).close();
+        }
+        else if(c instanceof Widget) {
+            Controller wc = ((Widget)c).getController();
+            if(wc!=null) wc.close();
+        }
     }
     
     /**
@@ -292,13 +337,13 @@ public abstract class Container extends Component implements AltState {
         //    layout graph.
         //    We want to avoid recursively closing every container by one
         getAllWidgets().map(Widget::getController)
-                // there might be passive widgets that avoided being loaded
-                .filter(ISNTØ)
+                .filter(ISNTØ)  // there might not yet loaded widgets => contorller==null
                 .forEach(c->c.close());
         
         if (parent!=null) {
             // remove from layout graph
             parent.removeChild(this);
+            lockedUnder.unbind();
             // remove from scene graph if attached to it
             removeGraphicsFromSceneGraph();
         } else {
@@ -317,6 +362,7 @@ public abstract class Container extends Component implements AltState {
         ContainerNode a = getGraphics();
         if(a!=null) root.getChildren().remove(a.getRoot()); 
     }
+    
     protected void closeGraphics() {
         ContainerNode a = getGraphics();
         if(a!=null) a.close();
@@ -341,33 +387,8 @@ public abstract class Container extends Component implements AltState {
     }
     
     public abstract ContainerNode getGraphics();
-
-    /**
-     * Properly links up this container with its children and propagates this
-     * call down on the children and so on.
-     * This method is required to fully initialize the layout after deserialization
-     * because some field values can not be serialized and need to be manually
-     * initialized.
-     * Use on layout reload, immediately after the container.load() method.
-     */
-    public void initialize() {
-        for (Component c: getChildren().values()) {
-            if (c instanceof Container) {
-                ((Container)c).parent = this;
-                ((Container)c).initialize();
-            }
-        }
-    }
     
 /******************************************************************************/
-
-    /**
-     * @return true if this container is under lock either its own or one of 
-     * its parents or under whole of GUI's.
-     */
-    public boolean isUnderLock() {
-        return isRoot() ? locked.get() || GUI.isLayoutLocked() : locked.get() || parent.isUnderLock();
-    }
 
     @Override
     public boolean equals(Object o) {        
@@ -382,6 +403,16 @@ public abstract class Container extends Component implements AltState {
         hash = 67 * hash + Objects.hashCode(this.parent);
         hash = 67 * hash + (this.b ? 1 : 0);
         return hash;
+    }
+    
+/******************************************************************************/
+    
+    protected Object readResolve() throws ObjectStreamException {
+        if(lockedUnder == null) {   // for some reason this happens, investigate, remove
+            util.Util.setField(this, "lockedUnder", new SimpleBooleanProperty(false));
+            lockedUnder.bind(locked.or(GUI.locked_layout));
+        }
+        return this;
     }
     
 /******************************************************************************/

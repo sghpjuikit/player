@@ -227,9 +227,11 @@ public class Player {
         }
 
         void set(boolean change, Metadata m) {
-            if(change) itemPlayedES.forEach(h -> h.accept(val,m));
-            itemUpdatedES.forEach(h -> h.accept(val,m));
-            val = m;
+            Metadata ov = val;
+            Metadata nv = m;
+            val = nv;
+            if(change) itemPlayedES.forEach(h -> h.accept(ov,nv));
+            itemUpdatedES.forEach(h -> h.accept(ov,nv));
         }
         
         public Subscription onChange(BiConsumer<Metadata,Metadata> bc) {

@@ -59,7 +59,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         BooleanProperty isHere = new SimpleBooleanProperty(false);
         rt.setOnMousePressed(e -> isHere.set(isHere(e)));
         rt.setOnMouseClicked(e -> {
-            if(!isAltCon && (GUI.isLayoutMode() || !container.isUnderLock())) {
+            if(!isAltCon && (GUI.isLayoutMode() || !container.lockedUnder.get())) {
                 isHere.set(isHere.get() && isHere(e));
                 // add new widget on left click
                 if(e.getButton()==PRIMARY && isHere.get()) {
@@ -200,6 +200,7 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         }
         return w;
     }
+    
     private PaneWindowControls buidWindow(int i) {
         PaneWindowControls w = new PaneWindowControls(rt);
         w.root.getStyleClass().add("freeflowcontainer-window");
@@ -224,6 +225,9 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
             maintain(GUI.snapDistance, d->d, w.snapDistance);
             maintain(GUI.snapping, w.snappable);
         });
+        maintain(container.lockedUnder, l -> !l, w.resizable);
+        maintain(container.lockedUnder, l -> !l, w.movable);
+        
         return w;
     }
     

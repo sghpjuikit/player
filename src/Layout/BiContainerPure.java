@@ -36,6 +36,6 @@ public class BiContainerPure extends BiContainer {
             getChildren().put(index, null);
         else getChildren().put(index, c);
         load();
-        initialize();        
+        setParentRec();        
     }
 }

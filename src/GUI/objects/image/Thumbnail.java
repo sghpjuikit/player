@@ -27,6 +27,9 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.util.Duration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import Layout.Widgets.Widget;
@@ -36,7 +39,6 @@ import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.WindowBase;
 import gui.objects.image.cover.Cover;
 import main.App;
-import unused.Log;
 import util.File.Environment;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
@@ -111,12 +113,11 @@ import static util.graphics.Util.setAnchors;
 @IsConfigurable("Images")
 public class Thumbnail extends ImageNode {
     
-    // styleclasses
-    public final String bgr_styleclass = "thumbnail";
-    public final String border_styleclass = "thumbnail-border";
-    public final String image_styleclass = "thumbnail-image";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Thumbnail.class);
+    private static final String bgr_styleclass = "thumbnail";
+    private static final String border_styleclass = "thumbnail-border";
+    private static final String image_styleclass = "thumbnail-image";
     
-    // global propertiea
     @IsConfig(name="Thumbnail anim duration", info = "Preffered hover scale animation duration for thumbnails.")
     public static double animDur = 100;
     public static boolean animated = false;
@@ -607,11 +608,12 @@ public class Thumbnail extends ImageNode {
                        fc.setInitialDirectory(App.getLocation());
                        
                    File nf = fc.showSaveDialog(App.getWindowOwner().getStage());
-                   if(nf==null) return;
-                   try {
-                       Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                   } catch (IOException ex) {
-                       Log.info("File export failed.");
+                   if(nf!=null) {
+                    try {
+                        Files.copy(of.toPath(), nf.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException ex) {
+                        LOGGER.error("File export failed.",ex);
+                    }
                    }
                 })
             );

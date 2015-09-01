@@ -88,7 +88,6 @@ public class Icon<I extends Icon> extends Text {
     private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text 
     private final ObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
     private final ObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", 12);
-    private Class iconType = FontAwesomeIcon.class;
 
     
     public Icon() {
@@ -108,8 +107,6 @@ public class Icon<I extends Icon> extends Text {
     }
     
     public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
-        if(i!=null) iconType = i.getClass();
-        
         glyphSizeProperty().addListener((o,ov,nv) -> {
             updateSize();
         });
@@ -186,7 +183,7 @@ public class Icon<I extends Icon> extends Text {
                 // we can not set graphics normally, because some icons may not have the glyph ready
                 // at this point, we do that when tooltip is being called on, this also avoids creating
                 // useless objects
-                GlyphIcons g = getIco();
+                GlyphIcons g = getGlyph();
                 if(g!=null) {
                     t.setGraphic(Icons.createIcon(g, 30));
                     t.setGraphicTextGap(15);
@@ -261,14 +258,12 @@ public class Icon<I extends Icon> extends Text {
 
     
     
-    public GlyphIcons getIco() {
+    public GlyphIcons getGlyph() {
         String n = getGlyphName();
         return (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class)
                 .flatMap(c -> stream(getEnumConstants(c)))
                 .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))
                 .findFirst().orElseGet(this::getDefaultGlyph);
-//        
-//        return FontAwesomeIcon.valueOf(getGlyphName());
     }
     
     
@@ -320,7 +315,6 @@ public class Icon<I extends Icon> extends Text {
     }
 
     public final void setIcon(GlyphIcons i) {
-        if(i!=null) iconType = i.getClass();
         setGlyphName(i.name());
     }
 
@@ -332,7 +326,7 @@ public class Icon<I extends Icon> extends Text {
     }
 
     private void updateIcon() {
-        GlyphIcons i = getIco();
+        GlyphIcons i = getGlyph();
         Font f = new Font(i.getFontFamily(), getFont().getSize());
         setFont(f);
         setText(i.characterToString());

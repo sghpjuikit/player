@@ -122,7 +122,7 @@ public class WindowManager {
             if(miniWindow!=null && miniWindow.isShowing()) return;
             // get window instance by deserializing saved state
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            miniWindow = Window.deserializeSuppressed(f);
+            miniWindow = Window.deserialize(f);
             // if not available, make new one, set initial size
             if(miniWindow == null)  miniWindow = Window.create();
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
@@ -204,7 +204,7 @@ public class WindowManager {
             if(miniWindow==null) return;
             // serialize mini
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            miniWindow.serializeSupressed(f);
+            miniWindow.serialize(f);
             miniWindow.close();
             miniWindow=null;
             t=null;
@@ -230,28 +230,23 @@ public class WindowManager {
         Log.deb("Removing all files from previous session.");
         
         // serialize - for now each window to its own file with .ws extension
-        int count = 0;
         for(int ι=0; ι<src.size(); ι++) {
             // ret resources
             Window w = src.get(ι);
             String name = "window" + ι;
             File f = new File(dir, name + ".ws");
-            // serialize
-            boolean success = w.serializeSupressed(f);
-            if (success) count++;
-            // serialize layout
+            // serialize window
+            w.serialize(f);
+            // serialize layout (associate the layout with the window by name)
             Layout l = w.getLayout();
-            // associate the layout with the window by name & save
             l.setName("layout" + ι);
             l.serialize(new File(dir,l.getName()+".l"));
         }
         
-        Log.deb("Serialized " + count + " windows.");
-        
         // serialize mini too
         if(miniWindow!=null) {
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
-            miniWindow.serializeSupressed(f);
+            miniWindow.serialize(f);
         }
     }
     
@@ -275,7 +270,7 @@ public class WindowManager {
             // deserialize windows
             for(int i=0; i<fs.length; i++) {
                 File f = fs[i];
-                Window w = Window.deserializeSuppressed(f);
+                Window w = Window.deserialize(f);
 
                 // handle next window if this was not successfully deserialized
                 if(w==null) continue;

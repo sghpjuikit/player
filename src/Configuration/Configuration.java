@@ -1,12 +1,6 @@
 
 package Configuration;
 
-import Configuration.Config.VarList;
-import Configuration.Config.ListConfig;
-import Configuration.Config.PropertyConfig;
-import Configuration.Config.ReadOnlyPropertyConfig;
-import action.Action;
-
 import java.io.File;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -22,17 +16,18 @@ import java.util.function.Predicate;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 
-import main.App;
-
 import org.atteo.classindex.ClassIndex;
 
+import Configuration.Config.ListConfig;
+import Configuration.Config.PropertyConfig;
+import Configuration.Config.ReadOnlyPropertyConfig;
+import Configuration.Config.VarList;
+import action.Action;
+import main.App;
 import util.File.FileUtil;
+import util.collections.map.MapSet;
 
 import static util.Util.getAllFields;
-
-import util.collections.map.MapSet;
-import unused.Log;
-
 import static util.dev.Util.noFinal;
 import static util.dev.Util.yesFinal;
 
@@ -151,7 +146,7 @@ public class Configuration {
                                 try {
                                     m.setAccessible(true);
                                     ((FieldConfig)config).applier = methodLookup.unreflect(m);
-                                    Log.deb("Adding method as applier method: " + m.getName() + " for " + config_id + ".");
+                                    // System.out.println("Adding method as applier method: " + m.getName() + " for " + config_id + ".");
                                 } catch (IllegalAccessException e) {
                                     throw new RuntimeException(e);
                                 }

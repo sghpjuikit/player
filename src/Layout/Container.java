@@ -19,10 +19,10 @@ import Layout.Areas.ContainerNode;
 import Layout.Widgets.Widget;
 import Layout.Widgets.controller.Controller;
 import gui.GUI;
-import unused.Log;
 import util.graphics.drag.DragUtil.WidgetTransfer;
 
 import static java.util.stream.Collectors.toList;
+import static org.slf4j.LoggerFactory.getLogger;
 import static util.functional.Util.*;
 
 /**
@@ -204,7 +204,7 @@ public abstract class Container extends Component implements AltState {
         
         String w1n = w1==null ? "null" : w1.getName();
         String w2n = w2==null ? "null" : w2.getName();
-        Log.deb("Swapping widgets " + w1n + " and " + w2n);
+        getLogger(Container.class).info("Swapping widgets {} and {}", w1n,w2n);
         
         c1.addChild(i1, w2);
         c2.addChild(i2, w1);

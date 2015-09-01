@@ -22,13 +22,11 @@ import com.thoughtworks.xstream.io.StreamException;
 
 import main.App;
 import util.File.FileUtil;
-import util.serialize.Serializes;
-import util.serialize.SerializesFile;
 
 /**
  * @author uranium
  */
-public final class Layout extends UniContainer implements Serializes, SerializesFile {
+public final class Layout extends UniContainer {
     
     private static final XStream X = App.INSTANCE.serialization.x;
     private static final Logger LOGGER = LoggerFactory.getLogger(Layout.class);

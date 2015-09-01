@@ -5,12 +5,9 @@
  */
 package gui.objects.Window.Pane;
 
-import java.io.*;
-import java.net.URL;
 
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -21,7 +18,7 @@ import javafx.scene.layout.*;
 import javafx.scene.shape.Rectangle;
 
 import gui.objects.Window.Resize;
-import unused.Log;
+import util.graphics.fxml.ConventionFxmlLoader;
 
 import static de.jensd.fx.glyphs.GlyphsDude.setIcon;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
@@ -51,24 +48,14 @@ public class PaneWindowControls extends WindowPane {
     public PaneWindowControls(AnchorPane own) {
 	super(own);
         
-	try {
-	    URL fxml = PaneWindowControls.class.getResource("PaneWindowControls.fxml");
-	    FXMLLoader l = new FXMLLoader(fxml);
-                       l.setRoot(root);
-                       l.setController(this);
-                       l.load();
-
-	} catch (IOException ex) {
-	    Log.err("Couldnt create Window. " + ex.getMessage());
-	}
-        
+        // load fxml
+        new ConventionFxmlLoader(PaneWindowControls.class, root, this).loadNoEx();
 
 	// clip the content to its bounds to prevent leaking out
 	Rectangle mask = new Rectangle(1, 1, BLACK);
 	mask.widthProperty().bind(content.widthProperty());
 	mask.heightProperty().bind(content.heightProperty());
 	content.setClip(mask);
-
 
 	// maintain custom pseudoclasses for .window styleclass
 	resizing.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcResized, nv!=NONE));

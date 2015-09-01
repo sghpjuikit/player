@@ -45,7 +45,7 @@ public class IconController extends FXMLController {
             return i;
         }, i ->
         new ListConfigurable(
-            Config.forProperty("Icon", new FunctAccessor<>(i::icon,i::getIco)),
+            Config.forProperty("Icon", new FunctAccessor<>(i::icon,i::getGlyph)),
             Config.forProperty("Action",new VarAction(i.getOnClickAction(),i::onClick))
         )
     );

@@ -54,7 +54,6 @@ import util.animation.interpolator.ElasticInterpolator;
 import util.async.executor.FxTimer;
 import util.dev.TODO;
 import util.graphics.fxml.ConventionFxmlLoader;
-import util.serialize.SelfSerializator;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCREEN;
@@ -98,7 +97,7 @@ import static util.reactive.Util.maintain;
  @author plutonium
  */
 @IsConfigurable
-public class Window extends WindowBase implements SelfSerializator<Window> {
+public class Window extends WindowBase {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
     /** Psududoclass active when this window is focused. Applied on root as '.window'. */
@@ -109,8 +108,6 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     public static final PseudoClass pcMoved = PseudoClass.getPseudoClass("moved");
     /** Psududoclass active when this window is fullscreen. Applied on root as '.window'. */
     public static final PseudoClass pcFullscreen = PseudoClass.getPseudoClass("fullscreen");
-    
-    
     
     public static final ArrayList<Window> windows = new ArrayList();
 
@@ -893,22 +890,15 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
     
     private static final XStream X = App.INSTANCE.serialization.x;
     
-    @Override
-    public void serialize(Window w, File f) throws IOException {
-	X.registerConverter(new Window.WindowConverter());
-	X.toXML(w, new BufferedWriter(new FileWriter(f)));
+    public void serialize(File f) {
+        try {
+            X.toXML(this, new BufferedWriter(new FileWriter(f)));
+        } catch (IOException e) {
+            LOGGER.error("Window serialization failed into file {}", f,e);
+        }
     }
 
-    public static Window deserialize(File f) throws IOException {
-	try {
-	    return (Window) X.fromXML(f);
-	} catch (ClassCastException | StreamException e) {
-            LOGGER.error("Unable to load window from the file {}",e);
-	    throw new IOException();
-	}
-    }
-
-    public static Window deserializeSuppressed(File f) {
+    public static Window deserialize(File f) {
 	try {
 	    return (Window) X.fromXML(f);
 	} catch (ClassCastException | StreamException e) {

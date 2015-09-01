@@ -18,9 +18,9 @@ import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.TagException;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import static util.File.AudioFileFormat.mp3;
 
-import unused.Log;
 
 import static util.Util.clip;
 
@@ -29,7 +29,7 @@ import static util.Util.clip;
  * @author Plutonium_
  */
 public abstract class MetaItem<CI extends Item> extends Item<CI> {
-
+    
     /** @return maximal value of the rating. */
     public int getRatingMax() {
         return mp3 == getFormat() ? 255 : 100;
@@ -56,8 +56,7 @@ public abstract class MetaItem<CI extends Item> extends Item<CI> {
         try {
             return AudioFileIO.read(file);
         } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException e) {
-            Log.err(e + " Reading metadata failed for file: " + file.toPath() + "."
-                    + "Corrupt or inaccessible file or data.");
+            getLogger(MetaItem.class).error("Reading metadata failed for file {}", file,e );
             return null;
         }
     }

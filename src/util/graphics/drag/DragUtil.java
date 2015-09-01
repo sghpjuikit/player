@@ -114,7 +114,7 @@ public final class DragUtil {
      */
     public static EventHandler<DragEvent> imgFileDragAccepthandlerNo(Supplier<File> except) {
         return e -> {
-            if(DragUtil.hasImage(e.getDragboard())) {
+            if(hasImage(e.getDragboard())) {
                 Fut<File> fi = getImage(e);
                 File i = fi.isDone() ? fi.getDone() : null;
                 boolean same = i!=null && i.equals(except.get());
@@ -338,6 +338,7 @@ public final class DragUtil {
                          f.deleteOnExit();
                     return f;
                 } catch(IOException ex) {
+                    // THIS MUST BE HANDLED PROPERLY
                     return null;
                 }
             });

@@ -30,7 +30,7 @@ import util.collections.map.MapSet;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static util.async.executor.EventReducer.toLast;
-import static util.dev.Util.noNull;
+import static util.dev.Util.noØ;
 import static util.functional.Util.list;
 
 /**
@@ -110,7 +110,7 @@ public class Player {
     
     /** Singleton variant of {@link #refreshItems(java.util.List)}. */
     public static void refreshItem(Item i) {
-        noNull(i);
+        noØ(i);
         refreshItems(list(i));
     }
     
@@ -122,7 +122,7 @@ public class Player {
      * Use when metadata of the items changed.
      */
     public static void refreshItems(Collection<? extends Item> is) {
-        noNull(is);
+        noØ(is);
         if(is.isEmpty()) return;
         
         MetadataReader.readMetadata(is, (ok,m) -> {
@@ -132,12 +132,12 @@ public class Player {
     
     /** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
     public static void refreshItemWith(Metadata m) {
-        noNull(m);
+        noØ(m);
         refreshItemsWith(list(m));
     }
     /** Singleton variant of {@link #refreshItemsWith(java.util.List, boolean)}. */
     public static void refreshItemWith(Metadata m, boolean allowDelay) {
-        noNull(m);
+        noØ(m);
         refreshItemsWith(list(m),allowDelay);
     }
     
@@ -161,7 +161,7 @@ public class Player {
      * and so on until none will come, which is when all queued refreshes execute all at once).
      */
     public static void refreshItemsWith(List<Metadata> ms, boolean allowDelay) {
-        noNull(ms);
+        noØ(ms);
         if(allowDelay) Async.runFX(() -> red.push(ms));
         else refreshItemsWithNow(ms);
     }
@@ -177,7 +177,7 @@ public class Player {
     
     // runs refresh on bgr thread, thread safe
     private static void refreshItemsWithNow(List<Metadata> ms) {
-        noNull(ms);
+        noØ(ms);
         if(ms.isEmpty()) return;
         
         // always on br thread

@@ -41,11 +41,11 @@ public class Util {
         if(!cond.test(t)) throw new IllegalStateException("Requirement condition not met");
     }
     
-    public static void noNull(Object o) {
+    public static void noØ(Object o) {
         if(o==null) throw new IllegalStateException("Null forbidden");
     }
     
-    public static void noNull(Object o, String message) {
+    public static void noØ(Object o, String message) {
         if(o==null) throw new IllegalStateException("Null forbidden: " + message);
     }
     
@@ -91,12 +91,12 @@ public class Util {
      * Returns all running threads. Incurrs performance penalty, do not use
      * besides debugging purposes.
      */
-    public static Stream<Thread> getActiveThreads() {
+    public static Stream<Thread> activeThreads() {
         return Thread.getAllStackTraces().keySet().stream();
     }
     
     /** Prints names of all currently running non daemon threads. */
     public static void printNonDaemonThreads() {
-         getActiveThreads().filter(t->!t.isDaemon()).forEach(t -> System.out.println(t.getName()));
+         activeThreads().filter(t->!t.isDaemon()).forEach(t -> System.out.println(t.getName()));
     }
 }

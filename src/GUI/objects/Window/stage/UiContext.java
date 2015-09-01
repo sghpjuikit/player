@@ -32,7 +32,7 @@ import util.File.FileUtil;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.COGS;
 import static javafx.stage.WindowEvent.WINDOW_HIDING;
 import static util.File.FileUtil.getName;
-import static util.dev.Util.noNull;
+import static util.dev.Util.noØ;
 
 /**
  *
@@ -98,7 +98,7 @@ public final class UiContext {
     }
     
     public static PopOver showFloating(Widget w) {
-        noNull(w);
+        noØ(w);
         
         // build popup content
         Icon propB = new Icon(COGS,12,"Settings", e -> {
@@ -129,8 +129,8 @@ public final class UiContext {
     }
     
     public static PopOver showFloating(Node content, String title) {
-        noNull(content);
-        noNull(title);  // we could use null, but disallow
+        noØ(content);
+        noØ(title);  // we could use null, but disallow
         
         PopOver p = new PopOver(content);
                 p.title.set(title);

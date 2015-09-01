@@ -10,7 +10,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.event.Event;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
 import javafx.scene.control.Skin;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextArea;
@@ -37,6 +36,7 @@ import util.async.executor.FxTimer;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static gui.objects.PopOver.PopOver.ArrowLocation.TOP_CENTER;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Double.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
@@ -103,6 +103,9 @@ public final class Seeker extends AnchorPane {
             if(addB.isShown()) addB.hide();
             user_drag = true;
         });
+//        seeker.addEventFilter(DRAG_DONE, e -> {
+//            if(seeker.isHover()) addB.show();
+//        });
         seeker.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==PRIMARY && user_drag) {
                 double x = e.getX();
@@ -121,6 +124,7 @@ public final class Seeker extends AnchorPane {
                        p = clip(0,p,1);
                 PLAYBACK.seek(p);
                 run(100, () -> user_drag = false);
+                if(seeker.isHover()) addB.show(); // ~bugfix
             }
         });
         
@@ -568,20 +572,14 @@ public final class Seeker extends AnchorPane {
                     nextB.setDisable(true);
                 if(0 == i)
                     prevB.setDisable(true);
-                Icon helpB = new Icon(INFO, 11, "Help", e -> {
-                    // build help content for help popup if not yet built
-                    // with this we avoid constructing multuple popups
-                    if(helpP == null) {
-                        String t = "Single click : Close\n"
-                                 + "Double L click : Seek\n"
-                                 + "Double R click : Start edit\n"
-                                 + "Enter : Apply edit changes\n"
-                                 + "Escape : Cancel edit";
-                        helpP = PopOver.createHelpPopOver(t);
-                    }
-                    helpP.show((Node)e.getSource());
-                    e.consume();
-                });
+                Icon helpB = createInfoIcon(
+                       "Single click : Close\n"
+                     + "Double L click : Play from this chapter\n"
+                     + "Double R click : Start edit\n"
+                     + "Enter : Apply edit changes\n"
+                     + "Shift + Enter : Append new line\n"
+                     + "Escape : If editing cancel edit, else hide"
+                ).size(11);
                 // popup
                 p = new PopOver(content);
                 p.getSkinn().setContentPadding(new Insets(8));
@@ -646,7 +644,7 @@ public final class Seeker extends AnchorPane {
             if (!editableChapters) return;
             // start edit
             editOn = true;
-            // create text area
+            // create editable text area
             ta = new TextArea();
             ta.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
                 // maintain 'sensible' width dynamically by content
@@ -662,9 +660,10 @@ public final class Seeker extends AnchorPane {
                 // set more properties
             ta.setWrapText(true);
             ta.setText(message.getText());
-            ta.setOnKeyPressed(e->{
-                if (e.getCode()==ENTER) {
-                    if(e.isShiftDown()) appendToCaret(ta, "\n");//ta.appendText("\n");
+            ta.setOnKeyPressed(e -> {
+                if (e.getCode()==ENTER) {   // BUG!! the event propagates from popup to window
+                                            // and may start playing new song if selected in playlist
+                    if(e.isShiftDown()) appendToCaret(ta, "\n");    //dont use ta.appendText("\n");
                     else commitEdit();
                     e.consume();
                 }

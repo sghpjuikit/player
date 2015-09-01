@@ -5,9 +5,10 @@
  */
 package util.graphics;
 
-import de.jensd.fx.glyphs.GlyphIcons;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
+
+import de.jensd.fx.glyphs.GlyphIcons;
 
 /**
  <p>
@@ -25,15 +26,18 @@ public class Icons {
     public static Text createIcon(GlyphIcons icon) {
         return createIcon(icon, DEFAULT_ICON_SIZE);
     }
+    
     public static Text createIcon(GlyphIcons icon, int icon_size) {
         return createIcon(icon, String.valueOf(icon_size));
     }
+    
     private static Text createIcon(GlyphIcons icon, String iconSize) {
         Text t = new Text(icon.characterToString());
         t.setStyle(String.format("-fx-font-family: %s; -fx-font-size: %s;",icon.getFontFamily(), iconSize));
         t.getStyleClass().add("icon");
         return t;
     }
+    
     public static Text createIcon(GlyphIcons icon, int icons, int size) {
         String s = icon.characterToString();
         StringBuilder sb = new StringBuilder(icons);
@@ -44,7 +48,7 @@ public class Icons {
         t.getStyleClass().add("icon");
         return t;
     }
-
+    
     public static Label createIconLabel(GlyphIcons icon, String text, int iconSize, String fontSize, ContentDisplay contentDisplay) {
         Text iconLabel = createIcon(icon, String.valueOf(iconSize));
         Label l = new Label(text);

@@ -42,7 +42,7 @@ import static org.atteo.evo.inflector.English.plural;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.AudioFileFormat.Use.PLAYBACK;
 import static util.Util.*;
-import static util.dev.Util.noNull;
+import static util.dev.Util.noØ;
 import static util.functional.Functors.StringDirection.FROM_START;
 import static util.functional.Util.list;
 import static util.functional.Util.map;
@@ -134,13 +134,13 @@ public class Functors {
 
         @Override
         default <V> Ƒ1<I, V> andThen(Function<? super O, ? extends V> after) {
-            noNull(after);
+            noØ(after);
             return (I t) -> after.apply(apply(t));
         }
         
         @Override
         default <V> Ƒ1<V,O> compose(Function<? super V, ? extends I> before) {
-            noNull(before);
+            noØ(before);
             return (V v) -> apply(before.apply(v));
         }
         

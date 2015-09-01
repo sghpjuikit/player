@@ -65,6 +65,7 @@ import static AudioPlayer.tagging.Metadata.Field.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
 import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
 import static java.util.Collections.singletonList;
 import static javafx.application.Platform.runLater;
@@ -828,22 +829,13 @@ public class TaggerController extends FXMLController implements SongWriter, Song
            
         
         // build content controls
-        Icon helpB = new Icon(FontAwesomeIcon.INFO,11, "Help");                     
-        helpB.setOnMouseClicked( e -> {
-            // build help popup lazily
-            if(helpP == null) {
-                String text = "List of all items in the tagger. Highlights "
-                            + "untaggable items. Taggable items can be unselected"
-                            + " filtered.\n\n"
-                            + "Available actions:\n"
-                            + "    Drop items : Clears tagget and adds to tagger.\n"
-                            + "    Drop items + CTRL : Adds to tagger.";
-                helpP = PopOver.createHelpPopOver(text);
-            }
-            helpP.show(helpB);
-            e.consume();
-        });
-        
+        Icon helpB = createInfoIcon(
+              "List of all items in the tagger. Highlights untaggable items. Taggable items "
+            + "can be unselected filtered.\n\n"
+            + "Available actions:\n"
+            + "    Drop items : Clears tagget and adds to tagger.\n"
+            + "    Drop items + CTRL : Adds to tagger."
+        ).size(11);
         // build popup
         PopOver p = new PopOver(list);
                 p.title.set("Active Items");

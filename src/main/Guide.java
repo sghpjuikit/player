@@ -97,7 +97,7 @@ public final class Guide {
                 "\n\nTry pressing the ESC key on your keyboard.");
         addGuide("Guide resumed", "When you close the guide, it can always be resumed later." +
                 "\n\nClose this guide and go to header of the application window and click on the button labelled by graduation cap.");
-        addGuide("Layout info popup", "The application contains lots of informative popups, that " +
+        addGuide("Info popup", "The application contains lots of informative popups, that " +
                 "explain functionalities for their respective sections and how to use them." +
                 "\n\nThese popups can be shown by clicking on the help buttons labelled by 'i'. " +
                 "Info popup is volatile and closes next time you click somewhere, including the popup itself." +

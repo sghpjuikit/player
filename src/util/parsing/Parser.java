@@ -8,9 +8,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.time.Year;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -24,6 +22,7 @@ import javafx.util.Duration;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
+import util.collections.map.ClassMap;
 import util.parsing.StringParseStrategy.From;
 import util.parsing.StringParseStrategy.To;
 
@@ -34,6 +33,7 @@ import static javafx.scene.text.FontPosture.REGULAR;
 import static javafx.scene.text.FontWeight.BOLD;
 import static javafx.scene.text.FontWeight.NORMAL;
 import static util.Util.getMethodAnnotated;
+import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 import static util.parsing.StringParseStrategy.From.*;
 
@@ -88,8 +88,8 @@ import static util.parsing.StringParseStrategy.From.*;
  */
 public class Parser {
     
-    private static final Map<Class,Function<?,String>> parsersToS = new HashMap<>();
-    private static final Map<Class,Function<String,?>> parsersFromS = new HashMap<>();
+    private static final ClassMap<Function<?,String>> parsersToS = new ClassMap<>();
+    private static final ClassMap<Function<String,?>> parsersFromS = new ClassMap<>();
     private static final Function<String,Object> errFromP = o -> null;
     private static final Function<Object,String> errToP = toString;
     
@@ -166,8 +166,8 @@ public class Parser {
      * @throws NullPointerException if any parameter null
      */
     public static <T> T fromS(Class<T> c, String s) {
-        noNull(c,"Parsing type must be specified!");
-        noNull(s,"Parsing null not allowed!");
+        noØ(c,"Parsing type must be specified!");
+        noØ(s,"Parsing null not allowed!");
         return getParserFromS(c).apply(s);
     }
     
@@ -181,7 +181,7 @@ public class Parser {
      * @throws NullPointerException if parameter null
      */
     public static <T> String toS(T o) {
-        noNull(o,"Parsing null not allowed!");
+        noØ(o,"Parsing null not allowed!");
         return getParserToS((Class<T>)o.getClass()).apply(o);
     }
     
@@ -202,18 +202,14 @@ public class Parser {
     
 /******************************************************************************/
     
-    /** @return parser or null if none available */
+    /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<T,String> getParserToS(Class<T> c) {
-        if(!parsersToS.containsKey(c))
-            registerConverterToS(c, noNull(buildTosParser(c), errToP));
-        return (Function) parsersToS.get(c);
+        return parsersToS.computeIfAbsent(c, ƈ -> noNull(buildTosParser(ƈ), errToP));
     }
     
-    /** @return parser or null if none available */
+    /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<String,T> getParserFromS(Class<T> c) {
-        if(!parsersFromS.containsKey(c))
-            registerConverterFromS(c, noNull(buildFromsParser(c), errFromP));
-        return (Function) parsersFromS.get(c);
+        return parsersFromS.computeIfAbsent(c, ƈ -> noNull(buildFromsParser(ƈ), errFromP));
     }
     
 /******************************************************************************/
@@ -287,7 +283,7 @@ public class Parser {
             }
         }
         
-        // always fall back to toStirng()
+        // always fall back to toString()
         if(toS==null) toS = toString;
         
         return (Function)toS;

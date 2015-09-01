@@ -59,7 +59,7 @@ import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
 import static javafx.util.Duration.millis;
 import static util.File.FileUtil.getFilesAudio;
-import static util.dev.Util.noNull;
+import static util.dev.Util.noØ;
 import static util.functional.Util.map;
 import static util.functional.Util.toS;
 
@@ -484,7 +484,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * @throws NullPointerException if param null.
      */
     public void setNplay(Stream<? extends Item> items) {
-        noNull(items);
+        noØ(items);
         clear();
         addItems(items.collect(toList()));
         playFirstItem();
@@ -499,7 +499,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
      * @throws NullPointerException if param null.
      */
     public void setNplayFrom(Stream<? extends Item> items, int from) {
-        noNull(items);
+        noØ(items);
         clear();
         addItems(items.collect(toList()));
         playItem(get(from));

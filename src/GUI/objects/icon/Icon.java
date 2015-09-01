@@ -38,12 +38,15 @@ import de.jensd.fx.glyphs.materialicons.MaterialIcon;
 import de.jensd.fx.glyphs.materialicons.MaterialIconView;
 import de.jensd.fx.glyphs.weathericons.WeatherIcon;
 import de.jensd.fx.glyphs.weathericons.WeatherIconView;
+import gui.objects.PopOver.PopOver;
+import main.App;
 import util.animation.Anim;
 import util.functional.Functors.Ƒ1;
 import util.graphics.Icons;
 import util.Ɽ;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.ADJUST;
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static javafx.scene.input.MouseEvent.MOUSE_RELEASED;
@@ -70,6 +73,15 @@ public class Icon<I extends Icon> extends Text {
         } catch (IOException e) {
             LoggerFactory.getLogger(Icon.class).error("Couldnt load font",e);
         }
+    }
+    
+    public static Icon createInfoIcon(String text) {
+        return new Icon(INFO, 13, "Help", e -> {
+	    PopOver<gui.objects.Text> helpP = PopOver.createHelpPopOver(text);
+	    helpP.show((Node) e.getSource());
+	    helpP.getContentNode().setWrappingWidth(400);
+	    App.actionStream.push("Info popup");
+	});
     }
 
     

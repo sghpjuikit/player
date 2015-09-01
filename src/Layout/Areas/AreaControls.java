@@ -185,7 +185,7 @@ public final class AreaControls {
         root.setOnDragDone(e -> root.pseudoClassStateChanged(DRAGGED_PSEUDOCLASS, false));
         
         
-	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo);
+	infoB = new Icon(INFO, 12, infobTEXT, this::showInfo); // consistent with Icon.createInfoIcon()
         
 	// build header
 	header_buttons.setNodeOrientation(LEFT_TO_RIGHT);

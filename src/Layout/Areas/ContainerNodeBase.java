@@ -29,6 +29,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.Areas.Area.CONTAINER_AREA_CONTROLS_STYLECLASS;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.NodeOrientation.LEFT_TO_RIGHT;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
@@ -67,7 +68,11 @@ public abstract class ContainerNodeBase<C extends Container> implements Containe
         ctrls.getStyleClass().addAll(CONTAINER_AREA_CONTROLS_STYLECLASS);
 
 	// build header buttons
-	Icon infoB = new Icon(INFO, 12, "Help", ()->{});
+	Icon infoB = createInfoIcon("Container settings. See icon tooltips."
+                + "\nActions:"
+                + "\n\tLeft click: visit children"
+                + "\n\tRight click: visit parent container"
+        );
 	Icon layB = new Icon(ANCHOR, 12, "Resize content", () -> {
 	    ((FreeFormArea)this).bestLayout();
 	});

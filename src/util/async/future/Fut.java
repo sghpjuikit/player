@@ -24,7 +24,7 @@ import static util.async.Async.eFX;
  */
 public class Fut<T> implements Runnable{
     
-    private final CompletableFuture<T> f;
+    private CompletableFuture<T> f;
     
     private Fut(CompletableFuture<T> future) {
         f = future;
@@ -128,15 +128,15 @@ public class Fut<T> implements Runnable{
      * Note that when chaining futures, the position within chain decides when
      * does the progress reach 1. It will not be at the end of the chain, but
      * at the position of this method in it. The progress is set to 0 always at
-     * the beginning of the computation, i.e., the chain length or position of
+     * the beginning of the computation, i.e. the chain length or position of
      * this method within it does not have effect.
      * <p>
      * To set the progress to 1 at the end of computation, this method must be
      * the last element of the chain.
      * To set the progress to 0 somewhere during the computation, a future for
      * the progress computation must created, this method called on it and 
-     * passed as Runnable into another future which executes the first one as 
-     * part of its computation. This will cause only that part to be bound to
+     * passed as Runnable into another future which executes it as 
+     * part of its computation. This will cause only that computation to be bound to
      * the progress.
      */
     public final Fut<T> showProgress(ProgressIndicator p) {
@@ -159,7 +159,7 @@ public class Fut<T> implements Runnable{
     
     @Override
     public void run() {
-       f.thenRunAsync(() ->{}).complete(null);
+       f.thenRunAsync(() -> {}).complete(null);
     }
     
 }

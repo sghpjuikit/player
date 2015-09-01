@@ -1,10 +1,12 @@
 
 package main;
 
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -92,6 +94,7 @@ import util.ClassName;
 import util.File.AudioFileFormat;
 import util.File.FileUtil;
 import util.File.ImageFileFormat;
+import util.InstanceInfo;
 import util.InstanceName;
 import util.access.VarEnum;
 import util.async.future.Fut;
@@ -104,6 +107,7 @@ import util.serialize.xstream.IntegerPropertyConverter;
 import util.serialize.xstream.LongPropertyConverter;
 import util.serialize.xstream.ObjectPropertyConverter;
 import util.serialize.xstream.StringPropertyConverter;
+import util.units.FileSize;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
@@ -116,6 +120,7 @@ import static javafx.scene.input.MouseButton.PRIMARY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.Environment.browse;
 import static util.Util.getEnumConstants;
+import static util.Util.getImageDim;
 import static util.UtilExp.setupCustomTooltipBehavior;
 import static util.async.Async.*;
 import static util.functional.Util.map;
@@ -210,8 +215,9 @@ public class App extends Application {
     
 /******************************************************************************/
     
-    public static InstanceName instanceName = new InstanceName();
-    public static ClassName className = new ClassName();
+    public static final ClassName className = new ClassName();
+    public static final InstanceName instanceName = new InstanceName();
+    public static final InstanceInfo instanceInfo = new InstanceInfo();
     
     /**
      * The application initialization method. This method is called immediately 
@@ -269,13 +275,14 @@ public class App extends Application {
         x.useAttributeFor(Widget.class, "name");
         x.useAttributeFor(Playlist.class, "id");
         
-        // add optional object instance -> string converters
+        // add optional object class -> string converters
         className.add(Item.class, "Song");
         className.add(PlaylistItem.class, "Playlist Song");
         className.add(Metadata.class, "Library Song");
         className.add(MetadataGroup.class, "Song Group");
 
-        // add optional object class -> string converters
+        // add optional object instance -> string converters
+        instanceName.add(Void.class, o -> "none");
         instanceName.add(Item.class, Item::getPath);
         instanceName.add(PlaylistItem.class, PlaylistItem::getTitle);
         instanceName.add(Metadata.class,Metadata::getTitle);
@@ -283,6 +290,22 @@ public class App extends Application {
         instanceName.add(Component.class, o -> o.getName());
         instanceName.add(List.class, o -> String.valueOf(o.size()));
         instanceName.add(File.class, File::getPath);
+        
+        // add optional object instance -> info string converters
+        instanceInfo.add(File.class, o -> {
+            HashMap<String,String> m = new HashMap<>();
+            
+            FileSize fs = new FileSize(o);
+            m.put("Size", fs.toString() + " (" + String.format("%,d ", fs.inBytes()).replace(',', ' ') + "bytes)");
+            m.put("Format", FileUtil.getSuffix(o));
+            
+            ImageFileFormat iff = ImageFileFormat.of(o.toURI());
+            if(iff.isSupported()) {
+                Dimension id = getImageDim(o);
+                m.put("Resolution", id==null ? "n/a" : id.width + " x " + id.height);
+            }
+            return m;
+        });
         
         // register actions
         ActionPane.register(Widget.class, 

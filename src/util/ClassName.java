@@ -13,7 +13,7 @@ import util.collections.map.ClassMap;
  */
 public class ClassName {
     
-    private final ClassMap<String> m = new ClassMap<>();
+    private final ClassMap<String> names = new ClassMap<>();
     private final ClassMap<String> cache = new ClassMap<>();
 
     /**
@@ -21,7 +21,7 @@ public class ClassName {
      * have any name registered.
      */
     public void add(Class<?> c, String name) {
-        m.put(c, name);
+        names.put(c, name);
     }
     
     /**
@@ -43,14 +43,8 @@ public class ClassName {
      * @return computed name of the class. Never null or empty string.
      */
     public String get(Class<?> c) {
-        String n = cache.get(c);
-        if(n!=null) return n;
-    
-        if(n==null) n = m.getElementOfSuperV(c);
-        if(n==null) n = getName(c);
-        
-        cache.put(c, n);
-        return n;
+        cache.computeIfAbsent(c, names::getElementOfSuperV);
+        return cache.computeIfAbsent(c, ClassName::of);
     }
     
     public String getOf(Object instance) {
@@ -58,7 +52,7 @@ public class ClassName {
     }
     
     
-    private static String getName(Class<?> c) {
+    private static String of(Class<?> c) {
         String n = c.getSimpleName();
         return n.isEmpty() ? c.toString() : n;
     }

@@ -3,6 +3,10 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- support fut error handling, 
+- improve popup show/hide animation, try 'pop&scale in/out' of owner node
+- improve action pane progress info, add progress for action, auto closing on done, etc.
+- drag over called multiple times, make absolutely sure futs are not computed >1 times 
 - actionpane try animate icons loading
 - Metadata cover caching causes outdated data if cover is set to tag
 - tagger spinner likes spinning forever, teach him

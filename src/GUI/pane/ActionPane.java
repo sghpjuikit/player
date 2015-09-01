@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.effect.BoxBlur;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
@@ -20,11 +21,14 @@ import de.jensd.fx.glyphs.GlyphIcons;
 import gui.objects.Text;
 import gui.objects.Window.stage.Window;
 import gui.objects.icon.Icon;
+import gui.objects.spinner.Spinner;
 import main.App;
 import util.animation.Anim;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 
+import static gui.objects.icon.Icon.createInfoIcon;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static javafx.beans.binding.Bindings.min;
 import static javafx.geometry.Pos.*;
@@ -32,9 +36,12 @@ import static javafx.scene.input.MouseButton.SECONDARY;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
 import static javafx.util.Duration.millis;
+import static util.async.Async.FX;
 import static util.functional.Util.*;
+import static util.graphics.Util.layHorizontally;
 import static util.graphics.Util.layVertically;
 import static util.graphics.Util.setAnchors;
+import static util.reactive.Util.maintain;
 
 /**
  *
@@ -56,7 +63,6 @@ public class ActionPane extends StackPane {
         ACTIONS.accumulate(c, listRO(action));
     }
     
-    
     public ActionPane() {
         setVisible(false);
         
@@ -67,7 +73,7 @@ public class ActionPane extends StackPane {
                 hide();
         });
         
-        StackPane layout = new StackPane(dataInfo,icons,desc);
+        StackPane layout = new StackPane(layVertically(10, TOP_CENTER, controls,dataInfo),icons,desc);
                   layout.setMaxSize(600,400);
                   layout.getStyleClass().add(CONTENT_STYLECLASS);
         getChildren().addAll(layout);
@@ -82,6 +88,18 @@ public class ActionPane extends StackPane {
         icons.setAlignment(CENTER);
     }
     
+/************************************ CONTROLS ************************************/
+    
+    private final Icon helpI = createInfoIcon(
+        "Action chooser"
+      + "\n"
+      + "\nChoose an action. It may use some input data. Data not immediatelly ready will "
+      + "display progress indicator."
+    );
+    private final ProgressIndicator dataObtainingProgress = new Spinner(1){{
+        maintain(progressProperty(),p -> p.doubleValue()<1, visibleProperty()); 
+    }};
+    private final HBox controls = layHorizontally(5,CENTER_RIGHT, dataObtainingProgress,helpI);
     
 /************************************ DATA ************************************/
     
@@ -121,29 +139,57 @@ public class ActionPane extends StackPane {
     private void build() {
         o_actions.addAll(ACTIONS.getElementsOfSuperV(o_type));
         // set content
-        boolean dataready = !(o instanceof Fut && ((Fut)o).isDone());
-        Object data = dataready ? o instanceof Fut ? ((Fut)o).getDone() : o : null;
-        String iname = dataready ? App.instanceName.get(data) : "n/a";
-        String di = "Data: " + iname + "\nType: " + App.className.get(o_type);
-        dataInfo.setText(o_type.equals(Void.class) ? "" : di);
-        setDesc(null);
+        boolean dataready = !(o instanceof Fut && !((Fut)o).isDone());
+        setDataInfo(o, dataready);
+        setActionInfo(null);
+        
+        // if we've got a Future over here, compute it (obtain data), update info when done
+        if(!dataready) {
+            Fut<Object> f = (Fut)o; // the generic type will match o_type
+            f = f.map(dat -> {
+                    setDataInfo(dat, true);
+                    return dat;
+                },FX)
+             .showProgress(dataObtainingProgress);System.out.println("data start");
+            f.run();
+            o = f;
+        }
+        
         icons.getChildren().setAll(o_actions.stream().sorted(by(ad -> ad.name)).map(a -> {
-            
             Icon i = new Icon()
                   .icon(a.icon)
                   .styleclass(ICON_STYLECLASS)
                   .onClick(() -> a.action.accept(o));
-                 i.addEventHandler(MOUSE_ENTERED, e -> setDesc(a));
-                 i.addEventHandler(MOUSE_EXITED, e -> setDesc(null));
+                 i.addEventHandler(MOUSE_ENTERED, e -> setActionInfo(a));
+                 i.addEventHandler(MOUSE_EXITED, e -> setActionInfo(null));
             return i;
         }).collect(toList()));
         
         animStart();
     }
     
-    private void setDesc(ActionData a) {
+    private void setActionInfo(ActionData a) {
         desctitl.setText(a==null ? "" : a.name);
         descfull.setText(a==null ? "" : a.description);
+    }
+    
+    private void setDataInfo(Object data, boolean computed) {
+        dataInfo.setText(getDataInfo(data, computed));
+    }
+    
+    private String getDataInfo(Object data, boolean computed) {
+        if(Void.class.equals(o_type)) return "";
+        
+        Object d = computed ? data instanceof Fut ? ((Fut)data).getDone() : data : null;
+        String dname = computed ? App.instanceName.get(d) : "n/a";
+        String dtype = App.className.get(o_type);
+        String dinfo = App.instanceInfo.get(d).entrySet().stream()
+                       .map(e -> e.getKey() + ": " + e.getValue()).sorted().collect(joining("\n"));
+        if(!dinfo.isEmpty()) dinfo = "\n" + dinfo;
+        
+        return "Data: " + dname
+             + "\nType: " + dtype
+             + dinfo ;
     }
     
     BoxBlur blurback = new BoxBlur(0,0,3);

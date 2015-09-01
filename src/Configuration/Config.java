@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.joining;
 import static javafx.collections.FXCollections.observableArrayList;
 import static util.Util.isEnum;
 import static util.Util.unPrimitivize;
-import static util.dev.Util.noNull;
+import static util.dev.Util.noØ;
 import static util.functional.Util.*;
 
 /**
@@ -288,7 +288,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      * or is null, runtime exception is thrown.
      */
     public static <T> Config<T> forValue(String name, Object value) {
-        noNull(value, "Config can not be created for null");
+        noØ(value, "Config can not be created for null");
         if(value instanceof Config ||
            value instanceof VarList ||
            value instanceof WritableValue ||

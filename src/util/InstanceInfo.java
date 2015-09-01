@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -5,19 +6,22 @@
  */
 package util;
 
+import java.util.Map;
 import java.util.Objects;
 
 import util.collections.map.ClassMap;
 import util.functional.Functors.Ƒ1;
 
+import static java.util.Collections.EMPTY_MAP;
+
 /**
  *
  * @author Plutonium_
  */
-public class InstanceName {
+public class InstanceInfo {
 
-    private static final Ƒ1<? extends Object,String> DEF = Objects::toString;
-    private final ClassMap<Ƒ1<?,String>> names = new ClassMap<>();
+    private static final Ƒ1<? extends Object,Map<String,String>> DEF = o -> EMPTY_MAP;
+    private final ClassMap<Ƒ1<?,Map<String,String>>> names = new ClassMap<>();
 
 
     /**
@@ -29,7 +33,7 @@ public class InstanceName {
      * @param c
      * @param parser 
      */
-    public <T> void add(Class<T> c, Ƒ1<? super T,String> parser) {
+    public <T> void add(Class<T> c, Ƒ1<? super T,Map<String,String>> parser) {
         names.put(c, parser);
     }
 
@@ -41,14 +45,14 @@ public class InstanceName {
      * treated as of type {@link Void}.
      * @return computed name of the object instance. Never null.
      */
-    public String get(Object instance) {
+    public Map<String,String> get(Object instance) {
         // we handle null as void so user can register his own function
         Class c = instance==null ? Void.class : instance.getClass();
-        Ƒ1<?,String> f = names.getElementOfSuper(c);
+        Ƒ1<?,Map<String,String>> f = names.getElementOfSuper(c);
         // fall back to general implementation (must be able to handle null)
         if(f==null) f = DEF;
 
-        return ((Ƒ1<Object,String>) f).apply(instance);
+        return ((Ƒ1<Object,Map<String,String>>) f).apply(instance);
     }
 
 }

@@ -33,6 +33,7 @@ import util.graphics.drag.DragUtil;
 import static Layout.Areas.Area.DRAGGED_PSEUDOCLASS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.*;
 import static gui.GUI.closeAndDo;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static javafx.geometry.Orientation.HORIZONTAL;
 import static javafx.geometry.Orientation.VERTICAL;
 import static javafx.scene.input.MouseButton.PRIMARY;
@@ -222,7 +223,7 @@ public final class Splitter implements ContainerNode {
         });
         
         // controls
-        Icon infoB = new Icon(INFO, 12, "Help");
+        Icon infoB = createInfoIcon("Split container settings");
         Icon dragB = new Icon(MAIL_REPLY, 12, "Move widget by dragging");
         dragB.setOnDragDetected(e -> {
             if (e.getButton()==PRIMARY) { //// primary button drag only

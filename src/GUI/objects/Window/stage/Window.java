@@ -43,7 +43,6 @@ import Layout.SwitchPane;
 import action.Action;
 import gui.GUI;
 import gui.objects.PopOver.PopOver;
-import gui.objects.Text;
 import gui.objects.Window.Resize;
 import gui.objects.icon.Icon;
 import gui.objects.spinner.Spinner;
@@ -63,6 +62,7 @@ import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.FULLSCRE
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MAXIMIZE;
 import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.WINDOW_MINIMIZE;
 import static gui.objects.Window.Resize.*;
+import static gui.objects.icon.Icon.createInfoIcon;
 import static java.lang.Math.*;
 import static javafx.scene.input.KeyCode.ESCAPE;
 import static javafx.scene.input.KeyEvent.KEY_PRESSED;
@@ -421,24 +421,17 @@ public class Window extends WindowBase implements SelfSerializator<Window> {
 	    App.guide.resume();
 	    App.actionStream.push("Guide resumed");
 	});
-	Icon helpB = new Icon(INFO, 13, "Help", e -> {
-	    PopOver<Text> helpP = PopOver.createHelpPopOver(
-		"Available actions:\n"
-		+ "    Header icons : Providing custom functionalities. See tooltips.\n"
-		+ "    Header buttons : Providing window contorl. See tooltips.\n"
-		+ "    Mouse drag : Move window. Windows snap to screen or to other windows.\n"
-		+ "    Mouse drag to screen edge : Activates one of 7 maximized modes.\n"
-		+ "    Mouse drag edge : Resizes window.\n"
-		+ "    Double left click : Toggle meximized mode on/off.\n"
-		+ "    Double right click : Toggle hide header on/off.\n"
-		+ "    Press ALT : Show hidden header temporarily.\n"
-		+ "    Press ALT : Activate layout mode.\n"
-		+ "    Content right drag : drag tabs."
-	    );
-	    helpP.show((Node) e.getSource());
-	    helpP.getContentNode().setWrappingWidth(400);
-	    App.actionStream.push("Layout info popup");
-	});
+	Icon helpB = createInfoIcon("Available actions:\n"
+            + "\tHeader icons : Providing custom functionalities. See tooltips.\n"
+            + "\tHeader buttons : Providing window contorl. See tooltips.\n"
+            + "\tMouse drag : Move window. Windows snap to screen or to other windows.\n"
+            + "\tMouse drag to screen edge : Activates one of 7 maximized modes.\n"
+            + "\tMouse drag edge : Resizes window.\n"
+            + "\tDouble left click : Toggle meximized mode on/off.\n"
+            + "\tDouble right click : Toggle hide header on/off.\n"
+            + "\tPress ALT : Show hidden header temporarily.\n"
+            + "\tPress ALT : Activate layout mode.\n"
+            + "\tContent right drag : drag tabs.");
 	
         // left header
 	leftHeaderBox.getChildren().addAll(

@@ -380,7 +380,9 @@ public class FileInfoController extends FXMLController implements SongReader {
         }
         
         void setVal(Metadata m) {
-            String v = m==EMPTY || field==RATING ? "" : m.getFieldS(field,""); 
+            String v = m==EMPTY || field==RATING ? "" : m.getFieldS(field,"");
+                   v = v.replace('\r', ' ');
+                   v = v.replace('\n', ',');
             setText(name + ": " + v);
         }
         

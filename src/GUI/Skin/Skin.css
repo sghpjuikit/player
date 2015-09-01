@@ -3650,6 +3650,22 @@
     -glyph-name: CHECK;
 }
 
+.boolean-config-field {}
+
+.override-config-field {
+    -glyph-name: CHECKBOX_MULTIPLE_BLANK_OUTLINE;
+}
+.override-config-field:selected {
+    -glyph-name: CHECKBOX_MULTIPLE_BLANK;
+}
+
+.shortcut-global-config-field {
+    -glyph-name: CAST;
+}
+.shortcut-global-config-field:selected {
+    -glyph-name: CAST_CONNECTED;
+}
+
 /** 
  * Warn icon used in config fields to signal erroneous input.
  * inherits: .icon

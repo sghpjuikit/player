@@ -186,10 +186,7 @@ public class Icon<I extends Icon> extends Text {
                 // we can not set graphics normally, because some icons may not have the glyph ready
                 // at this point, we do that when tooltip is being called on, this also avoids creating
                 // useless objects
-                GlyphIcons g = null;
-                try {
-                    g = ((GlyphIcons) Enum.valueOf(iconType, getGlyphName()));
-                } catch (Exception x) {}
+                GlyphIcons g = getIco();
                 if(g!=null) {
                     t.setGraphic(Icons.createIcon(g, 30));
                     t.setGraphicTextGap(15);
@@ -276,8 +273,6 @@ public class Icon<I extends Icon> extends Text {
     
     
     
-    
-    
 
     public final StringProperty glyphStyleProperty() {
         if (glyphStyle == null) {
@@ -337,13 +332,7 @@ public class Icon<I extends Icon> extends Text {
     }
 
     private void updateIcon() {
-        GlyphIcons i = getDefaultGlyph();
-        try {
-            i = ((GlyphIcons) Enum.valueOf(iconType, getGlyphName()));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        }
-        
+        GlyphIcons i = getIco();
         Font f = new Font(i.getFontFamily(), getFont().getSize());
         setFont(f);
         setText(i.characterToString());

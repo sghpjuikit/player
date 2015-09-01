@@ -1,11 +1,33 @@
 
 package gui.itemnode;
 
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javafx.animation.FadeTransition;
+import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.util.Callback;
+import javafx.util.Duration;
+
+import org.controlsfx.control.textfield.CustomTextField;
+
 import Configuration.Config;
 import Configuration.Config.ListConfig;
 import Configuration.Config.PropertyConfig;
 import action.Action;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
 import gui.itemnode.ItemNode.ConfigNode;
@@ -14,37 +36,19 @@ import gui.itemnode.TextFieldItemNode.FontItemNode;
 import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
-import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import util.Password;
+import util.access.OVal;
+
+import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.util.stream.Collectors.toList;
-import javafx.animation.FadeTransition;
-import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
 import static javafx.css.PseudoClass.getPseudoClass;
-import javafx.geometry.Insets;
 import static javafx.geometry.Pos.CENTER_LEFT;
-import javafx.scene.Node;
-import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import static javafx.scene.input.KeyCode.*;
 import static javafx.scene.input.KeyEvent.KEY_RELEASED;
 import static javafx.scene.input.MouseEvent.MOUSE_ENTERED;
 import static javafx.scene.input.MouseEvent.MOUSE_EXITED;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import static javafx.scene.layout.Priority.SOMETIMES;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.util.Callback;
-import javafx.util.Duration;
-import org.controlsfx.control.textfield.CustomTextField;
-import util.Password;
 import static util.Util.*;
-import util.access.OVal;
 import static util.async.Async.run;
 import static util.functional.Util.*;
 import static util.reactive.Util.maintain;
@@ -64,8 +68,12 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     private static final Tooltip okTooltip = new Tooltip("Apply value");
     private static final Tooltip warnTooltip = new Tooltip("Erroneous value");
     private static final Tooltip defTooltip = new Tooltip("Default value");
-    private static final Tooltip globTooltip = new Tooltip("Whether shortcut is global (true) or local.");
-    private static final Tooltip overTooltip = new Tooltip("Overrides global value if true or ignores current value if false.");
+    private static final Tooltip globTooltip = new Tooltip("Global shortcut"
+            + "\n\nGlobal shortcut can be used even when applicatin doesn't have focus. Note, that "
+            + "only one application can use this shortcut. If multiple applications use the same "
+            + "shortcut, the one started later will have it disabled.");
+    private static final Tooltip overTooltip = new Tooltip("Override value"
+            + "\n\nUses parent value if true and current value if false.");
 
     private final Label label = new Label();
     protected final HBox root = new HBox();
@@ -262,7 +270,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     
 /***************************** IMPLEMENTATIONS ********************************/
         
-    private static final class PasswordField extends ConfigField<Password>{
+    private static class PasswordField extends ConfigField<Password>{
         
         javafx.scene.control.PasswordField passF = new javafx.scene.control.PasswordField();
         
@@ -287,7 +295,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         
     }    
-    private static final class StringField extends ConfigField<String> {
+    private static class StringField extends ConfigField<String> {
         private CustomTextField n = new CustomTextField();
         
         private StringField(Config c) {
@@ -338,7 +346,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         
     }
-    private static final class GeneralField extends ConfigField<Object> {
+    private static class GeneralField extends ConfigField<Object> {
         CustomTextField n = new CustomTextField();
         Icon okI= new Icon();
         Icon warnB = new Icon();
@@ -445,12 +453,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         
     }
-    private static final class BooleanField extends ConfigField<Boolean> {
+    private static class BooleanField extends ConfigField<Boolean> {
         CheckIcon cBox;
         
         private BooleanField(Config<Boolean> c) {
             super(c);
             cBox = new CheckIcon();
+            cBox.styleclass("boolean-config-field");
             refreshItem();
             cBox.selected.addListener((o,ov,nv)-> apply(false));
         }
@@ -465,7 +474,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             cBox.selected.set(config.getValue());
         }
     }
-    private static final class SliderField extends ConfigField<Number> {
+    private static class OverrideField extends BooleanField {
+        private OverrideField(Config<Boolean> c) {
+            super(c);
+            cBox.styleclass("override-config-field");
+        }
+    }
+    private static class SliderField extends ConfigField<Number> {
         Slider slider;
         Label cur, min, max;
         HBox box;
@@ -528,7 +543,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             slider.setValue(config.getValue().doubleValue());
         }
     }
-    private static final class EnumerableField extends ConfigField<Object> {
+    private static class EnumerableField extends ConfigField<Object> {
         ComboBox<Object> n;
         
         private EnumerableField(Config<Object> c) {
@@ -558,7 +573,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return n;
         }
     }
-    private static final class ShortcutField extends ConfigField<Action> {
+    private static class ShortcutField extends ConfigField<Action> {
         TextField txtF;
         CheckIcon globB;
         HBox group;
@@ -609,6 +624,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             });
             
             globB = new CheckIcon();
+            globB.styleclass("shortcut-global-config-field");
             globB.selected.set(a.isGlobal());
             globB.tooltip(globTooltip);
             globB.selected.addListener((o,ov,nv) -> apply(false));
@@ -658,7 +674,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             globB.selected.set(a.isGlobal());
         }
     }
-    private static final class ColorField extends ConfigField<Color> {
+    private static class ColorField extends ConfigField<Color> {
         ColorPicker picker = new ColorPicker();
         
         private ColorField(Config<Color> c) {
@@ -677,7 +693,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             picker.setValue(config.getValue());
         }
     }
-    private static final class FontField extends ConfigField<Font> {
+    private static class FontField extends ConfigField<Font> {
         FontItemNode txtF = new FontItemNode();
         
         private FontField(Config<Font> c) {
@@ -696,7 +712,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             txtF.setValue(config.getValue());
         }
     }
-    private static final class FileField extends ConfigField<File> {
+    private static class FileField extends ConfigField<File> {
         FileItemNode txtF = new FileItemNode();
         
         public FileField(Config<File> c) {
@@ -715,7 +731,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             txtF.setValue(config.getValue());
         }
     }
-    private static final class ListField<T> extends ConfigField<ObservableList<T>> {
+    private static class ListField<T> extends ConfigField<ObservableList<T>> {
         
         ListConfigField<T, ConfigurableField> chain;
         ListConfig<T> lc;
@@ -772,7 +788,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             
         }
     }
-    private static final class OverridableField<T> extends ConfigField<T> {
+    private static class OverridableField<T> extends ConfigField<T> {
         FlowPane root = new FlowPane(5,5);
         PropertyConfig pc;
 
@@ -791,7 +807,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
                 pr = (OVal) f.get(pc);
                 f.setAccessible(false);
                 
-                BooleanField bf = new BooleanField(Config.forProperty("Override", pr.override));
+                BooleanField bf = new OverrideField(Config.forProperty("Override", pr.override));
                              bf.getControl().tooltip(overTooltip);
                 ConfigField cf = create(Config.forProperty("", pr.real));
                 maintain(pr.override,b->!b,cf.getControl().disableProperty());

@@ -5,7 +5,7 @@
 
 - support fut error handling, 
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
-- improve action pane progress info, add progress for action, auto closing on done, etc.
+- improve action pane - add progress for action, auto closing on done, etc.
 - drag over called multiple times, make absolutely sure futs are not computed >1 times 
 - actionpane try animate icons loading
 - Metadata cover caching causes outdated data if cover is set to tag
@@ -79,7 +79,6 @@ GENERAL
   - track plays after seeker is at the end
   - seeking to the beginning of the track (10-20s) seeks to 0 instead
   - the current time value (and seeker position) is shifted
-- cover download subsequently !work - temp file?                                (still an issue?)
 - Code Breaker (.m4a) and Interstellar (.flac) not playing, investigate
 - variable bitrate oggs not playing
 

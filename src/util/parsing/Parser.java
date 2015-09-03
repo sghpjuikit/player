@@ -99,18 +99,6 @@ public class Parser {
         Class<? extends Throwable> iae = IllegalArgumentException.class;
         Class<? extends Throwable> obe = IndexOutOfBoundsException.class;
         
-        registerConverter(Font.class,
-            f -> String.format("%s, %s", f.getName(), f.getSize()), 
-            noEx(Font.getDefault(), s -> {
-                int i = s.indexOf(',');
-                String name = s.substring(0, i);
-                FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
-                FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
-                double size = parseDouble(s.substring(i+2));
-                return Font.font(name, weight, style, size);
-            }, nfe,obe)
-        );
-        registerConverter(File.class,toString,File::new);
         registerConverter(Boolean.class,toString,Boolean::valueOf);
         registerConverter(boolean.class,sv,Boolean::valueOf);
         registerConverter(Integer.class,toString,noEx(Integer::valueOf,nfe));
@@ -130,15 +118,26 @@ public class Parser {
         registerConverter(String.class, s->s, s->s);
         registerConverter(StringSplitParser.class,toString, noEx(StringSplitParser::new, iae));
         registerConverter(Year.class,toString, noEx(Year::parse, DateTimeParseException.class));
+        registerConverter(File.class,toString,File::new);
         registerConverter(URI.class,toString, noEx(URI::create, iae));
         registerConverter(Pattern.class,toString, noEx(Pattern::compile, PatternSyntaxException.class));
+        registerConverter(Font.class,
+            f -> String.format("%s, %s", f.getName(),f.getSize()), 
+            noEx(Font.getDefault(), s -> {
+                int i = s.indexOf(',');
+                String name = s.substring(0, i);
+                FontPosture style = s.toLowerCase().contains("italic") ? ITALIC : REGULAR;
+                FontWeight weight = s.toLowerCase().contains("bold") ? BOLD : NORMAL;
+                double size = parseDouble(s.substring(i+2));
+                return Font.font(name, weight, style, size);
+            }, nfe,obe)
+        );
         registerConverterFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
     }
     
     public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {
-        registerConverterToS(c, parser::toS);
-        registerConverterFromS(c, parser::fromS);
+        registerConverter(c, parser::toS, parser::fromS);
     }
     
     public static<T> void registerConverter(Class<T> c, Function<? super T,String> to, Function<String,? super T> from) {

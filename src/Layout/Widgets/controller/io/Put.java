@@ -49,7 +49,7 @@ public class Put<T> implements WritableValue<T> {
         monitors.add(action);
         // i think this is dangerous because we dont know what the action does...
         // it should run only after this method completes, so.. wrap it up in runLater ?
-        if(getValue()!=null) action.accept(getValue());
+        action.accept(getValue());
         return () -> monitors.remove(action);
     }
     

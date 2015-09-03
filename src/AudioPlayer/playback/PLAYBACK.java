@@ -45,7 +45,7 @@ import static javafx.util.Duration.millis;
 @IsConfigurable("Playback")
 public final class PLAYBACK implements Configurable {
     
-    private static final Logger logger = LoggerFactory.getLogger(PLAYBACK.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PLAYBACK.class);
     
     @IsConfig(name="Remember playback state", info = "Continue last remembered playback when application starts.")
     public static boolean continuePlaybackOnStart = true;
@@ -92,14 +92,14 @@ public final class PLAYBACK implements Configurable {
     }
     
     public static void suspend() {
-        logger.info("Suspending playback");
+        LOGGER.info("Suspending playback");
         state.realTime.set(getRealTime());
         Player.state.serialize();
         player.dispose();
     }
     
     public static void activate() {
-        logger.info("Activating playback");
+        LOGGER.info("Activating playback");
         post_activating = true;
         Status s = state.status.get();
         if (s == PAUSED || s == PLAYING)

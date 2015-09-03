@@ -22,7 +22,7 @@ import util.parsing.Parser;
 public class MoodItemNode extends TextFieldItemNode<String> {
     
     private final Consumer<String> pickMood = this::setValue;
-    private PopOver.NodeCentricPos pos = PopOver.NodeCentricPos.RightCenter;
+    private PopOver.NodePos pos = PopOver.NodePos.RightCenter;
 
     public MoodItemNode() {
         super(Parser.toConverter(String.class));
@@ -32,12 +32,12 @@ public class MoodItemNode extends TextFieldItemNode<String> {
     }
     
     /** @return the position for the picker to show on */
-    public PopOver.NodeCentricPos getPos() {
+    public PopOver.NodePos getPos() {
         return pos;
     }
 
     /** @param pos the position for the picker to show on */
-    public void setPos(PopOver.NodeCentricPos pos) {
+    public void setPos(PopOver.NodePos pos) {
         this.pos = pos;
     }
 

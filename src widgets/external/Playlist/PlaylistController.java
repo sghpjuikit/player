@@ -250,7 +250,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         });
         PopOver p = new PopOver(sc);
                 p.title.set("Save playlist as...");
-                p.show(PopOver.ScreenCentricPos.App_Center);
+                p.show(PopOver.ScreenPos.App_Center);
     }
     
     void saveSelectedAsPlaylist() {
@@ -268,7 +268,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         });
         PopOver p = new PopOver(sc);
                 p.title.set("Save selected items as...");
-                p.show(PopOver.ScreenCentricPos.App_Center);
+                p.show(PopOver.ScreenPos.App_Center);
     }
     
     private void setUseFilterForPlayback(boolean v) {

@@ -1,12 +1,16 @@
 
 package gui.objects.PopOver;
 
-import gui.objects.PopOver.PopOver.ScreenCentricPos;
+import gui.objects.PopOver.PopOver.ScreenPos;
+
 import javafx.scene.Node;
+
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseButton.SECONDARY;
+
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+
 import util.async.executor.FxTimer;
 
 /**
@@ -45,7 +49,7 @@ public class Notification extends PopOver {
     }
     
     @Override
-    public void show(ScreenCentricPos pos) {
+    public void show(ScreenPos pos) {
         super.show(pos);
         closer.start();
     }

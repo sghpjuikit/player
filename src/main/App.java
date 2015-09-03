@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -99,20 +97,20 @@ import util.InstanceName;
 import util.access.VarEnum;
 import util.async.future.Fut;
 import util.plugin.PluginMap;
-import util.serialize.PlaybackStateConverter;
-import util.serialize.PlaylistItemConverter;
 import util.serialize.xstream.BooleanPropertyConverter;
 import util.serialize.xstream.DoublePropertyConverter;
 import util.serialize.xstream.IntegerPropertyConverter;
 import util.serialize.xstream.LongPropertyConverter;
 import util.serialize.xstream.ObjectPropertyConverter;
+import util.serialize.xstream.PlaybackStateConverter;
+import util.serialize.xstream.PlaylistItemConverter;
 import util.serialize.xstream.StringPropertyConverter;
 import util.units.FileSize;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.ANY;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
-import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.UPLOAD;
-import static gui.objects.PopOver.PopOver.ScreenCentricPos.App_Center;
+import static de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon.EXPORT;
+import static gui.objects.PopOver.PopOver.ScreenPos.App_Center;
 import static java.util.stream.Collectors.toList;
 import static javafx.geometry.Pos.CENTER;
 import static javafx.geometry.Pos.TOP_CENTER;
@@ -313,7 +311,7 @@ public class App extends Application {
                 + "for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "widget as if it were a standalone application.",
-                UPLOAD, w -> {
+                EXPORT, w -> {
                     DirectoryChooser dc = new DirectoryChooser();
                                      dc.setInitialDirectory(App.getLocation());
                                      dc.setTitle("Export to...");
@@ -322,13 +320,13 @@ public class App extends Application {
             })
         );
         ActionPane.register(Component.class, 
-            new ActionData<Component>("Create launcher","Creates a launcher "
+            new ActionData<Component>("Export","Creates a launcher "
                 + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "component as if it were a standalone application.",
-                UPLOAD, w -> {
+                EXPORT, w -> {
                     DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(App.getLocation());
+                                     dc.setInitialDirectory(LAYOUT_FOLDER());
                                      dc.setTitle("Export to...");
                     File dir = dc.showDialog(Window.getActive().getStage());
                     if(dir!=null) w.exportFxwl(dir);
@@ -457,15 +455,14 @@ public class App extends Application {
             initialized = true;
             
         } catch(Exception e) {
-            String ex = Stream.of(e.getStackTrace()).map(s->s.toString()).collect(Collectors.joining("\n"));
-            System.out.println(ex);
-            
+            LOGGER.info("Application failed to start", e);
             LOGGER.error("Application failed to start", e);
         }
-        // complete initialization -> apply all settings
+        
+        // initialization is complete -> apply all settings
         Configuration.getFields().forEach(Config::applyValue);
         
-         //initialize non critical parts
+        // initialize non critical parts
         if(normalLoad) Player.loadLast();
         
         // handle guide
@@ -762,16 +759,16 @@ public class App extends Application {
     public static void openActions() {
         ActionPane.PANE.show(Void.class, null, 
             new ActionData<Void>(
-                "Export widget launchers",
+                "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
                 + "Launcher file is a file that when opened by this application opens the widget. "
                 + "If application was not running before, it will not load normally, "
                 + "but will only open the widget.\n"
                 + "Essentially, this exports the widgets as 'standalone' applications",
-                UPLOAD, 
+                EXPORT, 
                 ignored -> {
                     DirectoryChooser dc = new DirectoryChooser();
-                                     dc.setInitialDirectory(App.getLocation());
+                                     dc.setInitialDirectory(App.LAYOUT_FOLDER());
                                      dc.setTitle("Export to...");
                     Window aw = Window.getActive();
                     File dir = dc.showDialog(aw.getStage());

@@ -114,8 +114,8 @@ public final class FieldConfig<T> extends ConfigBase<T> {
         try {
             if(instance==null) return (T) mh.invoke();
             else return (T) mh.invokeWithArguments(instance);
-        } catch (Throwable ex) {
-            throw new RuntimeException("Error during getting value from a config field. " + ex);
+        } catch (Throwable e) {
+            throw new RuntimeException("Error during getting value from a config field. ",e);
         }
     }
 }

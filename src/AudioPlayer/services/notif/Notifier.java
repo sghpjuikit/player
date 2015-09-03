@@ -32,7 +32,7 @@ import util.access.VarAction;
 import util.access.VarEnum;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.NEW;
-import static gui.objects.PopOver.PopOver.ScreenCentricPos.Screen_Bottom_Right;
+import static gui.objects.PopOver.PopOver.ScreenPos.Screen_Bottom_Right;
 import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import static java.util.stream.Collectors.toList;
 import static javafx.scene.media.MediaPlayer.Status.*;
@@ -75,7 +75,7 @@ public final class Notifier extends ServiceBase {
     @IsConfig(name = "Hide on click anywhere", editable = false)
     public boolean notifAutohide = false;
     @IsConfig(name = "Screen Position")
-    public PopOver.ScreenCentricPos notifPos = Screen_Bottom_Right;
+    public PopOver.ScreenPos notifPos = Screen_Bottom_Right;
     @IsConfig(name = "Screen", info = "Decides which screen to use for positioning. Main screen, application window screen or all screens as one")
     public PopOver.ScreenUse notifScr = APP_WINDOW;
     @IsConfig(name = "On click left")

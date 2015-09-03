@@ -414,10 +414,9 @@ public class Window extends WindowBase {
 	Icon rtB = new Icon(CARET_RIGHT, 13, "Next layout\n\nSwitch to next layout", 
                 () -> ((SwitchPane)getSwitchPane()).alignRightTab());
         maintain(GUI.layout_mode, mapB(TH,TH_LARGE), lmB::icon);
-	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", e -> {
-	    App.guide.resume();
-	    App.actionStream.push("Guide resumed");
-	});
+	Icon guideB = new Icon(GRADUATION_CAP, 13, "Guide\n\nResume or start the guide", () -> 
+	    App.guide.open()
+	);
 	Icon helpB = createInfoIcon("Available actions:\n"
             + "\tHeader icons : Providing custom functionalities. See tooltips.\n"
             + "\tHeader buttons : Providing window contorl. See tooltips.\n"

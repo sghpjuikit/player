@@ -82,6 +82,7 @@ public class ClickEffect extends ServiceBase {
      * @param y 
      */
     public void run(double x, double y) {
+        if(!isRunning) return; // create() must not execute when not running since screen==null
         create().play(x, y);
     }
     

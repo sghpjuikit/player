@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package util.serialize;
+package util.serialize.xstream;
 
 import AudioPlayer.playback.PlaybackState;
 import AudioPlayer.playlist.sequence.PlayingSequence;

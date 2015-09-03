@@ -173,7 +173,9 @@ public final class UiContext {
                     showWindow(w);
                 }
             }
-        }catch(Exception x) { LOGGER.error("Could not load {}",x);}
+        }catch(Exception x) { 
+            LOGGER.error("Could not load component from file {}", launcher,x);
+        }
     }
     
 /******************************************************************************/   

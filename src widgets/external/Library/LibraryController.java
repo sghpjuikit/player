@@ -309,6 +309,7 @@ public class LibraryController extends FXMLController implements SongReader {
     
     @IsInput("To display")
     public void setItems(List<? extends Metadata> items) {
+        if(items==null) return;
         table.setItemsRaw(items);
     }
     

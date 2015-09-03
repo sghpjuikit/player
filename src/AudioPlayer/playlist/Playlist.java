@@ -53,7 +53,7 @@ import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.Environment;
 import util.collections.map.MapSet;
-import util.serialize.PlaylistItemConverter;
+import util.serialize.xstream.PlaylistItemConverter;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.INFO;
 import static java.util.stream.Collectors.toList;
@@ -757,7 +757,7 @@ public class Playlist extends ObservableListWrapper<PlaylistItem> {
         // build popup
         PopOver p = new PopOver(title, content);
                 p.getHeaderIcons().add(infoB);
-                p.show(PopOver.ScreenCentricPos.App_Center);
+                p.show(PopOver.ScreenPos.App_Center);
                 p.detached.set(true);
     }
 

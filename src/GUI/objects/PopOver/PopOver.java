@@ -27,7 +27,7 @@
 package gui.objects.PopOver;
 
 import static com.sun.javafx.util.Utils.getScreenForPoint;
-import static gui.objects.PopOver.PopOver.ScreenCentricPos.*;
+import static gui.objects.PopOver.PopOver.ScreenPos.*;
 import static gui.objects.PopOver.PopOver.ScreenUse.APP_WINDOW;
 import gui.objects.Text;
 import gui.objects.Window.stage.WindowBase;
@@ -446,7 +446,7 @@ public class PopOver<N extends Node> extends PopupControl {
     }
     
     /** Display at specified designated position relative to node. */
-    public void show(Node owner, NodeCentricPos pos) {
+    public void show(Node owner, NodePos pos) {
         showThis(owner, owner.getScene().getWindow());
         double X = pos.calcX(owner, this)+owner.getBoundsInParent().getWidth()/2;
         double Y = pos.calcY(owner, this)+owner.getBoundsInParent().getHeight()/2;
@@ -461,7 +461,7 @@ public class PopOver<N extends Node> extends PopupControl {
     }
     
     /** Display at specified designated screen position */
-    public void show(ScreenCentricPos pos) {
+    public void show(ScreenPos pos) {
         setArrowSize(0); // disable arrow
         showThis(null, pos.isAppCentric() ? gui.objects.Window.stage.Window.getActive().getStage() : App.getWindowOwner().getStage());
         position(pos.calcX(this), pos.calcY(this));
@@ -776,7 +776,7 @@ public class PopOver<N extends Node> extends PopupControl {
     private static double GAP = 9;
     public ScreenUse screen_preference = APP_WINDOW;
     
-    public static enum NodeCentricPos {
+    public static enum NodePos {
         Center,
         UpLeft,
         UpCenter,
@@ -791,7 +791,7 @@ public class PopOver<N extends Node> extends PopupControl {
         LeftCenter,
         LeftDown;
         
-        public NodeCentricPos reverse() {
+        public NodePos reverse() {
             switch(this) {
                 case Center:        return Center;
                 case UpLeft:        return DownRight;
@@ -852,7 +852,7 @@ public class PopOver<N extends Node> extends PopupControl {
     }
     
     /** Defines position within the screen area defined by {@link ScreenUse}. */
-    public static enum ScreenCentricPos {
+    public static enum ScreenPos {
         Screen_Top_Right,
         Screen_Top_Left,
         Screen_Center,
@@ -929,7 +929,7 @@ public class PopOver<N extends Node> extends PopupControl {
         ALL;
         
         /** Returns rectangular screen area */
-        public Rectangle2D getScreenArea(Window w, ScreenCentricPos pos) {
+        public Rectangle2D getScreenArea(Window w, ScreenPos pos) {
             Screen ps = Screen.getPrimary();
             if(this==MAIN) return ps.getBounds();
             if(this==APP_WINDOW)

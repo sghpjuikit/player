@@ -194,10 +194,10 @@ public class Configuration {
         Class c = f.getType();
         if(Config.class.isAssignableFrom(c)) {
             return newFromConfig(f, instance);
-        }
-        else if(WritableValue.class.isAssignableFrom(c) || ReadOnlyProperty.class.isAssignableFrom(c))
+        } else
+        if(WritableValue.class.isAssignableFrom(c) || ReadOnlyProperty.class.isAssignableFrom(c)) {
             return newFromProperty(f, instance, name, anotation, group);
-        else {
+        } else {
             try {
                 noFinal(f);            // make sure the field is not final
                 f.setAccessible(true);     // make sure the field is accessible
@@ -207,8 +207,6 @@ public class Configuration {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Unreflecting field " + f.getName() + " failed. " + e.getMessage());
             }
-            
-            
         }
     }
     

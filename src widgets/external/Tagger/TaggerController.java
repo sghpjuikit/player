@@ -44,7 +44,7 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.TextFieldItemNode.MoodItemNode;
 import gui.itemnode.TextFieldItemNode.TextFieldItemNode;
 import gui.objects.PopOver.PopOver;
-import gui.objects.PopOver.PopOver.NodeCentricPos;
+import gui.objects.PopOver.PopOver.NodePos;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import gui.objects.image.ChangeableThumbnail;
@@ -64,7 +64,7 @@ import util.parsing.Parser;
 import static AudioPlayer.tagging.Metadata.Field.*;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.EXCLAMATION_TRIANGLE;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.TAGS;
-import static gui.objects.PopOver.PopOver.NodeCentricPos.DownCenter;
+import static gui.objects.PopOver.PopOver.NodePos.DownCenter;
 import static gui.objects.icon.Icon.createInfoIcon;
 import static gui.objects.image.cover.Cover.CoverSource.TAG;
 import static java.util.Collections.singletonList;
@@ -162,7 +162,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
     @IsConfig(name = "Field text alignement", info = "Alignment of the text in fields.")
     public final Ѵ<Pos> field_text_alignment = new Ѵ<>(CENTER_LEFT, v->fields.forEach(f->f.setVerticalAlignment(v)));
     @IsConfig(name="Mood picker popup position", info = "Position of the mood picker pop up relative to the mood text field.")
-    public final Ѵ<NodeCentricPos> popupPos = new Ѵ<>(DownCenter, MoodF::setPos);
+    public final Ѵ<NodePos> popupPos = new Ѵ<>(DownCenter, MoodF::setPos);
     @IsConfig(name = "Allow change of playcount", info = "Change editability of playcount field. Generally to prevent change to non customary values.")
     public final Ѵ<Boolean> allow_playcount_change = new Ѵ<>(false, v -> {
         if(!isEmpty()) PlaycountF.setDisable(!v);
@@ -408,7 +408,7 @@ public class TaggerController extends FXMLController implements SongWriter, Song
         Validation v = validators.stream().filter(Validation::isInValid).findFirst().orElse(null);
         if(v!=null) {
             PopOver p = new PopOver(new Text(v.text));
-            p.show(PopOver.ScreenCentricPos.App_Center);
+            p.show(PopOver.ScreenPos.App_Center);
             return;
         }
         

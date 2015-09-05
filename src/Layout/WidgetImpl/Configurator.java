@@ -122,6 +122,8 @@ public final class Configurator extends ClassController implements ConfiguringFe
 
     @Override
     public void configure(Collection<Config> c) {
+        if(c==null) return;
+        
         // clear previous fields
         configFields.clear();
         accordion.getPanes().clear();

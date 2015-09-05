@@ -6,9 +6,10 @@
 
 package Layout.Widgets.feature;
 
+import java.util.Collection;
+
 import Configuration.Config;
 import Configuration.Configurable;
-import java.util.Collection;
 
 /**
  * Editor for {@link Configurable}.
@@ -24,7 +25,7 @@ public interface ConfiguringFeature {
     
     /** Displays configs of the specified configurable object for user to edit. */
     default void configure(Configurable c) {
-        configure(c.getFields());
+        configure(c==null ? null : c.getFields());
     };
     
     /** Displays specified configs for user to edit. */

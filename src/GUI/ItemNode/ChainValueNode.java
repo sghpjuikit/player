@@ -5,6 +5,27 @@
  */
 package gui.itemnode;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.ListChangeListener.Change;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
+
 import Configuration.Config;
 import Configuration.Configurable;
 import Layout.Widgets.feature.ConfiguringFeature;
@@ -13,36 +34,10 @@ import gui.itemnode.ItemNode.ValueNode;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.MINUS;
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.PLUS;
-
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.collections.ListChangeListener.Change;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-
 import static javafx.geometry.Pos.CENTER_LEFT;
-
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
-
 import static javafx.scene.layout.Priority.ALWAYS;
-
-import javafx.scene.layout.VBox;
-import javafx.scene.text.TextAlignment;
-
 import static util.dev.Util.yes;
 import static util.functional.Util.*;
 
@@ -287,6 +282,8 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
 
         @Override
         public final void configure(Collection<Config> configs) {
+            if(configs==null) return;
+            
             root.getChildren().setAll(map(configs,c -> {
                 ConfigField cf = ConfigField.create(c);
                             cf.onChange = () -> { if(onChange!=null) onChange.run(); };

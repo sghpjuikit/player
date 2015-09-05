@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javafx.animation.FadeTransition;
+import javafx.beans.property.Property;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
@@ -27,6 +29,7 @@ import org.controlsfx.control.textfield.CustomTextField;
 import Configuration.Config;
 import Configuration.Config.ListConfig;
 import Configuration.Config.PropertyConfig;
+import Configuration.Config.ReadOnlyPropertyConfig;
 import action.Action;
 import gui.itemnode.ChainValueNode.ConfigPane;
 import gui.itemnode.ChainValueNode.ListConfigField;
@@ -455,13 +458,30 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     }
     private static class BooleanField extends ConfigField<Boolean> {
         CheckIcon cBox;
+        private final boolean observable;
         
         private BooleanField(Config<Boolean> c) {
             super(c);
+            
+            ObservableValue<Boolean> v = c instanceof PropertyConfig && ((PropertyConfig)c).getProperty() instanceof ObservableValue
+                    ? (ObservableValue)((PropertyConfig)c).getProperty()
+                    : c instanceof ReadOnlyPropertyConfig 
+                        ? ((ReadOnlyPropertyConfig)c).getProperty()
+                        : null;
+            observable = v!=null;
+            
             cBox = new CheckIcon();
             cBox.styleclass("boolean-config-field");
-            refreshItem();
-            cBox.selected.addListener((o,ov,nv)-> apply(false));
+            if(observable) {
+               if(v instanceof Property) {
+                   cBox.selected.bindBidirectional((Property)v);
+               } else {
+                   maintain(v,cBox.selected);
+               }
+            } else {
+                refreshItem();
+                cBox.selected.addListener((o,ov,nv)-> apply(false));
+            }
         }
         
         @Override public CheckIcon getControl() {
@@ -471,7 +491,9 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return cBox.selected.get();
         }
         @Override public void refreshItem() {
-            cBox.selected.set(config.getValue());
+            if(!observable) {
+                cBox.selected.set(config.getValue());
+            }
         }
     }
     private static class OverrideField extends BooleanField {

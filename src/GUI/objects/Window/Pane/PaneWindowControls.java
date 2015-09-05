@@ -26,6 +26,7 @@ import static gui.objects.Window.Resize.*;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import static javafx.scene.paint.Color.BLACK;
 import static util.graphics.Util.setAnchors;
+import static util.reactive.Util.maintain;
 
 /**
  */
@@ -62,6 +63,9 @@ public class PaneWindowControls extends WindowPane {
 	moving.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcMoved, nv));
 	focused.addListener((o, ov, nv) -> root.pseudoClassStateChanged(pcFocused, nv));
 
+        // disable resizing behavior completely when not resizable
+        maintain(resizable,v->!v,borders.mouseTransparentProperty());
+        
 //        moveOnDragOf(header);
         
 	// header double click maximize, show header on/off

@@ -361,7 +361,6 @@ public class TreeItems {
     public static Configurable toC(Object o) {
         List<Config> cs = new ArrayList();
         propertes(o).forEach((p,name) -> {
-            if(!(p instanceof WritableValue || p instanceof ReadOnlyProperty)) System.out.println(p.getClass());
             if((p instanceof WritableValue || p instanceof ReadOnlyProperty) && p.getValue()!=null)
                 cs.add(Config.forProperty(name,p));
         });

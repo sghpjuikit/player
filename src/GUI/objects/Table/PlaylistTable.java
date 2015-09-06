@@ -44,13 +44,15 @@ import web.HttpSearchQueryBuilder;
 
 import static AudioPlayer.playlist.PlaylistItem.Field.*;
 import static Layout.Widgets.WidgetManager.WidgetSource.NO_LAYOUT;
+import static java.util.Collections.EMPTY_LIST;
 import static javafx.scene.input.MouseButton.PRIMARY;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
 import static javafx.scene.input.MouseEvent.MOUSE_PRESSED;
 import static util.Util.*;
 import static util.dev.TODO.Purpose.READABILITY;
-import static util.functional.Util.by;
+import static util.functional.Util.SAME;
 import static util.functional.Util.filterMap;
+import static util.functional.Util.list;
 
 /**
  * Playlist table GUI component.
@@ -147,13 +149,14 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 // dont return - after resizing the resized column, we go resize
                 // the rest to always fill the table width
                 // true means the delta is reset and wont accumulate
-                // return true; // muut be true
+                // return true;
             }
             // handle table resize or index column
+           
+            double tw = resize.getTable().getWidth();
+            double sw = getVScrollbarWidth();
+            double g = 3;               // gap to prevent horizontal slider to appear
             
-            // table
-            double W = resize.getTable().getWidth();
-
             // column index
             double W1 = calculateIndexColumnWidth();
             
@@ -163,13 +166,6 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                  t2.setFont(GUI.font.getValue());
             double W3 = t2.getLayoutBounds().getWidth() + 5;
             
-            // slider
-            double H = getItems().size()*getFixedCellSize();
-            double S = H > getHeight()-getTableHeaderHeight() ? 15 : 0;
-
-            // gap to prevent horizontal slider to appear
-            double G = 3;
-            
             columnIndex.setPrefWidth(W1);
             columnTime.setPrefWidth(W3);
             
@@ -177,17 +173,14 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
             if(mc!=null) {
                 cs.remove(mc);
-                double W4 = cs.stream().mapToDouble(c->c.getWidth()).sum();
-                mc.setPrefWidth(W-W4-S-G);
+                double Σcw = cs.stream().mapToDouble(c->c.getWidth()).sum();
+                mc.setPrefWidth(tw-Σcw-sw-g);
             }
             return true; // false/true, doesnt matter
         });
         
         // prevent selection change on right click
         addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        // addEventFilter(MOUSE_RELEASED, consumeOnSecondaryButton);
-        // prevent context menu changing selection despite the above
-        // addEventFilter(ContextMenuEvent.ANY, Event::consume);
         
         // empty table left click -> add items
         addEventHandler(MOUSE_CLICKED, e -> {
@@ -199,6 +192,24 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // move items on drag
         setOnMouseDragged( e -> {
             if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
+            
+            // we cant move ites when fiter on & we cant cancel filter, user would freak out 
+//            if(itemsPredicate.get()!=null) return;
+            if(getItems().size()!=getItemsRaw().size()) return;
+            
+            // transform any sort (if in effect) to actual table items, we cant change order on
+            // items out of natural order
+            if(itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
+                movingitems = true;
+                List l = list(getItems());
+                List sl = list(getSelectionModel().getSelectedIndices());
+                setItemsRaw(EMPTY_LIST);    // clear items
+                getSortOrder().clear();     // clear sort order
+                setItemsRaw(l);             // set items back, now any sort is part of their order
+                selectRows(sl,getSelectionModel()); // set selection back
+                movingitems = false;
+            }
+            
             
             double h = getFixedCellSize();
             double dist = e.getScreenY()- last;
@@ -272,30 +283,10 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
     public Playlist getPlaylist() {
         return (Playlist) getItemsRaw();
     }
-    
-/************************************* SORT ***********************************/
-    
-    /**
-     * Sorts directly the playlist data, rather than just this table.
-     * <p>
-     * {@inheritDoc} */
-    @TODO(purpose = TODO.Purpose.ILL_DEPENDENCY, note = "Normally, we want to just"
-            + "sort getItemsRaw(), but then we get desynced with playlist, which"
-            + "can cause problems for index dependent operations."
-            + "Thats because filteredTable does not take observable list as input"
-            + "and has its own, thus separating it from PlaylistManager' data"
-            + "We need to decouple playlist tables (all are 'linked' now because"
-            + "of this) and remove PlaylistManager alltogether - modularize it"
-            + "into playlist tables only.")
-    @Override
-    public void sortBy(PlaylistItem.Field f) {
-        getSortOrder().clear();
-        getPlaylist().sort(by(p -> (Comparable) p.getField(f)));
-    }
-    
+
 /********************************** SELECTION *********************************/
     
-    private boolean movingitems = false;
+    public boolean movingitems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
         if(movingitems) return; 
         PlaylistManager.selectedItemES.push(nv);

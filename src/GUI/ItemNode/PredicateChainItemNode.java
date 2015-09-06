@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.*;
 import java.util.stream.Stream;
+
 import util.access.FieldValue.FieldEnum;
 import util.access.FieldValue.FieldedValue;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
+
 import static util.functional.Util.*;
 
 /**
@@ -33,7 +35,7 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
 
     public PredicateChainItemNode(int i, Supplier<PredicateItemNode<F>> chainedFactory) {
         super(i, chainedFactory);
-        conjuction = isTRUE;
+        conjuction = ALL;
     }
     
 
@@ -78,9 +80,9 @@ public class PredicateChainItemNode<T extends FieldedValue,F extends FieldEnum<T
     protected void generateValue() {
         if(inconsistent_state || converter==null) return;
         conjuction = chain.stream().filter(g->g.on.get())
-                                    .map(g->g.chained.getValue()).filter(ISNTØ)
-                                    .map(g->converter.apply(g._2,g._1))
-                                    .reduce(Predicate::and).orElse(isTRUE);
+                                   .map(g->g.chained.getValue()).filter(ISNTØ)
+                                   .map(g->converter.apply(g._2,g._1))
+                                   .reduce(Predicate::and).orElse(ALL);
         if(onFilterChange!=null) onFilterChange.accept(conjuction);
     }
 

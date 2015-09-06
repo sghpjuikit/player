@@ -23,6 +23,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.iterate;
 import static util.collections.Tuples.tuple;
+import static util.dev.Util.noØ;
 import static util.dev.Util.yes;
 
 /**
@@ -31,17 +32,20 @@ import static util.dev.Util.yes;
  */
 public class Util {
     
-    /** Predicate returning true if object is not null. */
+    /** Predicate returning true iff object is not null. */
     public static final Predicate<Object> ISNTØ = Objects::nonNull;
     
-    /** Predicate returning true if object is null. */
+    /** Predicate returning true iff object is null. */
     public static final Predicate<Object> ISØ = Objects::isNull;
     
-    /** Predicate returning true.*/
-    public static final Predicate isTRUE = o -> true;
+    /** Predicate returning true. Matches every object. */
+    public static final Predicate ALL = o -> true;
     
-    /** Predicate returning false.*/
-    public static final Predicate isFALSE = o -> false;
+    /** Predicate returning false. Matches no object. */
+    public static final Predicate NONE = o -> false;
+    
+    /** Predicate returning false. Produces no order change. */
+    public static Comparator SAME = (a,b) -> 0;
     
     /**  */
     public static <E> boolean isIn(E o, E... es) {
@@ -160,26 +164,27 @@ public class Util {
     
 /******************************* object -> object *****************************/
     
-    public static <IN,OUT> Function<IN,OUT> mapC(Predicate<? super IN> cond, OUT y, OUT n) {
+    public static <IN,OUT> Ƒ1<IN,OUT> mapC(Predicate<? super IN> cond, OUT y, OUT n) {
         return in -> cond.test(in) ? y : n;
     }
-    public static <OUT> Function<Boolean,OUT> mapB(OUT y, OUT n) {
+    public static <OUT> Ƒ1<Boolean,OUT> mapB(OUT y, OUT n) {
         return in -> in ? y : n;
     }
-    public static <NN> Function<? extends Object,NN> mapNulls(NN non_null) {
-        return (Function) in -> in==null ? non_null : in;
+    public static <NN> Ƒ1<? extends Object,NN> mapNulls(NN non_null) {
+        noØ(non_null);
+        return (Ƒ1) in -> in==null ? non_null : in;
     }
     
 /***************************** function -> function ***************************/
     
     /** Returns function that never produces null, but returns its input instead. */
-    public static <I> Function<I,I> nonNull(Function<I,I> f) {
+    public static <I> Ƒ1<I,I> nonNull(Function<I,I> f) {
         return in -> {
             I out = f.apply(in);
             return out==null ? in : out;
         };
     }
-    public static <I,O> Function<I,O> nonNull(Function<I,O> f, O or) {
+    public static <I,O> Ƒ1<I,O> nonNull(Function<I,O> f, O or) {
         return in -> {
             O out = f.apply(in);
             return out==null ? or : out;
@@ -190,11 +195,11 @@ public class Util {
     }
     
     /** Equivalent to {@code noEx(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
+    public static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
         return noEx(null, f, ecs);
     }
     /** Equivalent to {@code noEx(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
         return noEx(null, f, ecs);
     }
     /** 
@@ -210,12 +215,12 @@ public class Util {
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
      */
-    public static <I,O> Function<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
+    public static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
         return noEx(or, f, list(ecs));
     }
 
     /** Equivalent to {@link #noEx(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
-    public static <I,O> Function<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
                 return f.apply(i);
@@ -225,13 +230,13 @@ public class Util {
             }
         };
     }
-
+    
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noExE(Ƒ1E<I,O> f, Class<?>... ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O> f, Class<?>... ecs) {
         return noExE(null, f, ecs);
     }
     /** Equivalent to {@code noExE(f, null, ecs); }*/
-    public static <I,O> Function<I,O> noExE(Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
         return noExE(null, f, ecs);
     }
     /** 
@@ -247,12 +252,12 @@ public class Util {
      * Exception.class will effectively catch all exception types. Throwable.class
      * is also an option.
      */
-    public static <I,O> Function<I,O> noExE(O or, Ƒ1E<I,O> f, Class<?>... ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O> f, Class<?>... ecs) {
         return noExE(or, f, list(ecs));
     }
 
     /** Equivalent to {@link #noExE(java.util.function.Function, java.lang.Object, java.lang.Class...)}*/
-    public static <I,O> Function<I,O> noExE(O or, Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
+    public static <I,O> Ƒ1<I,O> noExE(O or, Ƒ1E<I,O> f, Collection<Class<?>> ecs) {
         return i -> {
             try {
                 return f.apply(i);

@@ -119,7 +119,7 @@ public class Thumbnail extends ImageNode {
     private static final String image_styleclass = "thumbnail-image";
     
     @IsConfig(name="Thumbnail anim duration", info = "Preffered hover scale animation duration for thumbnails.")
-    public static double animDur = 100;
+    public static Duration animDur = millis(100);
     public static boolean animated = false;
     
     AnchorPane root = new AnchorPane();
@@ -459,7 +459,7 @@ public class Thumbnail extends ImageNode {
 /********************************  HOVERING  **********************************/
     
     /** Duration of the scaling animation effect when transitioning to gover state. */
-    public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", millis(animDur));
+    public final ObjectProperty<Duration> durationOnHover = new SimpleObjectProperty(this, "durationOnHover", animDur);
     private final Anim hoverAnimation = new Anim(durationOnHover.get(),at -> util.graphics.Util.setScaleXY(root,1+0.05*at));
     private final EventHandler<MouseEvent> hoverHandler = e -> {
             hoverAnimation.dur(durationOnHover.get());

@@ -45,8 +45,8 @@ import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
 import util.access.FieldValue.FieldEnum.ColumnField;
-import util.access.Ѵo;
 import util.access.VarEnum;
+import util.access.Ѵo;
 import util.async.executor.ExecuteN;
 import util.collections.Histogram;
 import util.collections.TupleM6;
@@ -233,16 +233,15 @@ public class LibraryViewController extends FXMLController {
         
         // resizing
         table.setColumnResizePolicy(resize -> {
-            FilteredTable<MetadataGroup,MetadataGroup.Field> t = (FilteredTable) resize.getTable();
+            FilteredTable<MetadataGroup,?> t = table;   // (FilteredTable) resize.getTable()
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
             t.getColumn(ColumnField.INDEX).ifPresent(i->i.setPrefWidth(t.calculateIndexColumnWidth()));
             // resize main column to span remaining space
             t.getColumn(VALUE).ifPresent(c->{
-                double Σw = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
-                double itemsHeight = (t.getItems().size()+1)*t.getFixedCellSize();
-                double scrollbar = itemsHeight < t.getHeight() ? 0 : 15;
-                c.setPrefWidth(t.getWidth()-(scrollbar+Σw-c.getWidth()));
+                double Σcw = t.getColumns().stream().filter(TableColumn::isVisible).mapToDouble(TableColumn::getWidth).sum();
+                double sw = t.getVScrollbarWidth();
+                c.setPrefWidth(t.getWidth()-(sw+Σcw-c.getWidth()));
             });
             return b;
         });
@@ -351,7 +350,7 @@ public class LibraryViewController extends FXMLController {
         // Predicate<Metadata> p = mgs.parallelStream()
         //        .map(MetadataGroup::toMetadataPredicate)
         //        .reduce(Predicate::or)
-        //        .orElse(isFALSE);
+        //        .orElse(NONE);
         
         Field f = fieldFilter.getValue();
         Predicate<Metadata> p;

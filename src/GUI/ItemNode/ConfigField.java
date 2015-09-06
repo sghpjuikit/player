@@ -40,6 +40,7 @@ import gui.objects.icon.Icon;
 import util.Password;
 import util.access.Ѵo;
 import util.functional.Functors.Ƒ1;
+import util.parsing.Parser;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.util.stream.Collectors.toList;
@@ -456,6 +457,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         private void showWarnButton(boolean val) {
             n.setRight(val ? warnB : null);
             warnB.setVisible(val);
+            if(val) warnTooltip.setText(Parser.getError());
         }
         
     }

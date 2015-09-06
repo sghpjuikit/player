@@ -472,9 +472,9 @@ public class Functors {
         add("Is funny",         String.class,Boolean.class, x -> x.contains("fun") && x.contains("y"));
         add("Is palindrome",    String.class,Boolean.class, x -> isNonEmptyPalindrome(x));
         
-        add("More",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
-        add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
         add("Less",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<0, Bitrate.class,new Bitrate(320));
+        add("Is",        Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)==0, Bitrate.class,new Bitrate(320));
+        add("More",      Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>0, Bitrate.class,new Bitrate(320));
         add("Not more",  Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)<=0, Bitrate.class,new Bitrate(320));
         add("Is not",    Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)!=0, Bitrate.class,new Bitrate(320));
         add("Not less",  Bitrate.class,Boolean.class,(x,y) -> x.compareTo(y)>=0, Bitrate.class,new Bitrate(320),false,false,true);
@@ -490,19 +490,19 @@ public class Functors {
         add("Is not",    FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)!=0, FormattedDuration.class, new FormattedDuration(0));
         add("Not more",  FormattedDuration.class,Boolean.class,(x,y) ->  x.compareTo(y)<=0, FormattedDuration.class, new FormattedDuration(0));
 
-        add("Less",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<0, NofX.class,new NofX(1,1));
-        add("Is",        NofX.class,Boolean.class, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
-        add("More",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>0, NofX.class,new NofX(1,1),false,false,true);
-        add("Not less",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
-        add("Is not",    NofX.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
-        add("Not more",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
+        add("<  Less",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, NofX.class,new NofX(1,1));
+        add("=  Is",        NofX.class,Boolean.class, (x,y) -> x.compareTo(y)==0, NofX.class,new NofX(1,1));
+        add(">  More",      NofX.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, NofX.class,new NofX(1,1),false,false,true);
+        add(">= Not less",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, NofX.class,new NofX(1,1));
+        add("<> Is not",    NofX.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, NofX.class,new NofX(1,1));
+        add("<= Not more",  NofX.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, NofX.class,new NofX(1,1));
         
-        add("More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>0, FileSize.class,new FileSize(0));
-        add("Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
-        add("Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<0, FileSize.class,new FileSize(0),false,false,true);
-        add("Not more",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, FileSize.class,new FileSize(0));
-        add("Is not",    FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, FileSize.class,new FileSize(0));
-        add("Not less",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, FileSize.class,new FileSize(0));
+        add("<  Less",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)< 0, FileSize.class,new FileSize(0),false,false,true);
+        add("=  Is",        FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)==0, FileSize.class,new FileSize(0));
+        add(">  More",      FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)> 0, FileSize.class,new FileSize(0));
+        add(">= Not more",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)<=0, FileSize.class,new FileSize(0));
+        add("<> Is not",    FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)!=0, FileSize.class,new FileSize(0));
+        add("<= Not less",  FileSize.class,Boolean.class, (x,y) -> x.compareTo(y)>=0, FileSize.class,new FileSize(0));
         add("Is unknown",FileSize.class,Boolean.class, x -> x.inBytes()==-1);
         add("Is known",  FileSize.class,Boolean.class, x -> x.inBytes()>-1);
         add("Is 1.21GB", FileSize.class,Boolean.class, x -> x.inGBytes()==1.21);

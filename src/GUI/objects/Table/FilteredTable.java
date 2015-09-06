@@ -165,12 +165,9 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 e.consume(); // causes all KEY_PRESSED handlers to be ignored
             }
         });
-        addEventFilter(Event.ANY, e -> updateSearchStyles());
+        addEventFilter(Event.ANY, e -> updateSearchStyles()); // isnt this overkill!?
         changesOf(getItems()).subscribe(c -> updateSearchStyles());
-        
-        // resize index column on change of filter & items
-        changesOf(filtereditems.predicateProperty()).subscribe(c -> resizeIndexColumn());
-        changesOf(allitems).subscribe(c -> resizeIndexColumn());
+        changesOf(getItems()).subscribe(c -> resizeIndexColumn());
 
         footerVisible.set(true);
     }
@@ -451,7 +448,7 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
      */
     public void sort(Comparator<T> comparator) {
         getSortOrder().clear();
-        allitems.sorted(comparator);
+        allitems.sort(comparator);
     }
     
 /*********************************** HELPER ***********************************/

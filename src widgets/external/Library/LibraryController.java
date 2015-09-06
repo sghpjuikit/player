@@ -223,7 +223,8 @@ public class LibraryController extends FXMLController implements SongReader {
         table.setColumnResizePolicy(resize -> {
             boolean b = UNCONSTRAINED_RESIZE_POLICY.call(resize);
             // resize index column
-            table.getColumn(ColumnField.INDEX).ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
+            table.getColumn(ColumnField.INDEX)
+                 .ifPresent(i->i.setPrefWidth(table.calculateIndexColumnWidth()));
             return b;
         });
         

@@ -5,36 +5,30 @@
  */
 package gui.itemnode;
 
-import gui.itemnode.ItemNode.ValueNode;
-import gui.objects.combobox.ImprovedComboBox;
-import gui.objects.icon.CheckIcon;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import static javafx.geometry.Pos.CENTER_LEFT;
-
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
-
-import static javafx.scene.layout.Priority.ALWAYS;
-
 import javafx.util.Callback;
 
+import gui.itemnode.ItemNode.ValueNode;
+import gui.objects.combobox.ImprovedComboBox;
+import gui.objects.icon.CheckIcon;
 import util.collections.PrefList;
 import util.collections.Tuple2;
 import util.collections.Tuple3;
-
-import static util.collections.Tuples.tuple;
-
 import util.functional.Functors.PƑ;
 
-import static util.functional.Util.isTRUE;
+import static javafx.geometry.Pos.CENTER_LEFT;
+import static javafx.scene.layout.Priority.ALWAYS;
+import static util.collections.Tuples.tuple;
+import static util.functional.Util.ALL;
 
 /**
  *
@@ -117,7 +111,7 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
     
     public void clear() {
         empty = true;
-        value = tuple(isTRUE, prefTypeSupplier.get()._3);
+        value = tuple(ALL, prefTypeSupplier.get()._3);
     }
     
     private void generatePredicate() {

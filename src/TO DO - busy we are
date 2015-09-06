@@ -3,8 +3,7 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
-- disable selection change on playlist item drag
-- disable playlist CTRL item drag when filter or sort in effect
+- ClassMaps should support concurrency if desired
 - support fut error handling, 
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
 - improve action pane - add progress for action, auto closing on done, etc.
@@ -24,11 +23,11 @@
 - all tables sel + all sel outputs
 - LastFM -> service
 - DB -> service
-- global shourtcuts -> service + make sure jintellitype dependency !cause errors
+- global shourtcuts -> service
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will 
   start playing playlist selected song too...
 - make containers & widgets more lightweight
-- Inspector fix & improve
+- Inspector implement 'preview'/info pane
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo
 - app animated loading

@@ -204,7 +204,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         root.setOnScroll(Event::consume);
         
         // maintain outputs
-        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> outSelected.setValue(nv));
+        table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
+            if(!table.movingitems)
+                outSelected.setValue(nv);
+        });
         
         d(table::dispose);
     }

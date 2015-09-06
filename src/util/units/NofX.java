@@ -5,10 +5,12 @@
  */
 package util.units;
 
-import static java.util.Objects.hash;
 import java.util.regex.PatternSyntaxException;
+
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.parsing.StringParseStrategy;
+
+import static java.util.Objects.hash;
 import static util.parsing.StringParseStrategy.From.FROM_STRING_METHOD;
 import static util.parsing.StringParseStrategy.To.TO_STRING_METHOD;
 
@@ -60,6 +62,7 @@ public class NofX implements Comparable<NofX> {
      
     public static NofX fromString(String s) throws PatternSyntaxException, NumberFormatException, ArrayIndexOutOfBoundsException {
         String[] a = s.split("/", 0);
+        if(a.length!=2) throw new ArrayIndexOutOfBoundsException("Not in an 'X/Y' format");
         return new NofX(Integer.parseInt(a[0]), Integer.parseInt(a[1]));
     } 
 }

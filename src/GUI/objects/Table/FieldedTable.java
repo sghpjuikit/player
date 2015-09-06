@@ -197,7 +197,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     
     private TableColumnInfo defColInfo;
     @TODO(purpose = FUNCTIONALITY, note = "menu needs to be checked menu. However"
-            + "rater than building it from scratch, get rid of the reflection and"
+            + "rather than building it from scratch, get rid of the reflection and"
             + "make a skin that does this natively. Not sure what is better option here")
     public TableColumnInfo getDefaultColumnInfo() {
         if(defColInfo==null) {
@@ -286,8 +286,11 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
     /**
      * Comparator for ordering items reflecting this table's sort order.
      * Read only, changing value will have no effect.
+     * <p>
+     * The value is never null, rather {@link util.functional.Util#SAME} is used to indicate no
+     * particular order.
      */
-    public final ObjectProperty<Comparator<? super T>> itemsComparator = new SimpleObjectProperty<>((a,b)->0);
+    public final ObjectProperty<Comparator<? super T>> itemsComparator = new SimpleObjectProperty<>(SAME);
     
     /**
      * Sorts the items by the field. Sorting does not operate on table's sort
@@ -352,7 +355,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 int type = column.getSortType()==ASCENDING ? 1 : -1;
                 return (Comparator<T>)(m1,m2) -> type*((Comparable)m1.getField(f)).compareTo((m2.getField(f)));
             })
-            .reduce(Comparator::thenComparing).orElse((a,b)->0);
+            .reduce(Comparator::thenComparing).orElse(SAME);
         itemsComparator.setValue(c);
     }
     

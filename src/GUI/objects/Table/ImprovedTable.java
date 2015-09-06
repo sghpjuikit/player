@@ -28,12 +28,16 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 
+import com.sun.javafx.scene.control.skin.VirtualFlow;
+import com.sun.javafx.scene.control.skin.VirtualScrollBar;
+
 import gui.GUI;
 import gui.objects.TableRow.ImprovedTableRow;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import util.Util;
 
 import static java.lang.Math.floor;
+import static util.Util.getFieldValue;
 
 /**
  *
@@ -201,6 +205,19 @@ public class ImprovedTable<T> extends TableView<T> {
         double w = text.getLayoutBounds().getWidth() + 5;
         return w;
     }
+    
+    /** Returns vertical scrollbar width or 0 if not visible. */
+    public double getVScrollbarWidth() {
+        VirtualFlow f = getFieldValue(getSkin(), VirtualFlow.class, "flow");
+        if(f!=null) {
+            VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
+            if(vsb!=null) {
+                return vsb.isVisible() ? vsb.getWidth() : 0;
+            }
+        }
+        return 0;
+    }
+    
 /********************************** SELECTION *********************************/
     
     
@@ -275,9 +292,9 @@ public class ImprovedTable<T> extends TableView<T> {
         getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d));
     }
     
-/***************************** OBSERVABLE VALUE *******************************/
+/***************************** UTIL + HELPER *******************************/
     
-    /** Minimalistic value wrapper for POJO table views cell value factories. */
+    /** Minimalistic value wrapper for POJO table view cell value factories. */
     @Immutable
     public static class PojoV<T> implements ObservableValue<T> {
         private final T v;

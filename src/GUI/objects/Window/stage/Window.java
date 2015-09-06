@@ -74,7 +74,10 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWN;
 import static util.animation.Anim.par;
 import static util.dev.TODO.Purpose.BUG;
 import static util.dev.Util.no;
-import static util.functional.Util.*;
+import static util.functional.Util.find;
+import static util.functional.Util.forEachIRStream;
+import static util.functional.Util.forEachIStream;
+import static util.functional.Util.mapB;
 import static util.graphics.Util.*;
 import static util.reactive.Util.maintain;
 

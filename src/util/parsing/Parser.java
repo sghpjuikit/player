@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.time.Year;
 import java.time.format.DateTimeParseException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -23,6 +24,7 @@ import javafx.util.Duration;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import gui.itemnode.StringSplitParser;
 import util.collections.map.ClassMap;
+import util.functional.Functors.Ƒ1;
 import util.parsing.StringParseStrategy.From;
 import util.parsing.StringParseStrategy.To;
 
@@ -92,6 +94,7 @@ public class Parser {
     private static final ClassMap<Function<String,?>> parsersFromS = new ClassMap<>();
     private static final Function<String,Object> errFromP = o -> null;
     private static final Function<Object,String> errToP = toString;
+    private static String error = "";
     
     static {
         Function<Object,String> sv = String::valueOf;
@@ -134,6 +137,31 @@ public class Parser {
         );
         registerConverterFromS(Duration.class, noEx(s -> Duration.valueOf(s.replaceAll(" ", "")), iae)); // fixes java's inconsistency
         registerConverterToS(FontAwesomeIcon.class,FontAwesomeIcon::name);
+    }
+    
+    private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Collection<Class<?>> ecs) {
+        return i -> {
+            try {
+                return f.apply(i);
+            } catch(Exception e) {
+                for(Class<?> ec : ecs) 
+                    if(ec.isAssignableFrom(e.getClass())) {
+                        error = e.getMessage();
+                        return or;
+                    }
+                throw e;
+            }
+        };
+    }
+    
+    private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Class<?>... ecs) {
+        return noEx(null, f, list(ecs));
+    }
+    private static <I,O> Ƒ1<I,O> noEx(Function<I,O> f, Collection<Class<?>> ecs) {
+        return noEx(null, f, ecs);
+    }
+    private static <I,O> Ƒ1<I,O> noEx(O or, Function<I,O> f, Class<?>... ecs) {
+        return noEx(or, f, list(ecs));
     }
     
     public static<T> void registerConverter(Class<T> c, StringConverter<T> parser) {
@@ -209,6 +237,10 @@ public class Parser {
     /** @return parser, or error parser if no parser available, never null */
     private static <T> Function<String,T> getParserFromS(Class<T> c) {
         return parsersFromS.computeIfAbsent(c, ƈ -> noNull(buildFromsParser(ƈ), errFromP));
+    }
+    
+    public static String getError() {
+        return error;
     }
     
 /******************************************************************************/

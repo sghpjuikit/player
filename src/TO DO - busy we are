@@ -3,6 +3,8 @@
 --------------------- IMMEDIATE  - what is being worked on ---------------------
 --------------------------------------------------------------------------------
 
+- disable selection change on playlist item drag
+- disable playlist CTRL item drag when filter or sort in effect
 - support fut error handling, 
 - improve popup show/hide animation, try 'pop&scale in/out' of owner node
 - improve action pane - add progress for action, auto closing on done, etc.
@@ -20,14 +22,12 @@
 - improve app start+stop speed
 - converter add input area & display type of object
 - all tables sel + all sel outputs
-- make sure OVal  setDefault & deserilization works
 - LastFM -> service
 - DB -> service
 - global shourtcuts -> service + make sure jintellitype dependency !cause errors
 - popups propagate key events!! fix, e.g. usinng ENTER to commit chapter will 
   start playing playlist selected song too...
-- make containers & widgets extremely lightweight - all their graphics unite
-  into Pane each container overriding the layoutChildren...
+- make containers & widgets more lightweight
 - Inspector fix & improve
 - seeker option to show chapters as they are passing
 - make generic rater control, use in fileinfo

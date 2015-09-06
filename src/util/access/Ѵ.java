@@ -8,9 +8,13 @@ package util.access;
 
 import java.util.function.Consumer;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 
-import static java.util.Objects.requireNonNull;
+import org.reactfx.Subscription;
+
+import static util.dev.Util.noØ;
 
 /**
  * Var/variable - simple object wrapper similar to {@link javafx.beans.property.Property}, but
@@ -40,7 +44,7 @@ public class Ѵ<V> extends SimpleObjectProperty<V> implements ApplicableValue<V>
     /** {@inheritDoc} */
     @Override
     public void applyValue(V val) {
-        requireNonNull(val);
+        noØ(val);
         if (applier != null) applier.accept(val);
     }
     
@@ -61,6 +65,25 @@ public class Ѵ<V> extends SimpleObjectProperty<V> implements ApplicableValue<V>
      */
     public Consumer<V> getApplier() {
         return applier;
+    }
+    
+    public Subscription onChange(Consumer<? super V> action) {
+        ChangeListener<V> l = (o,ov,nv) -> action.accept(nv);
+        addListener(l);
+        return () -> removeListener(l);
+    }
+    
+    public Subscription maintain(Consumer<? super V> action) {
+        ChangeListener<V> l = (o,ov,nv) -> action.accept(nv);
+        addListener(l);
+        action.accept(getValue());
+        return () -> removeListener(l);
+    }
+    
+    public Subscription onInvalid(Runnable action) {
+        InvalidationListener l = o -> action.run();
+        addListener(l);
+        return () -> removeListener(l);
     }
     
 }

@@ -36,8 +36,8 @@ import gui.objects.Table.TableColumnInfo;
 import gui.objects.icon.Icon;
 import main.App;
 import unused.SimpleConfigurator;
-import util.access.OVal;
 import util.access.Ѵ;
+import util.access.Ѵo;
 import util.async.executor.ExecuteN;
 import util.units.FormattedDuration;
 
@@ -97,15 +97,15 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
-    public final OVal<NodeOrientation> orient = new OVal<>(GUI.table_orient);
+    public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
     @IsConfig(name = "Zeropad numbers", info = "Adds 0s for number length consistency.")
-    public final OVal<Boolean> zeropad = new OVal<>(GUI.table_zeropad);
+    public final Ѵo<Boolean> zeropad = new Ѵo<>(GUI.table_zeropad);
     @IsConfig(name = "Search show original index", info = "Show unfiltered table item index when filter applied.")
-    public final OVal<Boolean> orig_index = new OVal<>(GUI.table_orig_index);
+    public final Ѵo<Boolean> orig_index = new Ѵo<>(GUI.table_orig_index);
     @IsConfig(name = "Show table header", info = "Show table header with columns.")
-    public final OVal<Boolean> show_header = new OVal<>(GUI.table_show_header);
+    public final Ѵo<Boolean> show_header = new Ѵo<>(GUI.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
-    public final OVal<Boolean> show_footer = new OVal<>(GUI.table_show_footer);
+    public final Ѵo<Boolean> show_footer = new Ѵo<>(GUI.table_show_footer);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
     public final Ѵ<Boolean> filter_for_playback = new Ѵ<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "

@@ -684,13 +684,27 @@ public final class FileUtil {
     }
     
     /**
-     * Renames file. Extension remains the same.
+     * Renames file (with extension suffix).
+     * 
+     * @param f file to rename, if doesnt exist nothing happens
+     * @param name new file name without suffix
      */
     public static void renameFile(File f, String name) {
         File rf = f.getParentFile().getAbsoluteFile();
+        f.renameTo(new File(rf, filenamizeString(name)));
+    };
+    
+    /**
+     * Renames file (extension suffix remains the same).
+     * 
+     * @param f file to rename, if doesnt exist nothing happens
+     * @param name new file name without suffix
+     */
+    public static void renameFileNoSuffix(File f, String name) {
+        File rf = f.getParentFile().getAbsoluteFile();
         int dot = f.getPath().lastIndexOf('.');
         String p = f.getPath();
-        String ext = p.substring(dot,p.length());
+        String ext = dot==-1 ? "" : p.substring(dot,p.length());
         f.renameTo(new File(rf, filenamizeString(name)+ext));
     };
 }

@@ -236,15 +236,30 @@ public class FreeFormArea extends ContainerNodeBase<FreeFormContainer> {
         TupleM4<Double,Double,Double,Double> b = new TupleM4(0d, rt.getWidth(), 0d, rt.getHeight());
         
         for(PaneWindowControls w : windows.values()) {
-           if(w==new_w) continue;   // ignore self
-           double wl = w.x.get()+w.w.get();
-           if(wl<x && wl>b.a) b.a = wl;
-           double wr = w.x.get();
-           if(wr>x && wr<b.b) b.b = wr;
-           double ht = w.y.get()+w.h.get();
-           if(ht<y && ht>b.c) b.c = ht;
-           double hb = w.y.get();
-           if(hb>y && hb<b.d) b.d = hb;
+            if(w==new_w) continue;   // ignore self
+            double wl = w.x.get()+w.w.get();
+            if(wl<x && wl>b.a) b.a = wl;
+            double wr = w.x.get();
+            if(wr>x && wr<b.b) b.b = wr;
+            double ht = w.y.get()+w.h.get();
+            if(ht<y && ht>b.c) b.c = ht;
+            double hb = w.y.get();
+            if(hb>y && hb<b.d) b.d = hb;
+        }
+        
+        b.a = 0d;
+        b.b = rt.getWidth();
+        for(PaneWindowControls w : windows.values()) {
+            if(w==new_w) continue;   // ignore self
+            double wl = w.x.get()+w.w.get();
+            double wr = w.x.get();
+            double ht = w.y.get()+w.h.get();
+            double hb = w.y.get();
+            boolean intheway = !((ht<y && ht<=b.c) || (hb>y && hb>=b.d));
+            if(intheway) {
+                if(wl<x && wl>b.a) b.a = wl;
+                if(wr>x && wr<b.b) b.b = wr;
+            }
         }
         
         return new TupleM4<>(b.a/rt.getWidth(),b.c/rt.getHeight(),

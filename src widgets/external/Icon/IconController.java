@@ -16,8 +16,8 @@ import Layout.Widgets.Widget;
 import Layout.Widgets.Widget.Info;
 import Layout.Widgets.controller.FXMLController;
 import gui.objects.icon.Icon;
-import util.access.VarAction;
 import util.access.FunctAccessor;
+import util.access.VarAction;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.BUS;
 import static util.reactive.Util.maintain;
@@ -56,7 +56,7 @@ public class IconController extends FXMLController {
     @Override
     public void init() {
         root.getChildren().add(new VBox(30,box));
-        icons.onInvalid(box.getChildren()::setAll);
+        icons.onListInvalid(box.getChildren()::setAll);
     }
 
     @Override

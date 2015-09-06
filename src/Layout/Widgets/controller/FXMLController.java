@@ -8,16 +8,20 @@ package Layout.Widgets.controller;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.scene.layout.Pane;
 
 import org.reactfx.Subscription;
 
+import Configuration.Config;
 import Layout.Widgets.FXMLWidget;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
+import util.dev.Dependency;
 
 /**
  * Controller for {@link FXMLWidget}
@@ -26,9 +30,11 @@ import Layout.Widgets.controller.io.Outputs;
  */
 abstract public class FXMLController implements Controller<FXMLWidget> {
     
+    @Dependency("DO NOT RENAME - accessed using reflection")
     public final FXMLWidget widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
+    private final HashMap<String,Config<Object>> configs = new HashMap<>();
     private final List<Subscription> disposables = new ArrayList<>();
     
     /** {@inheritDoc} */
@@ -77,6 +83,11 @@ abstract public class FXMLController implements Controller<FXMLWidget> {
     @Override
     public Inputs getInputs() {
         return inputs;
+    }
+
+    @Override
+    public Map<String, Config<Object>> getFieldsMap() {
+        return configs;
     }
     
     @Override

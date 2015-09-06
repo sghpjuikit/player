@@ -5,11 +5,17 @@
  */
 package Layout.Widgets.controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javafx.scene.layout.AnchorPane;
+
+import Configuration.Config;
 import Layout.Widgets.ClassWidget;
 import Layout.Widgets.controller.io.Input;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
-import javafx.scene.layout.AnchorPane;
+import util.dev.Dependency;
 
 /**
  * Controller for {@link ClassWidget}
@@ -18,9 +24,11 @@ import javafx.scene.layout.AnchorPane;
  */
 abstract public class ClassController extends AnchorPane implements Controller<ClassWidget> {
     
+    @Dependency("DO NOT RENAME - accessed using reflection")
     public final ClassWidget widget = null;
     public final Outputs outputs = new Outputs();
     public final Inputs inputs = new Inputs();
+    private final HashMap<String,Config<Object>> configs = new HashMap<>();
 
     @Override
     public ClassWidget getWidget() {
@@ -49,4 +57,10 @@ abstract public class ClassController extends AnchorPane implements Controller<C
     public Inputs getInputs() {
         return inputs;
     }
+
+    @Override
+    public Map<String, Config<Object>> getFieldsMap() {
+        return configs;
+    }
+
 }

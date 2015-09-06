@@ -1,7 +1,9 @@
 
 package Layout.Widgets.controller;
 
-import Configuration.Configurable;
+import java.util.List;
+
+import Configuration.CachedConfigurable;
 import Layout.Areas.Area;
 import Layout.Layout;
 import Layout.Widgets.Widget;
@@ -9,7 +11,6 @@ import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
 import Layout.Widgets.feature.Feature;
 import gui.pane.IOPane;
-import java.util.List;
 
 /**
  * Controller is an object defining behavior of some graphical object and acts
@@ -54,10 +55,9 @@ import java.util.List;
  * 
  * @author uranium
  */
-public interface Controller<W extends Widget> extends Configurable<Object> {
+public interface Controller<W extends Widget> extends CachedConfigurable<Object> {
     
     /**
-     * 
      * Refreshes the controller state.
      * <p>
      * Brings GUI up to date ensuring all potential changes are accounted for.

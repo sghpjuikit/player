@@ -110,7 +110,7 @@ public class WindowManager {
         applyShowWindows();
     }
     
-    static Window miniWindow;
+    public static Window miniWindow;
     private static Animation t;
 
     public static void setMini(boolean val) {

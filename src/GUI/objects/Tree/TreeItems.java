@@ -8,6 +8,7 @@ package gui.objects.tree;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
+import AudioPlayer.services.Service;
 import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.ListConfigurable;
@@ -42,6 +44,7 @@ import Layout.Widgets.WidgetManager.WidgetSource;
 import Layout.Widgets.feature.ConfiguringFeature;
 import gui.objects.ContextMenu.ImprovedContextMenu;
 import gui.objects.Window.stage.Window;
+import gui.objects.Window.stage.WindowManager;
 import main.App;
 import util.File.Environment;
 import util.File.FileUtil;
@@ -62,46 +65,69 @@ import static util.functional.Util.*;
 public class TreeItems {
     
     
-    public static TreeItem<Object> tree(Object v, TreeItem<Object>... children) {
-        TreeItem<Object> t = new TreeItem();
-        t.setValue(v);
-        t.getChildren().addAll(children);
-        return t;
-    }
-    public static TreeItem<Object> tree(Object v, List<Object> cs) {
-        return new SimpleTreeItem(v,cs.stream());
-    }
-    public static TreeItem<Object> tree(Object v, Supplier<Stream<? extends Object>> cs) {
-        return new STreeItem(v, cs);
-    }
-    
-    public static TreeItem<Object> treeApp() {
-        return tree("App",
-                 tree("Gui",
-                   tree("Widgets",
-                     tree("Categories", (List)list(Widget.Group.values())),
-                     tree("Types", () -> WidgetManager.getFactories()),
-                     tree("Open", (List)list(ANY,LAYOUT,STANDALONE))
-                   ),
-                   tree("Windows", () -> Window.windows.stream()),
-                   tree("Layouts", () -> LayoutManager.getLayouts())
-                 ),
-                 tree("Location", () -> stream(listFiles(App.getLocation())).sorted((a,b) -> a.isFile() && b.isDirectory() ? 1 : a.isDirectory() && b.isFile() ? -1 : a.compareTo(b))),
-                 tree("File system", () -> stream(File.listRoots()))
-               );
-    }
-    
-    public static TreeItem<Object> tree(Object o) {
+    public static TreeItem<? extends Object> tree(Object o) {
+        if(o instanceof TreeItem)       return (TreeItem)o;
         if(o instanceof Widget)         return new WidgetItem((Widget)o);
         if(o instanceof WidgetFactory)  return new STreeItem(o,()->Stream.empty());
         if(o instanceof Widget.Group)   return new STreeItem(o,()->WidgetManager.findAll(OPEN).filter(w->w.getInfo().group()==o));
         if(o instanceof WidgetSource)   return new STreeItem(o,()->WidgetManager.findAll((WidgetSource)o));
         if(o instanceof Container)      return new LayoutItem((Component)o);
-        if(o instanceof File)           return (TreeItem) new FileTreeItem((File)o);
-        if(o instanceof Node)           return (TreeItem) new NodeTreeItem((Node)o);
+        if(o instanceof File)           return new FileTreeItem((File)o);
+        if(o instanceof Node)           return new NodeTreeItem((Node)o);
         if(o instanceof Window)         return new STreeItem(o,() -> stream(((Window)o).getStage().getScene().getRoot(),((Window)o).getLayout()));
         return new TreeItem<>(o);
     }
+    
+    public static TreeItem<Object> tree(Object v, Object... children) {
+        TreeItem t = new TreeItem();
+        t.setValue(v);
+        t.getChildren().addAll(trees(children));
+        return t;
+    }
+    
+    public static TreeItem<Object> tree(Object v, List<? extends Object> cs) {
+        return new SimpleTreeItem(v,cs.stream());
+    }
+    
+    public static TreeItem<Object> tree(Object v, Supplier<Stream<? extends Object>> cs) {
+        return new STreeItem(v, cs);
+    }
+    
+    public static TreeItem<Object> treeApp() {
+        TreeItem widgetT = tree("Widgets",
+                     tree("Categories", (List)list(Widget.Group.values())),
+                     tree("Types", () -> WidgetManager.getFactories()),
+                     tree("Open", (List)list(ANY,LAYOUT,STANDALONE))
+                   );
+        return tree("App",
+                 tree("Behavior",
+                   widgetT,
+                   tree("Services", () -> App.services.getAllServices())
+                 ),
+                 tree("UI",
+                   widgetT,
+                   tree("Windows", () -> Window.windows.stream()),
+                   tree("Layouts", () -> LayoutManager.getLayouts())
+                 ),
+                 tree("Location", listFiles(App.getLocation())),
+                 tree("File system", map(File.listRoots(),FileTreeItem::new))
+               );
+    }
+    
+    public static List<TreeItem<? extends Object>> trees(Object... children) {
+        return (stream(children).map(TreeItems::tree).collect(toList()));
+    }
+    
+    public static List<TreeItem<? extends Object>> trees(Collection<Object> children) {
+        return children.stream().map(TreeItems::tree).collect(toList());
+    }
+    
+    public static List<TreeItem<? extends Object>> trees(Stream<? extends Object> children) {
+        return children.map(TreeItems::tree).collect(toList());
+    }
+    
+/**************************************************************************************************/
+    
     public static TreeCell<Object> buildTreeCell(TreeView<Object> t) {
         return new TreeCell<Object>(){
             {
@@ -124,11 +150,12 @@ public class TreeItems {
                 super.updateItem(o, empty);
                 if(!empty && o!=null) {
                     if(o instanceof Component)      setText(((Component)o).getName());
+                    else if(o instanceof Service)   setText(((Service)o).getClass().getSimpleName());
                     else if(o instanceof WidgetFactory)  setText(((WidgetFactory)o).getName());
                     else if(isEnum(o.getClass()))   setText(util.Util.enumToHuman(o.toString()));
                     else if(o instanceof File)      setText(FileUtil.getNameFull((File)o));
                     else if(o instanceof Node)      setText(toS((Node)o));
-                    else if(o instanceof Window)    setText("window"+Window.windows.indexOf(o));
+                    else if(o instanceof Window)    setText(windowToName((Window)o));
                     else setText(o.toString());
                 } else {
                     setGraphic(null);
@@ -146,8 +173,10 @@ public class TreeItems {
             if (f.isFile() || Environment.isOpenableInApp(f)) Environment.openIn(f, true);
         }
     }
+    
     public static void doOnSingleClick(Object o) {
     }
+    
     public static void showMenu(Object o, TreeView<Object> t, Node n, MouseEvent e) {
         if(o instanceof File) {
             List<File> files = filterMap(t.getSelectionModel().getSelectedItems(), c->c.getValue() instanceof File, c->(File)c.getValue());
@@ -167,6 +196,7 @@ public class TreeItems {
     }
     
     private static ImprovedContextMenu<List<File>> m = new ImprovedContextMenu();
+    
     static{
         m.getItems().addAll(
             menuItem("Open", e -> {
@@ -193,9 +223,9 @@ public class TreeItems {
     
     public static class SimpleTreeItem extends TreeItem<Object> {
 
-        public SimpleTreeItem(Object v, Stream<Object> ch) {
+        public SimpleTreeItem(Object v, Stream<? extends Object> children) {
             super(v);
-            getChildren().addAll(ch.map(TreeItems::tree).collect(toList()));
+            getChildren().addAll((List)trees(children));
         }
 
         @Override
@@ -218,7 +248,7 @@ public class TreeItems {
         public ObservableList<TreeItem<Object>> getChildren() {
             if (isFirstTimeChildren) {
                 isFirstTimeChildren = false;
-                super.getChildren().setAll(s.get().map(TreeItems::tree).collect(toList()));
+                super.getChildren().setAll((List)trees(s.get()));
             }
             return super.getChildren();
         }
@@ -340,7 +370,12 @@ public class TreeItems {
     private static String toS(Node n) {
         return emptifyString(n.getId())+":"+App.className.get(n.getClass());
     }
-    
+    private static String windowToName(Window w) {
+        String n = "window " + Window.windows.indexOf(w);
+        if(w==App.getWindow()) n += " (main)";
+        if(w==WindowManager.miniWindow) n += " (mini-docked)";
+        return n;
+    }
     private static Map<ObservableValue,String> propertes(Object target) {
         Map<ObservableValue,String> out = new HashMap();
         for (final Method method : target.getClass().getMethods()) {

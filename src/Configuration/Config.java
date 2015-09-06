@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import javafx.beans.InvalidationListener;
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyProperty;
 import javafx.beans.value.WritableValue;
 import javafx.collections.ListChangeListener;
@@ -20,9 +21,9 @@ import unused.Log;
 import util.Util;
 import util.access.ApplicableValue;
 import util.access.FieldValue.EnumerableValue;
-import util.access.OVal;
 import util.access.TypedValue;
 import util.access.Ѵ;
+import util.access.Ѵo;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
 import util.parsing.Parser;
@@ -140,10 +141,6 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      */
     abstract public boolean isMinMax();
     
-    public boolean isOverridable() {
-        return false;
-    }
-    
 /******************************* default value ********************************/
 
     /**
@@ -153,11 +150,11 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
      */
     abstract public V getDefaultValue();
 
-    public final void setDefaultValue() {
+    public void setDefaultValue() {
         setValue(getDefaultValue());
     }
 
-    public final void setNapplyDefaultValue() {
+    public void setNapplyDefaultValue() {
         setNapplyValue(getDefaultValue());
     }
         
@@ -291,6 +288,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         noØ(value, "Config can not be created for null");
         if(value instanceof Config ||
            value instanceof VarList ||
+           value instanceof Ѵo ||
            value instanceof WritableValue ||
            value instanceof ReadOnlyProperty)
             throw new RuntimeException("Value " + value + "is a property and can"
@@ -322,6 +320,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             return (Config<T>)property;
         if(property instanceof VarList)
             return new ListConfig(name,(VarList)property);
+        if(property instanceof Ѵo)
+            return new OverridablePropertyConfig<>(name,(Ѵo<T>)property);
         if(property instanceof WritableValue)
             return new PropertyConfig<>(name,(WritableValue<T>)property);
         if(property instanceof ReadOnlyProperty)
@@ -345,6 +345,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         private final boolean editable;
         private final double min;
         private final double max;
+        @util.dev.Dependency("DO NOT RENAME - accessed using reflection")
         private final T defaultValue;
 
         /**
@@ -446,8 +447,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
     }
     public static class PropertyConfig<T> extends ConfigBase<T> {
 
-        private final WritableValue<T> value;
-        private final boolean isOverridable;
+        protected final WritableValue<T> value;
 
         /**
          * Constructor to be used with framework
@@ -460,9 +460,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public PropertyConfig(String _name, IsConfig c, WritableValue<T> property, String category) {
             super(_name, c, property.getValue(), category);
             value = property;
-            
-            // support overridable values
-            isOverridable = property instanceof OVal;
+
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
@@ -498,8 +496,6 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
             super(name, gui_name, property.getValue(), category, info, editable, min, max);
             value = property;
             
-            // support overridable values
-            isOverridable = property instanceof OVal;
             // support enumeration by delegation if property supports is
             if(value instanceof EnumerableValue)
                 valueEnumerator = EnumerableValue.class.cast(value)::enumerateValues;
@@ -528,17 +524,12 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         }
 
         @Override
-        public Class getType() {
-            return getValue().getClass();
+        public Class<T> getType() {
+            return (Class<T>) getValue().getClass();
         }
 
         public WritableValue<T> getProperty() {
             return value;
-        }
-
-        @Override
-        public boolean isOverridable() {
-            return isOverridable;
         }
 
         /**
@@ -557,6 +548,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public int hashCode() {
             return 43 * 7 + Objects.hashCode(this.value);
         }
+        
     }
     public static class ReadOnlyPropertyConfig<T> extends ConfigBase<T> {
 
@@ -653,6 +645,105 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
         public int hashCode() {
             return 43 * 7 + Objects.hashCode(this.value);
         }
+        
+    }
+    public static class OverridablePropertyConfig<T> extends PropertyConfig<T> {
+        private final boolean defaultOverride_value;
+        
+        public OverridablePropertyConfig(String _name, IsConfig c, Ѵo<T> property, String category) {
+            super(_name, c, property, category);
+            util.Util.setField(this, "defaultValue", property.real.getValue());
+            defaultOverride_value = property.override.getValue();
+        }
+        public OverridablePropertyConfig(String name, Ѵo<T> property) {
+            this(name, name, property, "", "", true, Double.NaN, Double.NaN);
+        }
+        public OverridablePropertyConfig(String name, Ѵo<T> property, String info) {
+            this(name, name, property, "", info, true, Double.NaN, Double.NaN);
+        }
+        public OverridablePropertyConfig(String name, String gui_name, Ѵo<T> property, String category, String info, boolean editable, double min, double max) {
+            super(name, gui_name, property, category, info, editable, min, max);
+            util.Util.setField(this, "defaultValue", property.real.getValue());
+            defaultOverride_value = property.override.getValue();
+        }
+
+        public Ѵo<T> getProperty() {
+            return (Ѵo)value;
+        }
+        
+        public boolean getDefaultOverrideValue() {
+            return defaultOverride_value;
+        }
+        
+        public void setDefaultValue() {
+            getProperty().override.setValue(defaultOverride_value);
+            setValue(getDefaultValue());
+        }
+
+        public void setNapplyDefaultValue() {
+            setDefaultValue();
+        }
+    
+//    /**
+//     * Converts the value to String utilizing generic {@link Parser}.
+//     * Use for serialization or filling out guis.
+//     */
+//    @Override
+//    public String getValueS() {
+//        String prefix = value instanceof Ѵo ? "overrides:"+((Ѵo)value).override.getValue()+", " : ""; 
+//        return prefix + super.toS(getValue());
+//    }
+    
+    /**
+     * Sets value converted from string.
+     * Equivalent to: return setValue(fromS(str));
+     * @param s
+     */
+    @Override
+    public void setValueS(String str) {
+        String s = str;
+        if(s.contains("overrides:true, ")) {
+            getProperty().override.setValue(true);
+            s = s.replace("overrides:true, ", "");
+        }
+        if(s.contains("overrides:false, ")) {
+            getProperty().override.setValue(false);
+            s = s.replace("overrides:false, ", "");
+        }
+        getProperty().real.setValue(fromS(s));
+    }
+    
+    /**
+     * Inherited method from {@link StringConverter}
+     * Note: this config remains intact.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public String toS(T v) {
+        return "overrides:"+((Ѵo)value).override.getValue() + ", " + ((Ѵo)value).real.getValue();
+    }
+    
+//    /**
+//     * Inherited method from {@link StringConverter}
+//     * Note: this config remains intact.
+//     * <p>
+//     * {@inheritDoc}
+//     */
+//    @Override
+//    public T fromS(String s) {
+//        if(isTypeEnumerable()) {
+//            for(T v : enumerateValues()) 
+//                if(toS(v).equals(s)) return v;
+//            
+//            Log.warn("Can not parse '" + s + "'. No enumerable config value for: "
+//                    + getGuiName() + ". Using default value.");
+//            return getDefaultValue();
+//        } else {
+//            return Parser.fromS(getType(), s);
+//        }
+//    }
+        
         
     }
     public static final class ListConfig<T> extends ConfigBase<ObservableList<T>> {
@@ -794,18 +885,8 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
          * Adds invalidation listener to the list.
          * Returns subscription to dispose of the listening.
          */
-        public Subscription onInvalid(Consumer<ObservableList<T>> listener) {
+        public Subscription onListInvalid(Consumer<ObservableList<T>> listener) {
             InvalidationListener l = o -> listener.accept((ObservableList<T>)o);
-            list.addListener(l);
-            return () -> list.removeListener(l);
-        }
-        
-        /** 
-         * Adds invalidation listener to the list.
-         * Returns subscription to dispose of the listening.
-         */
-        public Subscription onInvalidRun(Runnable listener) {
-            InvalidationListener l = o -> listener.run();
             list.addListener(l);
             return () -> list.removeListener(l);
         }
@@ -814,7 +895,7 @@ public abstract class Config<V> implements ApplicableValue<V>, Configurable<V>, 
          * Adds list change listener to the list.
          * Returns subscription to dispose of the listening.
          */
-        public Subscription onChange(ListChangeListener<? super T> listener) {
+        public Subscription onListChange(ListChangeListener<? super T> listener) {
             list.addListener(listener);
             return () -> list.removeListener(listener);
         }

@@ -39,8 +39,8 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.Icon;
 import main.App;
 import util.File.FileUtil;
-import util.access.Ѵ;
 import util.access.VarEnum;
+import util.access.Ѵ;
 import util.async.future.Fut;
 import util.collections.map.ClassListMap;
 import util.graphics.drag.DragUtil;
@@ -159,9 +159,13 @@ public class Converter extends ClassController implements SongWriter {
         };
         
         // init data
-        acts.accumulate(new Act<>("Rename files", File.class, 1, list("Filename"), (file, data) -> {
+        acts.accumulate(new Act<>("Rename files (with extension)", File.class, 1, list("Filename"), (file, data) -> {
             String name = data.get("Filename");
             FileUtil.renameFile(file, name);
+        }));
+        acts.accumulate(new Act<>("Rename files (same extension)", File.class, 1, list("Filename"), (file, data) -> {
+            String name = data.get("Filename");
+            FileUtil.renameFileNoSuffix(file, name);
         }));
         acts.accumulate(new Act<>("Edit song tags", Item.class, 100, () -> map(getEnumConstants(Metadata.Field.class),Object::toString), data -> {
             List<Item> songs = list(source);

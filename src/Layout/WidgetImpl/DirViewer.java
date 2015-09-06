@@ -81,7 +81,7 @@ public class DirViewer extends ClassController {
             }
         });
         
-        files.onInvalid(list -> viewDir(new TopCell()));
+        files.onListInvalid(list -> viewDir(new TopCell()));
         
         ScrollPane layout = cells.scrollable();
         getChildren().add(layout);

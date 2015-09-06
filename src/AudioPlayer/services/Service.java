@@ -5,6 +5,11 @@
  */
 package AudioPlayer.services;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import Configuration.CachedConfigurable;
+import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import util.access.Ѵ;
@@ -20,7 +25,9 @@ public interface Service extends Configurable {
     default boolean isSupported() { return true; };
     default boolean isDependency() { return false; };
     
-    public static abstract class ServiceBase implements Service {
+    public static abstract class ServiceBase implements Service, CachedConfigurable {
+        
+        private final HashMap<String,Config<Object>> configs = new HashMap<>();
         
         @IsConfig(name = "Enabled", info = "Starts or stops the service")
         private final Ѵ<Boolean> enabled;
@@ -35,6 +42,11 @@ public interface Service extends Configurable {
             
             if(isToBeRunning && !isDependency() && isSupported()) start();
             if(!isToBeRunning) stop();
+        }
+        
+        @Override
+        public Map<String, Config<Object>> getFieldsMap() {
+            return configs;
         }
     }
     

@@ -7,6 +7,7 @@ package util.collections.map.abstr;
 
 import java.util.Collection;
 import java.util.List;
+
 import static util.Util.getSuperClassesInc;
 
 /**
@@ -56,10 +57,9 @@ public interface MapByClass<E> {
      */
     public default List<E> getElementsOfSuperV(Class key) {
         List<Class> keys = getSuperClassesInc(key);
-                    keys.add(Void.class);
+                    if(!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);
         List<E> o = getElementsOf(keys);
-        if(!Void.class.equals(key) || void.class.equals(key)) o.addAll(getElementsOf(Void.class));
         return o;
     }
 
@@ -95,7 +95,7 @@ public interface MapByClass<E> {
      */
     public default E getElementOfSuperV(Class key) {
         List<Class> keys = getSuperClassesInc(key);
-                    keys.add(Void.class);
+                    if(!Void.class.equals(key)) keys.add(Void.class);
                     keys.add(void.class);
         for(Class c : keys) {
             List<E> es = getElementsOf(c);

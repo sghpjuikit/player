@@ -103,9 +103,6 @@ public final class Seeker extends AnchorPane {
             if(addB.isShown()) addB.hide();
             user_drag = true;
         });
-//        seeker.addEventFilter(DRAG_DONE, e -> {
-//            if(seeker.isHover()) addB.show();
-//        });
         seeker.addEventFilter(MOUSE_DRAGGED, e -> {
             if(e.getButton()==PRIMARY && user_drag) {
                 double x = e.getX();
@@ -119,12 +116,17 @@ public final class Seeker extends AnchorPane {
             e.consume();
         });
         seeker.setOnMouseReleased(e -> {
-            if(user_drag && e.getButton()==PRIMARY) {
-                double p = e.getX()/getWidth();
-                       p = clip(0,p,1);
-                PLAYBACK.seek(p);
-                run(100, () -> user_drag = false);
-                if(seeker.isHover()) addB.show(); // ~bugfix
+            if(user_drag) {
+                if(e.getButton()==PRIMARY) {
+                    double p = e.getX()/getWidth();
+                           p = clip(0,p,1);
+                    PLAYBACK.seek(p);
+                    run(100, () -> user_drag = false);
+                    if(seeker.isHover()) addB.show(); // ~bugfix
+                }
+                if(e.getButton()==SECONDARY) {
+                    user_drag = false;
+                }
             }
         });
         
@@ -544,6 +546,7 @@ public final class Seeker extends AnchorPane {
                 message.setTextAlignment(TextAlignment.CENTER);
                 content = new StackPane(message);
                 content.setPrefSize(USE_COMPUTED_SIZE, USE_COMPUTED_SIZE);
+                content.setPadding(new Insets(10));
                 content.autosize();
                 // buttons
                 editB = new Icon(EDIT, 11, "Edit chapter", this::startEdit);

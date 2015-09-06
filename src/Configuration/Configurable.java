@@ -111,7 +111,7 @@ public interface Configurable<T> {
             Class c = this.getClass();
             Field f = Util.getField(c,n);
             return Configuration.createConfig(c, f, this, false, true);
-        } catch (NoSuchFieldException | SecurityException ex) {
+        } catch (NoSuchFieldException | SecurityException e) {
             return null;
         }
     }

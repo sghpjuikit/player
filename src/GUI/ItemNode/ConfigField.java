@@ -2,13 +2,11 @@
 package gui.itemnode;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import javafx.animation.FadeTransition;
-import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
@@ -21,13 +19,13 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.util.Callback;
 import javafx.util.Duration;
 
 import org.controlsfx.control.textfield.CustomTextField;
 
 import Configuration.Config;
 import Configuration.Config.ListConfig;
+import Configuration.Config.OverridablePropertyConfig;
 import Configuration.Config.PropertyConfig;
 import Configuration.Config.ReadOnlyPropertyConfig;
 import action.Action;
@@ -40,7 +38,8 @@ import gui.objects.combobox.ImprovedComboBox;
 import gui.objects.icon.CheckIcon;
 import gui.objects.icon.Icon;
 import util.Password;
-import util.access.OVal;
+import util.access.Ѵo;
+import util.functional.Functors.Ƒ1;
 
 import static de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon.RECYCLE;
 import static java.util.stream.Collectors.toList;
@@ -76,7 +75,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             + "only one application can use this shortcut. If multiple applications use the same "
             + "shortcut, the one started later will have it disabled.");
     private static final Tooltip overTooltip = new Tooltip("Override value"
-            + "\n\nUses parent value if true and current value if false.");
+            + "\n\nUses local value if true and global value if false.");
 
     private final Label label = new Label();
     protected final HBox root = new HBox();
@@ -200,25 +199,29 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
      * Sets and applies default value of the config if it has different value
      * set.
      */
-    public final void setNapplyDefault() {
+    public void setNapplyDefault() {
         T t = config.getDefaultValue();
         if(!config.getValue().equals(t)) {
             config.setNapplyValue(t);
             refreshItem();
             if(onChange!=null) onChange.run();System.out.println("changed config " + config.getName());
         }
-    }Runnable onChange;
+    }
+    
+    Runnable onChange;
+    
     public void apply() {
         apply(true);
     }
+    
     protected void apply(boolean user) {
         if(insonsistent_state) return;
         T t = get();
         
         boolean erroneous = t==null;
         if(erroneous) return;
-        boolean applicable = !config.getValue().equals(t);
-        if(!applicable) return;
+        boolean needsapply = !config.getValue().equals(t);
+        if(!needsapply) return;
         
         insonsistent_state = true;
         if(applyOnChange || user) config.setNapplyValue(t);
@@ -230,7 +233,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     
 /******************************************************************************/
     
-    private static Map<Class,Callback<Config,ConfigField>> m = new HashMap();
+    private static Map<Class,Ƒ1<Config,ConfigField>> m = new HashMap();
     
     static {
         m.put(boolean.class, f -> new BooleanField(f));
@@ -252,10 +255,10 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
     public static ConfigField create(Config f) {
         
         ConfigField cf = null;
-        if (f.isOverridable()) cf = new OverridableField(f);
+        if (f instanceof OverridablePropertyConfig) cf = new OverridableField((OverridablePropertyConfig) f);
         else if (f.isTypeEnumerable()) cf = new EnumerableField(f);
         else if(f.isMinMax()) cf = new SliderField(f);
-        else cf = m.getOrDefault(f.getType(), GeneralField::new).call(f);
+        else cf = m.getOrDefault(f.getType(), GeneralField::new).apply(f);
         
         cf.setEditable(f.isEditable());
         
@@ -457,8 +460,8 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         
     }
     private static class BooleanField extends ConfigField<Boolean> {
-        CheckIcon cBox;
-        private final boolean observable;
+        final CheckIcon cBox;
+        final boolean observable;
         
         private BooleanField(Config<Boolean> c) {
             super(c);
@@ -472,16 +475,11 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             
             cBox = new CheckIcon();
             cBox.styleclass("boolean-config-field");
-            if(observable) {
-               if(v instanceof Property) {
-                   cBox.selected.bindBidirectional((Property)v);
-               } else {
-                   maintain(v,cBox.selected);
-               }
-            } else {
-                refreshItem();
-                cBox.selected.addListener((o,ov,nv)-> apply(false));
-            }
+            cBox.selected.set(config.getValue());
+            // bind config -> config field (if possible)
+            if(observable) v.addListener((o,ov,nv) -> cBox.selected.setValue(nv));
+            // bind config field -> config
+            cBox.selected.addListener((o,ov,nv) -> config.setNapplyValue(nv));
         }
         
         @Override public CheckIcon getControl() {
@@ -491,15 +489,15 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return cBox.selected.get();
         }
         @Override public void refreshItem() {
-            if(!observable) {
-                cBox.selected.set(config.getValue());
-            }
+            if(!observable)
+                cBox.selected.setValue(config.getValue());
         }
     }
     private static class OverrideField extends BooleanField {
         private OverrideField(Config<Boolean> c) {
             super(c);
             cBox.styleclass("override-config-field");
+            cBox.tooltip(overTooltip);
         }
     }
     private static class SliderField extends ConfigField<Number> {
@@ -811,33 +809,26 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
     }
     private static class OverridableField<T> extends ConfigField<T> {
-        FlowPane root = new FlowPane(5,5);
-        PropertyConfig pc;
+        final FlowPane root = new FlowPane(5,5);
 
-        public OverridableField(Config<T> c) {
+        public OverridableField(OverridablePropertyConfig<T> c) {
             super(c);
-            PropertyConfig pc = (PropertyConfig)c;
-            OVal<T> pr;
+            Ѵo<T> vo = c.getProperty();
             
 //            root.setMinSize(100,20);
 //            root.setPrefSize(-1,-1);
 //            root.setMaxSize(-1,-1);
             
-            try {
-                Field f = util.Util.getField(PropertyConfig.class, "value");
-                f.setAccessible(true);
-                pr = (OVal) f.get(pc);
-                f.setAccessible(false);
-                
-                BooleanField bf = new OverrideField(Config.forProperty("Override", pr.override));
-                             bf.getControl().tooltip(overTooltip);
-                ConfigField cf = create(Config.forProperty("", pr.real));
-                maintain(pr.override,b->!b,cf.getControl().disableProperty());
-                root.getChildren().addAll(cf.getNode(),bf.getNode());
-                
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
+            BooleanField bf = new OverrideField(Config.forProperty("Override", vo.override)) {
+                @Override
+                public void setNapplyDefault() {
+                    vo.override.setValue(c.getDefaultOverrideValue());
+                }
+            };
+            ConfigField cf = create(Config.forProperty("", vo.real));
+            util.Util.setField(cf.config, "defaultValue", c.getDefaultValue());
+            maintain(vo.override,b->!b,cf.getControl().disableProperty());
+            root.getChildren().addAll(cf.getNode(),bf.getNode());
         }
         @Override
         Node getControl() {
@@ -851,7 +842,13 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
 
         @Override
         public void refreshItem() {}
+
+        @Override
+        public void setNapplyDefault() {
+            config.setDefaultValue();
+        }
         
+        @Override
         protected String getTooltipText() {
             return config.getInfo() + "\n\nThis value must override global "
                     + "value to take effect.";

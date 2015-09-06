@@ -6,6 +6,7 @@ package Layout.Widgets;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 import javafx.scene.Node;
 import javafx.scene.layout.Region;
@@ -14,6 +15,8 @@ import Configuration.Config;
 import Layout.Widgets.controller.Controller;
 import Layout.Widgets.controller.io.Inputs;
 import Layout.Widgets.controller.io.Outputs;
+
+import static java.util.Collections.EMPTY_MAP;
 
 /**
  * Empty widget.
@@ -72,6 +75,15 @@ class EmptyWidget extends Widget<Controller> implements Controller<EmptyWidget> 
     public Inputs getInputs() {
         return i;
     }
+
+    @Override
+    public Config<Object> getField(String n) {
+        return null;
+    }
     
+    @Override
+    public Map<String, Config<Object>> getFieldsMap() {
+        return EMPTY_MAP;
+    }
     
 }

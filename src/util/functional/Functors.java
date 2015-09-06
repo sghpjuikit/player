@@ -54,6 +54,7 @@ public class Functors {
         void apply();
         
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Runnable}. */
+        @Deprecated
         default void run() { 
             apply();
         }
@@ -62,6 +63,7 @@ public class Functors {
         O apply();
         
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Supplier}. */
+        @Deprecated
         default O get() {
             return apply(); 
         }
@@ -79,6 +81,7 @@ public class Functors {
         O apply(I i);
         
         /** Equivalent to {@link #apply()}. Exists for compatibility with {@link Callback}. */
+        @Deprecated
         default O call(I i) {
             return apply(i);
         }

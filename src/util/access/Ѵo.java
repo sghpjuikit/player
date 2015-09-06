@@ -22,21 +22,21 @@ import javafx.beans.value.WritableValue;
  *
  * @author Plutonium_
  */
-public class OVal<T> implements ObservableValue<T>, WritableValue<T> {
+public class Ѵo<T> implements ObservableValue<T>, WritableValue<T> {
     public final BooleanProperty override = new SimpleBooleanProperty(true);
     public final ObjectProperty<T> real = new SimpleObjectProperty<T>();
     public final Property<T> parent;
     public final ObjectProperty<T> current;
     
-    public OVal(Property<T> parent ) {
+    public Ѵo(Property<T> parent ) {
         this(parent.getValue(), false, parent);
     }
     
-    public OVal(boolean override, Property<T> parent ) {
+    public Ѵo(boolean override, Property<T> parent ) {
         this(parent.getValue(), override, parent);
     }
     
-    public OVal(T val, boolean override, Property<T> parent ) {
+    public Ѵo(T val, boolean override, Property<T> parent ) {
         this.override.set(override);
         this.real.set(val);
         this.parent = parent;

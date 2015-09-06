@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
-import Configuration.CompositeConfigurable;
+import Configuration.CachedCompositeConfigurable;
+import Configuration.Config;
 import Configuration.Configurable;
 import Configuration.IsConfig;
 import Layout.Component;
@@ -48,7 +49,7 @@ import static util.functional.Util.*;
  * 
  * @author uranium
  */
-public abstract class Widget<C extends Controller> extends Component implements CompositeConfigurable<Object> {
+public abstract class Widget<C extends Controller> extends Component implements CachedCompositeConfigurable<Object> {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(Widget.class);
     
@@ -59,6 +60,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
     @XStreamOmitField private WidgetFactory factory;
     @XStreamOmitField protected C controller;
     @XStreamOmitField private Node root;
+    @XStreamOmitField private HashMap<String,Config<Object>> configs = new HashMap<>();
     
     // configuration
     @XStreamOmitField
@@ -117,7 +119,7 @@ public abstract class Widget<C extends Controller> extends Component implements 
                 }
                 if(root==null) {
                     root = Widget.EMPTY().load();
-                    LOGGER.error("Widget graphics creation failed. Using empty widget instead.", ex);
+                    LOGGER.error("Widget {} graphics creation failed. Using empty widget instead.", getName(),ex);
                 }
             }
         }
@@ -256,7 +258,12 @@ public abstract class Widget<C extends Controller> extends Component implements 
     @Override
     public Collection<Configurable<Object>> getSubConfigurable() {
         return controller==null ? listRO() : listRO(controller);
-    }    
+    }
+
+    @Override
+    public Map<String, Config<Object>> getFieldsMap() {
+        return configs;
+    }
     
     /** @return input_name of the widget */
     @Override
@@ -287,7 +294,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
 
         return this;
     }
-
         
     /**
      * Invoked just after deserialization.
@@ -301,6 +307,8 @@ public abstract class Widget<C extends Controller> extends Component implements 
         if (factory==null) factory = WidgetManager.getFactory(name);
         // use empty widget when no factory available
         if (factory==null) return Widget.EMPTY();
+        
+        if(configs==null) configs = configs = new HashMap<>();
         
         // accumulate serialized inputs for later deserialiation when all widgets are ready
         properties.entrySet().stream()
@@ -322,7 +330,6 @@ public abstract class Widget<C extends Controller> extends Component implements 
     }
     
 /******************************************************************************/
-    
     
     static class IO {
         public final Widget widget;

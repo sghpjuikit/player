@@ -32,11 +32,10 @@ public interface CompositeConfigurable<T> extends Configurable<T> {
     /** {@inheritDoc} */
     @Override
     public default Config getField(String name) {
-        Config cf = Configurable.super.getField(name);
-        if(cf!=null) return cf;
-        
+        Config f = Configurable.super.getField(name);
+        if(f!=null) return f;
         for(Configurable c : getSubConfigurable()) {
-            Config f = c.getField(name);
+            f = c.getField(name);
             if(f!=null) return f;
         }
         return null;

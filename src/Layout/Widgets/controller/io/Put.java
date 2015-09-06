@@ -5,8 +5,8 @@
  */
 package Layout.Widgets.controller.io;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import javafx.beans.property.ObjectProperty;
@@ -23,7 +23,7 @@ public class Put<T> implements WritableValue<T> {
     
     final Class<? super T> type;
     final ObjectProperty<T> val = new SimpleObjectProperty();
-    protected List<Consumer<? super T>> monitors = new ArrayList();
+    protected Set<Consumer<? super T>> monitors = new HashSet<>();
     
     public Put(Class<? super T> type, T init_val) {
         this.type = type;
@@ -47,12 +47,8 @@ public class Put<T> implements WritableValue<T> {
     
     public Subscription monitor(Consumer<? super T> action) {
         monitors.add(action);
-        // i think this is dangerous because we dont know what the action does...
-        // it should run only after this method completes, so.. wrap it up in runLater ?
         action.accept(getValue());
         return () -> monitors.remove(action);
     }
-    
-    
     
 }

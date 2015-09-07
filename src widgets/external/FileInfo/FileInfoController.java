@@ -33,7 +33,7 @@ import gui.objects.Rater.Rating;
 import gui.objects.image.ChangeableThumbnail;
 import gui.objects.image.cover.Cover.CoverSource;
 import gui.pane.ActionPane;
-import gui.pane.ActionPane.ActionData;
+import gui.pane.ActionPane.SlowAction;
 import gui.pane.ImageFlowPane;
 import main.App;
 import util.access.Ѵ;
@@ -89,44 +89,44 @@ import static util.graphics.Util.layAnchor;
     group = OTHER
 )
 public class FileInfoController extends FXMLController implements SongReader {
-    
+
     private @FXML AnchorPane root;
     private final ChangeableThumbnail cover = new ChangeableThumbnail();
     private final TilePane tiles = new FieldsPane();
     private final ImageFlowPane layout = new ImageFlowPane(cover, tiles);
     private final Rating rater = new Rating();
-    private final Label gap1 = new Label(" "), 
-                        gap2 = new Label(" "), 
+    private final Label gap1 = new Label(" "),
+                        gap2 = new Label(" "),
                         gap3 = new Label(" ");
     private final List<Label> labels = new ArrayList<>();
     private final List<Lfield> fields = list(
-        new Lfield(TITLE,0), 
+        new Lfield(TITLE,0),
         new Lfield(TRACK_INFO,1),
-        new Lfield(DISCS_INFO,2), 
+        new Lfield(DISCS_INFO,2),
         new Lfield(LENGTH,3),
-        new Lfield(ARTIST,4), 
-        new Lfield(ALBUM,5),    
-        new Lfield(ALBUM_ARTIST,6), 
-        new Lfield(YEAR,7), 
-        new Lfield(GENRE,8), 
-        new Lfield(COMPOSER,9), 
-        new Lfield(PUBLISHER,10), 
-        new Lfield(CATEGORY,11), 
-        new Lfield(RATING,12), 
-        new Lfield(PLAYCOUNT,13), 
-        new Lfield(COMMENT,14), 
+        new Lfield(ARTIST,4),
+        new Lfield(ALBUM,5),
+        new Lfield(ALBUM_ARTIST,6),
+        new Lfield(YEAR,7),
+        new Lfield(GENRE,8),
+        new Lfield(COMPOSER,9),
+        new Lfield(PUBLISHER,10),
+        new Lfield(CATEGORY,11),
+        new Lfield(RATING,12),
+        new Lfield(PLAYCOUNT,13),
+        new Lfield(COMMENT,14),
         new Lfield(FILESIZE,15),
         new Lfield(FILENAME,16),
         new Lfield(FORMAT,17),
-        new Lfield(BITRATE,18), 
-        new Lfield(ENCODING,19), 
+        new Lfield(BITRATE,18),
+        new Lfield(ENCODING,19),
         new Lfield(PATH,20)
     );
     private final Lfield rating = fields.get(12);
-    
+
     private Output<Metadata> data_out;
     private Metadata data = EMPTY;
-    
+
     // configs
     @IsConfig(name = "Column width", info = "Minimal width for field columns.")
     public final Ѵ<Double> minColumnWidth = new Ѵ<>(150.0, tiles::layout);
@@ -149,55 +149,65 @@ public class FileInfoController extends FXMLController implements SongReader {
             .map(f -> new PropertyConfig<>("show_"+f.name, "Show " + f.name, f.visibleConfig,
                     "FileInfoController","Show this field",true,NaN,NaN))
             .collect(toMap(c -> c.getName(), c -> c));
-    
+
     @Override
     public void init() {
         data_out = outputs.create(widget.id, "Displayed", Metadata.class, EMPTY);
-        
+
         // keep updated contents, we do this directly instead of looking up the Input, same effect
         d(Player.onItemRefresh(refreshed -> refreshed.ifHasE(data, this::read)));
-        
+
         cover.getPane().setDisable(true); // shoud be handled differently, either init all or none
         cover.setBackgroundVisible(false);
         cover.setBorderToImage(false);
-        cover.onFileDropped = fut_file -> 
-            ActionPane.PANE.show(File.class, fut_file, 
-                new ActionData<>("Copy and set as album cover", 
-                        "Sets image as cover. Copies file to "
-                      + data.getLocation().getPath() + " and renames it to 'cover'. "
-                      + "Previous cover file (if exists) will be preserved and renamed.",
+        cover.onFileDropped = fut_file ->
+            ActionPane.PANE.show(File.class, fut_file,
+                new SlowAction<>("Copy and set as album cover",
+                        "Sets image as cover. Copies file to destination and renames it "
+                      + "to 'cover' so it is recognized as album cover. Any previous cover file "
+                      + "will be preserved by renaming."
+                      + "\n\nDestination: " + data.getLocation().getPath(),
                         FontAwesomeIcon.PASTE,
                         f -> setAsCover(f, true)),
-                new ActionData<>("Copy to location", 
-                        "Copies image to " + data.getLocation().getPath() + ". Any "
-                      + "existing file is overwritten.",
+                new SlowAction<>("Copy to location",
+                        "Copies image to destination. Any such existing file is overwritten."
+                      + "\n\nDestination: " + data.getLocation().getPath(),
                         FontAwesomeIcon.COPY,
                         f -> setAsCover(f, false)),
-                new ActionData<>("Write to tag (single)", 
+                new SlowAction<>("Write to tag (single)",
                         "Writes image as cover to song tag. Other songs of the song's album remain "
                       + "untouched.",
                         FontAwesomeIcon.TAG,
                         f -> tagAsCover(f,false)),
-                new ActionData<>("Write to tag (album)", 
+//                // for debugging purposes to simulate long running actions
+//                new SlowAction<>("Long running action test", "", FontAwesomeIcon.ANGELLIST,
+//                        f -> f.then(() -> {
+//                            try {
+//                                Thread.sleep(500);
+//                            } catch (InterruptedException ex) {
+//                                Logger.getLogger(FileInfoController.class.getName()).log(Level.SEVERE, null, ex);
+//                            }
+//                        })),
+                new SlowAction<>("Write to tag (album)",
                         "Writes image as cover to all songs in this song's album. Only songs in the "
                       + "library are considered. Songs with no album are ignored. At minimum the "
                       + "displayed song will be updated (even if not in library or has no album).",
                         FontAwesomeIcon.TAGS,
                         f -> tagAsCover(f,true))
             );
-                  
+
         layAnchor(root,layout,0d);
         layout.setMinContentSize(200,120);
         layout.setGap(8);
-        
+
         // alight tiles from left top & tile content to center left + pad
         tiles.setAlignment(TOP_LEFT);
         tiles.setTileAlignment(CENTER_LEFT);
-        
+
         // add rater stars to rating label as graphics
         rating.setGraphic(rater);
         rating.setContentDisplay(ContentDisplay.RIGHT);
-        
+
         // bind rating to app configs
         rater.icons.bind(App.maxRating);
         rater.partialRating.bind(App.partialRating);
@@ -205,7 +215,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         rater.editable.bind(App.allowRatingChange);
         // write metadata on rating change
         rater.setOnRatingChanged( r -> MetadataWriter.useToRate(data, r));
-        
+
         // accept audio drag transfer
         root.setOnDragOver(DragUtil.audioDragAccepthandler);
         // handle audio drag transfers
@@ -220,7 +230,7 @@ public class FileInfoController extends FXMLController implements SongReader {
             }
         });
     }
-    
+
     @Override
     public void refresh() {
         minColumnWidth.applyValue();
@@ -229,7 +239,7 @@ public class FileInfoController extends FXMLController implements SongReader {
         showCover.applyValue();
         showFields.applyValue();
     }
-    
+
     @Override
     public boolean isEmpty() {
         return data==null || data == EMPTY;
@@ -241,47 +251,47 @@ public class FileInfoController extends FXMLController implements SongReader {
         c.addAll((Collection)fieldconfigs.values());
         return c;
     }
-    
+
     @Override
     public Config<Object> getField(String n) {
         return Optional.ofNullable((Config)fieldconfigs.get(n))
                        .orElseGet(() -> super.getField(n));
     }
-    
+
 /********************************** FEATURES **********************************/
-    
+
     /** {@inheritDoc} */
     @Override
     @IsInput("To display")
     public void read(Item item) {
         reading.push(item);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void read(List<? extends Item> items) {
         read(items.isEmpty() ? null : items.get(0));
     }
-    
+
 /********************************* PRIVATE API ********************************/
-    
+
     private final EventReducer<Item> reading = toLast(200,this::setValue);
-    
+
     // item -> metadata
     private void setValue(Item i) {
         if(i==null) setValue(EMPTY);
         else if(i instanceof Metadata) setValue((Metadata)i);
         else App.itemToMeta(i, this::setValue);
     }
-    
+
     private void setValue(Metadata m) {
         // no empty content if desired
         if(!allowNoContent && m==EMPTY) return;
-        
+
         // remember data
         data = m;
         data_out.setValue(m);
-        
+
         // gui (fill out data)
         fields.forEach(l -> l.setVal(m));
         rater.rating.set(m==EMPTY ? 0d : m.getRatingPercent());
@@ -289,7 +299,7 @@ public class FileInfoController extends FXMLController implements SongReader {
 
         update();
     }
-    
+
     private void update() {
         // initialize
         labels.clear();
@@ -308,34 +318,35 @@ public class FileInfoController extends FXMLController implements SongReader {
             fields.sort(by(l -> l.name));
             labels.addAll(fields);
         }
-        
+
         // show visible
         fields.forEach(Lfield::setHide);
         tiles.getChildren().setAll(labels);
         tiles.layout();
     }
-    
+
     private void setCover(CoverSource source) {
         cover.loadImage(isEmpty() ? null : data.getCover(source));
     }
-    
-    private void setAsCover(Fut<File> ff, boolean setAsCover) {
-        if(ff==null) return;
-        
+
+    private Fut setAsCover(Fut<File> ff, boolean setAsCover) {
+        if(ff==null) System.out.println("WTF ff null");
+        if(ff==null) return ff;
+
         Consumer<File> action = setAsCover
             ? file -> copyFileSafe(file, data.getLocation(), "cover")
             : file -> copyFiles(list(file), data.getLocation(), REPLACE_EXISTING);
-        
-        ff.use(action)
-          .then(cover_source::applyValue,FX)         // refresh cover
-          .showProgress(App.getWindow().taskAdd())
-          .run();
-    }
-    
-    private void tagAsCover(Fut<File> ff, boolean includeAlbum) {
-        if(ff==null) return;
 
-        Collection<Metadata> items = includeAlbum 
+        return ff.use(action)
+                 .then(cover_source::applyValue,FX)         // refresh cover
+                 .showProgress(App.getWindow().taskAdd());
+    }
+
+    private Fut tagAsCover(Fut<File> ff, boolean includeAlbum) {
+        if(ff==null) System.out.println("WTF ff null");
+        if(ff==null) return ff;
+
+        Collection<Metadata> items = includeAlbum
             // get all known songs from album
             ? DB.items.o.getValue().stream()
                 // we must not write when album is empty! that could have disastrous consequences!
@@ -345,19 +356,18 @@ public class FileInfoController extends FXMLController implements SongReader {
             // or only original
             : list();
         items.add(data); // make sure the original is included (we use set to avoid duplicates)
-        
-        ff.use(f -> {
-              MetadataWriter.useNoRefresh(items, w -> w.setCover(f));
-              Player.refreshItems(items);
-           })
-          .showProgress(App.getWindow().taskAdd())
-          .run();
+
+        return ff.use(f -> {
+                     MetadataWriter.useNoRefresh(items, w -> w.setCover(f));
+                     Player.refreshItems(items);
+                  })
+                 .showProgress(App.getWindow().taskAdd());
     }
-    
+
     private void setOverrun(OverrunStyle os) {
         fields.forEach(l -> l.setTextOverrun(os));
     }
-    
+
     private static enum Sort {
         SEMANTIC,
         ALPHANUMERIC;
@@ -372,25 +382,25 @@ public class FileInfoController extends FXMLController implements SongReader {
             this.field = field;
             this.visibleConfig = new Ѵ<>(true,FileInfoController.this::update);
             this.semantic_index = i;
-            
+
             if(field==DISCS_TOTAL) name = "disc";
             else if(field==TRACKS_TOTAL) name = "track";
             else if(field==PATH) name = "location";
             else name = field.toStringEnum().toLowerCase();
         }
-        
+
         void setVal(Metadata m) {
             String v = m==EMPTY || field==RATING ? "" : m.getFieldS(field,"");
                    v = v.replace('\r', ' ');
                    v = v.replace('\n', ',');
             setText(name + ": " + v);
         }
-        
+
         void setHide() {
             String content = getText().substring(getText().indexOf(": ")+2).trim();
             boolean e = content.isEmpty() ||
                      content.equalsIgnoreCase("?/?") ||
-                       content.equalsIgnoreCase("n/a") || 
+                       content.equalsIgnoreCase("n/a") ||
                          content.equalsIgnoreCase("unknown");
                     e &= field!=RATING;
             setDisable(e);
@@ -408,12 +418,12 @@ public class FileInfoController extends FXMLController implements SongReader {
         protected void layoutChildren() {
             double width = getWidth();
             double height = getHeight();
-            
+
             double cellH = 15+tiles.getVgap();
             int rows = (int)floor(max(height, 5)/cellH);
             if(rows==0) rows=1;
             int columns = 1+(int) ceil(labels.size()/rows);
-            double cellW = columns==1 || columns==0 
+            double cellW = columns==1 || columns==0
                 // dont allow 0 columns & set whole width if 1 column
                 // handle 1 column manually - the below caused some problems
                 ? width

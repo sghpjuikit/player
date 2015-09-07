@@ -58,12 +58,12 @@ import static util.functional.Util.stream;
 import static util.graphics.Util.setScaleXY;
 
 public class Icon<I extends Icon> extends Text {
-    
+
     // animation builder, & reusable supplier
     private static final Ƒ1<Icon,Anim> A = i -> new Anim(millis(400), p -> setScaleXY(i,1-0.3*p*p*p));
     private static final Double DEFAULT_ICON_SIZE = 12.0;
     private static final String DEFAULT_FONT_SIZE = "1em";
-    
+
     static {
         try {
             Font.loadFont(Icon.class.getResource(FontAwesomeIconView.TTF_PATH).openStream(), 10.0);
@@ -74,7 +74,7 @@ public class Icon<I extends Icon> extends Text {
             LoggerFactory.getLogger(Icon.class).error("Couldnt load font",e);
         }
     }
-    
+
     public static Icon createInfoIcon(String text) {
         return new Icon(INFO, 13, "Help", e -> {
 	    PopOver<gui.objects.Text> helpP = PopOver.createHelpPopOver(text);
@@ -84,28 +84,28 @@ public class Icon<I extends Icon> extends Text {
 	});
     }
 
-    
-    private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text 
+
+    private StringProperty glyphStyle; // needed as setStyle() is final in javafx.scene.text.Text
     private final ObjectProperty<String> icon = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_NAME, Icon.this, "glyphName", ADJUST.name());
     private final ObjectProperty<Number> size = new SimpleStyleableObjectProperty<>(StyleableProperties.GLYPH_SIZE, Icon.this, "glyphSize", 12);
 
-    
+
     public Icon() {
         this(null,-1);
     }
-    
+
     public Icon(GlyphIcons i) {
         this(i, -1);
     }
-    
+
     public Icon(GlyphIcons i, double size) {
         this(i, size, null, (EventHandler)null);
     }
-    
+
     public Icon(GlyphIcons i, double size, String tooltip) {
         this(i, size, tooltip, (EventHandler)null);
     }
-    
+
     public Icon(GlyphIcons i, double size, String tooltip, EventHandler<MouseEvent> onClick) {
         glyphSizeProperty().addListener((o,ov,nv) -> {
             updateSize();
@@ -116,9 +116,9 @@ public class Icon<I extends Icon> extends Text {
         glyphNameProperty().addListener((o,ov,nv) -> {
             updateIcon();
         });
-        
+
 //        setFont(new Font("FontAwesome", DEFAULT_ICON_SIZE));
-        
+
         getStyleClass().clear();
         styleclass("icon");
         if(size!=-1) size(size);
@@ -132,12 +132,12 @@ public class Icon<I extends Icon> extends Text {
         addEventFilter(MOUSE_PRESSED, e -> ra.get(this,A).playOpenDo(null));
         addEventFilter(MOUSE_RELEASED, e -> ra.get(this,A).playOpenDoClose(null));
     }
-    
+
     public Icon(GlyphIcons ico, double size, String tooltip, Runnable onClick) {
         this(ico, size, tooltip);
         onClick(onClick);
     }
-    
+
     public Icon(GlyphIcons ico, double size, Action action) {
         this(ico, size, action.getInfo(), (Runnable)action);
     }
@@ -146,34 +146,34 @@ public class Icon<I extends Icon> extends Text {
     public void init() {}
 
 /******************************************************************************/
-    
+
     private Runnable click_runnable;
-    
+
     public Runnable getOnClickRunnable() {
         return click_runnable;
     }
-    
+
     public Action getOnClickAction() {
         return click_runnable instanceof Action ? (Action) click_runnable : Action.EMPTY;
     }
-    
+
 /********************************* FLUENT API *********************************/
-    
+
     public I icon(GlyphIcons i) {
         setIcon(i);
         return (I)this;
     }
-    
+
     public I size(double s) {
         setGlyphSize(s);
         return (I)this;
     }
-    
+
     public final I tooltip(String text) {
         if(text!=null && !text.isEmpty()) return tooltip(new Tooltip(text));
         return (I)this;
     }
-    
+
     public final I tooltip(Tooltip t) {
         if(t!=null) {
             t.setWrapText(true);
@@ -188,7 +188,7 @@ public class Icon<I extends Icon> extends Text {
                     t.setGraphic(Icons.createIcon(g, 30));
                     t.setGraphicTextGap(15);
                 }
-                
+
             });
             t.setOnShown(e -> {
                 // animate
@@ -196,7 +196,7 @@ public class Icon<I extends Icon> extends Text {
                 Text txt = s==null ? null : getFieldValue(s.getSkin(), Text.class, "text");
                 Node ico = s==null ? null : getFieldValue(s.getSkin(), Node.class, "graphic");
                 if(ico!=null && txt!=null) {
-                    
+
                     new Anim(millis(400), p -> {
                         double p2 = Anim.mapTo01(p, 0.4, 1);
                         txt.setTranslateX(20*p*p-20);
@@ -208,7 +208,7 @@ public class Icon<I extends Icon> extends Text {
         }
         return (I)this;
     }
-    
+
     /** Sets styleclass. Returns this icon (fluent API). */
     public final I styleclass(String s) {
         getStyleClass().add(s);
@@ -217,24 +217,24 @@ public class Icon<I extends Icon> extends Text {
         updateStyle();
         return (I)this;
     }
-    
+
     public final I embedded() {
         return styleclass("embedded-icon");
-    } 
-    
+    }
+
     /** Equivalent to {@code setOnMouseClicked(action);}. Returns this icon (fluent API). */
     public final I onClick(EventHandler<MouseEvent> action) {
         setOnMouseClicked(action);
         return (I)this;
     }
-    
-    /** 
+
+    /**
      * Creates and sets onMouseClick handler. Can also set tooltip. Returns this icon (fluent API).
      * <p>
      * The handler executes the action only on left button click
-     * THe handler can be retrieved or removed using {@link #getOnMouseClicked()} and 
+     * THe handler can be retrieved or removed using {@link #getOnMouseClicked()} and
      * {@link #setOnMouseClicked(javafx.event.EventHandler)}.
-     * 
+     *
      * @param action Action to execute on left mouse click. If instance of {@link Action} tooltip is
      * set, with text set to {@link Action#getInfo()}. Null removes mouse click handler (but not the
      * tooltip).
@@ -246,18 +246,18 @@ public class Icon<I extends Icon> extends Text {
             tooltip(a.getName()+"\n\n" + a.getInfo());
         }
         click_runnable = action;
-        return onClick(action==null ? null : e -> { 
+        return onClick(action==null ? null : e -> {
             if(e.getButton()==PRIMARY) {
                 action.run();
-                e.consume(); 
-            } 
+                e.consume();
+            }
         });
     }
-    
+
 /******************************************************************************/
 
-    
-    
+
+
     public GlyphIcons getGlyph() {
         String n = getGlyphName();
         return (GlyphIcons) stream(FontAwesomeIcon.class,WeatherIcon.class,MaterialDesignIcon.class,MaterialIcon.class)
@@ -265,9 +265,9 @@ public class Icon<I extends Icon> extends Text {
                 .filter(i -> ((GlyphIcons)i).name().equalsIgnoreCase(n))
                 .findFirst().orElseGet(this::getDefaultGlyph);
     }
-    
-    
-    
+
+
+
 
     public final StringProperty glyphStyleProperty() {
         if (glyphStyle == null) {
@@ -336,7 +336,7 @@ public class Icon<I extends Icon> extends Text {
         setStyle(getGlyphStyle());
     }
 
-    // CSS 
+    // CSS
     private static class StyleableProperties {
 
         private static final CssMetaData<Icon, String> GLYPH_NAME
@@ -399,5 +399,5 @@ public class Icon<I extends Icon> extends Text {
         ParsedValueImpl parsedValueImpl = CSS_PARSER.parseExpr("", sizeString);
         return (Number) parsedValueImpl.convert(getFont());
     }
-    
+
 }

@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -160,7 +160,7 @@ public class LibraryController extends FXMLController implements SongReader {
     @IsConfig(editable = false)
     private File last_file = new File("");
     @IsConfig(name = "Auto-edit added items")
-    private final BooleanProperty editOnAdd = editOnAdd_menuItem.selected;
+    private final Property<Boolean> editOnAdd = editOnAdd_menuItem.selected;
     
     private final ExecuteN runOnce = new ExecuteN(1);
     
@@ -276,7 +276,7 @@ public class LibraryController extends FXMLController implements SongReader {
         });
         // drag&drop to
         table.setOnDragDropped(e-> {
-            addNeditDo(DragUtil.getSongs(e), editOnAdd.get());
+            addNeditDo(DragUtil.getSongs(e), editOnAdd.getValue());
             e.setDropCompleted(true);
             e.consume();
         });
@@ -315,10 +315,10 @@ public class LibraryController extends FXMLController implements SongReader {
     }
     
     @FXML private void addDirectory() {
-        addNedit(editOnAdd.get(),true);
+        addNedit(editOnAdd.getValue(),true);
     }
     @FXML private void addFiles() {
-        addNedit(editOnAdd.get(),false);
+        addNedit(editOnAdd.getValue(),false);
     }
     
     private void addNedit(boolean edit, boolean dir) {

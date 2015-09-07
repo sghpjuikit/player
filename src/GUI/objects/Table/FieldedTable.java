@@ -230,7 +230,7 @@ public class FieldedTable <T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
             // the menu is rarely shown + no need to update it any other time
             columnVisibleMenu.setOnShowing(e -> columnVisibleMenu.getItems()
                             .filtered(i -> i instanceof SelectionMenuItem)
-                            .forEach(i -> ((SelectionMenuItem)i).selected.set(isColumnVisible(nameToCF(i.getText())))));
+                            .forEach(i -> ((SelectionMenuItem)i).selected.setValue(isColumnVisible(nameToCF(i.getText())))));
             
             // link table column button to our menu instead of an old one
             

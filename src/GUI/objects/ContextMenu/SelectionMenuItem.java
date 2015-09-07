@@ -5,13 +5,16 @@
  */
 package gui.objects.ContextMenu;
 
-import gui.objects.icon.CheckIcon;
-import static java.util.Objects.requireNonNull;
 import java.util.function.Consumer;
-import javafx.beans.property.BooleanProperty;
+
+import javafx.beans.property.Property;
 import javafx.collections.ListChangeListener;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+
+import gui.objects.icon.CheckIcon;
+
+import static java.util.Objects.requireNonNull;
 
 /** 
  * Simple {@link Menu} implementation with check icon. Clicking on the icon 
@@ -38,7 +41,7 @@ public class SelectionMenuItem extends Menu {
     
     private final CheckIcon icon = new CheckIcon(false);
     /** Selection state reflected by the icon. Changes on click. Default false.*/
-    public final BooleanProperty selected = icon.selected;
+    public final Property<Boolean> selected = icon.selected;
     
     /**
      * Creates menu item and adds selection listener for convenience.
@@ -67,9 +70,9 @@ public class SelectionMenuItem extends Menu {
         setGraphic(icon);
         getStyleClass().add(STYLECLASS);
         icon.getStyleClass().add(STYLECLASS_ICON);
-        selected.set(s);
+        selected.setValue(s);
         // action = toggle selection
-        setOnAction(e -> selected.set(!selected.get()));            
+        setOnAction(e -> selected.setValue(!selected.getValue()));            
         icon.setOnMouseClicked(e -> getOnAction().handle(null));
         
         // hide open submenu arrow if no children

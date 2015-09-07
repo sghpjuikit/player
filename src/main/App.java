@@ -86,7 +86,7 @@ import gui.objects.Window.stage.Window;
 import gui.objects.Window.stage.WindowManager;
 import gui.objects.icon.IconInfo;
 import gui.pane.ActionPane;
-import gui.pane.ActionPane.ActionData;
+import gui.pane.ActionPane.FastAction;
 import gui.pane.CellPane;
 import util.ClassName;
 import util.File.AudioFileFormat;
@@ -307,7 +307,7 @@ public class App extends Application {
         
         // register actions
         ActionPane.register(Widget.class, 
-            new ActionData<Widget>("Create launcher (def)","Creates a launcher "
+            new FastAction<Widget>("Create launcher (def)","Creates a launcher "
                 + "for this widget with default (no predefined) settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "widget as if it were a standalone application.",
@@ -320,7 +320,7 @@ public class App extends Application {
             })
         );
         ActionPane.register(Component.class, 
-            new ActionData<Component>("Export","Creates a launcher "
+            new FastAction<Component>("Export","Creates a launcher "
                 + "for this component with current settings. \n"
                 + "Opening the launcher with this application will open this "
                 + "component as if it were a standalone application.",
@@ -758,7 +758,7 @@ public class App extends Application {
     @IsAction(name = "Open app actions", desc = "Actions specific to whole application.")
     public static void openActions() {
         ActionPane.PANE.show(Void.class, null, 
-            new ActionData<Void>(
+            new FastAction<Void>(
                 "Export widgets",
                 "Creates launcher file in the destination directory for every widget.\n"
                 + "Launcher file is a file that when opened by this application opens the widget. "

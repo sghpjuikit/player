@@ -10,7 +10,9 @@ import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+
 import javafx.beans.value.WritableValue;
+
 import util.functional.Operable;
 
 /**
@@ -124,6 +126,16 @@ public interface AccessibleValue<V> extends WritableValue<V>, SequentialValue<V>
         V v = getValue();
         op.accept(v);
         return v;
+    }
+    
+    
+    
+    public default void setValueOf(UnaryOperator<V> op) {
+        setValue(op.apply(getValue()));
+    }
+    
+    public default void setValueOf(V v2, BinaryOperator<V> op) {
+        setValue(op.apply(getValue(), v2));
     }
     
     

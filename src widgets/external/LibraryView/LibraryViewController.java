@@ -200,10 +200,10 @@ public class LibraryViewController extends FXMLController {
               .sorted(by(f -> f.name()))
               .map(f -> new SelectionMenuItem(f.toStringEnum(), false){{
                   this.setOnMouseClicked(() -> {
-                        if(!selected.get()) {
+                        if(!selected.getValue()) {
                             // refresh menu
-                            m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.set(false));
-                            selected.set(true);
+                            m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(false));
+                            selected.setValue(true);
                             // apply
                             fieldFilter.setNapplyValue(f);
                         }
@@ -211,7 +211,7 @@ public class LibraryViewController extends FXMLController {
               }})
               .forEach(m.getItems()::add);
             // refresh when menu opens
-        table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.set(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
+        table.columnVisibleMenu.addEventHandler(WINDOW_SHOWN, e -> m.getItems().forEach(mi -> ((SelectionMenuItem)mi).selected.setValue(fieldFilter.getValue().toStringEnum().equals(mi.getText()))));
         
         // key actions
         table.setOnKeyPressed( e -> {

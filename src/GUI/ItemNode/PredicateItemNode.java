@@ -121,7 +121,7 @@ public class PredicateItemNode<T> extends ValueNode<Tuple2<Predicate<Object>,T>>
         T o = typeCB.getValue()==null ? null : typeCB.getValue()._3;
         if(p!=null) {
             Predicate<Object> pr = p::apply;
-            if(negB.selected.get()) pr = pr.negate();
+            if(negB.selected.getValue()) pr = pr.negate();
             changeValue(tuple(pr,o));
         }
     }

@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 
 import javafx.scene.control.ProgressIndicator;
 
+import util.functional.Functors.Ƒ1;
+
 import static util.async.Async.eFX;
 
 /**
@@ -23,36 +25,46 @@ import static util.async.Async.eFX;
  @author Plutonium_
  */
 public class Fut<T> implements Runnable{
-    
+
     private CompletableFuture<T> f;
-    
+
     private Fut(CompletableFuture<T> future) {
         f = future;
     }
-     
+
     public Fut() {
         f = CompletableFuture.completedFuture(null);
     }
-    
+
     public Fut(T input) {
         f = CompletableFuture.completedFuture(input);
     }
-    
-    public static Fut<Void> fut() { 
+
+    public static Fut<Void> fut() {
         return new Fut<>();
     }
-    public static <T> Fut<T> fut(T t) { 
+
+    public static <T> Fut<T> fut(T t) {
         return new Fut<>(t);
     }
-    public static <T> Fut<T> fut(Supplier<T> t) { 
-        return new Fut<>().supply(t);
+
+    public static <T> Fut<T> fut(Supplier<T> t) {
+//        return new Fut<>().supply(t);
+        return new Fut<>(CompletableFuture.supplyAsync(t));
     }
-    
-    
+
+    public static <T> Fut<T> futAfter(Fut<T> f) {
+        CompletableFuture<T> nf = f.f.handle((result,exception) -> {
+            if(exception!=null) throw new RuntimeException("Fut errored out",exception);
+            else return result;
+        });
+        return new Fut<>(nf);
+    }
+
     public boolean isDone() {
         return f.isDone();
     }
-    
+
     public T getDone() {
         if(f.isDone()) {
             try {
@@ -68,7 +80,7 @@ public class Fut<T> implements Runnable{
             return null;
         }
     }
-    
+
     public final <R> Fut<R> map(Function<T,R> action) {
         return new Fut<>(f.thenApplyAsync(action));
     }
@@ -78,7 +90,7 @@ public class Fut<T> implements Runnable{
     public final <R> Fut<R> map(Function<T,R> action, Consumer<Runnable> executor) {
         return new Fut<>(f.thenApplyAsync(action, executor::accept));
     }
-    
+
     public final <R> Fut<R> supply(R value) {
         return supply(() -> value);
     }
@@ -86,7 +98,7 @@ public class Fut<T> implements Runnable{
         return Fut.this.map(r -> action.get());
     }
     public final <R> Fut<R> supply(Fut<R> action) {
-        return new Fut(CompletableFuture.completedFuture(null)
+        return new Fut<>(CompletableFuture.<Void>completedFuture(null)
                 .thenCompose(res -> f)
                 .thenCompose(res -> action.f));
     }
@@ -96,11 +108,11 @@ public class Fut<T> implements Runnable{
     public final <R> Fut<R> supply(Supplier<R> action, Consumer<Runnable> executor) {
         return map(r -> action.get(), executor);
     }
-    
+
     public final <R> Fut<R> then(CompletableFuture<R> action) {
         return new Fut<>(f.thenComposeAsync(res -> action));
     }
-    
+
     public final Fut<Void> use(Consumer<T> action) {
         return new Fut<>(f.thenAcceptAsync(action));
     }
@@ -110,7 +122,7 @@ public class Fut<T> implements Runnable{
     public final Fut<Void> use(Consumer<T> action, Consumer<Runnable> executor) {
         return new Fut<>(f.thenAcceptAsync(action, executor::accept));
     }
-    
+
     public final Fut<T> then(Runnable action) {
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }));
     }
@@ -120,8 +132,8 @@ public class Fut<T> implements Runnable{
     public final Fut<T> then(Runnable action, Consumer<Runnable> executor) {
         return new Fut<>(f.thenApplyAsync(r -> { action.run(); return r; }, executor::accept));
     }
-    
-    /** 
+
+    /**
      * Returns new future, which sets progress to 0 on fx thread, then executes
      * this future and then sets progress to 1, again on fx thread.
      * <p>
@@ -134,8 +146,8 @@ public class Fut<T> implements Runnable{
      * To set the progress to 1 at the end of computation, this method must be
      * the last element of the chain.
      * To set the progress to 0 somewhere during the computation, a future for
-     * the progress computation must created, this method called on it and 
-     * passed as Runnable into another future which executes it as 
+     * the progress computation must created, this method called on it and
+     * passed as Runnable into another future which executes it as
      * part of its computation. This will cause only that computation to be bound to
      * the progress.
      */
@@ -156,10 +168,14 @@ public class Fut<T> implements Runnable{
         } else
             return this;
     }
-    
+
+    public <R> Fut<R> then(Ƒ1<Fut<T>,Fut<R>> then) {
+        return then.apply(this);
+    }
+
     @Override
     public void run() {
        f.thenRunAsync(() -> {}).complete(null);
     }
-    
+
 }

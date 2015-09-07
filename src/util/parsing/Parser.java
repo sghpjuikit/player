@@ -353,7 +353,7 @@ public class Parser {
         Function<I,O> f = in -> {
             try {
                 return (O) m.invoke(null, in);
-            } catch( IllegalAccessException | InvocationTargetException e ) {
+            } catch(IllegalAccessException | InvocationTargetException e ) {
                 for(Class<?> ec : ecs) {
                     if(ec.isInstance(e.getCause().getCause())) return null;
                     if(ec.isInstance(e.getCause())) return null;

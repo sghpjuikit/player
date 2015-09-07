@@ -6,12 +6,16 @@
 package gui.objects.icon;
 
 import de.jensd.fx.glyphs.GlyphIcons;
-import javafx.beans.property.BooleanProperty;
+
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.css.PseudoClass;
+
 import static javafx.css.PseudoClass.getPseudoClass;
 import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+
 import org.reactfx.Subscription;
+
 import static util.reactive.Util.maintain;
 
 /**
@@ -22,7 +26,7 @@ public class CheckIcon extends Icon<CheckIcon> {
     private static final String STYLECLASS = "check-icon";
     
     /** Selection state.*/
-    public final BooleanProperty selected;
+    public final Property<Boolean> selected;
     
     /** Creates icon with selection true.*/
     public CheckIcon() {
@@ -35,11 +39,11 @@ public class CheckIcon extends Icon<CheckIcon> {
     }
     
     /** Creates icon with property as selection value. {@link #selected}==s will always be true. */
-    public CheckIcon(BooleanProperty s) {
+    public CheckIcon(Property<Boolean> s) {
         selected = s==null ? new SimpleBooleanProperty(true) : s;
         styleclass(STYLECLASS);
         maintain(selected, v -> pseudoClassStateChanged(selectedPC,v));
-        addEventHandler(MOUSE_CLICKED, e -> selected.set(!selected.get()));
+        addEventHandler(MOUSE_CLICKED, e -> selected.setValue(!selected.getValue()));
     }
     
     

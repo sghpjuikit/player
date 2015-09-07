@@ -33,6 +33,7 @@ import static javafx.scene.input.TransferMode.ANY;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.File.FileUtil.getFilesAudio;
 import static util.async.future.Fut.fut;
+import static util.async.future.Fut.futS;
 import static util.functional.Util.filterMap;
 
 /**
@@ -40,9 +41,9 @@ import static util.functional.Util.filterMap;
  * @author uranium
  */
 public final class DragUtil {
-    
+
 /******************************* data formats *********************************/
-    
+
     /** Data Format for List<Item>. */
     public static final DataFormat itemsDF = new DataFormat("items");
     /** Data Format for WidgetTransfer. */
@@ -51,12 +52,12 @@ public final class DragUtil {
     public static final DataFormat componentDF = new DataFormat("component");
     /** Data Format for widget output linking. */
     public static final DataFormat widget_outputDF = new DataFormat("widget-output");
-    
+
 /********************************* dragboard **********************************/
-    
+
     private static Object data;
     private static DataFormat dataFormat;
-    
+
 /******************************** handlers ************************************/
 
     /**
@@ -70,15 +71,15 @@ public final class DragUtil {
             e.consume();
         }
     };
-    
+
     /**
-     * Accepts and consumes drag over event if contains at least 1 audio file, 
+     * Accepts and consumes drag over event if contains at least 1 audio file,
      * audio url, {@link Playlist} or list of {@link Item}.
      * <p>
      * Reusing this handler spares code duplication and multiple object instances.
-     * 
-     * @see #hasAudio(javafx.scene.input.Dragboard) 
-     * @see #getAudioItems(javafx.scene.input.DragEvent) 
+     *
+     * @see #hasAudio(javafx.scene.input.Dragboard)
+     * @see #getAudioItems(javafx.scene.input.DragEvent)
      */
     public static final EventHandler<DragEvent> audioDragAccepthandler = e -> {
         if (hasAudio(e.getDragboard())) {
@@ -86,12 +87,12 @@ public final class DragUtil {
             e.consume();
         }
     };
-    
+
     /**
      * Accepts and consumes drag over event if contains images
-     * 
-     * @see #hasImage(javafx.scene.input.Dragboard) 
-     * @see #getImage(javafx.scene.input.DragEvent) 
+     *
+     * @see #hasImage(javafx.scene.input.Dragboard)
+     * @see #getImage(javafx.scene.input.DragEvent)
      * @see #getImages(javafx.scene.input.DragEvent)
      */
     public static final EventHandler<DragEvent> imgFileDragAccepthandler = e -> {
@@ -100,23 +101,29 @@ public final class DragUtil {
             e.consume();
         }
     };
-    
+
     /**
      * Similar to {@link #imgFileDragAccepthandler}, but does nothing when the dragged image
      * (if more then the first) is the same as the one supplied.
      * <p>
-     * Useful if we want to accept image drag only if the dragged image is not the same as some 
+     * Useful if we want to accept image drag only if the dragged image is not the same as some
      * image we already have. This should only be used when we request 1 dropped image.
-     * 
-     * @see #hasImage(javafx.scene.input.Dragboard) 
-     * @see #getImage(javafx.scene.input.DragEvent) 
+     *
+     * @see #hasImage(javafx.scene.input.Dragboard)
+     * @see #getImage(javafx.scene.input.DragEvent)
      * @see #getImages(javafx.scene.input.DragEvent)
      */
     public static EventHandler<DragEvent> imgFileDragAccepthandlerNo(Supplier<File> except) {
         return e -> {
             if(hasImage(e.getDragboard())) {
-                Fut<File> fi = getImage(e);
-                File i = fi.isDone() ? fi.getDone() : null;
+                // why does the Fut (CompletableFuture) compute without running the Fut ???
+                // now the Fut executes over and over because this event fires like that (btw wtf?)
+                // so the below can not be used right now
+//                Fut<File> fi = getImage(e);
+//                File i = fi.isDone() ? fi.getDone() : null;
+//                boolean same = i!=null && i.equals(except.get());
+
+                File i = getImageNoUrl(e);  // workaround
                 boolean same = i!=null && i.equals(except.get());
                 if(!same) {
                     e.acceptTransferModes(ANY);
@@ -125,14 +132,14 @@ public final class DragUtil {
             }
         };
     }
-    
+
     /** Always accepts and consumes drag over event. */
-    public static final EventHandler<DragEvent> anyDragAccepthandler = e -> { 
-        e.acceptTransferModes(ANY); 
+    public static final EventHandler<DragEvent> anyDragAccepthandler = e -> {
+        e.acceptTransferModes(ANY);
         e.consume();
     };
-    
-    
+
+
     public static Object getAny(DragEvent e) {
         Dragboard d = e.getDragboard();
         // as we return immediately with the result, the order matters
@@ -144,9 +151,9 @@ public final class DragUtil {
         if(d.hasUrl()) return d.hasUrl();
         return data;
     }
-    
+
 /********************************** FILES *************************************/
-    
+
     /** Accepts and consumes drag over event if contains at least 1 image file. */
     public static final EventHandler<DragEvent> fileDragAccepthandler = e -> {
         if (hasFiles(e)) {
@@ -154,8 +161,8 @@ public final class DragUtil {
             e.consume();
         }
     };
-        
-    /** 
+
+    /**
      * Returns filed from dragboard.
      * @return list of files in dragboard. Never null.
      */
@@ -163,14 +170,14 @@ public final class DragUtil {
         List<File> o = e.getDragboard().getFiles();
         return o==null ? EMPTY_LIST : o;
     }
-    
+
     /** Returns whether dragboard contains files. */
     public static boolean hasFiles(DragEvent e) {
         return e.getDragboard().hasFiles();
     }
-    
+
 /*********************************** TEXT *************************************/
-    
+
     /** Accepts and consumes drag over event if contains text. */
     public static final EventHandler<DragEvent> textDragAccepthandler = e -> {
         if (hasText(e)) {
@@ -178,8 +185,8 @@ public final class DragUtil {
             e.consume();
         }
     };
-        
-    /** 
+
+    /**
      * Returns text from dragboard.
      * @return string in dragboard or "" if none.
      */
@@ -188,14 +195,14 @@ public final class DragUtil {
         if(o==null) o = e.getDragboard().getRtf();
         return o==null ? "" : o;
     }
-    
+
     /** Returns whether dragboard contains text. */
     public static boolean hasText(DragEvent e) {
         return e.getDragboard().hasString() || e.getDragboard().hasRtf();
     }
-    
+
 /******************************* WIDGET OUTPUT ********************************/
-    
+
     /** Accepts and consumes drag over event if contains text. */
     public static final EventHandler<DragEvent> widgetOutputDragAccepthandler = e -> {
         if (hasWidgetOutput()) {
@@ -203,80 +210,80 @@ public final class DragUtil {
             e.consume();
         }
     };
-    
+
     public static void setWidgetOutput(Output o, Dragboard db) {
         // put fake data into dragboard
         db.setContent(singletonMap(widget_outputDF, ""));
         data = o;
         dataFormat = widget_outputDF;
     }
-        
+
     /** Returns widget output from dragboard or runtime exceptin if none. */
     public static Output getWidgetOutput(DragEvent e) {
         if(dataFormat != widget_outputDF) throw new RuntimeException("No widget output in data available.");
         return (Output) data;
     }
-    
+
     /** Returns whether dragboard contains text. */
     public static boolean hasWidgetOutput() {
         return dataFormat == widget_outputDF;
     }
-    
+
 /*********************************** SONGS ************************************/
-    
+
     public static void setItemList(List<? extends Item> items, Dragboard db, boolean includeFiles) {
         // put fake data into dragboard
         db.setContent(singletonMap(itemsDF, ""));
         data = items;
         dataFormat = itemsDF;
-        
+
         if(includeFiles) {
             HashMap<DataFormat,Object> c = new HashMap();
             c.put(FILES, filterMap(items,Item::isFileBased,Item::getFile));
             db.setContent(c);
         }
     }
-    
+
     public static List<Item> getItemsList() {
         if(dataFormat != itemsDF) throw new RuntimeException("No item list in data available.");
         return (List<Item>) data;
     }
-    
+
     public static boolean hasItemList() {
         return dataFormat == itemsDF;
     }
-    
+
 /********************************** LAYOUT ************************************/
-    
+
     public static void setComponent(Container parent, Component child, Dragboard db) {
         // put fake data into dragboard
         db.setContent(singletonMap(componentDF, ""));
         data = new WidgetTransfer(parent, child);
         dataFormat = componentDF;
     }
-    
+
     public static WidgetTransfer getComponent() {
         if(dataFormat != componentDF) throw new RuntimeException("No component in data available.");
         return (WidgetTransfer) data;
     }
-    
+
     public static boolean hasComponent() {
         return dataFormat == componentDF;
     }
-    
+
     /**
      * Obtains all supported audio items from dragboard. Looks for files, url,
      * list of items in this exact order.
      * <p>
      * Use in conjunction with {@link #audioDragAccepthandler}
-     * 
-     * @param e 
+     *
+     * @param e
      * @return list of supported items derived from dragboard of the event.
      */
     public static List<Item> getAudioItems(DragEvent e) {
         Dragboard d = e.getDragboard();
         ArrayList<Item> o = new ArrayList();
-        
+
         if (hasItemList()) {
             o.addAll(getItemsList());
         } else
@@ -294,17 +301,17 @@ public final class DragUtil {
         }
         return o;
     }
-    
+
     /**
      * @param d
-     * @return true if contains at least 1 audio file, audio url or items 
+     * @return true if contains at least 1 audio file, audio url or items
      */
     public static boolean hasAudio(Dragboard d) {
         return (d.hasFiles() && FileUtil.containsAudioFiles(d.getFiles(), Use.APP)) ||
                     (d.hasUrl() && AudioFileFormat.isSupported(d.getUrl(),Use.APP)) ||
                          hasItemList();
     }
-    
+
     /**
      * @param d
      * @return true if contains at least 1 img file, img url
@@ -314,21 +321,32 @@ public final class DragUtil {
                     (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl()));
     }
 
-    
+
     /**
      * Similar to {@link #getImages(javafx.scene.input.DragEvent)}, but
      * supplies only the first image, if available or null otherwise.
-     * 
+     *
      * @return supplier, never null
      */
-    public static Fut<File> getImage(DragEvent e) {
+    public static Fut<File> getImage(DragEvent e) {System.out.println("getting");
         Dragboard d = e.getDragboard();
-        
+
         if (d.hasFiles()) {
             List<File> files = d.getFiles();
             List<File> fs = FileUtil.getImageFiles(files);
             if(!fs.isEmpty())
-                return fut(fs.get(0));
+//                return fut(fs.get(0));
+                return futS(() -> {System.out.println("fuck you in particular");return fs.get(0);}).map(s -> s.get());
+
+//                // for debugging purposes to simulate long running actions
+//                return fut(() -> {System.out.println("IMAGE DROPPED");
+//                    try {
+//                        Thread.sleep(3000);
+//                    } catch (InterruptedException ex) {
+//                        Logger.getLogger(DragUtil.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                    return fs.get(0);
+//                });
         }
         if (d.hasUrl() && ImageFileFormat.isSupported(d.getUrl())) {
             String url = d.getUrl();
@@ -345,10 +363,23 @@ public final class DragUtil {
         }
         return fut(null);
     }
-    
+
+    @Deprecated    // workaround method, remove
+    private static File getImageNoUrl(DragEvent e) {
+        Dragboard d = e.getDragboard();
+
+        if (d.hasFiles()) {
+            List<File> files = d.getFiles();
+            List<File> fs = FileUtil.getImageFiles(files);
+            if(!fs.isEmpty())
+                return fs.get(0);
+        }
+        return null;
+    }
+
     /**
      * Returns supplier of image files in the dragboard.
-     * Always call {@link #hasImage(javafx.scene.input.Dragboard) } before this 
+     * Always call {@link #hasImage(javafx.scene.input.Dragboard) } before this
      * method to check the content.
      * <p>
      * The supplier supplies:
@@ -359,7 +390,7 @@ public final class DragUtil {
      * <ls>If there were files, all image files.
      * <ls>Empty list otherwise
      * </ul>
-     * 
+     *
      * @return supplier, never null
      */
     public static Fut<List<File>> getImages(DragEvent e) {
@@ -385,10 +416,10 @@ public final class DragUtil {
         }
         return fut(EMPTY_LIST);
     }
-    
+
     /**
      * Returns supplier of audio items in the dragboard.
-     * Always call {@link #hasAudio(javafx.scene.input.Dragboard) before this 
+     * Always call {@link #hasAudio(javafx.scene.input.Dragboard) before this
      * method to check the content.
      * <p>
      * The supplier supplies:
@@ -398,12 +429,12 @@ public final class DragUtil {
      * <ls>If there were {@link Item}s, all items.
      * <ls>Empty stream otherwise
      * </ul>
-     * 
+     *
      * @return supplier, never null
      */
     public static Fut<Stream<Item>> getSongs(DragEvent e) {
         Dragboard d = e.getDragboard();
-        
+
         if (hasItemList()) {
             return fut(getItemsList().stream());
         }
@@ -416,11 +447,11 @@ public final class DragUtil {
             return AudioFileFormat.isSupported(url,APP)
                         ? fut(Stream.of(new SimpleItem(URI.create(url))))
                         : fut(Stream.empty());
-        } 
+        }
         return fut(Stream.empty());
     }
-    
-    
+
+
     /**
      * Used for drag transfer of components. When drag starts the component and
      * its parent are wrapped into this object and when drag ends the component

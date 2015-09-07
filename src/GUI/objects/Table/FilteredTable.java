@@ -490,8 +490,8 @@ public class FilteredTable<T extends FieldedValue<T,F>, F extends FieldEnum<T>> 
                 f -> {
                     SelectionMenuItem mi = new SelectionMenuItem(f.name(),f==searchField);
                     mi.setOnMouseClicked(() -> {
-                        m.getItems().forEach(i -> ((SelectionMenuItem)i).selected.set(false));
-                        mi.selected.set(true);
+                        m.getItems().forEach(i -> ((SelectionMenuItem)i).selected.setValue(false));
+                        mi.selected.setValue(true);
                         searchField = f;
                     });
                     return mi;

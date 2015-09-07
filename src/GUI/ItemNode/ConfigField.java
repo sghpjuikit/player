@@ -477,7 +477,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             
             cBox = new CheckIcon();
             cBox.styleclass("boolean-config-field");
-            cBox.selected.set(config.getValue());
+            cBox.selected.setValue(config.getValue());
             // bind config -> config field (if possible)
             if(observable) v.addListener((o,ov,nv) -> cBox.selected.setValue(nv));
             // bind config field -> config
@@ -488,7 +488,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             return cBox;
         }
         @Override public Boolean get() {
-            return cBox.selected.get();
+            return cBox.selected.getValue();
         }
         @Override public void refreshItem() {
             if(!observable)
@@ -647,7 +647,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             
             globB = new CheckIcon();
             globB.styleclass("shortcut-global-config-field");
-            globB.selected.set(a.isGlobal());
+            globB.selected.setValue(a.isGlobal());
             globB.tooltip(globTooltip);
             globB.selected.addListener((o,ov,nv) -> apply(false));
             group = new HBox(5, globB,txtF);
@@ -660,7 +660,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
         }
         @Override public boolean hasUnappliedValue() {
             Action a = config.getValue();
-            boolean sameglobal = globB.selected.get()==a.isGlobal();
+            boolean sameglobal = globB.selected.getValue()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             return !sameKeys || !sameglobal;
@@ -671,16 +671,16 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             // rather operate on the Action manually
 
             Action a = config.getValue();
-            boolean sameglobal = globB.selected.get()==a.isGlobal();
+            boolean sameglobal = globB.selected.getValue()==a.isGlobal();
             boolean sameKeys = txtF.getText().equals(a.getKeys()) || 
                     (txtF.getText().isEmpty() && txtF.getPromptText().equals(a.getKeys()));
             
             if(!sameglobal && !sameKeys)
-                a.set(globB.selected.get(), txtF.getText());
+                a.set(globB.selected.getValue(), txtF.getText());
             else if (!sameKeys)
                 a.setKeys(txtF.getText());
             else if (!sameglobal)
-                a.setGlobal(globB.selected.get());
+                a.setGlobal(globB.selected.getValue());
             else {
                 refreshItem();
             }
@@ -693,7 +693,7 @@ abstract public class ConfigField<T> extends ConfigNode<T> {
             Action a = config.getValue();
             txtF.setPromptText(a.getKeys());
             txtF.setText("");
-            globB.selected.set(a.isGlobal());
+            globB.selected.setValue(a.isGlobal());
         }
     }
     private static class ColorField extends ConfigField<Color> {

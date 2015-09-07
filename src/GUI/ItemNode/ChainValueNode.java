@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -157,7 +157,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
     
     /** Return individual chained values that are enabled and non null. */
     public Stream<V> getValues() {
-        return chain.stream().filter(g -> g.on.get())
+        return chain.stream().filter(g -> g.on.getValue())
                              .map(g -> g.chained.getValue())
                              .filter(ISNTØ);
     }
@@ -193,7 +193,7 @@ public abstract class ChainValueNode<V, C extends ValueNode<V>> extends ValueNod
         private final CheckIcon onB = new CheckIcon(true);
         private final Icon rem = new Icon(MINUS, 13);
         private final Icon add = new Icon(PLUS, 13);
-        public final BooleanProperty on = onB.selected;
+        public final Property<Boolean> on = onB.selected;
         public final C chained;
         private boolean rem_alt = false; // alternative icon, never disable
         

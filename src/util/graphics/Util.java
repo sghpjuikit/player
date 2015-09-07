@@ -18,6 +18,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -25,44 +26,72 @@ import javafx.stage.WindowEvent;
 
 /**
  * Graphic utility methods.
- * 
+ *
  * @author Plutonium_
  */
 public class Util {
-    
-    /** Constructs ordinary {@link HBox)}. */
+
+    /** Constructs ordinary {@link HBox)}. Convenience constructor for more fluent style. */
     public static HBox layHorizontally(double gap, Pos align, Node... nodes) {
         HBox l = new HBox(gap, nodes);
              l.setAlignment(align);
         return l;
     }
-    
+
+    /** Constructs ordinary {@link HBox)}. Convenience constructor for more fluent style. */
     public static HBox layHorizontally(double gap, Pos align, List<? extends Node> nodes) {
         HBox l = new HBox(gap);
              l.setAlignment(align);
              l.getChildren().addAll(nodes);
         return l;
     }
-    
-    /** Constructs ordinary {@link VBox)}. */
+
+    /** Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style. */
     public static VBox layVertically(double gap, Pos align, Node... nodes) {
         VBox l = new VBox(gap, nodes);
              l.setAlignment(align);
         return l;
     }
-    
+
+    /** Constructs ordinary {@link VBox)}. Convenience constructor for more fluent style. */
     public static VBox layVertically(double gap, Pos align, List<? extends Node> nodes) {
         VBox l = new VBox(gap);
              l.setAlignment(align);
              l.getChildren().addAll(nodes);
         return l;
     }
-    
+
+    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    public static StackPane layStack(Node n,Pos a) {
+        StackPane l = new StackPane(n);
+        StackPane.setAlignment(n, a);
+        return l;
+    }
+
+    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2) {
+        StackPane l = new StackPane(n1,n2);
+        StackPane.setAlignment(n1, a1);
+        StackPane.setAlignment(n2, a2);
+        return l;
+    }
+
+    /** Constructs ordinary {@link StackPane)}. Convenience constructor for more fluent style. */
+    public static StackPane layStack(Node n1,Pos a1, Node n2,Pos a2, Node n3,Pos a3) {
+        StackPane l = new StackPane(n1,n2,n3);
+        StackPane.setAlignment(n1, a1);
+        StackPane.setAlignment(n2, a2);
+        StackPane.setAlignment(n3, a3);
+        return l;
+    }
+
+    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
     public static void layAnchor(AnchorPane pane, Node n, Double a) {
         pane.getChildren().add(n);
         setAnchors(n, a);
     }
-    
+
+    /** Constructs ordinary {@link AnchorPane)}. Convenience constructor for more fluent style. */
     public static void layAnchor(AnchorPane pane, Node n, Double top, Double right, Double bottom, Double left) {
         pane.getChildren().add(n);
         setAnchors(n, top, right, bottom, left);
@@ -89,8 +118,8 @@ public class Util {
         if (bottom != null) AnchorPane.setBottomAnchor(n, bottom);
         if (left != null) AnchorPane.setLeftAnchor(n, left);
     }
-    
-    /** Creates most simple bacground with solid bgr color as specified.*/
+
+    /** Creates most simple background with solid bgr color fill and no radius or insets.*/
     public static Background bgr(Color c) {
         return new Background(new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY));
     }
@@ -104,7 +133,7 @@ public class Util {
         n.setScaleX(x);
         n.setScaleY(y);
     }
-    
+
     public static void add1timeEventHandler(Stage etarget, EventType<WindowEvent> etype, Consumer<WindowEvent> ehandler) {
         etarget.addEventHandler(etype, new EventHandler<WindowEvent>() {
             @Override

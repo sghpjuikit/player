@@ -92,9 +92,9 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     private Playlist playlist;
     private PlaylistTable table;
     private final ExecuteN columnInitializer = new ExecuteN(1);
-    
+
     private Output<PlaylistItem> outSelected, outPlaying;
-    
+
     // configurables
     @IsConfig(name = "Table orientation", info = "Orientation of the table.")
     public final Ѵo<NodeOrientation> orient = new Ѵo<>(GUI.table_orient);
@@ -106,6 +106,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public final Ѵo<Boolean> show_header = new Ѵo<>(GUI.table_show_header);
     @IsConfig(name = "Show table footer", info = "Show table controls at the bottom of the table. Displays menubar and table items information.")
     public final Ѵo<Boolean> show_footer = new Ѵo<>(GUI.table_show_footer);
+    @IsConfig(name = "Scroll to playing", info = "Scroll table to playing item when it changes.")
+    public final Ѵ<Boolean> scrollToPlaying = new Ѵ<>(true);
     @IsConfig(name = "Play displayed only", info = "Only displayed items will be played when filter is active.")
     public final Ѵ<Boolean> filter_for_playback = new Ѵ<>(false, v -> {
         String of = "Enable filter for playback. Causes the playback "
@@ -122,10 +124,10 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
              i.setDisable(false); // needed
         setUseFilterForPlayback(v);
     });
-    
+
     @Override
-    public void init() {        
-        
+    public void init() {
+
         // obtain playlist by id, we will use this widget's id
         UUID id = getWidget().id;
         playlist = PlaylistManager.playlists.getOr(id, getUnusedPlaylist(id));
@@ -135,7 +137,7 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         // and playlist list would infinitely grow, when widgets close naturally
         // on app close, the playlist will get removed after it was saved => no problem
         d(() -> PlaylistManager.playlists.remove(playlist));
-        
+
         // widget input/output
         outSelected = outputs.create(widget.id,"Selected", Item.class, null);
         outPlaying = outputs.create(widget.id,"Playing", Item.class, null);
@@ -147,13 +149,13 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             if(outSelected.getValue()!=null)
                 ms.ifHasK(outSelected.getValue().getURI(), m -> outSelected.setValue(m.toPlaylist()));
         }));
-        
+
         table = new PlaylistTable(playlist);
-        
+
         // add table to scene graph
         root.getChildren().add(table.getRoot());
         setAnchors(table.getRoot(),0d);
-        
+
         // table properties
         table.setFixedCellSize(gui.GUI.font.getValue().getSize() + 5);
         table.getSelectionModel().setSelectionMode(MULTIPLE);
@@ -162,7 +164,8 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
         d(maintain(orig_index,table.showOriginalIndex));
         d(maintain(show_header,table.headerVisible));
         d(maintain(show_footer,table.footerVisible));
-        
+        d(maintain(scrollToPlaying,table.scrollToPlaying));
+
         // extend table items information
         table.items_info.textFactory = (all, list) -> {
             double Σms = list.stream().mapToDouble(PlaylistItem::getTimeMs).sum();
@@ -196,31 +199,31 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
             menuItem("Save playlist as...", this::savePlaylist)
         );
         Menu sortM = new Menu("Order by");
-        for(Field f : Field.values()) 
+        for(Field f : Field.values())
             sortM.getItems().add(menuItem(f.toStringEnum(), () -> table.sortBy(f)));
         table.menuOrder.getItems().add(0, sortM);
-        
+
         // prevent scrol event to propagate up
         root.setOnScroll(Event::consume);
-        
+
         // maintain outputs
         table.getSelectionModel().selectedItemProperty().addListener((o,ov,nv) -> {
             if(!table.movingitems)
                 outSelected.setValue(nv);
         });
-        
+
         d(table::dispose);
     }
-    
+
     @Override
     public Collection<Config<Object>> getFields() {
         // serialize column state when requested
         getWidget().properties.put("columns", table.getColumnState().toString());
         return super.getFields();
     }
-    
+
 /******************************** PUBLIC API **********************************/
-    
+
     @Override
     public void refresh() {
         columnInitializer.execute(() -> {
@@ -234,13 +237,13 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
     public Playlist getPlaylist() {
         return playlist;
     }
-    
+
 /***************************** HELPER METHODS *********************************/
-    
+
     void savePlaylist() {
         List<PlaylistItem> l = table.getItems();
         if(l.isEmpty()) return;
-        
+
         String initialName = "ListeningTo " + new Date(System.currentTimeMillis());
         MapConfigurable mc = new MapConfigurable(
                 new ValueConfig("Name", initialName)
@@ -255,11 +258,11 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 p.title.set("Save playlist as...");
                 p.show(PopOver.ScreenPos.App_Center);
     }
-    
+
     void saveSelectedAsPlaylist() {
         List<PlaylistItem> l = table.getSelectedItems();
         if(l.isEmpty()) return;
-        
+
         MapConfigurable mc = new MapConfigurable(
                         new ValueConfig("Name", "My Playlist")
         );
@@ -273,25 +276,25 @@ public class PlaylistController extends FXMLController implements PlaylistFeatur
                 p.title.set("Save selected items as...");
                 p.show(PopOver.ScreenPos.App_Center);
     }
-    
+
     private void setUseFilterForPlayback(boolean v) {
-        playlist.setTransformation(v 
-            ? orig -> table.getItems().stream().sorted(table.itemsComparator.get()).collect(toList()) 
+        playlist.setTransformation(v
+            ? orig -> table.getItems().stream().sorted(table.itemsComparator.get()).collect(toList())
             : orig -> orig
         );
     }
-    
+
     private void filterToggle() {
         filter_for_playback.setCycledNapplyValue();
     }
-    
+
     private static Playlist getUnusedPlaylist(UUID id) {
         List<Playlist> pall = list(PlaylistManager.playlists);
         WidgetManager.findAll(OPEN).filter(w -> w.getInfo().hasFeature(PlaylistFeature.class))
                      .map(w -> ((PlaylistFeature)w.getController()).getPlaylist())
                      .filter(ISNTØ)
                      .forEach(p -> pall.removeIf(pl -> pl.id.equals(p.id)));
-        
+
         Playlist leaf = pall.isEmpty() ? null : pall.get(0);
         for(Playlist p : pall)
             if(p.id.equals(PlaylistManager.active))

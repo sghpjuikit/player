@@ -44,8 +44,8 @@ import static util.Util.getFieldValue;
  * @author Plutonium_
  */
 public class ImprovedTable<T> extends TableView<T> {
-    
-    
+
+
     /** Will add zeros to index numbers to maintain length consistency. Default true. */
     public final BooleanProperty zeropadIndex = new SimpleBooleanProperty(true){
         @Override public void set(boolean v) {
@@ -66,11 +66,11 @@ public class ImprovedTable<T> extends TableView<T> {
             else  getStylesheets().add(PlaylistTable.class.getResource("Table.css").toExternalForm());
         }
     };
-    
+
     final TableColumn<T,Void> columnIndex = new TableColumn("#");
     private final Callback<TableColumn<T,Void>, TableCell<T,Void>> indexCellFactory;
-    
-    
+
+
     public ImprovedTable() {
         indexCellFactory = buildIndexColumnCellFactory();
         columnIndex.setCellFactory(indexCellFactory);
@@ -78,48 +78,48 @@ public class ImprovedTable<T> extends TableView<T> {
         columnIndex.setResizable(false);
         getColumns().add(columnIndex);
     }
-    
+
     /** @return height of columns header or 0 if invisible. */
     public double getTableHeaderHeight() {
         Pane header = (Pane)lookup("TableHeaderRow");
         return header==null || !header.isVisible() ? 0 : header.getHeight();
     }
-    
+
     /** Return index of a row containing the given y coordinate.
     Note: works only if table uses fixedCellHeight. */
     public int getRow(double y) {
         double h = headerVisible.get() ? y - getTableHeaderHeight() : y;
         return (int)floor(h/getFixedCellSize());
     }
-    
+
     /** Return index of a row containing the given scene y coordinate.
     Note: works only if table uses fixedCellHeight. */
     public int getRowS(double scenex, double sceney) {
             Point2D p = sceneToLocal(new Point2D(scenex,sceney));
             return getRow(p.getY());
     }
-    
+
     /** Returns whether there is an item in the row at specified index */
     public boolean isRowFull(int i) {
         return 0<=i && getItems().size()>i;
     }
-    
+
     /** Returns all tablerows using recursive lookup. Dont rely on this much ok. */
     public List<TableRow<T>> getRows() {
         return getRows(this, new ArrayList<>());
     }
-    
+
     private List<TableRow<T>> getRows(Parent n, List<TableRow<T>> li) {
-        for(Node nn : n.getChildrenUnmodifiable()) 
+        for(Node nn : n.getChildrenUnmodifiable())
             if(nn instanceof TableRow)
                 li.add(((TableRow)nn));
-        for(Node nn : n.getChildrenUnmodifiable()) 
+        for(Node nn : n.getChildrenUnmodifiable())
             if(nn instanceof Parent)
                 getRows(((Parent)nn), li);
-                
+
         return li;
     }
-    
+
     public void updateStyleRules() {
         for (TableRow<T> row : getRows()) {
             if(row instanceof ImprovedTableRow) {
@@ -127,14 +127,14 @@ public class ImprovedTable<T> extends TableView<T> {
             }
         }
     }
-    
-    
+
+
     /** Returns selected items. The list will continue to reflect changes in selection. */
     public ObservableList<T> getSelectedItems() {
         return getSelectionModel().getSelectedItems();
     }
-    
-    /** @return unchanging copy of selected items. 
+
+    /** @return unchanging copy of selected items.
         @see #getSelectedItems() */
     public List<T> getSelectedItemsCopy() {
         return new ArrayList(getSelectionModel().getSelectedItems());
@@ -149,12 +149,12 @@ public class ImprovedTable<T> extends TableView<T> {
     public List<T> getSelectedOrAllItemsCopy() {
         return new ArrayList(getSelectedOrAllItems());
     }
-    
+
     /** Max index. Normally equal to number of items. */
     public int getMaxIndex() {
         return getItems().size();
     }
-    
+
     /** Refreshes given column. */
     public void refreshColumn(TableColumn c) {
         // c.setCellFactory(null);                      // this no longer works (since 8u40 ?)
@@ -162,7 +162,7 @@ public class ImprovedTable<T> extends TableView<T> {
         c.setCellFactory(column->new TableCell());
         c.setCellFactory(cf);
     }
-    
+
     /** Builds index column. */
     public TableColumn<T,Void> buildIndexColumn() {
         TableColumn<T,Void> c = new TableColumn("#");
@@ -171,11 +171,11 @@ public class ImprovedTable<T> extends TableView<T> {
                             c.setResizable(false);
         return c;
     }
-    
+
     /** Builds index column cell factory. Called only once. */
     protected Callback<TableColumn<T,Void>, TableCell<T,Void>> buildIndexColumnCellFactory() {
         return (column -> new TableCell<T,Void>() {
-            { 
+            {
                 setAlignment(Pos.CENTER_RIGHT);
             }
             @Override protected void updateItem(Void item, boolean empty) {
@@ -189,11 +189,11 @@ public class ImprovedTable<T> extends TableView<T> {
             }
         });
     }
-    
+
     /** Returns ideal width for index column derived from current max index.
         Mostly used during table/column resizing. */
     public double calculateIndexColumnWidth() {
-        // need this weird method to get 9s as their are wide chars (font isnt 
+        // need this weird method to get 9s as their are wide chars (font isnt
         // always proportional)
         int s = getMaxIndex();
         int i = Util.decMin1(s);
@@ -205,9 +205,10 @@ public class ImprovedTable<T> extends TableView<T> {
         double w = text.getLayoutBounds().getWidth() + 5;
         return w;
     }
-    
+
     /** Returns vertical scrollbar width or 0 if not visible. */
     public double getVScrollbarWidth() {
+        // (VirtualFlow<?>) ( (TableViewSkin<?>) table.getSkin() ).getChildren().get( 1 );
         VirtualFlow f = getFieldValue(getSkin(), VirtualFlow.class, "flow");
         if(f!=null) {
             VirtualScrollBar vsb = getFieldValue(f, VirtualScrollBar.class, "vbar");
@@ -217,15 +218,15 @@ public class ImprovedTable<T> extends TableView<T> {
         }
         return 0;
     }
-    
+
 /********************************** SELECTION *********************************/
-    
-    
+
+
     /** Selects all items. Equivalent to {@code getSelectionModel().selectAll(); }*/
     public void selectAll() {
         getSelectionModel().selectAll();
     }
-    
+
     /** Inverts the selection. Selected items will be not selected and vice versa. */
     public void selectInverse() {
         List<Integer> selected = getSelectionModel().getSelectedIndices();
@@ -234,7 +235,7 @@ public class ImprovedTable<T> extends TableView<T> {
         for(int i=0; i<size; i++)
             if(!selected.contains(i))
                 inverse.add(i);
-        
+
         Util.selectRows(inverse, getSelectionModel());
     }
 
@@ -242,15 +243,15 @@ public class ImprovedTable<T> extends TableView<T> {
     public void selectNone() {
         getSelectionModel().clearSelection();
     }
-    
+
 /************************************ DRAG ************************************/
-    
-    /** 
-     * Equivalent to {@link #setOnDragOver(javafx.event.EventHandler)}, but 
-     * does nothing if the drag gesture source is this table. 
+
+    /**
+     * Equivalent to {@link #setOnDragOver(javafx.event.EventHandler)}, but
+     * does nothing if the drag gesture source is this table.
      * <p>
-     * Drag over events should accept drag&drops (which is prevented), so other 
-     * drag event setters need not this special handling. In effect drag from 
+     * Drag over events should accept drag&drops (which is prevented), so other
+     * drag event setters need not this special handling. In effect drag from
      * self to self is completely forbidden.
      * <p>
      * Note this works only when this table correctly assignes itself as the
@@ -262,12 +263,12 @@ public class ImprovedTable<T> extends TableView<T> {
                 h.handle(e);
         });
     }
-    
+
 /************************************ SORT ************************************/
-    
+
     /**
      * Sorts items by changing the sort order.
-     * Order of underlying items backing the table remain unchanged. Sort order of 
+     * Order of underlying items backing the table remain unchanged. Sort order of
      * the table is changed so specified column is primary sorting column and
      * other columns remain unaffected.
      * <p>
@@ -283,22 +284,22 @@ public class ImprovedTable<T> extends TableView<T> {
         c.setSortType(type);
         getSortOrder().add(0, c);
     }
-    
-    
+
+
 /************************************* HELPER *********************************/
-    
+
     @Deprecated
     final void resizeIndexColumn() {
         getColumnResizePolicy().call(new ResizeFeatures(this, columnIndex, 0d));
     }
-    
+
 /***************************** UTIL + HELPER *******************************/
-    
+
     /** Minimalistic value wrapper for POJO table view cell value factories. */
     @Immutable
     public static class PojoV<T> implements ObservableValue<T> {
         private final T v;
-        
+
         public PojoV(T v) {
             this.v = v;
         }
@@ -319,7 +320,7 @@ public class ImprovedTable<T> extends TableView<T> {
 
         @Override
         public void removeListener(InvalidationListener listener) {}
-        
+
     }
-    
+
 }

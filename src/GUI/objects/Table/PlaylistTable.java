@@ -36,6 +36,7 @@ import gui.objects.TableRow.ImprovedTableRow;
 import main.App;
 import util.File.Environment;
 import util.Util;
+import util.access.Ѵ;
 import util.dev.TODO;
 import util.graphics.drag.DragUtil;
 import util.parsing.Parser;
@@ -53,6 +54,7 @@ import static util.dev.TODO.Purpose.READABILITY;
 import static util.functional.Util.SAME;
 import static util.functional.Util.filterMap;
 import static util.functional.Util.list;
+import static util.reactive.Util.maintain;
 
 /**
  * Playlist table GUI component.
@@ -62,32 +64,33 @@ import static util.functional.Util.list;
  * corrupted item respectively.
  * <p>
  * Always call {@link #dispose()}
- * 
+ *
  * @author uranium
  */
 @TODO(purpose = READABILITY, note = "dragging duplicite code for empty table case")
 public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem.Field> {
-    
+
+    public final Ѵ<Boolean> scrollToPlaying = new Ѵ<>(true);
     private final TableColumn<PlaylistItem,String> columnName;
     private final TableColumn<PlaylistItem,FormattedDuration> columnTime;
-    
+
     // selection helper variables
     double last;
     ArrayList<Integer> selected_temp = new ArrayList<>();
-    
+
     // dependencies
     private final Subscription d1;
-    
+
     public PlaylistTable (Playlist playlist) {
         super(NAME,playlist);
         playlist.setTransformation(getItems());
-        
+
         VBox.setVgrow(this, Priority.ALWAYS);
-        
+
         // initialize table
         setFixedCellSize(GUI.font.getValue().getSize() + 5);
         getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        
+
         // initialize column factories
         setColumnStateFacory( f -> {
             boolean visible = f==NAME || f==LENGTH;
@@ -106,7 +109,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         setColumnState(getDefaultColumnInfo());
         columnName = (TableColumn) getColumn(NAME).get();
         columnTime = (TableColumn) getColumn(LENGTH).get();
-        
+
         // initialize row factories
         setRowFactory(t -> new ImprovedTableRow<PlaylistItem>() {
             {
@@ -129,15 +132,15 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 });
                 // handle drag transfer
                 setOnDragDropped( e -> dropDrag(e, isEmpty() ? getItems().size() : getIndex()));
-                
+
                 // additional css styleclasses
                 styleRuleAdd("played", p -> getPlaylist().isItemPlaying(p));
                 styleRuleAdd("corrupt", PlaylistItem::isCorruptCached);
             }
         });
         // maintain playing item css by refreshing index column
-        d1 = Player.playingtem.onChange(o->refreshColumn(columnIndex));
-        
+        d1 = Player.playingtem.onChange(o -> refreshColumn(columnIndex));
+
         // resizing
         setColumnResizePolicy(resize -> {
             // handle column resize (except index)
@@ -145,30 +148,30 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 if(getColumns().contains(columnName))
                     columnName.setPrefWidth(columnName.getWidth()-resize.getDelta());
                 resize.getColumn().setPrefWidth(resize.getColumn().getWidth()+resize.getDelta());
-                
+
                 // dont return - after resizing the resized column, we go resize
                 // the rest to always fill the table width
                 // true means the delta is reset and wont accumulate
                 // return true;
             }
             // handle table resize or index column
-           
+
             double tw = resize.getTable().getWidth();
             double sw = getVScrollbarWidth();
             double g = 3;               // gap to prevent horizontal slider to appear
-            
+
             // column index
             double W1 = calculateIndexColumnWidth();
-            
+
             // column time
             double mt = getItems().stream().mapToDouble(PlaylistItem::getTimeMs).max().orElse(6000);
             Text t2 = new Text(new FormattedDuration(mt).toString());
                  t2.setFont(GUI.font.getValue());
             double W3 = t2.getLayoutBounds().getWidth() + 5;
-            
+
             columnIndex.setPrefWidth(W1);
             columnTime.setPrefWidth(W3);
-            
+
             List<TableColumn> cs = new ArrayList(resize.getTable().getColumns());
             TableColumn mc = isColumnVisible(NAME) ? columnName : getColumn(TITLE).orElse(null);
             if(mc!=null) {
@@ -178,25 +181,25 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             }
             return true; // false/true, doesnt matter
         });
-        
+
         // prevent selection change on right click
         addEventFilter(MOUSE_PRESSED, consumeOnSecondaryButton);
-        
+
         // empty table left click -> add items
         addEventHandler(MOUSE_CLICKED, e -> {
             if (headerVisible.get() && e.getY()<getTableHeaderHeight()) return;
             if (e.getButton()==PRIMARY && e.getClickCount()==1 && getItems().isEmpty())
                         getPlaylist().addOrEnqueueFiles(true);
         });
-        
+
         // move items on drag
         setOnMouseDragged( e -> {
             if (e.getButton()!=MouseButton.PRIMARY || !e.isControlDown()) return;
-            
-            // we cant move ites when fiter on & we cant cancel filter, user would freak out 
+
+            // we cant move ites when fiter on & we cant cancel filter, user would freak out
 //            if(itemsPredicate.get()!=null) return;
             if(getItems().size()!=getItemsRaw().size()) return;
-            
+
             // transform any sort (if in effect) to actual table items, we cant change order on
             // items out of natural order
             if(itemsComparator.get()!=SAME || !getSortOrder().isEmpty()) {
@@ -209,18 +212,18 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 selectRows(sl,getSelectionModel()); // set selection back
                 movingitems = false;
             }
-            
-            
+
+
             double h = getFixedCellSize();
             double dist = e.getScreenY()- last;
-            
+
             int by = (int) (dist/h);
             if (by >= 1 || by <= -1) {
                 last = e.getScreenY();
                 moveSelectedItems(by);
             }
         });
-        
+
         // set key-induced actions
         setOnKeyReleased( e -> {
             if (e.getCode() == KeyCode.ENTER) {     // play first of the selected
@@ -248,12 +251,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                 }
             }
         });
-        
+
         // drag&drop from
         setOnDragDetected(e -> {
             if (e.getButton() == PRIMARY  && !e.isControlDown() && !getSelectedItems().isEmpty()
                         && isRowFull(getRowS(e.getSceneX(), e.getSceneY()))) {
-                
+
                 Dragboard db = startDragAndDrop(TransferMode.COPY);
                 DragUtil.setItemList(getSelectedItemsCopy(),db,true);
             }
@@ -264,11 +267,21 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         // handle drag (empty table has no rows so row drag event handlers
         // will not work, events fall through on table and we handle it here
         setOnDragDropped( e -> dropDrag(e, 0));
-        
+
+        // scroll to playing item
+        maintain(scrollToPlaying, v -> {
+            if(v)
+                scrollToCenter(playlist.playingI.get());
+        });
+        playlist.playingI.addListener((o,ov,nv) -> {
+            if(scrollToPlaying.getValue())
+                scrollToCenter(nv.intValue());
+        });
+
         // reflect selection for whole application
         getSelectionModel().selectedItemProperty().addListener(selItemListener);
         getSelectionModel().getSelectedItems().addListener(selItemsListener);
-        
+
         // set up a nice placeholder
         setPlaceholder(new Label("Click or drag & drop files"));
     }
@@ -279,16 +292,16 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         getSelectionModel().selectedItemProperty().removeListener(selItemListener);
         getSelectionModel().getSelectedItems().removeListener(selItemsListener);
     }
-    
+
     public Playlist getPlaylist() {
         return (Playlist) getItemsRaw();
     }
 
 /********************************** SELECTION *********************************/
-    
+
     public boolean movingitems = false;
     ChangeListener<PlaylistItem> selItemListener = (o,ov,nv) -> {
-        if(movingitems) return; 
+        if(movingitems) return;
         PlaylistManager.selectedItemES.push(nv);
     };
     ListChangeListener<PlaylistItem> selItemsListener = (ListChangeListener.Change<? extends PlaylistItem> c) -> {
@@ -297,7 +310,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             PlaylistManager.selectedItemsES.push(getSelectionModel().getSelectedItems());
         }
     };
-    
+
     /**
      * Moves/shifts all selected items by specified distance.
      * Selected items retain their relative positions. Items stop moving when
@@ -307,7 +320,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
      */
     public void moveSelectedItems(int by) {
         movingitems =  true;    // lock to avoid firing selectedChange event (important)
-        
+
         // get selected
         // construct new list (oldS), must not be observable (like indices)
         List<Integer> oldS = new ArrayList();
@@ -316,12 +329,12 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
         List<Integer> newS = getPlaylist().moveItemsBy(oldS, by);
         // select back
         Util.selectRows(newS, getSelectionModel());
-        
+
         movingitems = false;    // release lock
     }
-    
+
 /****************************** DRAG AND DROP *********************************/
-    
+
     private void dropDrag(DragEvent e, int index) {
         if (DragUtil.hasAudio(e.getDragboard())) {
             List<Item> items = DragUtil.getAudioItems(e);
@@ -331,9 +344,9 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
             e.consume();
         }
     }
-    
+
 /****************************** CONTEXT MENU **********************************/
-    
+
     private static final TableContextMenuⱤ<PlaylistItem> contxt_menu = new TableContextMenuⱤ<> (
         () -> {
             ImprovedContextMenu<List<PlaylistItem>> m = new ImprovedContextMenu();
@@ -376,7 +389,7 @@ public final class PlaylistTable extends FilteredTable<PlaylistItem,PlaylistItem
                     DB.addItems(items);
                 }),
                 new Menu("Search album cover",null,
-                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class), 
+                    menuItems(App.plugins.getPlugins(HttpSearchQueryBuilder.class),
                             q -> "in " + Parser.toS(q),
                             q -> App.itemToMeta(m.getValue().get(0), i -> Environment.browse(q.apply(i.getAlbum()))))
                 )

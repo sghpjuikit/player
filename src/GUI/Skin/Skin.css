@@ -3843,9 +3843,6 @@
 // inherits: .overlay-pane
 .action-pane {}
 
-// inherits: .overlay-pane-content
-.action-pane-content {}
-
 // Icon for actio i an action pane
 // inherits: .icon
 .action-pane-action-icon {

@@ -30,16 +30,16 @@ import static util.functional.Util.find;
 
 /**
  * @author uranium
- * 
+ *
  * Low level representation of state of player used for
  * serialization of player's state to maintain state across sessions..
  * Immutable.
  */
 public final class PlayerState {
-    
+
     private static final XStream X = App.INSTANCE.serialization.x;
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerState.class);
-    
+
     @XStreamOmitField
     public PlaybackState playback = PlaybackState.getDefault();
     public final List<PlaybackState> playbacks = new ArrayList<>();
@@ -50,7 +50,7 @@ public final class PlayerState {
     public PlayerState() {
         playbacks.add(playback);
     }
-    
+
     public static PlayerState deserialize() {
         try {
             return (PlayerState) X.fromXML(new File(App.PLAYER_STATE_FILE()));
@@ -60,7 +60,7 @@ public final class PlayerState {
             return new PlayerState();
         }
     }
-    
+
     public void serialize() {
         try {
             X.toXML(this, new BufferedWriter(new FileWriter(App.PLAYER_STATE_FILE())));
@@ -68,34 +68,34 @@ public final class PlayerState {
             LOGGER.error("Unable to save player state into the file {}",App.PLAYER_STATE_FILE());
         }
     }
-    
+
     /** Invoked just before the serialization. */
     protected Object writeReplace() throws ObjectStreamException {
         playback.realTime.set(PLAYBACK.getRealTime());
         suspendPlayback();
-        
+
         playback_id = playback.getId();
         playlist_id = PlaylistManager.active;
-        
+
         playlists.clear();
         playlists.addAll(PlaylistManager.playlists);
         return this;
     }
-        
+
     /**
      * Invoked just after deserialization.
-     * 
+     *
      * @implSpec
      * Resolve object by initializing non-deserializable fields or providing an
      * alternative instance (e.g. to adhere to singleton pattern).
      */
-    protected Object readResolve() throws ObjectStreamException {System.out.println("fffff");
+    protected Object readResolve() throws ObjectStreamException {
         playback = find(playbacks, pb -> pb.getId().equals(playback_id)).orElseGet(PlaybackState::getDefault);
         PlaylistManager.playlists.addAll(playlists);
         PlaylistManager.active = playlist_id;
         return this;
     }
-    
+
     private void suspendPlayback() {
         PlaybackState p = find(playbacks, pb -> pb.getId().equals(playback_id)).orElse(null);
         if (p != null)

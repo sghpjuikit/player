@@ -27,7 +27,6 @@ import org.jaudiotagger.tag.TagException;
 import AudioPlayer.Item;
 import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
-import unused.Log;
 import util.File.AudioFileFormat;
 import util.File.AudioFileFormat.Use;
 import util.File.FileUtil;
@@ -39,6 +38,7 @@ import util.units.FormattedDuration;
 import static util.File.AudioFileFormat.Use.APP;
 import static util.Util.capitalizeStrong;
 import static util.Util.mapEnumConstant;
+import static util.dev.Util.log;
 
 /**
  * Defines item in playlist.
@@ -68,7 +68,7 @@ import static util.Util.mapEnumConstant;
  * to malperform (java7)(needs more testing).
  */
 public final class PlaylistItem extends Item<PlaylistItem> implements FieldedValue<PlaylistItem,PlaylistItem.Field>{
-    
+
     private final SimpleObjectProperty<URI> uri;
     private final SimpleObjectProperty<FormattedDuration> time;
     /** Consists of item's artist and title separated by separator string. */
@@ -77,13 +77,13 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     private String title;
     private boolean updated;
     boolean corrupted = false;
-    
+
     /**
      * URI Constructor.
      * Use when only uri is known. Item is initialized to updated = false. Use
      * update() method to get other fields - update the item.
-     * 
-     * @param _uri 
+     *
+     * @param _uri
      */
     public PlaylistItem(URI _uri) {
         uri = new SimpleObjectProperty<>(_uri);
@@ -91,7 +91,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         time = new SimpleObjectProperty<>(new FormattedDuration(0));
         updated = false;
     }
-    
+
     /**
      * Full Constructor.
      * Use when all info is available. Item is initialized to updated state,
@@ -99,7 +99,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * <p>
      * When the parameter values are still intended to be updated, do not use
      * this constructor.
-     * 
+     *
      * @param new_uri
      * @param new_name
      * @param length of the item in miliseconds.
@@ -111,7 +111,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         time = new SimpleObjectProperty<>(new FormattedDuration(_length));
         updated = true;
     }
-    
+
     /**
      * @return the url. Never null.
      */
@@ -119,25 +119,25 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public URI getURI() {
         return uri.get();
     }
-    
+
     public StringProperty uriProperty() {
         return name;
     }
-    
+
     /**
      * @return value of the {@link #name name}. Never null.
      */
     public String getName() {
         return name.get();
     }
-    
+
     /**
      * @return {@link #name name property}.
      */
     public StringProperty nameProperty() {
         return name;
     }
-    
+
     /**
      * @return the artist portion of the name. Empty string if item
      * wasnt updated yet. Never null.
@@ -145,7 +145,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public String getArtist() {
         return artist==null ? "" : artist;
     }
-    
+
     /**
      * @return the title portion of the name. Empty string if item
      * wasnt updated yet. Never null.
@@ -153,26 +153,26 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public String getTitle() {
         return title==null ? "" : title;
     }
-    
+
     /** @return the time. ZERO if item wasnt updated yet. Never null. */
     public FormattedDuration getTime() {
         return time.get();
     }
-    
+
     /** @return the time in millisecods. 0 if item wasnt updated yet. */
     public double getTimeMs() {
         return time.get().toMillis();
     }
-    
+
     /**
      * Until the item is updated the value wrapped inside the property
      * will be 0.
-     * @return 
+     * @return
      */
     public SimpleObjectProperty<FormattedDuration> timeProperty() {
         return this.time;
     }
-    
+
 /******************************************************************************/
 
     /**
@@ -192,14 +192,14 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public void update() {
         if (updated || isCorrupt(APP)) return;
         updated = true;
-        
+
         // if library contains the item, use it & avoid I/O
         // improves performance almost 100-fold when item in library
         if(DB.items_byId.containsKey(getId())) {
             update(DB.items_byId.get(getId()));
             return;
         }
-        
+
         if(isFileBased()) {
             // update as file based item
             try {
@@ -217,8 +217,8 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                     setATN(artist, title);
                     time.set(new FormattedDuration(length));
                 });
-            } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException ex) {
-                Log.err("Playlist item update failed.\n"+getURI());
+            } catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException e) {
+                log(this).error("Playlist item update failed:", this,e);
             }
         } else {
             // update as web based item
@@ -227,11 +227,11 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                 setATN("", "");
                 time.set(new FormattedDuration(m.getDuration().toMillis()));
             } catch (IllegalArgumentException | NullPointerException | UnsupportedOperationException e) {
-                corrupted = true;   // mark as corrupted on error 
+                corrupted = true;   // mark as corrupted on error
             }
         }
     }
-    
+
     /** Updates this playlist item to data from provided metadata. No I/O. */
     public void update(Metadata m) {
         uri.set(m.getURI());
@@ -239,7 +239,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         time.set(m.getLength());
         updated = true;
     }
-    
+
     private void setATN(String art, String titl) {
         artist = art;
         title = titl.isEmpty() ? FileUtil.getName(getURI()) : titl;
@@ -248,26 +248,26 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         else
             name.set(artist.isEmpty() ? title : artist + " - " + title);
     }
-    
+
     /**
      * Returns true if the item was marked updated. Once item is updated it will
      * stay in that state. Updated item guarantees that all its values are
      * valid, but doesnt guarantee that they are up to date. For manipulation
      * within the application there should be no need to update the item again.
      * If the item changes, the change should be handled by the application.
-     * 
+     *
      * This method doesnt solve is as it marks items with invalid data. Because
-     * there is no guarantee that every item is valid, when it is required for 
-     * item to be, update() can be called after this method returns false. 
-     * 
+     * there is no guarantee that every item is valid, when it is required for
+     * item to be, update() can be called after this method returns false.
+     *
      * Creating item in URI constructor will result in initialization of
      * updated to false. Method update() then must be called manually.
-     * @return 
+     * @return
      */
     boolean isUpdated() {
         return updated;
     }
-    
+
     /** Returns true if this item is corrupted. */
     @Override
     public boolean isCorrupt(AudioFileFormat.Use use) {
@@ -276,7 +276,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         corrupted = !f.isSupported(Use.PLAYBACK) || c;
         return corrupted;
     }
-    
+
     /**
      * Returns true if this item was marked corrupt last time it was checked. This
      * doesn't necessarily reflect the real value. The method
@@ -290,9 +290,9 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public boolean isCorruptCached() {
         return corrupted;
     }
-    
+
 /******************************************************************************/
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -301,14 +301,14 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
      * <p>
      * This method shouldnt be run before this item is updated. See
      * {@link #isUpdated()}.
-     * @return 
+     * @return
      */
     @Override
     public Metadata toMeta() {
         return super.toMeta();
     }
-    
-    /** 
+
+    /**
      * {@inheritDoc}
      * <p>
      * This implementation returns this object.
@@ -317,7 +317,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public PlaylistItem toPlaylist() {
         return this;
     }
-    
+
     /** @return complete information on this item - artist, title, length */
     @Override
     public String toString() {
@@ -325,15 +325,15 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
              + getURI().toString() + "\n"
              + getTime().toString();
     }
-    
+
 /******************************************************************************/
-    
+
     /**
      * Two playlistItems are equal if and only if they are the same object. Equivalent
      * to this == item, which can be used instead.
-     * 
+     *
      * @param item
-     * @return 
+     * @return
      */
     @Override
     public boolean equals(Object item) {
@@ -349,10 +349,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         hash = 11 * hash + (this.updated ? 1 : 0);
         return hash;
     }
-    
+
 /******************************************************************************/
-    
-    /** 
+
+    /**
      * Compares by name.
      * <p>
      * {@inheritDoc}
@@ -361,12 +361,12 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public int compareTo(PlaylistItem o) {
         return getName().compareToIgnoreCase(o.getName());
     }
-    
+
 /******************************************************************************/
-    
+
     /**
      * Clones the item.
-     * 
+     *
      * @param item
      * @return clone of the item or null if parameter null.
      */
@@ -376,7 +376,7 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
                      i.corrupted = corrupted; // also clone corrupted state
         return i;
     }
-    
+
 /******************************************************************************/
 
     /** {@inheritDoc} */
@@ -398,12 +398,12 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
     public Field getMainField() {
         return Field.NAME;
     }
-    
-    
+
+
  /**************************** COMPANION CLASS *********************************/
-    
+
     /**
-     * 
+     *
      */
     public static enum Field implements FieldEnum<PlaylistItem> {
         NAME,
@@ -412,10 +412,10 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         LENGTH,
         PATH,
         FORMAT;
-        
+
         private Field() {
             mapEnumConstant(this, constant -> constant.name().equalsIgnoreCase("LENGTH")
-                            ? "Time" 
+                            ? "Time"
                             : capitalizeStrong(constant.name().replace('_', ' ')));
         }
 
@@ -431,15 +431,15 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
             }
             throw new AssertionError();
         }
-        
+
         /**
          * Returns true.
          * <p>
-         * {@inheritDoc} 
+         * {@inheritDoc}
          */
         @Override
         public boolean isTypeStringRepresentable() { return true; }
-                
+
         /** {@inheritDoc} */
         @Override
         public Class getType() {
@@ -451,20 +451,20 @@ public final class PlaylistItem extends Item<PlaylistItem> implements FieldedVal
         /**
          * Returns true.
          * <p>
-         * {@inheritDoc} 
+         * {@inheritDoc}
          */
         @Override
         public boolean isTypeNumberNonegative() { return true; }
-        
+
         @Override
         public String toS(Object o, String empty_val) {
             switch(this) {
-                case NAME : 
+                case NAME :
                 case TITLE :
                 case ARTIST : return "".equals(o) ? empty_val : o.toString();
                 case LENGTH :
-                case PATH :  
-                case FORMAT : return o.toString();        
+                case PATH :
+                case FORMAT : return o.toString();
                 default : throw new AssertionError("Default case should never execute");
             }
         }

@@ -31,7 +31,6 @@ import action.IsAction;
 import action.IsActionable;
 import gui.objects.icon.Icon;
 import main.App;
-import unused.Log;
 import util.File.FileUtil;
 import util.animation.Anim;
 import util.async.executor.FxTimer;
@@ -43,6 +42,7 @@ import static javafx.stage.WindowEvent.WINDOW_SHOWING;
 import static javafx.util.Duration.ZERO;
 import static javafx.util.Duration.millis;
 import static util.File.FileUtil.listFiles;
+import static util.dev.Util.log;
 import static util.functional.Util.mapB;
 import static util.graphics.Util.add1timeEventHandler;
 import static util.reactive.Util.maintain;
@@ -54,28 +54,28 @@ import static util.reactive.Util.maintain;
 @IsConfigurable("Window")
 @IsActionable
 public class WindowManager {
-    
+
     @IsConfig(name="Show windows", info="Shows/hides all windows. Useful in minimode.")
     public static boolean show_windows = true;
-    
+
     @IsConfig(name="Mini mode", info="Whether application has mini window docked to top screen edge active.")
     public static boolean mini = false;
-    
+
     @IsConfig(name="Mini open on click", info="Open mini window on screen top edge click.")
     public static boolean mini_show_onClick = true;
-    
+
     @IsConfig(name="Mini open on hover", info="Open mini window on screen top edge hover.")
     public static boolean mini_show_onEnter = true;
-    
+
     @IsConfig(name="Mini open hover delay", info="Time to hover to open mini window.")
     public static Duration mini_hover_delay = millis(500);
-    
+
     @IsConfig(name="Mini hide when inactive", info="Hide mini window when no mouse activity is detected.")
     public static boolean mini_hide_onInactive = true;
-    
+
     @IsConfig(name="Mini hide when inactive for", info="Time of no activity to hide mini window after.")
     public static Duration mini_inactive_delay = millis(500);
-    
+
     @AppliesConfig("mini")
     private static void applyMini() {
         setMini(mini);
@@ -83,14 +83,14 @@ public class WindowManager {
     @AppliesConfig("show_windows")
     private static void applyShowWindows() {
         if(!App.INSTANCE.normalLoad) return;
-        
+
         if(show_windows)
             Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::show);
         else
             Window.windows.stream().filter(w->w!=miniWindow).forEach(Window::hide);
     }
-    
-    
+
+
     @IsAction(name = "Mini mode", global = true, keys = "F9",
               desc = "Dock auxiliary window with playback control to the screen edge")
     public static void toggleMini() {
@@ -98,24 +98,24 @@ public class WindowManager {
     }
     public static void toggleMiniFull() {
         if(!App.INSTANCE.normalLoad) return;
-        
+
         if(mini) App.getWindow().show();
         else App.getWindow().hide();
         setMini(!mini);
     }
     public static void toggleShowWindows() {
         if(!App.INSTANCE.normalLoad) return;
-        
+
         show_windows = !show_windows;
         applyShowWindows();
     }
-    
+
     public static Window miniWindow;
     private static Animation t;
 
     public static void setMini(boolean val) {
         if(!App.INSTANCE.normalLoad) return;
-        
+
         mini = val;
         if(val) {
             // avoid pointless operation
@@ -128,7 +128,7 @@ public class WindowManager {
             miniWindow.setSize(Screen.getPrimary().getBounds().getWidth(), 40);
             miniWindow.resizable.set(false);
             miniWindow.setAlwaysOnTop(true);
-            
+
             // create
                 // widget
             Widget w = WidgetManager.getFactory("PlayerControlsTiny").create();
@@ -142,13 +142,13 @@ public class WindowManager {
             maintain(miniB.hoverProperty(), mapB(ANGLE_DOUBLE_UP,ANGLE_UP), miniB::icon);
             Icon mainB = new Icon(null, 13, "Show main window", WindowManager::toggleShowWindows);
             maintain(mainB.hoverProperty(), mapB(ANGLE_DOUBLE_DOWN,ANGLE_DOWN), mainB::icon);
-            
+
             HBox controls = new HBox(8,mainB,miniB,closeB);
                  controls.setAlignment(Pos.CENTER_RIGHT);
                  controls.setFillHeight(false);
                  controls.setPadding(new Insets(5,5,5,25));
             content.setRight(controls);
-            
+
             // show and apply state
             miniWindow.show();
             miniWindow.setHeaderAllowed(false);
@@ -157,14 +157,14 @@ public class WindowManager {
             miniWindow.back.setStyle("-fx-background-size: cover;"); // disallow bgr stretching
             miniWindow.content.setStyle("-fx-background-color: -fx-pane-color;"); // imitate widget area bgr
             miniWindow.s.addEventHandler(WindowEvent.WINDOW_HIDDEN, e -> WidgetManager.standaloneWidgets.remove(w));
-            
+
             // autohiding
             double H = miniWindow.getHeight()-2; // leave 2 pixels visible
             Parent mw_root = miniWindow.getStage().getScene().getRoot();
             Anim a = new Anim(millis(300),frac -> {
                 miniWindow.setY(-H*frac, false);
             });
-            
+
             FxTimer hider = new FxTimer(0, 1, () -> {
                 if(miniWindow.getY()!=0) return;    // if not open
                 if(mw_root.isHover()) return;       // if mouse still in
@@ -178,7 +178,7 @@ public class WindowManager {
                 if(!mini_hide_onInactive) return;   // if disabled
                 hider.start(mini_inactive_delay);
             });
-            
+
             FxTimer shower = new FxTimer(0, 1, () ->{
                 if(miniWindow.getY()==0) return;    // if open
                 if(!mw_root.isHover()) return;      // if mouse left
@@ -210,25 +210,24 @@ public class WindowManager {
             t=null;
         }
     }
-    
+
     public static void serialize() {
         // make sure directory is accessible
         File dir = new File(App.LAYOUT_FOLDER(),"Current");
         if (!FileUtil.isValidatedDirectory(dir)) {
-            Log.err("Serialization of windows and layouts failed. " + dir.getPath() +
+            log(WindowManager.class).error("Serialization of windows and layouts failed. " + dir.getPath() +
                     " could not be accessed.");
             return;
         }
-        
+
         // get windows
         List<Window> src = new ArrayList<>(Window.windows);
                      src.remove(miniWindow);    // manually
-        Log.deb("Serializing " + src.size() + " application windows for next session.");
-        
+        log(WindowManager.class).info("Serializing " + src.size() + " application windows");
+
         // remove serialized files from previous session
         for(File f: listFiles(dir)) f.delete();
-        Log.deb("Removing all files from previous session.");
-        
+
         // serialize - for now each window to its own file with .ws extension
         for(int ι=0; ι<src.size(); ι++) {
             // ret resources
@@ -242,30 +241,29 @@ public class WindowManager {
             l.setName("layout" + ι);
             l.serialize(new File(dir,l.getName()+".l"));
         }
-        
+
         // serialize mini too
         if(miniWindow!=null) {
             File f = new File(App.LAYOUT_FOLDER(), "mini-window.w");
             miniWindow.serialize(f);
         }
     }
-    
+
     public static void deserialize(boolean load_normally) {
         List<Window> ws = new ArrayList();
         if(load_normally) {
-         
+
             // make sure directory is accessible
             File dir = new File(App.LAYOUT_FOLDER(),"Current");
             if (!FileUtil.isValidatedDirectory(dir)) {
-                Log.err("Deserialization of windows and layouts failed. " + dir.getPath() +
+                log(WindowManager.class).error("Deserialization of windows and layouts failed. " + dir.getPath() +
                         " could not be accessed.");
                 return;
             }
 
-            Log.deb("Deserializing application windows from next session.");
             // discover all window files with 'ws extension
             File[] fs = dir.listFiles(f->f.getName().endsWith(".ws"));
-            Log.deb("Discovered " + fs.length + " window files to deserialize.");
+            log(WindowManager.class).info("Deserializing {} application windows", fs.length);
 
             // deserialize windows
             for(int i=0; i<fs.length; i++) {
@@ -277,13 +275,13 @@ public class WindowManager {
                 ws.add(w);
 
                 // deserialize layout
-                File lf = new File(dir,"layout"+i+".l"); 
+                File lf = new File(dir,"layout"+i+".l");
                 Layout l = lf.exists() ? new Layout("layout"+i).deserialize(lf) : null;
                 if(l==null) w.initLayout();
                 else w.initLayout(l);
             }
          }
-        
+
         // make sure there is at least one window
         if(ws.isEmpty()) {
             Window w = Window.create();
@@ -291,18 +289,18 @@ public class WindowManager {
                    w.initLayout();
             ws.add(w);
         }
-        
+
         // show
         ws.forEach(w -> add1timeEventHandler(w.s,WINDOW_SHOWING, e -> w.update()));
-        
-        
-        Log.deb("Deserialized " + ws.size() + " windows.");
+
+
+        log(WindowManager.class).info("Deserialized " + ws.size() + " windows.");
         Widget.deserializeWidgetIO();
     }
 
 /******************************** NO TASKBAR MODE *****************************/
-    
+
     @IsConfig(name="Show taskbar icon", info="Show taskbar icon. Requires application restart.")
     public static boolean show_taskbar_icon = true;
-    
+
 }

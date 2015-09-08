@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.TilePane;
@@ -197,9 +198,10 @@ public class FileInfoController extends FXMLController implements SongReader {
 
         layAnchor(root,layout,0d);
         layout.setMinContentSize(200,120);
-        layout.setGap(8);
+        layout.setGap(5);
+        tiles.setPadding(new Insets(5));
 
-        // alight tiles from left top & tile content to center left + pad
+        // align tiles from left top & tile content to center left
         tiles.setAlignment(TOP_LEFT);
         tiles.setTileAlignment(CENTER_LEFT);
 

@@ -693,7 +693,7 @@ public class App extends Application {
 
     @IsAction(name = "Open css guide", desc = "Opens css reference guide. For developers.")
     public static void openCssGuide() {
-        browse("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html");
+        browse(URI.create("http://docs.oracle.com/javafx/2/api/javafx/scene/doc-files/cssref.html"));
     }
 
     @IsAction(name = "Open icon viewer", desc = "Opens application icon browser. For developers.")

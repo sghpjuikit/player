@@ -38,7 +38,6 @@ import javafx.util.Duration;
 
 import org.jaudiotagger.tag.images.Artwork;
 
-import unused.Log;
 import util.File.FileUtil;
 import util.dev.TODO;
 import util.functional.Functors.Ƒ1;
@@ -46,6 +45,7 @@ import util.functional.Functors.Ƒ1;
 import static java.lang.Math.*;
 import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.geometry.Pos.CENTER_RIGHT;
+import static org.slf4j.LoggerFactory.getLogger;
 import static util.dev.TODO.Purpose.BUG;
 import static util.functional.Util.list;
 
@@ -294,7 +294,7 @@ public class Util {
                 int height = reader.getHeight(reader.getMinIndex());
                 result = new Dimension(width, height);
             } catch (IOException | NullPointerException e) {
-                Log.warn("Problem finding out image size" + e.getMessage());
+                getLogger(Util.class).warn("Problem finding out image size {}", f,e);
                 // we need to catch nullpointer as well, seems to be a bug, stacktrace below:
                 // java.lang.NullPointerException: null
                 //	at java.awt.color.ICC_Profile.activateDeferredProfile(ICC_Profile.java:1092) ~[na:na]
@@ -312,7 +312,7 @@ public class Util {
                 reader.dispose();
             }
         } else {
-            Log.warn("No reader found for given file: " + f);
+            getLogger(Util.class).warn("No reader found for given file: " + f);
         }
 
         return result;

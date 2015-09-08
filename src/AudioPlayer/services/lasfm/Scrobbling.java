@@ -5,13 +5,15 @@
  */
 package AudioPlayer.services.lasfm;
 
+import java.util.prefs.Preferences;
+
 import AudioPlayer.Player;
 import AudioPlayer.tagging.Metadata;
 import de.umass.lastfm.Session;
 import de.umass.lastfm.Track;
 import de.umass.lastfm.scrobble.ScrobbleResult;
-import java.util.prefs.Preferences;
-import unused.Log;
+
+import static util.dev.Util.log;
 
 /**
  *
@@ -45,7 +47,7 @@ public class Scrobbling {
     }
 
     protected void scrobble(Metadata track) {
-        Log.info("Scrobbling: " + track);
+        log(this).info("Scrobbling: {}", track);
         int now = (int) (System.currentTimeMillis() / 1000);
         ScrobbleResult result = Track.scrobble(
                 track.getArtist(),

@@ -19,11 +19,11 @@ import org.jaudiotagger.audio.AudioFile;
 import AudioPlayer.Item;
 import AudioPlayer.playlist.PlaylistItem;
 import AudioPlayer.services.Database.DB;
-import unused.Log;
 import util.File.AudioFileFormat.Use;
 
 import static util.async.Async.runFX;
 import static util.async.Async.runNew;
+import static util.dev.Util.log;
 
 /**
  * This class plays the role of static factory for Metadata. It can read files
@@ -42,44 +42,44 @@ public class MetadataReader{
         // perform check
         Objects.requireNonNull(items);
         Objects.requireNonNull(onEnd);
-                
+
         // create task
         final Task<List<Metadata>> task = new SuccessTask<List<Metadata>,SuccessTask>("Reading metadata", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
-            
-            @Override 
+
+            @Override
             protected List<Metadata> call() throws Exception {
                 updateTitle("Reading metadata for items.");
                 List<Metadata> metadatas = new ArrayList();
-                
+
                 for (Item item: items){
-                    
+
                     if (isCancelled()){
                         return metadatas;
                     }
-                    
+
                     // create metadata
                     Metadata m = create(item);
                     // on fail
                     if (m.isEmpty()) skipped++;
                     // on success
                     else metadatas.add(m);
-                    
+
                     // update state
                     completed++;
                     updateMessage("Completed " + completed + " out of " + all + ". " + skipped + " skipped.");
                     updateProgress(completed, all);
                 }
-                
+
                 return metadatas;
             }
         };
-        
+
         return task;
     }
-    
+
     /**
      * Creates list of Metadata for provided items. Use to read multiple files
      * at once. The work runs on background thread. The procedures executed on
@@ -91,12 +91,12 @@ public class MetadataReader{
      * When any error occurs during the reading process, the reading will stop
      * and return all obtained metadata.
      * <p>
-     * The result of the task is list of metadatas (The list will not be null 
+     * The result of the task is list of metadatas (The list will not be null
      * nor contain null values) if task finshes sccessfully or null otherwise.
      * <p>
      * Calling this method will immediately start the reading process (on
      * another thread).
-     * 
+     *
      * @param items List of items to read.
      * @param onEnd procedure to execute upon finishing this task providig
      * the result and success flag.
@@ -109,18 +109,18 @@ public class MetadataReader{
     public static Task<List<Metadata>> readMetadata(Collection<? extends Item> items, BiConsumer<Boolean, List<Metadata>> onEnd){
         // create task
         final Task task = buildReadMetadata(items, onEnd);
-        
+
         // run immediately and return task
         runNew(task);
         return task;
     }
-    
-    /** 
+
+    /**
      * Transforms items into their metadatas by reading the files.
      * For asynchronouse use only.
      * Items for which reading fails are ignored.
      */
-    public static List<Metadata> readMetadata(Collection<? extends Item> items){    
+    public static List<Metadata> readMetadata(Collection<? extends Item> items){
         List<Metadata> metadatas = new ArrayList();
 
         for (Item item: items){
@@ -159,7 +159,7 @@ public class MetadataReader{
             return (afile == null) ? item.toMeta() : new Metadata(afile);
         }
     }
-    
+
     private static AudioFile afile;
 
     /**
@@ -173,7 +173,7 @@ public class MetadataReader{
      * <p>
      * The result of the task is nonempty Metadata if task finshes successfully
      * or null otherwise.
-     * 
+     *
      * @param item item to read metadata for. Must not be null.
      * @param onFinish procedure to execute upon finishing this task providig
      * the result and success flag.
@@ -196,14 +196,14 @@ public class MetadataReader{
                 try {
                     onFinish.accept(true, task.get());
                 } catch (InterruptedException | ExecutionException ex){
-                    Log.err("Reading metadata failed for : " + item.getURI() + ".");
+                    log(MetadataReader.class).error("Reading metadata failed for: {}",item);
                     onFinish.accept(false, null);
                 }
             });
         });
         task.setOnFailed( e -> {
             Platform.runLater(() -> {
-                Log.err("Reading metadata failed for : " + item.getURI() + ".");
+                log(MetadataReader.class).error("Reading metadata failed for: {}", item);
                 onFinish.accept(false, null);
             });
         });
@@ -219,45 +219,45 @@ public class MetadataReader{
 //            m.getMetadata().forEach((String s, Object o) -> {
 //                System.out.println(s + " " + o);
 //            });
-            
+
             // make a playlistItem and covert to metadata //why? // not 100%sure...
             // because PlaylistItem has advanced update() method? // probably
             return new PlaylistItem(item.getURI(), "", "", m.getDuration().toMillis()).toMeta();
         } catch (IllegalArgumentException | UnsupportedOperationException e){
-            Log.err("Error during creating metadata for non file based item: " + item);
+            log(MetadataReader.class).error("Error creating metadata for non file based item: {}",item);
             return item.toMeta();
         }
     }
 
-    
+
     /**
      * Reads metadata from files of the items and adds items to library. If item
      * already exists, it will not be overwritten or changed.
      * <p>
      * The task returns list of all provided items that are in the database after
      * the task succeeds.
-     * 
+     *
      * @param items
      * @param onEnd
      * @param all true to return all discovered files, false to return only those that
      * were added to library as a result of this task - ignore existing files
-     * @return 
+     * @return
      */
     public static Task<List<Metadata>> readAaddMetadata(List<? extends Item> items, BiConsumer<Boolean,List<Metadata>> onEnd, boolean all_i){
         // perform check
         Objects.requireNonNull(items);
-                
+
         // create task
         final Task<List<Metadata>> task = new SuccessTask("Adding items to library", onEnd){
             private final int all = items.size();
             private int completed = 0;
             private int skipped = 0;
-            
-            @Override 
+
+            @Override
             protected List<Metadata> call() throws Exception {
                 List<Metadata> out = new ArrayList();
                 Metadata m;
-                
+
                 EntityManager em = DB.em;
                               em.getTransaction().begin();
                 try {
@@ -280,7 +280,7 @@ public class MetadataReader{
                                 out.add(l);
                             }
                         }
-                        
+
                         // update
                         updateMessage(all,completed,skipped);
                         updateProgress(completed, all);
@@ -291,28 +291,28 @@ public class MetadataReader{
                 } catch (Exception e ) {
                     e.printStackTrace();
                 }
-                        
+
                 // update state
                 updateMessage(all,completed,skipped);
                 updateProgress(completed, all);
-                
+
                 return out;
             }
         };
-        
+
         // run immediately and return task
         runNew(task);
         return task;
     }
-    
+
     public static Task<Void> removeMissingFromLibrary(BiConsumer<Boolean,Void> onEnd){
         // create task
         final Task<Void> task = new SuccessTask("Removing missing items from library",onEnd){
             private int all = 0;
             private int completed = 0;
             private int removed = 0;
-            
-            @Override 
+
+            @Override
             protected Void call() throws Exception {                    //long timeStart = System.currentTimeMillis();
                 List<Metadata> library_items = DB.getAllItems();
                 all = library_items.size();
@@ -329,18 +329,18 @@ public class MetadataReader{
                     updateMessage(all,completed,removed);
                     updateProgress(completed, all);
                 }
-                
+
                 DB.em.getTransaction().commit();
                 // update library model
                 runFX(DB::updateMemFromPer);
-                        
+
                 // update state
                 updateMessage(all,completed,removed);
                 updateProgress(completed, all);                     //System.out.println((System.currentTimeMillis()-timeStart));
-                
+
                 return null;
             }
-            
+
             @Override
             protected void updateMessage(int all, int done, int removed) {
                 sb.setLength(0);
@@ -353,11 +353,11 @@ public class MetadataReader{
                 sb.append(" removed.");
                 updateMessage(sb.toString());
             }
-            
+
         };
-        
+
         // run immediately and return task
         runNew(task);
         return task;
-    }    
+    }
 }

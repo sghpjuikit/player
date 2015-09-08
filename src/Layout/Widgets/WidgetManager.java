@@ -15,12 +15,13 @@ import java.util.stream.Stream;
 import javafx.scene.Node;
 
 import org.atteo.classindex.ClassIndex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import Layout.LayoutManager;
 import Layout.Widgets.controller.Controller;
 import gui.objects.Window.stage.UiContext;
 import main.App;
-import unused.Log;
 import util.File.FileUtil;
 
 import static Layout.Widgets.WidgetManager.WidgetSource.*;
@@ -29,9 +30,12 @@ import static Layout.Widgets.WidgetManager.WidgetSource.*;
  * Handles operations with Widgets.
  */
 public final class WidgetManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("WindowManager.class");
+
     /** Collection of registered Widget Factories. Non null, unique.*/
     static final Map<String,WidgetFactory> factories = new HashMap<>();
-    
+
     public static <T extends Node & Controller> void initialize() {
         // register internal
         ClassIndex.getAnnotated(IsWidget.class).forEach(c -> new ClassWidgetFactory((Class<T>) c).register());
@@ -39,14 +43,14 @@ public final class WidgetManager {
         // register external
         registerExternalWidgetFactories();
     }
-    
+
     /**
      * @return read only list of registered widget factories
      */
     public static Stream<WidgetFactory> getFactories() {
         return factories.values().stream();
     }
-    
+
     /**
      * Looks for widget factory in the list of registered factories. Searches
      * by name. If no factory is found it will be attempted to register a new
@@ -58,7 +62,7 @@ public final class WidgetManager {
     public static WidgetFactory getFactory(String name) {
         // get factory
         WidgetFactory wf = factories.get(name);
-        
+
         // attempt to register new factory for the file (maybe it was added in
         // runtime)
         if(wf==null) {
@@ -67,20 +71,20 @@ public final class WidgetManager {
                 try {
                     URL source = f.toURI().toURL();
                     new FXMLWidgetFactory(name, source).register();
-                    Log.deb("registering " + name);
+                    LOGGER.info("registering " + name);
                 } catch(MalformedURLException e) {
-                    Log.err("Error registering wirget: " + name);
+                    LOGGER.error("Error registering wirget: " + name, e);
                 }
             }
         }
-        
+
         // return factory or null
         return factories.get(name);
     }
-    
-    
+
+
 /******************************************************************************/
-    
+
     /**
      * remembers standalone widgets not part of any layout, mostly in popups
      * as for normal widgets - they can be obtained from layouts
@@ -103,15 +107,15 @@ public final class WidgetManager {
             default: throw new AssertionError(source + " in default switch value.");
         }
     }
-    
+
     /**
      * Equivalent to {@code find(filter, source, false);}
-     * @see #find(java.util.function.Predicate, Layout.Widgets.WidgetManager.WidgetSource, boolean) 
+     * @see #find(java.util.function.Predicate, Layout.Widgets.WidgetManager.WidgetSource, boolean)
      */
     public static Optional<Widget> find(Predicate<WidgetInfo> filter, WidgetSource source) {
         return find(filter, source, false);
     }
-    
+
     /**
      * Returns widget fulfilling condition.
      * <pre>
@@ -138,21 +142,21 @@ public final class WidgetManager {
      */
     public static Optional<Widget> find(Predicate<WidgetInfo> filter, WidgetSource source, boolean ignore) {
         Widget out = null;
-        
+
         // get preferred type
         String preferred = getFactories()
                 .filter(filter::test)
                 .filter(w -> !w.isIgnored())
                 .filter(f -> f.isPreferred())
                 .findAny().map(f->f.name).orElse("");
-        
+
         // get viable widgets - widgets of the feature & of preferred type if any
         List<Widget> widgets = findAll(source)
                 .filter(w -> filter.test(w.getInfo()))
                 .filter(w -> !w.isIgnored())
                 .filter(preferred.isEmpty() ? w->true : w->w.getInfo().name().equals(preferred))
                 .collect(Collectors.toList());
-        
+
         // get preferred widget or any if none preferred
         for(Widget w : widgets) {
             if(out==null) out = w;
@@ -161,7 +165,7 @@ public final class WidgetManager {
                 break;
             }
         }
-        
+
         // if no active or layout widget available & new widgets allowed
         if (out == null && source.newWidgetsAllowed()) {
             // get factory
@@ -170,7 +174,7 @@ public final class WidgetManager {
                    .filter(w -> !w.isIgnored())
                    .filter(preferred.isEmpty() ? w->true : w->w.name().equals(preferred))
                    .findAny().orElse(null);
-           
+
             // open widget as standalone if found
             if (f!=null) {
                 out = f.create();
@@ -180,12 +184,12 @@ public final class WidgetManager {
                 }
             }
         }
-        
+
         return Optional.ofNullable(out);
     }
-    
+
     /**
-     * Equivalent to: {@code 
+     * Equivalent to: {@code
      * getWidget(w->w.hasFeature(feature), source).map(w->(F)w.getController())}
      */
     public static<F> Optional<F> find(Class<F> feature, WidgetSource source, boolean ignore) {
@@ -197,93 +201,93 @@ public final class WidgetManager {
     public static<F> Optional<F> findExact(Class<? extends Controller> type, WidgetSource source) {
         return find(w->w.type().equals(type), source).map(w->(F)w.getController());
     }
-    
+
     /** Equivalent to: {@code getWidget(type, source).ifPresent(action)} */
     public static<F> void use(Class<F> type, WidgetSource source, Consumer<F> action) {
         find(type, source).ifPresent(action);
     }
-    
+
     /** Equivalent to: {@code getWidget(cond, source).ifPresent(action)} */
     public static void use(Predicate<WidgetInfo> cond, WidgetSource source, Consumer<Widget> action) {
         find(cond, source).ifPresent(action);
     }
-    
+
     /**
      * Denotes source for widgets. Used when looking up a widget. Sometimes it
      * is desirable to limit the source.
      */
     public static enum WidgetSource {
-        
+
         /**
-         * The source is be all currently active widgets contained within all 
+         * The source is be all currently active widgets contained within all
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for
          * example located in the popup. Most limited source.
          *//**
-         * The source is be all currently active widgets contained within all 
+         * The source is be all currently active widgets contained within all
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for
          * example located in the popup. Most limited source.
          *//**
-         * The source is be all currently active widgets contained within all 
+         * The source is be all currently active widgets contained within all
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for
          * example located in the popup. Most limited source.
          *//**
-         * The source is be all currently active widgets contained within all 
+         * The source is be all currently active widgets contained within all
          * of the layouts in all of the windows. Does not contain standalone
          * widgets. Standalone widget is one that is not part of the layout. for
          * example located in the popup. Most limited source.
          */
         LAYOUT,
-        
+
         /**
          * Source is all currently active standalone widgets - widgets not part
          * of the layout, such as in popups.
          */
         STANDALONE,
-        
-        /** 
+
+        /**
          * Union of {@link #LAYOUT} and {@link #STANDALONE}.
          * <p>
          * This is the recommended source when creating widget is not intended.
          */
         OPEN,
-        
+
         /**
          * The source is all available widget factories. In other words new
          * widget will always be created if possible.
          */
         NEW,
-        
+
         /**
-         * Union of {@link #NEW}, {@link #STANDALONE}. 
+         * Union of {@link #NEW}, {@link #STANDALONE}.
          * <p>
          * This is the recommended source when it is expected to call the widget
          * multiple times and layout is not to be included,
          * because it creates new widget, but reuses standalone ones.
          */
         NO_LAYOUT,
-        
+
         /**
          * Union of {@link #LAYOUT}, {@link #STANDALONE} and {@link #NO_LAYOUT}
          * Most complete source.
          */
         ANY;
-        
+
         public boolean newWidgetsAllowed() {
             return this==NO_LAYOUT || this==ANY || this==NEW;
         }
     }
-    
+
     public static enum Widget_Target {
         LAYOUT,
         TAB,
         POPUP,
         WINDOW;
     }
-    
-    
+
+
 /******************************************************************************/
 
     /**
@@ -292,11 +296,10 @@ public final class WidgetManager {
      * factories.
      */
     private static void registerExternalWidgetFactories() {
-        Log.deb("Searching for external widgets.");
         // get folder
         File dir = App.WIDGET_FOLDER();
         if (!FileUtil.isValidatedDirectory(dir)) {
-            Log.err("External widgets registration failed.");
+            LOGGER.error("External widgets registration failed.");
             return;
         }
         // get .fxml files
@@ -304,21 +307,21 @@ public final class WidgetManager {
             Files.find(dir.toPath(), 2, (path,u) -> path.toString().endsWith(".fxml"))
                  .forEach(f -> registerFactory(FileUtil.getName(f.toUri())));
         } catch(IOException e) {
-            Log.err("Error during looking for widgets. Some widgets might not be available.");
+            LOGGER.error("Error during looking for widgets. Some widgets might not be available.", e);
         }
     }
-    
+
     private static void registerFactory(String name) {
         // avoid registering twice
         if(factories.get(name) != null) return;
-        
+
         try {
             File f = new File(App.WIDGET_FOLDER(), name + File.separator + name + ".fxml");
             URL source = f.toURI().toURL();
             new FXMLWidgetFactory(name, source).register();
-            Log.deb("registering " + name);
+            LOGGER.info("registering " + name);
         } catch(MalformedURLException e) {
-            Log.err("Error registering widget: " + name);
+            LOGGER.error("Error registering widget: " + name, e);
         }
     }
 }

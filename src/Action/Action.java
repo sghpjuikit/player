@@ -28,7 +28,6 @@ import Configuration.IsConfig;
 import Configuration.IsConfigurable;
 import gui.objects.Window.stage.Window;
 import main.App;
-import unused.Log;
 import util.access.Ѵ;
 import util.async.Async;
 import util.async.executor.FxTimer;
@@ -38,6 +37,7 @@ import util.dev.Dependency;
 import static javafx.scene.input.KeyCode.ALT_GRAPH;
 import static javafx.scene.input.KeyCombination.NO_MATCH;
 import static util.async.Async.runLater;
+import static util.dev.Util.log;
 import static util.functional.Util.do_NOTHING;
 
 /**
@@ -205,8 +205,7 @@ public final class Action extends Config<Action> implements Runnable {
     }
 
     private void runUnsafe() {
-        if(global) Log.deb("Global shortcut " + name + " execuing.");
-        else Log.deb("Local shortcut " + name + " execuing.");
+        log(this).info("Shortcut {} execuing, global: {}.", name,global);
 
 //        int id = getID();
 //        boolean canRun = id!=lock;
@@ -277,8 +276,7 @@ public final class Action extends Config<Action> implements Runnable {
         try {
             this.keys = KeyCombination.keyCombination(keys);
         } catch (Exception e) {
-            Log.warn("Illegal shortcut keys parameter. Shortcut keys disabled for: "
-                    + name + " Keys: '" + keys + "'");
+            log(this).warn("Illegal shortcut keys parameter. Shortcut {} disabled. Keys: {}", name,keys,e);
             this.keys = NO_MATCH;   // disable shortcut for wrong keys
         }
     }
@@ -604,7 +602,7 @@ public final class Action extends Config<Action> implements Runnable {
     //shortcut running
     // this listener is running ever 33ms when any registered shortcut is pressed
     private static final HotkeyListener global_listener = id -> {
-        Log.deb("Global shortcut " + actions.get(id).getName() + " captured.");
+        log(Action.class).debug("Global shortcut {} captured.", actions.get(id).getName());
         actions.get(id).run();
         locker.start();
     };

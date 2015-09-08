@@ -4,16 +4,19 @@
  */
 package AudioPlayer.tagging.Chapters;
 
-import AudioPlayer.tagging.Metadata;
-import AudioPlayer.tagging.MetadataWriter;
-import AudioPlayer.tagging.Xml;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import javafx.util.Duration;
+
+import AudioPlayer.tagging.Metadata;
+import AudioPlayer.tagging.MetadataWriter;
+import AudioPlayer.tagging.Xml;
 import util.File.FileUtil;
-import unused.Log;
+
+import static util.dev.Util.log;
 
 /**
  * @author uranium
@@ -22,8 +25,8 @@ public final class MetadataExtended {
     private final Metadata metadata;
     private final ArrayList<CommentExtended> comments = new ArrayList();
     private final ArrayList<Chapter> chapters = new ArrayList();
-    
-    
+
+
     public MetadataExtended(Metadata metadata) {
         this.metadata = metadata;
     }
@@ -39,12 +42,12 @@ public final class MetadataExtended {
     public List<Chapter> getChapters() {
         return new ArrayList(chapters);
     }
-    
+
     public void addChapter(Duration time, String info) {
         chapters.add(new Chapter(time, info));
         Collections.sort(chapters);
 //        save();
-    }   
+    }
     public void addComment( String key, String comment) {
         comments.add(new CommentExtended(key, comment));
         Collections.sort(comments);
@@ -72,7 +75,7 @@ public final class MetadataExtended {
                 ch.setValue(text);
 //        save();
     }
-    
+
     /**
      * Saves chapters.
      * @note: This involves persisting of data and as such IO operations are
@@ -92,42 +95,35 @@ public final class MetadataExtended {
 
         File f = new File(metadata.getLocation(),metadata.getFilenameFull() + ".xml");
         FileUtil.writeFile(f.getPath(), content);
-        
+
         MetadataWriter.use(metadata, w->w.setChapters(getChapters()));
     }
-    
+
     /**
      * Loads chapters from a file.
      * @param meta
-     * @return 
+     * @return
      */
     public void readFromFile() {
         // check validity and open file
         if(!metadata.isFileBased()) return;
-        
+
         File f = new File(metadata.getLocation(),metadata.getFilenameFull() + ".xml");
-        
-        if (!f.exists()) { 
-            Log.info("File " + f.toString() + " doesnt exist");
-            return;
+
+        if (f.exists()) {
+            if (!f.canRead()) {
+                log(this).warn("File {} not be readable", f);
+            } else {
+                Xml xml = new Xml(f.toString(), "Chapterlist");
+                for (Xml x: xml.children("Chapter")) {
+                    this.chapters.add(new Chapter(Duration.millis(x.optDouble("pos")), x.optString("name")));
+                }
+                for (Xml x: xml.children("Info")) {
+                    this.comments.add(new CommentExtended(x.optString("name"), x.optString("value")));
+                }
+                Collections.sort(this.chapters);
+                Collections.sort(this.comments);
+            }
         }
-        if (!f.canRead()) { 
-            Log.info("File " + f.toString() + " cannot be read");
-            return;
-        }
-        if (!f.canWrite()) {
-            Log.info("File " + f.toString() + " cannot be written into");
-            return;
-        }
-        
-        Xml xml = new Xml(f.toString(), "Chapterlist");
-        for (Xml x: xml.children("Chapter")) { 
-            this.chapters.add(new Chapter(Duration.millis(x.optDouble("pos")), x.optString("name")));
-        }
-        for (Xml x: xml.children("Info")) {
-            this.comments.add(new CommentExtended(x.optString("name"), x.optString("value")));
-        }
-        Collections.sort(this.chapters);
-        Collections.sort(this.comments);
     }
 }

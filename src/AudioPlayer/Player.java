@@ -21,7 +21,6 @@ import AudioPlayer.services.Database.DB;
 import AudioPlayer.tagging.Metadata;
 import AudioPlayer.tagging.MetadataReader;
 import Layout.Widgets.controller.io.InOutput;
-import unused.Log;
 import util.async.Async;
 import util.async.executor.EventReducer;
 import util.async.executor.FxTimer;
@@ -30,6 +29,7 @@ import util.collections.map.MapSet;
 import static AudioPlayer.tagging.Metadata.EMPTY;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static util.async.executor.EventReducer.toLast;
+import static util.dev.Util.log;
 import static util.dev.Util.noØ;
 import static util.functional.Util.list;
 
@@ -38,52 +38,52 @@ import static util.functional.Util.list;
  * @author uranium
  */
 public class Player {
-    
+
 
 /********************************************* STATE **********************************************/
-    
+
     public static final PlayerState state = PlayerState.deserialize();
-    
+
     public static final ExecutorService IO_THREAD = new ThreadPoolExecutor(1, 3, 0, DAYS, new LinkedBlockingQueue<>(), r -> {
             Thread t = new Thread(r);
                    t.setDaemon(true); // dont prevent application closing
                    t.setName("tagging-thread");
             return t;
         });
-    
+
     public static void initialize() {
         PLAYBACK.initialize();
     }
-    
+
     public static void loadLast() {
         PLAYBACK.loadLastState();
     }
-    
+
 /******************************************************************************/
-    
+
     /**
      * Prvides access to Metadata representing currently played item or empty
      * metadata if none. Never null.
      */
     public static final CurrentItem playingtem = new CurrentItem();
-    
+
     public static final InOutput<Metadata> playing = new InOutput<>(UUID.fromString("876dcdc9-48de-47cd-ab1d-811eb5e95158"),"Playing", Metadata.class);
     public static final InOutput<PlaylistItem> playlistSelected = new InOutput<>(UUID.fromString("ca002c1d-8689-49f6-b1a0-0d0f8ff2e2a8"),"Selected in playlist", PlaylistItem.class);
     public static final InOutput<Metadata> librarySelected = new InOutput<>(UUID.fromString("ba002c1d-2185-49f6-b1a0-0d0f8ff2e2a8"),"Selected in Library", Metadata.class);
     public static final InOutput<Item> anySelected = new InOutput<>(UUID.fromString("1a01ca96-2e60-426e-831d-93b24605595f"),"Selected anywhere", Item.class);
-    
+
     static {
         anySelected.i.bind(playlistSelected.o);
         anySelected.i.bind(librarySelected.o);
         playingtem.onUpdate(playing.i::setValue);
-        
+
         // use jaudiotagger for total time value
         playingtem.onChange(m -> state.playback.duration.set(m.getLength()));
     }
-    
+
 /**************************************** ITEM REFRESHING *****************************************/
-    
-    /** 
+
+    /**
      * Adds songs refreshed event handler. When application updates song metadata it will fire this
      * event. For example widget displaying song information may update that information, if the
      * event contains the song.
@@ -91,15 +91,15 @@ public class Player {
      * Say, there is a widget with an input, displaying its value and sending it to its output, for
      * others to listen. And both are of {@link Item} type and updating the contents may be heavy
      * operation we want to avoid unless necessary.
-     * Always update the output. It will update all inputs (of other widgets) bound to it. However, 
+     * Always update the output. It will update all inputs (of other widgets) bound to it. However,
      * there may be widgets whose inputs are not bound, but set manually. In order to not update the
-     * input multiple times (by us and because it is bound) it should be checked whether input is 
+     * input multiple times (by us and because it is bound) it should be checked whether input is
      * bound and then handled accordingly.
      * <p>
      * But because the input can be bound to multiple outputs, we must check whether the input is
      * bound to the particular output it is displaying value of (and would be auto-updated from).
-     * This is potentially complex or impossible (with unfortunate 
-     * {@link Object#equals(java.lang.Object) } implementation). 
+     * This is potentially complex or impossible (with unfortunate
+     * {@link Object#equals(java.lang.Object) } implementation).
      * It is possible to use an {@link EventReducer} which will
      * reduce multiple events into one, in such case always updating input is recommended.
      */
@@ -107,13 +107,13 @@ public class Player {
         refreshHandlers.add(handler);
         return () -> refreshHandlers.remove(handler);
     }
-    
+
     /** Singleton variant of {@link #refreshItems(java.util.List)}. */
     public static void refreshItem(Item i) {
         noØ(i);
         refreshItems(list(i));
     }
-    
+
     /**
      * Read metadata from tag of all items and invoke {@link #refreshItemsWith(java.util.List)}.
      * <p>
@@ -124,12 +124,12 @@ public class Player {
     public static void refreshItems(Collection<? extends Item> is) {
         noØ(is);
         if(is.isEmpty()) return;
-        
+
         MetadataReader.readMetadata(is, (ok,m) -> {
             if (ok) refreshItemsWith(m);
         });
     }
-    
+
     /** Singleton variant of {@link #refreshItemsWith(java.util.List)}. */
     public static void refreshItemWith(Metadata m) {
         noØ(m);
@@ -140,23 +140,23 @@ public class Player {
         noØ(m);
         refreshItemsWith(list(m),allowDelay);
     }
-    
+
     /** Simple version of {@link #refreshItemsWith(java.util.List, boolean) } with false argument. */
     public static void refreshItemsWith(List<Metadata> ms) {
         refreshItemsWith(ms, false);
     }
-    
+
     /**
-     * Updates application (playlist, library, etc.) with latest metadata. Refreshes the given 
+     * Updates application (playlist, library, etc.) with latest metadata. Refreshes the given
      * data for the whole application.
      * <p>
      * Safe to call from any thread.
-     * 
+     *
      * @param ms metadata to refresh
      * @param allowDelay flag for using delayed refresh to reduce refresh successions to single
      * refresh. Normally false is used.
      * <p>
-     * Use false to refresh immediatelly and true to queue the refresh for future 
+     * Use false to refresh immediatelly and true to queue the refresh for future
      * execution (will wait few seconds for next refresh request and if it comes, will wait again
      * and so on until none will come, which is when all queued refreshes execute all at once).
      */
@@ -165,21 +165,21 @@ public class Player {
         if(allowDelay) Async.runFX(() -> red.push(ms));
         else refreshItemsWithNow(ms);
     }
-    
+
     // processes delayed refreshes - queues them up and invokes refresh after some time
     // use only on fx thread
     private static EventReducer<List<Metadata>> red = toLast(3000, (o,n) -> {
         n.addAll(o);
         return n;
     }, Player::refreshItemsWithNow);
-    
+
     private static final List<Consumer<MapSet<URI,Metadata>>> refreshHandlers = new ArrayList<>();
-    
+
     // runs refresh on bgr thread, thread safe
     private static void refreshItemsWithNow(List<Metadata> ms) {
         noØ(ms);
         if(ms.isEmpty()) return;
-        
+
         // always on br thread
         IO_THREAD.execute(() -> {
             // metadata map hashed with resource identity : O(n^2) -> O(n)
@@ -199,23 +199,23 @@ public class Player {
                 if(playing.i.getValue()!=null) mm.ifHasE(playing.i.getValue(), playing.i::setValue);
                 if(playlistSelected.i.getValue()!=null) mm.ifHasK(playlistSelected.i.getValue().getURI(), m->playlistSelected.i.setValue(m.toPlaylist()));
                 if(librarySelected.i.getValue()!=null) mm.ifHasE(librarySelected.i.getValue(), librarySelected.i::setValue);
-                
+
                 // refresh rest
                 refreshHandlers.forEach(h -> h.accept(mm));
             });
         });
     }
-    
-    
-    
-    
+
+
+
+
     public static class CurrentItem {
         Metadata val = EMPTY;
         Metadata nextMetadataCache = EMPTY;
         List<BiConsumer<Metadata,Metadata>> itemPlayedES = new ArrayList<>();
         List<BiConsumer<Metadata,Metadata>> itemUpdatedES = new ArrayList<>();
         private final FxTimer nextCachePreloader = new FxTimer(400, 1, () -> preloadNext());
-        
+
         /**
          * Returns the playing item and all its information.
          * <p>
@@ -233,19 +233,19 @@ public class Player {
             if(change) itemPlayedES.forEach(h -> h.accept(ov,nv));
             itemUpdatedES.forEach(h -> h.accept(ov,nv));
         }
-        
+
         public Subscription onChange(BiConsumer<Metadata,Metadata> bc) {
             itemPlayedES.add(bc);
             return () -> itemPlayedES.remove(bc);
         }
-        
-        /** 
-         * Add behavior to playing item changed event. 
+
+        /**
+         * Add behavior to playing item changed event.
          * <p>
          * The event is fired every time playing item changes. This includes
          * replaying the same item.
          * <p>
-         * Use in cases requiring constantly updated information about the playing 
+         * Use in cases requiring constantly updated information about the playing
          * item.
          * <p>
          * Note: It is safe to call {@link #get()} method when this even fires.
@@ -254,11 +254,11 @@ public class Player {
         public Subscription onChange(Consumer<Metadata> bc) {
             return onChange((o,n) -> bc.accept(n));
         }
-        
-        /** 
-         * Add behavior to playing item updated event. 
+
+        /**
+         * Add behavior to playing item updated event.
          * <p>
-         * The event is fired every time playing item changes or even if some of its 
+         * The event is fired every time playing item changes or even if some of its
          * metadata is changed such artist or rating. More eager version of change
          * event.
          * <p>
@@ -267,7 +267,7 @@ public class Player {
          * displaying this information somewhere - for example artist of the
          * played item.
          * <p>
-         * Do not use when only the identity (defined by its URI) of the played 
+         * Do not use when only the identity (defined by its URI) of the played
          * item is required. For example lastFM scrobbling service would not want
          * to update played item status when the metadata of the item change as it
          * isnt a change in played item - it is still the same item.
@@ -283,64 +283,64 @@ public class Player {
             itemUpdatedES.add(bc);
             return () -> itemUpdatedES.remove(bc);
         }
-        
+
         public void update() {
             load(false, val);
         }
         public void update(Metadata m) {
             set(false, m);
         }
-        
+
         public void itemChanged(Item item) {
             if(item == null) {
                 set(true,EMPTY);
-                Log.deb("Current item metadata set to empty. No item playing.");
-            } 
+                log(Player.class).info("Current item metadata set to empty. No item playing.");
+            }
             // if same item, still fire change
             else if(val.same(item)) {
                 set(true,val);
-                Log.deb("Current item metadata reused. Same item playing.");
+                log(Player.class).info("Current item metadata reused. Same item playing.");
             }
             // if preloaded, set
             else if (nextMetadataCache.same(item)) {
                 set(true,nextMetadataCache);
-                Log.deb("Current item metadata copied from next item metadata cache.");
+                log(Player.class).info("Current item metadata copied from next item metadata cache.");
             // else load
             } else {
-                Log.deb("Next item metadata cache copy failed - content doesnt correspond to correct item. Loading now...");
+                log(Player.class).info("Next item metadata cache copy failed - content doesnt correspond to correct item. Loading now...");
                 load(true, item);
             }
-            
+
             // wait 400ms, preload metadata for next item
             nextCachePreloader.start();
         }
-        
+
         // load metadata, type indicates UPDATE vs CHANGE
         private void load(boolean changeType, Item item){
             MetadataReader.create(item, (success, result) -> {
                 if (success){
                     set(changeType, result);
-                    Log.deb("Current metadata loaded.");
+                    log(Player.class).info("Current metadata loaded.");
                 } else {
                     set(changeType, item.toMeta());
-                    Log.deb("Current metadata load fail. Metadata will be not be fully formed.");
+                    log(Player.class).info("Current metadata load fail. Metadata will be not be fully formed.");
                 }
             });
         }
-        
+
         private void preloadNext(){
-            Log.deb("Preloading metadata for next item to play.");
+            log(Player.class).info("Preloading metadata for next item to play.");
             PlaylistItem next = PlaylistManager.use(p -> p.getNextPlaying(),null);
             if (next == null){
-                Log.deb("Preloading aborted. No next playing item.");
+                log(Player.class).info("Preloading aborted. No next playing item.");
             } else {
                 MetadataReader.create(next,(success, result) -> {
                     if (success){
                         nextMetadataCache = result;
-                        Log.deb("Next item metadata cache preloaded.");
+                        log(Player.class).info("Next item metadata cache preloaded.");
                     } else {
                         // dont set any value, not even empty
-                        Log.deb("Preloading next item metadata into cache failed.");
+                        log(Player.class).info("Preloading next item metadata into cache failed.");
                     }
                 });
             }

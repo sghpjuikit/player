@@ -11,7 +11,6 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 
 import Configuration.Config.ConfigBase;
-import unused.Log;
 
 /**
  * Class level {@link Config}.
@@ -19,16 +18,16 @@ import unused.Log;
  * Wraps static {@link Field}.
  * <p>
  * Use for class level configurations.
- * 
+ *
  * @author Plutonium_
  */
 public final class FieldConfig<T> extends ConfigBase<T> {
-    
+
     private final Object instance;
     MethodHandle getter;
     MethodHandle setter;
     MethodHandle applier;
-    
+
     /**
      * @param _name
      * @param c
@@ -41,61 +40,57 @@ public final class FieldConfig<T> extends ConfigBase<T> {
         this.setter = setter;
         this.instance = instance;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public T getValue() {
         return getValueFromMethodHelper(getter, instance);
     }
-    
+
     /** {@inheritDoc} */
     @Override
-    public void setValue(T val) { 
+    public void setValue(T val) {
         try {
             if(instance==null) setter.invokeWithArguments(val);
             else setter.invokeWithArguments(instance,val);
-            //Log.deb("Config field: " + getName() + " set to: " + val);
         } catch (Throwable e) {
-            Log.err("Config field: " + getName() + " failed to set. Reason: " + e.getMessage());
+            throw new RuntimeException("Error setting config field " + getName(),e);
         }
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void applyValue(T val) {
         if(applier != null) {
-            //Log.deb("Applying config: " + getName());
             try {
                 int i = applier.type().parameterCount();
-                
+
                 if(i==1) applier.invokeWithArguments(val);
                 else applier.invoke();
-                
-                //Log.deb("    Success.");
             } catch (Throwable e) {
-                Log.err("    Failed to apply config field: " + getName() + ". Reason: " + e.getMessage());
+                throw new RuntimeException("Error applying config field " + getName(),e);
             }
         }
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Class getType() {
         return getValue().getClass();
     }
-    
-    /** 
+
+    /**
      * Equals if and only if non null, is Config type and source field is equal.
      */
     @Override
     public boolean equals(Object o) {
-        if(this==o) return true; // this line can make a difference
-        
+        if(this==o) return true;
+
         if (o == null || !(o instanceof FieldConfig)) return false;
-        
+
         FieldConfig c = (FieldConfig)o;
         return setter.equals(c.setter) && getter.equals(c.getter) &&
-               applier.equals(c.applier); 
+               applier.equals(c.applier);
     }
 
     @Override
@@ -106,10 +101,9 @@ public final class FieldConfig<T> extends ConfigBase<T> {
         hash = 23 * hash + Objects.hashCode(this.setter);
         return hash;
     }
-    
-    
+
 /******************************************************************************/
-    
+
     private static<T> T getValueFromMethodHelper(MethodHandle mh, Object instance) {
         try {
             if(instance==null) return (T) mh.invoke();

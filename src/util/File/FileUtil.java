@@ -12,8 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,24 +22,25 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 import main.App;
-import unused.Log;
 import util.File.AudioFileFormat.Use;
 import util.Util;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import static util.Util.filenamizeString;
+import static util.dev.Util.noØ;
 import static util.functional.Util.ISNTØ;
 import static util.functional.Util.listRO;
 
 /**
  * Provides file operations.
- * 
+ *
  * This class provides bunch of fancy methods that are arguably redundant, but
  * can make your life hell of a lot easier. They clean the code from low level
  * machinations.
- * 
+ *
  */
 public final class FileUtil {
-    
+
     /**
      * Empty file. Use where null is not desired. There is only one instance of
      * empty file - this one. Do not use equals() for comparing, intead use
@@ -50,13 +49,13 @@ public final class FileUtil {
      * Current implementation is file denoting application location directory.
      */
     public static final URI EMPTY_URI = URI.create("empty://empty");
-    
+
     /**
      * Empty color. Fully transparent black. Substitute for null in some
      * situations.
      */
     public static final Color EMPTY_COLOR = new Color(0, 0, 0, 0);
-    
+
     /**
      * Returns true if for provided File all conditions are met:
      * - is not null
@@ -64,7 +63,7 @@ public final class FileUtil {
      * - is directory
      * - is readable
      * - is writable
-     * 
+     *
      * Use this method to see if the diretory is not required to be valid.
      * @param dir
      * @return validity of directory for use
@@ -74,24 +73,20 @@ public final class FileUtil {
             return false;
         }
         if (!dir.exists()) {
-            Log.info("Directory " + dir.getAbsolutePath() + " doesnt exist");
             return false;
         }
         if (!dir.isDirectory()) {
-            Log.err("Path " + dir.getAbsolutePath() + " is not directory");
             return false;
         }
         if (!dir.canRead()) {
-            Log.info("Directory " + dir.getAbsolutePath() + " is not readable");
-            return false;            
+            return false;
         }
         if (!dir.canWrite()) {
-            Log.info("Directory " + dir.getAbsolutePath() + " is not writable");
-            return false;            
+            return false;
         }
         return true;
     }
-    
+
     /**
      * Checks whether directory is valid and if it isnt, attempts
      * to make it valid by setting appropriate permissions or creating it.
@@ -100,7 +95,7 @@ public final class FileUtil {
      * - is directory
      * - is readable
      * - is writable
-     * 
+     *
      * Use this method to see if the diretory is required to be valid.
      * @param dir if not a directory, this method always returns false.
      * @return whether the directory is usable.
@@ -111,16 +106,13 @@ public final class FileUtil {
         if (!dir.exists())
             validity = dir.mkdirs();
         if (!dir.isDirectory()) {
-            Log.err("Path " + dir.getAbsolutePath() + " is not directory");
             return false;
         }
         if (!dir.canRead())
-            validity = dir.setReadable(true);  
+            validity = dir.setReadable(true);
         if (!dir.canWrite())
             validity = dir.setWritable(true);
-        
-        if (!validity)
-            Log.err("Directory " + dir.getAbsolutePath() + " is not valid");
+
         return validity;
     }
 
@@ -136,7 +128,7 @@ public final class FileUtil {
     public static boolean isValidFile(File file) {
         return file != null && file.isFile() && file.exists() && file.canRead();
     }
-    
+
     /**
      * Checks validity of a file to be a skin. True return file means the file
      * can be used as a skin (the validity of the skin itself is not included).
@@ -160,7 +152,7 @@ public final class FileUtil {
                 f.getPath().endsWith(".css") &&     // is .css
                 f.equals(test));                    // is located in skins folder
     }
-    
+
     public static boolean isValidWidgetFile(File f) {
         File p1 = f.getParentFile();
         File p2 = p1==null ? null : p1.getParentFile();
@@ -168,28 +160,28 @@ public final class FileUtil {
                 f.getPath().endsWith(".fxml") &&    // is .fxml file
                 App.WIDGET_FOLDER().equals(p2));    // is located in skins folder in its rightful folder
     }
-    
+
     /**
      * Same as {@link File#listFiles() }, but never returns null (instead, empty
-     * list). 
+     * list).
      * Normally, the method in File returns null if parameter is not a directory,
-     * but also when error occurs. For example when directory refers to a 
+     * but also when error occurs. For example when directory refers to a
      * directory on a partition residing on hdd that has been disconnected.
      * <p>
      * Returning null instead of collection is never a good idea anyway!
-     * 
-     * @throws SecurityException - If a security manager exists and its 
-     * SecurityManager.checkRead(String) method denies read access to the 
+     *
+     * @throws SecurityException - If a security manager exists and its
+     * SecurityManager.checkRead(String) method denies read access to the
      * directory
-     * 
-     * @return unmodifiable list of files in the directory, it is empty if 
+     *
+     * @return unmodifiable list of files in the directory, it is empty if
      * parameter is not a directory or is inaccessible or null
      */
     public static List<File> listFiles(File dir) {
         File[] l = dir==null ? null : dir.listFiles();
-        return l==null ? listRO() : listRO(l); 
+        return l==null ? listRO() : listRO(l);
     }
-    
+
     /**
      @param depth the maximum number of levels of directories to visit. A value
      of 0 means that only the starting file is visited. Integer.MAX_VALUE
@@ -204,19 +196,19 @@ public final class FileUtil {
                 return Stream.empty();
             }
         }
-        
+
         if(dir.isFile()) {
             if(AudioFileFormat.isSupported(dir,use))
                 return Stream.of(dir);
         }
-        
+
         return Stream.empty();
     }
-    
+
     public static Stream<File> getFilesAudio(List<File> files, Use use, int depth) {
         return files.stream().flatMap(f -> getFilesAudio(f, use, depth));
     }
-    
+
     public static Stream<File> getFilesImage(File dir, int depth) {
         if(dir.isDirectory()) {
             try {
@@ -226,19 +218,19 @@ public final class FileUtil {
                 return Stream.empty();
             }
         }
-        
+
         if(dir.isFile()) {
             if(ImageFileFormat.isSupported(dir))
                 return Stream.of(dir);
         }
-        
+
         return Stream.empty();
     }
-    
+
     public static Stream<File> getFilesImage(List<File> files, int depth) {
         return files.stream().flatMap(f -> getFilesImage(f, depth));
     }
-    
+
     /**
      * Constructs list of Images from provided file list. Filters out unsupported
      * types.
@@ -255,42 +247,42 @@ public final class FileUtil {
         }
         return list;
     }
-    
+
     /**
      * Checks if there is at least one supported audio file in the list.
      * @param files
      * @return true if the list contains at least one supported audio file.
      */
     public static boolean containsAudioFiles(List<File> files, Use use) {
-        for(File f : files) 
+        for(File f : files)
             if(AudioFileFormat.isSupported(f, use)) return true;
         return false;
     }
-    
+
     static boolean containsImageFiles(List<File> files) {
-        for(File f : files) 
+        for(File f : files)
             if(ImageFileFormat.isSupported(f)) return true;
         return false;
     }
-    
+
     public static List<File> getImageFiles(List<File> files) {
         return files.stream().filter(ISNTØ)
                 .filter(ImageFileFormat::isSupported)
                 .collect(Collectors.toList());
     }
-    
+
     /**
      * Returns first common parent directory for specified files.
-     * 
+     *
      * @param files
-     * @return common parent directory or null if list empty or its elements in 
+     * @return common parent directory or null if list empty or its elements in
      * multiple partitions
      */
     public static File getCommonRoot(Collection<File> files) {
         int size = files.size();
         if(size==0) return null;
         if(size==1) return files.stream().findFirst().get();
-        
+
         File d = null;
         for (File f : files) {
             if (f !=null) {
@@ -300,12 +292,12 @@ public final class FileUtil {
         }
         return d==null ? null : d.isFile() ? d.getParentFile() : d;
     }
-    
+
     /**
-     * For files name with no extension is returned. 
+     * For files name with no extension is returned.
      * For directories name is returned.
      * Root directory returns 'X:\' string.
-     * 
+     *
      * @param f
      * @return name of the file without suffix
      * @throws NullPointerException if parameter null
@@ -316,14 +308,14 @@ public final class FileUtil {
         int i = n.lastIndexOf('.');
         return i==-1 ? n : n.substring(0,i);
     }
-    /** 
-     * For files 'filename.extension' is returned. 
+    /**
+     * For files 'filename.extension' is returned.
      * For directories only name is returned.
      * Root directory returns 'X:\' string.
      * <p>
      * Use instead of {@link File#getName()} which returns empty string for root
      * directories.
-     * 
+     *
      * @return name of the file with suffix
      */
     public static String getNameFull(File f) {
@@ -336,12 +328,12 @@ public final class FileUtil {
      * <p>
      * If the URI denotes a directory its name will be returned. If the uri doesnt denote
      * a file its path will still be parsed and last name in the pathname's
-     * sequence will be attempted to be returned. Therefore if the URI denotes 
+     * sequence will be attempted to be returned. Therefore if the URI denotes
      * file accessed by http protocol the returned string will be the name of
      * the file without suffix - consistent with file based URIs.
      * However that doesnt have to be true for all schemes and URIs.
      * <p>
-     * For file based URIs, this method is equivalent to 
+     * For file based URIs, this method is equivalent to
      * {@link #getName(java.io.File)}.
      * <p>
      * If the path part of the URI is empty or null empty string will be returned.
@@ -360,10 +352,10 @@ public final class FileUtil {
         i = p.lastIndexOf('.');     // remove extension
         return (i==-1) ? p : p.substring(0, i);
     }
-    
+
      /**
       * Writes a textual file with specified content, name and location.
-      * 
+      *
       * @param filepath file to create. If exists, it will be overwritten.
       * Do not use .txt extension as it can cause problems with newline characters.
       * @param content Text that will be written to the file.
@@ -373,7 +365,7 @@ public final class FileUtil {
      public static boolean writeFile(String filepath, String content) {
           return writeFile(new File(filepath), content);
      }
-     
+
      public static boolean writeFile(File file, String content) {
         if (file.isDirectory()) throw new RuntimeException("File must not be directory.");
         Writer writer = null;
@@ -381,18 +373,18 @@ public final class FileUtil {
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(content);
             return true;
-        } catch (IOException ex) {
-            Log.err("Couldnt save file: " + file);
+        } catch (IOException e) {
+            getLogger(Util.class).error("Couldnt save file: {}", file,e);
             return false;
         } finally {
             try {
                 if(writer!=null) writer.close();
-            } catch (IOException ex) {
-                Logger.getLogger(FileUtil.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException e) {
+                getLogger(Util.class).error("Couldnt save fclose file writer", e);
             }
         }
      }
-     
+
      /**
       * Reads file as a text file and returns all its content as list of all lines,
       * with newlines removed. Joining the lines with '\n' will build the original
@@ -404,21 +396,21 @@ public final class FileUtil {
         File file = new File(filepath);
         try {
             return Files.readAllLines(Paths.get(filepath));
-        } catch (IOException ex) {
-            Log.err("Problems reading file " + file.getPath() + ". File wasnt read.");
+        } catch (IOException e) {
+            getLogger(Util.class).error("Problems reading file {}. File wasnt read.", filepath,e);
             return new ArrayList<>();
         }
      }
-     
+
      public static Stream<String> readFileLines(File f) {
         try {
             return Files.lines(f.toPath());
-        } catch (IOException ex) {
-            Log.err("Problems reading file " + f.getPath() + ". File wasnt read." + ex.getMessage());
+        } catch (IOException e) {
+            getLogger(Util.class).error("Problems reading file {}. File wasnt read.", f,e);
             return Stream.empty();
         }
      }
-     
+
      /**
       * Reads files as key-value storage. Empty lines or lines starting with '#'
       * (comment) will be ignored.
@@ -440,71 +432,67 @@ public final class FileUtil {
                 if (!l.isEmpty() && !l.startsWith("#")) {
                     String key = l.substring(0, l.indexOf(" : "));
                     String value = l.substring(l.indexOf(" : ")+3);
-                    m.put(key, value);                
-                }    
+                    m.put(key, value);
+                }
              });
         return m;
      }
-     
-    public static void deleteFile(File file) {
-        if (!file.exists()) return;
+
+    public static void deleteFile(File f) {
+        if (!f.exists()) return;
         try {
-           boolean success = file.delete();
+           boolean success = f.delete();
            if (!success) {
-               Log.err("The file " + file.getPath() + " couldnt be deleted."
-                       + " Will attempt to delete on application shutdown.");
-               file.deleteOnExit();
+               getLogger(Util.class).error("Coud not delete file {}. Will attempt to delete on app shutdown. ", f);
+               f.deleteOnExit();
            }
         } catch(SecurityException e) {
-            Log.err("The file " + file.getPath() + " couldnt be deleted. "
-                    + e.getMessage());
+            getLogger(Util.class).error("Coud not delete file {}", f,e);
         }
     }
-    
+
     /**
      * Saves image as a file, both being provided as parameters. If
      * the file is of type that is not supported by the application, the operation
      * will not take place.
      * @see ImageFileFormat for specifications
-     * @param img 
-     * @param file
+     * @param img
+     * @param f
      * @throws NullPointerException if any of the parameters null
      */
-    public static void writeImage(Image img, File file) {
-        Objects.requireNonNull(img);
-        Objects.requireNonNull(file);
-        
-        ImageFileFormat t = ImageFileFormat.of(file.toURI());
+    public static void writeImage(Image img, File f) {
+        noØ(img,f);
+
+        ImageFileFormat t = ImageFileFormat.of(f.toURI());
         if (!t.isSupported()) {
-            Log.err("Error during saving image " + file.getPath() + ". Format "
-                    + t.name() + " not supported.");
+            getLogger(Util.class).error("Could not save image to file {}. Format {} not supported.", f,t);
             return;
         }
-        
+
         try {
-            ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", file);
+            ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", f);
         } catch (IOException e) {
-            Log.err("Error during saving image " + file.getPath());
+            getLogger(Util.class).error("Could not save image to file {}", f,e);
         }
     }
-    
+
     /**
      * Copies provided items to the provided directory.
      * <p>
-     * The method consumes I/O exception - that can occur when: an I/O error 
+     * The method consumes I/O exception - that can occur when: an I/O error
      * occurs when reading or writing.
      * <p>
      * If source file equals the file of its copy, the file will not be copied.
-     * 
+     *
      * @param files
      * @param target
      * @param options optional. See {@link CopyOption} and Files.copy() methods
-     * 
+     *
      * @return list of files representing the successfully created copies - all
      * copies that didnt throw IOException
      */
     public static List<File> copyFiles(List<File> files, File target, CopyOption... options) {
-        List<File> out = new ArrayList(); 
+        List<File> out = new ArrayList();
         for(File f : files) {
             try {
                 Path nf = target.toPath().resolve(f.toPath().getFileName());
@@ -512,42 +500,42 @@ public final class FileUtil {
                     Files.copy(f.toPath(), nf, options);
                     out.add(new File(target, f.getName()));
                 }
-            } catch(IOException ex) {
-                // ignore
+            } catch(IOException e) {
+                getLogger(Util.class).error("Could not copy file {}", f,e);
             }
         }
         return out;
     }
-    
+
     /**
      * <p>
      * If source file equals the file of its copy, the file will not be copied.
-     * 
+     *
      * @param f
      * @param target
      * @param new_name
-     * @param options 
+     * @param options
      */
     public static void copyFile(File f, File target, String new_name, CopyOption... options) {
         try {
             File nf = new File(target, new_name + "." + getSuffix(f.toURI()));
             Files.copy(f.toPath(), nf.toPath(), options);
-        } catch(IOException ex) {
-            // ignore
+        } catch(IOException e) {
+            getLogger(Util.class).error("Could not copy file {}", f,e);
         }
     }
-    
+
     /**
      * Equivalent to {@link #copyFile(java.io.File, java.io.File, java.lang.String, java.nio.file.CopyOption...) },
      * but the copying will always take place and never overwrite existing file,
      * as if there is any, it is backed up by renaming, utilizing {@link #renameAsOld(java.io.File) }
      * <p>
      * If source file equals the file of its copy, the operation will not take place.
-     * 
+     *
      * @param f
      * @param target
      * @param new_name
-     * @param options 
+     * @param options
      */
     public static void copyFileSafe(File f, File target, String new_name, CopyOption... options) {
         try {
@@ -557,28 +545,28 @@ public final class FileUtil {
             // avoid when files are the same (would produce nasty side effect of renaming
             // the file needlessly)
             if (f.equals(nf)) return;
-            
+
             // backup old file
             FileUtil.renameAsOld(new File(target, name));
             // copy file
             Files.copy(f.toPath(), nf.toPath(), options);
-        } catch(IOException ex) {
-            // ignore
+        } catch(IOException e) {
+            getLogger(Util.class).error("Could not copy file {}", f,e);
         }
     }
-    
+
     /**
      * Copies file from given url, for example accessed over http protocol, into
      * new file on a local file system specified by the parameter. Previously
-     * existing file is removed. 
-     * 
+     * existing file is removed.
+     *
      * @param url
      * @param file
      * @throws IOException when bad url or input or output file inaccessible
      */
     public static void saveFileAs(String url, File file) throws IOException {
         if(file.exists()) file.delete();
-        
+
         URL u = new URL(url);
         InputStream is = u.openStream();
         OutputStream os = new FileOutputStream(file);
@@ -593,33 +581,33 @@ public final class FileUtil {
         is.close();
         os.close();
    }
-    
+
     /**
      * Same as {@link #saveFileAs(java.lang.String, java.io.File)} but instead
      * destination directory is provided and the destination file will be put
      * there and named according to the input url file name.
      * @param url
      * @param dirdirectory
-     * 
+     *
      * @return the file denoting the new file.
-     * 
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     public static File saveFileTo(String url, File dir) throws IOException {
         int i = url.lastIndexOf('/');
         if(i==-1) throw new IOException("url does not contain name. No '/' character found.");
-        String name = url.substring(1+i); 
-        
+        String name = url.substring(1+i);
+
         File df = new File(dir, name);
         saveFileAs(url, df);
         return df;
     }
-    
+
     /**
-     * Renames flle by sufixing it with a number, utilizing 
+     * Renames flle by sufixing it with a number, utilizing
      * {@link #getFirstAvailableOld(java.io.File, java.lang.String, java.lang.String, int)}
-     * 
-     * @param f 
+     *
+     * @param f
      */
     public static void renameAsOld(File f) {
         if(f!= null && f.exists()) {
@@ -628,38 +616,38 @@ public final class FileUtil {
             f.renameTo(getFirstAvailableOld(f.getParentFile(), getName(f), suffix, 1));
         }
     }
-    
+
     /**
      * For given directory, filename and file suffix, returns first available file
      * suffixed by an auto-incrementing decadic number.
      * <p>
      * Useful to avoid rewriting files on file move/copy.
-     * 
+     *
      * @param location
      * @param name
      * @param suffix
      * @param i
-     * @return 
+     * @return
      */
     public static File getFirstAvailableOld(File location, String name, String suffix, int i) {
         File f = new File(location, name + "-" + i + "."+suffix);
         if(f.exists()) return getFirstAvailableOld(location, name, suffix, i+1);
         else return f;
     }
-    
+
     public static String getSuffix(File f) {
         return getSuffix(f.getPath());
     }
-    
+
     public static String getSuffix(URI f) {
         return getSuffix(f.getPath());
     }
-    
+
     public static String getSuffix(String path) {
         int p = path.lastIndexOf('.');
         return (p == - 1) ? "" : path.substring(p + 1);
     }
-    
+
     /** Deletes the file and if it denotes a directory, all its content too. */
     public static void removeDir(File dir) {
         if (dir.isDirectory()) {
@@ -674,18 +662,18 @@ public final class FileUtil {
             dir.delete();
         }
     }
-    
-    /** 
+
+    /**
      * Deletes content of the directory, but not directory itself. Does nothing
      * when not a directory.
      */
     public static void removeDirContent(File dir) {
         listFiles(dir).forEach(FileUtil::removeDir);
     }
-    
+
     /**
      * Renames file (with extension suffix).
-     * 
+     *
      * @param f file to rename, if doesnt exist nothing happens
      * @param name new file name without suffix
      */
@@ -693,10 +681,10 @@ public final class FileUtil {
         File rf = f.getParentFile().getAbsoluteFile();
         f.renameTo(new File(rf, filenamizeString(name)));
     };
-    
+
     /**
      * Renames file (extension suffix remains the same).
-     * 
+     *
      * @param f file to rename, if doesnt exist nothing happens
      * @param name new file name without suffix
      */
